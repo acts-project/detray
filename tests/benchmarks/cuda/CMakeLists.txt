@@ -4,6 +4,8 @@
 #
 # Mozilla Public License Version 2.0
 
+message(STATUS "Building detray CUDA benchmarks")
+
 # C++17 support for CUDA requires CMake 3.18.
 cmake_minimum_required( VERSION 3.18 )
 
@@ -29,7 +31,7 @@ detray_add_executable( benchmark_cuda_${algebra}
    "benchmark_propagator_cuda_kernel.hpp"
    "benchmark_propagator_cuda.cpp"
    "benchmark_propagator_cuda_kernel.cu"
-   LINK_LIBRARIES benchmark::benchmark detray::core detray::test_common detray::algebra_${algebra} vecmem::cuda detray::utils )
+   LINK_LIBRARIES benchmark::benchmark detray::core detray::algebra_${algebra} vecmem::cuda detray::test_utils )
 
    target_compile_definitions( detray_benchmark_cuda_${algebra}
       PRIVATE ${algebra}=${algebra} )

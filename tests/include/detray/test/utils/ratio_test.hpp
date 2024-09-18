@@ -10,7 +10,9 @@
 // Detray tests include(s).
 #include "detray/geometry/shapes/cuboid3D.hpp"
 #include "detray/geometry/shapes/cylinder2D.hpp"
-#include "detray/test/common/types.hpp"
+
+// Detray test include(s)
+#include "detray/test/utils/types.hpp"
 
 // System include(s)
 #include <atomic>

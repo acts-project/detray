@@ -7,9 +7,9 @@
 
 #pragma once
 
-// Project include(s)
-#include "detray/detectors/create_wire_chamber.hpp"
+// Detray test include(s)
 #include "detray/options/options_handling.hpp"
+#include "detray/test/utils/detectors/create_wire_chamber.hpp"
 
 // Boost
 #include "detray/options/boost_program_options.hpp"

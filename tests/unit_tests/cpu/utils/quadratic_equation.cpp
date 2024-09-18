@@ -11,8 +11,8 @@
 #include "detray/definitions/detail/algebra.hpp"
 #include "detray/utils/tuple_helpers.hpp"
 
-// detray test
-#include "detray/test/common/types.hpp"
+// Detray test include(s)
+#include "detray/test/utils/types.hpp"
 
 // GTest include(s)
 #include <gtest/gtest.h>

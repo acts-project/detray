@@ -1,21 +1,25 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
 // Project include(s)
 #include "detray/core/detector.hpp"
-#include "detray/detectors/build_toy_detector.hpp"
+
+// Detray plugin include(s)
 #include "detray/plugins/svgtools/illustrator.hpp"
 #include "detray/plugins/svgtools/writer.hpp"
+
+// Detray test include(s)
+#include "detray/test/utils/detectors/build_toy_detector.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
 
 // Actsvg include(s)
-#include "actsvg/core.hpp"
+#include <actsvg/core.hpp>
 
 // GTest include(s).
 #include <gtest/gtest.h>

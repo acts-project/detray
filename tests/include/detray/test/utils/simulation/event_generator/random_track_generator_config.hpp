@@ -12,7 +12,9 @@
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/simulation/event_generator/random_numbers.hpp"
+
+// Detray test include(s)
+#include "detray/test/utils/simulation/event_generator/random_numbers.hpp"
 
 // System include(s)
 #include <algorithm>

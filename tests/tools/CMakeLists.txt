@@ -4,6 +4,8 @@
 #
 # Mozilla Public License Version 2.0
 
+message(STATUS "Building detray command line tools")
+
 include( CMakeFindDependencyMacro )
 
 find_dependency( Boost COMPONENTS program_options )
@@ -15,6 +17,6 @@ target_include_directories( detray_tools
    INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/include" )
 
 target_link_libraries( detray_tools
-   INTERFACE Boost::program_options vecmem::core detray::core_array detray::test_common detray::io detray::csv_io detray::utils )
+   INTERFACE Boost::program_options vecmem::core detray::core_array detray::test_common detray::io detray::csv_io detray::test_utils )
 
 add_subdirectory( src )

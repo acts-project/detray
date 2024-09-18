@@ -9,16 +9,20 @@
 
 // Project include(s)
 #include "detray/geometry/tracking_surface.hpp"
-#include "detray/io/utils/create_path.hpp"
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/volume_graph.hpp"
-#include "detray/simulation/event_generator/track_generators.hpp"
+
+// Detray IO inlcude(s)
+#include "detray/io/utils/create_path.hpp"
+
+// Detray test include(s).
 #include "detray/test/common/detail/whiteboard.hpp"
 #include "detray/test/common/detector_scan_config.hpp"
 #include "detray/test/common/fixture_base.hpp"
-#include "detray/test/common/types.hpp"
-#include "detray/test/common/utils/detector_scan_utils.hpp"
-#include "detray/test/common/utils/detector_scanner.hpp"
+#include "detray/test/utils/detector_scan_utils.hpp"
+#include "detray/test/utils/detector_scanner.hpp"
+#include "detray/test/utils/simulation/event_generator/track_generators.hpp"
+#include "detray/test/utils/types.hpp"
 
 // System include(s)
 #include <iostream>

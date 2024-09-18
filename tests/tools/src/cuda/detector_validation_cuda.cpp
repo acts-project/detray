@@ -8,7 +8,11 @@
 // Project include(s)
 #include "detray/core/detector.hpp"
 #include "detray/definitions/units.hpp"
+
+// Detray IO include(s)
 #include "detray/io/frontend/detector_reader.hpp"
+
+// Detray test include(s)
 #include "detray/options/detector_io_options.hpp"
 #include "detray/options/parse_options.hpp"
 #include "detray/options/propagation_options.hpp"

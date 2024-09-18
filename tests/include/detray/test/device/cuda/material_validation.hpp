@@ -9,11 +9,13 @@
 
 // Project include(s)
 #include "detray/core/detector.hpp"
+#include "detray/tracks/tracks.hpp"
+
+// Detray test include(s)
 #include "detray/test/common/fixture_base.hpp"
 #include "detray/test/common/material_validation_config.hpp"
-#include "detray/test/common/utils/material_validation_utils.hpp"
 #include "detray/test/cpu/material_validation.hpp"
-#include "detray/tracks/tracks.hpp"
+#include "detray/test/utils/material_validation_utils.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/cuda/device_memory_resource.hpp>

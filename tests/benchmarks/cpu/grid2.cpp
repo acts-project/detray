@@ -15,7 +15,7 @@
 #include "detray/grids/serializer2.hpp"
 
 // Detray test include(s).
-#include "detray/test/common/types.hpp"
+#include "detray/test/utils/types.hpp"
 
 // VecMem include(s).
 #include <vecmem/memory/host_memory_resource.hpp>

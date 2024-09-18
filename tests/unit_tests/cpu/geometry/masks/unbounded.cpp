@@ -11,7 +11,9 @@
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes/rectangle2D.hpp"
-#include "detray/test/common/types.hpp"
+
+// Detray test include(s)
+#include "detray/test/utils/types.hpp"
 
 // GTest include(s)
 #include <gtest/gtest.h>

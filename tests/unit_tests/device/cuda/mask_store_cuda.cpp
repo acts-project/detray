@@ -1,17 +1,22 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021-2022 CERN for the benefit of the ACTS project
+ * (c) 2021-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
-#include <gtest/gtest.h>
+// Detray test include(s)
+#include "mask_store_cuda_kernel.hpp"
 
-#include <climits>
-#include <cstdlib>
+// Vecmem include(s)
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
 
-#include "mask_store_cuda_kernel.hpp"
+// GTest include(s)
+#include <gtest/gtest.h>
+
+// System include(s)
+#include <climits>
+#include <cstdlib>
 
 TEST(mask_store_cuda, mask_store) {
 

@@ -8,15 +8,17 @@
 // Project include(s)
 #include "detray/core/detector.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/detectors/build_toy_detector.hpp"
 #include "detray/geometry/tracking_surface.hpp"
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
 #include "detray/navigation/intersection_kernel.hpp"
-#include "detray/simulation/event_generator/track_generators.hpp"
-#include "detray/test/common/types.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/ranges.hpp"
+
+// Detray test include(s).
+#include "detray/test/utils/detectors/build_toy_detector.hpp"
+#include "detray/test/utils/simulation/event_generator/track_generators.hpp"
+#include "detray/test/utils/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>

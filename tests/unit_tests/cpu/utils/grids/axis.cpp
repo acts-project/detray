@@ -11,9 +11,11 @@
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/coordinates/coordinates.hpp"
-#include "detray/test/common/types.hpp"
 #include "detray/utils/grid/detail/axis_binning.hpp"
 #include "detray/utils/grid/detail/axis_bounds.hpp"
+
+// Detray test include(s)
+#include "detray/test/utils/types.hpp"
 
 // GTest include(s)
 #include <gtest/gtest.h>

@@ -8,7 +8,7 @@
 // Project include(s)
 #include "detector_construction.hpp"
 
-#include "detray/detectors/build_toy_detector.hpp"
+#include "detray/test/utils/detectors/build_toy_detector.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/cuda/device_memory_resource.hpp>

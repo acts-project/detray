@@ -10,8 +10,8 @@
 #include "detray/grids/axis.hpp"
 #include "detray/grids/serializer2.hpp"
 
-// detray test
-#include "detray/test/common/types.hpp"
+// Detray test include(s)
+#include "detray/test/utils/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>

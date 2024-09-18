@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -9,6 +9,8 @@
 #include "detray/definitions/geometry.hpp"
 #include "detray/definitions/grid_axis.hpp"
 #include "detray/definitions/units.hpp"
+
+// Detray IO include(s)
 #include "detray/io/json/json_io.hpp"
 
 // GTest include(s)

@@ -9,8 +9,10 @@
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/geometry/detail/surface_descriptor.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
-#include "detray/test/common/types.hpp"
 #include "detray/utils/invalid_values.hpp"
+
+// Detray test include(s)
+#include "detray/test/utils/types.hpp"
 
 // Google test include(s)
 #include <gtest/gtest.h>

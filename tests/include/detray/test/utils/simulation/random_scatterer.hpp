@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -15,12 +15,14 @@
 #include "detray/geometry/tracking_surface.hpp"
 #include "detray/materials/interaction.hpp"
 #include "detray/propagator/base_actor.hpp"
-#include "detray/simulation/landau_distribution.hpp"
-#include "detray/simulation/scattering_helper.hpp"
 #include "detray/tracks/bound_track_parameters.hpp"
 #include "detray/utils/axis_rotation.hpp"
 #include "detray/utils/ranges.hpp"
 #include "detray/utils/unit_vectors.hpp"
+
+// Detray test include(s)
+#include "detray/test/utils/simulation/landau_distribution.hpp"
+#include "detray/test/utils/simulation/scattering_helper.hpp"
 
 // System include(s).
 #include <random>

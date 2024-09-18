@@ -7,11 +7,15 @@
 
 // Project include(s)
 #include "detray/definitions/units.hpp"
-#include "detray/detectors/create_wire_chamber.hpp"
+
+// Detray IO include(s)
 #include "detray/io/frontend/detector_writer.hpp"
+
+// Detray test include(s)
 #include "detray/options/detector_io_options.hpp"
 #include "detray/options/parse_options.hpp"
 #include "detray/options/wire_chamber_options.hpp"
+#include "detray/test/utils/detectors/create_wire_chamber.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>

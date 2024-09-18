@@ -14,8 +14,8 @@
 #include "detray/grids/populator.hpp"
 #include "detray/grids/serializer2.hpp"
 
-// detray test
-#include "detray/test/common/types.hpp"
+// Detray test include(s)
+#include "detray/test/utils/types.hpp"
 
 namespace detray {
 

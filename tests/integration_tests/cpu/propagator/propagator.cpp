@@ -10,7 +10,6 @@
 
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/bfield.hpp"
-#include "detray/detectors/build_toy_detector.hpp"
 #include "detray/geometry/tracking_surface.hpp"
 #include "detray/navigation/detail/trajectories.hpp"
 #include "detray/navigation/navigator.hpp"
@@ -22,10 +21,13 @@
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/rk_stepper.hpp"
-#include "detray/simulation/event_generator/track_generators.hpp"
-#include "detray/test/common/types.hpp"
 #include "detray/tracks/tracks.hpp"
-#include "detray/utils/inspectors.hpp"
+
+// Detray test include(s)
+#include "detray/test/utils/detectors/build_toy_detector.hpp"
+#include "detray/test/utils/inspectors.hpp"
+#include "detray/test/utils/simulation/event_generator/track_generators.hpp"
+#include "detray/test/utils/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>

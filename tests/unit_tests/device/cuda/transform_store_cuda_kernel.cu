@@ -7,6 +7,8 @@
 
 #include "detray/definitions/detail/cuda_definitions.hpp"
 #include "detray/utils/ranges.hpp"
+
+// Detray test include(s)
 #include "transform_store_cuda_kernel.hpp"
 
 namespace detray {

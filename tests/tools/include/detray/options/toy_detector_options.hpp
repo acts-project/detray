@@ -7,9 +7,9 @@
 
 #pragma once
 
-// Project include(s)
-#include "detray/detectors/build_toy_detector.hpp"
+// Detray test include(s)
 #include "detray/options/options_handling.hpp"
+#include "detray/test/utils/detectors/build_toy_detector.hpp"
 
 // Boost
 #include "detray/options/boost_program_options.hpp"

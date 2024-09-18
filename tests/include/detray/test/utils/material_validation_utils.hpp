@@ -8,8 +8,6 @@
 #pragma once
 
 // Project include(s)
-#include "detray/io/utils/create_path.hpp"
-#include "detray/io/utils/file_handle.hpp"
 #include "detray/materials/detail/material_accessor.hpp"
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actor_chain.hpp"
@@ -21,6 +19,10 @@
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/utils/type_list.hpp"
+
+// Detray IO include(s)
+#include "detray/io/utils/create_path.hpp"
+#include "detray/io/utils/file_handle.hpp"
 
 // System include(s)
 #include <filesystem>

@@ -11,10 +11,12 @@
 #include "detray/materials/material.hpp"
 #include "detray/materials/material_slab.hpp"
 #include "detray/materials/predefined_materials.hpp"
-#include "detray/simulation/landau_distribution.hpp"
-#include "detray/simulation/random_scatterer.hpp"
-#include "detray/test/common/types.hpp"
-#include "detray/utils/statistics.hpp"
+
+// Detray test include(s)
+#include "detray/test/utils/simulation/landau_distribution.hpp"
+#include "detray/test/utils/simulation/random_scatterer.hpp"
+#include "detray/test/utils/statistics.hpp"
+#include "detray/test/utils/types.hpp"
 
 // GTest include(s).
 #include <gtest/gtest.h>

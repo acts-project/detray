@@ -12,8 +12,10 @@
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/simulation/event_generator/random_track_generator_config.hpp"
 #include "detray/utils/ranges/ranges.hpp"
+
+// Detray test include(s)
+#include "detray/test/utils/simulation/event_generator/random_track_generator_config.hpp"
 
 // System include(s)
 #include <algorithm>

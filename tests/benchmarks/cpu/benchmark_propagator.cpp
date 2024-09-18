@@ -11,7 +11,6 @@
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/bfield.hpp"
-#include "detray/detectors/build_toy_detector.hpp"
 #include "detray/detectors/toy_metadata.hpp"
 #include "detray/geometry/shapes/rectangle2D.hpp"
 #include "detray/navigation/navigator.hpp"
@@ -23,12 +22,13 @@
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
-#include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/grid/grid.hpp"
 
 // Detray test include(s).
-#include "detray/test/common/types.hpp"
+#include "detray/test/utils/detectors/build_toy_detector.hpp"
+#include "detray/test/utils/simulation/event_generator/track_generators.hpp"
+#include "detray/test/utils/types.hpp"
 
 // VecMem include(s).
 #include <vecmem/memory/host_memory_resource.hpp>

@@ -39,6 +39,10 @@ jobs:
     - name: Configure
       run: cmake --preset default-fp64
                  -DCMAKE_BUILD_TYPE=${{ matrix.BUILD_TYPE }}
+                 -DDETRAY_BUILD_UNITTESTS=ON
+                 -DDETRAY_BUILD_INTEGRATIONTESTS=ON
+                 -DDETRAY_BUILD_BENCHMARKS=ON
+                 -DDETRAY_BUILD_TUTORIALS=ON
                  -DDETRAY_FAIL_ON_WARNINGS=ON
                  -S ${{ github.workspace }} -B build
                  -G "${{ matrix.PLATFORM.GENERATOR }}"
@@ -88,6 +92,10 @@ jobs:
         source ${GITHUB_WORKSPACE}/.github/ci_setup.sh ${{ matrix.PLATFORM.NAME }}
         cmake \
           -DCMAKE_CXX_STANDARD=${{ matrix.PLATFORM.CXX_STANDARD }} \
+          -DDETRAY_BUILD_UNITTESTS=ON \
+          -DDETRAY_BUILD_INTEGRATIONTESTS=ON \
+          -DDETRAY_BUILD_BENCHMARKS=ON \
+          -DDETRAY_BUILD_TUTORIALS=ON \
           -DDETRAY_FAIL_ON_WARNINGS=ON \
           -DCMAKE_BUILD_TYPE=${{ matrix.BUILD_TYPE }} \
           -DDETRAY_CUSTOM_SCALARTYPE=${{ matrix.SCALAR_TYPE }} \
@@ -152,6 +160,10 @@ jobs:
           -DCMAKE_CXX_STANDARD=${{ matrix.PLATFORM.CXX_STANDARD }} \
           -DCMAKE_CUDA_STANDARD=${{ matrix.PLATFORM.CXX_STANDARD }} \
           -DCMAKE_SYCL_STANDARD=${{ matrix.PLATFORM.CXX_STANDARD }} \
+          -DDETRAY_BUILD_UNITTESTS=ON \
+          -DDETRAY_BUILD_INTEGRATIONTESTS=ON \
+          -DDETRAY_BUILD_BENCHMARKS=ON \
+          -DDETRAY_BUILD_TUTORIALS=ON \
           -DDETRAY_FAIL_ON_WARNINGS=ON \
           -DCMAKE_BUILD_TYPE=${{ matrix.BUILD_TYPE }} \
           -DDETRAY_CUSTOM_SCALARTYPE=${{ matrix.SCALAR_TYPE }} \

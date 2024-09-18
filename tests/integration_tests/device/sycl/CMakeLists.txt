@@ -4,6 +4,8 @@
 #
 # Mozilla Public License Version 2.0
 
+message(STATUS "Building detray SYCL integration tests")
+
 # Set the SYCL build flags.
 include(detray-compiler-options-sycl)
 
@@ -21,7 +23,7 @@ foreach(algebra ${algebras})
       "propagator.sycl"
       "propagator_kernel.sycl"
       LINK_LIBRARIES GTest::gtest_main vecmem::sycl detray::test_device
-      detray::core detray::algebra_${algebra} detray::utils )
+      detray::core detray::algebra_${algebra} detray::test_utils )
    target_compile_definitions(detray_integration_test_sycl_${algebra}
       PRIVATE ${algebra}=${algebra})
 endforeach()

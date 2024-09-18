@@ -10,11 +10,13 @@
 // Project include(s)
 #include "detray/detectors/bfield.hpp"
 #include "detray/detectors/toy_metadata.hpp"
+
+// Detray test include(s)
 #include "detray/test/device/propagator_test.hpp"
 #include "queue_wrapper.hpp"
 
 // Vecmem include(s)
-#include "vecmem/utils/sycl/copy.hpp"
+#include <vecmem/utils/sycl/copy.hpp>
 
 namespace detray {
 

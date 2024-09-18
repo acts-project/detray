@@ -8,16 +8,18 @@
 // Project include(s)
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/bfield.hpp"
-#include "detray/detectors/build_telescope_detector.hpp"
 #include "detray/navigation/intersection/helix_intersector.hpp"
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actors/parameter_resetter.hpp"
 #include "detray/propagator/actors/parameter_transporter.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
-#include "detray/simulation/event_generator/track_generators.hpp"
-#include "detray/utils/inspectors.hpp"
-#include "detray/utils/statistics.hpp"
+
+// Detray test include(s)
+#include "detray/test/utils/detectors/build_telescope_detector.hpp"
+#include "detray/test/utils/inspectors.hpp"
+#include "detray/test/utils/simulation/event_generator/track_generators.hpp"
+#include "detray/test/utils/statistics.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>

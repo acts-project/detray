@@ -9,9 +9,11 @@
 #include "detray/geometry/tracking_surface.hpp"
 
 #include "detray/definitions/detail/indexing.hpp"
-#include "detray/detectors/build_toy_detector.hpp"
-#include "detray/detectors/create_wire_chamber.hpp"
-#include "detray/test/common/types.hpp"
+
+// Detray test include(s)
+#include "detray/test/utils/detectors/build_toy_detector.hpp"
+#include "detray/test/utils/detectors/create_wire_chamber.hpp"
+#include "detray/test/utils/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>

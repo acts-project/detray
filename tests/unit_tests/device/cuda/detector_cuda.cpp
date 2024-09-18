@@ -1,13 +1,13 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020 CERN for the benefit of the ACTS project
+ * (c) 2020-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
-// Project include(s)
+// Detray test include(s)
 #include "detector_cuda_kernel.hpp"
-#include "detray/detectors/build_toy_detector.hpp"
+#include "detray/test/utils/detectors/build_toy_detector.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/cuda/device_memory_resource.hpp>

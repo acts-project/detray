@@ -17,7 +17,7 @@
 #include "detray/navigation/intersection/intersection.hpp"
 
 // Detray test include(s).
-#include "detray/test/common/types.hpp"
+#include "detray/test/utils/types.hpp"
 
 // Google benchmark include(s).
 #include <benchmark/benchmark.h>

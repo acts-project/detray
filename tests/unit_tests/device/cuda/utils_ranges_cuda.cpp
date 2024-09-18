@@ -5,12 +5,15 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <gtest/gtest.h>
-
-#include <vecmem/memory/cuda/managed_memory_resource.hpp>
-
+// Detray test include(s)
 #include "utils_ranges_cuda_kernel.hpp"
-#include "vecmem/utils/cuda/copy.hpp"
+
+// Vecmem include(s)
+#include <vecmem/memory/cuda/managed_memory_resource.hpp>
+#include <vecmem/utils/cuda/copy.hpp>
+
+// GTest include(s)
+#include <gtest/gtest.h>
 
 using namespace detray;
 

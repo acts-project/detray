@@ -7,7 +7,8 @@
 
 // Project include(s)
 #include "detray/definitions/units.hpp"
-#include "detray/detectors/build_telescope_detector.hpp"
+
+// Detray test include(s)
 #include "detray/test/common/detail/register_checks.hpp"
 #include "detray/test/common/detail/whiteboard.hpp"
 #include "detray/test/cpu/detector_consistency.hpp"
@@ -15,6 +16,7 @@
 #include "detray/test/cpu/material_scan.hpp"
 #include "detray/test/cpu/material_validation.hpp"
 #include "detray/test/cpu/navigation_validation.hpp"
+#include "detray/test/utils/detectors/build_telescope_detector.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>

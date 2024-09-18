@@ -9,7 +9,9 @@
 #include "detray/materials/interaction.hpp"
 #include "detray/materials/material.hpp"
 #include "detray/materials/predefined_materials.hpp"
-#include "detray/test/common/types.hpp"
+
+// Detray test include(s)
+#include "detray/test/utils/types.hpp"
 
 // GTest include(s).
 #include <gtest/gtest.h>

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -16,8 +16,10 @@
 #include "detray/geometry/shapes/rectangle2D.hpp"
 #include "detray/geometry/shapes/unmasked.hpp"
 #include "detray/navigation/detail/helix.hpp"
-#include "detray/test/common/types.hpp"
 #include "detray/tracks/tracks.hpp"
+
+// Detray test include(s)
+#include "detray/test/utils/types.hpp"
 
 // Google Test include(s).
 #include <gtest/gtest.h>

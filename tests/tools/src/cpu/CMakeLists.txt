@@ -12,17 +12,17 @@ find_dependency( Boost COMPONENTS program_options )
 detray_add_executable(generate_toy_detector
                       "generate_toy_detector.cpp"
                       LINK_LIBRARIES Boost::program_options detray::tools
-                      detray::io detray::utils detray::core_array)
+                      detray::io detray::test_utils detray::core_array)
 
 detray_add_executable(generate_wire_chamber
                       "generate_wire_chamber.cpp"
                       LINK_LIBRARIES Boost::program_options detray::tools
-                      detray::io detray::utils detray::core_array)
+                      detray::io detray::test_utils detray::core_array)
 
 detray_add_executable(generate_telescope_detector
                       "generate_telescope_detector.cpp"
                       LINK_LIBRARIES Boost::program_options detray::tools
-                      detray::io detray::utils detray::core_array)
+                      detray::io detray::test_utils detray::core_array)
 
 # Build the visualization executable.
 detray_add_executable(detector_display
@@ -34,12 +34,12 @@ detray_add_executable(detector_display
 detray_add_executable(detector_validation
                       "detector_validation.cpp"
                       LINK_LIBRARIES GTest::gtest GTest::gtest_main
-                      Boost::program_options detray::tools detray::utils
+                      Boost::program_options detray::tools detray::test_utils
                       detray::svgtools)
 
 # Build the material validation executable.
 detray_add_executable(material_validation
                       "material_validation.cpp"
                       LINK_LIBRARIES GTest::gtest GTest::gtest_main
-                      Boost::program_options detray::tools detray::utils
+                      Boost::program_options detray::tools detray::test_utils
                       detray::svgtools)

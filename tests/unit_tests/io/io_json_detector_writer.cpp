@@ -8,17 +8,21 @@
 // Project include(s)
 #include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/detectors/build_telescope_detector.hpp"
-#include "detray/detectors/build_toy_detector.hpp"
-#include "detray/detectors/create_wire_chamber.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes/annulus2D.hpp"
+
+// Detray IO include(s)
 #include "detray/io/common/geometry_writer.hpp"
 #include "detray/io/common/homogeneous_material_writer.hpp"
 #include "detray/io/common/material_map_writer.hpp"
 #include "detray/io/common/surface_grid_writer.hpp"
 #include "detray/io/frontend/detector_writer.hpp"
 #include "detray/io/json/json_writer.hpp"
+
+// Detray test include(s)
+#include "detray/test/utils/detectors/build_telescope_detector.hpp"
+#include "detray/test/utils/detectors/build_toy_detector.hpp"
+#include "detray/test/utils/detectors/create_wire_chamber.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>

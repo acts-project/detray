@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -8,7 +8,8 @@
 // Project include(s).
 #include "detray/utils/matrix_helper.hpp"
 
-#include "detray/test/common/types.hpp"
+// Detray test include(s)
+#include "detray/test/utils/types.hpp"
 
 // GTest include(s)
 #include <gtest/gtest.h>

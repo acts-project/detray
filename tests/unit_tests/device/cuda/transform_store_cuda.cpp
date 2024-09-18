@@ -5,16 +5,21 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <gtest/gtest.h>
-
 // Project include(s)
 #include "detray/definitions/detail/algebra.hpp"
 #include "detray/utils/ranges.hpp"
+
+// Detray test include(s)
 #include "transform_store_cuda_kernel.hpp"
+
+// Vecmem include(s)
+#include <vecmem/memory/cuda/managed_memory_resource.hpp>
+
+// GTest include(s)
+#include <gtest/gtest.h>
 
 // System include(s)
 #include <climits>
-#include <vecmem/memory/cuda/managed_memory_resource.hpp>
 
 TEST(transform_store_cuda, transform_store) {
 

@@ -7,11 +7,13 @@
 
 #pragma once
 
-// Project include(s)
+// detray plugin include(s)
 #include "detray/plugins/svgtools/styling/styling.hpp"
+
+// Detray test include(s).
 #include "detray/test/common/detail/whiteboard.hpp"
 #include "detray/test/common/fixture_base.hpp"
-#include "detray/test/common/types.hpp"
+#include "detray/test/utils/types.hpp"
 
 // System include(s)
 #include <limits>

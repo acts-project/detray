@@ -7,11 +7,15 @@
 
 // Project include(s)
 #include "detray/definitions/units.hpp"
-#include "detray/detectors/build_toy_detector.hpp"
+
+// Detray IO include(s)
 #include "detray/io/frontend/detector_writer.hpp"
+
+// Detray test include(s)
 #include "detray/options/detector_io_options.hpp"
 #include "detray/options/parse_options.hpp"
 #include "detray/options/toy_detector_options.hpp"
+#include "detray/test/utils/detectors/build_toy_detector.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>

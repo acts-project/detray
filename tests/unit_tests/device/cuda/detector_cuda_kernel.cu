@@ -5,8 +5,10 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "detector_cuda_kernel.hpp"
 #include "detray/definitions/detail/cuda_definitions.hpp"
+
+// Detray test include(s)
+#include "detector_cuda_kernel.hpp"
 
 namespace detray {
 

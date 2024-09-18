@@ -1,17 +1,19 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
 // Project include(s).
 #include "detray/propagator/actors/pointwise_material_interactor.hpp"
-#include "detray/simulation/random_scatterer.hpp"
-#include "detray/simulation/scattering_helper.hpp"
-#include "detray/test/common/types.hpp"
 #include "detray/tracks/tracks.hpp"
-#include "detray/utils/statistics.hpp"
+
+// Detray test include(s)
+#include "detray/test/utils/simulation/random_scatterer.hpp"
+#include "detray/test/utils/simulation/scattering_helper.hpp"
+#include "detray/test/utils/statistics.hpp"
+#include "detray/test/utils/types.hpp"
 
 // google-test include(s).
 #include <gtest/gtest.h>

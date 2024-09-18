@@ -6,8 +6,10 @@
  */
 
 // Project include(s)
-#include "detray/detectors/build_toy_detector.hpp"
 #include "navigator_cuda_kernel.hpp"
+
+// Detray test include(s)
+#include "detray/test/utils/detectors/build_toy_detector.hpp"
 
 // vecmem include(s)
 #include <vecmem/memory/cuda/device_memory_resource.hpp>

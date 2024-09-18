@@ -13,14 +13,16 @@
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/rk_stepper.hpp"
+#include "detray/tracks/tracks.hpp"
+
+// Detray test include(s)
 #include "detray/test/common/fixture_base.hpp"
 #include "detray/test/common/navigation_validation_config.hpp"
-#include "detray/test/common/utils/detector_scan_utils.hpp"
-#include "detray/test/common/utils/detector_scanner.hpp"
-#include "detray/test/common/utils/material_validation_utils.hpp"
-#include "detray/test/common/utils/navigation_validation_utils.hpp"
-#include "detray/tracks/tracks.hpp"
-#include "detray/utils/inspectors.hpp"
+#include "detray/test/utils/detector_scan_utils.hpp"
+#include "detray/test/utils/detector_scanner.hpp"
+#include "detray/test/utils/inspectors.hpp"
+#include "detray/test/utils/material_validation_utils.hpp"
+#include "detray/test/utils/navigation_validation_utils.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/cuda/device_memory_resource.hpp>
