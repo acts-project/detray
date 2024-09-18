@@ -332,7 +332,6 @@ TEST(detray_propagator, qop_derivative) {
             const scalar dqopds1 = rk_state.dqopds(qop1);
 
             rk_state.set_step_size(ds);
-            rk_state._initialized = false;
             rk_stepper.step(propagation, step_cfg);
 
             const scalar qop2 = rk_state().qop();

@@ -10,4 +10,4 @@ if( DETRAY_BUILD_CUDA )
 
 if( DETRAY_BUILD_SYCL )
     add_subdirectory( sycl )
- endif()
+endif()

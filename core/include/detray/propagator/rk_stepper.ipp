@@ -714,45 +714,30 @@ DETRAY_HOST_DEVICE bool detray::rk_stepper<
     // Whenever navigator::init() is called the step size is set to navigation
     // path length (navigation()). We need to reduce it down to make error small
     // enough
-    if (stepping._initialized) {
-        for (unsigned int i_t = 0u; i_t < cfg.max_rk_updates; i_t++) {
-            // Count the number of steps
-            stepping.count_trials();
-
-            error = math::max(estimate_error(stepping._step_size),
-                              static_cast<scalar_type>(1e-20));
-
-            // Error is small enough
-            // ---> break and advance track
-            if (error <= cfg.rk_error_tol) {
-                stepping._initialized = false;
-                break;
-            }
-            // Error estimate is too big
-            // ---> Make step size smaller and esimate error again
-            else {
-
-                scalar_type step_size_scaling =
-                    math::sqrt(math::sqrt(cfg.rk_error_tol / error));
-
-                stepping._step_size *= step_size_scaling;
-
-                // Run inspection while the stepsize is getting adjusted
-                stepping.run_inspector(cfg, "Adjust stepsize: ", i_t + 1,
-                                       step_size_scaling);
-            }
-        }
-    } else {
-        // Count the number of steps
+    for (unsigned int i_t = 0u; i_t < cfg.max_rk_updates; i_t++) {
         stepping.count_trials();
-        stepping._initialized = false;
+
         error = math::max(estimate_error(stepping._step_size),
                           static_cast<scalar_type>(1e-20));
-    }
 
-    // If the stepper state is still in the initialized state, abort.
-    if (stepping._initialized == true) {
-        return navigation.abort();
+        // Error is small enough
+        // ---> break and advance track
+        if (error <= 4.f * cfg.rk_error_tol) {
+            break;
+        }
+        // Error estimate is too big
+        // ---> Make step size smaller and esimate error again
+        else {
+
+            scalar_type step_size_scaling =
+                math::sqrt(math::sqrt(cfg.rk_error_tol / error));
+
+            stepping._step_size *= step_size_scaling;
+
+            // Run inspection while the stepsize is getting adjusted
+            stepping.run_inspector(cfg, "Adjust stepsize: ", i_t + 1,
+                                   step_size_scaling);
+        }
     }
 
     // Update navigation direction
