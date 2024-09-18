@@ -105,13 +105,48 @@ struct get_material_params {
 ///
 /// The material is scaled with either the slab thickness or pathlength through
 /// the material.
-template <typename scalar_t>
+template <typename scalar_t, template <typename...> class vector_t>
 struct material_tracer : detray::actor {
 
     using material_record_type = material_record<scalar_t>;
+    using material_params_type = material_params<scalar_t>;
 
     struct state {
-        material_record<scalar_t> mat_record{};
+        friend struct material_tracer;
+
+        /// Construct the vector containers with a given resource
+        /// @param resource
+        DETRAY_HOST
+        explicit state(vecmem::memory_resource &resource)
+            : m_mat_steps(&resource) {}
+
+        /// Construct from externally provided vector for the @param steps
+        DETRAY_HOST_DEVICE
+        explicit state(vector_t<material_params<scalar_t>> &&steps)
+            : m_mat_steps(std::move(steps)) {}
+
+        /// Access to the total recorded material along the track - const
+        DETRAY_HOST_DEVICE
+        const auto &get_material_record() const { return m_mat_record; }
+
+        /// Move the total recorded material out of the actor
+        DETRAY_HOST
+        auto &&release_material_record() && { return std::move(m_mat_record); }
+
+        /// Access to the recorded material steps along the track - const
+        DETRAY_HOST_DEVICE
+        const auto &get_material_steps() const { return m_mat_steps; }
+
+        /// Move the recorded material steps pout of the actor
+        DETRAY_HOST_DEVICE
+        auto &&release_material_steps() && { return std::move(m_mat_steps); }
+
+        private:
+        /// Accumulated material data for the track
+        material_record<scalar_t> m_mat_record{};
+
+        /// Collect material parameters for every step
+        vector_t<material_params<scalar_t>> m_mat_steps{};
     };
 
     template <typename propagator_state_t>
@@ -127,10 +162,10 @@ struct material_tracer : detray::actor {
 
         // Record the initial track direction
         vector3_t glob_dir = prop_state._stepping().dir();
-        if (detray::detail::is_invalid_value(tracer.mat_record.eta) &&
-            detray::detail::is_invalid_value(tracer.mat_record.phi)) {
-            tracer.mat_record.eta = getter::eta(glob_dir);
-            tracer.mat_record.phi = getter::phi(glob_dir);
+        if (detray::detail::is_invalid_value(tracer.m_mat_record.eta) &&
+            detray::detail::is_invalid_value(tracer.m_mat_record.phi)) {
+            tracer.m_mat_record.eta = getter::eta(glob_dir);
+            tracer.m_mat_record.phi = getter::phi(glob_dir);
         }
 
         // Only count material if navigator encountered it
@@ -172,12 +207,16 @@ struct material_tracer : detray::actor {
 
         // Fill the material record
         if (mx0 > 0.f) {
-            tracer.mat_record.sX0 += seg / mx0;
-            tracer.mat_record.tX0 += t / mx0;
+            tracer.m_mat_record.sX0 += seg / mx0;
+            tracer.m_mat_record.tX0 += t / mx0;
+
+            tracer.m_mat_steps.push_back({seg, t, mx0, ml0});
         }
         if (ml0 > 0.f) {
-            tracer.mat_record.sL0 += seg / ml0;
-            tracer.mat_record.tL0 += t / ml0;
+            tracer.m_mat_record.sL0 += seg / ml0;
+            tracer.m_mat_record.tL0 += t / ml0;
+
+            tracer.m_mat_steps.push_back({seg, t, mx0, ml0});
         }
     }
 };
@@ -185,7 +224,8 @@ struct material_tracer : detray::actor {
 /// Run the propagation and record test data along the way
 template <typename detector_t>
 inline auto record_material(
-    const typename detector_t::geometry_context, const detector_t &det,
+    const typename detector_t::geometry_context,
+    vecmem::memory_resource *host_mr, const detector_t &det,
     const propagation::config &cfg,
     const free_track_parameters<typename detector_t::algebra_type> &track) {
 
@@ -196,7 +236,8 @@ inline auto record_material(
     using navigator_t = navigator<detector_t>;
 
     // Propagator with pathlimit aborter
-    using material_tracer_t = material_validator::material_tracer<scalar_t>;
+    using material_tracer_t =
+        material_validator::material_tracer<scalar_t, vecmem::vector>;
     using actor_chain_t =
         actor_chain<dtuple, pathlimit_aborter, parameter_transporter<algebra_t>,
                     parameter_resetter<algebra_t>,
@@ -212,7 +253,7 @@ inline auto record_material(
     typename parameter_transporter<algebra_t>::state transporter_state{};
     typename parameter_resetter<algebra_t>::state resetter_state{};
     typename pointwise_material_interactor<algebra_t>::state interactor_state{};
-    typename material_tracer_t::state mat_tracer_state{};
+    typename material_tracer_t::state mat_tracer_state{*host_mr};
 
     auto actor_states =
         detray::tie(pathlimit_aborter_state, transporter_state, resetter_state,
@@ -223,7 +264,9 @@ inline auto record_material(
     // Run the propagation
     bool success = prop.propagate(propagation, actor_states);
 
-    return std::make_tuple(success, std::move(mat_tracer_state.mat_record));
+    return std::make_tuple(
+        success, std::move(mat_tracer_state).release_material_record(),
+        std::move(mat_tracer_state).release_material_steps());
 }
 
 /// Write the accumulated material of a track from @param mat_records to a csv

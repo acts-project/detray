@@ -37,7 +37,8 @@ struct run_material_validation {
         vecmem::memory_resource *host_mr, vecmem::memory_resource *,
         const detector_t &det, const propagation::config &cfg,
         const dvector<free_track_parameters<typename detector_t::algebra_type>>
-            &tracks) {
+            &tracks,
+        const std::vector<std::size_t> & = {}) {
 
         using scalar_t = typename detector_t::scalar_type;
 
@@ -47,12 +48,18 @@ struct run_material_validation {
             host_mr};
         mat_records.reserve(tracks.size());
 
+        dvector<dvector<material_validator::material_params<scalar_t>>>
+            mat_steps_vec{host_mr};
+
+        mat_steps_vec.reserve(tracks.size());
+
         for (const auto &[i, track] : detray::views::enumerate(tracks)) {
 
-            auto [success, mat_record] =
-                detray::material_validator::record_material(gctx, det, cfg,
-                                                            track);
+            auto [success, mat_record, mat_steps] =
+                detray::material_validator::record_material(gctx, host_mr, det,
+                                                            cfg, track);
             mat_records.push_back(mat_record);
+            mat_steps_vec.push_back(std::move(mat_steps));
 
             if (!success) {
                 std::cerr << "ERROR: Propagation failed for track " << i << ": "
@@ -60,7 +67,8 @@ struct run_material_validation {
             }
         }
 
-        return mat_records;
+        return std::make_tuple(std::move(mat_records),
+                               std::move(mat_steps_vec));
     }
 };
 
@@ -124,9 +132,14 @@ class material_validation_impl : public test::fixture_base<> {
                   << m_det.name(m_names) << "...\n"
                   << std::endl;
 
+        // only needed for device material steps allocations
+        // @TODO: For now, guess how many surface might be encountered
+        std::vector<std::size_t> capacities(tracks.size(), 80u);
+
         // Run the propagation on device and record the accumulated material
-        auto mat_records = material_validator_t{}(
-            &m_host_mr, m_cfg.device_mr(), m_det, m_cfg.propagation(), tracks);
+        auto [mat_records, mat_steps] =
+            material_validator_t{}(&m_host_mr, m_cfg.device_mr(), m_det,
+                                   m_cfg.propagation(), tracks, capacities);
 
         // One material record per track
         ASSERT_EQ(tracks.size(), mat_records.size());

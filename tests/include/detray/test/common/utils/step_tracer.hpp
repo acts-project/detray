@@ -49,15 +49,22 @@ struct step_tracer : actor {
         /// Construct the vector containers with a given resource
         /// @param resource
         DETRAY_HOST
-        state(vecmem::memory_resource& resource) : m_steps(&resource) {}
+        explicit state(vecmem::memory_resource& resource)
+            : m_steps(&resource) {}
 
         /// Construct from externally provided vector for the @param steps
         DETRAY_HOST_DEVICE
-        state(vector_t<step_data_t>&& steps) : m_steps(std::move(steps)) {}
+        explicit state(vector_t<step_data_t>&& steps)
+            : m_steps(std::move(steps)) {}
 
-        /// Access to the recorded path lengths of every step along the track
+        /// Access to the recorded step data of every step along the track -
+        /// const
         DETRAY_HOST_DEVICE
         const auto& get_step_data() const { return m_steps; }
+
+        /// Move the recorded step data out of the actor
+        DETRAY_HOST
+        auto&& release_step_data() && { return std::move(m_steps); }
 
         /// Collect the data at every step
         DETRAY_HOST_DEVICE

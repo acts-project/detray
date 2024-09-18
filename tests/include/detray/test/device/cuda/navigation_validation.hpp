@@ -53,7 +53,10 @@ void navigation_validation_device(
         &recorded_intersections_view,
     vecmem::data::vector_view<
         material_validator::material_record<typename detector_t::scalar_type>>
-        &mat_records_view);
+        &mat_records_view,
+    vecmem::data::jagged_vector_view<
+        material_validator::material_params<typename detector_t::scalar_type>>
+        &mat_steps_view);
 
 /// Prepare data for device navigation run
 template <typename bfield_t, typename detector_t,
@@ -62,15 +65,12 @@ inline auto run_navigation_validation(
     vecmem::memory_resource *host_mr, vecmem::memory_resource *dev_mr,
     const detector_t &det, const propagation::config &cfg, bfield_t field_data,
     const std::vector<std::vector<intersection_record_t>>
-        &truth_intersection_traces)
-    -> std::tuple<vecmem::jagged_vector<navigation::detail::candidate_record<
-                      typename intersection_record_t::intersection_type>>,
-                  vecmem::vector<material_validator::material_record<
-                      typename detector_t::scalar_type>>> {
+        &truth_intersection_traces) {
 
     using intersection_t = typename intersection_record_t::intersection_type;
     using scalar_t = typename detector_t::scalar_type;
     using material_record_t = material_validator::material_record<scalar_t>;
+    using material_params_t = material_validator::material_params<scalar_t>;
 
     // Helper object for performing memory copies (to CUDA devices)
     vecmem::cuda::copy cuda_cpy;
@@ -111,10 +111,16 @@ inline auto run_navigation_validation(
     cuda_cpy.setup(mat_records_buffer);
     auto mat_records_view = vecmem::get_data(mat_records_buffer);
 
+    // Buffer for the material parameters at every step per track
+    vecmem::data::jagged_vector_buffer<material_params_t> mat_steps_buffer(
+        capacities, *dev_mr, host_mr, vecmem::data::buffer_type::resizable);
+    cuda_cpy.setup(mat_steps_buffer);
+    auto mat_steps_view = vecmem::get_data(mat_steps_buffer);
+
     // Run the navigation validation test on device
     navigation_validation_device<bfield_t, detector_t, intersection_record_t>(
         det_view, cfg, field_data, truth_intersection_traces_view,
-        recorded_intersections_view, mat_records_view);
+        recorded_intersections_view, mat_records_view, mat_steps_view);
 
     // Get the results back to the host and pass them on to the checking
     vecmem::jagged_vector<navigation::detail::candidate_record<intersection_t>>
@@ -124,8 +130,11 @@ inline auto run_navigation_validation(
     vecmem::vector<material_record_t> mat_records(host_mr);
     cuda_cpy(mat_records_buffer, mat_records);
 
+    vecmem::jagged_vector<material_params_t> mat_steps(host_mr);
+    cuda_cpy(mat_steps_buffer, mat_steps);
+
     return std::make_tuple(std::move(recorded_intersections),
-                           std::move(mat_records));
+                           std::move(mat_records), std::move(mat_steps));
 }
 
 /// @brief Test class that runs the navigation validation for a given detector
@@ -245,7 +254,7 @@ class navigation_validation : public test::fixture_base<> {
         detray::io::file_handle debug_file{debug_file_name, io_mode};
 
         // Run the propagation on device and record the navigation data
-        auto [recorded_intersections, mat_records] =
+        auto [recorded_intersections, mat_records, mat_steps] =
             run_navigation_validation<bfield_view_t>(
                 &m_host_mr, &m_dev_mr, m_det, m_cfg.propagation(), b_field,
                 truth_intersection_traces);

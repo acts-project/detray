@@ -143,9 +143,11 @@ class navigation_validation : public test::fixture_base<> {
             max_pT = std::max(max_pT, track.pT(q));
 
             // Run the propagation
-            auto [success, obj_tracer, mat_trace, nav_printer, step_printer] =
+            auto [success, obj_tracer, step_trace, mat_record, mat_trace,
+                  nav_printer, step_printer] =
                 navigation_validator::record_propagation<stepper_t>(
-                    m_gctx, m_det, m_cfg.propagation(), track, b_field);
+                    m_gctx, &m_host_mr, m_det, m_cfg.propagation(), track,
+                    b_field);
 
             if (success) {
                 // The navigator does not record the initial track position,
@@ -191,7 +193,7 @@ class navigation_validation : public test::fixture_base<> {
             }
 
             recorded_traces.push_back(std::move(obj_tracer.object_trace));
-            mat_records.push_back(mat_trace);
+            mat_records.push_back(mat_record);
 
             EXPECT_TRUE(success) << "INFO: Wrote navigation debugging data in: "
                                  << debug_file_name;
@@ -261,6 +263,8 @@ class navigation_validation : public test::fixture_base<> {
     config m_cfg;
     /// The geometry context to check
     typename detector_t::geometry_context m_gctx{};
+    /// Vecmem memory resource for the host allocations
+    vecmem::host_memory_resource m_host_mr{};
     /// The detector to be checked
     const detector_t &m_det;
     /// Volume names

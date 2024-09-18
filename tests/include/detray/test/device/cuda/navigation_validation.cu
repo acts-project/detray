@@ -24,7 +24,10 @@ __global__ void navigation_validation_kernel(
         recorded_intersections_view,
     vecmem::data::vector_view<
         material_validator::material_record<typename detector_t::scalar_type>>
-        mat_records_view) {
+        mat_records_view,
+    vecmem::data::jagged_vector_view<
+        material_validator::material_params<typename detector_t::scalar_type>>
+        mat_steps_view) {
 
     using detector_device_t =
         detector<typename detector_t::metadata, device_container_types>;
@@ -56,7 +59,8 @@ __global__ void navigation_validation_kernel(
                   object_tracer_t>;
 
     // Propagator with pathlimit aborter
-    using material_tracer_t = material_validator::material_tracer<scalar_t>;
+    using material_tracer_t =
+        material_validator::material_tracer<scalar_t, vecmem::device_vector>;
     using actor_chain_t =
         actor_chain<tuple, pathlimit_aborter, material_tracer_t>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
@@ -70,6 +74,9 @@ __global__ void navigation_validation_kernel(
         recorded_intersections(recorded_intersections_view);
     vecmem::device_vector<typename material_tracer_t::material_record_type>
         mat_records(mat_records_view);
+    vecmem::jagged_device_vector<
+        typename material_tracer_t::material_params_type>
+        mat_steps(mat_steps_view);
 
     // Check the memory setup
     assert(truth_intersection_traces.size() ==
@@ -84,7 +91,7 @@ __global__ void navigation_validation_kernel(
 
     // Create the actor states
     pathlimit_aborter::state aborter_state{cfg.stepping.path_limit};
-    typename material_tracer_t::state mat_tracer_state{};
+    typename material_tracer_t::state mat_tracer_state{mat_steps.at(trk_id)};
     auto actor_states = ::detray::tie(aborter_state, mat_tracer_state);
 
     // Get the initial track parameters
@@ -116,7 +123,7 @@ __global__ void navigation_validation_kernel(
 
     // Record the accumulated material
     assert(truth_intersection_traces.size() == mat_records.size());
-    mat_records.at(trk_id) = mat_tracer_state.mat_record;
+    mat_records.at(trk_id) = mat_tracer_state.get_material_record();
 }
 
 /// Launch the device kernel
@@ -132,7 +139,10 @@ void navigation_validation_device(
         &recorded_intersections_view,
     vecmem::data::vector_view<
         material_validator::material_record<typename detector_t::scalar_type>>
-        &mat_records_view) {
+        &mat_records_view,
+    vecmem::data::jagged_vector_view<
+        material_validator::material_params<typename detector_t::scalar_type>>
+        &mat_steps_view) {
 
     constexpr int thread_dim = 2 * WARP_SIZE;
     int block_dim = truth_intersection_traces_view.size() / thread_dim + 1;
@@ -141,7 +151,7 @@ void navigation_validation_device(
     navigation_validation_kernel<bfield_t, detector_t, intersection_record_t>
         <<<block_dim, thread_dim>>>(
             det_view, cfg, field_data, truth_intersection_traces_view,
-            recorded_intersections_view, mat_records_view);
+            recorded_intersections_view, mat_records_view, mat_steps_view);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
@@ -162,6 +172,8 @@ void navigation_validation_device(
             typename detray::intersection_record<                              \
                 detector<METADATA>>::intersection_type>> &,                    \
         vecmem::data::vector_view<material_validator::material_record<         \
+            typename detector<METADATA>::scalar_type>> &,                      \
+        vecmem::data::jagged_vector_view<material_validator::material_params<  \
             typename detector<METADATA>::scalar_type>> &);                     \
                                                                                \
     template void navigation_validation_device<                                \
@@ -175,6 +187,8 @@ void navigation_validation_device(
             typename detray::intersection_record<                              \
                 detector<METADATA>>::intersection_type>> &,                    \
         vecmem::data::vector_view<material_validator::material_record<         \
+            typename detector<METADATA>::scalar_type>> &,                      \
+        vecmem::data::jagged_vector_view<material_validator::material_params<  \
             typename detector<METADATA>::scalar_type>> &);
 
 DECLARE_NAVIGATION_VALIDATION(default_metadata)
