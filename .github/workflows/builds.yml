@@ -114,11 +114,6 @@ jobs:
         cd build
         source ${GITHUB_WORKSPACE}/.github/ci_setup.sh ${{ matrix.PLATFORM.NAME }}
         ctest --output-on-failure
-    # Run the Benchmarks(s) only for Release build type
-    - name: Benchmark
-      if: "matrix.BUILD_TYPE == 'Release'"
-      run: |
-        source ${GITHUB_WORKSPACE}/tests/scripts/run_benchmarks.sh
 
   # Containerised build jobs.
   device-container:
