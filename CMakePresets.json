@@ -54,6 +54,20 @@
          "cacheVariables" : {
             "DETRAY_SMATRIX_PLUGIN" : "TRUE"
          }
+      },
+      {
+         "name" : "gitlab-benchmark",
+         "displayName" : "Gitlab Benchmark Configuration",
+         "inherits" : [ "default-fp32", "cuda" ],
+         "cacheVariables" : {
+            "CMAKE_BUILD_TYPE" : "Release",
+            "DETRAY_BUILD_BENCHMARKS" : "TRUE",
+            "DETRAY_BUILD_UNITTESTS" : "FALSE",
+            "DETRAY_BUILD_INTEGRATIONTESTS" : "FALSE",
+            "DETRAY_BUILD_TUTORIALS" : "FALSE",
+            "DETRAY_FAIL_ON_WARNINGS" : "TRUE",
+            "DETRAY_EIGEN_PLUGIN" : "TRUE"
+         }
       }
    ]
 }

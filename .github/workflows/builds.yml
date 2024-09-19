@@ -175,3 +175,31 @@ jobs:
       run: |
         source ${GITHUB_WORKSPACE}/.github/ci_setup.sh ${{ matrix.PLATFORM.NAME }}
         cmake --build build
+
+  benchmark-build:
+    # The system to run on.
+    runs-on: ubuntu-latest
+    container: ghcr.io/acts-project/ubuntu2204_cuda:56
+    name: "gitlab-benchmark"
+
+    # Use BASH as the shell from the image.
+    defaults:
+      run:
+        shell: bash
+
+    # The build/test steps to execute.
+    steps:
+    # Use a standard checkout of the code.
+    - uses: actions/checkout@v2
+    # Run the CMake configuration.
+    - name: Configure
+      run: |
+        source ${GITHUB_WORKSPACE}/.github/ci_setup.sh CUDA
+        cmake --preset gitlab-benchmark \
+          -S ${GITHUB_WORKSPACE} \
+          -B build
+    # Perform the build.
+    - name: Build
+      run: |
+        source ${GITHUB_WORKSPACE}/.github/ci_setup.sh CUDA
+        cmake --build build
