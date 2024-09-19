@@ -129,7 +129,7 @@ endif()
 
 # Set up ACTSVG for displaying
 option( DETRAY_SETUP_ACTSVG
-   "Set up the actsvg target(s) explicitly" TRUE )
+   "Set up the actsvg target(s) explicitly" ${DETRAY_SVG_DISPLAY} )
 option( DETRAY_USE_SYSTEM_ACTSVG
    "Pick up an existing installation of actsvg from the build environment"
    ${DETRAY_USE_SYSTEM_LIBS} )
@@ -171,7 +171,7 @@ endif()
 
 # Set up GoogleTest.
 option( DETRAY_SETUP_GOOGLETEST
-   "Set up the GoogleTest target(s) explicitly" TRUE )
+   "Set up the GoogleTest target(s) explicitly" ${DETRAY_BUILD_TESTING} )
 option( DETRAY_USE_SYSTEM_GOOGLETEST
    "Pick up an existing installation of GoogleTest from the build environment"
    ${DETRAY_USE_SYSTEM_LIBS} )
@@ -185,7 +185,7 @@ endif()
 
 # Set up Google Benchmark.
 option( DETRAY_SETUP_BENCHMARK
-   "Set up the Google Benchmark target(s) explicitly" TRUE )
+   "Set up the Google Benchmark target(s) explicitly" ${DETRAY_BUILD_BENCHMARKS} )
 option( DETRAY_USE_SYSTEM_BENCHMARK
    "Pick up an existing installation of Google Benchmark from the build environment"
    ${DETRAY_USE_SYSTEM_LIBS} )
