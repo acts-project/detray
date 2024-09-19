@@ -4,6 +4,8 @@
 #
 #Mozilla Public License Version 2.0
 
+message(STATUS "Building detray host command line tools")
+
 include( CMakeFindDependencyMacro )
 
 find_dependency( Boost COMPONENTS program_options )
