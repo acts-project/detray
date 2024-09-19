@@ -238,7 +238,8 @@ class navigator {
         /// Set start/new volume
         DETRAY_HOST_DEVICE
         inline void set_volume(dindex v) {
-            assert(v < detector().volumes().size());
+            assert(detail::is_invalid_value(static_cast<nav_link_type>(v)) ||
+                   v < detector().volumes().size());
             if (v != m_volume_index) {
                 // Make sure the new volume is properly initialized
                 set_no_trust();
@@ -694,8 +695,10 @@ class navigator {
                 return navigation.m_heartbeat;
             }
 
-            assert(navigation.volume() <
-                   navigation.detector().volumes().size());
+            // Either end of world or valid volume index
+            assert(detail::is_invalid_value(navigation.volume()) ||
+                   navigation.volume() <
+                       navigation.detector().volumes().size());
 
             // Run inspection when needed (keep for debugging)
             // const auto &track = propagation._stepping();
