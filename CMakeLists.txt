@@ -60,13 +60,13 @@ option( DETRAY_SVG_DISPLAY "Build ActSVG display module" OFF)
 option( DETRAY_BUILD_SYCL "Build the SYCL sources included in detray" OFF )
 option( DETRAY_BUILD_CUDA "Build the CUDA sources included in detray"
    ${DETRAY_BUILD_CUDA_DEFAULT} )
+cmake_dependent_option(DETRAY_BUILD_HOST "Build the host sources included in detray" ON "DETRAY_BUILD_CUDA OR DETRAY_BUILD_SYCL" ON)
 option( DETRAY_BUILD_TEST_UTILS "Build the test utility library of Detray" OFF )
 option( DETRAY_BUILD_UNITTESTS "Build the unit tests of Detray" OFF )
 option( DETRAY_BUILD_INTEGRATIONTESTS "Build the integration tests of Detray"
    OFF )
 option( DETRAY_BUILD_BENCHMARKS "Build the benchmark tests" OFF  )
 option( DETRAY_BUILD_TUTORIALS "Build the tutorial executables of Detray" OFF )
-cmake_dependent_option(DETRAY_NO_HOST_BUILD "Do not build host targets" OFF "DETRAY_BUILD_CUDA OR DETRAY_BUILD_SYCL" OFF)
 option( DETRAY_FAIL_ON_WARNINGS
    "Make the build fail on compiler/linker warnings" FALSE )
 

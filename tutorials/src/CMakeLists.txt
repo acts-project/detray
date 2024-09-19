@@ -5,7 +5,7 @@
 # Mozilla Public License Version 2.0
 
 # Set up all of the "host" tutorials.
-if( NOT DETRAY_NO_HOST_BUILD )
+if( DETRAY_BUILD_HOST )
    add_subdirectory( cpu )
 endif()
 

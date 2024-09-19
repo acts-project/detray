@@ -5,7 +5,7 @@
 # Mozilla Public License Version 2.0
 
 # Set up all of the "host" tests.
-if( NOT DETRAY_NO_HOST_BUILD )
+if( DETRAY_BUILD_HOST )
    message(STATUS "Building detray host integration tests")
 
    add_subdirectory( cpu )
