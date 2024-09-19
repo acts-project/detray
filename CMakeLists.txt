@@ -6,7 +6,7 @@
 
 # Set up the project.
 cmake_minimum_required( VERSION 3.11 )
-project( detray VERSION 0.75.0 LANGUAGES CXX )
+project( detray VERSION 0.75.1 LANGUAGES CXX )
 
 # Set up the used C++ standard(s).
 set( CMAKE_CXX_STANDARD 20 CACHE STRING "The (host) C++ standard to use" )
@@ -60,10 +60,9 @@ option( DETRAY_SVG_DISPLAY "Build ActSVG display module" OFF)
 option( DETRAY_BUILD_SYCL "Build the SYCL sources included in detray" OFF )
 option( DETRAY_BUILD_CUDA "Build the CUDA sources included in detray"
    ${DETRAY_BUILD_CUDA_DEFAULT} )
-option( DETRAY_BUILD_TEST_UTILS "Build the test utility library of Detray"
-   OFF )
+option( DETRAY_BUILD_TEST_UTILS "Build the test utility library of Detray" OFF )
 option( DETRAY_BUILD_UNITTESTS "Build the unit tests of Detray" OFF )
-option( DETRAY_BUILD_INTEGRATIONTESTS "Build the integration tests of Detray" 
+option( DETRAY_BUILD_INTEGRATIONTESTS "Build the integration tests of Detray"
    OFF )
 option( DETRAY_BUILD_BENCHMARKS "Build the benchmark tests" OFF  )
 option( DETRAY_BUILD_TUTORIALS "Build the tutorial executables of Detray" OFF )
@@ -71,7 +70,7 @@ option( DETRAY_FAIL_ON_WARNINGS
    "Make the build fail on compiler/linker warnings" FALSE )
 
 # Alias flag to build the tests
-if ( BUILD_TESTING OR DETRAY_BUILD_UNITTESTS OR DETRAY_BUILD_INTEGRATIONTESTS )
+if ( BUILD_TESTING AND (DETRAY_BUILD_UNITTESTS OR DETRAY_BUILD_INTEGRATIONTESTS) )
    set( DETRAY_BUILD_TESTING ON )
 endif()
 

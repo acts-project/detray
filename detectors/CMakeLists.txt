@@ -16,6 +16,6 @@ file( GLOB _detray_detector_headers
    "include/detray/detectors/*.hpp" )
 
 detray_add_library( detray_detectors detectors ${_detray_detectors_headers})
-target_link_libraries( detray_detectors INTERFACE covfie::core vecmem::core detray::core )
+target_link_libraries( detray_detectors INTERFACE covfie::core vecmem::core detray::core detray::io )
 
 unset( _detray_detector_headers )

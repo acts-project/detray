@@ -22,12 +22,7 @@ file( GLOB _detray_test_utils_headers
    "include/detray/test/utils/simulation/event_generator/*.hpp"
    "include/detray/test/utils/simulation/*.hpp" )
 
-add_library( detray_test_utils INTERFACE "${_detray_test_headers}" )
-add_library( detray::test_utils ALIAS detray_test_utils )
-
-target_include_directories( detray_test_utils
-   INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/include" )
-
+detray_add_library( detray_test_utils test_utils ${_detray_test_headers} )
 target_link_libraries( detray_test_utils INTERFACE vecmem::core detray::core detray::detectors detray::csv_io detray::svgtools )
 
 unset( _detray_test_utils_headers )
