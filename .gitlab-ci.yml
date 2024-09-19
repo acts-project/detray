@@ -27,6 +27,7 @@ build_cuda:
         -DDETRAY_BUILD_INTEGRATIONTESTS=ON
         -DDETRAY_BUILD_BENCHMARKS=ON
         -DDETRAY_BUILD_TUTORIALS=ON
+        -DDETRAY_NO_HOST_BUILD=ON
         -DDETRAY_FAIL_ON_WARNINGS=ON
       - cmake --build build
 
@@ -69,6 +70,7 @@ build_sycl:
         -DDETRAY_BUILD_INTEGRATIONTESTS=ON
         -DDETRAY_BUILD_BENCHMARKS=OFF
         -DDETRAY_BUILD_TUTORIALS=OFF
+        -DDETRAY_NO_HOST_BUILD=ON
         -DDETRAY_FAIL_ON_WARNINGS=ON
       - cmake --build build
 

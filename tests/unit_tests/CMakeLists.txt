@@ -7,10 +7,12 @@
 message(STATUS "Building detray host unit tests")
 
 # Set up all of the "host" tests.
-add_subdirectory( covfie )
-add_subdirectory( cpu )
-add_subdirectory( io )
-add_subdirectory( svgtools )
+if( NOT DETRAY_NO_HOST_BUILD )
+   add_subdirectory( covfie )
+   add_subdirectory( cpu )
+   add_subdirectory( io )
+   add_subdirectory( svgtools )
+endif()
 
 # Set up all of the "device" tests.
 if( DETRAY_BUILD_CUDA OR DETRAY_BUILD_SYCL )

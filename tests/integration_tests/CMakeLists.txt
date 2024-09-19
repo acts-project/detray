@@ -7,8 +7,10 @@
 message(STATUS "Building detray host integration tests")
 
 # Set up all of the "host" tests.
-add_subdirectory( cpu )
-add_subdirectory( io )
+if( NOT DETRAY_NO_HOST_BUILD )
+   add_subdirectory( cpu )
+   add_subdirectory( io )
+endif()
 
 # Set up all of the "device" tests.
 if( DETRAY_BUILD_CUDA OR DETRAY_BUILD_SYCL )

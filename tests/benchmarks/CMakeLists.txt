@@ -5,7 +5,9 @@
 # Mozilla Public License Version 2.0
 
 # Set up the host/cpu benchmarks.
-add_subdirectory( cpu )
+if( NOT DETRAY_NO_HOST_BUILD )
+   add_subdirectory( cpu )
+endif()
 
 # Set up all of the "device" benchmarks.
 if( DETRAY_BUILD_CUDA )

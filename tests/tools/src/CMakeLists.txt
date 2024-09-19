@@ -4,7 +4,9 @@
 #
 # Mozilla Public License Version 2.0
 
-add_subdirectory( cpu )
+if( NOT DETRAY_NO_HOST_BUILD )
+    add_subdirectory( cpu )
+endif()
 
 if( DETRAY_BUILD_CUDA )
     add_subdirectory( cuda )
