@@ -217,6 +217,7 @@ struct bound_parameters_vector {
     DETRAY_HOST_DEVICE
     scalar_type pT(const scalar_type q) const {
         assert(qop() != 0.f);
+        assert(q * qop() > 0.f);
         return math::fabs(q / qop() * getter::perp(dir()));
     }
 
@@ -224,6 +225,7 @@ struct bound_parameters_vector {
     DETRAY_HOST_DEVICE
     scalar_type pz(const scalar_type q) const {
         assert(qop() != 0.f);
+        assert(q * qop() > 0.f);
         return math::fabs(q / qop() * dir()[2]);
     }
 

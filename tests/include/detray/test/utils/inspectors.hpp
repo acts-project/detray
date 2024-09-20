@@ -113,19 +113,38 @@ namespace detail {
 /// Record of a surface intersection along a track
 template <typename intersetion_t>
 struct candidate_record {
-
     using algebra_type = typename intersetion_t::algebra_type;
     using scalar_type = dscalar<algebra_type>;
     using point3_type = dpoint3D<algebra_type>;
     using vector3_type = dvector3D<algebra_type>;
     using intersection_type = intersetion_t;
 
+    constexpr candidate_record() = default;
+
+    /// The particle charge is not known in the navigation, but might be
+    /// provided in a different context
+    DETRAY_HOST_DEVICE
+    constexpr candidate_record(
+        const point3_type &position, const vector3_type &direction,
+        const intersection_type &intr,
+        const scalar_type q = detray::detail::invalid_value<scalar_type>(),
+        const scalar_type p = detray::detail::invalid_value<scalar_type>())
+        : pos{position},
+          dir{direction},
+          intersection{intr},
+          charge{q},
+          p_mag{p} {}
+
     /// Current global track position
-    point3_type pos;
+    point3_type pos{};
     /// Current global track direction
-    vector3_type dir;
+    vector3_type dir{};
     /// The intersection result
-    intersetion_t intersection;
+    intersetion_t intersection{};
+    /// Charge hypothesis of the particle (invalid value if not known)
+    scalar_type charge{detray::detail::invalid_value<scalar_type>()};
+    /// Current momentum magnitude of the particle (invalid value if not known)
+    scalar_type p_mag{detray::detail::invalid_value<scalar_type>()};
 };
 
 }  // namespace detail

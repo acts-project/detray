@@ -140,9 +140,13 @@ class navigation_validation : public test::fixture_base<> {
             const auto &track = start.track_param;
             trajectory_type test_traj = get_parametrized_trajectory(track);
 
-            const scalar q = track.qop() > 0 ? 1.f : -1.f;
-            min_pT = std::min(min_pT, track.pT(q));
-            max_pT = std::max(max_pT, track.pT(q));
+            const scalar q = start.charge;
+            // If the momentum is unknown, 1 GeV is the safest option to keep
+            // the direction vector normalized
+            const scalar pT{q == 0.f ? 1.f * unit<scalar>::GeV : track.pT(q)};
+            const scalar p{q == 0.f ? 1.f * unit<scalar>::GeV : track.p(q)};
+            min_pT = std::min(min_pT, pT);
+            max_pT = std::max(max_pT, pT);
 
             // Run the propagation
             auto [success, obj_tracer, step_trace, mat_record, mat_trace,
@@ -152,11 +156,17 @@ class navigation_validation : public test::fixture_base<> {
                     b_field);
 
             if (success) {
-                // The navigator does not record the initial track position,
+                // The navigator does not record the initial track position:
                 // add it as a dummy record
                 obj_tracer.object_trace.insert(
                     obj_tracer.object_trace.begin(),
                     {track.pos(), track.dir(), start.intersection});
+
+                // Adjust the track charge, which is unknown to the navigation
+                for (auto &record : obj_tracer.object_trace) {
+                    record.charge = q;
+                    record.p_mag = p;
+                }
 
                 auto [result, n_missed_nav, n_missed_truth, n_error,
                       missed_inters] =
