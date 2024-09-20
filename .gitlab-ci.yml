@@ -12,7 +12,7 @@ stages:
 build_cuda:
   tags: [docker]
   stage: build
-  image: gitlab-registry.cern.ch/acts/machines/ubuntu2204_cuda:latest
+  image: ghcr.io/acts-project/ubuntu2204_cuda:56
   artifacts:
     paths:
       - build
