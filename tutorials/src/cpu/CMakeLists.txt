@@ -4,6 +4,8 @@
 #
 # Mozilla Public License Version 2.0
 
+message(STATUS "Building detray host tutorials")
+
 # Set up the tutorial(s) that are algebra agnostic.
 detray_add_tutorial( define_an_actor
    "propagation/define_an_actor.cpp"
