@@ -32,7 +32,7 @@ build_cuda:
         -DDETRAY_BUILD_TUTORIALS=ON
         -DDETRAY_BUILD_HOST=OFF
         -DDETRAY_FAIL_ON_WARNINGS=ON
-      - cmake --build build
+      - cmake --build build -- -j 2
 
 
 test_cuda:
