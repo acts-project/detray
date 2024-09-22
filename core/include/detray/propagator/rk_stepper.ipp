@@ -257,19 +257,16 @@ DETRAY_HOST_DEVICE void detray::rk_stepper<
     // Calculate dkndr in case of considering B field gradient
     if (cfg.use_field_gradient) {
 
-        // Positions at four stages
-        std::array<vector3_type, 4u> r;
-        r[0u] = track.pos();
-        r[1u] = r[0u] + half_h * sd.t[0u] + h2 * 0.125f * sd.dtds[0u];
-        r[2u] = r[1u];
-        r[3u] = r[0u] + h * sd.t[0u] + h2 * 0.5f * sd.dtds[2u];
+        // Positions and field gradients at initial, middle and final points of
+        // the fourth order RKN
+        vector3_type r_ini = track.pos();
+        vector3_type r_mid =
+            r_ini + half_h * sd.t[0u] + h2 * 0.125f * sd.dtds[0u];
+        vector3_type r_fin = r_ini + h * sd.t[0u] + h2 * 0.5f * sd.dtds[2u];
 
-        // Field gradients at four stages
-        std::array<matrix_type<3, 3>, 4u> dBdr;
-        dBdr[0u] = evaluate_field_gradient(r[0u]);
-        dBdr[1u] = evaluate_field_gradient(r[1u]);
-        dBdr[2u] = dBdr[1u];
-        dBdr[3u] = evaluate_field_gradient(r[3u]);
+        matrix_type<3, 3> dBdr_ini = evaluate_field_gradient(r_ini);
+        matrix_type<3, 3> dBdr_mid = evaluate_field_gradient(r_mid);
+        matrix_type<3, 3> dBdr_fin = evaluate_field_gradient(r_fin);
 
         /*-----------------------------------------------------------------
          * Calculate all terms of dk_n/dr1
@@ -277,14 +274,14 @@ DETRAY_HOST_DEVICE void detray::rk_stepper<
 
         // dk1/dr1
         dkndr[0u] =
-            -sd.qop[0u] * mat_helper().column_wise_cross(dBdr[0u], sd.t[0u]);
+            -sd.qop[0u] * mat_helper().column_wise_cross(dBdr_ini, sd.t[0u]);
 
         // dk2/dr1
         dkndr[1u] = sd.qop[1u] * mat_helper().column_wise_cross(
                                      half_h * dkndr[0u], sd.b_middle);
         dkndr[1u] = dkndr[1u] -
                     sd.qop[1u] * mat_helper().column_wise_cross(
-                                     dBdr[1u] * (I33 + h2 * 0.125 * dkndr[0u]),
+                                     dBdr_mid * (I33 + h2 * 0.125 * dkndr[0u]),
                                      sd.t[1u]);
 
         // dk3/dr1
@@ -292,7 +289,7 @@ DETRAY_HOST_DEVICE void detray::rk_stepper<
                                      half_h * dkndr[1u], sd.b_middle);
         dkndr[2u] = dkndr[2u] -
                     sd.qop[2u] * mat_helper().column_wise_cross(
-                                     dBdr[2u] * (I33 + h2 * 0.125 * dkndr[0u]),
+                                     dBdr_mid * (I33 + h2 * 0.125 * dkndr[0u]),
                                      sd.t[2u]);
 
         // dk4/dr1
@@ -301,7 +298,7 @@ DETRAY_HOST_DEVICE void detray::rk_stepper<
         dkndr[3u] =
             dkndr[3u] -
             sd.qop[3u] * mat_helper().column_wise_cross(
-                             dBdr[3u] * (I33 + h2 * 0.5 * dkndr[2u]), sd.t[3u]);
+                             dBdr_fin * (I33 + h2 * 0.5 * dkndr[2u]), sd.t[3u]);
 
         // Set dF/dr1 and dG/dr1
         auto dFdr = matrix_operator().template identity<3, 3>();
