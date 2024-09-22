@@ -410,21 +410,13 @@ DETRAY_HOST_DEVICE auto detray::rk_stepper<
 
         point3_type dpos1 = pos;
         dpos1[i] += delta;
-        const auto bvec1_tmp =
+        const vector3_type bvec1 =
             this->_magnetic_field.at(dpos1[0], dpos1[1], dpos1[2]);
-        vector3_type bvec1;
-        bvec1[0u] = bvec1_tmp[0u];
-        bvec1[1u] = bvec1_tmp[1u];
-        bvec1[2u] = bvec1_tmp[2u];
 
         point3_type dpos2 = pos;
         dpos2[i] -= delta;
-        const auto bvec2_tmp =
+        const vector3_type bvec2 =
             this->_magnetic_field.at(dpos2[0], dpos2[1], dpos2[2]);
-        vector3_type bvec2;
-        bvec2[0u] = bvec2_tmp[0u];
-        bvec2[1u] = bvec2_tmp[1u];
-        bvec2[2u] = bvec2_tmp[2u];
 
         const vector3_type gradient = (bvec1 - bvec2) * (1.f / (2.f * delta));
 
@@ -447,11 +439,8 @@ detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
     if (this->_path_length == 0.f) {
         const point3_type pos = this->_track.pos();
 
-        const auto bvec_tmp = this->_magnetic_field.at(pos[0], pos[1], pos[2]);
-        vector3_type bvec;
-        bvec[0u] = bvec_tmp[0u];
-        bvec[1u] = bvec_tmp[1u];
-        bvec[2u] = bvec_tmp[2u];
+        const vector3_type bvec =
+            this->_magnetic_field.at(pos[0], pos[1], pos[2]);
 
         return this->_track.qop() * vector::cross(this->_track.dir(), bvec);
     }
