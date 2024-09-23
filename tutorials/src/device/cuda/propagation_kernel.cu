@@ -60,12 +60,11 @@ __global__ void propagation_kernel(
     p.propagate(state, actor_states);
 }
 
-void propagation(
-    typename detray::tutorial::detector_host_t::view_type det_data,
-    typename detray::tutorial::device_field_t::view_t field_data,
-    const vecmem::data::vector_view<
-        detray::free_track_parameters<detray::tutorial::algebra_t>>
-        tracks_data) {
+void propagation(typename detray::tutorial::detector_host_t::view_type det_data,
+                 typename detray::tutorial::device_field_t::view_t field_data,
+                 const vecmem::data::vector_view<
+                     detray::free_track_parameters<detray::tutorial::algebra_t>>
+                     tracks_data) {
 
     int thread_dim = 2 * WARP_SIZE;
     int block_dim = tracks_data.size() / thread_dim + 1;
