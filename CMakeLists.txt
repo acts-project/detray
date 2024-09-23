@@ -128,12 +128,10 @@ if( DETRAY_SETUP_ALGEBRA_PLUGINS )
 endif()
 
 # Set up ACTSVG for displaying
-option( DETRAY_SETUP_ACTSVG
-   "Set up the actsvg target(s) explicitly" ${DETRAY_SVG_DISPLAY} )
 option( DETRAY_USE_SYSTEM_ACTSVG
    "Pick up an existing installation of actsvg from the build environment"
    ${DETRAY_USE_SYSTEM_LIBS} )
-if( DETRAY_SETUP_ACTSVG )
+if ( DETRAY_SVG_DISPLAY )
    if( DETRAY_USE_SYSTEM_ACTSVG )
       find_package( actsvg REQUIRED COMPONENTS core meta )
    else()
