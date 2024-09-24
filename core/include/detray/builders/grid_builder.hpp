@@ -82,7 +82,7 @@ class grid_builder : public volume_decorator<detector_t> {
         const std::vector<std::pair<typename grid_t::loc_bin_index, dindex>>
             &bin_capacities = {},
         const std::array<std::vector<scalar_type>, grid_t::dim> &ax_bin_edges =
-            {{}}) {
+            std::array<std::vector<scalar_type>, grid_t::dim>()) {
 
         static_assert(
             std::is_same_v<typename grid_shape_t::template local_frame_type<
@@ -100,7 +100,8 @@ class grid_builder : public volume_decorator<detector_t> {
         const std::vector<std::size_t> &n_bins,
         const std::vector<std::pair<typename grid_t::loc_bin_index, dindex>>
             &bin_capacities = {},
-        const std::vector<std::vector<scalar_type>> &ax_bin_edges = {{}}) {
+        const std::vector<std::vector<scalar_type>> &ax_bin_edges =
+            std::vector<std::vector<scalar_type>>()) {
 
         m_grid = m_factory.template new_grid<grid_t>(
             spans, n_bins, bin_capacities, ax_bin_edges);
