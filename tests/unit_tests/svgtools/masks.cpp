@@ -82,7 +82,8 @@ GTEST_TEST(svgtools, masks) {
 
     // Visualize a 2D trapezoid.
     // e_half_length_0, e_half_length_1, e_half_length_2, e_divisor
-    detray::mask<detray::trapezoid2D> tra2D{0u, 100.f, 50.f, 200.f};
+    detray::mask<detray::trapezoid2D> tra2D{0u, 100.f, 50.f, 200.f,
+                                            1.f / 400.f};
     const auto tra2D_proto =
         detray::svgtools::conversion::surface(transform, tra2D);
     const auto tra2D_svg = actsvg::display::surface("", tra2D_proto, view);

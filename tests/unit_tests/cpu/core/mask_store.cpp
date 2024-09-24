@@ -69,7 +69,7 @@ GTEST_TEST(detray_core, static_mask_store) {
     store.emplace_back<mask_ids::e_cylinder3>(empty_context{}, 0u, 1.f, 1.5f,
                                               2.0f);
     store.emplace_back<mask_ids::e_trapezoid2>(empty_context{}, 0u, 0.5f, 1.5f,
-                                               4.0f);
+                                               4.0f, 1.f / 8.f);
     store.emplace_back<mask_ids::e_rectangle2>(empty_context{}, 0u, 1.0f, 2.0f);
     store.emplace_back<mask_ids::e_rectangle2>(empty_context{}, 0u, 2.0f, 1.0f);
     store.emplace_back<mask_ids::e_rectangle2>(empty_context{}, 0u, 10.0f,
