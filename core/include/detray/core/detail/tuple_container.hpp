@@ -19,6 +19,7 @@
 #include <vecmem/memory/memory_resource.hpp>
 
 // System include(s)
+#include <concepts>
 #include <memory>
 #include <type_traits>
 
@@ -131,10 +132,13 @@ class tuple_container {
     /// type, regardless the input tuple element type).
     template <typename functor_t, typename... Args>
     DETRAY_HOST_DEVICE decltype(auto) visit(const std::size_t idx,
-                                            Args &&... As) const {
-
-        return visit<functor_t>(idx, std::make_index_sequence<sizeof...(Ts)>{},
-                                std::forward<Args>(As)...);
+                                            Args &&... As) const
+        requires std::invocable<
+            functor_t, decltype(detail::get<0>(std::declval<tuple_type>())),
+            Args...> {
+        return visit_helper<functor_t>(
+            idx, std::make_index_sequence<sizeof...(Ts)>{},
+            std::forward<Args>(As)...);
     }
 
     private:
@@ -186,11 +190,28 @@ class tuple_container {
     /// @see https://godbolt.org/z/qd6xns7KG
     template <typename functor_t, typename... Args, std::size_t first_idx,
               std::size_t... remaining_idcs>
-    DETRAY_HOST_DEVICE std::invoke_result_t<
-        functor_t, const detail::tuple_element_t<0, tuple_type> &, Args...>
-    visit(const std::size_t idx,
-          std::index_sequence<first_idx, remaining_idcs...> /*seq*/,
-          Args &&... As) const {
+    DETRAY_HOST_DEVICE decltype(auto) visit_helper(
+        const std::size_t idx,
+        std::index_sequence<first_idx, remaining_idcs...> /*seq*/,
+        Args &&... As) const {
+        using return_type = std::invoke_result_t<
+            functor_t, const detail::tuple_element_t<0, tuple_type> &, Args...>;
+
+        static_assert(
+            std::is_same_v<return_type,
+                           std::invoke_result_t<functor_t,
+                                                const detail::tuple_element_t<
+                                                    first_idx, tuple_type> &,
+                                                Args...>> &&
+                (std::is_same_v<
+                     return_type,
+                     std::invoke_result_t<functor_t,
+                                          const detail::tuple_element_t<
+                                              remaining_idcs, tuple_type> &,
+                                          Args...>> &&
+                 ...),
+            "Functor return type must be the same for all elements of the "
+            "tuple.");
 
         // Check if the first tuple index is matched to the target ID
         if (idx == first_idx) {
@@ -198,18 +219,13 @@ class tuple_container {
         }
         // Check the next ID
         if constexpr (sizeof...(remaining_idcs) >= 1u) {
-            return visit<functor_t>(idx,
-                                    std::index_sequence<remaining_idcs...>{},
-                                    std::forward<Args>(As)...);
-        }
-        // If there is no matching ID, return default output
-        if constexpr (!std::is_same_v<
-                          std::invoke_result_t<
-                              functor_t,
-                              const detail::tuple_element_t<0, tuple_type> &,
-                              Args...>,
-                          void>) {
-            return {};
+            return visit_helper<functor_t>(
+                idx, std::index_sequence<remaining_idcs...>{},
+                std::forward<Args>(As)...);
+        } else if constexpr (std::is_same_v<return_type, void>) {
+            return;
+        } else {
+            return return_type{};
         }
     }
 
