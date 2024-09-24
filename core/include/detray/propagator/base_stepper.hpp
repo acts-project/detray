@@ -11,6 +11,7 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/pdg_particle.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/geometry/barcode.hpp"
 #include "detray/geometry/tracking_surface.hpp"
 #include "detray/propagator/actors/parameter_resetter.hpp"
 #include "detray/propagator/constrained_step.hpp"
@@ -79,9 +80,6 @@ class base_stepper {
             // A dummy barcode - should not be used
             _bound_params.set_surface_link(geometry::barcode{});
 
-            // Set the bound to free jacobian
-            _jac_to_global = cf.bound_to_free_jacobian();
-
             // Reset the path length
             _s = 0.f;
 
@@ -102,7 +100,7 @@ class base_stepper {
             const typename detector_t::geometry_context ctx{};
             sf.template visit_mask<
                 typename parameter_resetter<algebra_t>::kernel>(
-                sf.transform(ctx), *this);
+                sf.transform(ctx), sf.index(), *this);
         }
 
         /// free track parameter
@@ -115,10 +113,6 @@ class base_stepper {
         /// jacobian transport matrix
         free_matrix_type _jac_transport =
             matrix_operator().template identity<e_free_size, e_free_size>();
-
-        /// bound-to-free jacobian from departure surface
-        bound_to_free_matrix_type _jac_to_global =
-            matrix_operator().template zero<e_free_size, e_bound_size>();
 
         /// bound covariance
         bound_track_parameters_type _bound_params;
@@ -163,6 +157,9 @@ class base_stepper {
 
         /// The default particle hypothesis is muon
         pdg_particle<scalar_type> _ptc = muon<scalar_type>();
+
+        /// Previous barcode to calculate the bound_to_free_jacobian
+        dindex _prev_sf_id = detail::invalid_value<dindex>();
 
         /// Set new step constraint
         template <step::constraint type = step::constraint::e_actor>
