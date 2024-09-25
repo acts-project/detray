@@ -53,9 +53,9 @@ if( CMAKE_CUDA_COMPILER )
 endif()
 
 # Flags controlling which parts of Detray to build.
-option( DETRAY_EIGEN_PLUGIN "Build Eigen math plugin" ON )
+option( DETRAY_EIGEN_PLUGIN "Build Eigen math plugin" OFF )
 option( DETRAY_SMATRIX_PLUGIN "Build ROOT/SMatrix math plugin" OFF )
-option( DETRAY_VC_PLUGIN "Build Vc based math plugin" ON )
+option( DETRAY_VC_PLUGIN "Build Vc based math plugin" OFF )
 option( DETRAY_SVG_DISPLAY "Build ActSVG display module" OFF)
 option( DETRAY_BUILD_SYCL "Build the SYCL sources included in detray" OFF )
 option( DETRAY_BUILD_CUDA "Build the CUDA sources included in detray"
@@ -65,10 +65,24 @@ option( DETRAY_BUILD_TEST_UTILS "Build the test utility library of Detray" OFF )
 option( DETRAY_BUILD_UNITTESTS "Build the unit tests of Detray" OFF )
 option( DETRAY_BUILD_INTEGRATIONTESTS "Build the integration tests of Detray"
    OFF )
+option( DETRAY_BUILD_ALL_TESTS "Build unit and integrations tests of Detray" OFF )
 option( DETRAY_BUILD_BENCHMARKS "Build the benchmark tests" OFF  )
+option( DETRAY_BUILD_CLI_TOOLS "Build the command line tools of Detray" OFF )
 option( DETRAY_BUILD_TUTORIALS "Build the tutorial executables of Detray" OFF )
 option( DETRAY_FAIL_ON_WARNINGS
    "Make the build fail on compiler/linker warnings" FALSE )
+
+# Need test functionality and svg display for command line tools
+if ( DETRAY_BUILD_CLI_TOOLS )
+   set( DETRAY_BUILD_TESTING ON )
+   set( DETRAY_SVG_DISPLAY ON )
+endif()
+
+# Convenience option to build tests
+if ( DETRAY_BUILD_ALL_TESTS )
+   set( DETRAY_BUILD_UNITTESTS ${DETRAY_BUILD_ALL_TESTS} OR ${DETRAY_BUILD_UNITTESTS} )
+   set( DETRAY_BUILD_INTEGRATIONTESTS ${DETRAY_BUILD_ALL_TESTS} OR ${DETRAY_BUILD_UNITTESTS} )
+endif()
 
 # Alias flag to build the tests
 if ( BUILD_TESTING AND (DETRAY_BUILD_UNITTESTS OR DETRAY_BUILD_INTEGRATIONTESTS) )

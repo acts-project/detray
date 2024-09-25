@@ -1,9 +1,9 @@
 {
-   "version" : 3,
+   "version": 3,
    "configurePresets": [
       {
-         "name" : "base",
-         "displayName" : "Base Developer Configuration",
+         "name": "base",
+         "displayName": "Base Developer Configuration",
          "warnings": {
             "deprecated": true
          },
@@ -13,7 +13,7 @@
       },
       {
          "name" : "default-fp64",
-         "displayName" : "FP64 Developer Configuration",
+         "displayName": "FP64 Base Developer Configuration",
          "inherits" : [ "base" ],
          "cacheVariables" : {
             "DETRAY_CUSTOM_SCALARTYPE" : "double"
@@ -21,11 +21,47 @@
       },
       {
          "name" : "default-fp32",
-         "displayName" : "FP32 Developer Configuration",
+         "displayName": "FP32 Base Developer Configuration",
          "inherits" : [ "base" ],
          "cacheVariables" : {
             "DETRAY_CUSTOM_SCALARTYPE" : "float"
          }
+      },
+      {
+         "name": "dev-fp32",
+         "displayName": "FP32 Developer Configuration: Build all Dependencies",
+         "inherits": [ "default-fp32" ],
+         "cacheVariables": {
+            "DETRAY_BUILD_TESTING": "TRUE",
+            "DETRAY_SETUP_ACTSVG": "TRUE",
+            "DETRAY_SETUP_BENCHMARK": "TRUE",
+            "DETRAY_SETUP_COVFIE": "TRUE",
+            "DETRAY_SETUP_DFELIBS": "TRUE",
+            "DETRAY_SETUP_NLOHMANN": "TRUE"
+         }
+      },
+      {
+         "name": "dev-fp64",
+         "displayName": "FP64 Developer Configuration: Build all Dependencies",
+         "inherits": [ "dev-fp32", "default-fp64" ]
+      },
+      {
+         "name": "full-fp32",
+         "displayName": "Full host FP32 Developer Configuration",
+         "inherits": [ "dev-fp32" ],
+         "cacheVariables": {
+            "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+            "DETRAY_BUILD_UNITTESTS": "TRUE",
+            "DETRAY_BUILD_INTEGRATIONTESTS": "TRUE",
+            "DETRAY_BUILD_TUTORIALS": "TURE",
+            "DETRAY_BUILD_BENCHMARKS": "TRUE",
+            "DETRAY_BUILD_CLI_TOOLS": "TRUE"
+         }
+      },
+      {
+         "name": "full-fp64",
+         "displayName": "Full host FP64 Developer Configuration",
+         "inherits": [ "full-fp32", "default-fp64" ]
       },
       {
          "name" : "cuda",
