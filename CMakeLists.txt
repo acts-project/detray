@@ -5,7 +5,7 @@
 # Mozilla Public License Version 2.0
 
 # Set up the project.
-cmake_minimum_required( VERSION 3.11 )
+cmake_minimum_required( VERSION 3.21 )
 project( detray VERSION 0.75.2 LANGUAGES CXX )
 
 # Set up the used C++ standard(s).
@@ -53,18 +53,18 @@ if( CMAKE_CUDA_COMPILER )
 endif()
 
 # Flags controlling which parts of Detray to build.
-option( DETRAY_EIGEN_PLUGIN "Build Eigen math plugin" ON )
+option( DETRAY_EIGEN_PLUGIN "Build Eigen math plugin" OFF )
 option( DETRAY_SMATRIX_PLUGIN "Build ROOT/SMatrix math plugin" OFF )
-option( DETRAY_VC_PLUGIN "Build Vc based math plugin" ON )
+option( DETRAY_VC_PLUGIN "Build Vc based math plugin" OFF )
 option( DETRAY_SVG_DISPLAY "Build ActSVG display module" OFF)
 option( DETRAY_BUILD_SYCL "Build the SYCL sources included in detray" OFF )
 option( DETRAY_BUILD_CUDA "Build the CUDA sources included in detray"
    ${DETRAY_BUILD_CUDA_DEFAULT} )
 cmake_dependent_option(DETRAY_BUILD_HOST "Build the host sources included in detray" ON "DETRAY_BUILD_CUDA OR DETRAY_BUILD_SYCL" ON)
-option( DETRAY_BUILD_TEST_UTILS "Build the test utility library of Detray" OFF )
-option( DETRAY_BUILD_UNITTESTS "Build the unit tests of Detray" OFF )
+option( DETRAY_BUILD_TEST_UTILS "Build the test utility library of Detray" ${PROJECT_IS_TOP_LEVEL} )
+option( DETRAY_BUILD_UNITTESTS "Build the unit tests of Detray" ${PROJECT_IS_TOP_LEVEL} )
 option( DETRAY_BUILD_INTEGRATIONTESTS "Build the integration tests of Detray"
-   OFF )
+${PROJECT_IS_TOP_LEVEL} )
 option( DETRAY_BUILD_BENCHMARKS "Build the benchmark tests" OFF  )
 option( DETRAY_BUILD_TUTORIALS "Build the tutorial executables of Detray" OFF )
 option( DETRAY_FAIL_ON_WARNINGS
