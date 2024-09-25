@@ -34,7 +34,7 @@ jobs:
     # The build/test steps to execute.
     steps:
     # Use a standard checkout of the code.
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     # Run the CMake configuration.
     - name: Configure
       run: cmake --preset default-fp64
@@ -82,7 +82,7 @@ jobs:
     # The build/test steps to execute.
     steps:
     # Use a standard checkout of the code.
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     # Get the data files for the tests
     - name: Download data files
       run: data/detray_data_get_files.sh
@@ -146,7 +146,7 @@ jobs:
     # The build/test steps to execute.
     steps:
     # Use a standard checkout of the code.
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     # Run the CMake configuration.
     - name: Configure
       run: |
@@ -186,7 +186,7 @@ jobs:
     # The build/test steps to execute.
     steps:
     # Use a standard checkout of the code.
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     # Run the CMake configuration.
     - name: Configure
       run: |
