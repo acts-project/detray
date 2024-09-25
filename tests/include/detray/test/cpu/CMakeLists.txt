@@ -17,4 +17,4 @@ add_library( detray_test_cpu INTERFACE "detector_consistency.hpp"
 
 add_library( detray::test_cpu ALIAS detray_test_cpu )
 
-target_link_libraries( detray_test_cpu INTERFACE vecmem::core detray::core_array detray::test_common detray::test_utils )
+target_link_libraries( detray_test_cpu INTERFACE vecmem::core detray::core_array detray::test_common detray::validation_utils )

@@ -16,10 +16,10 @@
 // Detray test include(s)
 #include "detray/test/common/detail/whiteboard.hpp"
 #include "detray/test/common/fixture_base.hpp"
-#include "detray/test/utils/detector_scanner.hpp"
-#include "detray/test/utils/material_validation_utils.hpp"
 #include "detray/test/utils/simulation/event_generator/track_generators.hpp"
 #include "detray/test/utils/types.hpp"
+#include "detray/test/validation/detector_scanner.hpp"
+#include "detray/test/validation/material_validation_utils.hpp"
 
 // System include(s)
 #include <ios>

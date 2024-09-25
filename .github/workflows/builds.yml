@@ -107,7 +107,7 @@ jobs:
         cd build
         source ${GITHUB_WORKSPACE}/.github/ci_setup.sh ${{ matrix.PLATFORM.NAME }}
         ctest --output-on-failure
-    - name: Unit Test
+    - name: Unit Tests
       if: "matrix.BUILD_TYPE == 'Debug'"
       run: |
         cd build

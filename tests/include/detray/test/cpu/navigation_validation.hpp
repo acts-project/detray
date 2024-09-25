@@ -17,9 +17,9 @@
 // Detray test include(s)
 #include "detray/test/common/fixture_base.hpp"
 #include "detray/test/common/navigation_validation_config.hpp"
-#include "detray/test/utils/detector_scan_utils.hpp"
-#include "detray/test/utils/material_validation_utils.hpp"
-#include "detray/test/utils/navigation_validation_utils.hpp"
+#include "detray/test/validation/detector_scan_utils.hpp"
+#include "detray/test/validation/material_validation_utils.hpp"
+#include "detray/test/validation/navigation_validation_utils.hpp"
 
 // System include(s)
 #include <iostream>
