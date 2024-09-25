@@ -437,7 +437,13 @@ struct bound_getter : actor {
             actor_state.m_path_length = stepping._path_length;
             actor_state.m_abs_path_length = stepping._abs_path_length;
             actor_state.m_param_destination = stepping._bound_params;
-            actor_state.m_jacobi = stepping._full_jacobian;
+
+            // Change the bound parameter to the initial state to calculate the
+            // full jacobian
+            propagation._stepping._bound_params = actor_state.m_param_departure;
+            actor_state.m_jacobi =
+                parameter_transporter<algebra_type>().get_full_jacobian(
+                    propagation);
 
             // Stop navigation if the destination surface found
             propagation._heartbeat &= navigation.exit();
