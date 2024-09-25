@@ -92,6 +92,38 @@
          }
       },
       {
+         "name" : "gitlab-cuda-ci",
+         "displayName" : "Gitlab CUDA CI Configuration",
+         "inherits" : [ "default-fp32", "cuda" ],
+         "cacheVariables" : {
+            "BUILD_TESTING" : "TRUE",
+            "DETRAY_BUILD_HOST" : "FALSE",
+            "DETRAY_BUILD_UNITTESTS" : "TRUE",
+            "DETRAY_BUILD_INTEGRATIONTESTS" : "TRUE",
+            "DETRAY_BUILD_CLI_TOOLS" : "FALSE",
+            "DETRAY_BUILD_BENCHMARKS" : "FALSE",
+            "DETRAY_BUILD_TUTORIALS" : "TRUE",
+            "DETRAY_FAIL_ON_WARNINGS" : "TRUE",
+            "DETRAY_EIGEN_PLUGIN" : "TRUE"
+         }
+      },
+      {
+         "name" : "gitlab-sycl-ci",
+         "displayName" : "Gitlab SYCL CI Configuration",
+         "inherits" : [ "default-fp32", "sycl" ],
+         "cacheVariables" : {
+            "BUILD_TESTING" : "TRUE",
+            "DETRAY_BUILD_HOST" : "FALSE",
+            "DETRAY_BUILD_UNITTESTS" : "FALSE",
+            "DETRAY_BUILD_INTEGRATIONTESTS" : "TRUE",
+            "DETRAY_BUILD_CLI_TOOLS" : "FALSE",
+            "DETRAY_BUILD_BENCHMARKS" : "FALSE",
+            "DETRAY_BUILD_TUTORIALS" : "FALSE",
+            "DETRAY_FAIL_ON_WARNINGS" : "TRUE",
+            "DETRAY_EIGEN_PLUGIN" : "TRUE"
+         }
+      },
+      {
          "name" : "gitlab-benchmark",
          "displayName" : "Gitlab Benchmark Configuration",
          "inherits" : [ "default-fp32", "cuda" ],

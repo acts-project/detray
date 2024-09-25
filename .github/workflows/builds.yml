@@ -37,13 +37,8 @@ jobs:
     - uses: actions/checkout@v4
     # Run the CMake configuration.
     - name: Configure
-      run: cmake --preset default-fp64
+      run: cmake --preset full-fp64
                  -DCMAKE_BUILD_TYPE=${{ matrix.BUILD_TYPE }}
-                 -DDETRAY_BUILD_UNITTESTS=ON
-                 -DDETRAY_BUILD_INTEGRATIONTESTS=ON
-                 -DDETRAY_BUILD_CLI_TOOLS=ON
-                 -DDETRAY_BUILD_BENCHMARKS=ON
-                 -DDETRAY_BUILD_TUTORIALS=ON
                  -DDETRAY_FAIL_ON_WARNINGS=ON
                  -S ${{ github.workspace }} -B build
                  -G "${{ matrix.PLATFORM.GENERATOR }}"
@@ -91,13 +86,9 @@ jobs:
     - name: Configure
       run: |
         source ${GITHUB_WORKSPACE}/.github/ci_setup.sh ${{ matrix.PLATFORM.NAME }}
-        cmake \
+        cmake --preset full-fp32 \
           -DCMAKE_CXX_STANDARD=${{ matrix.PLATFORM.CXX_STANDARD }} \
-          -DDETRAY_BUILD_UNITTESTS=ON \
-          -DDETRAY_BUILD_INTEGRATIONTESTS=ON \
-          -DDETRAY_BUILD_CLI_TOOLS=ON \
-          -DDETRAY_BUILD_BENCHMARKS=ON \
-          -DDETRAY_BUILD_TUTORIALS=ON \
+          -DDETRAY_BUILD_BENCHMARKS=OFF \
           -DDETRAY_FAIL_ON_WARNINGS=ON \
           -DCMAKE_BUILD_TYPE=${{ matrix.BUILD_TYPE }} \
           -DDETRAY_CUSTOM_SCALARTYPE=${{ matrix.SCALAR_TYPE }} \
@@ -129,7 +120,7 @@ jobs:
           - NAME: "CUDA"
             CXX_STANDARD: "20"
             CONTAINER: "ghcr.io/acts-project/ubuntu2404_cuda:56"
-            OPTIONS: -DDETRAY_EIGEN_PLUGIN=ON -DDETRAY_SMATRIX_PLUGIN=OFF -DDETRAY_VC_PLUGIN=OFF
+            OPTIONS: -DDETRAY_BUILD_CUDA=ON -DDETRAY_EIGEN_PLUGIN=ON -DDETRAY_SMATRIX_PLUGIN=OFF -DDETRAY_VC_PLUGIN=OFF
           - NAME: "SYCL"
             CXX_STANDARD: "20"
             CONTAINER: "ghcr.io/acts-project/ubuntu2404_oneapi:56"
@@ -153,15 +144,10 @@ jobs:
     - name: Configure
       run: |
         source ${GITHUB_WORKSPACE}/.github/ci_setup.sh ${{ matrix.PLATFORM.NAME }}
-        cmake \
+        cmake --preset full-fp32 \
           -DCMAKE_CXX_STANDARD=${{ matrix.PLATFORM.CXX_STANDARD }} \
           -DCMAKE_CUDA_STANDARD=${{ matrix.PLATFORM.CXX_STANDARD }} \
           -DCMAKE_SYCL_STANDARD=${{ matrix.PLATFORM.CXX_STANDARD }} \
-          -DDETRAY_BUILD_UNITTESTS=ON \
-          -DDETRAY_BUILD_INTEGRATIONTESTS=ON \
-          -DDETRAY_BUILD_CLI_TOOLS=ON \
-          -DDETRAY_BUILD_BENCHMARKS=ON \
-          -DDETRAY_BUILD_TUTORIALS=ON \
           -DDETRAY_BUILD_HOST=OFF \
           -DDETRAY_FAIL_ON_WARNINGS=ON \
           -DCMAKE_BUILD_TYPE=${{ matrix.BUILD_TYPE }} \
