@@ -4,13 +4,15 @@
 #
 # Mozilla Public License Version 2.0
 
-message(STATUS "Building detray host unit tests")
-
 # Set up all of the "host" tests.
-add_subdirectory( covfie )
-add_subdirectory( cpu )
-add_subdirectory( io )
-add_subdirectory( svgtools )
+if( DETRAY_BUILD_HOST )
+   message(STATUS "Building detray host unit tests")
+
+   add_subdirectory( covfie )
+   add_subdirectory( cpu )
+   add_subdirectory( io )
+   add_subdirectory( svgtools )
+endif()
 
 # Set up all of the "device" tests.
 if( DETRAY_BUILD_CUDA OR DETRAY_BUILD_SYCL )

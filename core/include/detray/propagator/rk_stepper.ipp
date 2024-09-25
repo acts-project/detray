@@ -214,160 +214,91 @@ DETRAY_HOST_DEVICE void detray::rk_stepper<
                          d2qop4dsdqop1);
     }
 
-    // Calculate in the case of not considering B field gradient
-    if (!cfg.use_field_gradient) {
+    /*-----------------------------------------------------------------
+     * Calculate the first terms of dk_n/dt1
+    -------------------------------------------------------------------*/
+    // dk1/dt1
+    dkndt[0u] =
+        sd.qop[0u] * mat_helper().column_wise_cross(dkndt[0u], sd.b_first);
 
-        /*-----------------------------------------------------------------
-         * Calculate the first terms of dk_n/dt1
-        -------------------------------------------------------------------*/
-        // dk1/dt1
-        dkndt[0u] =
-            sd.qop[0u] * mat_helper().column_wise_cross(dkndt[0u], sd.b_first);
+    // dk2/dt1
+    dkndt[1u] = dkndt[1u] + half_h * dkndt[0u];
+    dkndt[1u] =
+        sd.qop[1u] * mat_helper().column_wise_cross(dkndt[1u], sd.b_middle);
 
-        // dk2/dt1
-        dkndt[1u] = dkndt[1u] + half_h * dkndt[0u];
-        dkndt[1u] =
-            sd.qop[1u] * mat_helper().column_wise_cross(dkndt[1u], sd.b_middle);
+    // dk3/dt1
+    dkndt[2u] = dkndt[2u] + half_h * dkndt[1u];
+    dkndt[2u] =
+        sd.qop[2u] * mat_helper().column_wise_cross(dkndt[2u], sd.b_middle);
 
-        // dk3/dt1
-        dkndt[2u] = dkndt[2u] + half_h * dkndt[1u];
-        dkndt[2u] =
-            sd.qop[2u] * mat_helper().column_wise_cross(dkndt[2u], sd.b_middle);
+    // dk4/dt1
+    dkndt[3u] = dkndt[3u] + h * dkndt[2u];
+    dkndt[3u] =
+        sd.qop[3u] * mat_helper().column_wise_cross(dkndt[3u], sd.b_last);
 
-        // dk4/dt1
-        dkndt[3u] = dkndt[3u] + h * dkndt[2u];
-        dkndt[3u] =
-            sd.qop[3u] * mat_helper().column_wise_cross(dkndt[3u], sd.b_last);
+    /*-----------------------------------------------------------------
+     * Calculate the first and second terms of dk_n/dqop1
+    -------------------------------------------------------------------*/
+    // dk1/dqop1
+    dkndqop[0u] = dqopn_dqop[0u] * vector::cross(sd.t[0u], sd.b_first);
 
-        /*-----------------------------------------------------------------
-         * Calculate the first and second terms of dk_n/dqop1
-        -------------------------------------------------------------------*/
-        // dk1/dqop1
-        dkndqop[0u] = dqopn_dqop[0u] * vector::cross(sd.t[0u], sd.b_first);
+    // dk2/dqop1
+    dkndqop[1u] = dqopn_dqop[1u] * vector::cross(sd.t[1u], sd.b_middle) +
+                  sd.qop[1u] * half_h * vector::cross(dkndqop[0u], sd.b_middle);
 
-        // dk2/dqop1
-        dkndqop[1u] =
-            dqopn_dqop[1u] * vector::cross(sd.t[1u], sd.b_middle) +
-            sd.qop[1u] * half_h * vector::cross(dkndqop[0u], sd.b_middle);
+    // dk3/dqop1
+    dkndqop[2u] = dqopn_dqop[2u] * vector::cross(sd.t[2u], sd.b_middle) +
+                  sd.qop[2u] * half_h * vector::cross(dkndqop[1u], sd.b_middle);
 
-        // dk3/dqop1
-        dkndqop[2u] =
-            dqopn_dqop[2u] * vector::cross(sd.t[2u], sd.b_middle) +
-            sd.qop[2u] * half_h * vector::cross(dkndqop[1u], sd.b_middle);
+    // dk4/dqop1
+    dkndqop[3u] = dqopn_dqop[3u] * vector::cross(sd.t[3u], sd.b_last) +
+                  sd.qop[3u] * h * vector::cross(dkndqop[2u], sd.b_last);
 
-        // dk4/dqop1
-        dkndqop[3u] = dqopn_dqop[3u] * vector::cross(sd.t[3u], sd.b_last) +
-                      sd.qop[3u] * h * vector::cross(dkndqop[2u], sd.b_last);
-    } else {
+    // Calculate dkndr in case of considering B field gradient
+    if (cfg.use_field_gradient) {
 
-        // Positions at four stages
-        std::array<vector3_type, 4u> r;
-        r[0u] = track.pos();
-        r[1u] = r[0u] + half_h * sd.t[0u] + h2 * 0.125f * sd.dtds[0u];
-        r[2u] = r[1u];
-        r[3u] = r[0u] + h * sd.t[0u] + h2 * 0.5f * sd.dtds[2u];
+        // Positions and field gradients at initial, middle and final points of
+        // the fourth order RKN
+        vector3_type r_ini = track.pos();
+        vector3_type r_mid =
+            r_ini + half_h * sd.t[0u] + h2 * 0.125f * sd.dtds[0u];
+        vector3_type r_fin = r_ini + h * sd.t[0u] + h2 * 0.5f * sd.dtds[2u];
 
-        // Field gradients at four stages
-        std::array<matrix_type<3, 3>, 4u> dBdr;
-        dBdr[0u] = evaluate_field_gradient(r[0u]);
-        dBdr[1u] = evaluate_field_gradient(r[1u]);
-        dBdr[2u] = dBdr[1u];
-        dBdr[3u] = evaluate_field_gradient(r[3u]);
-
-        // Temporary variable for dBdt and dBdr
-        matrix_type<3u, 3u> dBdt_tmp;
-        matrix_type<3u, 3u> dBdr_tmp;
-
-        /*-----------------------------------------------------------------
-         * Calculate all terms of dk_n/dt1
-        -------------------------------------------------------------------*/
-        // dk1/dt1
-        dkndt[0u] =
-            sd.qop[0u] * mat_helper().column_wise_cross(dkndt[0u], sd.b_first);
-
-        // dk2/dt1
-        dkndt[1u] = dkndt[1u] + half_h * dkndt[0u];
-        dkndt[1u] =
-            sd.qop[1u] * mat_helper().column_wise_cross(dkndt[1u], sd.b_middle);
-        dBdt_tmp = dBdr[1u] * (half_h * I33 + h2 * 0.125f * dkndt[0u]);
-        dkndt[1u] = dkndt[1u] - sd.qop[1u] * mat_helper().column_wise_cross(
-                                                 dBdt_tmp, sd.t[1u]);
-
-        // dk3/dt1
-        dkndt[2u] = dkndt[2u] + half_h * dkndt[1u];
-        dkndt[2u] =
-            sd.qop[2u] * mat_helper().column_wise_cross(dkndt[2u], sd.b_middle);
-        dBdt_tmp = dBdr[2u] * (half_h * I33 + h2 * 0.125f * dkndt[0u]);
-        dkndt[2u] = dkndt[2u] - sd.qop[2u] * mat_helper().column_wise_cross(
-                                                 dBdt_tmp, sd.t[2u]);
-
-        // dk4/dt1
-        dkndt[3u] = dkndt[3u] + h * dkndt[2u];
-        dkndt[3u] =
-            sd.qop[3u] * mat_helper().column_wise_cross(dkndt[3u], sd.b_last);
-        dBdt_tmp = dBdr[3u] * (h * I33 + h2 * 0.5f * dkndt[2u]);
-        dkndt[3u] = dkndt[3u] - sd.qop[3u] * mat_helper().column_wise_cross(
-                                                 dBdt_tmp, sd.t[3u]);
-
-        /*-----------------------------------------------------------------
-         * Calculate all terms of dk_n/dqop1
-        -------------------------------------------------------------------*/
-        // dk1/dqop1
-        dkndqop[0u] = dqopn_dqop[0u] * vector::cross(sd.t[0u], sd.b_first);
-
-        // dk2/dqop1
-        dkndqop[1u] =
-            dqopn_dqop[1u] * vector::cross(sd.t[1u], sd.b_middle) +
-            sd.qop[1u] * half_h * vector::cross(dkndqop[0u], sd.b_middle);
-        dkndqop[1u] =
-            dkndqop[1u] -
-            sd.qop[1u] *
-                vector::cross(h2 * 0.125f * dBdr[1u] * dkndqop[0u], sd.t[1u]);
-
-        // dk3/dqop1
-        dkndqop[2u] =
-            dqopn_dqop[2u] * vector::cross(sd.t[2u], sd.b_middle) +
-            sd.qop[2u] * half_h * vector::cross(dkndqop[1u], sd.b_middle);
-        dkndqop[2u] =
-            dkndqop[2u] -
-            sd.qop[2u] *
-                vector::cross(h2 * 0.125f * dBdr[2u] * dkndqop[0u], sd.t[2u]);
-
-        // dk4/dqop1
-        dkndqop[3u] = dqopn_dqop[3u] * vector::cross(sd.t[3u], sd.b_last) +
-                      sd.qop[3u] * h * vector::cross(dkndqop[2u], sd.b_last);
-        dkndqop[3u] =
-            dkndqop[3u] -
-            sd.qop[3u] *
-                vector::cross(h2 * 0.5f * dBdr[3u] * dkndqop[2u], sd.t[3u]);
+        matrix_type<3, 3> dBdr_ini = evaluate_field_gradient(r_ini);
+        matrix_type<3, 3> dBdr_mid = evaluate_field_gradient(r_mid);
+        matrix_type<3, 3> dBdr_fin = evaluate_field_gradient(r_fin);
 
         /*-----------------------------------------------------------------
          * Calculate all terms of dk_n/dr1
         -------------------------------------------------------------------*/
+
         // dk1/dr1
         dkndr[0u] =
-            -sd.qop[0u] * mat_helper().column_wise_cross(dBdr[0u], sd.t[0u]);
+            -sd.qop[0u] * mat_helper().column_wise_cross(dBdr_ini, sd.t[0u]);
 
         // dk2/dr1
         dkndr[1u] = sd.qop[1u] * mat_helper().column_wise_cross(
                                      half_h * dkndr[0u], sd.b_middle);
-        dBdr_tmp = dBdr[1u] * (I33 + h2 * 0.125 * dkndr[0u]);
-        dkndr[1u] = dkndr[1u] - sd.qop[1u] * mat_helper().column_wise_cross(
-                                                 dBdr_tmp, sd.t[1u]);
+        dkndr[1u] = dkndr[1u] -
+                    sd.qop[1u] * mat_helper().column_wise_cross(
+                                     dBdr_mid * (I33 + h2 * 0.125 * dkndr[0u]),
+                                     sd.t[1u]);
 
         // dk3/dr1
         dkndr[2u] = sd.qop[2u] * mat_helper().column_wise_cross(
                                      half_h * dkndr[1u], sd.b_middle);
-        dBdr_tmp = dBdr[2u] * (I33 + h2 * 0.125 * dkndr[0u]);
-        dkndr[2u] = dkndr[2u] - sd.qop[2u] * mat_helper().column_wise_cross(
-                                                 dBdr_tmp, sd.t[2u]);
+        dkndr[2u] = dkndr[2u] -
+                    sd.qop[2u] * mat_helper().column_wise_cross(
+                                     dBdr_mid * (I33 + h2 * 0.125 * dkndr[0u]),
+                                     sd.t[2u]);
 
         // dk4/dr1
         dkndr[3u] = sd.qop[3u] *
                     mat_helper().column_wise_cross(h * dkndr[2u], sd.b_last);
-        dBdr_tmp = dBdr[3u] * (I33 + h2 * 0.5 * dkndr[2u]);
-        dkndr[3u] = dkndr[3u] - sd.qop[3u] * mat_helper().column_wise_cross(
-                                                 dBdr_tmp, sd.t[3u]);
+        dkndr[3u] =
+            dkndr[3u] -
+            sd.qop[3u] * mat_helper().column_wise_cross(
+                             dBdr_fin * (I33 + h2 * 0.5 * dkndr[2u]), sd.t[3u]);
 
         // Set dF/dr1 and dG/dr1
         auto dFdr = matrix_operator().template identity<3, 3>();

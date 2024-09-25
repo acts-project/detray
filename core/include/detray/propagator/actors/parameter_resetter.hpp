@@ -34,13 +34,11 @@ struct parameter_resetter : actor {
                   typename stepper_state_t>
         DETRAY_HOST_DEVICE inline void operator()(
             const mask_group_t& mask_group, const index_t& index,
-            const transform3_type& trf3, stepper_state_t& stepping) const {
+            const transform3_type& trf3, const dindex sf_idx,
+            stepper_state_t& stepping) const {
 
             // Note: How is it possible with "range"???
             const auto& mask = mask_group[index];
-
-            using frame_t = decltype(mask.local_frame());
-            using jacobian_engine = detail::jacobian_engine<frame_t>;
 
             // Reset the free vector
             stepping() = detail::bound_to_free_vector(trf3, mask,
@@ -49,12 +47,11 @@ struct parameter_resetter : actor {
             // Reset the path length
             stepping._s = 0;
 
-            // Reset jacobian coordinate transformation at the current surface
-            stepping._jac_to_global = jacobian_engine::bound_to_free_jacobian(
-                trf3, mask, stepping._bound_params);
-
             // Reset jacobian transport to identity matrix
             matrix_operator().set_identity(stepping._jac_transport);
+
+            // Reset the surface index
+            stepping._prev_sf_id = sf_idx;
         }
     };
 
@@ -78,7 +75,7 @@ struct parameter_resetter : actor {
         // Surface
         const auto sf = navigation.get_surface();
 
-        sf.template visit_mask<kernel>(sf.transform(ctx), stepping);
+        sf.template visit_mask<kernel>(sf.transform(ctx), sf.index(), stepping);
     }
 };
 

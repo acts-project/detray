@@ -35,7 +35,7 @@ TEST(mask_store_cuda, mask_store) {
 
     store.template emplace_back<e_rectangle2>(empty_context{}, 0u, 1.0f, 2.0f);
     store.template emplace_back<e_trapezoid2>(empty_context{}, 0u, 0.5f, 1.5f,
-                                              4.0f);
+                                              4.0f, 1.f / 8.f);
     store.template emplace_back<e_ring2>(empty_context{}, 0u, 1.0f, 10.0f);
     store.template emplace_back<e_cylinder2>(empty_context{}, 0u, 1.f, 0.5f,
                                              2.0f);

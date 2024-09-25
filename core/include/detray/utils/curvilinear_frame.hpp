@@ -47,8 +47,8 @@ struct curvilinear_frame {
             m_trf, mask<rectangle2D>{}, m_bound_vec);
     }
 
-    transform3_type m_trf;
-    bound_vector_type m_bound_vec;
+    transform3_type m_trf{};
+    bound_vector_type m_bound_vec{};
 
 };  // curvilinear frame
 

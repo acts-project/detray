@@ -81,14 +81,14 @@ class grid_factory {
         typename phi_binning = axis::regular<host_container_types, scalar_type>,
         std::enable_if_t<std::is_enum_v<decltype(r_bounds::label)>, bool> =
             true>
-    auto new_grid(
-        const mask<annulus2D> &grid_bounds,
-        const std::array<std::size_t, 2UL> n_bins,
-        const std::vector<std::pair<loc_bin_index<annulus2D>, dindex>>
-            &bin_capacities = {},
-        const std::array<std::vector<scalar_type>, 2UL> &bin_edges = {{}},
-        const std::array<std::vector<scalar_type>, 2UL> &axis_spans = {
-            {}}) const {
+    auto new_grid(const mask<annulus2D> &grid_bounds,
+                  const std::array<std::size_t, 2UL> n_bins,
+                  const std::vector<std::pair<loc_bin_index<annulus2D>, dindex>>
+                      &bin_capacities = {},
+                  const std::array<std::vector<scalar_type>, 2UL> &bin_edges =
+                      std::array<std::vector<scalar_type>, 2UL>(),
+                  const std::array<std::vector<scalar_type>, 2UL> &axis_spans =
+                      std::array<std::vector<scalar_type>, 2UL>()) const {
 
         static_assert(
             std::is_same_v<phi_bounds, axis::circular<>>,
@@ -140,14 +140,14 @@ class grid_factory {
         typename z_binning = axis::regular<host_container_types, scalar_type>,
         std::enable_if_t<std::is_enum_v<decltype(x_bounds::label)>, bool> =
             true>
-    auto new_grid(
-        const mask<cuboid3D> &grid_bounds,
-        const std::array<std::size_t, 3UL> n_bins,
-        const std::vector<std::pair<loc_bin_index<cuboid3D>, dindex>>
-            &bin_capacities = {},
-        const std::array<std::vector<scalar_type>, 3UL> &bin_edges = {{}},
-        const std::array<std::vector<scalar_type>, 3UL> &axis_spans = {
-            {}}) const {
+    auto new_grid(const mask<cuboid3D> &grid_bounds,
+                  const std::array<std::size_t, 3UL> n_bins,
+                  const std::vector<std::pair<loc_bin_index<cuboid3D>, dindex>>
+                      &bin_capacities = {},
+                  const std::array<std::vector<scalar_type>, 3UL> &bin_edges =
+                      std::array<std::vector<scalar_type>, 3UL>(),
+                  const std::array<std::vector<scalar_type>, 3UL> &axis_spans =
+                      std::array<std::vector<scalar_type>, 3UL>()) const {
         // Axes boundaries and local indices
         using boundary = cuboid3D::boundaries;
         using axes_t = axes<cuboid3D>::template type<algebra_t>;
@@ -202,9 +202,10 @@ class grid_factory {
         const std::array<std::size_t, 2UL> n_bins,
         const std::vector<std::pair<loc_bin_index<cylinder2D>, dindex>>
             &bin_capacities = {},
-        const std::array<std::vector<scalar_type>, 2UL> &bin_edges = {{}},
-        const std::array<std::vector<scalar_type>, 2UL> &axis_spans = {
-            {}}) const {
+        const std::array<std::vector<scalar_type>, 2UL> &bin_edges =
+            std::array<std::vector<scalar_type>, 2UL>(),
+        const std::array<std::vector<scalar_type>, 2UL> &axis_spans =
+            std::array<std::vector<scalar_type>, 2UL>()) const {
 
         static_assert(
             std::is_same_v<rphi_bounds, axis::circular<axis::label::e_rphi>>,
@@ -244,14 +245,15 @@ class grid_factory {
         typename z_binning = axis::regular<host_container_types, scalar_type>,
         std::enable_if_t<std::is_enum_v<decltype(rphi_bounds::label)>, bool> =
             true>
-    auto new_grid(
-        const mask<concentric_cylinder2D> &grid_bounds,
-        const std::array<std::size_t, 2UL> n_bins,
-        const std::vector<std::pair<loc_bin_index<concentric_cylinder2D>,
-                                    dindex>> &bin_capacities = {},
-        const std::array<std::vector<scalar_type>, 2UL> &bin_edges = {{}},
-        const std::array<std::vector<scalar_type>, 2UL> &axis_spans = {
-            {}}) const {
+    auto new_grid(const mask<concentric_cylinder2D> &grid_bounds,
+                  const std::array<std::size_t, 2UL> n_bins,
+                  const std::vector<
+                      std::pair<loc_bin_index<concentric_cylinder2D>, dindex>>
+                      &bin_capacities = {},
+                  const std::array<std::vector<scalar_type>, 2UL> &bin_edges =
+                      std::array<std::vector<scalar_type>, 2UL>(),
+                  const std::array<std::vector<scalar_type>, 2UL> &axis_spans =
+                      std::array<std::vector<scalar_type>, 2UL>()) const {
 
         static_assert(
             std::is_same_v<rphi_bounds, axis::circular<axis::label::e_rphi>>,
@@ -298,9 +300,10 @@ class grid_factory {
         const std::array<std::size_t, 3UL> n_bins,
         const std::vector<std::pair<loc_bin_index<cylinder3D>, dindex>>
             &bin_capacities = {},
-        const std::array<std::vector<scalar_type>, 3UL> &bin_edges = {{}},
-        const std::array<std::vector<scalar_type>, 3UL> &axis_spans = {
-            {}}) const {
+        const std::array<std::vector<scalar_type>, 3UL> &bin_edges =
+            std::array<std::vector<scalar_type>, 3UL>(),
+        const std::array<std::vector<scalar_type>, 3UL> &axis_spans =
+            std::array<std::vector<scalar_type>, 3UL>()) const {
 
         static_assert(
             std::is_same_v<phi_bounds, axis::circular<>>,
@@ -357,14 +360,14 @@ class grid_factory {
         typename phi_binning = axis::regular<host_container_types, scalar_type>,
         std::enable_if_t<std::is_enum_v<decltype(r_bounds::label)>, bool> =
             true>
-    auto new_grid(
-        const mask<ring2D> &grid_bounds,
-        const std::array<std::size_t, 2UL> n_bins,
-        const std::vector<std::pair<loc_bin_index<ring2D>, dindex>>
-            &bin_capacities = {},
-        const std::array<std::vector<scalar_type>, 2UL> &bin_edges = {{}},
-        const std::array<std::vector<scalar_type>, 2UL> &axis_spans = {
-            {}}) const {
+    auto new_grid(const mask<ring2D> &grid_bounds,
+                  const std::array<std::size_t, 2UL> n_bins,
+                  const std::vector<std::pair<loc_bin_index<ring2D>, dindex>>
+                      &bin_capacities = {},
+                  const std::array<std::vector<scalar_type>, 2UL> &bin_edges =
+                      std::array<std::vector<scalar_type>, 2UL>(),
+                  const std::array<std::vector<scalar_type>, 2UL> &axis_spans =
+                      std::array<std::vector<scalar_type>, 2UL>()) const {
 
         static_assert(std::is_same_v<phi_bounds, axis::circular<>>,
                       "Phi axis bounds need to be circular for ring shape");
@@ -409,9 +412,10 @@ class grid_factory {
         const std::array<std::size_t, 2UL> n_bins,
         const std::vector<std::pair<loc_bin_index<rectangle2D>, dindex>>
             &bin_capacities = {},
-        const std::array<std::vector<scalar_type>, 2UL> &bin_edges = {{}},
-        const std::array<std::vector<scalar_type>, 2UL> &axis_spans = {
-            {}}) const {
+        const std::array<std::vector<scalar_type>, 2UL> &bin_edges =
+            std::array<std::vector<scalar_type>, 2UL>(),
+        const std::array<std::vector<scalar_type>, 2UL> &axis_spans =
+            std::array<std::vector<scalar_type>, 2UL>()) const {
         // Axes boundaries and local indices
         using boundary = rectangle2D::boundaries;
         using axes_t = axes<rectangle2D>::template type<algebra_t>;
@@ -455,9 +459,10 @@ class grid_factory {
         const std::array<std::size_t, 2UL> n_bins,
         const std::vector<std::pair<loc_bin_index<trapezoid2D>, dindex>>
             &bin_capacities = {},
-        const std::array<std::vector<scalar_type>, 2UL> &bin_edges = {{}},
-        const std::array<std::vector<scalar_type>, 2UL> &axis_spans = {
-            {}}) const {
+        const std::array<std::vector<scalar_type>, 2UL> &bin_edges =
+            std::array<std::vector<scalar_type>, 2UL>(),
+        const std::array<std::vector<scalar_type>, 2UL> &axis_spans =
+            std::array<std::vector<scalar_type>, 2UL>()) const {
         // Axes boundaries and local indices
         using boundary = trapezoid2D::boundaries;
         using axes_t = axes<trapezoid2D>::template type<algebra_t>;

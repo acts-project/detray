@@ -6,7 +6,7 @@
 
 # Set up the project.
 cmake_minimum_required( VERSION 3.11 )
-project( detray VERSION 0.75.1 LANGUAGES CXX )
+project( detray VERSION 0.75.2 LANGUAGES CXX )
 
 # Set up the used C++ standard(s).
 set( CMAKE_CXX_STANDARD 20 CACHE STRING "The (host) C++ standard to use" )
@@ -60,6 +60,7 @@ option( DETRAY_SVG_DISPLAY "Build ActSVG display module" OFF)
 option( DETRAY_BUILD_SYCL "Build the SYCL sources included in detray" OFF )
 option( DETRAY_BUILD_CUDA "Build the CUDA sources included in detray"
    ${DETRAY_BUILD_CUDA_DEFAULT} )
+cmake_dependent_option(DETRAY_BUILD_HOST "Build the host sources included in detray" ON "DETRAY_BUILD_CUDA OR DETRAY_BUILD_SYCL" ON)
 option( DETRAY_BUILD_TEST_UTILS "Build the test utility library of Detray" OFF )
 option( DETRAY_BUILD_UNITTESTS "Build the unit tests of Detray" OFF )
 option( DETRAY_BUILD_INTEGRATIONTESTS "Build the integration tests of Detray"
@@ -128,7 +129,7 @@ endif()
 
 # Set up ACTSVG for displaying
 option( DETRAY_SETUP_ACTSVG
-   "Set up the actsvg target(s) explicitly" TRUE )
+   "Set up the actsvg target(s) explicitly" ${DETRAY_SVG_DISPLAY} )
 option( DETRAY_USE_SYSTEM_ACTSVG
    "Pick up an existing installation of actsvg from the build environment"
    ${DETRAY_USE_SYSTEM_LIBS} )
@@ -170,7 +171,7 @@ endif()
 
 # Set up GoogleTest.
 option( DETRAY_SETUP_GOOGLETEST
-   "Set up the GoogleTest target(s) explicitly" TRUE )
+   "Set up the GoogleTest target(s) explicitly" ${DETRAY_BUILD_TESTING} )
 option( DETRAY_USE_SYSTEM_GOOGLETEST
    "Pick up an existing installation of GoogleTest from the build environment"
    ${DETRAY_USE_SYSTEM_LIBS} )
@@ -184,7 +185,7 @@ endif()
 
 # Set up Google Benchmark.
 option( DETRAY_SETUP_BENCHMARK
-   "Set up the Google Benchmark target(s) explicitly" TRUE )
+   "Set up the Google Benchmark target(s) explicitly" ${DETRAY_BUILD_BENCHMARKS} )
 option( DETRAY_USE_SYSTEM_BENCHMARK
    "Pick up an existing installation of Google Benchmark from the build environment"
    ${DETRAY_USE_SYSTEM_LIBS} )

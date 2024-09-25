@@ -60,7 +60,9 @@ class mask {
 
     /// Constructor from single mask boundary values @param args and
     /// volume link @param link
-    template <typename... Args>
+    template <typename... Args,
+              std::enable_if_t<(sizeof...(Args) == shape::boundaries::e_size),
+                               bool> = true>
     DETRAY_HOST_DEVICE explicit constexpr mask(const links_type& link,
                                                Args&&... args)
         : _values({{std::forward<Args>(args)...}}), _volume_link(link) {}
