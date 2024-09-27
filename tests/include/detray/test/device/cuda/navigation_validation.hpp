@@ -282,12 +282,17 @@ class navigation_validation : public test::fixture_base<> {
             }
 
             // Get the original test trajectory (ray or helix)
-            const auto &trck_param = truth_trace.front().track_param;
+            const auto &start = truth_trace.front();
+            const auto &trck_param = start.track_param;
             trajectory_type test_traj = get_parametrized_trajectory(trck_param);
 
-            const scalar q = trck_param.qop() > 0 ? 1.f : -1.f;
-            min_pT = std::min(min_pT, trck_param.pT(q));
-            max_pT = std::max(max_pT, trck_param.pT(q));
+            const scalar q = start.charge;
+            const scalar pT{q == 0.f ? 1.f * unit<scalar>::GeV
+                                     : trck_param.pT(q)};
+            const scalar p{q == 0.f ? 1.f * unit<scalar>::GeV
+                                    : trck_param.p(q)};
+            min_pT = std::min(min_pT, pT);
+            max_pT = std::max(max_pT, pT);
 
             // Recorded only the start position, which added by default
             bool success{true};
@@ -300,6 +305,12 @@ class navigation_validation : public test::fixture_base<> {
 
                 ++n_fatal;
             } else {
+                // Adjust the track charge, which is unknown to the navigation
+                for (auto &record : recorded_trace) {
+                    record.charge = q;
+                    record.p_mag = p;
+                }
+
                 // Compare truth and recorded data elementwise
                 auto [result, n_missed_nav, n_missed_truth, n_error,
                       missed_inters] =

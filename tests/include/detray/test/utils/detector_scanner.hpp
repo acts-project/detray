@@ -28,17 +28,19 @@ namespace detray {
 /// Record of a surface intersection along a track
 template <typename detector_t>
 struct intersection_record {
-    using intersection_type = intersection2D<typename detector_t::surface_type,
-                                             typename detector_t::algebra_type>;
+    using algebra_t = typename detector_t::algebra_type;
+    using scalar_t = dscalar<algebra_t>;
+    using track_parameter_type = free_track_parameters<algebra_t>;
+    using intersection_type =
+        intersection2D<typename detector_t::surface_type, algebra_t>;
 
-    using track_parameter_type =
-        free_track_parameters<typename detector_t::algebra_type>;
-
+    /// The charge associated with the track parameters
+    scalar_t charge;
     /// Current global track parameters
     track_parameter_type track_param;
     /// Index of the volume the intersection was found in
     dindex vol_idx;
-    /// The intersection result
+    /// The intersection result, including the surface descriptor
     intersection_type intersection;
 };
 
@@ -62,7 +64,8 @@ struct brute_force_scan {
                                1.f *
                                unit<typename detector_t::scalar_type>::GeV) {
 
-        using scalar_t = typename detector_t::scalar_type;
+        using algebra_t = typename detector_t::scalar_type;
+        using scalar_t = dscalar<algebra_t>;
         using sf_desc_t = typename detector_t::surface_type;
         using nav_link_t = typename detector_t::surface_type::navigation_link;
 
@@ -74,6 +77,9 @@ struct brute_force_scan {
         intersection_trace_type<detector_t> intersection_trace;
 
         const auto &trf_store = detector.transform_store();
+
+        assert(p > 0.f);
+        const scalar_t q{p * traj.qop()};
 
         std::vector<intersection_t> intersections{};
         intersections.reserve(100u);
@@ -93,8 +99,8 @@ struct brute_force_scan {
                     sfi.sf_desc = sf_desc;
                     // Record the intersection
                     intersection_trace.push_back(
-                        {{traj.pos(sfi.path), 0.f, p * traj.dir(sfi.path),
-                          traj.charge()},
+                        {q,
+                         {traj.pos(sfi.path), 0.f, p * traj.dir(sfi.path), q},
                          sf.volume(),
                          sfi});
                 }
@@ -115,12 +121,12 @@ struct brute_force_scan {
         start_intersection.volume_link =
             static_cast<nav_link_t>(first_record.vol_idx);
 
-        intersection_trace.insert(
-            intersection_trace.begin(),
-            intersection_record<detector_t>{
-                {traj.pos(), 0.f, p * traj.dir(), traj.charge()},
-                first_record.vol_idx,
-                start_intersection});
+        intersection_trace.insert(intersection_trace.begin(),
+                                  intersection_record<detector_t>{
+                                      q,
+                                      {traj.pos(), 0.f, p * traj.dir(), q},
+                                      first_record.vol_idx,
+                                      start_intersection});
 
         return intersection_trace;
     }
@@ -206,10 +212,11 @@ inline auto write_tracks(
     const std::vector<std::vector<intersection_record<detector_t>>>
         &intersection_traces) {
 
+    using scalar_t = typename detector_t::scalar_type;
     using record_t = intersection_record<detector_t>;
     using track_param_t = typename record_t::track_parameter_type;
 
-    std::vector<std::vector<track_param_t>> track_params{};
+    std::vector<std::vector<std::pair<scalar_t, track_param_t>>> track_params{};
 
     // Split data
     for (const auto &trace : intersection_traces) {
@@ -217,7 +224,7 @@ inline auto write_tracks(
         track_params.back().reserve(trace.size());
 
         for (const auto &record : trace) {
-            track_params.back().push_back(record.track_param);
+            track_params.back().emplace_back(record.charge, record.track_param);
         }
     }
 
@@ -275,8 +282,8 @@ inline auto read(const std::string &intersection_file_name,
 
             intersection_traces[trk_idx].push_back(
                 intersection_record<detector_t>{
-                    track_params[i], intersections[i].sf_desc.volume(),
-                    intersections[i]});
+                    track_params[i].first, track_params[i].second,
+                    intersections[i].sf_desc.volume(), intersections[i]});
         }
     }
 }

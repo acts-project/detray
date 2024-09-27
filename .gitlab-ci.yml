@@ -20,18 +20,8 @@ build_cuda:
       - git clone $CLONE_URL src
       - git -C src checkout $HEAD_SHA
       - >
-        cmake --preset cuda -S src -B build
+        cmake --preset gitlab-cuda-ci -S src -B build
         -DCMAKE_BUILD_TYPE=Release
-        -DDETRAY_EIGEN_PLUGIN=ON
-        -DDETRAY_VC_PLUGIN=OFF
-        -DDETRAY_SMATRIX_PLUGIN=OFF
-        -DBUILD_TESTING=ON
-        -DDETRAY_BUILD_UNITTESTS=ON
-        -DDETRAY_BUILD_INTEGRATIONTESTS=ON
-        -DDETRAY_BUILD_BENCHMARKS=ON
-        -DDETRAY_BUILD_TUTORIALS=ON
-        -DDETRAY_BUILD_HOST=OFF
-        -DDETRAY_FAIL_ON_WARNINGS=ON
       - cmake --build build -- -j 2
 
 
@@ -66,18 +56,8 @@ build_sycl:
       - git -C src checkout $HEAD_SHA
       - source src/.github/ci_setup.sh SYCL
       - >
-        cmake --preset sycl -S src -B build
+        cmake --preset gitlab-sycl-ci -S src -B build
         -DCMAKE_BUILD_TYPE=Release
-        -DDETRAY_EIGEN_PLUGIN=ON
-        -DDETRAY_VC_PLUGIN=OFF
-        -DDETRAY_SMATRIX_PLUGIN=OFF
-        -DBUILD_TESTING=ON
-        -DDETRAY_BUILD_UNITTESTS=OFF
-        -DDETRAY_BUILD_INTEGRATIONTESTS=ON
-        -DDETRAY_BUILD_BENCHMARKS=OFF
-        -DDETRAY_BUILD_TUTORIALS=OFF
-        -DDETRAY_BUILD_HOST=OFF
-        -DDETRAY_FAIL_ON_WARNINGS=ON
       - cmake --build build
 
 
