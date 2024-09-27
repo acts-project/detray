@@ -106,6 +106,10 @@ class base_stepper {
         /// free track parameter
         free_track_parameters_type _track;
 
+        /// Full jacobian
+        bound_matrix_type _full_jacobian =
+            matrix_operator().template identity<e_bound_size, e_bound_size>();
+
         /// jacobian transport matrix
         free_matrix_type _jac_transport =
             matrix_operator().template identity<e_free_size, e_free_size>();
