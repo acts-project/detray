@@ -58,7 +58,7 @@ jobs:
           - NAME: "HOST"
             CXX_STANDARD: "20"
             CONTAINER: "ghcr.io/acts-project/ubuntu2404:56"
-            OPTIONS: -DDETRAY_EIGEN_PLUGIN=ON -DDETRAY_SMATRIX_PLUGIN=ON -DDETRAY_VC_PLUGIN=ON
+            OPTIONS: -DDETRAY_EIGEN_PLUGIN=ON -DDETRAY_SMATRIX_PLUGIN=ON -DDETRAY_VC_AOS_PLUGIN=ON -DDETRAY_VC_SOA_PLUGIN=ON
 
     # The system to run on.
     runs-on: ubuntu-latest
@@ -101,7 +101,7 @@ jobs:
         source ${GITHUB_WORKSPACE}/.github/ci_setup.sh ${{ matrix.PLATFORM.NAME }}
         cmake --build build -- -j $(nproc)
     # Run the unit test(s).
-    - name: Test
+    - name: Full Test
       if: "matrix.BUILD_TYPE == 'Release'"
       run: |
         cd build
@@ -126,11 +126,11 @@ jobs:
           - NAME: "CUDA"
             CXX_STANDARD: "20"
             CONTAINER: "ghcr.io/acts-project/ubuntu2404_cuda:56"
-            OPTIONS: -DDETRAY_BUILD_CUDA=ON -DDETRAY_EIGEN_PLUGIN=ON -DDETRAY_SMATRIX_PLUGIN=OFF -DDETRAY_VC_PLUGIN=OFF
+            OPTIONS: -DDETRAY_BUILD_CUDA=ON -DDETRAY_EIGEN_PLUGIN=ON -DDETRAY_SMATRIX_PLUGIN=OFF -DDETRAY_VC_AOS_PLUGIN=OFF -DDETRAY_VC_SOA_PLUGIN=OFF
           - NAME: "SYCL"
             CXX_STANDARD: "20"
             CONTAINER: "ghcr.io/acts-project/ubuntu2404_oneapi:56"
-            OPTIONS: -DDETRAY_BUILD_CUDA=OFF -DDETRAY_BUILD_SYCL=ON -DDETRAY_EIGEN_PLUGIN=ON -DDETRAY_SMATRIX_PLUGIN=OFF -DDETRAY_VC_PLUGIN=OFF
+            OPTIONS: -DDETRAY_BUILD_CUDA=OFF -DDETRAY_BUILD_SYCL=ON -DDETRAY_EIGEN_PLUGIN=ON -DDETRAY_SMATRIX_PLUGIN=OFF -DDETRAY_VC_AOS_PLUGIN=OFF -DDETRAY_VC_SOA_PLUGIN=OFF
 
     # The system to run on.
     runs-on: ubuntu-latest

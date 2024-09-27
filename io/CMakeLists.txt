@@ -45,10 +45,10 @@ if( DETRAY_SMATRIX_PLUGIN )
       INTERFACE detray::io detray::algebra_smatrix )
 endif()
 
-if( DETRAY_VC_PLUGIN )
-   detray_add_library( detray_io_vc io_vc )
-   target_link_libraries( detray_io_vc
-      INTERFACE detray::io detray::algebra_vc )
+if( DETRAY_VC_AOS_PLUGIN )
+   detray_add_library( detray_io_vc_aos io_vc_aos )
+   target_link_libraries( detray_io_vc_aos
+      INTERFACE detray::io detray::algebra_vc_aos )
 endif()
 
 # Set up the csv data I/O library.
@@ -76,8 +76,8 @@ if( BUILD_TESTING AND DETRAY_BUILD_TESTING )
       detray_test_public_headers( detray_io_smatrix
          ${_detray_io_public_headers} )
    endif()
-   if( DETRAY_VC_PLUGIN )
-      detray_test_public_headers( detray_io_vc
+   if( DETRAY_VC_AOS_PLUGIN )
+      detray_test_public_headers( detray_io_vc_aos
          ${_detray_io_public_headers} )
    endif()
 

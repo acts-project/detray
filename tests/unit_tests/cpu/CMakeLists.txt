@@ -114,7 +114,7 @@ if(DETRAY_SMATRIX_PLUGIN)
    detray_add_cpu_test(smatrix)
 endif()
 
-# Build the Vc tests.
-if(DETRAY_VC_PLUGIN)
-   detray_add_cpu_test(vc)
+# Build the Vc AoS tests.
+if(DETRAY_VC_AOS_PLUGIN)
+   detray_add_cpu_test(vc_aos)
 endif()

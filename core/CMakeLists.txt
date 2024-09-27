@@ -62,10 +62,10 @@ if( DETRAY_SMATRIX_PLUGIN )
       INTERFACE detray::core detray::algebra_smatrix )
 endif()
 
-if( DETRAY_VC_PLUGIN )
-   detray_add_library( detray_core_vc core_vc )
-   target_link_libraries( detray_core_vc
-      INTERFACE detray::core detray::algebra_vc )
+if( DETRAY_VC_AOS_PLUGIN )
+   detray_add_library( detray_core_vc_aos core_vc_aos )
+   target_link_libraries( detray_core_vc_aos
+      INTERFACE detray::core detray::algebra_vc_aos )
 endif()
 
 if( DETRAY_VC_SOA_PLUGIN )
@@ -88,8 +88,8 @@ if( BUILD_TESTING AND DETRAY_BUILD_TESTING )
       detray_test_public_headers( detray_core_smatrix
          ${_detray_core_public_headers} )
    endif()
-   if( DETRAY_VC_PLUGIN )
-      detray_test_public_headers( detray_core_vc
+   if( DETRAY_VC_AOS_PLUGIN )
+      detray_test_public_headers( detray_core_vc_aos
          ${_detray_core_public_headers} )
    endif()
 endif()

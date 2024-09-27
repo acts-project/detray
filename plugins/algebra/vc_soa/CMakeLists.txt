@@ -4,6 +4,8 @@
 #
 # Mozilla Public License Version 2.0
 
+message( STATUS "Building the 'detray::algebra_vc_soa' plugin" )
+
 # A sanity check.
 if( NOT ALGEBRA_PLUGINS_INCLUDE_VC )
    message( WARNING "Vc not available from Algebra Plugins. "
