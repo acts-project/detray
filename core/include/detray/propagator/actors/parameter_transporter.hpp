@@ -104,7 +104,7 @@ struct parameter_transporter : actor {
         // Current Surface
         const auto sf = navigation.get_surface();
 
-        // Covariance is transported only when the previous surface is the
+        // Covariance is transported only when the previous surface is an
         // actual tracking surface. (i.e. This disables the covariance transport
         // from curvilinear frame)
         if (stepping._prev_sf_id != detail::invalid_value<dindex>()) {
@@ -113,7 +113,7 @@ struct parameter_transporter : actor {
             tracking_surface<detector_type> prev_sf{navigation.detector(),
                                                     stepping._prev_sf_id};
 
-            bound_to_free_matrix<algebra_t> bound_to_free_jacobian =
+            const bound_to_free_matrix<algebra_t> bound_to_free_jacobian =
                 prev_sf.bound_to_free_jacobian(ctx, stepping._bound_params);
 
             stepping._full_jacobian =
