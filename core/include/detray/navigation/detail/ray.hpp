@@ -67,9 +67,9 @@ class ray {
     /// @param dir new direction of the ray
     DETRAY_HOST_DEVICE void set_dir(vector3_type dir) { _dir = dir; }
 
-    /// @return charge 1
+    /// @returns the q over p value: Zero for ray
     DETRAY_HOST_DEVICE
-    constexpr scalar_type charge() const { return 1.f; }
+    constexpr scalar_type qop() const { return 0.f; }
 
     /// Print
     DETRAY_HOST

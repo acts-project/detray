@@ -339,10 +339,11 @@ auto compare_traces(truth_trace_t &truth_trace,
 template <typename record_t>
 auto write_tracks(const std::string &track_param_file_name,
                   const dvector<dvector<record_t>> &intersection_traces) {
-    using track_param_t =
-        free_track_parameters<typename record_t::algebra_type>;
+    using algebra_t = typename record_t::algebra_type;
+    using scalar_t = dscalar<algebra_t>;
+    using track_param_t = free_track_parameters<algebra_t>;
 
-    std::vector<std::vector<track_param_t>> track_params{};
+    std::vector<std::vector<std::pair<scalar_t, track_param_t>>> track_params{};
 
     for (const auto &trace : intersection_traces) {
 
@@ -350,7 +351,9 @@ auto write_tracks(const std::string &track_param_file_name,
         track_params.back().reserve(trace.size());
 
         for (const auto &record : trace) {
-            track_params.back().push_back({record.pos, 0.f, record.dir, -1.f});
+            track_params.back().emplace_back(
+                record.charge,
+                track_param_t{record.pos, 0.f, record.dir, record.charge});
         }
     }
 

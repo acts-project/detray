@@ -169,6 +169,7 @@ struct free_parameters_vector {
     DETRAY_HOST_DEVICE
     scalar_type pT(const scalar_type q) const {
         assert(this->qop() != 0.f);
+        assert(q * qop() > 0.f);
         return math::fabs(q / this->qop() * getter::perp(this->dir()));
     }
 
@@ -176,6 +177,7 @@ struct free_parameters_vector {
     DETRAY_HOST_DEVICE
     scalar_type pz(const scalar_type q) const {
         assert(this->qop() != 0.f);
+        assert(q * qop() > 0.f);
         return math::fabs(q / this->qop() * this->dir()[2]);
     }
 

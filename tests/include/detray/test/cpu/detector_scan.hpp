@@ -195,20 +195,20 @@ class detector_scan : public test::fixture_base<> {
             std::cout << "INFO: Generating trace data..." << std::endl;
 
             for (auto trk : trk_state_generator) {
-
                 // Get ground truth from track
                 trajectory_type test_traj = get_parametrized_trajectory(trk);
 
+                // The track generator can randomize the sign of the charge
+                const scalar_t qabs{math::fabs(m_cfg.m_trk_gen_cfg.charge())};
+                const scalar_t q{math::copysign(qabs, trk.qop())};
+
                 // Shoot trajectory through the detector and record all
                 // surfaces it encounters
-                assert(
-                    math::fabs(m_cfg.track_generator().charge()) ==
-                        1.f * unit<scalar_t>::e &&
-                    "Detector scan can only be run with particle charge +-1e");
-                const scalar qabs = math::fabs(m_cfg.m_trk_gen_cfg.charge());
-                const scalar q = trk.qop() > 0 ? qabs : -qabs;
+                // @note: For rays, set the momentum to 1 GeV to keep the
+                //        direction vector normalized
+                const scalar p{q == 0.f ? 1.f * unit<scalar>::GeV : trk.p(q)};
                 auto trace = detector_scanner::run<scan_type>(
-                    m_gctx, m_det, test_traj, m_cfg.mask_tolerance(), trk.p(q));
+                    m_gctx, m_det, test_traj, m_cfg.mask_tolerance(), p);
 
                 intersection_traces.push_back(std::move(trace));
             }

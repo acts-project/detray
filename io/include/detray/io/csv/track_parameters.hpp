@@ -68,14 +68,15 @@ inline auto read_free_track_params(const std::string &file_name) {
         file_name);
 
     io::csv::free_track_parameters track_param_data{};
-    std::vector<std::vector<track_t>> track_params_per_track;
+    std::vector<std::vector<std::pair<scalar_t, track_t>>>
+        track_params_per_track;
 
     while (track_param_reader.read(track_param_data)) {
 
         // Add new track state to correct track
         auto trk_index{static_cast<dindex>(track_param_data.track_id)};
         while (track_params_per_track.size() <= trk_index) {
-            track_params_per_track.push_back({});
+            track_params_per_track.emplace_back();
         }
 
         point3_t pos{static_cast<scalar_t>(track_param_data.x),
@@ -89,7 +90,8 @@ inline auto read_free_track_params(const std::string &file_name) {
                             static_cast<scalar_t>(track_param_data.q)};
 
         // Add to collection
-        track_params_per_track[trk_index].push_back(track_param);
+        track_params_per_track[trk_index].emplace_back(track_param_data.q,
+                                                       track_param);
     }
 
     // Check the result
@@ -102,10 +104,11 @@ inline auto read_free_track_params(const std::string &file_name) {
 }
 
 /// Write free track parameters to csv file
-template <typename track_t>
+template <typename scalar_t, typename track_t>
 inline void write_free_track_params(
     const std::string &file_name,
-    const std::vector<std::vector<track_t>> &track_params_per_track,
+    const std::vector<std::vector<std::pair<scalar_t, track_t>>>
+        &track_params_per_track,
     const bool replace = true) {
 
     // Don't write over existing data
@@ -128,10 +131,9 @@ inline void write_free_track_params(
             continue;
         }
 
-        for (const auto &track_param : track_params) {
+        for (const auto &[charge, track_param] : track_params) {
 
             const auto &glob_pos = track_param.pos();
-            const scalar charge = track_param.qop() < 0.f ? -1.f : 1.f;
             const auto &p = track_param.mom(charge);
 
             io::csv::free_track_parameters track_param_data{};
