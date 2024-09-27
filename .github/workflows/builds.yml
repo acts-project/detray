@@ -48,7 +48,7 @@ jobs:
                  -G "${{ matrix.PLATFORM.GENERATOR }}"
     # Perform the build.
     - name: Build
-      run: cmake --build build --config ${{ matrix.BUILD_TYPE }}
+      run: cmake --build build --config ${{ matrix.BUILD_TYPE }} -- -j 2
 
   # Containerised build jobs.
   host-container:
@@ -106,7 +106,7 @@ jobs:
     - name: Build
       run: |
         source ${GITHUB_WORKSPACE}/.github/ci_setup.sh ${{ matrix.PLATFORM.NAME }}
-        cmake --build build
+        cmake --build build -- -j $(nproc)
     # Run the unit test(s).
     - name: Test
       if: "matrix.BUILD_TYPE == 'Release'"
