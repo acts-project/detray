@@ -43,11 +43,14 @@
       {
          "name": "dev-fp64",
          "displayName": "FP64 Developer Configuration: Build all Dependencies",
-         "inherits": [ "dev-fp32", "default-fp64" ]
+         "inherits": [ "dev-fp32" ],
+         "cacheVariables": {
+            "DETRAY_CUSTOM_SCALARTYPE" : "double"
+         }
       },
       {
          "name": "full-fp32",
-         "displayName": "Full host FP32 Developer Configuration",
+         "displayName": "FP32 Developer Configuration: Full Build",
          "inherits": [ "dev-fp32" ],
          "cacheVariables": {
             "CMAKE_BUILD_TYPE": "RelWithDebInfo",
@@ -60,8 +63,11 @@
       },
       {
          "name": "full-fp64",
-         "displayName": "Full host FP64 Developer Configuration",
-         "inherits": [ "full-fp32", "default-fp64" ]
+         "displayName": "FP64 Developer Configuration: Full Build",
+         "inherits": [ "full-fp32" ],
+         "cacheVariables": {
+            "DETRAY_CUSTOM_SCALARTYPE" : "double"
+         }
       },
       {
          "name" : "cuda",
@@ -102,7 +108,7 @@
             "DETRAY_BUILD_INTEGRATIONTESTS" : "TRUE",
             "DETRAY_BUILD_CLI_TOOLS" : "FALSE",
             "DETRAY_BUILD_BENCHMARKS" : "FALSE",
-            "DETRAY_BUILD_TUTORIALS" : "TRUE",
+            "DETRAY_BUILD_TUTORIALS" : "FALSE",
             "DETRAY_FAIL_ON_WARNINGS" : "TRUE",
             "DETRAY_EIGEN_PLUGIN" : "TRUE"
          }
