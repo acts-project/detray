@@ -86,7 +86,7 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, false> {
             case 0:
                 ret[0].status = false;
                 ret[1].status = false;
-        };
+        }
 
         // Even if there are two geometrically valid solutions, the smaller one
         // might not be passed on if it is below the overstepping tolerance:
@@ -135,7 +135,7 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, false> {
                 break;
             case 0:
                 sfi.status = false;
-        };
+        }
     }
 
     protected:
@@ -189,7 +189,7 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, false> {
             is.path = path;
             const point3_type p3 = ro + is.path * rd;
 
-            is.local = mask.to_local_frame(trf, p3);
+            is.local = mask_t::to_local_frame(trf, p3);
             // Tolerance: per mille of the distance
             is.status = mask.is_inside(
                 is.local,

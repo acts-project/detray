@@ -12,6 +12,9 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/geometry.hpp"
 
+// System include(s)
+#include <utility>
+
 namespace detray {
 
 /// @brief The detray detector volume descriptor.
@@ -37,7 +40,10 @@ class volume_descriptor {
 
     /// How to access the surface ranges in the detector surface lookup
     using sf_link_type =
-        dmulti_index<dindex_range, static_cast<std::size_t>(surface_id::e_all)>;
+        dmulti_index<dindex_range,
+                     static_cast<std::size_t>(
+                         static_cast<std::underlying_type_t<surface_id>>(
+                             surface_id::e_all))>;
 
     /// How to access objects (e.g. sensitives/passives/portals) in this
     /// volume. Keeps one accelerator structure link per object type (by ID):
@@ -171,8 +177,7 @@ class volume_descriptor {
         const typename sf_link_type::index_type& other) noexcept -> void {
         auto& rg = sf_link<id>();
         // Range not set yet - initialize
-        constexpr typename sf_link_type::index_type empty{};
-        if (rg == empty) {
+        if (constexpr typename sf_link_type::index_type empty{}; rg == empty) {
             rg = other;
         } else {
             // Update upper border

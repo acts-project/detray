@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -9,6 +9,8 @@
 
 // Project include(s).
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/utils/find_bound.hpp"
+#include "detray/utils/ranges.hpp"
 
 // System include(s).
 #include <algorithm>
@@ -17,11 +19,13 @@
 namespace detray {
 
 template <class RandomIt>
-DETRAY_HOST_DEVICE inline void insertion_sort(RandomIt first, RandomIt last) {
+requires detray::ranges::random_access_iterator_v<RandomIt>
+    DETRAY_HOST_DEVICE inline void insertion_sort(RandomIt first,
+                                                  RandomIt last) {
     for (auto it = first; it != last; it++) {
         // Searching the upper bound, i.e., first
         // element greater than *it from beginning
-        auto const insertion_point = std::upper_bound(first, it, *it);
+        auto const insertion_point = detray::upper_bound(first, it, *it);
 
         // Shifting the unsorted part
         std::rotate(insertion_point, it, it + 1);
@@ -35,8 +39,9 @@ DETRAY_HOST_DEVICE inline void insertion_sort(vector_t<TYPE> &vec) {
 }
 
 template <class RandomIt, class Comp = std::less<void>>
-DETRAY_HOST_DEVICE inline void selection_sort(RandomIt first, RandomIt last,
-                                              Comp &&comp = Comp()) {
+requires detray::ranges::random_access_iterator_v<RandomIt>
+    DETRAY_HOST_DEVICE inline void selection_sort(RandomIt first, RandomIt last,
+                                                  Comp &&comp = Comp()) {
     for (RandomIt i = first; i < (last - 1); ++i) {
         RandomIt k = i;
 

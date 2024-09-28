@@ -14,6 +14,7 @@
 #include "detray/utils/invalid_values.hpp"
 
 // System include(s)
+#include <array>
 #include <cstdint>
 #include <ostream>
 
@@ -59,13 +60,10 @@ struct multi_index {
     }
 
     /// Equality operator @returns true if all bin indices match.
-    DETRAY_HOST_DEVICE
-    auto operator==(const multi_index<index_t, DIM>& rhs) const -> bool {
-        return (indices == rhs.indices);
-    }
+    bool operator==(const multi_index& rhs) const = default;
 
     DETRAY_HOST
-    friend std::ostream& operator<<(std::ostream& os, const multi_index mi) {
+    friend std::ostream& operator<<(std::ostream& os, const multi_index& mi) {
 
         bool writeSeparator = false;
         for (auto i = 0u; i < DIM; ++i) {
@@ -133,74 +131,70 @@ struct typed_index {
 
     /// Comparison operators
     /// @{
-    DETRAY_HOST_DEVICE
-    friend constexpr bool operator==(typed_index lhs,
-                                     typed_index rhs) noexcept {
-        return lhs.m_value == rhs.m_value;
-    }
+    bool operator==(const typed_index&) const = default;
 
+    /// Comparison operators
     DETRAY_HOST_DEVICE
-    friend constexpr bool operator!=(typed_index lhs,
-                                     typed_index rhs) noexcept {
-        return lhs.m_value != rhs.m_value;
-    }
-
-    DETRAY_HOST_DEVICE
-    friend constexpr bool operator<(typed_index lhs, typed_index rhs) noexcept {
-        return lhs.index() < rhs.index();
+    friend constexpr auto operator<=>(const typed_index lhs,
+                                      const typed_index rhs) noexcept {
+        const auto l{lhs.index()};
+        const auto r{rhs.index()};
+        if (l < r || (l == r && l < r)) {
+            return std::strong_ordering::less;
+        }
+        if (l > r || (l == r && l > r)) {
+            return std::strong_ordering::greater;
+        }
+        return std::strong_ordering::equivalent;
     }
     /// @}
 
     /// Arithmetic operators
     /// @{
     DETRAY_HOST_DEVICE
-    typed_index operator+(const typed_index& rhs) const {
-        return typed_index{}
-            .set_id(this->id())
-            .set_index(this->index() + rhs.index());
+    friend typed_index operator+(const typed_index lhs, const typed_index rhs) {
+        return typed_index{}.set_id(lhs.id()).set_index(lhs.index() +
+                                                        rhs.index());
     }
 
     DETRAY_HOST_DEVICE
-    typed_index operator+(const index_type& index) const {
-        return typed_index{}
-            .set_id(this->id())
-            .set_index(this->index() + index);
+    friend typed_index operator+(const typed_index lhs,
+                                 const index_type index) {
+        return typed_index{}.set_id(lhs.id()).set_index(lhs.index() + index);
     }
 
     DETRAY_HOST_DEVICE
-    typed_index operator-(const typed_index& rhs) const {
-        return typed_index{}
-            .set_id(this->id())
-            .set_index(this->index() - rhs.index());
+    friend typed_index operator-(const typed_index lhs, const typed_index rhs) {
+        return typed_index{}.set_id(lhs.id()).set_index(lhs.index() -
+                                                        rhs.index());
     }
 
     DETRAY_HOST_DEVICE
-    typed_index operator-(const index_type& index) const {
-        return typed_index{}
-            .set_id(this->id())
-            .set_index(this->index() - index);
+    friend typed_index operator-(const typed_index lhs,
+                                 const index_type& index) {
+        return typed_index{}.set_id(lhs.id()).set_index(lhs.index() - index);
     }
 
     DETRAY_HOST_DEVICE
-    typed_index& operator+=(const typed_index& rhs) {
+    typed_index& operator+=(const typed_index rhs) {
         set_index(this->index() + rhs.index());
         return *this;
     }
 
     DETRAY_HOST_DEVICE
-    typed_index& operator+=(const index_type& index) {
+    typed_index& operator+=(const index_type index) {
         set_index(this->index() + index);
         return *this;
     }
 
     DETRAY_HOST_DEVICE
-    typed_index& operator-=(const typed_index& rhs) {
+    typed_index& operator-=(const typed_index rhs) {
         set_index(this->index() - rhs.index());
         return *this;
     }
 
     DETRAY_HOST_DEVICE
-    typed_index& operator-=(const index_type& index) {
+    typed_index& operator-=(const index_type index) {
         set_index(this->index() + index);
         return *this;
     }
@@ -231,15 +225,16 @@ struct typed_index {
         return encoder::template is_invalid<index_mask>(m_value);
     }
 
+    /// Print the index
     DETRAY_HOST
     friend std::ostream& operator<<(std::ostream& os, const typed_index ti) {
         if (ti.is_invalid()) {
             return (os << "undefined");
         }
 
-        static const char* const names[] = {"id = ", "index = "};
-        const value_t levels[] = {static_cast<value_t>(ti.id()),
-                                  static_cast<value_t>(ti.index())};
+        constexpr std::array names{"id = ", "index = "};
+        const std::array levels{static_cast<value_t>(ti.id()),
+                                static_cast<value_t>(ti.index())};
 
         bool writeSeparator = false;
         for (auto i = 0u; i < 2u; ++i) {
@@ -290,7 +285,7 @@ DETRAY_HOST_DEVICE constexpr decltype(auto) get(
 /// Overload to check for an invalid typed index link @param ti
 template <typename id_t, typename index_t, typename value_t, value_t id_mask,
           value_t index_mask>
-DETRAY_HOST_DEVICE inline constexpr bool is_invalid_value(
+DETRAY_HOST_DEVICE constexpr bool is_invalid_value(
     const typed_index<id_t, index_t, value_t, id_mask, index_mask>&
         ti) noexcept {
     return ti.is_invalid();

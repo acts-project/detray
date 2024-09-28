@@ -74,13 +74,13 @@ struct single_axis {
     binning_type m_binning{};
 
     /// Parameterized constructor - empty binning
-    single_axis() = default;
+    constexpr single_axis() = default;
 
     /// Parametrized constructor that builds the binning scheme
     template <typename... Args>
     DETRAY_HOST_DEVICE single_axis(const dindex_range &indx_range,
                                    const vector_type<scalar_type> *edges)
-        : m_bounds(), m_binning(indx_range, edges) {}
+        : m_binning(indx_range, edges) {}
 
     /// @returns the axis label, i.e. x, y, z, r or phi axis.
     DETRAY_HOST_DEVICE
@@ -111,7 +111,7 @@ struct single_axis {
     /// @returns the width of a bin
     template <typename... Args>
     DETRAY_HOST_DEVICE constexpr scalar_type bin_width(Args &&... args) const {
-        return m_binning.bin_width(std::forward<Args &&>(args)...);
+        return m_binning.bin_width(std::forward<Args>(args)...);
     }
 
     /// Given a value on the axis, find the correct bin.

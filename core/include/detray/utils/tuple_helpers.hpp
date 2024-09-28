@@ -28,25 +28,25 @@ namespace detray::detail {
 using std::get;
 
 template <std::size_t I, typename... value_types>
-DETRAY_HOST_DEVICE inline constexpr decltype(auto) get(
+DETRAY_HOST_DEVICE constexpr decltype(auto) get(
     const ::detray::tuple<value_types...>& tuple) noexcept {
     return ::detray::get<I>(tuple);
 }
 
 template <std::size_t I, typename... value_types>
-DETRAY_HOST_DEVICE inline constexpr decltype(auto) get(
+DETRAY_HOST_DEVICE constexpr decltype(auto) get(
     ::detray::tuple<value_types...>& tuple) noexcept {
     return ::detray::get<I>(tuple);
 }
 
 template <typename query_t, typename... value_types>
-DETRAY_HOST_DEVICE inline constexpr decltype(auto) get(
+DETRAY_HOST_DEVICE constexpr decltype(auto) get(
     const ::detray::tuple<value_types...>& tuple) noexcept {
     return ::detray::get<get_type_pos_v<query_t, value_types...>>(tuple);
 }
 
 template <typename query_t, typename... value_types>
-DETRAY_HOST_DEVICE inline constexpr decltype(auto) get(
+DETRAY_HOST_DEVICE constexpr decltype(auto) get(
     ::detray::tuple<value_types...>& tuple) noexcept {
     return ::detray::get<get_type_pos_v<query_t, value_types...>>(tuple);
 }
@@ -96,7 +96,7 @@ struct tuple_size<::detray::tuple<value_types...>> {
 };
 
 template <class T>
-inline constexpr std::size_t tuple_size_v{tuple_size<T>::value};
+constexpr std::size_t tuple_size_v{tuple_size<T>::value};
 /// @}
 
 /// make_tuple for std::tuple
@@ -116,16 +116,15 @@ struct unwrap_refwrapper<std::reference_wrapper<T>> {
 };
 
 template <class T>
-using unwrap_decay_t =
-    typename unwrap_refwrapper<typename std::decay<T>::type>::type;
+using unwrap_decay_t = typename unwrap_refwrapper<std::decay_t<T>>::type;
 
 // make_tuple for std::tuple
 template <template <typename...> class tuple_t, class... value_types,
           std::enable_if_t<std::is_same_v<tuple_t<value_types...>,
                                           std::tuple<value_types...>>,
                            bool> = true>
-DETRAY_HOST inline constexpr std::tuple<unwrap_decay_t<value_types>...>
-make_tuple(value_types&&... args) {
+DETRAY_HOST constexpr std::tuple<unwrap_decay_t<value_types>...> make_tuple(
+    value_types&&... args) {
     return std::make_tuple(std::forward<value_types>(args)...);
 }
 
@@ -134,8 +133,7 @@ template <template <typename...> class tuple_t, class... value_types,
           std::enable_if_t<std::is_same_v<tuple_t<value_types...>,
                                           detray::tuple<value_types...>>,
                            bool> = true>
-DETRAY_HOST_DEVICE inline constexpr detray::tuple<
-    unwrap_decay_t<value_types>...>
+DETRAY_HOST_DEVICE constexpr detray::tuple<unwrap_decay_t<value_types>...>
 make_tuple(value_types&&... args) {
     return detray::tuple<unwrap_decay_t<value_types>...>{
         std::forward<value_types>(args)...};
@@ -171,7 +169,7 @@ template <typename T, typename... Ts>
 struct has_type<T, detray::tuple<T, Ts...>> : std::true_type {};
 
 template <typename T, class tuple_t>
-inline constexpr bool has_type_v = has_type<T, tuple_t>::value;
+constexpr bool has_type_v = has_type<T, tuple_t>::value;
 ///@}
 
 }  // namespace detray::detail

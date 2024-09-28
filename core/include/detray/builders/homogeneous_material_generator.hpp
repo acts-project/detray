@@ -159,7 +159,10 @@ class homogeneous_material_generator final
                         err_stream.str());
                     break;
                 }
-            };
+                default: {
+                    break;
+                }
+            }
 
             // Found suitable material for this surface?
             if (mat_ptr == nullptr) {

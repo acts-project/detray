@@ -226,7 +226,7 @@ GTEST_TEST(detray_builders, decorator_material_map_builder) {
             default: {
                 EXPECT_TRUE(false) << sf_desc;
             }
-        };
+        }
     }
 
     // Check the material map content

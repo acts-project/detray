@@ -150,7 +150,7 @@ class surface_factory : public surface_factory_interface<detector_t> {
                     typename detector_t::geometry_context ctx = {})
         -> dindex_range override {
         // In case the surfaces container is prefilled with other surfaces
-        const dindex surfaces_offset = static_cast<dindex>(surfaces.size());
+        const auto surfaces_offset{static_cast<dindex>(surfaces.size())};
 
         // Nothing to construct
         if (size() == 0u) {

@@ -112,13 +112,14 @@ class material_map_builder final : public volume_decorator<detector_t> {
         auto vol = tracking_volume{det, this->vol_index()};
         for (const auto& sf_desc : vol.surfaces()) {
 
-            if (!surface_has_map(sf_idx++)) {
+            if (!surface_has_map(sf_idx)) {
+                sf_idx++;
                 continue;
             }
 
             // Construct and append the material map for a given surface shape
             std::array<std::vector<scalar_type>, DIM> axis_spans{};
-            auto axis_spans_itr = m_axis_spans.find(sf_idx - 1u);
+            auto axis_spans_itr = m_axis_spans.find(sf_idx);
             if (axis_spans_itr != m_axis_spans.end()) {
                 axis_spans = axis_spans_itr->second;
             }
@@ -127,12 +128,13 @@ class material_map_builder final : public volume_decorator<detector_t> {
             auto sf = tracking_surface{det, sf_desc};
             [[maybe_unused]] auto [mat_id, mat_idx] = sf.template visit_mask<
                 detail::add_sf_material_map<materials_t>>(
-                m_factory, m_bin_data.at(sf_idx - 1u), m_n_bins.at(sf_idx - 1u),
+                m_factory, m_bin_data.at(sf_idx), m_n_bins.at(sf_idx),
                 axis_spans, det.material_store());
 
             // Make sure the linking was precomputed correctly
             assert(mat_id == sf_desc.material().id());
             assert(mat_idx == sf_desc.material().index());
+            sf_idx++;
         }
 
         // Give the volume to the next decorator
@@ -155,7 +157,8 @@ class material_map_builder final : public volume_decorator<detector_t> {
 
         dindex sf_idx{0u};
         for (auto& sf_desc : this->surfaces()) {
-            if (!surface_has_map(sf_idx++)) {
+            if (!surface_has_map(sf_idx)) {
+                sf_idx++;
                 continue;
             }
 
@@ -168,6 +171,7 @@ class material_map_builder final : public volume_decorator<detector_t> {
             }
 
             sf_desc.material().set_index(mat_type_count.at(id));
+            sf_idx++;
         }
 
         // Current sizes of the material stores
@@ -178,11 +182,13 @@ class material_map_builder final : public volume_decorator<detector_t> {
         // Update the counts with the detector offset
         sf_idx = 0u;
         for (auto& sf_desc : this->surfaces()) {
-            if (!surface_has_map(sf_idx++)) {
+            if (!surface_has_map(sf_idx)) {
+                sf_idx++;
                 continue;
             }
             auto coll_idx{static_cast<std::size_t>(sf_desc.material().id())};
             sf_desc.material() += size_map.at(coll_idx);
+            sf_idx++;
         }
     }
 

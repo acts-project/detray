@@ -58,7 +58,7 @@ class unbounded {
     ///
     /// @return the minimum distance.
     template <typename scalar_t, typename point_t>
-    DETRAY_HOST_DEVICE inline scalar_t min_dist_to_boundary(
+    DETRAY_HOST_DEVICE constexpr scalar_t min_dist_to_boundary(
         const bounds_type<scalar_t>& /*bounds*/,
         const point_t& /*loc_p*/) const {
         return std::numeric_limits<scalar_t>::max();
@@ -72,7 +72,7 @@ class unbounded {
     ///
     /// @return always true
     template <typename bounds_t, typename point_t, typename scalar_t>
-    DETRAY_HOST_DEVICE inline constexpr auto check_boundaries(
+    DETRAY_HOST_DEVICE constexpr auto check_boundaries(
         const bounds_t& /*bounds*/, const point_t& /*loc_p*/,
         const scalar_t /*tol*/) const {
         return true;
@@ -165,7 +165,8 @@ class unbounded {
     /// @return true if the bounds are consistent.
     template <typename scalar_t>
     DETRAY_HOST constexpr bool check_consistency(
-        const bounds_type<scalar_t>& /*bounds*/, std::ostream& /*os*/) const {
+        const bounds_type<scalar_t>& /*bounds*/,
+        const std::ostream& /*os*/) const {
         return true;
     }
 };

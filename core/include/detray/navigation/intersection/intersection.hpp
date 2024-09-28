@@ -60,25 +60,28 @@ struct intersection2D {
 
     /// @param rhs is the right hand side intersection for comparison
     DETRAY_HOST_DEVICE
-    bool_t operator<(const intersection2D &rhs) const {
-        return (math::fabs(path) < math::fabs(rhs.path));
+    friend constexpr bool_t operator<(const intersection2D &lhs,
+                                      const intersection2D &rhs) noexcept {
+        return (math::fabs(lhs.path) < math::fabs(rhs.path));
     }
 
     /// @param rhs is the left hand side intersection for comparison
     DETRAY_HOST_DEVICE
-    bool_t operator>(const intersection2D &rhs) const {
-        return (math::fabs(path) > math::fabs(rhs.path));
+    friend constexpr bool_t operator>(const intersection2D &lhs,
+                                      const intersection2D &rhs) noexcept {
+        return (math::fabs(lhs.path) > math::fabs(rhs.path));
     }
 
     /// @param rhs is the left hand side intersection for comparison
     DETRAY_HOST_DEVICE
-    bool_t operator==(const intersection2D &rhs) const {
-        return math::fabs(path - rhs.path) <
+    friend constexpr bool_t operator==(const intersection2D &lhs,
+                                       const intersection2D &rhs) noexcept {
+        return math::fabs(lhs.path - rhs.path) <
                std::numeric_limits<float>::epsilon();
     }
 
     DETRAY_HOST_DEVICE
-    constexpr bool is_inside() const { return detail::any_of(this->status); }
+    constexpr bool_t is_inside() const { return detail::any_of(this->status); }
 
     /// Transform to a string for output debugging
     DETRAY_HOST

@@ -22,7 +22,11 @@ GTEST_TEST(Covfie, ConstantField1D) {
         covfie::make_parameter_pack(field_t::backend_t::configuration_t{2.f}));
     field_t::view_t v(f);
 
-    for (float x = -100.f; x <= 100.f; x += 1.f) {
+    constexpr float start{-100.f};
+    constexpr float step{1.f};
+    for (int i = 0; i < 200; ++i) {
+        const float x{start + static_cast<float>(i) * step};
+
         EXPECT_EQ(v.at(x)[0], 2.f);
     }
 }
@@ -36,8 +40,13 @@ GTEST_TEST(Covfie, ConstantField2D) {
         field_t::backend_t::configuration_t{2.f, 5.f}));
     field_t::view_t v(f);
 
-    for (float x = -100.f; x <= 100.f; x += 1.f) {
-        for (float y = -100.f; y <= 100.f; y += 1.f) {
+    constexpr float start{-100.f};
+    constexpr float step{1.f};
+    for (int i = 0; i < 200; ++i) {
+        for (int j = 0; j < 200; ++j) {
+            const float x{start + static_cast<float>(i) * step};
+            const float y{start + static_cast<float>(j) * step};
+
             EXPECT_EQ(v.at(x, y)[0], 2.f);
             EXPECT_EQ(v.at(x, y)[1], 5.f);
         }
@@ -53,9 +62,15 @@ GTEST_TEST(Covfie, ConstantField3D) {
         field_t::backend_t::configuration_t{2.f, 5.f, -4.f}));
     field_t::view_t v(f);
 
-    for (float x = -10.f; x <= 10.f; x += 1.f) {
-        for (float y = -10.f; y <= 10.f; y += 1.f) {
-            for (float z = -10.f; z <= 10.f; z += 1.f) {
+    constexpr float start{-10.f};
+    constexpr float step{1.f};
+    for (int i = 0; i < 20; ++i) {
+        for (int j = 0; j < 20; ++j) {
+            for (int k = 0; k < 20; ++k) {
+                const float x{start + static_cast<float>(i) * step};
+                const float y{start + static_cast<float>(j) * step};
+                const float z{start + static_cast<float>(k) * step};
+
                 EXPECT_EQ(v.at(x, y, z)[0], 2.f);
                 EXPECT_EQ(v.at(x, y, z)[1], 5.f);
                 EXPECT_EQ(v.at(x, y, z)[2], -4.f);

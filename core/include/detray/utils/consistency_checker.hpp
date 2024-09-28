@@ -93,7 +93,7 @@ struct surface_checker {
         // lookup
         const auto sf_from_lkp =
             tracking_surface{det, det.surface(sf.barcode())};
-        if (not(sf_from_lkp == sf)) {
+        if (sf_from_lkp != sf) {
             err_stream << "ERROR: Surfaces in volume and detector lookups "
                        << "differ:\n In volume acceleration data structure: "
                        << sf << "\nIn detector surface lookup: " << sf_from_lkp;
@@ -220,7 +220,7 @@ template <typename detector_t>
 inline void check_empty(const detector_t &det, const bool verbose) {
 
     // Check if there is at least one portal in the detector
-    auto find_portals = [&det]() -> bool {
+    auto find_portals = [&det]() {
         if (det.portals().empty()) {
             return false;
         }
@@ -235,8 +235,7 @@ inline void check_empty(const detector_t &det, const bool verbose) {
     };
 
     // Check if there is at least one volume in the detector volume finder
-    auto find_volumes =
-        [](const typename detector_t::volume_finder &vf) -> bool {
+    auto find_volumes = [](const typename detector_t::volume_finder &vf) {
         for (const auto &v : vf.all()) {
             if (!detail::is_invalid_value(v)) {
                 return true;

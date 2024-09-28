@@ -64,7 +64,6 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, true> {
 
         // Retrieve the surface normal & translation (context resolved)
         const auto &sm = trf.matrix();
-        // const vector3 sn = getter::vector<3>(sm, 0u, 2u);
         const vector3_type sn = sm.z;
         const vector3_type st = trf.translation();
 
@@ -83,7 +82,7 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, true> {
         if (!std::isnan(check_sum) && !std::isinf(check_sum)) {
 
             const point3_type p3 = ro + is.path * rd;
-            is.local = mask.to_local_frame(trf, p3, rd);
+            is.local = mask_t::to_local_frame(trf, p3, rd);
             is.status = mask.is_inside(
                 is.local,
                 math::max(mask_tolerance[0],

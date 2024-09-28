@@ -53,7 +53,7 @@ DETRAY_HOST_DEVICE inline auto bound_to_free_vector(
 
     // Matrix operator
     using algebra_t = typename mask_t::algebra_type;
-    using local_frame_t = typename mask_t::local_frame_type;
+    using local_frame_t = typename mask_t::local_frame;
 
     const auto bound_local = bound_vec.bound_local();
 

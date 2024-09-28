@@ -66,7 +66,7 @@ struct intersection_initialize {
                         mask_tol_scalor, overstep_tol),
                     is_container)) {
                 return;
-            };
+            }
         }
     }
 
@@ -86,7 +86,7 @@ struct intersection_initialize {
         std::array<typename is_container_t::value_type, 2> &&solutions,
         is_container_t &intersections) const {
         bool is_valid = false;
-        for (auto &sfi : solutions) {
+        for (auto &sfi : std::move(solutions)) {
             if (sfi.status) {
                 insert_sorted(sfi, intersections);
             }

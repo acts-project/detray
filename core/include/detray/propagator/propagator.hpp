@@ -52,8 +52,8 @@ struct propagator {
 
     /// Construct from a propagator configuration
     DETRAY_HOST_DEVICE
-    explicit propagator(propagation::config cfg = {})
-        : m_cfg{cfg}, m_stepper{}, m_navigator{} {}
+    explicit constexpr propagator(const propagation::config &cfg = {})
+        : m_cfg{cfg} {}
 
     /// Propagation that state aggregates a stepping and a navigation state. It
     /// also keeps references to the actor states.
@@ -193,16 +193,16 @@ struct propagator {
     /// @param actor_states the actor state
     ///
     /// @return propagation success.
-    template <typename state_t, typename actor_states_t = actor_chain<>::state>
     DETRAY_HOST_DEVICE bool propagate_sync(
-        state_t &propagation, actor_states_t &&actor_states = {}) const {
+        state &propagation,
+        typename actor_chain_t::state actor_state_refs) const {
 
         // Initialize the navigation
         propagation._heartbeat =
             m_navigator.init(propagation, m_cfg.navigation);
 
         // Run all registered actors/aborters after init
-        run_actors(actor_states, propagation);
+        run_actors(actor_state_refs, propagation);
 
         // Find next candidate
         propagation._heartbeat &=
@@ -225,7 +225,7 @@ struct propagator {
                 if (propagation._navigation.is_on_sensitive()) {
                     break;
                 } else {
-                    run_actors(actor_states, propagation);
+                    run_actors(actor_state_refs, propagation);
 
                     // And check the status
                     propagation._heartbeat &=
@@ -235,7 +235,7 @@ struct propagator {
 
             // Synchornized actor
             if (propagation._heartbeat) {
-                run_actors(actor_states, propagation);
+                run_actors(actor_state_refs, propagation);
 
                 // And check the status
                 propagation._heartbeat &=
@@ -260,25 +260,28 @@ struct propagator {
 
         propagation.debug_stream << std::left << std::setw(30);
         switch (navigation.status()) {
-            case navigation::status::e_abort:
+            using enum navigation::status;
+            case e_abort:
                 propagation.debug_stream << "status: abort";
                 break;
-            case navigation::status::e_on_target:
+            case e_on_target:
                 propagation.debug_stream << "status: e_on_target";
                 break;
-            case navigation::status::e_unknown:
+            case e_unknown:
                 propagation.debug_stream << "status: unknowm";
                 break;
-            case navigation::status::e_towards_object:
+            case e_towards_object:
                 propagation.debug_stream << "status: towards_surface";
                 break;
-            case navigation::status::e_on_module:
+            case e_on_module:
                 propagation.debug_stream << "status: on_module";
                 break;
-            case navigation::status::e_on_portal:
+            case e_on_portal:
                 propagation.debug_stream << "status: on_portal";
                 break;
-        };
+            default:
+                break;
+        }
 
         if (detail::is_invalid_value(navigation.volume())) {
             propagation.debug_stream << "volume: " << std::setw(10)

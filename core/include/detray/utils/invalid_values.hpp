@@ -21,7 +21,7 @@ namespace detray::detail {
 template <typename T,
           typename std::enable_if_t<
               std::is_fundamental_v<T> || std::is_enum_v<T>, bool> = true>
-DETRAY_HOST_DEVICE inline constexpr T invalid_value() noexcept {
+DETRAY_HOST_DEVICE constexpr T invalid_value() noexcept {
     return std::numeric_limits<T>::max();
 }
 
@@ -36,8 +36,7 @@ DETRAY_HOST_DEVICE inline T invalid_value() noexcept {
 
 template <typename T,
           typename std::enable_if_t<std::is_fundamental_v<T>, bool> = true>
-DETRAY_HOST_DEVICE inline constexpr bool is_invalid_value(
-    const T value) noexcept {
+DETRAY_HOST_DEVICE constexpr bool is_invalid_value(const T value) noexcept {
     if constexpr (std::is_signed_v<T>) {
         if constexpr (std::is_floating_point_v<T>) {
             return (math::fabs(value) == detail::invalid_value<T>());
@@ -51,8 +50,7 @@ DETRAY_HOST_DEVICE inline constexpr bool is_invalid_value(
 
 template <typename T,
           typename std::enable_if_t<!std::is_fundamental_v<T>, bool> = true>
-DETRAY_HOST_DEVICE inline constexpr bool is_invalid_value(
-    const T& value) noexcept {
+DETRAY_HOST_DEVICE constexpr bool is_invalid_value(const T& value) noexcept {
     return (value == detail::invalid_value<T>());
 }
 

@@ -120,32 +120,6 @@ struct range<R,
 template <class R>
 inline constexpr bool range_v = detray::ranges::range<R>::value;
 
-// Iterator categories
-template <class I>
-inline constexpr bool input_iterator_v =
-    std::is_base_of_v<detray::ranges::input_iterator_tag,
-                      typename std::iterator_traits<I>::iterator_category>;
-
-template <class I>
-inline constexpr bool output_iterator_v =
-    std::is_base_of_v<detray::ranges::output_iterator_tag,
-                      typename std::iterator_traits<I>::iterator_category>;
-
-template <class I>
-inline constexpr bool forward_iterator_v =
-    std::is_base_of_v<detray::ranges::forward_iterator_tag,
-                      typename std::iterator_traits<I>::iterator_category>;
-
-template <class I>
-inline constexpr bool bidirectional_iterator_v =
-    std::is_base_of_v<detray::ranges::bidirectional_iterator_tag,
-                      typename std::iterator_traits<I>::iterator_category>;
-
-template <class I>
-inline constexpr bool random_access_iterator_v =
-    std::is_base_of_v<detray::ranges::random_access_iterator_tag,
-                      typename std::iterator_traits<I>::iterator_category>;
-
 // Range categories
 template <class R>
 inline constexpr bool input_range_v = detray::ranges::range_v<R>&&
@@ -168,10 +142,7 @@ inline constexpr bool random_access_range_v = detray::ranges::range_v<R>&&
     random_access_iterator_v<detray::ranges::iterator_t<R>>;
 
 // Contiguous iterator trait is only available in c++20
-/*
-template <typename R>
-inline constexpr bool contiguous_range_v = ...
-*/
+// TODO: template <typename R> inline constexpr bool contiguous_range_v = ...
 
 /// @see https://en.cppreference.com/w/cpp/ranges/sized_range
 template <class R>
@@ -198,8 +169,10 @@ inline constexpr bool borrowed_range =
 /// @see https://en.cppreference.com/w/cpp/ranges/dangling
 struct dangling {
     constexpr dangling() noexcept = default;
-    template <class... Args>
-    constexpr dangling(Args&&...) noexcept {}
+    template <
+        class... Args,
+        std::enable_if_t<!(std::is_same_v<dangling, Args> || ...), bool> = true>
+    explicit constexpr dangling(Args&&...) noexcept {}
 };
 
 template <class R>

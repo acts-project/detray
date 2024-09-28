@@ -126,12 +126,6 @@ struct bin_iterator {
         return (m_bin_indexer == rhs.m_bin_indexer);
     }
 
-    /// @returns false if it points to the same local bin.
-    DETRAY_HOST_DEVICE constexpr bool operator!=(
-        const bin_iterator &rhs) const {
-        return (m_bin_indexer != rhs.m_bin_indexer);
-    }
-
     /// Increment to find next local bin index.
     DETRAY_HOST_DEVICE auto operator++() -> bin_iterator & {
         ++m_bin_indexer;

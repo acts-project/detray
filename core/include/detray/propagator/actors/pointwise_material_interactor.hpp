@@ -211,18 +211,18 @@ struct pointwise_material_interactor : actor {
         const scalar_type p = vector.p(q);
 
         // Get new Energy
-        const scalar_type nextE{
+        const scalar_type next_e{
             math::sqrt(m * m + p * p) -
             math::copysign(e_loss, static_cast<scalar_type>(sign))};
 
         // Put particle at rest if energy loss is too large
-        const scalar_type nextP{(m < nextE) ? math::sqrt(nextE * nextE - m * m)
-                                            : 0.f};
+        const scalar_type next_p{
+            (m < next_e) ? math::sqrt(next_e * next_e - m * m) : 0.f};
 
         // For neutral particles, qoverp = 1/p
         constexpr auto inv{detail::invalid_value<scalar_type>()};
-        vector.set_qop((nextP == 0.f) ? inv
-                                      : (q != 0.f) ? q / nextP : 1.f / nextP);
+        const scalar_type next_qop{(q != 0.f) ? q / next_p : 1.f / next_p};
+        vector.set_qop((next_p == 0.f) ? inv : next_qop);
     }
 
     /// @brief Update the variance of q over p of bound track parameter

@@ -28,8 +28,8 @@ namespace stepping {
 /// Inspectors can be plugged in to understand the current stepper state.
 struct void_inspector {
     template <typename state_t>
-    DETRAY_HOST_DEVICE constexpr void operator()(const state_t & /*ignored*/,
-                                                 const char * /*ignored*/) {
+    DETRAY_HOST_DEVICE constexpr void operator()(
+        const state_t & /*ignored*/, const char * /*ignored*/) const {
         /*Do nothing*/
     }
 };
@@ -221,7 +221,7 @@ class base_stepper {
 
         /// @returns the stepping inspector
         DETRAY_HOST
-        inline constexpr auto &inspector() { return _inspector; }
+        constexpr auto &inspector() { return _inspector; }
 
         /// Call the stepping inspector
         DETRAY_HOST_DEVICE

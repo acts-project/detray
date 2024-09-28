@@ -29,13 +29,14 @@ namespace detray {
 /// that will be executed, when a node is visited.
 template <typename node_t>
 struct void_node_inspector {
-    bool operator()(const node_t & /*n*/) { return true; }
+    bool operator()(const node_t & /*n*/) const { return true; }
 };
 
 /// @brief Placeholder struct for an action while walking through the graph.
 template <typename node_t>
 struct void_actor {
-    void operator()(const node_t & /*n*/, const dindex_range & /*edge_range*/) {
+    void operator()(const node_t & /*n*/,
+                    const dindex_range & /*edge_range*/) const {
         /*Do nothing*/
     }
 };

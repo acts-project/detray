@@ -112,7 +112,7 @@ struct get_type_pos {
     ///
     /// @note Returns the position of the type counted from the back!
     template <typename first_t, typename... remaining_types>
-    DETRAY_HOST_DEVICE static inline constexpr std::size_t type_pos_back() {
+    DETRAY_HOST_DEVICE static constexpr std::size_t type_pos_back() {
         if constexpr (!std::is_same_v<T, first_t>) {
             return type_pos_back<remaining_types...>();
         }

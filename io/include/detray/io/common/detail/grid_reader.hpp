@@ -136,7 +136,7 @@ class grid_reader {
                         std::to_string(static_cast<std::int64_t>(first_id)));
                     break;
                 }
-            };
+            }
         }
     }
 
@@ -188,7 +188,7 @@ class grid_reader {
                         std::to_string(static_cast<std::int64_t>(first_id)));
                     break;
                 }
-            };
+            }
         }
     }
 
@@ -257,7 +257,7 @@ class grid_reader {
                     print_error(grid_data.second.grid_link.type);
                     break;
                 }
-            };
+            }
         } else if constexpr (dim == 3) {
             switch (grid_data.second.grid_link.type) {
                 // cuboid grid
@@ -274,7 +274,7 @@ class grid_reader {
                     print_error(grid_data.second.grid_link.type);
                     break;
                 }
-            };
+            }
         } else {
             throw std::invalid_argument("No 1D grid type defined in detray");
         }

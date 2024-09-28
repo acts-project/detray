@@ -191,11 +191,6 @@ struct get_axes_types<cylindrical3D<A>, e_bounds, binning0_t, binning1_t,
                                         binning2_t<C, S>>;
 };
 
-/// @brief Helper type to assemble a multi-axis from shapes
-template <typename axes_t, bool is_owning, typename containers,
-          typename algebra_t, typename>
-struct get_coordinate_axes_type;
-
 /// Construct a @c multi_axis type from a given axes-shape
 template <typename axes_t, bool is_owning, typename containers,
           typename algebra_t>

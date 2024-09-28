@@ -47,7 +47,7 @@ class surface_descriptor {
     /// Default constructor
     constexpr surface_descriptor() = default;
 
-    /// Constructor with full arguments - move semantics
+    /// Constructor with full arguments
     ///
     /// @param trf the transform for positioning and 3D local frame
     /// @param mask the type and index of the mask for this surface
@@ -56,28 +56,8 @@ class surface_descriptor {
     /// @param src the source object/source link this surface is representing
     /// @param sf_id remember whether this is a portal or not
     DETRAY_HOST
-    constexpr surface_descriptor(transform_link &&trf, mask_link &&mask,
-                                 material_link &&material, dindex volume,
-                                 surface_id sf_id)
-        : m_mask(std::move(mask)), m_material(std::move(material)) {
-
-        m_barcode =
-            geometry::barcode{}.set_volume(volume).set_id(sf_id).set_transform(
-                trf);
-    }
-
-    /// Constructor with full arguments - copy semantics
-    ///
-    /// @param trf the transform for positioning and 3D local frame
-    /// @param mask the type and index of the mask for this surface
-    /// @param material the type and index of the material for this surface
-    /// @param vol the volume this surface belongs to
-    /// @param src the source object/source link this surface is representing
-    /// @param sf_id remember whether this is a portal or not
-    DETRAY_HOST
-    constexpr surface_descriptor(const transform_link trf,
-                                 const mask_link &mask,
-                                 const material_link &material,
+    constexpr surface_descriptor(const transform_link trf, const mask_link mask,
+                                 const material_link material,
                                  const dindex volume, const surface_id sf_id)
         : m_mask(mask), m_material(material) {
         m_barcode =

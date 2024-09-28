@@ -42,7 +42,7 @@ struct open {
     DETRAY_HOST_DEVICE
     constexpr int map(const int ibin, const std::size_t nbins) const noexcept {
 
-        const int bins = static_cast<int>(nbins);
+        const auto bins = static_cast<int>(nbins);
 
         if (ibin <= 0) {
             // underflow bin
@@ -66,7 +66,7 @@ struct open {
     DETRAY_HOST_DEVICE
     constexpr bin_range map(const int lbin, const int ubin,
                             const std::size_t nbins) const noexcept {
-        const int bins = static_cast<int>(nbins);
+        const auto bins = static_cast<int>(nbins);
         int min_bin = (lbin >= 0) ? lbin + 1 : 0;
         min_bin = (min_bin >= bins) ? bins + 1 : min_bin;
         int max_bin = (ubin < bins) ? ubin + 1 : bins + 1;
@@ -111,7 +111,7 @@ struct closed {
     DETRAY_HOST_DEVICE
     constexpr int map(const int ibin, const std::size_t nbins) const noexcept {
 
-        const int bins = static_cast<int>(nbins);
+        const auto bins = static_cast<int>(nbins);
 
         if (ibin <= 0) {
             // underflow gets mapped onto axis bin 0
@@ -134,7 +134,7 @@ struct closed {
     DETRAY_HOST_DEVICE
     constexpr bin_range map(const int lbin, const int ubin,
                             const std::size_t nbins) const {
-        const int bins = static_cast<int>(nbins);
+        const auto bins = static_cast<int>(nbins);
         int min_bin = (lbin > 0) ? lbin : 0;
         min_bin = (min_bin >= bins) ? bins - 1 : min_bin;
         int max_bin = (ubin >= bins) ? bins - 1 : ubin;

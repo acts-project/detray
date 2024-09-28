@@ -101,6 +101,10 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
             detail::ray<algebra_t> t{h.pos(), h.time(), h_dir, h.qop()};
             const auto qe = this->solve_intersection(t, mask, trf);
 
+            // Obtain both possible solutions by looping over the (different)
+            // starting positions
+            auto n_runs{static_cast<unsigned int>(qe.solutions())};
+
             // Note: the default path length might be smaller than either
             // solution
             switch (qe.solutions()) {
@@ -110,21 +114,19 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
                     // solution to setup the intersection with the smaller path
                     // in ret[0]
                     [[fallthrough]];
-                case 1:
+                case 1: {
                     paths[0] = qe.smaller();
-            };
-
-            // Obtain both possible solutions by looping over the (different)
-            // starting positions
-            unsigned int n_runs = static_cast<unsigned int>(qe.solutions());
-
-            // Even if the ray is parallel to the cylinder, the helix might
-            // still hit it
-            if (qe.solutions() == 0) {
-                n_runs = 2u;
-                paths[0] = r;
-                paths[1] = -r;
+                    break;
+                }
+                    // Even if the ray is parallel to the cylinder, the helix
+                    // might still hit it
+                default: {
+                    n_runs = 2u;
+                    paths[0] = r;
+                    paths[1] = -r;
+                }
             }
+
             for (unsigned int i = 0u; i < n_runs; ++i) {
 
                 scalar_type &s = paths[i];
@@ -163,14 +165,14 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
                 // Build intersection struct from helix parameters
                 sfi.path = s;
                 const auto p3 = h.pos(s);
-                sfi.local = mask.to_local_frame(trf, p3);
+                sfi.local = mask_t::to_local_frame(trf, p3);
                 const scalar_type cos_incidence_angle = vector::dot(
-                    mask.local_frame().normal(trf, sfi.local), h.dir(s));
+                    mask_t::get_local_frame().normal(trf, sfi.local), h.dir(s));
 
                 scalar_type tol{mask_tolerance[1]};
                 if (detail::is_invalid_value(tol)) {
-                    // Due to floating point errors this can be negative if cos
-                    // ~ 1
+                    // Due to floating point errors this can be negative if
+                    // cos ~ 1
                     const scalar_type sin_inc2{math::fabs(
                         1.f - cos_incidence_angle * cos_incidence_angle)};
 
@@ -211,6 +213,10 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
             detail::ray<algebra_t> t{h.pos(), h.time(), h_dir, h.qop()};
             const auto qe = this->solve_intersection(t, mask, trf);
 
+            // Obtain both possible solutions by looping over the (different)
+            // starting positions
+            auto n_runs{static_cast<unsigned int>(qe.solutions())};
+
             // Note: the default path length might be smaller than either
             // solution
             switch (qe.solutions()) {
@@ -220,20 +226,15 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
                     // solution to setup the intersection with the smaller path
                     // in ret[0]
                     [[fallthrough]];
-                case 1:
+                case 1: {
                     paths[0] = qe.smaller();
-            };
-
-            // Obtain both possible solutions by looping over the (different)
-            // starting positions
-            unsigned int n_runs = static_cast<unsigned int>(qe.solutions());
-
-            // Even if the ray is parallel to the cylinder, the helix might
-            // still hit it
-            if (qe.solutions() == 0) {
-                n_runs = 2u;
-                paths[0] = r;
-                paths[1] = -r;
+                    break;
+                }
+                default: {
+                    n_runs = 2u;
+                    paths[0] = r;
+                    paths[1] = -r;
+                }
             }
 
             /// Evaluate the function and its derivative at the point @param x

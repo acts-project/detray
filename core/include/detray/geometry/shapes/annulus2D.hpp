@@ -248,7 +248,10 @@ class annulus2D {
                                   t[1]};
 
         constexpr scalar_t inv{detail::invalid_value<scalar_t>()};
-        scalar_t min_x{inv}, min_y{inv}, max_x{-inv}, max_y{-inv};
+        scalar_t min_x{inv};
+        scalar_t min_y{inv};
+        scalar_t max_x{-inv};
+        scalar_t max_y{-inv};
         for (unsigned int i{0u}; i < 5u; ++i) {
             min_x = x_pos[i] < min_x ? x_pos[i] : min_x;
             max_x = x_pos[i] > max_x ? x_pos[i] : max_x;

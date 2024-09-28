@@ -52,13 +52,13 @@ class type_registry {
     template <typename object_t>
     DETRAY_HOST_DEVICE static constexpr bool is_defined(
         const object_t& /*obj*/) {
-        return not(get_id<object_t>() == static_cast<ID>(e_unknown));
+        return (get_id<object_t>() != static_cast<ID>(e_unknown));
     }
 
     /// Checks whether a given types is known in the registry.
     template <typename object_t>
     DETRAY_HOST_DEVICE static constexpr bool is_defined() {
-        return not(get_id<object_t>() == static_cast<ID>(e_unknown));
+        return (get_id<object_t>() != static_cast<ID>(e_unknown));
     }
 
     /// Checks whether a given index can be mapped to a type.
@@ -118,7 +118,7 @@ class type_registry {
     struct get_index {
         static constexpr ID value = get_id<object_t>();
         DETRAY_HOST_DEVICE
-        constexpr bool operator()() noexcept { return is_valid(value); }
+        constexpr bool operator()() const noexcept { return is_valid(value); }
     };
 
     /// Return a type for an index. If the index cannot be mapped, there will be

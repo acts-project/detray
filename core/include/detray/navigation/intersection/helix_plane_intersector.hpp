@@ -112,9 +112,9 @@ struct helix_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
 
             // Build intersection struct from helix parameters
             sfi.path = s;
-            sfi.local = mask.to_local_frame(trf, h.pos(s), h.dir(s));
+            sfi.local = mask_t::to_local_frame(trf, h.pos(s), h.dir(s));
             const scalar_type cos_incidence_angle = vector::dot(
-                mask.local_frame().normal(trf, sfi.local), h.dir(s));
+                mask_t::get_local_frame().normal(trf, sfi.local), h.dir(s));
 
             scalar_type tol{mask_tolerance[1]};
             if (detail::is_invalid_value(tol)) {

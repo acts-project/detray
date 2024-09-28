@@ -117,13 +117,14 @@ class grid_impl {
               const dindex offset = 0)
         : m_bins(*(const_cast<bin_container_type *>(bin_data_ptr)), offset,
                  axes.nbins()),
-          m_axes(axes) {}
+          m_axes(std::move(axes)) {}
 
     /// Create grid from container pointers - non-owning (both grid and axes)
     DETRAY_HOST_DEVICE
     grid_impl(bin_container_type *bin_data_ptr, axes_type &&axes,
               const dindex offset = 0u)
-        : m_bins(*bin_data_ptr, offset, axes.nbins()), m_axes(axes) {}
+        : m_bins(*bin_data_ptr, offset, axes.nbins()),
+          m_axes(std::move(axes)) {}
 
     /// Device-side construction from a vecmem based view type
     template <typename grid_view_t,
@@ -139,34 +140,34 @@ class grid_impl {
 
     /// @returns the grid local coordinate system
     DETRAY_HOST_DEVICE
-    static constexpr auto local_frame() -> local_frame_type { return {}; }
+    static constexpr auto get_local_frame() -> local_frame_type { return {}; }
 
     /// @returns an axis object, corresponding to the index.
     template <std::size_t index>
-    DETRAY_HOST_DEVICE inline constexpr auto get_axis() const {
+    DETRAY_HOST_DEVICE constexpr auto get_axis() const {
         return m_axes.template get_axis<index>();
     }
 
     /// @returns an axis object, corresponding to the label.
     template <axis::label L>
-    DETRAY_HOST_DEVICE inline constexpr auto get_axis() const {
+    DETRAY_HOST_DEVICE constexpr auto get_axis() const {
         return m_axes.template get_axis<L>();
     }
 
     /// @returns an axis object of the given type.
     template <typename axis_t>
-    DETRAY_HOST_DEVICE inline constexpr axis_t get_axis() const {
+    DETRAY_HOST_DEVICE constexpr axis_t get_axis() const {
         return m_axes.template get_axis<axis_t>();
     }
 
     /// @returns the total number of bins in the grid
-    DETRAY_HOST_DEVICE inline constexpr auto nbins() const -> dindex {
+    DETRAY_HOST_DEVICE constexpr auto nbins() const -> dindex {
         return m_axes.nbins();
     }
 
     /// @returns the total number of values in the grid
     /// @note this has to query every bin for the number of elements
-    DETRAY_HOST_DEVICE inline constexpr auto size() const -> dindex {
+    DETRAY_HOST_DEVICE constexpr auto size() const -> dindex {
         return static_cast<dindex>(all().size());
     }
 
@@ -266,7 +267,7 @@ class grid_impl {
     DETRAY_HOST_DEVICE point_type project(const transform_t &trf,
                                           const point3_t &p,
                                           const vector3_t &d) const {
-        return local_frame().global_to_local(trf, p, d);
+        return get_local_frame().global_to_local(trf, p, d);
     }
 
     /// Interface for the navigator

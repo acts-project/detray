@@ -98,7 +98,7 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t, true> {
 
         // point of closest approach on the track
         const point3_type m = ro + rd * is.path;
-        is.local = mask.to_local_frame(trf, m, rd);
+        is.local = mask_t::to_local_frame(trf, m, rd);
         is.status = mask.is_inside(
             is.local,
             math::max(mask_tolerance[0],

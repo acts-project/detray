@@ -21,19 +21,18 @@ namespace detray::propagation {
 struct config {
     navigation::config navigation{};
     stepping::config stepping{};
+
+    /// Print the propagation configuration
+    DETRAY_HOST
+    friend std::ostream& operator<<(std::ostream& out, const config& cfg) {
+        out << "Navigation\n"
+            << "----------------------------\n"
+            << cfg.navigation << "\nParameter Transport\n"
+            << "----------------------------\n"
+            << cfg.stepping << "\n";
+
+        return out;
+    }
 };
-
-/// Print the propagation configuration
-DETRAY_HOST
-inline std::ostream& operator<<(std::ostream& out,
-                                const detray::propagation::config& cfg) {
-    out << "Navigation\n"
-        << "----------------------------\n"
-        << cfg.navigation << "\nParameter Transport\n"
-        << "----------------------------\n"
-        << cfg.stepping << "\n";
-
-    return out;
-}
 
 }  // namespace detray::propagation

@@ -112,7 +112,7 @@ struct link_start_getter {
                          (mask[shape_t::e_inner_r] + mask[shape_t::e_outer_r])};
         const scalar_t phi{detray::constant<scalar_t>::pi_2};
 
-        return mask.to_global_frame(transform, point3_t{r, phi, 0.f});
+        return mask_t::to_global_frame(transform, point3_t{r, phi, 0.f});
     }
 
     // Calculates the (optimal) link starting point for annuluses.
@@ -129,7 +129,7 @@ struct link_start_getter {
                          2.f};
         const scalar_t phi{mask[shape_t::e_average_phi]};
 
-        return mask.to_global_frame(transform, point3_t{r, phi, 0.f});
+        return mask_t::to_global_frame(transform, point3_t{r, phi, 0.f});
     }
 
     // Calculates the (optimal) link starting point for concentric cylinders
@@ -145,7 +145,7 @@ struct link_start_getter {
         // Shift the center to the actual cylinder bounds
         const scalar_t z{mask.centroid()[2]};
 
-        return mask.to_global_frame(transform, point3_t{phi, z, r});
+        return mask_t::to_global_frame(transform, point3_t{phi, z, r});
     }
 
     // Calculates the (optimal) link starting point for cylinders (2D).
@@ -161,7 +161,7 @@ struct link_start_getter {
         // Shift the center to the actual cylinder bounds
         const scalar_t z{mask.centroid()[2]};
 
-        return mask.to_global_frame(transform, point3_t{r * phi, z, r});
+        return mask_t::to_global_frame(transform, point3_t{r * phi, z, r});
     }
 
     // Calculates the (optimal) link starting point for cylinders (3D).
@@ -179,7 +179,7 @@ struct link_start_getter {
             0.5f * (mask[shape_t::e_max_phi] + mask[shape_t::e_max_phi])};
         const scalar_t z{mask.centroid()[2]};
 
-        return mask.to_global_frame(transform, point3_t{r, phi, z});
+        return mask_t::to_global_frame(transform, point3_t{r, phi, z});
     }
 };
 

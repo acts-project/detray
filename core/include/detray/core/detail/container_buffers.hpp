@@ -173,13 +173,11 @@ auto get_buffer(
 
     // TODO: Move this to detray copy util, which bundles vecmem copy object and
     // stream handle and gets this switch case right automatically
-    switch (cpy_type) {
-        case detray::copy::async:
-            cpy(vec_view, buff /*, stream*/);
-            break;
-        default:
-            cpy(vec_view, buff)->wait();
-    };
+    if (cpy_type == detray::copy::async) {
+        cpy(vec_view, buff /*, stream*/);
+    } else {
+        cpy(vec_view, buff)->wait();
+    }
 
     return buff;
 }

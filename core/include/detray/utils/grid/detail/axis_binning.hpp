@@ -43,12 +43,14 @@ struct regular {
     static constexpr binning type = binning::e_regular;
 
     /// Offset into the bin edges container and the number of bins
-    dindex m_offset{0}, m_n_bins{0};
+    dindex m_offset{0};
+    dindex m_n_bins{0};
+
     /// Access to the bin edges
     const vector_type<scalar_type> *m_bin_edges{nullptr};
 
     /// Default constructor (no concrete memory acces)
-    regular() = default;
+    constexpr regular() = default;
 
     /// Constructor from an index range and bin edges - non-owning
     ///
@@ -191,12 +193,14 @@ struct irregular {
     static constexpr binning type = binning::e_irregular;
 
     /// Offset into the bin edges container and the number of bins
-    dindex m_offset{0}, m_n_bins{0};
+    dindex m_offset{0};
+    dindex m_n_bins{0};
+
     /// Access to the bin edges
     const vector_type<scalar_type> *m_bin_edges{nullptr};
 
     /// Default constructor (no concrete memory access)
-    irregular() = default;
+    constexpr irregular() = default;
 
     /// Constructor from an index range and bin edges - non-owning
     ///

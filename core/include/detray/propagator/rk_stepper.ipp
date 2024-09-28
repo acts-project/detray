@@ -11,7 +11,7 @@
 template <typename magnetic_field_t, typename algebra_t, typename constraint_t,
           typename policy_t, typename inspector_t,
           template <typename, std::size_t> class array_t>
-DETRAY_HOST_DEVICE void
+DETRAY_HOST_DEVICE inline void
 detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
                    inspector_t, array_t>::state::advance_track() {
 
@@ -51,7 +51,7 @@ detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
 template <typename magnetic_field_t, typename algebra_t, typename constraint_t,
           typename policy_t, typename inspector_t,
           template <typename, std::size_t> class array_t>
-DETRAY_HOST_DEVICE void detray::rk_stepper<
+DETRAY_HOST_DEVICE inline void detray::rk_stepper<
     magnetic_field_t, algebra_t, constraint_t, policy_t, inspector_t,
     array_t>::state::advance_jacobian(const detray::stepping::config& cfg) {
     /// The calculations are based on ATL-SOFT-PUB-2009-002. The update of the
@@ -333,7 +333,7 @@ DETRAY_HOST_DEVICE void detray::rk_stepper<
 template <typename magnetic_field_t, typename algebra_t, typename constraint_t,
           typename policy_t, typename inspector_t,
           template <typename, std::size_t> class array_t>
-DETRAY_HOST_DEVICE auto detray::rk_stepper<
+DETRAY_HOST_DEVICE inline auto detray::rk_stepper<
     magnetic_field_t, algebra_t, constraint_t, policy_t, inspector_t,
     array_t>::state::evaluate_dqopds(const std::size_t i, const scalar_type h,
                                      const scalar_type dqopds_prev,
@@ -370,7 +370,7 @@ DETRAY_HOST_DEVICE auto detray::rk_stepper<
 template <typename magnetic_field_t, typename algebra_t, typename constraint_t,
           typename policy_t, typename inspector_t,
           template <typename, std::size_t> class array_t>
-DETRAY_HOST_DEVICE auto detray::rk_stepper<
+DETRAY_HOST_DEVICE inline auto detray::rk_stepper<
     magnetic_field_t, algebra_t, constraint_t, policy_t, inspector_t,
     array_t>::state::evaluate_dtds(const vector3_type& b_field,
                                    const std::size_t i, const scalar_type h,
@@ -394,7 +394,7 @@ DETRAY_HOST_DEVICE auto detray::rk_stepper<
 template <typename magnetic_field_t, typename algebra_t, typename constraint_t,
           typename policy_t, typename inspector_t,
           template <typename, std::size_t> class array_t>
-DETRAY_HOST_DEVICE auto detray::rk_stepper<
+DETRAY_HOST_DEVICE inline auto detray::rk_stepper<
     magnetic_field_t, algebra_t, constraint_t, policy_t, inspector_t,
     array_t>::state::evaluate_field_gradient(const point3_type& pos)
     -> matrix_type<3, 3> {
@@ -436,7 +436,7 @@ DETRAY_HOST_DEVICE auto detray::rk_stepper<
 template <typename magnetic_field_t, typename algebra_t, typename constraint_t,
           typename policy_t, typename inspector_t,
           template <typename, std::size_t> class array_t>
-DETRAY_HOST_DEVICE auto
+DETRAY_HOST_DEVICE inline auto
 detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
                    inspector_t, array_t>::state::dtds() const -> vector3_type {
 
@@ -458,7 +458,7 @@ detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
 template <typename magnetic_field_t, typename algebra_t, typename constraint_t,
           typename policy_t, typename inspector_t,
           template <typename, std::size_t> class array_t>
-DETRAY_HOST_DEVICE auto
+DETRAY_HOST_DEVICE inline auto
 detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
                    inspector_t, array_t>::state::dqopds() const -> scalar_type {
 
@@ -544,7 +544,7 @@ template <typename magnetic_field_t, typename algebra_t, typename constraint_t,
           typename policy_t, typename inspector_t,
           template <typename, std::size_t> class array_t>
 template <typename propagation_state_t>
-DETRAY_HOST_DEVICE bool detray::rk_stepper<
+DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
     magnetic_field_t, algebra_t, constraint_t, policy_t, inspector_t,
     array_t>::step(propagation_state_t& propagation,
                    const detray::stepping::config& cfg) const {
@@ -700,7 +700,7 @@ DETRAY_HOST_DEVICE bool detray::rk_stepper<
     // Call navigation update policy
     typename rk_stepper::policy_type{}(stepping.policy_state(), propagation);
 
-    const scalar_type step_size_scaling = static_cast<scalar_type>(
+    const auto step_size_scaling = static_cast<scalar_type>(
         math::min(math::max(math::sqrt(math::sqrt(cfg.rk_error_tol / error)),
                             static_cast<scalar_type>(0.25)),
                   static_cast<scalar_type>(4.)));

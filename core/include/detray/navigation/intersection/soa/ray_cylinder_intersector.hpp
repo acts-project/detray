@@ -171,7 +171,7 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, true> {
         is.path = path;
         const point3_type p3 = ro + is.path * rd;
 
-        is.local = mask.to_local_frame(trf, p3);
+        is.local = mask_t::to_local_frame(trf, p3);
         is.status = mask.is_inside(
             is.local,
             math::max(mask_tolerance[0],

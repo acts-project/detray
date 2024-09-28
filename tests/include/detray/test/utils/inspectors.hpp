@@ -297,26 +297,27 @@ struct print_inspector {
         }
 
         switch (state.status()) {
-            case status::e_abort:
+            using enum status;
+            case e_abort:
                 debug_stream << "status" << tabs << "abort" << std::endl;
                 break;
-            case status::e_on_target:
+            case e_on_target:
                 debug_stream << "status" << tabs << "e_on_target" << std::endl;
                 break;
-            case status::e_unknown:
+            case e_unknown:
                 debug_stream << "status" << tabs << "unknowm" << std::endl;
                 break;
-            case status::e_towards_object:
+            case e_towards_object:
                 debug_stream << "status" << tabs << "towards_surface"
                              << std::endl;
                 break;
-            case status::e_on_module:
+            case e_on_module:
                 debug_stream << "status" << tabs << "on_module" << std::endl;
                 break;
-            case status::e_on_portal:
+            case e_on_portal:
                 debug_stream << "status" << tabs << "on_portal" << std::endl;
                 break;
-        };
+        }
 
         debug_stream << "current object\t\t\t";
         if (state.is_on_portal() || state.is_on_module() ||
@@ -334,19 +335,20 @@ struct print_inspector {
         }
 
         switch (state.trust_level()) {
-            case trust_level::e_no_trust:
+            using enum trust_level;
+            case e_no_trust:
                 debug_stream << "trust" << tabs << "no_trust" << std::endl;
                 break;
-            case trust_level::e_fair:
+            case e_fair:
                 debug_stream << "trust" << tabs << "fair_trust" << std::endl;
                 break;
-            case trust_level::e_high:
+            case e_high:
                 debug_stream << "trust" << tabs << "high_trust" << std::endl;
                 break;
-            case trust_level::e_full:
+            case e_full:
                 debug_stream << "trust" << tabs << "full_trust" << std::endl;
                 break;
-        };
+        }
         debug_stream << std::endl;
     }
 
@@ -406,16 +408,17 @@ struct print_inspector {
                      << std::endl;
 
         switch (state.direction()) {
-            case step::direction::e_forward:
+            using enum step::direction;
+            case e_forward:
                 debug_stream << "direction" << tabs << "forward" << std::endl;
                 break;
-            case step::direction::e_unknown:
+            case e_unknown:
                 debug_stream << "direction" << tabs << "unknown" << std::endl;
                 break;
-            case step::direction::e_backward:
+            case e_backward:
                 debug_stream << "direction" << tabs << "backward" << std::endl;
                 break;
-        };
+        }
 
         auto pos = state().pos();
 

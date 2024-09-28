@@ -141,7 +141,7 @@ struct complete_populator {
     void operator()(store_value &stored, bare_value &&bvalue) const {
         for (auto &val : stored) {
             if (val == m_invalid) {
-                val = bvalue;
+                val = std::move(bvalue);
                 break;
             }
         }
@@ -232,7 +232,7 @@ struct attach_populator {
      **/
     DETRAY_HOST
     void operator()(store_value &stored, bare_value &&bvalue) const {
-        stored.push_back(bvalue);
+        stored.push_back(std::move(bvalue));
         if (kSORT) {
             std::sort(stored.begin(), stored.end());
         }
@@ -246,7 +246,7 @@ struct attach_populator {
 #if defined(__CUDACC__)  // to resolve ambiguoty from host side
     DETRAY_DEVICE
     void operator()(store_value stored, bare_value &&bvalue) const {
-        stored.push_back(bvalue);
+        stored.push_back(std::move(bvalue));
     }
 #endif
 

@@ -184,8 +184,8 @@ DETRAY_HOST_DEVICE inline std::pair<scalar_t, scalar_t> newton_raphson_safe(
         // |f(next_newton_s)| > |f(next_bisection_s)|
         bool slow_convergence{true};
         // The criterion is only well defined if the step lengths are small
-        const scalar_t ds_bisection{0.5f * (a + b) - s};
-        if (is_bracketed &&
+        if (const scalar_t ds_bisection{0.5f * (a + b) - s};
+            is_bracketed &&
             (math::fabs(ds_bisection) < 10.f * unit<scalar_t>::mm)) {
             slow_convergence =
                 (2.f * math::fabs(f_s) > math::fabs(df_s * ds_bisection + f_s));
@@ -274,9 +274,9 @@ DETRAY_HOST_DEVICE inline void build_intersection(
     // Build intersection struct from test trajectory, if the distance is valid
     if (!detail::is_invalid_value(s)) {
         sfi.path = s;
-        sfi.local = mask.to_local_frame(trf, traj.pos(s), traj.dir(s));
-        const scalar_t cos_incidence_angle =
-            vector::dot(mask.local_frame().normal(trf, sfi.local), traj.dir(s));
+        sfi.local = mask_t::to_local_frame(trf, traj.pos(s), traj.dir(s));
+        const scalar_t cos_incidence_angle = vector::dot(
+            mask_t::get_local_frame().normal(trf, sfi.local), traj.dir(s));
 
         scalar_t tol{mask_tolerance[1]};
         if (detail::is_invalid_value(tol)) {

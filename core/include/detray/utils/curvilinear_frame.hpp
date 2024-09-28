@@ -30,7 +30,7 @@ struct curvilinear_frame {
     using free_track_parameters_type = free_track_parameters<algebra_t>;
 
     DETRAY_HOST_DEVICE
-    curvilinear_frame(const free_track_parameters_type& free_params) {
+    explicit curvilinear_frame(const free_track_parameters_type& free_params) {
 
         const auto t = free_params.pos();
         const auto z = free_params.dir();

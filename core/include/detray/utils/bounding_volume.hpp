@@ -85,8 +85,12 @@ class axis_aligned_bounding_volume {
 
         // Find min/max extent of the local aabb in local coordinates
         constexpr scalar_t inv{detail::invalid_value<scalar_t>()};
-        scalar_t min_x{inv}, min_y{inv}, min_z{inv}, max_x{-inv}, max_y{-inv},
-            max_z{-inv};
+        scalar_t min_x{inv};
+        scalar_t min_y{inv};
+        scalar_t min_z{inv};
+        scalar_t max_x{-inv};
+        scalar_t max_y{-inv};
+        scalar_t max_z{-inv};
         for (const auto& vol : aabbs) {
             const auto min_point = vol.template loc_min<loc_point_t>();
             const auto max_point = vol.template loc_max<loc_point_t>();
@@ -275,8 +279,12 @@ class axis_aligned_bounding_volume {
 
         // Find min/max extent of the local aabb in global coordinates
         constexpr scalar_t inv{detail::invalid_value<scalar_t>()};
-        scalar_t min_x{inv}, min_y{inv}, min_z{inv}, max_x{-inv}, max_y{-inv},
-            max_z{-inv};
+        scalar_t min_x{inv};
+        scalar_t min_y{inv};
+        scalar_t min_z{inv};
+        scalar_t max_x{-inv};
+        scalar_t max_y{-inv};
+        scalar_t max_z{-inv};
         for (const point3_t& p : glob_c_points) {
             // Check every coordinate of the point
             min_x = p[0] < min_x ? p[0] : min_x;
@@ -313,34 +321,14 @@ class axis_aligned_bounding_volume {
         return cuboid_intersector{}(ray, m_mask, t);
     }
 
-    /// @TODO: Overlapping aabbs
-    /*DETRAY_HOST_DEVICE
-    template<typename algebra_t>
-    constexpr bool intersect(
-        const axis_aligned_bounding_volume &aabb,
-        const scalar_t t = std::numeric_limits<scalar_t>::epsilon()) const {
-        return m_mask.is_overlap(aabb.bounds());
-    }*/
-
-    /// @TODO: Frustum intersection
-    /*DETRAY_HOST_DEVICE
-    template<typename algebra_t>
-    constexpr bool intersect(
-        const detail::frustum<algebra_t> frustum,
-        const scalar_t t = std::numeric_limits<scalar_t>::epsilon()) const {
-        ....
-    }*/
-
     private:
+    /// Print the bounding volume
+    DETRAY_HOST friend std::ostream& operator<<(
+        std::ostream& os, const axis_aligned_bounding_volume& aabb) {
+        return os << aabb.bounds().to_string();
+    }
     /// Keeps the box boundary values and id
     mask<shape, std::size_t> m_mask;
 };
-
-template <typename shape_t, typename scalar_t = scalar>
-DETRAY_HOST std::ostream& operator<<(
-    std::ostream& os,
-    const axis_aligned_bounding_volume<shape_t, scalar_t>& aabb) {
-    return os << aabb.bounds().to_string();
-}
 
 }  // namespace detray
