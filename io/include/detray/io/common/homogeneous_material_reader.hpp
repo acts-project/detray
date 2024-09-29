@@ -81,7 +81,7 @@ class homogeneous_material_reader {
                 mat_factory->add_material(
                     mat_id::e_slab, convert<scalar_t>(slab_data), sf_link);
             }
-            if constexpr (detray::detail::has_material_rods_v<detector_t>) {
+            if constexpr (concepts::has_material_rods<detector_t>) {
                 if (mv_data.mat_rods.has_value()) {
                     for (const auto& rod_data : *(mv_data.mat_rods)) {
                         assert(rod_data.type == io::material_id::rod);

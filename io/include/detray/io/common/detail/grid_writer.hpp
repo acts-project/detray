@@ -12,6 +12,7 @@
 #include "detray/io/common/detail/basic_converter.hpp"
 #include "detray/io/common/detail/type_info.hpp"
 #include "detray/io/frontend/payloads.hpp"
+#include "detray/utils/grid/detail/concepts.hpp"
 #include "detray/utils/grid/grid.hpp"
 #include "detray/utils/type_list.hpp"
 
@@ -179,7 +180,7 @@ class grid_writer {
 
             using coll_value_t = typename grid_group_t::value_type;
 
-            if constexpr (detray::detail::is_grid_v<coll_value_t>) {
+            if constexpr (concepts::grid<coll_value_t>) {
 
                 using value_t = typename coll_value_t::value_type;
 
@@ -205,7 +206,7 @@ class grid_writer {
         constexpr auto coll_id{store_t::value_types::to_id(I)};
         using value_type = typename store_t::template get_type<coll_id>;
 
-        if constexpr (detray::detail::is_grid_v<value_type>) {
+        if constexpr (concepts::grid<value_type>) {
             n += store.template size<coll_id>();
         }
 

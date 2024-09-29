@@ -113,18 +113,4 @@ struct material_slab {
     scalar_type m_thickness_in_L0 = std::numeric_limits<scalar>::epsilon();
 };
 
-namespace detail {
-
-// Used directly for homogeneous surface material
-template <class scalar_t>
-struct is_hom_material<material_slab<scalar_t>, void> : public std::true_type {
-};
-
-// Pick the material slab type up for homogeneous surface material
-template <typename scalar_t>
-struct is_surface_material<material_slab<scalar_t>, void>
-    : public std::true_type {};
-
-}  // namespace detail
-
 }  // namespace detray

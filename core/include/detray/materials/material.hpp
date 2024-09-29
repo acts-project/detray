@@ -245,18 +245,6 @@ struct material {
     bool m_has_density_effect_data = false;
 };
 
-namespace detail {
-
-// Pick the raw material type up for homogeneous volume material
-template <typename scalar_t>
-struct is_hom_material<material<scalar_t>, void> : public std::true_type {};
-
-// Pick the raw material type up for homogeneous volume material
-template <typename scalar_t>
-struct is_volume_material<material<scalar_t>, void> : public std::true_type {};
-
-}  // namespace detail
-
 // Macro for declaring the predefined materials (w/o Density effect data)
 #define DETRAY_DECLARE_MATERIAL(MATERIAL_NAME, X0, L0, Ar, Z, Rho, State)   \
     template <typename scalar_t, typename R = std::ratio<1, 1>>             \

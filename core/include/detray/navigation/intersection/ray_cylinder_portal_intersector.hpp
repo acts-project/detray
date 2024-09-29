@@ -23,7 +23,7 @@
 
 namespace detray {
 
-template <typename frame_t, typename algebra_t, bool is_soa>
+template <typename frame_t, typename algebra_t>
 struct ray_intersector_impl;
 
 /// @brief A functor to find intersections between a straight line and a
@@ -31,10 +31,9 @@ struct ray_intersector_impl;
 ///
 /// With the way the navigation works, only the closest one of the two possible
 /// intersection points is needed in the case of a cylinderical portal surface.
-template <typename algebra_t>
-struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
-                            false>
-    : public ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, false> {
+template <concepts::aos_algebra algebra_t>
+struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t>
+    : public ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t> {
 
     /// linear algebra types
     /// @{

@@ -11,8 +11,8 @@
 #include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/utils/concepts.hpp"
 #include "detray/utils/invalid_values.hpp"
-#include "detray/utils/type_traits.hpp"
 
 // VecMem include(s).
 #include <vecmem/containers/data/vector_view.hpp>
@@ -625,7 +625,7 @@ template <typename axis_t, typename scalar_t>
         : n_bins(_n_bins), min(_min), max(_max) {}
     /// Construct a const data object from a non-const one
     template <typename other_scalar_t>
-    requires detail::is_same_nc<scalar_t, other_scalar_t>::value
+    requires concepts::same_as_no_const<scalar_t, other_scalar_t>
         DETRAY_HOST_DEVICE explicit axis_data(
             const axis_data<axis_t, other_scalar_t, void> &parent)
         : n_bins(parent.n_bins), min(parent.min), max(parent.max) {}
@@ -648,7 +648,7 @@ requires(axis_t::axis_identifier == 2) struct axis_data<axis_t, scalar_t> {
         : n_bins(_n_bins), min(_min), max(_max), boundaries(_boundaries) {}
     /// Construct a const data object from a non-const one
     template <typename other_scalar_t>
-    requires detail::is_same_nc<scalar_t, other_scalar_t>::value
+    requires concepts::same_as_no_const<scalar_t, other_scalar_t>
         DETRAY_HOST_DEVICE explicit axis_data(
             const axis_data<axis_t, other_scalar_t, void> &parent)
         : n_bins(parent.n_bins),

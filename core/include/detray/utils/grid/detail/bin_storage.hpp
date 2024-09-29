@@ -84,9 +84,8 @@ class bin_storage : public detray::ranges::view_interface<
         : m_bin_data(bin_data, dindex_range{offset, offset + size}) {}
 
     /// Construct bin storage from its vecmem view
-    template <typename view_t>
-    requires detail::is_device_view_v<view_t>
-        DETRAY_HOST_DEVICE explicit bin_storage(const view_t& view)
+    template <concepts::device_view view_t>
+    DETRAY_HOST_DEVICE explicit bin_storage(const view_t& view)
         : m_bin_data(view) {}
 
     /// begin and end of the bin range
@@ -156,9 +155,8 @@ struct dynamic_bin_container {
         default;
 
     /// Device-side construction from a vecmem based view type
-    template <typename view_t>
-    requires detail::is_device_view_v<view_t>
-        DETRAY_HOST_DEVICE explicit dynamic_bin_container(view_t& view)
+    template <concepts::device_view view_t>
+    DETRAY_HOST_DEVICE explicit dynamic_bin_container(view_t& view)
         : bins(detail::get<0>(view.m_view)),
           entries(detail::get<1>(view.m_view)) {}
 
@@ -404,9 +402,8 @@ class bin_storage<is_owning, detray::bins::dynamic_array<entry_t>, containers>
               dindex_range{0u, static_cast<dindex>(bin_data.entries.size())}) {}
 
     /// Construct bin storage from its vecmem view
-    template <typename view_t>
-    requires detail::is_device_view_v<view_t>
-        DETRAY_HOST_DEVICE explicit bin_storage(const view_t& view)
+    template <concepts::device_view view_t>
+    DETRAY_HOST_DEVICE explicit bin_storage(const view_t& view)
         : m_bin_data(detray::detail::get<0>(view.m_view)),
           m_entry_data(detray::detail::get<1>(view.m_view)) {}
 

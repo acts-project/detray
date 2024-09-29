@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -20,7 +20,7 @@
 #include <vecmem/utils/copy.hpp>
 
 // System include(s)
-#include <type_traits>
+#include <concepts>
 
 namespace detray {
 
@@ -31,20 +31,96 @@ enum class copy {
 };
 
 namespace detail {
-
 // Buffer wrappers for types that aggregate containers/other bufferable types
 
 /// Empty buffer type for inheritance template resolution
 struct dbase_buffer {};
 
-/// Container buffer helper that aggregates multiple vecmem buffers and performs
-/// compile-time checks.
-template <bool /*check value*/, typename... buffer_ts>
-class dmulti_buffer_helper {};
+/// Helper trait to determine if a type can be interpreted as a (composite)
+/// vecemem buffer. This is the case if it inherits from @c dbase_buffer or if
+/// it matches one of the vecmem specializations
+/// @{
+template <typename T>
+struct is_buffer : public std::false_type {};
 
-/// In case the checks fail
-template <typename... buffer_ts>
-class dmulti_buffer_helper<false, buffer_ts...> {};
+/// Specialization of @c is_buffer for @c vecmem::data::vector_buffer containers
+template <typename T>
+struct is_buffer<vecmem::data::vector_buffer<T>> : public std::true_type {};
+
+/// Specialization of @c is_buffer for constant @c vecmem::data::vector_buffer
+/// containers
+template <typename T>
+struct is_buffer<const vecmem::data::vector_buffer<T>> : public std::true_type {
+};
+
+template <typename T>
+inline constexpr bool is_buffer_v = is_buffer<T>::value;
+/// @}
+
+}  // namespace detail
+
+namespace concepts {
+
+template <typename T>
+concept device_buffer =
+    std::derived_from<std::remove_cvref_t<T>, detray::detail::dbase_buffer> ||
+    detray::detail::is_buffer_v<T>;
+
+}  // namespace concepts
+
+namespace detail {
+/// Helper trait to check whether a type has a [vecmem] buffer type defined
+/// @{
+template <class T>
+struct get_buffer : public std::false_type {
+    using type = void;
+};
+
+template <class T>
+requires concepts::device_buffer<typename T::buffer_type> struct get_buffer<T>
+    : public std::true_type {
+    using type = typename T::buffer_type;
+};
+
+/// Specialization of the buffer getter for @c vecmem::vector
+template <typename T>
+struct get_buffer<vecmem::vector<T>> : public std::true_type {
+    using type = vecmem::data::vector_buffer<T>;
+};
+
+/// Specialization of the buffer getter for @c vecmem::vector - const
+template <typename T>
+struct get_buffer<const vecmem::vector<T>> : public std::true_type {
+    using type = vecmem::data::vector_buffer<const T>;
+};
+
+/// Specialization of the buffer getter for @c vecmem::device_vector
+template <typename T>
+struct get_buffer<vecmem::device_vector<T>> : public std::true_type {
+    using type = vecmem::data::vector_buffer<T>;
+};
+
+/// Specialization of the buffer getter for @c vecmem::device_vector - const
+template <typename T>
+struct get_buffer<const vecmem::device_vector<T>> : public std::true_type {
+    using type = vecmem::data::vector_buffer<const T>;
+};
+
+template <class T>
+using get_buffer_t = typename get_buffer<T>::type;
+/// @}
+
+}  // namespace detail
+
+namespace concepts {
+
+template <class T>
+concept bufferable = concepts::device_buffer<detray::detail::get_buffer_t<T>>;
+
+}  // namespace concepts
+/// Specialized buffer for @c vecmem::vector containers
+template <typename T>
+using dvector_buffer = vecmem::data::vector_buffer<T>;
 
 /// @brief General buffer type that hierarchically aggregates vecmem based
 /// buffer implementations.
@@ -58,105 +134,17 @@ class dmulti_buffer_helper<false, buffer_ts...> {};
 /// to the constructors of the original class.
 ///
 /// class -> view -> buffer -> view (passed to kernel) -> device-side class
-template <typename... buffer_ts>
-struct dmulti_buffer_helper<true, buffer_ts...> : public dbase_buffer {
+template <concepts::device_buffer... buffer_ts>
+struct dmulti_buffer : public detail::dbase_buffer {
     dtuple<buffer_ts...> m_buffer;
 
-    dmulti_buffer_helper() = default;
+    dmulti_buffer() = default;
 
     /// Tie multiple buffers together
     DETRAY_HOST
-    explicit dmulti_buffer_helper(buffer_ts&&... buffers)
+    explicit dmulti_buffer(buffer_ts&&... buffers)
         : m_buffer(std::move(buffers)...) {}
 };
-
-/// Helper trait to determine if a type can be interpreted as a (composite)
-/// vecemem buffer. This is the case if it inherits from @c dbase_buffer or if
-/// it matches one of the vecmem specializations
-/// @{
-template <typename T, typename = void>
-struct is_buffer : public std::false_type {};
-
-template <typename T>
-struct is_buffer<
-    T, std::enable_if_t<
-           std::is_base_of_v<detray::detail::dbase_buffer,
-                             std::remove_reference_t<std::remove_cv_t<T>>>,
-           void>> : public std::true_type {};
-
-/// Specialization of @c is_buffer for @c vecmem::data::vector_buffer containers
-template <typename T>
-struct is_buffer<vecmem::data::vector_buffer<T>, void> : public std::true_type {
-};
-
-/// Specialization of @c is_buffer for constant @c vecmem::data::vector_buffer
-/// containers
-template <typename T>
-struct is_buffer<const vecmem::data::vector_buffer<T>, void>
-    : public std::true_type {};
-
-template <typename T>
-inline constexpr bool is_buffer_v = is_buffer<T>::value;
-
-/// @}
-
-/// Helper trait to check whether a type has a [vecmem] buffer type defined
-/// @{
-template <class T, typename = void>
-struct has_buffer : public std::false_type {
-    using type = void;
-};
-
-template <class T>
-struct has_buffer<
-    T, std::enable_if_t<detray::detail::is_buffer_v<typename T::buffer_type>,
-                        void>> : public std::true_type {
-    using type = typename T::buffer_type;
-};
-
-/// Specialization of the buffer getter for @c vecmem::vector
-template <typename T>
-struct has_buffer<vecmem::vector<T>, void> : public std::true_type {
-    using type = vecmem::data::vector_buffer<T>;
-};
-
-/// Specialization of the buffer getter for @c vecmem::vector - const
-template <typename T>
-struct has_buffer<const vecmem::vector<T>, void> : public std::true_type {
-    using type = vecmem::data::vector_buffer<const T>;
-};
-
-/// Specialization of the buffer getter for @c vecmem::device_vector
-template <typename T>
-struct has_buffer<vecmem::device_vector<T>, void> : public std::true_type {
-    using type = vecmem::data::vector_buffer<T>;
-};
-
-/// Specialization of the buffer getter for @c vecmem::device_vector - const
-template <typename T>
-struct has_buffer<const vecmem::device_vector<T>, void>
-    : public std::true_type {
-    using type = vecmem::data::vector_buffer<const T>;
-};
-
-template <class T>
-inline constexpr bool has_buffer_v = has_buffer<T>::value;
-
-template <class T>
-using get_buffer_t = typename has_buffer<T>::type;
-/// @}
-
-}  // namespace detail
-
-/// Specialized buffer for @c vecmem::vector containers
-template <typename T>
-using dvector_buffer = vecmem::data::vector_buffer<T>;
-
-/// The detray container buffer exists, if all contained buffer types also
-/// derive from @c dbase_buffer.
-template <typename... buffer_ts>
-using dmulti_buffer = detray::detail::dmulti_buffer_helper<
-    std::conjunction_v<detail::is_buffer<buffer_ts>...>, buffer_ts...>;
 
 /// @brief Get the buffer representation of a vecmem vector - non-const
 template <class T>
@@ -199,9 +187,7 @@ auto get_buffer(
 /// into a @c multi_buffer .
 ///
 /// @note This does not pick up the vecmem types.
-template <
-    typename... Ts, std::size_t... I,
-    std::enable_if_t<detail::is_device_view_v<dmulti_view<Ts...>>, bool> = true>
+template <concepts::device_view... Ts, std::size_t... I>
 auto get_buffer(const dmulti_view<Ts...>& data_view,
                 vecmem::memory_resource& mr, vecmem::copy& cpy,
                 std::index_sequence<I...> /*seq*/,
@@ -230,9 +216,7 @@ auto get_buffer(const dmulti_view<Ts...>& data_view,
 }
 
 /// @brief Get the buffer representation of a composite object - non-const
-template <
-    class T,
-    std::enable_if_t<detail::is_buffer_v<typename T::buffer_type>, bool> = true>
+template <concepts::bufferable T>
 typename T::buffer_type get_buffer(T& bufferable, vecmem::memory_resource& mr,
                                    vecmem::copy& cpy,
                                    detray::copy cpy_type = detray::copy::sync,
@@ -269,11 +253,11 @@ dvector_view<const T> get_data(const dvector_buffer<T>& buff) {
 }
 
 /// @brief Get the view ( @c dmulti_view ) of a @c dmulti_buffer
-template <class... Ts>
+template <concepts::device_buffer... Ts>
 auto get_data(dmulti_buffer<Ts...>& multi_buff);  // Forward declaration
 
 /// @brief Get the view ( @c dmulti_view ) of a @c dmulti_buffer - const
-template <class... Ts>
+template <concepts::device_buffer... Ts>
 auto get_data(const dmulti_buffer<Ts...>& multi_buff);  // Forward declaration
 
 /// @brief Unroll the composite buffer type
@@ -284,7 +268,7 @@ auto get_data(const dmulti_buffer<Ts...>& multi_buff);  // Forward declaration
 /// @c mutli_view to be ultimately passed on to the class constructor.
 ///
 /// @note This does not pick up the vecmem types.
-template <class... Ts, std::size_t... I>
+template <concepts::device_buffer... Ts, std::size_t... I>
 auto get_data(dmulti_buffer<Ts...>& multi_buff, std::index_sequence<I...>) {
     // Evaluate recursive view type (reverse of 'get_buffer(dmulti_view)')
     using result_view_t =
@@ -295,7 +279,7 @@ auto get_data(dmulti_buffer<Ts...>& multi_buff, std::index_sequence<I...>) {
 }
 
 /// @brief Unroll the composite buffer type - const
-template <class... Ts, std::size_t... I>
+template <concepts::device_buffer... Ts, std::size_t... I>
 auto get_data(const dmulti_buffer<Ts...>& multi_buff,
               std::index_sequence<I...>) {
     // Evaluate recursive view type (reverse of 'get_buffer(dmulti_view)')
@@ -306,13 +290,13 @@ auto get_data(const dmulti_buffer<Ts...>& multi_buff,
         detray::get_data(detail::get<I>(multi_buff.m_buffer))...};
 }
 
-template <class... Ts>
+template <concepts::device_buffer... Ts>
 auto get_data(dmulti_buffer<Ts...>& multi_buff) {
     return detray::get_data(multi_buff,
                             std::make_index_sequence<sizeof...(Ts)>{});
 }
 
-template <class... Ts>
+template <concepts::device_buffer... Ts>
 auto get_data(const dmulti_buffer<Ts...>& multi_buff) {
     return detray::get_data(multi_buff,
                             std::make_index_sequence<sizeof...(Ts)>{});

@@ -33,9 +33,9 @@ struct helix_intersector_impl;
 /// The algorithm uses the Newton-Raphson method to find an intersection on
 /// the unbounded surface and then applies the mask.
 /// @note Don't use for low p_t tracks!
-template <typename algebra_t>
+template <concepts::aos_algebra algebra_t>
 struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
-    : public ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, false> {
+    : public ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t> {
 
     using scalar_type = dscalar<algebra_t>;
     using point3_type = dpoint3D<algebra_t>;

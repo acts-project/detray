@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/geometry/tracking_surface.hpp"
 #include "detray/geometry/tracking_volume.hpp"
+#include "detray/materials/detail/concepts.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/utils/ranges.hpp"
 
@@ -152,7 +153,7 @@ struct material_checker {
     /// @param idx the specific grid to be checked
     /// @param id type id of the material grid collection
     template <typename material_coll_t, typename index_t, typename id_t>
-    requires detail::is_material_map_v<typename material_coll_t::value_type>
+    requires concepts::material_map<typename material_coll_t::value_type>
         DETRAY_HOST_DEVICE void operator()(const material_coll_t &material_coll,
                                            const index_t idx,
                                            const id_t id) const {
@@ -184,7 +185,8 @@ struct material_checker {
     /// @param material_coll collection of material slabs/rods/raw mat
     /// @param idx the specific instance to be checked
     template <typename material_coll_t, typename index_t, typename id_t>
-    requires detail::is_hom_material_v<typename material_coll_t::value_type>
+    requires concepts::homogeneous_material<
+        typename material_coll_t::value_type>
         DETRAY_HOST_DEVICE void operator()(const material_coll_t &material_coll,
                                            const index_t idx,
                                            const id_t) const {
@@ -195,7 +197,7 @@ struct material_checker {
         const material_t &mat = material_coll.at(idx);
 
         // Homogeneous volume material
-        if constexpr (std::is_same_v<material_t, material<scalar_t>>) {
+        if constexpr (concepts::material_params<material_t>) {
 
             if (mat == detray::vacuum<scalar_t>{}) {
                 throw_material_error("homogeneous volume material", idx, mat);

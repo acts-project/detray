@@ -14,6 +14,7 @@
 #include "detray/io/common/detail/basic_converter.hpp"
 #include "detray/io/common/detail/type_info.hpp"
 #include "detray/io/frontend/payloads.hpp"
+#include "detray/utils/grid/detail/concepts.hpp"
 
 // System include(s)
 #include <algorithm>
@@ -194,7 +195,7 @@ class geometry_writer {
             auto id{acc_links_payload::type_id::unknown};
 
             // Only convert grids
-            if constexpr (detray::detail::is_grid_v<accel_t>) {
+            if constexpr (concepts::grid<accel_t>) {
                 id = io::detail::get_id<accel_t>();
             }
 

@@ -10,6 +10,7 @@
 #include "detray/geometry/detail/surface_descriptor.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes/line.hpp"
+#include "detray/materials/detail/concepts.hpp"
 #include "detray/materials/material.hpp"
 #include "detray/materials/material_rod.hpp"
 #include "detray/materials/material_slab.hpp"
@@ -46,6 +47,13 @@ constexpr auto max_val{std::numeric_limits<scalar>::max()};
 GTEST_TEST(detray_material, materials) {
     // vacuum
     constexpr vacuum<scalar_t> vac;
+
+    static_assert(concepts::material_params<decltype(vac)>);
+    static_assert(concepts::homogeneous_material<decltype(vac)>);
+    static_assert(!concepts::surface_material<decltype(vac)>);
+    static_assert(concepts::volume_material<decltype(vac)>);
+    static_assert(!concepts::material_map<decltype(vac)>);
+
     EXPECT_EQ(vac.X0(), max_val);
     EXPECT_EQ(vac.L0(), max_val);
     EXPECT_EQ(vac.Ar(), scalar_t{0});
@@ -55,6 +63,13 @@ GTEST_TEST(detray_material, materials) {
 
     // beryllium
     constexpr beryllium_tml<scalar_t> beryll;
+
+    static_assert(concepts::material_params<decltype(beryll)>);
+    static_assert(concepts::homogeneous_material<decltype(beryll)>);
+    static_assert(!concepts::surface_material<decltype(beryll)>);
+    static_assert(concepts::volume_material<decltype(beryll)>);
+    static_assert(!concepts::material_map<decltype(beryll)>);
+
     EXPECT_NEAR(beryll.X0(), static_cast<scalar_t>(352.8 * unit<double>::mm),
                 1e-4);
     EXPECT_NEAR(beryll.L0(), static_cast<scalar_t>(407.0 * unit<double>::mm),
@@ -71,6 +86,13 @@ GTEST_TEST(detray_material, materials) {
 
     // silicon
     constexpr silicon_tml<scalar_t> silicon;
+
+    static_assert(concepts::material_params<decltype(silicon)>);
+    static_assert(concepts::homogeneous_material<decltype(silicon)>);
+    static_assert(!concepts::surface_material<decltype(silicon)>);
+    static_assert(concepts::volume_material<decltype(silicon)>);
+    static_assert(!concepts::material_map<decltype(silicon)>);
+
     EXPECT_NEAR(silicon.X0(), static_cast<scalar_t>(95.7 * unit<double>::mm),
                 1e-5);
     EXPECT_NEAR(silicon.L0(), static_cast<scalar_t>(465.2 * unit<double>::mm),
@@ -92,6 +114,12 @@ GTEST_TEST(detray_material, mixture) {
                       aluminium<scalar_t, std::ratio<0, 1>>>
         oxygen_mix;
 
+    static_assert(concepts::material_params<decltype(oxygen_mix)>);
+    static_assert(concepts::homogeneous_material<decltype(oxygen_mix)>);
+    static_assert(!concepts::surface_material<decltype(oxygen_mix)>);
+    static_assert(concepts::volume_material<decltype(oxygen_mix)>);
+    static_assert(!concepts::material_map<decltype(oxygen_mix)>);
+
     EXPECT_NEAR(pure_oxygen.X0(), oxygen_mix.X0(), 0.02f);
     EXPECT_NEAR(pure_oxygen.L0(), oxygen_mix.L0(), tol);
     EXPECT_NEAR(pure_oxygen.Ar(), oxygen_mix.Ar(), tol);
@@ -106,6 +134,12 @@ GTEST_TEST(detray_material, mixture) {
                       argon_gas<scalar_t, std::ratio<1, 100>>>
         air_mix;
     constexpr air<scalar_t> pure_air;
+
+    static_assert(concepts::material_params<decltype(pure_air)>);
+    static_assert(concepts::homogeneous_material<decltype(pure_air)>);
+    static_assert(!concepts::surface_material<decltype(pure_air)>);
+    static_assert(concepts::volume_material<decltype(pure_air)>);
+    static_assert(!concepts::material_map<decltype(pure_air)>);
 
     EXPECT_TRUE(std::abs(air_mix.X0() - pure_air.X0()) / pure_air.X0() < 0.01f);
     EXPECT_TRUE(std::abs(air_mix.L0() - pure_air.L0()) / pure_air.L0() < 0.01f);
@@ -140,6 +174,12 @@ GTEST_TEST(detray_material, mixture2) {
                       cesium_iodide_with_ded<scalar_t, std::ratio<2, 3>>>
         mix;
 
+    static_assert(concepts::material_params<decltype(mix)>);
+    static_assert(concepts::homogeneous_material<decltype(mix)>);
+    static_assert(!concepts::surface_material<decltype(mix)>);
+    static_assert(concepts::volume_material<decltype(mix)>);
+    static_assert(!concepts::material_map<decltype(mix)>);
+
     // For the moment, the mixture is not supposed to have density effect data
     // in any case
     EXPECT_EQ(mix.has_density_effect_data(), false);
@@ -154,6 +194,12 @@ GTEST_TEST(detray_material, material_slab) {
 
     constexpr material_slab<scalar_t> slab(oxygen_gas<scalar_t>(),
                                            2.f * unit<scalar_t>::mm);
+
+    static_assert(concepts::material_slab<decltype(slab)>);
+    static_assert(concepts::homogeneous_material<decltype(slab)>);
+    static_assert(concepts::surface_material<decltype(slab)>);
+    static_assert(!concepts::volume_material<decltype(slab)>);
+    static_assert(!concepts::material_map<decltype(slab)>);
 
     const scalar_t cos_inc_ang{0.3f};
 
@@ -171,6 +217,12 @@ GTEST_TEST(detray_material, material_rod) {
     // Rod with 1 mm radius
     constexpr material_rod<scalar_t> rod(oxygen_gas<scalar_t>(),
                                          1.f * unit<scalar_t>::mm);
+
+    static_assert(concepts::material_rod<decltype(rod)>);
+    static_assert(concepts::homogeneous_material<decltype(rod)>);
+    static_assert(concepts::surface_material<decltype(rod)>);
+    static_assert(!concepts::volume_material<decltype(rod)>);
+    static_assert(!concepts::material_map<decltype(rod)>);
 
     // tf3 with Identity rotation and no translation
     const vector3 x{1.f, 0.f, 0.f};

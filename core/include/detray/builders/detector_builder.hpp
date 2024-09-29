@@ -14,6 +14,7 @@
 #include "detray/core/detector.hpp"
 #include "detray/core/detector_metadata.hpp"
 #include "detray/definitions/geometry.hpp"
+#include "detray/utils/grid/detail/concepts.hpp"
 #include "detray/utils/type_traits.hpp"
 
 // Vecmem include(s)
@@ -117,7 +118,7 @@ class detector_builder {
         using vol_finder_t = typename detector_type::volume_finder;
 
         // Add dummy volume grid for now
-        if constexpr (detail::is_grid_v<vol_finder_t>) {
+        if constexpr (concepts::grid<vol_finder_t>) {
 
             // TODO: Construct it correctly with the grid builder
             mask<cylinder3D> vgrid_dims{0u,      0.f,   -constant<scalar>::pi,

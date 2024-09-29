@@ -9,6 +9,9 @@
 
 // Project include(s)
 #include "detray/geometry/tracking_surface.hpp"
+#include "detray/utils/grid/detail/concepts.hpp"
+
+// Plugin include(s)
 #include "detray/plugins/svgtools/conversion/grid.hpp"
 #include "detray/plugins/svgtools/styling/styling.hpp"
 
@@ -69,7 +72,7 @@ struct material_converter {
 
         std::vector<std::vector<actsvg::proto::material_slab>> m_matrix;
 
-        if constexpr (detray::detail::is_grid_v<material_t>) {
+        if constexpr (concepts::grid<material_t>) {
 
             using loc_bin_idx_t = typename material_t::loc_bin_index;
             using algebra_t =

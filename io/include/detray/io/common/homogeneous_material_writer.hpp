@@ -43,12 +43,12 @@ class homogeneous_material_writer {
 
         header_data.sub_header.emplace();
         auto& mat_sub_header = header_data.sub_header.value();
-        if constexpr (detray::detail::has_material_slabs_v<detector_t>) {
+        if constexpr (concepts::has_material_slabs<detector_t>) {
             mat_sub_header.n_slabs =
                 materials.template size<detector_t::materials::id::e_slab>();
         }
         mat_sub_header.n_rods = 0u;
-        if constexpr (detray::detail::has_material_rods_v<detector_t>) {
+        if constexpr (concepts::has_material_rods<detector_t>) {
             mat_sub_header.n_rods =
                 materials.template size<detector_t::materials::id::e_rod>();
         }
@@ -89,7 +89,7 @@ class homogeneous_material_writer {
         // If this reader is called, the detector has at least material slabs
         if (det.material_store().template empty<mat_id::e_slab>()) {
             // Check for material rods that are present in e.g. wire chambers
-            if constexpr (detray::detail::has_material_rods_v<detector_t>) {
+            if constexpr (concepts::has_material_rods<detector_t>) {
                 if (det.material_store().template empty<mat_id::e_rod>()) {
                     return mv_data;
                 }

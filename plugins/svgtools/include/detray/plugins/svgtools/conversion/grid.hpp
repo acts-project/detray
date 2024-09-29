@@ -11,6 +11,9 @@
 #include "detray/core/detector.hpp"
 #include "detray/definitions/grid_axis.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/utils/grid/detail/concepts.hpp"
+
+// Plugin include(s)
 #include "detray/plugins/svgtools/styling/styling.hpp"
 #include "detray/plugins/svgtools/utils/surface_kernels.hpp"
 
@@ -31,7 +34,7 @@ namespace detail {
 enum grid_type : std::uint8_t { e_barrel = 0, e_endcap = 1, e_unknown = 2 };
 
 /// @returns the actsvg grid type and edge values for a detray 2D cylinder grid.
-template <typename grid_t, typename view_t>
+template <concepts::grid grid_t, typename view_t>
     requires std::is_same_v<
         typename grid_t::local_frame_type,
         detray::concentric_cylindrical2D<
@@ -69,7 +72,7 @@ template <typename grid_t, typename view_t>
 }
 
 /// @returns the actsvg grid type and edge values for a detray disc grid.
-template <typename grid_t, typename view_t>
+template <concepts::grid grid_t, typename view_t>
 requires std::is_same_v<
     typename grid_t::local_frame_type,
     detray::polar2D<
@@ -92,7 +95,7 @@ grid_type_and_edges(const grid_t& grid, const view_t&) {
 }
 
 /// @returns the actsvg grid type and edge values for a detray rectangular grid.
-template <typename grid_t, typename view_t>
+template <concepts::grid grid_t, typename view_t>
 requires std::is_same_v<
     typename grid_t::local_frame_type,
     detray::cartesian2D<
@@ -126,7 +129,7 @@ struct type_and_edge_getter {
 
         using value_t = typename group_t::value_type;
 
-        if constexpr (detray::detail::is_grid_v<value_t>) {
+        if constexpr (concepts::grid<value_t>) {
             // Only two dimensional grids for actsvg
             if constexpr (value_t::dim == 2) {
                 return grid_type_and_edges(group[index], view);

@@ -15,6 +15,7 @@
 #include "detray/geometry/coordinates/cylindrical2D.hpp"
 #include "detray/geometry/coordinates/polar2D.hpp"
 #include "detray/geometry/detail/vertexing.hpp"
+#include "detray/navigation/accelerators/concepts.hpp"
 #include "detray/utils/grid/populators.hpp"
 #include "detray/utils/ranges.hpp"
 
@@ -36,13 +37,14 @@ namespace detray::detail {
 ///        taken absolute or relative
 template <typename context_t, typename surface_container_t,
           typename transform_container_t, typename mask_container_t,
-          typename grid_t>
-requires(grid_t::dim == 2) static inline void bin_association(
-    const context_t & /*context*/, const surface_container_t &surfaces,
-    const transform_container_t &transforms,
-    const mask_container_t &surface_masks, grid_t &grid,
-    const std::array<scalar, 2> &bin_tolerance,
-    bool absolute_tolerance = true) {
+          concepts::surface_grid grid_t>
+static inline void bin_association(const context_t & /*context*/,
+                                   const surface_container_t &surfaces,
+                                   const transform_container_t &transforms,
+                                   const mask_container_t &surface_masks,
+                                   grid_t &grid,
+                                   const std::array<scalar, 2> &bin_tolerance,
+                                   bool absolute_tolerance = true) {
 
     using algebra_t = typename grid_t::local_frame_type::algebra_type;
     using point2_t = dpoint2D<algebra_t>;

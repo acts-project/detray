@@ -166,9 +166,8 @@ class navigator {
         explicit state(const detector_type &det) : m_detector(&det) {}
 
         /// Constructor from detector @param det and inspector view @param view
-        template <typename view_t>
-        requires detail::is_device_view_v<view_t> DETRAY_HOST_DEVICE
-        state(const detector_type &det, view_t view)
+        template <concepts::device_view view_t>
+        DETRAY_HOST_DEVICE state(const detector_type &det, view_t view)
             : m_detector(&det), m_inspector(view) {}
 
         /// @return start position of the valid candidate range - const

@@ -20,12 +20,12 @@
 
 namespace detray {
 
-template <typename frame_t, typename algebra_t, bool is_soa>
+template <typename frame_t, typename algebra_t>
 struct ray_intersector_impl;
 
 /// A functor to find intersections between trajectory and line mask
-template <typename algebra_t>
-struct ray_intersector_impl<line2D<algebra_t>, algebra_t, false> {
+template <concepts::aos_algebra algebra_t>
+struct ray_intersector_impl<line2D<algebra_t>, algebra_t> {
 
     using scalar_type = dscalar<algebra_t>;
     using point3_type = dpoint3D<algebra_t>;

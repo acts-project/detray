@@ -21,12 +21,12 @@
 
 namespace detray {
 
-template <typename frame_t, typename algebra_t, bool is_soa>
+template <typename frame_t, typename algebra_t>
 struct ray_intersector_impl;
 
 /// A functor to find intersections between straight line and planar surface
-template <typename algebra_t>
-struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, false> {
+template <concepts::aos_algebra algebra_t>
+struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
 
     /// linear algebra types
     /// @{
@@ -133,8 +133,8 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, false> {
     }
 };
 
-template <typename algebra_t>
-struct ray_intersector_impl<polar2D<algebra_t>, algebra_t, false>
-    : public ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, false> {};
+template <concepts::aos_algebra algebra_t>
+struct ray_intersector_impl<polar2D<algebra_t>, algebra_t>
+    : public ray_intersector_impl<cartesian2D<algebra_t>, algebra_t> {};
 
 }  // namespace detray

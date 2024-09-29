@@ -24,7 +24,7 @@ namespace detray {
 
 /// A functor to find intersections between trajectory and concentric cylinder
 /// mask
-template <typename algebra_t>
+template <concepts::aos_algebra algebra_t>
 struct ray_concentric_cylinder_intersector {
 
     /// linear algebra types

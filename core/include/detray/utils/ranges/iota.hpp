@@ -10,8 +10,8 @@
 // Project include(s)
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/utils/concepts.hpp"
 #include "detray/utils/ranges/ranges.hpp"
-#include "detray/utils/type_traits.hpp"
 
 // System include(s)
 #include <iterator>
@@ -102,9 +102,8 @@ class iota_view : public detray::ranges::view_interface<iota_view<incr_t>> {
     constexpr iota_view() requires std::default_initializable<incr_t> = default;
 
     /// Construct from an @param interval that defines start and end values.
-    template <typename interval_t>
-    requires detray::detail::is_interval_v<interval_t>
-        DETRAY_HOST_DEVICE constexpr explicit iota_view(interval_t &&interval)
+    template <concepts::interval interval_t>
+    DETRAY_HOST_DEVICE constexpr explicit iota_view(interval_t &&interval)
         : m_start{detray::detail::get<0>(std::forward<interval_t>(interval))},
           m_end{detray::detail::get<1>(std::forward<interval_t>(interval))} {}
 
@@ -140,9 +139,8 @@ struct iota : public detray::ranges::iota_view<incr_t> {
 
     constexpr iota() requires std::default_initializable<incr_t> = default;
 
-    template <typename interval_t>
-    requires detray::detail::is_interval_v<interval_t>
-        DETRAY_HOST_DEVICE constexpr explicit iota(interval_t &&interval)
+    template <concepts::interval interval_t>
+    DETRAY_HOST_DEVICE constexpr explicit iota(interval_t &&interval)
         : base_type(std::forward<interval_t>(interval)) {}
 
     DETRAY_HOST_DEVICE constexpr iota(incr_t start, incr_t end)
@@ -156,8 +154,8 @@ struct iota : public detray::ranges::iota_view<incr_t> {
 
 template <typename interval_t>
 DETRAY_HOST_DEVICE iota(interval_t &&interval)
-    ->iota<detray::detail::remove_cvref_t<
-        decltype(std::get<0>(std::declval<interval_t>()))>>;
+    ->iota<
+        std::remove_cvref_t<decltype(std::get<0>(std::declval<interval_t>()))>>;
 
 template <typename I = dindex>
 DETRAY_HOST_DEVICE iota(I start, I end)->iota<I>;

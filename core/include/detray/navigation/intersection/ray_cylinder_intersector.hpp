@@ -22,12 +22,12 @@
 
 namespace detray {
 
-template <typename frame_t, typename algebra_t, bool is_soa>
+template <typename frame_t, typename algebra_t>
 struct ray_intersector_impl;
 
 /// A functor to find intersections between a ray and a 2D cylinder mask
-template <typename algebra_t>
-struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, false> {
+template <concepts::aos_algebra algebra_t>
+struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t> {
 
     /// Linear algebra types
     /// @{

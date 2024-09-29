@@ -437,7 +437,7 @@ inline auto create_wire_chamber(vecmem::memory_resource &resource,
             det.mask_store().template get<cyl_id>().at(portal_mask_idx);
 
         // Correct cylinder radius so that the grid lies in the middle
-        using cyl_mask_t = detail::remove_cvref_t<decltype(outer_cyl_mask)>;
+        using cyl_mask_t = std::remove_cvref_t<decltype(outer_cyl_mask)>;
         typename cyl_mask_t::mask_values mask_values{outer_cyl_mask.values()};
         mask_values[cylinder2D::e_r] =
             0.5f * (inner_cyl_mask.values()[cylinder2D::e_r] +

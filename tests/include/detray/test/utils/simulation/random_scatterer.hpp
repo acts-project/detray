@@ -13,6 +13,7 @@
 #include "detray/definitions/track_parametrization.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/tracking_surface.hpp"
+#include "detray/materials/detail/concepts.hpp"
 #include "detray/materials/interaction.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/tracks/bound_track_parameters.hpp"
@@ -81,7 +82,7 @@ struct random_scatterer : actor {
 
             using material_t = typename mat_group_t::value_type;
 
-            if constexpr (detail::is_surface_material_v<material_t>) {
+            if constexpr (concepts::surface_material<material_t>) {
 
                 const scalar qop = bound_params.qop();
 

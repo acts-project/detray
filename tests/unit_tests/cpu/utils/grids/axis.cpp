@@ -13,6 +13,7 @@
 #include "detray/geometry/coordinates/coordinates.hpp"
 #include "detray/utils/grid/detail/axis_binning.hpp"
 #include "detray/utils/grid/detail/axis_bounds.hpp"
+#include "detray/utils/grid/detail/concepts.hpp"
 
 // Detray test include(s)
 #include "detray/test/utils/types.hpp"
@@ -56,7 +57,10 @@ GTEST_TEST(detray_grid, open_regular_axis) {
     const dindex_range edge_range = {2u, 10u};
 
     // An open regular x-axis
-    single_axis<open<label::e_x>, regular<>> or_axis{edge_range, &bin_edges};
+    using x_axis_t = single_axis<open<label::e_x>, regular<>>;
+    x_axis_t or_axis{edge_range, &bin_edges};
+
+    static_assert(concepts::axis<x_axis_t>);
 
     // Test axis bounds
     EXPECT_EQ(or_axis.label(), axis::label::e_x);
@@ -129,7 +133,10 @@ GTEST_TEST(detray_grid, closed_regular_axis) {
     const dindex_range edge_range = {2u, 10u};
 
     // A closed regular r-axis
-    single_axis<closed<label::e_r>, regular<>> cr_axis{edge_range, &bin_edges};
+    using r_axis_t = single_axis<closed<label::e_r>, regular<>>;
+    r_axis_t cr_axis{edge_range, &bin_edges};
+
+    static_assert(concepts::axis<r_axis_t>);
 
     // Test axis bounds
     EXPECT_EQ(cr_axis.label(), axis::label::e_r);
@@ -204,7 +211,10 @@ GTEST_TEST(detray_grid, circular_regular_axis) {
     const dindex_range edge_range = {1u, 36u};
 
     // A closed regular x-axis
-    single_axis<circular<>, regular<>> cr_axis(edge_range, &bin_edges);
+    using axis_t = single_axis<circular<>, regular<>>;
+    axis_t cr_axis(edge_range, &bin_edges);
+
+    static_assert(concepts::axis<axis_t>);
 
     // Test axis bounds
     EXPECT_EQ(cr_axis.label(), axis::label::e_phi);

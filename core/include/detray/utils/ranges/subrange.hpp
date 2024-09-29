@@ -10,8 +10,8 @@
 // Project include(s)
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/utils/concepts.hpp"
 #include "detray/utils/ranges/ranges.hpp"
-#include "detray/utils/type_traits.hpp"
 
 // System include(s)
 #include <type_traits>
@@ -58,16 +58,18 @@ class subrange : public detray::ranges::view_interface<subrange<range_t>> {
           m_end{detray::ranges::next(m_begin)} {}
 
     /// Construct from a @param range and an index range @param pos.
-    template <detray::ranges::range deduced_range_t, typename index_range_t>
-    requires detray::detail::is_interval_v<index_range_t>
-        DETRAY_HOST_DEVICE constexpr subrange(deduced_range_t &&range,
-                                              index_range_t &&pos)
+    template <detray::ranges::range deduced_range_t,
+              concepts::interval index_range_t>
+    DETRAY_HOST_DEVICE constexpr subrange(deduced_range_t &&range,
+                                          index_range_t &&pos)
         : m_begin{detray::ranges::next(
               detray::ranges::begin(std::forward<deduced_range_t>(range)),
-              static_cast<difference_t>(detray::detail::get<0>(pos)))},
+              static_cast<difference_t>(
+                  detray::detail::get<0>(std::forward<index_range_t>(pos))))},
           m_end{detray::ranges::next(
               detray::ranges::begin(std::forward<deduced_range_t>(range)),
-              static_cast<difference_t>(detray::detail::get<1>(pos)))} {}
+              static_cast<difference_t>(
+                  detray::detail::get<1>(std::forward<index_range_t>(pos))))} {}
 
     /// @return start position of range.
     DETRAY_HOST_DEVICE
@@ -100,9 +102,9 @@ requires std::convertible_to<
     DETRAY_HOST_DEVICE subrange(deduced_range_t &&range, index_t pos)
         ->subrange<deduced_range_t>;
 
-template <detray::ranges::range deduced_range_t, typename index_range_t>
-requires detray::detail::is_interval_v<index_range_t> DETRAY_HOST_DEVICE
-subrange(deduced_range_t &&range, index_range_t &&pos)
+template <detray::ranges::range deduced_range_t,
+          concepts::interval index_range_t>
+DETRAY_HOST_DEVICE subrange(deduced_range_t &&range, index_range_t &&pos)
     ->subrange<deduced_range_t>;
 
 /// @see https://en.cppreference.com/w/cpp/ranges/borrowed_iterator_t

@@ -12,6 +12,7 @@
 #include "detray/builders/volume_builder_interface.hpp"
 #include "detray/definitions/geometry.hpp"
 #include "detray/geometry/tracking_surface.hpp"
+#include "detray/utils/grid/detail/concepts.hpp"
 
 // System include(s)
 #include <algorithm>
@@ -304,7 +305,7 @@ struct material_index_update {
         [[maybe_unused]] const group_t& group,
         [[maybe_unused]] const index_t& /*index*/,
         [[maybe_unused]] surface_t& sf) const {
-        if constexpr (!detail::is_grid_v<typename group_t::value_type>) {
+        if constexpr (!concepts::grid<typename group_t::value_type>) {
             sf.update_material(static_cast<dindex>(group.size()));
         }
     }

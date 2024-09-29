@@ -9,7 +9,9 @@
 
 // Project include(s).
 #include "detray/builders/detail/bin_association.hpp"
+#include "detray/navigation/accelerators/concepts.hpp"
 #include "detray/utils/grid/detail/axis.hpp"
+#include "detray/utils/grid/detail/concepts.hpp"
 #include "detray/utils/grid/populators.hpp"
 
 // System include(s)
@@ -36,12 +38,13 @@ struct fill_by_bin {
         value_t single_element;
     };
 
-    template <typename grid_t>
+    template <concepts::grid grid_t>
     using bin_data_type = bin_data<grid_t::dim, typename grid_t::value_type>;
 
-    template <typename grid_t, typename volume_t, typename surface_container_t,
-              typename mask_container, typename transform_container,
-              typename context_t, typename... Args>
+    template <concepts::grid grid_t, typename volume_t,
+              typename surface_container_t, typename mask_container,
+              typename transform_container, typename context_t,
+              typename... Args>
     DETRAY_HOST auto operator()(grid_t &grid, const volume_t &,
                                 const surface_container_t &,
                                 const mask_container &, const context_t,
@@ -63,9 +66,10 @@ struct fill_by_bin {
 /// @param ctx the geometry context
 struct fill_by_pos {
 
-    template <typename grid_t, typename volume_t, typename surface_container_t,
-              typename mask_container, typename transform_container,
-              typename context_t, typename... Args>
+    template <concepts::surface_grid grid_t, typename volume_t,
+              typename surface_container_t, typename mask_container,
+              typename transform_container, typename context_t,
+              typename... Args>
     DETRAY_HOST auto operator()(grid_t &grid, const volume_t &vol,
                                 const surface_container_t &surfaces,
                                 const transform_container &transforms,
@@ -99,8 +103,8 @@ struct fill_by_pos {
 /// @param ctx the geometry context
 struct bin_associator {
 
-    template <typename detector_t, typename volume_type, typename grid_t,
-              typename... Args>
+    template <typename detector_t, typename volume_type,
+              concepts::surface_grid grid_t, typename... Args>
     DETRAY_HOST auto operator()(grid_t &grid, detector_t &det,
                                 const volume_type &vol,
                                 const typename detector_t::geometry_context ctx,
@@ -109,9 +113,10 @@ struct bin_associator {
                          det.transform_store(), ctx);
     }
 
-    template <typename grid_t, typename volume_t, typename surface_container_t,
-              typename mask_container, typename transform_container,
-              typename context_t, typename... Args>
+    template <concepts::surface_grid grid_t, typename volume_t,
+              typename surface_container_t, typename mask_container,
+              typename transform_container, typename context_t,
+              typename... Args>
     DETRAY_HOST auto operator()(grid_t &grid, const volume_t &,
                                 const surface_container_t &surfaces,
                                 const transform_container &transforms,

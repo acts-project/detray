@@ -75,7 +75,7 @@ struct get_at {};
 
 template <std::size_t N, typename T, typename... Ts>
 struct get_at<N, list<T, Ts...>> {
-    using type = detail::remove_cvref_t<decltype(
+    using type = std::remove_cvref_t<decltype(
         detray::get<N>(detray::tuple<T, Ts...>{}))>;
 };
 template <typename L, std::size_t N>

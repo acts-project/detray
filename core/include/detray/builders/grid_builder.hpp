@@ -15,6 +15,7 @@
 #include "detray/builders/volume_builder_interface.hpp"
 #include "detray/geometry/tracking_surface.hpp"
 #include "detray/geometry/tracking_volume.hpp"
+#include "detray/utils/grid/detail/concepts.hpp"
 
 // System include(s)
 #include <array>
@@ -28,7 +29,7 @@ namespace detray {
 ///
 /// Decorator class to a volume builder that adds a grid as the volumes
 /// geometry accelerator structure.
-template <typename detector_t, typename grid_t,
+template <typename detector_t, concepts::grid grid_t,
           typename bin_filler_t = fill_by_pos,
           typename grid_factory_t = grid_factory_type<grid_t>>
 class grid_builder : public volume_decorator<detector_t> {

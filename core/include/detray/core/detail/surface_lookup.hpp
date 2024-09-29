@@ -90,7 +90,7 @@ class surface_lookup {
     /// Construct with a specific memory resource @param resource
     /// (host-side only)
     template <typename allocator_t = vecmem::memory_resource>
-    requires(!detail::is_device_view_v<allocator_t>) DETRAY_HOST
+    requires(!concepts::device_view<allocator_t>) DETRAY_HOST
         explicit surface_lookup(allocator_t &resource)
         : m_container(&resource) {}
 
@@ -104,9 +104,8 @@ class surface_lookup {
         : m_container(&resource, arg) {}
 
     /// Construct from the container @param view . Mainly used device-side.
-    template <typename container_view_t>
-    requires detail::is_device_view_v<container_view_t>
-        DETRAY_HOST_DEVICE explicit surface_lookup(container_view_t &view)
+    template <concepts::device_view container_view_t>
+    DETRAY_HOST_DEVICE explicit surface_lookup(container_view_t &view)
         : m_container(view) {}
 
     /// @returns the size of the underlying container

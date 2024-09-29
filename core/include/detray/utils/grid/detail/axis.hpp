@@ -15,6 +15,7 @@
 #include "detray/definitions/grid_axis.hpp"
 #include "detray/utils/grid/detail/axis_binning.hpp"
 #include "detray/utils/grid/detail/axis_bounds.hpp"
+#include "detray/utils/grid/detail/concepts.hpp"
 #include "detray/utils/ranges.hpp"
 #include "detray/utils/type_list.hpp"
 #include "detray/utils/type_registry.hpp"
@@ -69,7 +70,7 @@ struct single_axis {
 
     /// Defines the geometrical bounds of the axis as a service:
     /// open, closed or circular
-    bounds_type m_bounds{};
+    [[no_unique_address]] bounds_type m_bounds{};
     /// Defines the binning on the axis as a service: regular vs irregular
     binning_type m_binning{};
 
@@ -178,7 +179,7 @@ struct single_axis {
 ///
 /// @note can be owning the data (as member of a standalone grid) or can be
 /// non-owning if the grid is part of a larger collection.
-template <bool ownership, typename local_frame_t, typename... axis_ts>
+template <bool ownership, typename local_frame_t, concepts::axis... axis_ts>
 class multi_axis {
 
     /// Match an axis to its label at compile time
@@ -273,9 +274,8 @@ class multi_axis {
     /// Construct containers from vecmem based view type
     ///
     /// @param view vecmem view on the axes data
-    template <typename view_t>
-    requires detray::detail::is_device_view_v<view_t>
-        DETRAY_HOST_DEVICE explicit multi_axis(const view_t &view)
+    template <concepts::device_view view_t>
+    DETRAY_HOST_DEVICE explicit multi_axis(const view_t &view)
         : m_edge_offsets(detray::detail::get<0>(view.m_view)),
           m_edges(detray::detail::get<1>(view.m_view)) {}
 
