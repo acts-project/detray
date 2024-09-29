@@ -29,7 +29,8 @@ namespace detray::ranges {
 /// needs to be guranteed throughout iteration or between iterations with the
 /// same enumerate instance.
 /// @note Is not fit for lazy evaluation.
-template <typename range_itr_t, typename incr_t = std::size_t>
+template <detray::ranges::input_iterator range_itr_t,
+          typename incr_t = std::size_t>
 class enumerate_view : public detray::ranges::view_interface<
                            enumerate_view<range_itr_t, incr_t>> {
 
@@ -76,9 +77,7 @@ class enumerate_view : public detray::ranges::view_interface<
         }
 
         /// Increment iterator and index in lockstep
-        template <typename I = range_itr_t,
-                  std::enable_if_t<detray::ranges::bidirectional_iterator_v<I>,
-                                   bool> = true>
+        template <detray::ranges::bidirectional_iterator I = range_itr_t>
         DETRAY_HOST_DEVICE constexpr auto operator--() -> iterator & {
             --m_i;
             --m_iter;
@@ -91,9 +90,7 @@ class enumerate_view : public detray::ranges::view_interface<
         }
 
         /// @returns advance this iterator state by @param j.
-        template <typename I = range_itr_t,
-                  std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
-                                   bool> = true>
+        template <detray::ranges::random_access_iterator I = range_itr_t>
         DETRAY_HOST_DEVICE constexpr auto operator+=(const difference_type j)
             -> iterator & {
             m_iter += j;
@@ -102,9 +99,7 @@ class enumerate_view : public detray::ranges::view_interface<
         }
 
         /// @returns advance this iterator state by @param j.
-        template <typename I = range_itr_t,
-                  std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
-                                   bool> = true>
+        template <detray::ranges::random_access_iterator I = range_itr_t>
         DETRAY_HOST_DEVICE constexpr auto operator-=(const difference_type j)
             -> iterator & {
             m_iter -= j;
@@ -113,9 +108,7 @@ class enumerate_view : public detray::ranges::view_interface<
         }
 
         /// @returns the value and index at a given position - const
-        template <typename I = range_itr_t,
-                  std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
-                                   bool> = true>
+        template <detray::ranges::random_access_iterator I = range_itr_t>
         DETRAY_HOST_DEVICE constexpr auto operator[](
             const difference_type i) const {
             // check narrowing
@@ -124,9 +117,7 @@ class enumerate_view : public detray::ranges::view_interface<
         }
 
         /// @returns the value and index at a given position - const
-        template <typename I = range_itr_t,
-                  std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
-                                   bool> = true>
+        template <detray::ranges::random_access_iterator I = range_itr_t>
         DETRAY_HOST_DEVICE constexpr auto operator[](const difference_type i) {
             // check narrowing
             const incr_t index{m_offset + static_cast<incr_t>(i)};
@@ -135,18 +126,14 @@ class enumerate_view : public detray::ranges::view_interface<
 
         private:
         /// @returns an iterator and index position advanced by @param j.
-        template <typename I = range_itr_t,
-                  std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
-                                   bool> = true>
+        template <detray::ranges::random_access_iterator I = range_itr_t>
         DETRAY_HOST_DEVICE friend constexpr auto operator+(
             const iterator itr, const difference_type j) -> iterator {
             return {itr.m_iter + j, itr.m_i + static_cast<incr_t>(j)};
         }
 
         /// @returns an iterator and index position advanced by @param j.
-        template <typename I = range_itr_t,
-                  std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
-                                   bool> = true>
+        template <detray::ranges::random_access_iterator I = range_itr_t>
         DETRAY_HOST_DEVICE friend constexpr auto operator-(
             const iterator itr, const difference_type j) -> iterator {
             return {itr.m_iter - j, itr.m_i - static_cast<incr_t>(j)};
@@ -154,9 +141,7 @@ class enumerate_view : public detray::ranges::view_interface<
 
         /// @returns the positional difference between two iterators
         /// (independent from their enumeration of the range values)
-        template <typename I = range_itr_t,
-                  std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
-                                   bool> = true>
+        template <detray::ranges::random_access_iterator I = range_itr_t>
         DETRAY_HOST_DEVICE friend constexpr auto operator-(const iterator lhs,
                                                            const iterator &rhs)
             -> difference_type {
@@ -179,8 +164,7 @@ class enumerate_view : public detray::ranges::view_interface<
     enumerate_view() = default;
 
     /// Construct from a @param range that will be enumerated beginning at 0
-    template <typename range_t,
-              std::enable_if_t<detray::ranges::range_v<range_t>, bool> = true>
+    template <detray::ranges::range range_t>
     DETRAY_HOST_DEVICE constexpr explicit enumerate_view(range_t &&rng)
         : m_begin{detray::ranges::begin(std::forward<range_t>(rng))},
           m_end{detray::ranges::end(std::forward<range_t>(rng)),
@@ -188,8 +172,7 @@ class enumerate_view : public detray::ranges::view_interface<
 
     /// Construct from a @param range that will be enumerated beginning at
     /// @param start.
-    template <typename range_t,
-              std::enable_if_t<detray::ranges::range_v<range_t>, bool> = true>
+    template <detray::ranges::range range_t>
     DETRAY_HOST_DEVICE constexpr enumerate_view(range_t &&rng, dindex start)
         : m_begin{detray::ranges::begin(std::forward<range_t>(rng)), start},
           m_end{detray::ranges::end(std::forward<range_t>(rng)),
@@ -211,7 +194,7 @@ class enumerate_view : public detray::ranges::view_interface<
 namespace views {
 
 template <
-    typename range_itr_t, typename incr_t = dindex,
+    detray::ranges::input_iterator range_itr_t, typename incr_t = dindex,
     std::enable_if_t<std::is_convertible_v<typename std::iterator_traits<
                                                range_itr_t>::difference_type,
                                            incr_t>,
@@ -222,19 +205,17 @@ struct enumerate : public enumerate_view<range_itr_t, incr_t> {
 
     constexpr enumerate() = default;
 
-    template <typename range_t,
-              std::enable_if_t<detray::ranges::range_v<range_t>, bool> = true>
+    template <detray::ranges::range range_t>
     DETRAY_HOST_DEVICE constexpr explicit enumerate(range_t &&rng)
         : base_type(std::forward<range_t>(rng)) {}
 
-    template <typename range_t,
-              std::enable_if_t<detray::ranges::range_v<range_t>, bool> = true>
+    template <detray::ranges::range range_t>
     DETRAY_HOST_DEVICE constexpr enumerate(range_t &&rng, incr_t start)
         : base_type(std::forward<range_t>(rng), start) {}
 
     /// Construct from a @param range and an index range provided by a volume
     /// @param vol.
-    template <typename deduced_range_t, typename volume_t,
+    template <detray::ranges::range deduced_range_t, typename volume_t,
               typename = typename std::remove_reference_t<volume_t>::volume_def>
     DETRAY_HOST_DEVICE enumerate(deduced_range_t &&range, const volume_t &vol)
         : enumerate(detray::ranges::subrange(
@@ -244,18 +225,16 @@ struct enumerate : public enumerate_view<range_itr_t, incr_t> {
 
 // deduction guides
 
-template <typename range_t,
-          std::enable_if_t<detray::ranges::range_v<range_t>, bool> = true>
+template <detray::ranges::range range_t>
 DETRAY_HOST_DEVICE enumerate(range_t &&rng)
     ->enumerate<detray::ranges::const_iterator_t<range_t>, dindex>;
 
-template <typename range_t, typename volume_t,
+template <detray::ranges::range range_t, typename volume_t,
           typename = typename std::remove_reference_t<volume_t>::volume_def>
 DETRAY_HOST_DEVICE enumerate(range_t &&range, const volume_t &vol)
     ->enumerate<detray::ranges::const_iterator_t<range_t>, dindex>;
 
-template <typename range_t,
-          std::enable_if_t<detray::ranges::range_v<range_t>, bool> = true>
+template <detray::ranges::range range_t>
 DETRAY_HOST_DEVICE enumerate(range_t &&rng, dindex start)
     ->enumerate<detray::ranges::const_iterator_t<range_t>, dindex>;
 

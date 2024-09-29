@@ -30,7 +30,8 @@ namespace detray::ranges {
 /// needs to be guranteed throughout iteration or between iterations with the
 /// same enumerate instance.
 /// @note Is not fit for lazy evaluation.
-template <typename range_itr_t, typename sequence_itr_t>
+template <detray::ranges::input_iterator range_itr_t,
+          detray::ranges::input_iterator sequence_itr_t>
 class pick_view : public detray::ranges::view_interface<
                       pick_view<range_itr_t, sequence_itr_t>> {
 
@@ -90,9 +91,7 @@ class pick_view : public detray::ranges::view_interface<
         }
 
         /// Decrement iterator and index in lockstep
-        template <typename I = range_itr_t,
-                  std::enable_if_t<detray::ranges::bidirectional_iterator_v<I>,
-                                   bool> = true>
+        template <detray::ranges::bidirectional_iterator I = range_itr_t>
         DETRAY_HOST_DEVICE constexpr auto operator--() -> iterator & {
             m_range_iter =
                 m_range_begin + static_cast<difference_type>(*(--m_seq_iter));
@@ -108,9 +107,7 @@ class pick_view : public detray::ranges::view_interface<
         }
 
         /// @returns advance this iterator state by @param j.
-        template <typename I = range_itr_t,
-                  std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
-                                   bool> = true>
+        template <detray::ranges::random_access_iterator I = range_itr_t>
         DETRAY_HOST_DEVICE constexpr auto operator+=(const difference_type j)
             -> iterator & {
             detray::ranges::advance(m_seq_iter, j);
@@ -119,9 +116,7 @@ class pick_view : public detray::ranges::view_interface<
         }
 
         /// @returns advance this iterator state by @param j.
-        template <typename I = range_itr_t,
-                  std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
-                                   bool> = true>
+        template <detray::ranges::random_access_iterator I = range_itr_t>
         DETRAY_HOST_DEVICE constexpr auto operator-=(const difference_type j)
             -> iterator & {
             return *this += -j;
@@ -129,9 +124,7 @@ class pick_view : public detray::ranges::view_interface<
 
         private:
         /// @returns an iterator and index position advanced by @param j.
-        template <typename I = range_itr_t,
-                  std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
-                                   bool> = true>
+        template <detray::ranges::random_access_iterator I = range_itr_t>
         DETRAY_HOST_DEVICE friend constexpr auto operator+(
             const iterator &itr, const difference_type j) -> iterator {
             auto seq_iter = detray::ranges::next(itr.m_seq_iter, j);
@@ -140,18 +133,14 @@ class pick_view : public detray::ranges::view_interface<
         }
 
         /// @returns an iterator and index position advanced by @param j.
-        template <typename I = range_itr_t,
-                  std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
-                                   bool> = true>
+        template <detray::ranges::random_access_iterator I = range_itr_t>
         DETRAY_HOST_DEVICE friend constexpr auto operator-(
             const iterator &itr, const difference_type j) -> iterator {
             return itr + (-j);
         }
 
         /// @returns the positional difference between two iterations
-        template <typename I = range_itr_t,
-                  std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
-                                   bool> = true>
+        template <detray::ranges::random_access_iterator I = range_itr_t>
         DETRAY_HOST_DEVICE friend constexpr auto operator-(const iterator &lhs,
                                                            const iterator &rhs)
             -> difference_type {
@@ -176,10 +165,7 @@ class pick_view : public detray::ranges::view_interface<
     constexpr pick_view() = default;
 
     /// Construct from a @param range that will be enumerated beginning at 0
-    template <
-        typename range_t, typename sequence_t,
-        std::enable_if_t<detray::ranges::range_v<range_t>, bool> = true,
-        std::enable_if_t<detray::ranges::range_v<sequence_t>, bool> = true>
+    template <detray::ranges::range range_t, detray::ranges::range sequence_t>
     DETRAY_HOST_DEVICE constexpr pick_view(range_t &&range, sequence_t &&seq)
         : m_range_begin{detray::ranges::begin(std::forward<range_t>(range))},
           m_range_end{detray::ranges::end(std::forward<range_t>(range))},
@@ -262,17 +248,15 @@ class pick_view : public detray::ranges::view_interface<
 
 namespace views {
 
-template <typename range_itr_t, typename sequence_itr_t>
+template <detray::ranges::input_iterator range_itr_t,
+          detray::ranges::input_iterator sequence_itr_t>
 struct pick : public pick_view<range_itr_t, sequence_itr_t> {
 
     using base_type = pick_view<range_itr_t, sequence_itr_t>;
 
     pick() = default;
 
-    template <
-        typename range_t, typename sequence_t,
-        std::enable_if_t<detray::ranges::range_v<range_t>, bool> = true,
-        std::enable_if_t<detray::ranges::range_v<sequence_t>, bool> = true>
+    template <detray::ranges::range range_t, detray::ranges::range sequence_t>
     DETRAY_HOST_DEVICE constexpr pick(range_t &&range, sequence_t &&seq)
         : base_type(std::forward<range_t>(range),
                     std::forward<sequence_t>(seq)) {}
@@ -280,9 +264,7 @@ struct pick : public pick_view<range_itr_t, sequence_itr_t> {
 
 // deduction guides
 
-template <typename range_t, typename sequence_t,
-          std::enable_if_t<detray::ranges::range_v<range_t>, bool> = true,
-          std::enable_if_t<detray::ranges::range_v<sequence_t>, bool> = true>
+template <detray::ranges::range range_t, detray::ranges::range sequence_t>
 pick(range_t &&range, sequence_t &&seq)
     -> pick<detray::ranges::iterator_t<range_t>,
             detray::ranges::const_iterator_t<sequence_t>>;

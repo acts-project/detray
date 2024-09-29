@@ -23,8 +23,7 @@
 namespace detray::statistics {
 
 /// @returns the sample mean over a range of numbers
-template <typename range_t,
-          std::enable_if_t<detray::ranges::range_v<range_t>, bool> = true>
+template <detray::ranges::range range_t>
 inline auto mean(const range_t& r) noexcept(false)
     -> detray::ranges::range_value_t<range_t> {
     using value_t = detray::ranges::range_value_t<range_t>;
@@ -36,8 +35,7 @@ inline auto mean(const range_t& r) noexcept(false)
 }
 
 /// @returns RMS as the variance over a range of numbers with a true mean value
-template <typename range_t,
-          std::enable_if_t<detray::ranges::range_v<range_t>, bool> = true>
+template <detray::ranges::range range_t>
 inline auto rms(
     const range_t& r,
     const detray::ranges::range_value_t<range_t> mean) noexcept(false)
@@ -56,8 +54,7 @@ inline auto rms(
 
 /// @returns the sample variance over a range of numbers with a mean value
 /// calculated from the range of numbers
-template <typename range_t,
-          std::enable_if_t<detray::ranges::range_v<range_t>, bool> = true>
+template <detray::ranges::range range_t>
 inline auto variance(const range_t& r) noexcept(false)
     -> detray::ranges::range_value_t<range_t> {
     using value_t = detray::ranges::range_value_t<range_t>;

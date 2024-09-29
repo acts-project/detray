@@ -19,7 +19,7 @@ namespace detray::ranges {
 
 namespace detail {
 
-template <typename... T>
+template <detray::ranges::input_iterator... T>
 struct cartesian_product_iterator;
 
 }
@@ -30,7 +30,7 @@ struct cartesian_product_iterator;
 /// @see https://en.cppreference.com/w/cpp/ranges/cartesian_product_view
 /// @see
 /// https://github.com/gcc-mirror/gcc/blob/master/libstdc%2B%2B-v3/include/std/ranges
-template <typename... range_ts>
+template <detray::ranges::range... range_ts>
 struct cartesian_product_view : public detray::ranges::view_interface<
                                     cartesian_product_view<range_ts...>> {
 
@@ -94,7 +94,7 @@ struct cartesian_product_view : public detray::ranges::view_interface<
 namespace views {
 
 /// @brief interface type to construct a @c cartesian_product_view with CTAD
-template <typename... range_ts>
+template <detray::ranges::range... range_ts>
 struct cartesian_product : public ranges::cartesian_product_view<range_ts...> {
 
     using base_type = ranges::cartesian_product_view<range_ts...>;
@@ -107,7 +107,7 @@ struct cartesian_product : public ranges::cartesian_product_view<range_ts...> {
 
 // deduction guides
 
-template <typename... ranges_ts>
+template <detray::ranges::range... ranges_ts>
 DETRAY_HOST_DEVICE cartesian_product(ranges_ts &&... ranges)
     ->cartesian_product<ranges_ts...>;
 
@@ -116,7 +116,7 @@ DETRAY_HOST_DEVICE cartesian_product(ranges_ts &&... ranges)
 namespace detail {
 
 /// @brief Iterator implementation for the cartesian product view
-template <typename... iterator_ts>
+template <detray::ranges::input_iterator... iterator_ts>
 struct cartesian_product_iterator {
 
     using difference_type = std::ptrdiff_t;

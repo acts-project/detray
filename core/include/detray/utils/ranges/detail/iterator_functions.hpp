@@ -12,6 +12,7 @@
 
 // System include(s)
 #include <cassert>
+#include <concepts>
 #include <iterator>
 #include <type_traits>
 
@@ -55,6 +56,22 @@ inline constexpr bool random_access_iterator_v =
     std::is_base_of_v<detray::ranges::random_access_iterator_tag,
                       typename std::iterator_traits<I>::iterator_category>;
 
+// Iterator concepts
+template <class I>
+concept input_iterator = detray::ranges::input_iterator_v<I>;
+
+template <class I>
+concept output_iterator = detray::ranges::output_iterator_v<I>;
+
+template <class I>
+concept forward_iterator = detray::ranges::forward_iterator_v<I>;
+
+template <class I>
+concept bidirectional_iterator = detray::ranges::bidirectional_iterator_v<I>;
+
+template <class I>
+concept random_access_iterator = detray::ranges::random_access_iterator_v<I>;
+
 namespace detail {
 /// Simply import the std versions of basic iterator functionality where
 /// possible
@@ -78,9 +95,8 @@ using std::empty;
 ///  @brief Reimplement std::distance.
 /// @{
 // used by every iterator up to and including bidirectional iterators
-template <class iterator_t>
-requires detray::ranges::input_iterator_v<iterator_t>
-    DETRAY_HOST_DEVICE constexpr
+template <detray::ranges::input_iterator iterator_t>
+DETRAY_HOST_DEVICE constexpr
     typename std::iterator_traits<iterator_t>::difference_type
     distance_impl(iterator_t first, iterator_t last,
                   detray::ranges::input_iterator_tag) {
@@ -94,9 +110,8 @@ requires detray::ranges::input_iterator_v<iterator_t>
 }
 
 // random access iterators specialization
-template <class iterator_t>
-requires detray::ranges::random_access_iterator_v<iterator_t>
-    DETRAY_HOST_DEVICE constexpr
+template <detray::ranges::random_access_iterator iterator_t>
+DETRAY_HOST_DEVICE constexpr
     typename std::iterator_traits<iterator_t>::difference_type
     distance_impl(iterator_t first, iterator_t last,
                   detray::ranges::random_access_iterator_tag) {
@@ -104,9 +119,8 @@ requires detray::ranges::random_access_iterator_v<iterator_t>
     return last - first;
 }
 
-template <class iterator_t>
-requires detray::ranges::input_iterator_v<iterator_t>
-    DETRAY_HOST_DEVICE constexpr
+template <detray::ranges::input_iterator iterator_t>
+DETRAY_HOST_DEVICE constexpr
     typename std::iterator_traits<iterator_t>::difference_type
     distance(iterator_t first, iterator_t last) {
     return distance_impl(
@@ -117,10 +131,9 @@ requires detray::ranges::input_iterator_v<iterator_t>
 
 ///  @brief Reimplement std::advance.
 /// @{
-template <class iterator_t, typename dist_t>
-requires detray::ranges::input_iterator_v<iterator_t>
-    DETRAY_HOST_DEVICE constexpr void advance_impl(
-        iterator_t& itr, dist_t d, detray::ranges::input_iterator_tag) {
+template <detray::ranges::input_iterator iterator_t, typename dist_t>
+DETRAY_HOST_DEVICE constexpr void advance_impl(
+    iterator_t& itr, dist_t d, detray::ranges::input_iterator_tag) {
     static_assert(std::is_integral_v<dist_t>);
     assert(d > 0);
     // simply count
@@ -130,10 +143,9 @@ requires detray::ranges::input_iterator_v<iterator_t>
 }
 
 // random access iterators specialization
-template <class iterator_t, typename dist_t>
-requires detray::ranges::bidirectional_iterator_v<iterator_t>
-    DETRAY_HOST_DEVICE constexpr void advance_impl(
-        iterator_t& itr, dist_t d, detray::ranges::bidirectional_iterator_tag) {
+template <detray::ranges::bidirectional_iterator iterator_t, typename dist_t>
+DETRAY_HOST_DEVICE constexpr void advance_impl(
+    iterator_t& itr, dist_t d, detray::ranges::bidirectional_iterator_tag) {
     static_assert(std::is_integral_v<dist_t>);
     if (d > 0) {
         while (d--) {
@@ -147,10 +159,9 @@ requires detray::ranges::bidirectional_iterator_v<iterator_t>
 }
 
 // random access iterators specialization
-template <class iterator_t, typename dist_t>
-requires detray::ranges::random_access_iterator_v<iterator_t>
-    DETRAY_HOST_DEVICE constexpr void advance_impl(
-        iterator_t& itr, dist_t d, detray::ranges::random_access_iterator_tag) {
+template <detray::ranges::random_access_iterator iterator_t, typename dist_t>
+DETRAY_HOST_DEVICE constexpr void advance_impl(
+    iterator_t& itr, dist_t d, detray::ranges::random_access_iterator_tag) {
     static_assert(std::is_integral_v<dist_t>);
     if (d == static_cast<dist_t>(1)) {
         ++itr;
@@ -165,9 +176,8 @@ requires detray::ranges::random_access_iterator_v<iterator_t>
     }
 }
 
-template <class iterator_t, typename dist_t>
-requires detray::ranges::input_iterator_v<iterator_t>
-    DETRAY_HOST_DEVICE constexpr void advance(iterator_t& itr, dist_t d) {
+template <detray::ranges::input_iterator iterator_t, typename dist_t>
+DETRAY_HOST_DEVICE constexpr void advance(iterator_t& itr, dist_t d) {
     return advance_impl(
         itr, d, typename std::iterator_traits<iterator_t>::iterator_category{});
 }
@@ -175,20 +185,18 @@ requires detray::ranges::input_iterator_v<iterator_t>
 
 ///  @brief Reimplement std::next and std::prev.
 /// @{
-template <class iterator_t>
-requires detray::ranges::input_iterator_v<iterator_t>
-    DETRAY_HOST_DEVICE constexpr iterator_t next(
-        iterator_t itr,
-        typename std::iterator_traits<iterator_t>::difference_type d = 1) {
+template <detray::ranges::input_iterator iterator_t>
+DETRAY_HOST_DEVICE constexpr iterator_t next(
+    iterator_t itr,
+    typename std::iterator_traits<iterator_t>::difference_type d = 1) {
     detray::ranges::detail::advance(itr, d);
     return itr;
 }
 
-template <class iterator_t>
-requires detray::ranges::bidirectional_iterator_v<iterator_t>
-    DETRAY_HOST_DEVICE constexpr iterator_t prev(
-        iterator_t itr,
-        typename std::iterator_traits<iterator_t>::difference_type d = 1) {
+template <bidirectional_iterator iterator_t>
+DETRAY_HOST_DEVICE constexpr iterator_t prev(
+    iterator_t itr,
+    typename std::iterator_traits<iterator_t>::difference_type d = 1) {
     detray::ranges::detail::advance(itr, -d);
     return itr;
 }

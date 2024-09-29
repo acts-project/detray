@@ -10,7 +10,7 @@
 // Project include(s).
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/utils/find_bound.hpp"
-#include "detray/utils/ranges.hpp"
+#include "detray/utils/ranges/detail/iterator_functions.hpp"
 
 // System include(s).
 #include <algorithm>
@@ -18,10 +18,8 @@
 
 namespace detray {
 
-template <class RandomIt>
-requires detray::ranges::random_access_iterator_v<RandomIt>
-    DETRAY_HOST_DEVICE inline void insertion_sort(RandomIt first,
-                                                  RandomIt last) {
+template <detray::ranges::random_access_iterator RandomIt>
+DETRAY_HOST_DEVICE inline void insertion_sort(RandomIt first, RandomIt last) {
     for (auto it = first; it != last; it++) {
         // Searching the upper bound, i.e., first
         // element greater than *it from beginning
@@ -38,10 +36,10 @@ DETRAY_HOST_DEVICE inline void insertion_sort(vector_t<TYPE> &vec) {
     insertion_sort(vec.begin(), vec.end());
 }
 
-template <class RandomIt, class Comp = std::less<void>>
-requires detray::ranges::random_access_iterator_v<RandomIt>
-    DETRAY_HOST_DEVICE inline void selection_sort(RandomIt first, RandomIt last,
-                                                  Comp &&comp = Comp()) {
+template <detray::ranges::random_access_iterator RandomIt,
+          class Comp = std::less<void>>
+DETRAY_HOST_DEVICE inline void selection_sort(RandomIt first, RandomIt last,
+                                              Comp &&comp = Comp()) {
     for (RandomIt i = first; i < (last - 1); ++i) {
         RandomIt k = i;
 
