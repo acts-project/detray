@@ -47,13 +47,11 @@ class subrange : public detray::ranges::view_interface<subrange<range_t>> {
 
     /// Construct from a @param range and starting position @param pos. Used
     /// as an overload when only a single position is needed.
-    template <
-        detray::ranges::range deduced_range_t, typename index_t,
-        std::enable_if_t<
-            std::is_convertible_v<
-                index_t, detray::ranges::range_difference_t<deduced_range_t>>,
-            bool> = true>
-    DETRAY_HOST_DEVICE constexpr subrange(deduced_range_t &&range, index_t pos)
+    template <detray::ranges::range deduced_range_t, typename index_t>
+    requires std::is_convertible_v<
+        index_t, detray::ranges::range_difference_t<deduced_range_t>>
+        DETRAY_HOST_DEVICE constexpr subrange(deduced_range_t &&range,
+                                              index_t pos)
         : m_begin{detray::ranges::next(
               detray::ranges::begin(std::forward<deduced_range_t>(range)),
               static_cast<difference_t>(pos))},

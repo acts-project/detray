@@ -440,20 +440,17 @@ inline auto trace_intersections(const record_container &intersection_records,
 /// @param obj_hashes record which modules/portals were already added
 ///
 /// @return an adjacency list from the traced ray scan of a given geometry.
-template <
-    dindex invalid_value = dindex_invalid, typename portal_trace_type,
-    typename module_trace_type, typename entry_type = std::pair<dindex, dindex>,
-    std::enable_if_t<std::is_same_v<typename portal_trace_type::value_type,
-                                    std::pair<entry_type, entry_type>>,
-                     bool> = true,
-    std::enable_if_t<
-        std::is_same_v<typename module_trace_type::value_type, entry_type>,
-        bool> = true>
-inline auto build_adjacency(
-    const portal_trace_type &portal_trace,
-    const module_trace_type &module_trace,
-    std::map<dindex, std::map<dindex, dindex>> &adj_list,
-    std::unordered_set<dindex> &obj_hashes) {
+template <dindex invalid_value = dindex_invalid, typename portal_trace_type,
+          typename module_trace_type,
+          typename entry_type = std::pair<dindex, dindex>>
+requires std::is_same_v<typename portal_trace_type::value_type,
+                        std::pair<entry_type, entry_type>>
+    &&std::is_same_v<typename module_trace_type::value_type,
+                     entry_type> inline auto
+    build_adjacency(const portal_trace_type &portal_trace,
+                    const module_trace_type &module_trace,
+                    std::map<dindex, std::map<dindex, dindex>> &adj_list,
+                    std::unordered_set<dindex> &obj_hashes) {
 
     // Every module that was recorded adds a link to the mother volume
     for (const auto &record : module_trace) {
@@ -500,19 +497,17 @@ inline auto build_adjacency(
 /// @param obj_hashes record which modules/portals were already added
 ///
 /// @return an adjacency list from the traced ray scan of a given geometry.
-template <
-    dindex invalid_value = dindex_invalid, typename portal_trace_type,
-    typename module_trace_type, typename entry_type = std::pair<dindex, dindex>,
-    std::enable_if_t<std::is_same_v<typename portal_trace_type::value_type,
-                                    std::pair<entry_type, entry_type>>,
-                     bool> = true,
-    std::enable_if_t<
-        std::is_same_v<typename module_trace_type::value_type, entry_type>,
-        bool> = true>
-inline auto build_adjacency(const portal_trace_type &portal_trace,
-                            const module_trace_type &module_trace,
-                            dvector<dindex> &adj_matrix,
-                            std::unordered_set<dindex> &obj_hashes) {
+template <dindex invalid_value = dindex_invalid, typename portal_trace_type,
+          typename module_trace_type,
+          typename entry_type = std::pair<dindex, dindex>>
+requires std::is_same_v<typename portal_trace_type::value_type,
+                        std::pair<entry_type, entry_type>>
+    &&std::is_same_v<typename module_trace_type::value_type,
+                     entry_type> inline auto
+    build_adjacency(const portal_trace_type &portal_trace,
+                    const module_trace_type &module_trace,
+                    dvector<dindex> &adj_matrix,
+                    std::unordered_set<dindex> &obj_hashes) {
 
     const dindex dim = static_cast<dindex>(math::sqrt(adj_matrix.size()));
 

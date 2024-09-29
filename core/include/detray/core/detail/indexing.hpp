@@ -267,18 +267,16 @@ DETRAY_HOST_DEVICE constexpr decltype(auto) get(
 }
 
 /// Custom get function for the typed_index struct. Get the type.
-template <std::size_t ID, typename id_type, typename index_type,
-          std::enable_if_t<ID == 0, bool> = true>
-DETRAY_HOST_DEVICE constexpr decltype(auto) get(
-    const typed_index<id_type, index_type>& index) noexcept {
+template <std::size_t ID, typename id_type, typename index_type>
+requires(ID == 0) DETRAY_HOST_DEVICE constexpr decltype(auto)
+    get(const typed_index<id_type, index_type>& index) noexcept {
     return index.id();
 }
 
 /// Custom get function for the typed_index struct. Get the index.
-template <std::size_t ID, typename id_type, typename index_type,
-          std::enable_if_t<ID == 1, bool> = true>
-DETRAY_HOST_DEVICE constexpr decltype(auto) get(
-    const typed_index<id_type, index_type>& index) noexcept {
+template <std::size_t ID, typename id_type, typename index_type>
+requires(ID == 1) DETRAY_HOST_DEVICE constexpr decltype(auto)
+    get(const typed_index<id_type, index_type>& index) noexcept {
     return index.index();
 }
 

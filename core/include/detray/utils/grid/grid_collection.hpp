@@ -32,10 +32,9 @@ class grid_collection {};
 /// @todo refactor this, grid_data and grid_view as detray::ranges::grid_view
 template <typename axes_t, typename bin_t,
           template <std::size_t> class serializer_t>
-class grid_collection<
-    detray::grid_impl<axes_t, bin_t, serializer_t>,
-    std::enable_if_t<!detray::grid_impl<axes_t, bin_t, serializer_t>::is_owning,
-                     void>> {
+requires(!detray::grid_impl<axes_t, bin_t, serializer_t>::
+             is_owning) class grid_collection<detray::grid_impl<axes_t, bin_t,
+                                                                serializer_t>> {
 
     using grid_type = detray::grid_impl<axes_t, bin_t, serializer_t>;
     using const_grid_type =
@@ -154,10 +153,9 @@ class grid_collection<
           m_bin_edges(std::move(edges)) {}
 
     /// Device-side construction from a vecmem based view type
-    template <typename coll_view_t,
-              typename std::enable_if_t<detail::is_device_view_v<coll_view_t>,
-                                        bool> = true>
-    DETRAY_HOST_DEVICE explicit grid_collection(coll_view_t &view)
+    template <typename coll_view_t>
+    requires detail::is_device_view_v<coll_view_t>
+        DETRAY_HOST_DEVICE explicit grid_collection(coll_view_t &view)
         : m_bin_offsets(detail::get<0>(view.m_view)),
           m_bins(detail::get<1>(view.m_view)),
           m_bin_edge_offsets(detail::get<2>(view.m_view)),

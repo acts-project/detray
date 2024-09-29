@@ -89,28 +89,24 @@ class surface_lookup {
 
     /// Construct with a specific memory resource @param resource
     /// (host-side only)
-    template <
-        typename allocator_t = vecmem::memory_resource,
-        std::enable_if_t<!detail::is_device_view_v<allocator_t>, bool> = true>
-    DETRAY_HOST explicit surface_lookup(allocator_t &resource)
+    template <typename allocator_t = vecmem::memory_resource>
+    requires(!detail::is_device_view_v<allocator_t>) DETRAY_HOST
+        explicit surface_lookup(allocator_t &resource)
         : m_container(&resource) {}
 
     /// Copy Construct with a specific memory resource @param resource
     /// (host-side only)
-    template <
-        typename allocator_t = vecmem::memory_resource,
-        typename C = container_t<source_link<sf_desc_t>>,
-        std::enable_if_t<std::is_same_v<C, std::vector<source_link<sf_desc_t>>>,
-                         bool> = true>
-    DETRAY_HOST explicit surface_lookup(allocator_t &resource,
-                                        const source_link<sf_desc_t> &arg)
+    template <typename allocator_t = vecmem::memory_resource,
+              typename C = container_t<source_link<sf_desc_t>>>
+    requires std::is_same_v<C, std::vector<source_link<sf_desc_t>>>
+        DETRAY_HOST explicit surface_lookup(allocator_t &resource,
+                                            const source_link<sf_desc_t> &arg)
         : m_container(&resource, arg) {}
 
     /// Construct from the container @param view . Mainly used device-side.
-    template <typename container_view_t,
-              std::enable_if_t<detail::is_device_view_v<container_view_t>,
-                               bool> = true>
-    DETRAY_HOST_DEVICE explicit surface_lookup(container_view_t &view)
+    template <typename container_view_t>
+    requires detail::is_device_view_v<container_view_t>
+        DETRAY_HOST_DEVICE explicit surface_lookup(container_view_t &view)
         : m_container(view) {}
 
     /// @returns the size of the underlying container

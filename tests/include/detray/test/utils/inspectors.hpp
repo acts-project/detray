@@ -48,9 +48,9 @@ struct aggregate_inspector {
     aggregate_inspector() = default;
 
     /// Construct from the inspector @param view type. Mainly used device-side.
-    template <typename view_t,
-              std::enable_if_t<detail::is_device_view_v<view_t>, bool> = true>
-    DETRAY_HOST_DEVICE explicit aggregate_inspector(view_t &view)
+    template <typename view_t>
+    requires detail::is_device_view_v<view_t>
+        DETRAY_HOST_DEVICE explicit aggregate_inspector(view_t &view)
         : _inspectors(unroll_views(
               view, std::make_index_sequence<sizeof...(Inspectors)>{})) {}
 
@@ -97,10 +97,9 @@ struct aggregate_inspector {
     }
 
     /// @returns a tuple constructed from the inspector @param view s.
-    template <typename view_t, std::size_t... I,
-              std::enable_if_t<detail::is_device_view_v<view_t>, bool> = true>
-    DETRAY_HOST_DEVICE constexpr auto unroll_views(
-        view_t &view, std::index_sequence<I...> /*seq*/) {
+    template <typename view_t, std::size_t... I>
+    requires detail::is_device_view_v<view_t> DETRAY_HOST_DEVICE constexpr auto
+    unroll_views(view_t &view, std::index_sequence<I...> /*seq*/) {
         return detail::make_tuple<std::tuple>(
             Inspectors(detail::get<I>(view.m_view))...);
     }

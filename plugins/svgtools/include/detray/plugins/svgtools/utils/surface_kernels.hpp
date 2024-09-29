@@ -221,17 +221,14 @@ struct link_end_getter {
     }
 
     /// @brief Calculates the direction of the link for cylinders (2D)
-    template <
-        typename detector_t, typename point3_t, typename vector3_t,
-        typename shape_t,
-        std::enable_if_t<std::is_same_v<shape_t, cylinder2D> ||
-                             std::is_same_v<shape_t, concentric_cylinder2D>,
-                         bool> = true>
-    inline auto link_dir(const detray::mask<shape_t>& mask,
-                         const detector_t& detector,
-                         const detray::tracking_volume<detector_t>& volume,
-                         const point3_t& /*surface_point*/,
-                         const vector3_t& surface_normal) const {
+    template <typename detector_t, typename point3_t, typename vector3_t,
+              typename shape_t>
+        requires std::is_same_v<shape_t, cylinder2D> ||
+        std::is_same_v<shape_t, concentric_cylinder2D> inline auto link_dir(
+            const detray::mask<shape_t>& mask, const detector_t& detector,
+            const detray::tracking_volume<detector_t>& volume,
+            const point3_t& /*surface_point*/,
+            const vector3_t& surface_normal) const {
         for (const auto& desc : volume.portals()) {
 
             const detray::tracking_surface surface{detector, desc};

@@ -116,10 +116,9 @@ class brute_force_collection {
         : brute_force_collection(&resource) {}
 
     /// Device-side construction from a vecmem based view type
-    template <typename coll_view_t,
-              typename std::enable_if_t<detail::is_device_view_v<coll_view_t>,
-                                        bool> = true>
-    DETRAY_HOST_DEVICE explicit brute_force_collection(coll_view_t& view)
+    template <typename coll_view_t>
+    requires detail::is_device_view_v<coll_view_t>
+        DETRAY_HOST_DEVICE explicit brute_force_collection(coll_view_t& view)
         : m_offsets(detail::get<0>(view.m_view)),
           m_surfaces(detail::get<1>(view.m_view)) {}
 
@@ -163,12 +162,10 @@ class brute_force_collection {
     }
 
     /// Add a new surface collection
-    template <detray::ranges::range sf_container_t,
-              typename std::enable_if_t<
-                  std::is_same_v<typename sf_container_t::value_type, value_t>,
-                  bool> = true>
-    DETRAY_HOST auto push_back(const sf_container_t& surfaces) noexcept(false)
-        -> void {
+    template <detray::ranges::range sf_container_t>
+    requires std::is_same_v<typename sf_container_t::value_type, value_t>
+        DETRAY_HOST auto push_back(const sf_container_t& surfaces) noexcept(
+            false) -> void {
         m_surfaces.reserve(m_surfaces.size() + surfaces.size());
         m_surfaces.insert(m_surfaces.end(), surfaces.begin(), surfaces.end());
         // End of this range is the start of the next range

@@ -57,34 +57,36 @@ class bin_storage : public detray::ranges::view_interface<
     bin_storage& operator=(bin_storage&&) noexcept = default;
 
     /// Construct containers using a memory resources
-    template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
-    DETRAY_HOST explicit bin_storage(vecmem::memory_resource& resource)
+    template <bool owner = is_owning>
+    requires owner DETRAY_HOST explicit bin_storage(
+        vecmem::memory_resource& resource)
         : m_bin_data(&resource) {}
 
     /// Construct grid data from containers - move
-    template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
-    DETRAY_HOST_DEVICE explicit bin_storage(bin_container_type&& bin_data)
+    template <bool owner = is_owning>
+    requires owner DETRAY_HOST_DEVICE explicit bin_storage(
+        bin_container_type&& bin_data)
         : m_bin_data(std::move(bin_data)) {}
 
     /// Construct the non-owning type from the @param offset into the global
     /// container @param bin_data and the number of bins @param size
-    template <bool owner = is_owning, std::enable_if_t<!owner, bool> = true>
-    DETRAY_HOST_DEVICE bin_storage(bin_container_type& bin_data, dindex offset,
-                                   dindex size)
+    template <bool owner = is_owning>
+    requires(!owner) DETRAY_HOST_DEVICE
+        bin_storage(bin_container_type& bin_data, dindex offset, dindex size)
         : m_bin_data(bin_data, dindex_range{offset, offset + size}) {}
 
     /// Construct the non-owning type from the @param offset into the global
     /// container @param bin_data and the number of bins @param size
-    template <bool owner = is_owning, std::enable_if_t<!owner, bool> = true>
-    DETRAY_HOST_DEVICE bin_storage(const bin_container_type& bin_data,
-                                   dindex offset, dindex size)
+    template <bool owner = is_owning>
+    requires(!owner) DETRAY_HOST_DEVICE
+        bin_storage(const bin_container_type& bin_data, dindex offset,
+                    dindex size)
         : m_bin_data(bin_data, dindex_range{offset, offset + size}) {}
 
     /// Construct bin storage from its vecmem view
-    template <typename view_t,
-              typename std::enable_if_t<detail::is_device_view_v<view_t>,
-                                        bool> = true>
-    DETRAY_HOST_DEVICE explicit bin_storage(const view_t& view)
+    template <typename view_t>
+    requires detail::is_device_view_v<view_t>
+        DETRAY_HOST_DEVICE explicit bin_storage(const view_t& view)
         : m_bin_data(view) {}
 
     /// begin and end of the bin range
@@ -100,14 +102,14 @@ class bin_storage : public detray::ranges::view_interface<
     /// @}
 
     /// @returns the vecmem view of the bin storage
-    template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
-    DETRAY_HOST auto get_data() -> view_type {
+    template <bool owner = is_owning>
+    requires owner DETRAY_HOST auto get_data() -> view_type {
         return detray::get_data(m_bin_data);
     }
 
     /// @returns the vecmem view of the bin storage - const
-    template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
-    DETRAY_HOST auto get_data() const -> const_view_type {
+    template <bool owner = is_owning>
+    requires owner DETRAY_HOST auto get_data() const -> const_view_type {
         return detray::get_data(m_bin_data);
     }
 
@@ -154,10 +156,9 @@ struct dynamic_bin_container {
         default;
 
     /// Device-side construction from a vecmem based view type
-    template <typename view_t,
-              typename std::enable_if_t<detail::is_device_view_v<view_t>,
-                                        bool> = true>
-    DETRAY_HOST_DEVICE explicit dynamic_bin_container(view_t& view)
+    template <typename view_t>
+    requires detail::is_device_view_v<view_t>
+        DETRAY_HOST_DEVICE explicit dynamic_bin_container(view_t& view)
         : bins(detail::get<0>(view.m_view)),
           entries(detail::get<1>(view.m_view)) {}
 
@@ -379,31 +380,32 @@ class bin_storage<is_owning, detray::bins::dynamic_array<entry_t>, containers>
     bin_storage(bin_storage&&) noexcept = default;
 
     /// Construct containers using a memory resources
-    template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
-    DETRAY_HOST explicit bin_storage(vecmem::memory_resource& resource)
+    template <bool owner = is_owning>
+    requires owner DETRAY_HOST explicit bin_storage(
+        vecmem::memory_resource& resource)
         : m_bin_data(&resource), m_entry_data(&resource) {}
 
     /// Construct grid data from containers - move
-    template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
-    DETRAY_HOST_DEVICE explicit bin_storage(bin_container_type&& bin_data)
+    template <bool owner = is_owning>
+    requires owner DETRAY_HOST_DEVICE explicit bin_storage(
+        bin_container_type&& bin_data)
         : m_bin_data(std::move(bin_data.bins)),
           m_entry_data(std::move(bin_data.entries)) {}
 
     /// Construct the non-owning type from the @param offset into the global
     /// containers @param bin_data and the number of bins @param size
-    template <bool owner = is_owning, std::enable_if_t<!owner, bool> = true>
-    DETRAY_HOST_DEVICE bin_storage(bin_container_type& bin_data, dindex offset,
-                                   dindex size)
+    template <bool owner = is_owning>
+    requires(!owner) DETRAY_HOST_DEVICE
+        bin_storage(bin_container_type& bin_data, dindex offset, dindex size)
         : m_bin_data(bin_data.bins, dindex_range{offset, offset + size}),
           m_entry_data(
               bin_data.entries,
               dindex_range{0u, static_cast<dindex>(bin_data.entries.size())}) {}
 
     /// Construct bin storage from its vecmem view
-    template <typename view_t,
-              typename std::enable_if_t<detail::is_device_view_v<view_t>,
-                                        bool> = true>
-    DETRAY_HOST_DEVICE explicit bin_storage(const view_t& view)
+    template <typename view_t>
+    requires detail::is_device_view_v<view_t>
+        DETRAY_HOST_DEVICE explicit bin_storage(const view_t& view)
         : m_bin_data(detray::detail::get<0>(view.m_view)),
           m_entry_data(detray::detail::get<1>(view.m_view)) {}
 
@@ -440,15 +442,15 @@ class bin_storage<is_owning, detray::bins::dynamic_array<entry_t>, containers>
     /// @}
 
     /// @returns the vecmem view of the bin storage
-    template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
-    DETRAY_HOST auto get_data() -> view_type {
+    template <bool owner = is_owning>
+    requires owner DETRAY_HOST auto get_data() -> view_type {
         return view_type{detray::get_data(m_bin_data),
                          detray::get_data(m_entry_data)};
     }
 
     /// @returns the vecmem view of the bin storage - const
-    template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
-    DETRAY_HOST auto get_data() const -> const_view_type {
+    template <bool owner = is_owning>
+    requires owner DETRAY_HOST auto get_data() const -> const_view_type {
         return const_view_type{detray::get_data(m_bin_data),
                                detray::get_data(m_entry_data)};
     }

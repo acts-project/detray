@@ -49,11 +49,10 @@ class axis_aligned_bounding_volume {
         : m_mask(box_id, std::forward<Args>(args)...) {}
 
     /// Construct around an arbitrary surface @param mask
-    template <
-        typename mask_t, typename S = shape_t,
-        typename std::enable_if_t<std::is_same_v<S, cuboid3D>, bool> = true>
-    DETRAY_HOST_DEVICE constexpr axis_aligned_bounding_volume(
-        const mask_t& mask, std::size_t box_id, const scalar_t envelope)
+    template <typename mask_t, typename S = shape_t>
+    requires std::is_same_v<S, cuboid3D>
+        DETRAY_HOST_DEVICE constexpr axis_aligned_bounding_volume(
+            const mask_t& mask, std::size_t box_id, const scalar_t envelope)
         : m_mask{mask.local_min_bounds(envelope).values(), box_id} {
         // Make sure the box is actually 'bounding'
         assert(envelope >= std::numeric_limits<scalar_t>::epsilon());
@@ -70,16 +69,14 @@ class axis_aligned_bounding_volume {
     /// Construct a bounding box around a set of boxes
     /// @note the given bounding volumes need to be defnined in the same
     /// local coordinate system!
-    template <typename other_shape_t, typename other_scalar_t,
-              typename std::enable_if_t<
-                  std::is_same_v<
-                      typename shape::template local_frame_type<void>,
-                      typename other_shape_t::template local_frame_type<void>>,
-                  bool> = true>
-    DETRAY_HOST constexpr axis_aligned_bounding_volume(
-        const std::vector<
-            axis_aligned_bounding_volume<other_shape_t, other_scalar_t>>& aabbs,
-        std::size_t box_id, const scalar_t env) {
+    template <typename other_shape_t, typename other_scalar_t>
+    requires std::is_same_v<
+        typename shape::template local_frame_type<void>,
+        typename other_shape_t::template local_frame_type<void>>
+        DETRAY_HOST constexpr axis_aligned_bounding_volume(
+            const std::vector<axis_aligned_bounding_volume<
+                other_shape_t, other_scalar_t>>& aabbs,
+            std::size_t box_id, const scalar_t env) {
 
         using loc_point_t = std::array<scalar_t, other_shape_t::dim>;
 
@@ -232,11 +229,9 @@ class axis_aligned_bounding_volume {
     /// @param trf affine transformation
     ///
     /// @returns a new, transformed aabb.
-    template <
-        typename transform3_t, typename S = shape_t,
-        typename std::enable_if_t<std::is_same_v<S, cuboid3D>, bool> = true>
-    DETRAY_HOST_DEVICE auto transform(const transform3_t& trf) const
-        -> axis_aligned_bounding_volume {
+    template <typename transform3_t, typename S = shape_t>
+    requires std::is_same_v<S, cuboid3D> DETRAY_HOST_DEVICE auto transform(
+        const transform3_t& trf) const -> axis_aligned_bounding_volume {
 
         using point3_t = typename transform3_t::point3;
 

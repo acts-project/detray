@@ -41,15 +41,14 @@ struct default_hash {
 ///                       data.
 /// @tparam input collection the type of data collection to be hased
 /// @tparam node_type how carries the hashes and links
-template <
-    typename input_collection_t,
-    typename data_t = typename input_collection_t::value_type,
-    typename hash_function_t = default_hash<data_t>,
-    std::enable_if_t<std::is_invocable_v<hash_function_t, data_t>, bool> = true,
-    typename hash_t = decltype(std::declval<hash_function_t>()(data_t{0})),
-    std::enable_if_t<std::is_invocable_v<hash_function_t, hash_t>, bool> = true,
-    template <typename> class vector_t = dvector>
-class hash_tree {
+template <typename input_collection_t,
+          typename data_t = typename input_collection_t::value_type,
+          typename hash_function_t = default_hash<data_t>,
+          typename hash_t =
+              decltype(std::declval<hash_function_t>()(data_t{0})),
+          template <typename> class vector_t = dvector>
+requires std::is_invocable_v<hash_function_t, data_t>
+    &&std::is_invocable_v<hash_function_t, hash_t> class hash_tree {
 
     public:
     using hash_function = hash_function_t;

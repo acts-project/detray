@@ -31,18 +31,16 @@ namespace detail {
 enum grid_type : std::uint8_t { e_barrel = 0, e_endcap = 1, e_unknown = 2 };
 
 /// @returns the actsvg grid type and edge values for a detray 2D cylinder grid.
-template <
-    typename grid_t, typename view_t,
-    std::enable_if_t<
-        std::is_same_v<typename grid_t::local_frame_type,
-                       detray::concentric_cylindrical2D<
-                           typename grid_t::local_frame_type::algebra_type>> ||
-            std::is_same_v<
-                typename grid_t::local_frame_type,
-                detray::cylindrical2D<
-                    typename grid_t::local_frame_type::algebra_type>>,
-        bool> = true>
-inline auto grid_type_and_edges(const grid_t& grid, const view_t&) {
+template <typename grid_t, typename view_t>
+    requires std::is_same_v<
+        typename grid_t::local_frame_type,
+        detray::concentric_cylindrical2D<
+            typename grid_t::local_frame_type::algebra_type>> ||
+    std::is_same_v<
+        typename grid_t::local_frame_type,
+        detray::cylindrical2D<
+            typename grid_t::local_frame_type::algebra_type>> inline auto
+    grid_type_and_edges(const grid_t& grid, const view_t&) {
 
     using scalar_t = typename grid_t::local_frame_type::scalar_type;
     using axis_label = detray::axis::label;
@@ -71,14 +69,12 @@ inline auto grid_type_and_edges(const grid_t& grid, const view_t&) {
 }
 
 /// @returns the actsvg grid type and edge values for a detray disc grid.
-template <
-    typename grid_t, typename view_t,
-    std::enable_if_t<
-        std::is_same_v<
-            typename grid_t::local_frame_type,
-            detray::polar2D<typename grid_t::local_frame_type::algebra_type>>,
-        bool> = true>
-inline auto grid_type_and_edges(const grid_t& grid, const view_t&) {
+template <typename grid_t, typename view_t>
+requires std::is_same_v<
+    typename grid_t::local_frame_type,
+    detray::polar2D<
+        typename grid_t::local_frame_type::algebra_type>> inline auto
+grid_type_and_edges(const grid_t& grid, const view_t&) {
 
     using scalar_t = typename grid_t::local_frame_type::scalar_type;
     using axis_label = detray::axis::label;
@@ -96,14 +92,12 @@ inline auto grid_type_and_edges(const grid_t& grid, const view_t&) {
 }
 
 /// @returns the actsvg grid type and edge values for a detray rectangular grid.
-template <
-    typename grid_t, typename view_t,
-    std::enable_if_t<
-        std::is_same_v<typename grid_t::local_frame_type,
-                       detray::cartesian2D<
-                           typename grid_t::local_frame_type::algebra_type>>,
-        bool> = true>
-inline auto grid_type_and_edges(const grid_t& grid, const view_t&) {
+template <typename grid_t, typename view_t>
+requires std::is_same_v<
+    typename grid_t::local_frame_type,
+    detray::cartesian2D<
+        typename grid_t::local_frame_type::algebra_type>> inline auto
+grid_type_and_edges(const grid_t& grid, const view_t&) {
 
     using scalar_t = typename grid_t::local_frame_type::scalar_type;
     using axis_label = detray::axis::label;

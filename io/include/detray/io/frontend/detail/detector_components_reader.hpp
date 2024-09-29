@@ -36,11 +36,9 @@ class detector_components_reader final {
     detector_components_reader() = default;
 
     /// Create a new reader of type @tparam reader_t
-    template <class reader_t,
-              std::enable_if_t<
-                  std::is_base_of_v<reader_interface<detector_t>, reader_t>,
-                  bool> = true>
-    void add(const std::string& name) {
+    template <class reader_t>
+    requires std::is_base_of_v<reader_interface<detector_t>, reader_t> void add(
+        const std::string& name) {
         add(std::make_unique<reader_t>(), name);
     }
 

@@ -54,24 +54,23 @@ class tuple_container {
 
     /// Construct with a specific vecmem memory resource @param resource
     /// (host-side only)
-    template <typename allocator_t = vecmem::memory_resource,
-              std::enable_if_t<!is_device_view_v<allocator_t>, bool> = true>
-    DETRAY_HOST explicit tuple_container(allocator_t &resource)
+    template <typename allocator_t = vecmem::memory_resource>
+    requires(!is_device_view_v<allocator_t>) DETRAY_HOST
+        explicit tuple_container(allocator_t &resource)
         : _tuple(Ts(&resource)...) {}
 
     /// Copy Construct with a specific (vecmem) memory resource @param resource
     /// (host-side only)
-    template <
-        typename allocator_t = vecmem::memory_resource,
-        typename T = tuple_t<Ts...>,
-        std::enable_if_t<std::is_same_v<T, std::tuple<Ts...>>, bool> = true>
-    DETRAY_HOST tuple_container(allocator_t &resource, const Ts &... args)
+    template <typename allocator_t = vecmem::memory_resource,
+              typename T = tuple_t<Ts...>>
+    requires std::is_same_v<T, std::tuple<Ts...>> DETRAY_HOST
+    tuple_container(allocator_t &resource, const Ts &... args)
         : _tuple(std::allocator_arg, resource, args...) {}
 
     /// Construct from the container @param view type. Mainly used device-side.
-    template <typename tuple_view_t,
-              std::enable_if_t<is_device_view_v<tuple_view_t>, bool> = true>
-    DETRAY_HOST_DEVICE explicit tuple_container(tuple_view_t &view)
+    template <typename tuple_view_t>
+    requires is_device_view_v<tuple_view_t>
+        DETRAY_HOST_DEVICE explicit tuple_container(tuple_view_t &view)
         : _tuple(
               unroll_views(view, std::make_index_sequence<sizeof...(Ts)>{})) {}
 
@@ -144,24 +143,24 @@ class tuple_container {
     private:
     /// @returns the view for all contained types.
     template <bool all_viewable = std::conjunction_v<detail::has_view<Ts>...>,
-              std::size_t... I, std::enable_if_t<all_viewable, bool> = true>
-    DETRAY_HOST view_type get_data(std::index_sequence<I...> /*seq*/) noexcept {
+              std::size_t... I>
+    requires all_viewable DETRAY_HOST view_type
+    get_data(std::index_sequence<I...> /*seq*/) noexcept {
         return view_type{detray::get_data(detail::get<I>(_tuple))...};
     }
 
     /// @returns the const view for all contained types.
     template <bool all_viewable = std::conjunction_v<detail::has_view<Ts>...>,
-              std::size_t... I, std::enable_if_t<all_viewable, bool> = true>
-    DETRAY_HOST const_view_type
+              std::size_t... I>
+    requires all_viewable DETRAY_HOST const_view_type
     get_data(std::index_sequence<I...> /*seq*/) const noexcept {
         return const_view_type{detray::get_data(detail::get<I>(_tuple))...};
     }
 
     /// @returns a tuple constructed from the elements @param view s.
-    template <typename tuple_view_t, std::size_t... I,
-              std::enable_if_t<is_device_view_v<tuple_view_t>, bool> = true>
-    DETRAY_HOST_DEVICE auto unroll_views(tuple_view_t &view,
-                                         std::index_sequence<I...> /*seq*/) {
+    template <typename tuple_view_t, std::size_t... I>
+    requires is_device_view_v<tuple_view_t> DETRAY_HOST_DEVICE auto
+    unroll_views(tuple_view_t &view, std::index_sequence<I...> /*seq*/) {
         return detail::make_tuple<tuple_t>(Ts(detail::get<I>(view.m_view))...);
     }
 

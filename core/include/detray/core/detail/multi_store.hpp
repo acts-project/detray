@@ -82,26 +82,24 @@ class multi_store {
 
     /// Construct with a specific vecmem memory resource @param resource
     /// (host-side only)
-    template <
-        typename allocator_t = vecmem::memory_resource,
-        std::enable_if_t<!detail::is_device_view_v<allocator_t>, bool> = true>
-    DETRAY_HOST explicit multi_store(allocator_t &resource)
+    template <typename allocator_t = vecmem::memory_resource>
+    requires(!detail::is_device_view_v<allocator_t>) DETRAY_HOST
+        explicit multi_store(allocator_t &resource)
         : m_tuple_container(resource) {}
 
     /// Copy Construct with a specific (vecmem) memory resource @param resource
     /// (host-side only)
-    template <
-        typename allocator_t = vecmem::memory_resource,
-        typename T = tuple_t<Ts...>,
-        std::enable_if_t<std::is_same_v<T, std::tuple<Ts...>>, bool> = true>
-    DETRAY_HOST explicit multi_store(allocator_t &resource, const Ts &... args)
+    template <typename allocator_t = vecmem::memory_resource,
+              typename T = tuple_t<Ts...>>
+    requires std::is_same_v<T, detray::tuple<Ts...>>
+        DETRAY_HOST explicit multi_store(allocator_t &resource,
+                                         const Ts &... args)
         : m_tuple_container(resource, args...) {}
 
     /// Construct from the container @param view . Mainly used device-side.
-    template <
-        typename tuple_view_t,
-        std::enable_if_t<detail::is_device_view_v<tuple_view_t>, bool> = true>
-    DETRAY_HOST_DEVICE explicit multi_store(tuple_view_t &view)
+    template <typename tuple_view_t>
+    requires detail::is_device_view_v<tuple_view_t>
+        DETRAY_HOST_DEVICE explicit multi_store(tuple_view_t &view)
         : m_tuple_container(view) {}
 
     /// Move assignment operator

@@ -151,12 +151,11 @@ struct material_checker {
     /// @param material_coll collection of material grids
     /// @param idx the specific grid to be checked
     /// @param id type id of the material grid collection
-    template <typename material_coll_t, typename index_t, typename id_t,
-              std::enable_if_t<detail::is_material_map_v<
-                                   typename material_coll_t::value_type>,
-                               bool> = true>
-    DETRAY_HOST_DEVICE void operator()(const material_coll_t &material_coll,
-                                       const index_t idx, const id_t id) const {
+    template <typename material_coll_t, typename index_t, typename id_t>
+    requires detail::is_material_map_v<typename material_coll_t::value_type>
+        DETRAY_HOST_DEVICE void operator()(const material_coll_t &material_coll,
+                                           const index_t idx,
+                                           const id_t id) const {
 
         const auto mat_map = material_coll[idx];
 
@@ -184,12 +183,11 @@ struct material_checker {
     ///
     /// @param material_coll collection of material slabs/rods/raw mat
     /// @param idx the specific instance to be checked
-    template <typename material_coll_t, typename index_t, typename id_t,
-              std::enable_if_t<detail::is_hom_material_v<
-                                   typename material_coll_t::value_type>,
-                               bool> = true>
-    DETRAY_HOST_DEVICE void operator()(const material_coll_t &material_coll,
-                                       const index_t idx, const id_t) const {
+    template <typename material_coll_t, typename index_t, typename id_t>
+    requires detail::is_hom_material_v<typename material_coll_t::value_type>
+        DETRAY_HOST_DEVICE void operator()(const material_coll_t &material_coll,
+                                           const index_t idx,
+                                           const id_t) const {
 
         using material_t = typename material_coll_t::value_type;
         using scalar_t = typename material_t::scalar_type;

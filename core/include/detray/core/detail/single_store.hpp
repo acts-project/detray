@@ -62,25 +62,23 @@ class single_store {
 
     /// Construct with a specific memory resource @param resource
     /// (host-side only)
-    template <
-        typename allocator_t = vecmem::memory_resource,
-        std::enable_if_t<!detail::is_device_view_v<allocator_t>, bool> = true>
-    DETRAY_HOST explicit single_store(allocator_t &resource)
+    template <typename allocator_t = vecmem::memory_resource>
+    requires(!detail::is_device_view_v<allocator_t>) DETRAY_HOST
+        explicit single_store(allocator_t &resource)
         : m_container(&resource) {}
 
     /// Copy Construct with a specific memory resource @param resource
     /// (host-side only)
     template <typename allocator_t = vecmem::memory_resource,
-              typename C = container_t<T>,
-              std::enable_if_t<std::is_same_v<C, std::vector<T>>, bool> = true>
-    DETRAY_HOST single_store(allocator_t &resource, const T &arg)
+              typename C = container_t<T>>
+    requires std::is_same_v<C, std::vector<T>> DETRAY_HOST
+    single_store(allocator_t &resource, const T &arg)
         : m_container(&resource, arg) {}
 
     /// Construct from the container @param view . Mainly used device-side.
-    template <typename container_view_t,
-              std::enable_if_t<detail::is_device_view_v<container_view_t>,
-                               bool> = true>
-    DETRAY_HOST_DEVICE explicit single_store(container_view_t &view)
+    template <typename container_view_t>
+    requires detail::is_device_view_v<container_view_t>
+        DETRAY_HOST_DEVICE explicit single_store(container_view_t &view)
         : m_container(view) {}
 
     /// @returns a pointer to the underlying container - const

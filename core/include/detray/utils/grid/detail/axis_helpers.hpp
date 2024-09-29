@@ -194,9 +194,10 @@ struct get_axes_types<cylindrical3D<A>, e_bounds, binning0_t, binning1_t,
 /// Construct a @c multi_axis type from a given axes-shape
 template <typename axes_t, bool is_owning, typename containers,
           typename algebra_t>
-struct get_coordinate_axes_type<
-    axes_t, is_owning, containers, algebra_t,
-    std::enable_if_t<std::is_same_v<typename axes_t::bounds, void>, void>> {
+requires std::is_same_v<typename axes_t::bounds,
+                        void> struct get_coordinate_axes_type<axes_t, is_owning,
+                                                              containers,
+                                                              algebra_t> {
     using type = typename axis::detail::multi_axis_assembler<
         is_owning, containers,
         typename axes_t::template type<algebra_t>::template frame<algebra_t>,
@@ -208,9 +209,9 @@ struct get_coordinate_axes_type<
 /// Don't do anything if the type is already a @c multi_axis
 template <typename axes_t, bool is_owning, typename containers,
           typename algebra_t>
-struct get_coordinate_axes_type<
-    axes_t, is_owning, containers, algebra_t,
-    std::enable_if_t<std::is_object_v<typename axes_t::bounds>, void>> {
+requires std::
+    is_object_v<typename axes_t::bounds> struct get_coordinate_axes_type<
+        axes_t, is_owning, containers, algebra_t> {
     using type = axes_t;
 };
 
