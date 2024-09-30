@@ -87,7 +87,8 @@ struct cartesian_product_view : public detray::ranges::view_interface<
 
     private:
     /// Start and end position of the subranges
-    iterator_coll_t m_begins{}, m_ends{};
+    iterator_coll_t m_begins{};
+    iterator_coll_t m_ends{};
 };
 
 namespace views {
@@ -138,14 +139,6 @@ struct cartesian_product_iterator {
     DETRAY_HOST_DEVICE constexpr bool operator==(
         const cartesian_product_iterator &rhs) const {
         return (detray::get<0>(m_itrs) == detray::get<0>(rhs.m_itrs));
-    }
-
-    /// @returns true if the last range iterators are not equal
-    /// @note (if the outermost range (pos 0 in the pack) goes to its end
-    /// position, the iteration stops).
-    DETRAY_HOST_DEVICE constexpr bool operator!=(
-        const cartesian_product_iterator &rhs) const {
-        return (detray::get<0>(m_itrs) != detray::get<0>(rhs.m_itrs));
     }
 
     /// Increment iterators.
@@ -219,7 +212,8 @@ struct cartesian_product_iterator {
     }
 
     /// Global range collection of begin and end iterators
-    detray::tuple<iterator_ts...> m_begins, m_ends;
+    detray::tuple<iterator_ts...> m_begins;
+    detray::tuple<iterator_ts...> m_ends;
     /// Current iterator states
     detray::tuple<iterator_ts...> m_itrs;
 };

@@ -61,16 +61,22 @@ class pick_view : public detray::ranges::view_interface<
                       "Given sequence cannot be "
                       "used to index elements of range.");
 
+        /// Default constructor required by LegacyIterator trait
+        constexpr iterator() = default;
+
+        /// Construct from range and sequence range
+        DETRAY_HOST_DEVICE
+        constexpr iterator(range_itr_t rng_itr, range_itr_t rng_begin,
+                           sequence_itr_t sq_itr, sequence_itr_t sq_end)
+            : m_range_iter{rng_itr},
+              m_range_begin{rng_begin},
+              m_seq_iter{sq_itr},
+              m_seq_end{sq_end} {}
+
         /// @returns true if we reach end of sequence
         DETRAY_HOST_DEVICE
         constexpr auto operator==(const iterator &rhs) const -> bool {
             return (m_seq_iter == rhs.m_seq_iter);
-        }
-
-        /// Determine whether we reach end of range - const
-        DETRAY_HOST_DEVICE constexpr auto operator!=(const iterator &rhs) const
-            -> bool {
-            return (m_seq_iter != rhs.m_seq_iter);
         }
 
         /// Increment iterator and index in lockstep
@@ -78,7 +84,7 @@ class pick_view : public detray::ranges::view_interface<
             ++m_seq_iter;
             if (m_seq_iter != m_seq_end) {
                 m_range_iter =
-                    m_range_begin + static_cast<difference_type>(*(m_seq_iter));
+                    m_range_begin + static_cast<difference_type>(*m_seq_iter);
             }
             return *this;
         }
@@ -101,35 +107,6 @@ class pick_view : public detray::ranges::view_interface<
                 *m_seq_iter, *m_range_iter);
         }
 
-        /// @returns an iterator and index position advanced by @param j.
-        template <typename I = range_itr_t,
-                  std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
-                                   bool> = true>
-        DETRAY_HOST_DEVICE constexpr auto operator+(
-            const difference_type j) const -> iterator {
-            auto seq_iter = detray::ranges::next(m_seq_iter, j);
-            return {m_range_begin + static_cast<difference_type>(*seq_iter),
-                    m_range_begin, seq_iter, m_seq_end};
-        }
-
-        /// @returns an iterator and index position advanced by @param j.
-        template <typename I = range_itr_t,
-                  std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
-                                   bool> = true>
-        DETRAY_HOST_DEVICE constexpr auto operator-(
-            const difference_type j) const -> iterator {
-            return *this + -j;
-        }
-
-        /// @returns the positional difference between two iterations
-        template <typename I = range_itr_t,
-                  std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
-                                   bool> = true>
-        DETRAY_HOST_DEVICE constexpr auto operator-(const iterator &other) const
-            -> difference_type {
-            return m_seq_iter - other.m_seq_iter;
-        }
-
         /// @returns advance this iterator state by @param j.
         template <typename I = range_itr_t,
                   std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
@@ -149,12 +126,48 @@ class pick_view : public detray::ranges::view_interface<
             -> iterator & {
             return *this += -j;
         }
-        range_itr_t m_range_iter, m_range_begin;
-        sequence_itr_t m_seq_iter, m_seq_end;
+
+        private:
+        /// @returns an iterator and index position advanced by @param j.
+        template <typename I = range_itr_t,
+                  std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
+                                   bool> = true>
+        DETRAY_HOST_DEVICE friend constexpr auto operator+(
+            const iterator &itr, const difference_type j) -> iterator {
+            auto seq_iter = detray::ranges::next(itr.m_seq_iter, j);
+            return {itr.m_range_begin + static_cast<difference_type>(*seq_iter),
+                    itr.m_range_begin, seq_iter, itr.m_seq_end};
+        }
+
+        /// @returns an iterator and index position advanced by @param j.
+        template <typename I = range_itr_t,
+                  std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
+                                   bool> = true>
+        DETRAY_HOST_DEVICE friend constexpr auto operator-(
+            const iterator &itr, const difference_type j) -> iterator {
+            return itr + (-j);
+        }
+
+        /// @returns the positional difference between two iterations
+        template <typename I = range_itr_t,
+                  std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
+                                   bool> = true>
+        DETRAY_HOST_DEVICE friend constexpr auto operator-(const iterator &lhs,
+                                                           const iterator &rhs)
+            -> difference_type {
+            return lhs.m_seq_iter - rhs.m_seq_iter;
+        }
+
+        range_itr_t m_range_iter{};
+        range_itr_t m_range_begin{};
+        sequence_itr_t m_seq_iter{};
+        sequence_itr_t m_seq_end{};
     };
 
-    range_itr_t m_range_begin, m_range_end;
-    sequence_itr_t m_seq_begin, m_seq_end;
+    range_itr_t m_range_begin{};
+    range_itr_t m_range_end{};
+    sequence_itr_t m_seq_begin{};
+    sequence_itr_t m_seq_end{};
 
     public:
     using iterator_t = iterator;
@@ -176,14 +189,14 @@ class pick_view : public detray::ranges::view_interface<
     /// @return start position of range on container.
     DETRAY_HOST_DEVICE
     constexpr auto begin() -> iterator {
-        return {m_range_begin + static_cast<difference_t>(*(m_seq_begin)),
+        return {m_range_begin + static_cast<difference_t>(*m_seq_begin),
                 m_range_begin, m_seq_begin, m_seq_end};
     }
 
     /// @return start position of range on container.
     DETRAY_HOST_DEVICE
     constexpr auto begin() const -> iterator {
-        return {m_range_begin + static_cast<difference_t>(*(m_seq_begin)),
+        return {m_range_begin + static_cast<difference_t>(*m_seq_begin),
                 m_range_begin, m_seq_begin, m_seq_end};
     }
 
@@ -221,7 +234,7 @@ class pick_view : public detray::ranges::view_interface<
     DETRAY_HOST_DEVICE
     constexpr auto front() noexcept {
         return std::pair<index_t, value_t &>(
-            *(m_seq_begin),
+            *m_seq_begin,
             *detray::ranges::next(m_range_begin,
                                   static_cast<difference_t>(*m_seq_begin)));
     }

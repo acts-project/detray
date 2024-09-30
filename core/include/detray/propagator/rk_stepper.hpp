@@ -99,49 +99,46 @@ class rk_stepper final
 
         /// Update the track state by Runge-Kutta-Nystrom integration.
         DETRAY_HOST_DEVICE
-        inline void advance_track();
+        void advance_track();
 
         /// Update the jacobian transport from free propagation
         DETRAY_HOST_DEVICE
-        inline void advance_jacobian(const stepping::config& cfg = {});
+        void advance_jacobian(const stepping::config& cfg = {});
 
         /// evaulate dqopds for a given step size and material
         DETRAY_HOST_DEVICE
-        inline scalar_type evaluate_dqopds(const std::size_t i,
-                                           const scalar_type h,
-                                           const scalar_type dqopds_prev,
-                                           const detray::stepping::config& cfg);
+        scalar_type evaluate_dqopds(const std::size_t i, const scalar_type h,
+                                    const scalar_type dqopds_prev,
+                                    const detray::stepping::config& cfg);
 
         /// evaulate dtds for runge kutta stepping
         DETRAY_HOST_DEVICE
-        inline vector3_type evaluate_dtds(const vector3_type& b_field,
-                                          const std::size_t i,
-                                          const scalar_type h,
-                                          const vector3_type& dtds_prev,
-                                          const scalar_type qop);
+        vector3_type evaluate_dtds(const vector3_type& b_field,
+                                   const std::size_t i, const scalar_type h,
+                                   const vector3_type& dtds_prev,
+                                   const scalar_type qop);
 
         DETRAY_HOST_DEVICE
-        inline matrix_type<3, 3> evaluate_field_gradient(
-            const point3_type& pos);
+        matrix_type<3, 3> evaluate_field_gradient(const point3_type& pos);
 
         /// Evaluate dtds, where t is the unit tangential direction
         DETRAY_HOST_DEVICE
-        inline vector3_type dtds() const;
+        vector3_type dtds() const;
 
         /// Evaulate d(qop)/ds
         DETRAY_HOST_DEVICE
-        inline scalar_type dqopds() const;
+        scalar_type dqopds() const;
 
         DETRAY_HOST_DEVICE
-        inline scalar_type dqopds(const scalar_type qop) const;
+        scalar_type dqopds(const scalar_type qop) const;
 
         /// Evaulate d(d(qop)/ds)dqop
         DETRAY_HOST_DEVICE
-        inline scalar_type d2qopdsdqop(const scalar_type qop) const;
+        scalar_type d2qopdsdqop(const scalar_type qop) const;
 
         /// Call the stepping inspector
         template <typename... Args>
-        DETRAY_HOST_DEVICE inline void run_inspector(
+        DETRAY_HOST_DEVICE void run_inspector(
             [[maybe_unused]] const stepping::config& cfg,
             [[maybe_unused]] const char* message,
             [[maybe_unused]] Args&&... args) {

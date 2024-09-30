@@ -90,34 +90,6 @@ class enumerate_view : public detray::ranges::view_interface<
             return std::pair<incr_t, const value_type &>(m_i, *m_iter);
         }
 
-        /// @returns an iterator and index position advanced by @param j.
-        template <typename I = range_itr_t,
-                  std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
-                                   bool> = true>
-        DETRAY_HOST_DEVICE constexpr auto operator+(
-            const difference_type j) const -> iterator {
-            return {m_iter + j, m_i + static_cast<incr_t>(j)};
-        }
-
-        /// @returns an iterator and index position advanced by @param j.
-        template <typename I = range_itr_t,
-                  std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
-                                   bool> = true>
-        DETRAY_HOST_DEVICE constexpr auto operator-(
-            const difference_type j) const -> iterator {
-            return {m_iter - j, m_i - static_cast<incr_t>(j)};
-        }
-
-        /// @returns the positional difference between two iterators
-        /// (independent from their enumeration of the range values)
-        template <typename I = range_itr_t,
-                  std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
-                                   bool> = true>
-        DETRAY_HOST_DEVICE constexpr auto operator-(const iterator &other) const
-            -> difference_type {
-            return m_iter - other.m_iter;
-        }
-
         /// @returns advance this iterator state by @param j.
         template <typename I = range_itr_t,
                   std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
@@ -161,11 +133,43 @@ class enumerate_view : public detray::ranges::view_interface<
             return std::pair<incr_t, const value_type &>(index, m_iter[i]);
         }
 
+        private:
+        /// @returns an iterator and index position advanced by @param j.
+        template <typename I = range_itr_t,
+                  std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
+                                   bool> = true>
+        DETRAY_HOST_DEVICE friend constexpr auto operator+(
+            const iterator itr, const difference_type j) -> iterator {
+            return {itr.m_iter + j, itr.m_i + static_cast<incr_t>(j)};
+        }
+
+        /// @returns an iterator and index position advanced by @param j.
+        template <typename I = range_itr_t,
+                  std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
+                                   bool> = true>
+        DETRAY_HOST_DEVICE friend constexpr auto operator-(
+            const iterator itr, const difference_type j) -> iterator {
+            return {itr.m_iter - j, itr.m_i - static_cast<incr_t>(j)};
+        }
+
+        /// @returns the positional difference between two iterators
+        /// (independent from their enumeration of the range values)
+        template <typename I = range_itr_t,
+                  std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
+                                   bool> = true>
+        DETRAY_HOST_DEVICE friend constexpr auto operator-(const iterator lhs,
+                                                           const iterator &rhs)
+            -> difference_type {
+            return lhs.m_iter - rhs.m_iter;
+        }
+
         range_itr_t m_iter{};
-        incr_t m_i{0}, m_offset{0};
+        incr_t m_i{0};
+        incr_t m_offset{0};
     };
 
-    iterator m_begin, m_end;
+    iterator m_begin;
+    iterator m_end;
 
     public:
     using iterator_t = iterator;

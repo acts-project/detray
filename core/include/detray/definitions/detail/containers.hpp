@@ -81,13 +81,14 @@ struct has_reserve {
     static constexpr auto check(C*) ->
         typename std::is_void<decltype(std::declval<C>().reserve(
             std::declval<typename C::size_type>()))>::type;
+
     /// Function returning @c std::false_type for types that fair the previous
     /// function
     template <typename>
     static constexpr std::false_type check(...);
 
     /// Declare the value type of this trait class
-    typedef decltype(check<T>(nullptr)) type;
+    using type = decltype(check<T>(nullptr));
 
     public:
     /// Value of the check

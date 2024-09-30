@@ -371,7 +371,7 @@ class detector {
     inline void append_portals(surface_lookup_container &&new_surfaces) {
         surface_container descriptors;
         std::transform(
-            new_surfaces.begin(), new_surfaces.end(),
+            std::move(new_surfaces).begin(), std::move(new_surfaces).end(),
             std::back_inserter(descriptors),
             [](typename surface_lookup_container::value_type &sf) {
                 return static_cast<typename surface_container::value_type>(sf);

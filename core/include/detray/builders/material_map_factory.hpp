@@ -108,7 +108,7 @@ class material_map_factory final : public factory_decorator<detector_t> {
                       std::vector<std::vector<scalar_type>> &&axis_spans,
                       std::vector<index_type> &&indices) {
 
-        auto [sf_index, mat, thickness] = mat_data.get_data();
+        auto [sf_index, mat, thickness] = std::move(mat_data).get_data();
 
         m_links[sf_index] = std::make_pair(id, std::move(indices));
         m_n_bins[sf_index] = std::move(n_bins);

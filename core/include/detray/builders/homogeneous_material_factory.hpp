@@ -19,6 +19,7 @@
 #include <cassert>
 #include <memory>
 #include <numeric>
+#include <ranges>
 #include <tuple>
 #include <type_traits>
 #include <vector>
@@ -36,7 +37,7 @@ class material_data {
     DETRAY_HOST
     explicit constexpr material_data(
         const std::size_t sf_idx = detail::invalid_value<std::size_t>())
-        : m_sf_index{sf_idx}, m_mat{}, m_thickness{} {}
+        : m_sf_index{sf_idx} {}
 
     /// Construct from a predefined material
     ///
@@ -97,12 +98,12 @@ class material_data {
     DETRAY_HOST
     void append(material_data &&other) {
         m_mat.reserve(m_mat.size() + other.m_mat.size());
-        std::move(other.m_mat.begin(), other.m_mat.end(),
-                  std::back_inserter(m_mat));
+        std::ranges::move(other.m_mat.begin(), other.m_mat.end(),
+                          std::back_inserter(m_mat));
 
         m_thickness.reserve(m_thickness.size() + other.m_thickness.size());
-        std::move(other.m_thickness.begin(), other.m_thickness.end(),
-                  std::back_inserter(m_thickness));
+        std::ranges::move(other.m_thickness.begin(), other.m_thickness.end(),
+                          std::back_inserter(m_thickness));
     }
 
     /// Append new material
@@ -130,7 +131,7 @@ class material_data {
     /// The material parametrization
     std::vector<material<scalar_t>> m_mat{};
     /// Thickness/radius of the material slab/rod
-    std::vector<scalar_t> m_thickness{0.f};
+    std::vector<scalar_t> m_thickness{};
 };
 
 /// @brief Factory class for homogeneous material.
@@ -203,7 +204,11 @@ class homogeneous_material_factory final
         material_id id, material_data<scalar_type> &&mat_data,
         std::size_t index = detail::invalid_value<std::size_t>()) {
 
-        auto [sf_index, mat, thickness] = mat_data.get_data();
+        auto [sf_index, mat, thickness] = std::move(mat_data).get_data();
+
+        // Only one homogeneous material slab/rod per surface
+        assert(mat.size() == 1u);
+        assert(thickness.size() == 1u);
 
         m_links.push_back(std::make_pair(id, static_cast<dindex>(index)));
         m_indices.push_back(sf_index);

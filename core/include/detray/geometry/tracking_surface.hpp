@@ -185,7 +185,7 @@ class tracking_surface {
 
     /// @returns the centroid of the surface mask in local cartesian coordinates
     DETRAY_HOST_DEVICE
-    constexpr auto centroid() const -> const point3_type {
+    constexpr auto centroid() const -> point3_type {
         return visit_mask<typename kernels::centroid>();
     }
 
@@ -193,7 +193,7 @@ class tracking_surface {
     /// @note for shapes like the annulus this is not synonymous to the controid
     /// but the focal point of the strip system instead
     DETRAY_HOST_DEVICE
-    constexpr auto center(const context &ctx) const -> const point3_type {
+    constexpr auto center(const context &ctx) const -> point3_type {
         return transform(ctx).translation();
     }
 
@@ -205,7 +205,7 @@ class tracking_surface {
                                bool> = true>
     DETRAY_HOST_DEVICE constexpr auto normal(const context &ctx,
                                              const point_t &p) const
-        -> const vector3_type {
+        -> vector3_type {
         return visit_mask<typename kernels::normal>(transform(ctx), p);
     }
 
@@ -325,7 +325,7 @@ class tracking_surface {
     constexpr auto global_vertices(const context &ctx,
                                    const dindex n_seg) const {
         auto vertices = local_vertices(n_seg);
-        for (size_t i = 0; i < vertices.size(); i++) {
+        for (std::size_t i = 0u; i < vertices.size(); ++i) {
             vertices[i] = transform(ctx).point_to_global(vertices[i]);
         }
         return vertices;
@@ -410,12 +410,11 @@ class tracking_surface {
             return false;
         }
         // Only check, if there is material in the detector
-        if (!m_detector.material_store().all_empty()) {
-            if (has_material() && m_desc.material().is_invalid_index()) {
-                os << "ERROR: Surface does not have valid material link:\n"
-                   << *this << std::endl;
-                return false;
-            }
+        if (!m_detector.material_store().all_empty() && has_material() &&
+            m_desc.material().is_invalid_index()) {
+            os << "ERROR: Surface does not have valid material link:\n"
+               << *this << std::endl;
+            return false;
         }
         // Check the mask boundaries
         if (!visit_mask<typename kernels::mask_self_check>(os)) {

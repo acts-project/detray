@@ -81,7 +81,7 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, false> {
             if (is.path >= overstep_tol) {
 
                 const point3_type p3 = ro + is.path * rd;
-                is.local = mask.to_local_frame(trf, p3, ray.dir());
+                is.local = mask_t::to_local_frame(trf, p3, ray.dir());
                 // Tolerance: per mille of the distance
                 is.status = mask.is_inside(
                     is.local, math::max(mask_tolerance[0],

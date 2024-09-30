@@ -58,7 +58,7 @@ struct serializer2 {
     DETRAY_HOST_DEVICE array_t<dindex, 2> deserialize(const faxis_t &faxis,
                                                       const saxis_t & /*saxis*/,
                                                       dindex serialbin) const {
-        dindex sbin = static_cast<dindex>(serialbin / faxis.bins());
+        auto sbin = static_cast<dindex>(serialbin / faxis.bins());
         dindex fbin = serialbin - sbin * faxis.bins();
         return {fbin, sbin};
     }

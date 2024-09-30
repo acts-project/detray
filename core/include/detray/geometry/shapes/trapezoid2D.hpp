@@ -219,8 +219,9 @@ class trapezoid2D {
                << std::endl;
             return false;
         }
-        const auto div{1.f / (2.f * bounds[e_half_length_2])};
-        if (math::fabs(bounds[e_divisor] - div) > tol) {
+
+        if (const auto div{1.f / (2.f * bounds[e_half_length_2])};
+            math::fabs(bounds[e_divisor] - div) > tol) {
             os << "ERROR: Divisor incorrect. Should be: " << div << std::endl;
             return false;
         }

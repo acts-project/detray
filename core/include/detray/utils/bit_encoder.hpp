@@ -1,7 +1,7 @@
 
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -24,7 +24,7 @@ namespace detray::detail {
 ///
 /// @see
 /// https://github.com/acts-project/acts/blob/main/Core/include/Acts/Geometry/GeometryIdentifier.hpp
-template <typename value_t = uint64_t>
+template <typename value_t = std::uint64_t>
 class bit_encoder {
 
     public:
@@ -45,7 +45,7 @@ class bit_encoder {
     DETRAY_HOST_DEVICE static constexpr value_t get_bits(
         const value_t v) noexcept {
         // Use integral constant to enforce compile time evaluation of shift
-        return (v & mask) >> std::integral_constant<int, extract_shift(mask)>();
+        return (v & mask) >> extract_shift(mask);
     }
 
     /// Set the masked bits to id in the encoded value.
@@ -54,8 +54,7 @@ class bit_encoder {
     DETRAY_HOST_DEVICE static constexpr void set_bits(
         value_t& v, const value_t id) noexcept {
         // Use integral constant to enforce compile time evaluation of shift
-        v = (v & ~mask) |
-            ((id << std::integral_constant<int, extract_shift(mask)>()) & mask);
+        v = (v & ~mask) | ((id << extract_shift(mask)) & mask);
     }
 
     private:
@@ -63,7 +62,7 @@ class bit_encoder {
     ///
     /// @note undefined behaviour for mask == 0 which we should not have.
     DETRAY_HOST_DEVICE
-    static constexpr int extract_shift(value_t mask) noexcept {
+    static consteval int extract_shift(value_t mask) noexcept {
         return __builtin_ctzll(mask);
     }
 };

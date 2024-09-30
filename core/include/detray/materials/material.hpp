@@ -164,15 +164,16 @@ struct material {
 
         strm << " | state: ";
         switch (m_state) {
-            case material_state::e_solid: {
+            using enum material_state;
+            case e_solid: {
                 strm << "solid";
                 break;
             }
-            case material_state::e_liquid: {
+            case e_liquid: {
                 strm << "liquid";
                 break;
             }
-            case material_state::e_gas: {
+            case e_gas: {
                 strm << "gaseous";
                 break;
             }
@@ -180,7 +181,7 @@ struct material {
                 strm << "unknown";
                 break;
             }
-        };
+        }
 
         return strm.str();
     }

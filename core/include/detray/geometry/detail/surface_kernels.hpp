@@ -131,18 +131,19 @@ struct surface_kernels {
         DETRAY_HOST_DEVICE inline point3_type operator()(
             const mask_group_t& mask_group, const index_t& index,
             const transform3_type& trf3, const point2_type& bound) const {
+            using mask_t = typename mask_group_t::value_type;
 
-            const auto& m = mask_group[index];
-
-            return m.local_frame().normal(trf3, bound, m);
+            return mask_t::get_local_frame().normal(trf3, bound,
+                                                    mask_group[index]);
         }
 
         template <typename mask_group_t, typename index_t>
         DETRAY_HOST_DEVICE inline point3_type operator()(
-            const mask_group_t& mask_group, const index_t& index,
+            const mask_group_t& /*mask_group*/, const index_t& /*index*/,
             const transform3_type& trf3, const point3_type& local) const {
+            using mask_t = typename mask_group_t::value_type;
 
-            return mask_group[index].local_frame().normal(trf3, local);
+            return mask_t::get_local_frame().normal(trf3, local);
         }
     };
 
@@ -160,12 +161,12 @@ struct surface_kernels {
     struct global_to_bound {
         template <typename mask_group_t, typename index_t>
         DETRAY_HOST_DEVICE inline point2_type operator()(
-            const mask_group_t& mask_group, const index_t& index,
+            const mask_group_t& /*mask_group*/, const index_t& /*index*/,
             const transform3_type& trf3, const point3_type& global,
             const vector3_type& dir) const {
+            using mask_t = typename mask_group_t::value_type;
 
-            const point3_type local =
-                mask_group[index].to_local_frame(trf3, global, dir);
+            const point3_type local = mask_t::to_local_frame(trf3, global, dir);
 
             return {local[0], local[1]};
         }
@@ -175,11 +176,12 @@ struct surface_kernels {
     struct global_to_local {
         template <typename mask_group_t, typename index_t>
         DETRAY_HOST_DEVICE inline point3_type operator()(
-            const mask_group_t& mask_group, const index_t& index,
+            const mask_group_t& /*mask_group*/, const index_t& /*index*/,
             const transform3_type& trf3, const point3_type& global,
             const vector3_type& dir) const {
+            using mask_t = typename mask_group_t::value_type;
 
-            return mask_group[index].to_local_frame(trf3, global, dir);
+            return mask_t::to_local_frame(trf3, global, dir);
         }
     };
 
@@ -191,20 +193,20 @@ struct surface_kernels {
             const mask_group_t& mask_group, const index_t& index,
             const transform3_type& trf3, const point2_type& bound,
             const vector3_type& dir) const {
+            using mask_t = typename mask_group_t::value_type;
 
-            const auto& m = mask_group[index];
-
-            return mask_group[index].local_frame().local_to_global(trf3, m,
-                                                                   bound, dir);
+            return mask_t::get_local_frame().local_to_global(
+                trf3, mask_group[index], bound, dir);
         }
 
         template <typename mask_group_t, typename index_t>
         DETRAY_HOST_DEVICE inline point3_type operator()(
-            const mask_group_t& mask_group, const index_t& index,
+            const mask_group_t& /*mask_group*/, const index_t& /*index*/,
             const transform3_type& trf3, const point3_type& local,
             const vector3_type&) const {
+            using mask_t = typename mask_group_t::value_type;
 
-            return mask_group[index].to_global_frame(trf3, local);
+            return mask_t::to_global_frame(trf3, local);
         }
     };
 
@@ -219,7 +221,7 @@ struct surface_kernels {
             const transform3_type& trf3,
             const free_param_vector_type& free_vec) const {
 
-            using frame_t = typename mask_group_t::value_type::local_frame_type;
+            using frame_t = typename mask_group_t::value_type::local_frame;
 
             return detail::free_to_bound_vector<frame_t>(trf3, free_vec);
         }
@@ -248,7 +250,7 @@ struct surface_kernels {
             const transform3_type& trf3,
             const free_param_vector_type& free_vec) const {
 
-            using frame_t = typename mask_group_t::value_type::local_frame_type;
+            using frame_t = typename mask_group_t::value_type::local_frame;
 
             return detail::jacobian_engine<frame_t>::free_to_bound_jacobian(
                 trf3, free_vec);
@@ -264,7 +266,7 @@ struct surface_kernels {
             const transform3_type& trf3,
             const bound_param_vector_type& bound_vec) const {
 
-            using frame_t = typename mask_group_t::value_type::local_frame_type;
+            using frame_t = typename mask_group_t::value_type::local_frame;
 
             return detail::jacobian_engine<frame_t>::bound_to_free_jacobian(
                 trf3, mask_group[index], bound_vec);
@@ -281,7 +283,7 @@ struct surface_kernels {
             const vector3_type& dir, const vector3_type& dtds,
             const scalar_t dqopds) const {
 
-            using frame_t = typename mask_group_t::value_type::local_frame_type;
+            using frame_t = typename mask_group_t::value_type::local_frame;
 
             return detail::jacobian_engine<frame_t>::path_correction(
                 pos, dir, dtds, dqopds, trf3);

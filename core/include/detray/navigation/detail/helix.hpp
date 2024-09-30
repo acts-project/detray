@@ -61,13 +61,10 @@ class helix {
     helix(const point3_type &pos, const scalar_type time,
           const vector3_type &dir, const scalar_type qop,
           vector3_type const *const mag_field)
-        : _pos(pos), _time(time), _qop(qop), _mag_field(mag_field) {
+        : _pos(pos), _time(time), _qop(qop), _mag_field(mag_field), _t0{dir} {
 
         // Normalized B field
         _h0 = vector::normalize(*_mag_field);
-
-        // Normalized tangent vector
-        _t0 = dir;
 
         assert((math::fabs(getter::norm(_t0) - 1.f) < 1e-5f) &&
                "The helix direction must be normalized");

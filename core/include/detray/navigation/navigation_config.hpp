@@ -43,25 +43,23 @@ struct config {
     /// Search window size for grid based acceleration structures
     /// (0, 0): only look at current bin
     std::array<dindex, 2> search_window = {0u, 0u};
+
+    /// Print the navigation configuration
+    DETRAY_HOST
+    friend std::ostream& operator<<(std::ostream& out, const config& cfg) {
+        out << "  Min. mask tolerance   : "
+            << cfg.min_mask_tolerance / detray::unit<float>::mm << " [mm]\n"
+            << "  Max. mask tolerance   : "
+            << cfg.max_mask_tolerance / detray::unit<float>::mm << " [mm]\n"
+            << "  Mask tolerance scalor : " << cfg.mask_tolerance_scalor << "\n"
+            << "  Path tolerance        : "
+            << cfg.path_tolerance / detray::unit<float>::um << " [um]\n"
+            << "  Overstep tolerance    : "
+            << cfg.overstep_tolerance / detray::unit<float>::um << " [um]\n"
+            << "  Search window         : " << cfg.search_window[0] << " x "
+            << cfg.search_window[1] << "\n";
+
+        return out;
+    }
 };
-
-/// Print the navigation configuration
-DETRAY_HOST
-inline std::ostream& operator<<(std::ostream& out,
-                                const detray::navigation::config& cfg) {
-    out << "  Min. mask tolerance   : "
-        << cfg.min_mask_tolerance / detray::unit<float>::mm << " [mm]\n"
-        << "  Max. mask tolerance   : "
-        << cfg.max_mask_tolerance / detray::unit<float>::mm << " [mm]\n"
-        << "  Mask tolerance scalor : " << cfg.mask_tolerance_scalor << "\n"
-        << "  Path tolerance        : "
-        << cfg.path_tolerance / detray::unit<float>::um << " [um]\n"
-        << "  Overstep tolerance    : "
-        << cfg.overstep_tolerance / detray::unit<float>::um << " [um]\n"
-        << "  Search window         : " << cfg.search_window[0] << " x "
-        << cfg.search_window[1] << "\n";
-
-    return out;
-}
-
 }  // namespace detray::navigation

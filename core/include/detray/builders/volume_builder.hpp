@@ -39,8 +39,7 @@ class volume_builder : public volume_builder_interface<detector_t> {
     ///
     /// @param id flags the type of volume geometry (e.g. cylindrical, cuboid)
     /// @param idx the index of the volume in the detector volume container
-    volume_builder(const volume_id id, const dindex idx = 0)
-        : m_has_accel{false}, m_volume{id} {
+    volume_builder(const volume_id id, const dindex idx = 0) : m_volume{id} {
 
         m_volume.set_index(idx);
         m_volume.set_material(volume_type::material_id::e_none, 0u);

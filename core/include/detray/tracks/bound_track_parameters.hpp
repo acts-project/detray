@@ -229,7 +229,7 @@ struct bound_parameters_vector {
         return math::fabs(q / qop() * dir()[2]);
     }
 
-    protected:
+    private:
     vector_type m_vector = matrix_operator().template zero<e_bound_size, 1>();
 };
 

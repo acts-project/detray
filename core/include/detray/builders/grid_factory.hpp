@@ -66,11 +66,6 @@ class grid_factory {
     explicit grid_factory(vecmem::memory_resource &resource)
         : m_resource(&resource) {}
 
-    /// Print grid - up to three dimensions
-    /// @note will likely become obsolete with the actsvg implementation
-    template <typename grid_t>
-    auto to_string(const grid_t &) const noexcept -> void;
-
     //
     // annulus 2D
     //
@@ -513,8 +508,8 @@ class grid_factory {
         std::enable_if_t<std::is_object_v<typename grid_frame_t::loc_point>,
                          bool> = true>
     auto new_grid(
-        const std::vector<scalar_type> spans,
-        const std::vector<std::size_t> n_bins,
+        const std::vector<scalar_type> &spans,
+        const std::vector<std::size_t> &n_bins,
         const std::vector<std::pair<axis::multi_bin<sizeof...(bound_ts)>,
                                     dindex>> &bin_capacities = {},
         const std::vector<std::vector<scalar_type>> &ax_bin_edges = {},
@@ -539,8 +534,8 @@ class grid_factory {
         std::enable_if_t<std::is_enum_v<typename grid_shape_t::boundaries>,
                          bool> = true>
     auto new_grid(
-        const std::vector<scalar_type> spans,
-        const std::vector<std::size_t> n_bins,
+        const std::vector<scalar_type> &spans,
+        const std::vector<std::size_t> &n_bins,
         const std::vector<std::pair<axis::multi_bin<sizeof...(bound_ts)>,
                                     dindex>> &bin_capacities = {},
         const std::vector<std::vector<scalar_type>> &ax_bin_edges = {},
@@ -704,73 +699,6 @@ class grid_factory {
 
     vecmem::memory_resource *m_resource{};
 };
-
-template <typename bin_t, template <std::size_t> class serializer_t,
-          typename algebra_t>
-template <typename grid_t>
-auto grid_factory<bin_t, serializer_t, algebra_t>::to_string(
-    const grid_t &gr) const noexcept -> void {
-
-    using entry_t = typename grid_t::bin_type;
-
-    // Loop over the first dimension
-    const auto &ax0 = gr.template get_axis<0>();
-    std::cout << "{";
-    for (unsigned int i{0u}; i < ax0.nbins(); ++i) {
-
-        // Loop over the second dimension
-        if constexpr (grid_t::dim > 1u) {
-            const auto &ax1 = gr.template get_axis<1>();
-            std::cout << "{";
-            for (unsigned int j{0u}; j < ax1.nbins(); ++j) {
-
-                // Loop over the third dimension
-                if constexpr (grid_t::dim > 2) {
-                    const auto &ax2 = gr.template get_axis<2>();
-                    std::cout << "{";
-                    for (unsigned int k{0u}; k < ax2.nbins(); ++k) {
-
-                        // Print the bin content - three dimensions
-                        std::cout << "( ";
-                        for (const auto &entry : gr.bin(i, j, k)) {
-                            if (entry == detail::invalid_value<entry_t>()) {
-                                std::cout << "none ";
-                            } else {
-                                std::cout << entry << " ";
-                            }
-                        }
-                        std::cout << ")";
-                    }
-                    std::cout << "}" << std::endl << std::endl;
-                } else {
-                    // Print the bin content - two dimensions
-                    std::cout << "( ";
-                    for (const auto &entry : gr.bin(i, j)) {
-                        if (entry == detail::invalid_value<entry_t>()) {
-                            std::cout << "none ";
-                        } else {
-                            std::cout << entry << " ";
-                        }
-                    }
-                    std::cout << ")";
-                }
-            }
-            std::cout << "}" << std::endl;
-        } else {
-            // Print the bin content - one dimension
-            std::cout << "( ";
-            for (const auto &entry : gr.bin(i)) {
-                if (entry == detail::invalid_value<entry_t>()) {
-                    std::cout << "none ";
-                } else {
-                    std::cout << entry << " ";
-                }
-            }
-            std::cout << ")" << std::endl;
-        }
-    }
-    std::cout << "}" << std::endl;
-}
 
 // Infer a grid factory type from an already completely assembled grid type
 template <typename grid_t, typename algebra_t = ALGEBRA_PLUGIN<detray::scalar>>

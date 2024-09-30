@@ -67,7 +67,7 @@ auto add_material_data(const material_factory_t& mat_factory, mat_id id,
 }  // anonymous namespace
 
 /// Unittest: Test the construction of a collection of material maps
-TEST(detray_builders, material_map_builder) {
+TEST(detray_builders, material_map_factory) {
 
     using transform3 = typename detector_t::transform3_type;
     using scalar_t = typename detector_t::scalar_type;
@@ -77,11 +77,6 @@ TEST(detray_builders, material_map_builder) {
     auto mat_factory =
         std::make_unique<material_map_factory<detector_t, bin_index_t>>(
             std::make_unique<rectangle_factory>());
-
-    vecmem::host_memory_resource host_mr;
-    detector_t d(host_mr);
-
-    EXPECT_TRUE(d.material_store().template empty<mat_id::e_rectangle2_map>());
 
     EXPECT_EQ(mat_factory->size(), 0u);
     EXPECT_TRUE(mat_factory->materials().empty());

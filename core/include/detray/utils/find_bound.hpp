@@ -19,21 +19,21 @@ namespace detray {
 /// Implementation of @c upper_bound
 /// @see
 /// https://github.com/gcc-mirror/gcc/blob/8f87b3c5ecd47f6ac0d7407ae5d436a12fb169dd/libstdc%2B%2B-v3/include/bits/stl_algo.h
-template <typename forward_itr_t, typename T>
-DETRAY_HOST_DEVICE inline constexpr forward_itr_t upper_bound(
-    forward_itr_t first, forward_itr_t last, const T& value) {
-
-    static_assert(detray::ranges::forward_iterator_v<forward_itr_t>);
+template <typename iterator_t, typename T>
+requires detray::ranges::forward_iterator_v<iterator_t>
+    DETRAY_HOST_DEVICE constexpr iterator_t upper_bound(iterator_t first,
+                                                        iterator_t last,
+                                                        const T& value) {
 
     using difference_t =
-        typename std::iterator_traits<forward_itr_t>::difference_type;
+        typename std::iterator_traits<iterator_t>::difference_type;
 
     difference_t len{detray::ranges::distance(first, last)};
 
     // binary search
     while (len > 0) {
         difference_t half{len >> 1};
-        forward_itr_t middle{first};
+        iterator_t middle{first};
         detray::ranges::advance(middle, half);
         if (value < *middle) {
             len = half;
@@ -49,21 +49,21 @@ DETRAY_HOST_DEVICE inline constexpr forward_itr_t upper_bound(
 /// Implementation of @c lower_bound
 /// @see
 /// https://github.com/gcc-mirror/gcc/blob/8f87b3c5ecd47f6ac0d7407ae5d436a12fb169dd/libstdc%2B%2B-v3/include/bits/stl_algobase.h
-template <typename forward_itr_t, typename T>
-DETRAY_HOST_DEVICE inline constexpr forward_itr_t lower_bound(
-    forward_itr_t first, forward_itr_t last, const T& value) {
-
-    static_assert(detray::ranges::forward_iterator_v<forward_itr_t>);
+template <typename iterator_t, typename T>
+requires detray::ranges::forward_iterator_v<iterator_t>
+    DETRAY_HOST_DEVICE constexpr iterator_t lower_bound(iterator_t first,
+                                                        iterator_t last,
+                                                        const T& value) {
 
     using difference_t =
-        typename std::iterator_traits<forward_itr_t>::difference_type;
+        typename std::iterator_traits<iterator_t>::difference_type;
 
     difference_t len{detray::ranges::distance(first, last)};
 
     // binary search
     while (len > 0) {
         difference_t half{len >> 1};
-        forward_itr_t middle{first};
+        iterator_t middle{first};
         detray::ranges::advance(middle, half);
         if (*middle < value) {
             first = middle;

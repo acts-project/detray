@@ -203,12 +203,11 @@ class tracking_volume {
             return false;
         }
         // Only check, if there is material in the detector
-        if (!m_detector.material_store().all_empty()) {
-            if (has_material() && m_desc.material().is_invalid_index()) {
-                os << "ERROR: Volume does not have valid material link:\n"
-                   << *this << std::endl;
-                return false;
-            }
+        if (!m_detector.material_store().all_empty() && has_material() &&
+            m_desc.material().is_invalid_index()) {
+            os << "ERROR: Volume does not have valid material link:\n"
+               << *this << std::endl;
+            return false;
         }
         const auto &acc_link = m_desc.accel_link();
         if (detail::is_invalid_value(acc_link[0])) {
@@ -216,8 +215,9 @@ class tracking_volume {
                << "\n in volume: " << *this << std::endl;
             return false;
         }
-        const auto &pt_link = m_desc.template sf_link<surface_id::e_portal>();
-        if (detail::is_invalid_value(pt_link)) {
+        if (const auto &pt_link =
+                m_desc.template sf_link<surface_id::e_portal>();
+            detail::is_invalid_value(pt_link)) {
             os << "ERROR: Link to portal surfaces broken: " << pt_link
                << "\n in volume: " << *this << std::endl;
             return false;
@@ -227,15 +227,14 @@ class tracking_volume {
             m_desc.template sf_link<surface_id::e_portal>()};
 
         // Only add the other ranges in case they are not empty
-        const auto &sens_range =
-            m_desc.template sf_link<surface_id::e_sensitive>();
-        if (sens_range[0] != sens_range[1]) {
+        if (const auto &sens_range =
+                m_desc.template sf_link<surface_id::e_sensitive>();
+            sens_range[0] != sens_range[1]) {
             sf_ranges.push_back(sens_range);
         }
-
-        const auto &psv_range =
-            m_desc.template sf_link<surface_id::e_passive>();
-        if (psv_range[0] != psv_range[1]) {
+        if (const auto &psv_range =
+                m_desc.template sf_link<surface_id::e_passive>();
+            psv_range[0] != psv_range[1]) {
             sf_ranges.push_back(psv_range);
         }
 
@@ -305,12 +304,11 @@ class tracking_volume {
               typename... Args>
     DETRAY_HOST_DEVICE constexpr void visit_surfaces_impl(
         Args &&... args) const {
-        // Get the acceleration data structures for this volume
-        const auto &link{m_desc.template accel_link<
-            static_cast<typename descr_t::object_id>(I)>()};
-
-        // Only visit, if object type is contained in volume
-        if (!link.is_invalid()) {
+        // Get the acceleration data structures for this volume and only visit,
+        // if object type is contained in volume
+        if (const auto &link{m_desc.template accel_link<
+                static_cast<typename descr_t::object_id>(I)>()};
+            !link.is_invalid()) {
             // Run over the surfaces in a single acceleration data structure
             // and apply the functor to the resulting neighborhood
             m_detector.accelerator_store().template visit<functor_t>(

@@ -50,12 +50,6 @@ class iota_view : public detray::ranges::view_interface<iota_view<incr_t>> {
             return (m_i == rhs.m_i);
         }
 
-        /// @returns true while incrementables are different
-        DETRAY_HOST_DEVICE
-        constexpr auto operator!=(const iterator &rhs) const -> bool {
-            return (m_i != rhs.m_i);
-        }
-
         /// Increment the index
         DETRAY_HOST_DEVICE
         constexpr auto operator++() -> iterator & {
@@ -85,7 +79,8 @@ class iota_view : public detray::ranges::view_interface<iota_view<incr_t>> {
     };
 
     /// Start and end values of the sequence
-    incr_t m_start, m_end;
+    incr_t m_start;
+    incr_t m_end;
 
     public:
     using iterator_t = iterator;

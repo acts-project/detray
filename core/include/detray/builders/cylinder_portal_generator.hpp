@@ -128,8 +128,10 @@ class cylinder_portal_generator final
     public:
     /// Save the boundaries of the cylinder after autofitting the portals
     struct boundaries {
-        scalar_t inner_radius{0.f}, outer_radius{0.f}, lower_z{0.f},
-            upper_z{0.f};
+        scalar_t inner_radius{0.f};
+        scalar_t outer_radius{0.f};
+        scalar_t lower_z{0.f};
+        scalar_t upper_z{0.f};
     };
 
     /// Construct from configuration @param cfg

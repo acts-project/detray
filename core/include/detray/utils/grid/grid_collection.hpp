@@ -73,19 +73,13 @@ class grid_collection<
             : m_i{i}, m_grid_coll{grid_coll} {}
 
         constexpr iterator(const iterator &other) = default;
-        constexpr iterator(iterator &&other) = default;
+        constexpr iterator(iterator &&other) noexcept = default;
         constexpr iterator &operator=(const iterator &rhs) noexcept = default;
 
         /// @returns true if grid indices are the same
         DETRAY_HOST_DEVICE
         constexpr auto operator==(const iterator &rhs) const -> bool {
             return (m_i == rhs.m_i);
-        }
-
-        /// @returns true while the grid indices are different
-        DETRAY_HOST_DEVICE
-        constexpr auto operator!=(const iterator &rhs) const -> bool {
-            return (m_i != rhs.m_i);
         }
 
         /// Increment the grid index
@@ -322,19 +316,18 @@ class grid_collection<
 
     private:
     /// Insert data into a vector of bins
-    template <typename grid_bin_range_t>
     DETRAY_HOST void insert_bin_data(
         vector_type<typename grid_type::bin_type> &bin_data,
-        const grid_bin_range_t &grid_bins) {
+        const typename grid_type::template type<true>::bin_storage &grid_bins) {
         bin_data.insert(bin_data.end(), grid_bins.begin(), grid_bins.end());
     }
 
     /// Insert data into the backend containers of a grid with dynamic bin
     /// capacities
-    template <typename container_t, typename grid_bin_range_t>
+    template <typename container_t>
     DETRAY_HOST void insert_bin_data(
         detray::detail::dynamic_bin_container<bin_t, container_t> &bin_data,
-        const grid_bin_range_t &grid_bins) {
+        const grid_type::template type<true>::bin_storage &grid_bins) {
         bin_data.append(grid_bins);
     }
 

@@ -146,7 +146,7 @@ struct dynamic_bin_container {
     explicit dynamic_bin_container(vecmem::memory_resource* resource)
         : bins{resource}, entries{resource} {}
     dynamic_bin_container(const dynamic_bin_container& other) = default;
-    dynamic_bin_container(dynamic_bin_container&& other) = default;
+    dynamic_bin_container(dynamic_bin_container&& other) noexcept = default;
 
     dynamic_bin_container& operator=(const dynamic_bin_container&) noexcept =
         default;
@@ -255,10 +255,6 @@ class bin_storage<is_owning, detray::bins::dynamic_array<entry_t>, containers>
             const iterator_adapter& other) const {
             return m_itr == other.m_itr;
         }
-        DETRAY_HOST_DEVICE bool operator!=(
-            const iterator_adapter& other) const {
-            return m_itr != other.m_itr;
-        }
         DETRAY_HOST_DEVICE iterator_adapter& operator++() {
             ++m_itr;
             return *this;
@@ -266,18 +262,6 @@ class bin_storage<is_owning, detray::bins::dynamic_array<entry_t>, containers>
         DETRAY_HOST_DEVICE iterator_adapter& operator--() {
             --m_itr;
             return *this;
-        }
-        DETRAY_HOST_DEVICE
-        difference_type operator-(const iterator_adapter& other) {
-            return m_itr - other.m_itr;
-        }
-        DETRAY_HOST_DEVICE
-        iterator_adapter operator-(difference_type i) {
-            return {m_itr - i, m_entry_data};
-        }
-        DETRAY_HOST_DEVICE
-        iterator_adapter operator+(difference_type i) {
-            return {m_itr + i, m_entry_data};
         }
         DETRAY_HOST_DEVICE
         constexpr decltype(auto) operator[](const difference_type i) const {
@@ -302,6 +286,22 @@ class bin_storage<is_owning, detray::bins::dynamic_array<entry_t>, containers>
         /// @}
 
         private:
+        DETRAY_HOST_DEVICE
+        friend difference_type operator-(const iterator_adapter& lhs,
+                                         const iterator_adapter& rhs) {
+            return lhs.m_itr - rhs.m_itr;
+        }
+        DETRAY_HOST_DEVICE
+        friend iterator_adapter operator-(const iterator_adapter& itr,
+                                          difference_type i) {
+            return {itr.m_itr - i, itr.m_entry_data};
+        }
+        DETRAY_HOST_DEVICE
+        friend iterator_adapter operator+(const iterator_adapter& itr,
+                                          difference_type i) {
+            return {itr.m_itr + i, itr.m_entry_data};
+        }
+
         /// Access to the bin content
         data_ptr_t m_entry_data;
         /// Iterator over bin data from which to construct a bin instance

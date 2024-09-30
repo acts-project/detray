@@ -105,8 +105,8 @@ class pyplot_factory():
 
         # Do calculations on data in the range of the histogram
         if not xMin is None and not xMax is None:
-            x = x[np.where(x >= xMin)]
-            x = x[np.where(x <= xMax)]
+            x = x[np.nonzero(x >= xMin)]
+            x = x[np.nonzero(x <= xMax)]
         else:
             xMin = np.min(x)
             xMax = np.max(x)
@@ -208,8 +208,8 @@ class pyplot_factory():
         xMin = np.min(oldHist.bins)
         xMax = np.max(oldHist.bins)
 
-        x = x[np.where(x >= xMin)]
-        x = x[np.where(x <= xMax)]
+        x = x[np.nonzero(x >= xMin)]
+        x = x[np.nonzero(x <= xMax)]
 
         # Nothing left to do
         if len(x) == 0 or oldHist.data is None:
@@ -355,15 +355,15 @@ class pyplot_factory():
 
         # Do calculations on data in the range of the histogram
         if not xMin is None and not xMax is None:
-            x = x[np.where(x >= xMin)]
-            x = x[np.where(x <= xMax)]
+            x = x[np.nonzero(x >= xMin)]
+            x = x[np.nonzero(x <= xMax)]
         else:
             xMin = np.min(x)
             xMax = np.max(x)
 
         if not yMin is None and not yMax is None:
-            y = y[np.where(y >= yMin)]
-            y = y[np.where(y <= yMax)]
+            y = y[np.nonzero(y >= yMin)]
+            y = y[np.nonzero(y <= yMax)]
         else:
             yMin = np.min(y)
             yMax = np.max(y)

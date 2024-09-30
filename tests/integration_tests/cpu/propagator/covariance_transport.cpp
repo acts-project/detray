@@ -56,11 +56,11 @@ class detray_propagation_HelixCovarianceTransportValidation
 
     // Test types
     using mask_type = T;
-    using local_frame_type = typename mask_type::local_frame_type;
+    using local_frame_type = typename mask_type::local_frame;
 
     // First mask at the origin is always rectangle
     using first_mask_type = rectangle_type;
-    using first_local_frame_type = typename first_mask_type::local_frame_type;
+    using first_local_frame_type = typename first_mask_type::local_frame;
 
     // Algebra type
     using algebra_type = typename local_frame_type::algebra_type;
@@ -158,9 +158,8 @@ class detray_propagation_HelixCovarianceTransportValidation
         const departure_mask_type& mask_0, const destination_mask_type& mask_1,
         scalar_type& total_path_length, std::vector<intersection_t>& sfis) {
 
-        using departure_frame = typename departure_mask_type::local_frame_type;
-        using destination_frame =
-            typename destination_mask_type::local_frame_type;
+        using departure_frame = typename departure_mask_type::local_frame;
+        using destination_frame = typename destination_mask_type::local_frame;
 
         using departure_jacobian_engine =
             detail::jacobian_engine<departure_frame>;

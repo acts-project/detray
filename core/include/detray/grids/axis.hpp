@@ -85,15 +85,15 @@ struct regular {
      **/
     DETRAY_HOST_DEVICE
     dindex bin(scalar v) const {
-        int ibin = static_cast<int>((v - min) / (max - min) *
-                                    static_cast<scalar>(n_bins));
+        auto ibin = static_cast<int>((v - min) / (max - min) *
+                                     static_cast<scalar>(n_bins));
         if (ibin >= 0 && ibin < static_cast<int>(n_bins)) {
             return static_cast<dindex>(ibin);
         } else {
             if (ibin < 0) {
                 return 0;
             } else {
-                return static_cast<dindex>(n_bins - 1u);
+                return n_bins - 1u;
             }
         }
     }
@@ -109,14 +109,14 @@ struct regular {
     dindex_range range(scalar v,
                        const array_t<dindex, 2> &nhood = {0u, 0u}) const {
 
-        int ibin = static_cast<int>((v - min) / (max - min) *
-                                    static_cast<scalar>(n_bins));
+        auto ibin = static_cast<int>((v - min) / (max - min) *
+                                     static_cast<scalar>(n_bins));
         int ibinmin = ibin - static_cast<int>(nhood[0]);
         int ibinmax = ibin + static_cast<int>(nhood[1]);
         dindex min_bin = (ibinmin >= 0) ? static_cast<dindex>(ibinmin) : 0u;
         dindex max_bin = (ibinmax < static_cast<int>(n_bins))
                              ? static_cast<dindex>(ibinmax)
-                             : static_cast<dindex>(n_bins - 1u);
+                             : n_bins - 1u;
         return {min_bin, max_bin};
     }
 
@@ -129,14 +129,14 @@ struct regular {
      **/
     DETRAY_HOST_DEVICE
     dindex_range range(scalar v, const array_t<scalar, 2> &nhood) const {
-        int nbin = static_cast<int>((v - nhood[0] - min) / (max - min) *
-                                    static_cast<scalar>(n_bins));
-        int pbin = static_cast<int>((v + nhood[1] - min) / (max - min) *
-                                    static_cast<scalar>(n_bins));
+        auto nbin = static_cast<int>((v - nhood[0] - min) / (max - min) *
+                                     static_cast<scalar>(n_bins));
+        auto pbin = static_cast<int>((v + nhood[1] - min) / (max - min) *
+                                     static_cast<scalar>(n_bins));
         dindex min_bin = (nbin >= 0) ? static_cast<dindex>(nbin) : 0u;
         dindex max_bin = (pbin < static_cast<int>(n_bins))
                              ? static_cast<dindex>(pbin)
-                             : static_cast<dindex>(n_bins - 1);
+                             : n_bins - 1;
         return {min_bin, max_bin};
     }
 
@@ -270,8 +270,8 @@ struct circular {
      **/
     DETRAY_HOST_DEVICE
     dindex bin(scalar v) const {
-        int ibin = static_cast<int>((v - min) / (max - min) *
-                                    static_cast<scalar>(n_bins));
+        auto ibin = static_cast<int>((v - min) / (max - min) *
+                                     static_cast<scalar>(n_bins));
         if (ibin >= 0 && ibin < static_cast<int>(n_bins)) {
             return static_cast<dindex>(ibin);
         } else {

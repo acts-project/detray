@@ -40,20 +40,18 @@ template <typename shape_t, typename links_t = std::uint_least16_t,
           typename algebra_t = ALGEBRA_PLUGIN<detray::scalar>>
 class mask {
     public:
+    // Linear algebra types
     using algebra_type = algebra_t;
     using scalar_type = dscalar<algebra_t>;
+    using point2_type = dpoint2D<algebra_t>;
+    using point3_type = dpoint3D<algebra_t>;
+    using vector3_type = dvector3D<algebra_t>;
 
     using links_type = links_t;
     using shape = shape_t;
     using boundaries = typename shape::boundaries;
     using mask_values = typename shape::template bounds_type<scalar_type>;
-    using local_frame_type =
-        typename shape::template local_frame_type<algebra_t>;
-
-    // Linear algebra types
-    using point2_type = dpoint2D<algebra_t>;
-    using point3_type = dpoint3D<algebra_t>;
-    using vector3_type = dvector3D<algebra_t>;
+    using local_frame = typename shape::template local_frame_type<algebra_t>;
 
     /// Default constructor
     constexpr mask() = default;
@@ -98,10 +96,7 @@ class mask {
     /// @param rhs is the mask to be compared
     ///
     /// @returns a boolean if the values and links are equal.
-    DETRAY_HOST_DEVICE
-    bool operator==(const mask<shape_t, links_t, algebra_t>& rhs) const {
-        return (_values == rhs._values && _volume_link == rhs._volume_link);
-    }
+    bool operator==(const mask& rhs) const = default;
 
     /// Subscript operator - non-const
     ///
@@ -122,22 +117,26 @@ class mask {
 
     /// @returns the mask shape
     DETRAY_HOST_DEVICE
-    inline constexpr auto get_shape() const -> const shape& { return _shape; }
+    static consteval auto get_shape() -> shape { return shape{}; }
+
+    /// @returns return local frame object (used in geometrical checks)
+    DETRAY_HOST_DEVICE static consteval local_frame get_local_frame() {
+        return local_frame{};
+    }
 
     /// @returns the global point projected onto the surface
     template <typename transform3D_t>
-    DETRAY_HOST_DEVICE inline auto to_local_frame(
+    DETRAY_HOST_DEVICE inline static auto to_local_frame(
         const transform3D_t& trf, const point3_type& glob_p,
-        const point3_type& glob_dir = {}) const -> point3_type {
-        return local_frame_type{}.global_to_local_3D(trf, glob_p, glob_dir);
+        const point3_type& glob_dir = {}) -> point3_type {
+        return get_local_frame().global_to_local_3D(trf, glob_p, glob_dir);
     }
 
     /// @returns the global point for a local position on the surface
     template <typename transform3D_t>
-    DETRAY_HOST_DEVICE inline auto to_global_frame(const transform3D_t& trf,
-                                                   const point3_type& loc) const
-        -> point3_type {
-        return local_frame_type{}.local_to_global(trf, loc);
+    DETRAY_HOST_DEVICE inline static auto to_global_frame(
+        const transform3D_t& trf, const point3_type& loc) -> point3_type {
+        return get_local_frame().local_to_global(trf, loc);
     }
 
     /// @brief Mask this shape onto a surface.
@@ -159,12 +158,7 @@ class mask {
         const scalar_type t =
             std::numeric_limits<scalar_type>::epsilon()) const {
 
-        return _shape.check_boundaries(_values, loc_p, t);
-    }
-
-    /// @returns return local frame object (used in geometrical checks)
-    DETRAY_HOST_DEVICE inline constexpr local_frame_type local_frame() const {
-        return local_frame_type{};
+        return get_shape().check_boundaries(_values, loc_p, t);
     }
 
     /// @returns the boundary values
@@ -182,24 +176,24 @@ class mask {
     /// @returns the masks measure (area or volume covered by boundary check
     /// on local positions)
     DETRAY_HOST_DEVICE constexpr auto measure() const -> scalar_type {
-        return _shape.measure(_values);
+        return get_shape().measure(_values);
     }
 
     /// @returns the area the mask defines on the local geometry (2D)
     template <typename S = shape_t, std::enable_if_t<S::dim == 2, bool> = true>
     DETRAY_HOST_DEVICE constexpr auto area() const -> scalar_type {
-        return _shape.area(_values);
+        return get_shape().area(_values);
     }
 
     /// @returns the area the mask defines on the local geometry (3D)
     template <typename S = shape_t, std::enable_if_t<S::dim == 3, bool> = true>
     DETRAY_HOST_DEVICE constexpr auto volume() const -> scalar_type {
-        return _shape.volume(_values);
+        return get_shape().volume(_values);
     }
 
     /// @returns the masks centroid in local cartesian coordinates
     DETRAY_HOST_DEVICE auto centroid() const {
-        return _shape.template centroid<algebra_t>(_values);
+        return get_shape().template centroid<algebra_t>(_values);
     }
 
     /// @brief Find the minimum distance to any boundary.
@@ -209,7 +203,7 @@ class mask {
     /// @returns the minimum distance.
     DETRAY_HOST_DEVICE
     auto min_dist_to_boundary(const point3_type& loc_p) const -> scalar_type {
-        return _shape.min_dist_to_boundary(_values, loc_p);
+        return get_shape().min_dist_to_boundary(_values, loc_p);
     }
 
     /// @brief Lower and upper point for minimum axis aligned bounding box.
@@ -224,7 +218,7 @@ class mask {
                               std::numeric_limits<scalar_type>::epsilon()) const
         -> mask<cuboid3D, unsigned int> {
         const auto bounds =
-            _shape.template local_min_bounds<algebra_t>(_values, env);
+            get_shape().template local_min_bounds<algebra_t>(_values, env);
         static_assert(bounds.size() == cuboid3D::e_size,
                       "Shape returns incompatible bounds for bound box");
         return {bounds, std::numeric_limits<unsigned int>::max()};
@@ -239,14 +233,14 @@ class mask {
     /// @returns a vector of vertices.
     DETRAY_HOST
     auto vertices(const dindex n_seg) const -> dvector<point3_type> {
-        return _shape.template vertices<algebra_t>(_values, n_seg);
+        return get_shape().template vertices<algebra_t>(_values, n_seg);
     }
 
     /// @returns true if the mask boundary values are consistent
     DETRAY_HOST
     constexpr bool self_check(std::ostream& os) const {
 
-        const bool result = _shape.check_consistency(_values, os);
+        const bool result = get_shape().check_consistency(_values, os);
 
         if (!result) {
             os << to_string();
@@ -274,7 +268,6 @@ class mask {
     }
 
     private:
-    shape _shape{};
     mask_values _values{};
     links_type _volume_link{std::numeric_limits<links_type>::max()};
 };

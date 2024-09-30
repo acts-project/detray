@@ -1,7 +1,7 @@
 
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -17,6 +17,7 @@
 // System include(s)
 #include <cstdint>
 #include <ostream>
+#include <utility>
 
 namespace detray::geometry {
 
@@ -93,8 +94,9 @@ class barcode {
     /// Set the surface id.
     DETRAY_HOST_DEVICE
     constexpr barcode& set_id(surface_id id) {
-        encoder::template set_bits<k_id_mask>(m_value,
-                                              static_cast<value_t>(id));
+        encoder::template set_bits<k_id_mask>(
+            m_value, static_cast<value_t>(
+                         static_cast<std::underlying_type_t<surface_id>>(id)));
         return *this;
     }
 
@@ -128,6 +130,23 @@ class barcode {
             m_value);
     }
 
+    bool operator==(const barcode& rhs) const = default;
+
+    /// Comparison operators
+    DETRAY_HOST_DEVICE
+    friend constexpr auto operator<=>(const barcode lhs,
+                                      const barcode rhs) noexcept {
+        const auto l{lhs.index()};
+        const auto r{rhs.index()};
+        if (l < r || (l == r && l < r)) {
+            return std::strong_ordering::less;
+        }
+        if (l > r || (l == r && l > r)) {
+            return std::strong_ordering::greater;
+        }
+        return std::strong_ordering::equivalent;
+    }
+
     private:
     // clang-format off
     static constexpr value_t k_volume_mask    = 0xfff0000000000000; // (2^12)-1 = 4095 volumes
@@ -145,31 +164,16 @@ class barcode {
     /// The encoded value. Default: All bits set to 1 (invalid)
     value_t m_value{~static_cast<value_t>(0)};
 
-    DETRAY_HOST_DEVICE
-    friend constexpr bool operator==(barcode lhs, barcode rhs) noexcept {
-        return lhs.m_value == rhs.m_value;
-    }
-
-    DETRAY_HOST_DEVICE
-    friend constexpr bool operator!=(barcode lhs, barcode rhs) noexcept {
-        return lhs.m_value != rhs.m_value;
-    }
-
-    DETRAY_HOST_DEVICE
-    friend constexpr bool operator<(barcode lhs, barcode rhs) noexcept {
-        return lhs.m_value < rhs.m_value;
-    }
-
     DETRAY_HOST
     friend std::ostream& operator<<(std::ostream& os, const barcode c) {
         if (c.is_invalid()) {
             os << "INVALID: ";
         }
 
-        static const char* const names[] = {
+        constexpr std::array names{
             "vol = ", "id = ", "index = ", "trf = ", "extra = "};
-        const dindex levels[] = {c.volume(), static_cast<dindex>(c.id()),
-                                 c.index(), c.transform(), c.extra()};
+        const std::array levels{c.volume(), static_cast<dindex>(c.id()),
+                                c.index(), c.transform(), c.extra()};
 
         bool writeSeparator = false;
         for (auto i = 0u; i < 4u; ++i) {

@@ -94,7 +94,8 @@ class subrange : public detray::ranges::view_interface<subrange<range_t>> {
 
     private:
     /// Start and end position of the subrange
-    iterator_t m_begin, m_end;
+    iterator_t m_begin;
+    iterator_t m_end;
 };
 
 template <

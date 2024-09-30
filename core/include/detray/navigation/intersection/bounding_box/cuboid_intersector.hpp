@@ -58,14 +58,10 @@ struct cuboid_intersector {
         const vector3_type max{box[boundaries::e_max_x],
                                box[boundaries::e_max_y],
                                box[boundaries::e_max_z]};
-        /// @TODO: Try to avoid copies ?
-        // const auto* min = new (box.values().data()) point3_type ();
-        // const auto* max = new (box.values().data() + 3) point3_type ();
-
         // Find tmin and tmax, which define the segment of the ray that
         // intersects the box
-        vector3_type t1 = (min - ro) /* * inv_dir*/;
-        vector3_type t2 = (max - ro) /* * inv_dir*/;
+        vector3_type t1 = (min - ro);
+        vector3_type t2 = (max - ro);
 
         /// @TODO: add operator* for two vectors in algebra-plugins
         for (unsigned int i{0u}; i < 3u; ++i) {
@@ -74,7 +70,8 @@ struct cuboid_intersector {
         }
 
         const bool t_comp = t1[0] > t2[0];
-        scalar_type tmin{t_comp ? t2[0] : t1[0]}, tmax{t_comp ? t1[0] : t2[0]};
+        scalar_type tmin{t_comp ? t2[0] : t1[0]};
+        scalar_type tmax{t_comp ? t1[0] : t2[0]};
 
         for (unsigned int i{0u}; i < 2u; ++i) {
             if (t1[i] > t2[i]) {

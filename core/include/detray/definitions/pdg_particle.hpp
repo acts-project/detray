@@ -23,12 +23,10 @@ struct pdg_particle {
     template <typename T>
     DETRAY_HOST_DEVICE constexpr pdg_particle(const std::int32_t pdg_num,
                                               const T mass, const T charge)
-        : m_pdg_num(pdg_num), m_mass(mass), m_charge(charge) {
-        m_mass = static_cast<scalar_t>(mass);
-        m_charge = static_cast<scalar_t>(charge);
-    }
+        : m_pdg_num(pdg_num),
+          m_mass(static_cast<scalar_t>(mass)),
+          m_charge(static_cast<scalar_t>(charge)) {}
 
-    public:
     DETRAY_HOST_DEVICE
     std::int32_t pdg_num() const { return m_pdg_num; }
 

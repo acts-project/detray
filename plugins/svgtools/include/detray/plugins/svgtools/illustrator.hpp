@@ -233,7 +233,7 @@ class illustrator {
                     "Encountered surface of unknown type.");
                 break;
             }
-        };
+        }
 
         auto p_material = svgtools::conversion::surface_material(
             _detector, surface, view, *mat_style);

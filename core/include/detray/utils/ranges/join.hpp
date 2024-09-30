@@ -94,7 +94,8 @@ struct join_view : public detray::ranges::view_interface<join_view<range_t>> {
     }
 
     /// Start and end position of the subranges
-    outer_iterator_t m_begin{}, m_end{};
+    outer_iterator_t m_begin{};
+    outer_iterator_t m_end{};
 };
 
 namespace views {
@@ -214,72 +215,6 @@ struct join_iterator {
     DETRAY_HOST_DEVICE
     constexpr decltype(auto) operator*() const { return *m_inner_itr; }
 
-    /// @returns an iterator advanced by @param j through the join.
-    template <typename I = iterator_t,
-              std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
-                               bool> = true>
-    DETRAY_HOST_DEVICE constexpr auto operator+(const difference_type j) const
-        -> join_iterator {
-        join_iterator<range_t> tmp(*this);
-        // walk through join to catch the switch between intermediate ranges
-        difference_type i{j};
-        if (i >= difference_type{0}) {
-            while (i--) {
-                ++tmp;
-            };
-        } else {
-            while (i++) {
-                --tmp;
-            };
-        }
-        return tmp;
-    }
-
-    /// @returns an iterator advanced by @param j through the join.
-    template <typename I = iterator_t,
-              std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
-                               bool> = true>
-    DETRAY_HOST_DEVICE constexpr auto operator-(const difference_type j) const
-        -> join_iterator {
-        return *this + (-j);
-    }
-
-    /// @returns the positional difference between two iterators
-    template <typename I = iterator_t,
-              std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
-                               bool> = true>
-    DETRAY_HOST_DEVICE constexpr auto operator-(
-        const join_iterator &other) const -> difference_type {
-        outer_iterator_t tmp_outer_itr;
-        if (tmp_outer_itr == other.m_outer_itr) {
-            return m_inner_itr - other.m_inner_itr;
-        }
-        if ((tmp_outer_itr - other.m_outer_itr) < 0) {
-            // Negative distance
-            difference_type diff{m_inner_itr -
-                                 detray::ranges::end(*m_outer_itr)};
-            for (tmp_outer_itr + 1; tmp_outer_itr != other.m_outer_itr;
-                 ++tmp_outer_itr) {
-                diff += detray::ranges::end(*tmp_outer_itr) -
-                        detray::ranges::begin(*tmp_outer_itr);
-            }
-            diff += other.m_inner_itr - detray::ranges::end(*other.m_outer_itr);
-            return diff;
-        } else {
-            // Positive distance
-            difference_type diff{m_inner_itr -
-                                 detray::ranges::begin(*tmp_outer_itr)};
-            for (tmp_outer_itr - 1; tmp_outer_itr != other.m_outer_itr;
-                 --tmp_outer_itr) {
-                diff += detray::ranges::end(*tmp_outer_itr) -
-                        detray::ranges::begin(*tmp_outer_itr);
-            }
-            diff +=
-                other.m_inner_itr - detray::ranges::begin(*other.m_outer_itr);
-            return diff;
-        }
-    }
-
     /// @returns advance this iterator state by @param j.
     template <typename I = iterator_t,
               std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
@@ -287,15 +222,14 @@ struct join_iterator {
     DETRAY_HOST_DEVICE constexpr auto operator+=(const difference_type j)
         -> join_iterator & {
         // walk through join to catch the switch between intermediate ranges
-        difference_type i{j};
-        if (i >= difference_type{0}) {
+        if (difference_type i{j}; i >= difference_type{0}) {
             while (i--) {
                 ++(*this);
-            };
+            }
         } else {
             while (i++) {
                 --(*this);
-            };
+            }
         }
         return *this;
     }
@@ -332,6 +266,76 @@ struct join_iterator {
     }
 
     private:
+    /// @returns an iterator advanced by @param j through the join.
+    template <typename I = iterator_t,
+              std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
+                               bool> = true>
+    DETRAY_HOST_DEVICE friend constexpr auto operator+(const join_iterator &itr,
+                                                       const difference_type j)
+        -> join_iterator {
+        join_iterator<range_t> tmp(itr);
+        // walk through join to catch the switch between intermediate ranges
+        if (difference_type i{j}; i >= difference_type{0}) {
+            while (i--) {
+                ++tmp;
+            }
+        } else {
+            while (i++) {
+                --tmp;
+            }
+        }
+        return tmp;
+    }
+
+    /// @returns an iterator advanced by @param j through the join.
+    template <typename I = iterator_t,
+              std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
+                               bool> = true>
+    DETRAY_HOST_DEVICE friend constexpr auto operator-(const join_iterator &itr,
+                                                       const difference_type j)
+        -> join_iterator {
+        return itr + (-j);
+    }
+
+    /// @returns the positional difference between two iterators
+    template <typename I = iterator_t,
+              std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
+                               bool> = true>
+    DETRAY_HOST_DEVICE friend constexpr auto operator-(
+        const join_iterator &left, const join_iterator &right)
+        -> difference_type {
+        const join_iterator lhs{left};
+        const join_iterator rhs{right};
+        outer_iterator_t tmp_outer_itr;
+
+        if (tmp_outer_itr == rhs.m_outer_itr) {
+            return lhs.m_inner_itr - rhs.m_inner_itr;
+        }
+        if ((tmp_outer_itr - rhs.m_outer_itr) < 0) {
+            // Negative distance
+            difference_type diff{lhs.m_inner_itr -
+                                 detray::ranges::end(*lhs.m_outer_itr)};
+            for (tmp_outer_itr + 1; tmp_outer_itr != rhs.m_outer_itr;
+                 ++tmp_outer_itr) {
+                diff += detray::ranges::end(*tmp_outer_itr) -
+                        detray::ranges::begin(*tmp_outer_itr);
+            }
+            diff += rhs.m_inner_itr - detray::ranges::end(*rhs.m_outer_itr);
+            return diff;
+        } else {
+            // Positive distance
+            difference_type diff{lhs.m_inner_itr -
+                                 detray::ranges::begin(*tmp_outer_itr)};
+            for (tmp_outer_itr - 1; tmp_outer_itr != rhs.m_outer_itr;
+                 --tmp_outer_itr) {
+                diff += detray::ranges::end(*tmp_outer_itr) -
+                        detray::ranges::begin(*tmp_outer_itr);
+            }
+            diff += rhs.m_inner_itr - detray::ranges::begin(*rhs.m_outer_itr);
+            return diff;
+        }
+    }
+
     /// Find the first inner range that is not empty
     constexpr void next_inner() {
         if (m_outer_itr == m_outer_end) {
@@ -370,7 +374,8 @@ struct join_iterator {
     }
 
     /// Global range collection begin and end (outer iterators)
-    outer_iterator_t m_outer_begin{}, m_outer_end{};
+    outer_iterator_t m_outer_begin{};
+    outer_iterator_t m_outer_end{};
     /// Current range
     outer_iterator_t m_outer_itr{};
     /// Current iterators over the inner ranges

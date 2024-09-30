@@ -79,7 +79,8 @@ struct center_of_gravity_generic {
         }
         cgs = 1.f / static_cast<scalar>(surface_contour.size()) * cgs;
 
-        std::size_t i, j = 0u;
+        std::size_t i = 0u;
+        std::size_t j = 0u;
         std::size_t num_points = bin_contour.size();
 
         bool inside = false;
@@ -112,7 +113,7 @@ struct edges_intersect_generic {
                     const std::vector<point2_t> &surface_contour) {
 
         auto intersect = [](const point2_t &pi, const point2_t &pj,
-                            const point2_t &pk, const point2_t &pl) -> bool {
+                            const point2_t &pk, const point2_t &pl) {
             scalar d = (pj[0] - pi[0]) * (pl[1] - pk[1]) -
                        (pj[1] - pi[1]) * (pl[0] - pk[0]);
 

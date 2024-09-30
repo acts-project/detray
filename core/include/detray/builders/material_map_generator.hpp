@@ -123,7 +123,7 @@ struct material_map_config {
     bool has_config(mask_id_t map_type, surface_id sf_type) const {
         const auto key =
             std::make_pair(static_cast<unsigned int>(map_type), sf_type);
-        return (m_map_configs.find(key) != m_map_configs.end());
+        return m_map_configs.contains(key);
     }
     template <typename mask_id_t>
     const auto &get_map_config(mask_id_t map_type, surface_id sf_type) const {

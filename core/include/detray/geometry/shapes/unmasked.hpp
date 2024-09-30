@@ -156,7 +156,8 @@ class unmasked {
     /// @return true if the bounds are consistent.
     template <typename scalar_t>
     DETRAY_HOST constexpr bool check_consistency(
-        const bounds_type<scalar_t>& /*bounds*/, std::ostream& /*os*/) const {
+        const bounds_type<scalar_t>& /*bounds*/,
+        const std::ostream& /*os*/) const {
         return true;
     }
 };

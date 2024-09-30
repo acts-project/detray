@@ -26,11 +26,11 @@ struct relativistic_quantities {
 
     // values from RPP2018 table 33.1
     // Bethe formular prefactor. 1/mol unit is just a factor 1 here.
-    static constexpr scalar_type K{
-        0.307075f * (unit<scalar_type>::MeV * unit<scalar_type>::cm2)};
+    static constexpr auto K{static_cast<scalar_type>(
+        0.307075 * unit<double>::MeV * unit<double>::cm2)};
     // Energy scale for plasma energy.
-    static constexpr scalar_type PlasmaEnergyScale{28.816f *
-                                                   unit<scalar_type>::eV};
+    static constexpr auto PlasmaEnergyScale{
+        static_cast<scalar_type>(28.816 * unit<double>::eV)};
 
     scalar_type m_qOverP{0.f};
     scalar_type m_q2OverBeta2{0.f};
@@ -49,14 +49,15 @@ struct relativistic_quantities {
 
     DETRAY_HOST_DEVICE relativistic_quantities(const scalar_type mass,
                                                const scalar_type qOverP,
-                                               const scalar_type q) {
-        assert(qOverP != 0.f);
+                                               const scalar_type q)
+        : m_qOverP{qOverP},
+          // beta²/q² = (p/E)²/q² = p²/(q²m² + q²p²) = 1/(q² + (m²(q/p)²)
+          // q²/beta² = q² + m²(q/p)²
+          m_q2OverBeta2{q * q + (mass * qOverP) * (mass * qOverP)} {
+
+        assert(m_qOverP != 0.f);
         assert(mass != 0.f);
 
-        m_qOverP = qOverP;
-        // beta²/q² = (p/E)²/q² = p²/(q²m² + q²p²) = 1/(q² + (m²(q/p)²)
-        // q²/beta² = q² + m²(q/p)²
-        m_q2OverBeta2 = q * q + (mass * qOverP) * (mass * qOverP);
         // 1/p = q/(qp) = (q/p)/q
         const scalar_type mOverP{
             mass * ((q == 0.f) ? math::fabs(qOverP / q) : math::fabs(qOverP))};
@@ -81,21 +82,21 @@ struct relativistic_quantities {
     }
 
     /// @return 2 * mass * (beta * gamma)² mass term.
-    DETRAY_HOST_DEVICE inline constexpr scalar_type compute_mass_term(
+    DETRAY_HOST_DEVICE constexpr scalar_type compute_mass_term(
         const scalar_type mass) const {
         return 2.f * mass * m_betaGamma * m_betaGamma;
     }
 
     /// @return [(K/2) * (Z/A) * z^2 / beta^2 * density] in [energy/length]
     /// @brief defined in 34.12 of 2023 PDG review
-    DETRAY_HOST_DEVICE inline constexpr scalar_type compute_epsilon_per_length(
+    DETRAY_HOST_DEVICE constexpr scalar_type compute_epsilon_per_length(
         const material<scalar_type>& mat) const {
         return 0.5f * K * mat.molar_electron_density() * m_q2OverBeta2;
     }
 
     /// @return  (K/2) * (Z/A) * z^2 / beta^2 * density * path_length
     /// @brief defined in 34.12 of 2023 PDG review
-    DETRAY_HOST_DEVICE inline constexpr scalar_type compute_epsilon(
+    DETRAY_HOST_DEVICE constexpr scalar_type compute_epsilon(
         const material<scalar_type>& mat, const scalar_type path_length) const {
         return compute_epsilon_per_length(mat) * path_length;
     }
@@ -119,7 +120,8 @@ struct relativistic_quantities {
     DETRAY_HOST_DEVICE scalar_type derive_bethe_bloch_log_term() const {
         assert(m_gamma != 0.f);
         assert(m_E != 0.f);
-        const scalar_type dAdqop = -1 / (2 * m_qOverP) * (4 - m_Wmax / (m_E));
+        const scalar_type dAdqop =
+            -1.f / (2.f * m_qOverP) * (4.f - m_Wmax / m_E);
         return dAdqop;
     }
 
@@ -218,7 +220,7 @@ struct relativistic_quantities {
                 if (x < x1den) {
                     delta += aden * mden /
                              (m_qOverP * constant<scalar_type>::ln10) *
-                             math::pow(x1den - x, mden - 1);
+                             math::pow(x1den - x, mden - 1.f);
                 }
             }
 

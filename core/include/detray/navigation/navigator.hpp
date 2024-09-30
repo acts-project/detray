@@ -56,12 +56,13 @@ struct void_inspector {
     constexpr void_inspector() = default;
 
     DETRAY_HOST_DEVICE
-    constexpr void_inspector(void_view & /*ignored*/) { /*Do nothing*/
+    constexpr explicit void_inspector(
+        const void_view & /*ignored*/) { /*Do nothing*/
     }
 
     template <typename state_t>
-    DETRAY_HOST_DEVICE constexpr void operator()(const state_t & /*ignored*/,
-                                                 const char * /*ignored*/) {
+    DETRAY_HOST_DEVICE constexpr void operator()(
+        const state_t & /*ignored*/, const char * /*ignored*/) const {
         /*Do nothing*/
     }
 };
@@ -439,8 +440,8 @@ class navigator {
 
         /// Insert a new element @param new_cadidate before position @param pos
         DETRAY_HOST_DEVICE
-        inline constexpr void insert(candidate_itr_t pos,
-                                     const intersection_type &new_cadidate) {
+        constexpr void insert(candidate_itr_t pos,
+                              const intersection_type &new_cadidate) {
 
             // Candidate is too far away to be placed in cache
             if (pos == m_candidates.end()) {
