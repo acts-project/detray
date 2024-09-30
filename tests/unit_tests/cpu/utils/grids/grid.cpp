@@ -26,6 +26,7 @@
 // System include(s)
 #include <algorithm>
 #include <limits>
+#include <random>
 
 using namespace detray;
 using namespace detray::axis;
@@ -97,8 +98,9 @@ GTEST_TEST(detray_grid, single_grid) {
     // bin test entries
     grid_owning_t::bin_container_type bin_data{};
     bin_data.resize(40'000u);
-    std::generate_n(bin_data.begin(), 40'000u,
-                    bin_content_sequence<replace<>, bins::single<scalar>>());
+    std::ranges::generate_n(
+        bin_data.begin(), 40'000u,
+        bin_content_sequence<replace<>, bins::single<scalar>>());
 
     // Copy data that will be moved into the data owning types
     dvector<scalar> bin_edges_cp(bin_edges);
@@ -310,8 +312,9 @@ GTEST_TEST(detray_grid, bin_view) {
     // bin test entries
     grid_t::bin_container_type bin_data{};
     bin_data.resize(40'000u);
-    std::generate_n(bin_data.begin(), 40'000u,
-                    bin_content_sequence<replace<>, bins::single<scalar>>());
+    std::ranges::generate_n(
+        bin_data.begin(), 40'000u,
+        bin_content_sequence<replace<>, bins::single<scalar>>());
 
     // Copy data that will be moved into the data owning types
     dvector<scalar> bin_edges_cp(bin_edges);
@@ -344,16 +347,16 @@ GTEST_TEST(detray_grid, bin_view) {
 
     for (auto bin : bview1) {
         for (auto entry : bin) {
-            EXPECT_EQ(entry, *(grid_3D.bin(0))) << "bin entry: " << entry;
+            EXPECT_EQ(entry, grid_3D.bin(0).value()) << "bin entry: " << entry;
         }
     }
 
     for (scalar entry : joined_view1) {
-        EXPECT_EQ(entry, *(grid_3D.bin(0))) << "bin entry: " << entry;
+        EXPECT_EQ(entry, grid_3D.bin(0).value()) << "bin entry: " << entry;
     }
 
     for (scalar entry : grid_search1) {
-        EXPECT_EQ(entry, *(grid_3D.bin(0))) << "bin entry: " << entry;
+        EXPECT_EQ(entry, grid_3D.bin(0).value()) << "bin entry: " << entry;
     }
 
     //

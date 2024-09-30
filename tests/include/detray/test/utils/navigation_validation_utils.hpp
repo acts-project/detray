@@ -197,9 +197,9 @@ auto compare_traces(truth_trace_t &truth_trace,
             if (is_swapped_portals(i)) {
                 // Have already checked the next record
                 ++i;
-            } else if (auto last_missed_tr = std::find_if(
-                           std::begin(truth_trace) + i, std::end(truth_trace),
-                           is_matched_truth);
+            } else if (auto last_missed_tr = std::ranges::find_if(
+                           std::ranges::begin(truth_trace) + i,
+                           std::ranges::end(truth_trace), is_matched_truth);
                        last_missed_tr != std::end(truth_trace)) {
 
                 // The navigator missed a(multiple) surface(s)
@@ -235,9 +235,9 @@ auto compare_traces(truth_trace_t &truth_trace,
                 // Continue checking where trace might match again
                 i += (n - 1);
 
-            } else if (auto last_missed_nav = std::find_if(
-                           std::begin(recorded_trace) + i,
-                           std::end(recorded_trace), is_matched_nav);
+            } else if (auto last_missed_nav = std::ranges::find_if(
+                           std::ranges::begin(recorded_trace) + i,
+                           std::ranges::end(recorded_trace), is_matched_nav);
                        last_missed_nav != std::end(recorded_trace)) {
                 // The detector scanner missed a(multiple) surface(s)
                 auto first_missed = std::begin(recorded_trace) + i;

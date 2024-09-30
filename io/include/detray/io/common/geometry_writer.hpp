@@ -95,8 +95,7 @@ class geometry_writer {
             detail::basic_converter::convert(m.volume_link());
 
         mask_data.boundaries.resize(mask_t::boundaries::e_size);
-        std::copy(std::cbegin(m.values()), std::cend(m.values()),
-                  std::begin(mask_data.boundaries));
+        std::ranges::copy(m.values(), std::begin(mask_data.boundaries));
 
         return mask_data;
     }

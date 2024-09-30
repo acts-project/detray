@@ -60,7 +60,7 @@ GTEST_TEST(detray_grid, grid_collection) {
     // Build test data
     grid_t::bin_container_type bin_data{};
     bin_data.resize(197u);
-    std::generate_n(
+    std::ranges::generate_n(
         bin_data.begin(), 197u,
         bin_content_sequence<attach<>, typename grid_t::bin_type>());
     dvector<dindex> grid_offsets = {0u, 48u, 72u};

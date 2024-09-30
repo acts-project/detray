@@ -71,8 +71,7 @@ class grid_writer {
             convert(gr.axes());
 
         grid_data.axes.resize(axes_data.size());
-        std::copy(std::cbegin(axes_data), std::cend(axes_data),
-                  std::begin(grid_data.axes));
+        std::ranges::copy(axes_data, std::begin(grid_data.axes));
 
         // Write the surface indices
         for (unsigned int gid = 0u; gid < gr.nbins(); ++gid) {
@@ -113,8 +112,7 @@ class grid_writer {
         } else {
             const auto& bin_edges = axis.bin_edges();
             axis_data.edges.resize(bin_edges.size());
-            std::copy(std::cbegin(bin_edges), std::cend(bin_edges),
-                      std::begin(axis_data.edges));
+            std::ranges::copy(bin_edges, std::begin(axis_data.edges));
         }
 
         return axis_data;

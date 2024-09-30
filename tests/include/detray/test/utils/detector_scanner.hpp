@@ -158,8 +158,7 @@ inline auto run(const typename detector_t::geometry_context gctx,
     auto sort_path = [&](const record_t &a, const record_t &b) -> bool {
         return (a.intersection < b.intersection);
     };
-    std::stable_sort(intersection_record.begin(), intersection_record.end(),
-                     sort_path);
+    std::ranges::stable_sort(intersection_record, sort_path);
 
     // Make sure the intersection record terminates at world portals
     auto is_world_exit = [](const record_t &r) {
@@ -168,8 +167,7 @@ inline auto run(const typename detector_t::geometry_context gctx,
                    r.intersection.volume_link)>();
     };
 
-    if (auto it = std::find_if(intersection_record.begin(),
-                               intersection_record.end(), is_world_exit);
+    if (auto it = std::ranges::find_if(intersection_record, is_world_exit);
         it != intersection_record.end()) {
         auto n{static_cast<std::size_t>(it - intersection_record.begin())};
         intersection_record.resize(n + 1u);

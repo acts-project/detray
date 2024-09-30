@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <memory>
 
 namespace detray {
 
@@ -61,9 +62,10 @@ class uniform_track_generator
         constexpr iterator() = default;
 
         DETRAY_HOST_DEVICE
-        constexpr iterator(generator_t& rand_gen, configuration cfg,
-                           std::size_t iph = 1u, std::size_t ith = 0u)
-            : m_rnd_numbers{rand_gen},
+        constexpr iterator(std::shared_ptr<generator_t> rand_gen,
+                           configuration cfg, std::size_t iph = 1u,
+                           std::size_t ith = 0u)
+            : m_rnd_numbers{std::move(rand_gen)},
               m_cfg{cfg},
               m_phi_step_size{(cfg.phi_range()[1] - cfg.phi_range()[0]) /
                               static_cast<scalar>(cfg.phi_steps())},
@@ -126,9 +128,21 @@ class uniform_track_generator
             return *this;
         }
 
+        /// @returns the generator at its next position (postfix)
+        DETRAY_HOST_DEVICE
+        constexpr auto operator++(int) -> iterator& {
+            auto tmp(*this);
+            ++(*this);
+            return tmp;
+        }
+
         /// @returns a track instance from generated momentum direction
         DETRAY_HOST_DEVICE
         track_t operator*() const {
+
+            if (!m_rnd_numbers) {
+                throw std::invalid_argument("Invalid random number generator");
+            }
 
             scalar sin_theta{math::sin(m_theta)};
 
@@ -148,7 +162,7 @@ class uniform_track_generator
             // Randomly flip the charge sign
             std::array<double, 2> signs{1., -1.};
             const auto sign{static_cast<scalar>(
-                signs[m_cfg.randomize_charge() ? m_rnd_numbers.coin_toss()
+                signs[m_cfg.randomize_charge() ? m_rnd_numbers->coin_toss()
                                                : 0u])};
 
             return track_t{{ori[0], ori[1], ori[2]},
@@ -158,7 +172,7 @@ class uniform_track_generator
         }
 
         /// Random number generator
-        generator_t& m_rnd_numbers;
+        std::shared_ptr<generator_t> m_rnd_numbers;
 
         /// Current configuration
         configuration m_cfg{};
@@ -184,7 +198,8 @@ class uniform_track_generator
         }
     };
 
-    generator_t m_gen;
+    std::shared_ptr<generator_t> m_gen{
+        std::make_shared<generator_t>(configuration{}.seed())};
     configuration m_cfg{};
 
     public:
@@ -196,7 +211,7 @@ class uniform_track_generator
     /// Construct from external configuration @param cfg
     DETRAY_HOST_DEVICE
     explicit constexpr uniform_track_generator(configuration cfg)
-        : m_gen{generator_t(cfg.seed())}, m_cfg{cfg} {}
+        : m_gen{std::make_shared<generator_t>(cfg.seed())}, m_cfg{cfg} {}
 
     /// Paramtetrized constructor for quick construction of simple tasks
     ///
@@ -212,7 +227,7 @@ class uniform_track_generator
                             scalar p_mag = 1.f * unit<scalar>::GeV,
                             bool uniform_eta = false,
                             scalar charge = -1.f * unit<scalar>::e)
-        : m_gen{}, m_cfg{} {
+        : m_gen{std::make_shared<generator_t>()}, m_cfg{} {
         m_cfg.phi_steps(n_phi).theta_steps(n_theta);
         m_cfg.uniform_eta(uniform_eta);
         m_cfg.p_tot(p_mag);
@@ -229,7 +244,7 @@ class uniform_track_generator
     constexpr uniform_track_generator& operator=(
         const uniform_track_generator& other) {
         m_cfg = other.m_cfg;
-        m_gen = std::move(other.m_gen);
+        m_gen = other.m_gen;
         return *this;
     }
 

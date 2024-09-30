@@ -125,12 +125,9 @@ TEST(container_cuda, tuple_container) {
 
     vecmem::vector<double> new_data{10.5, 7.6, 14.5};
     auto& data_coll = detail::get<1>(mng_tcont);
-    std::copy(new_data.begin(), new_data.end(), std::back_inserter(data_coll));
-
-    std::copy(mng_tcont.get<0>().begin(), mng_tcont.get<0>().end(),
-              std::back_inserter(tcont.get<0>()));
-    std::copy(mng_tcont.get<1>().begin(), mng_tcont.get<1>().end(),
-              std::back_inserter(tcont.get<1>()));
+    std::ranges::copy(new_data, std::back_inserter(data_coll));
+    std::ranges::copy(mng_tcont.get<0>(), std::back_inserter(tcont.get<0>()));
+    std::ranges::copy(mng_tcont.get<1>(), std::back_inserter(tcont.get<1>()));
 
     EXPECT_EQ(mng_tcont.get<0>().size(), 1u);
     EXPECT_EQ(mng_tcont.get<1>().size(), 5u);
@@ -272,8 +269,7 @@ TEST(container_cuda, multi_store) {
     mng_store.get<1>().first = vecmem::vector<int>{2, 3};
     mng_store.get<1>().second = vecmem::vector<double>{18., 42.6};
 
-    std::copy(mng_store.get<0>().begin(), mng_store.get<0>().end(),
-              std::back_inserter(store.get<0>()));
+    std::ranges::copy(mng_store.get<0>(), std::back_inserter(store.get<0>()));
     store.get<1>() = mng_store.get<1>();
 
     EXPECT_EQ(mng_store.size<0>(), 2u);

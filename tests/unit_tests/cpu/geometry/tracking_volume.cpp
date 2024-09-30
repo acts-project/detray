@@ -16,6 +16,9 @@
 // GTest include(s)
 #include <gtest/gtest.h>
 
+// System include(s)
+#include <algorithm>
+
 // TODO: Move these into the test defs
 namespace {
 
@@ -104,7 +107,7 @@ GTEST_TEST(detray_geometry, tracking_volume) {
         sf_indices.push_back(sf.index());
     }
     auto seq = detray::views::iota(372u, 600u);
-    EXPECT_TRUE(std::equal(sf_indices.begin(), sf_indices.end(), seq.begin()));
+    EXPECT_TRUE(std::ranges::equal(sf_indices, seq));
 
     // Access to portals
     sf_indices.clear();
@@ -112,7 +115,7 @@ GTEST_TEST(detray_geometry, tracking_volume) {
         sf_indices.push_back(pt.index());
     }
     seq = detray::views::iota(596u, 600u);
-    EXPECT_TRUE(std::equal(sf_indices.begin(), sf_indices.end(), seq.begin()));
+    EXPECT_TRUE(std::ranges::equal(sf_indices, seq));
 
     // Access to sensitive surfaces
     sf_indices.clear();
@@ -120,7 +123,7 @@ GTEST_TEST(detray_geometry, tracking_volume) {
         sf_indices.push_back(sens.index());
     }
     seq = detray::views::iota(372u, 596u);
-    EXPECT_TRUE(std::equal(sf_indices.begin(), sf_indices.end(), seq.begin()));
+    EXPECT_TRUE(std::ranges::equal(sf_indices, seq));
     //
     // Volume 5 is negative endcap layer with sensitive surfaces
     //
@@ -141,7 +144,7 @@ GTEST_TEST(detray_geometry, tracking_volume) {
         sf_indices.push_back(sf.index());
     }
     seq = detray::views::iota(256u, 368u);
-    EXPECT_TRUE(std::equal(sf_indices.begin(), sf_indices.end(), seq.begin()));
+    EXPECT_TRUE(std::ranges::equal(sf_indices, seq));
 
     // Access to portals
     sf_indices.clear();
@@ -149,7 +152,7 @@ GTEST_TEST(detray_geometry, tracking_volume) {
         sf_indices.push_back(pt.index());
     }
     seq = detray::views::iota(364u, 368u);
-    EXPECT_TRUE(std::equal(sf_indices.begin(), sf_indices.end(), seq.begin()));
+    EXPECT_TRUE(std::ranges::equal(sf_indices, seq));
 
     // Access to sensitive surfaces
     sf_indices.clear();
@@ -157,7 +160,7 @@ GTEST_TEST(detray_geometry, tracking_volume) {
         sf_indices.push_back(sens.index());
     }
     seq = detray::views::iota(256u, 364u);
-    EXPECT_TRUE(std::equal(sf_indices.begin(), sf_indices.end(), seq.begin()));
+    EXPECT_TRUE(std::ranges::equal(sf_indices, seq));
 
     //
     // Volume 17 is the positive connector gap
@@ -179,14 +182,14 @@ GTEST_TEST(detray_geometry, tracking_volume) {
         sf_indices.push_back(sf.index());
     }
     seq = detray::views::iota(3012u, 3024u);
-    EXPECT_TRUE(std::equal(sf_indices.begin(), sf_indices.end(), seq.begin()));
+    EXPECT_TRUE(std::ranges::equal(sf_indices, seq));
 
     // Access to portals
     sf_indices.clear();
     for (const auto& pt : vol17.portals()) {
         sf_indices.push_back(pt.index());
     }
-    EXPECT_TRUE(std::equal(sf_indices.begin(), sf_indices.end(), seq.begin()));
+    EXPECT_TRUE(std::ranges::equal(sf_indices, seq));
 
     // Access to sensitive surfaces: None in gap volume
     sf_indices.clear();

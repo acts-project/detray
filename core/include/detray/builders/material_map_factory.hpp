@@ -164,8 +164,8 @@ class material_map_factory final : public factory_decorator<detector_t> {
             // Copy the number of bins to the builder
             assert(m_n_bins.at(sf_idx).size() == N);
             n_bins[sf_idx] = {};
-            std::copy_n(m_n_bins.at(sf_idx).begin(), N,
-                        n_bins.at(sf_idx).begin());
+            std::ranges::copy_n(m_n_bins.at(sf_idx).begin(), N,
+                                n_bins.at(sf_idx).begin());
 
             // Copy the axis spans to the builder (if present)
             axis_spans[sf_idx] = std::array<std::vector<scalar_type>, N>{};

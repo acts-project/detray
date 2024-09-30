@@ -48,11 +48,13 @@ class single_view
 
     /// @return the single value
     DETRAY_HOST_DEVICE
-    constexpr auto operator*() const -> const value_t& { return m_value; }
+    constexpr auto value() const -> value_t { return m_value; }
 
     /// @return the single value
     DETRAY_HOST_DEVICE
-    constexpr auto operator*() -> value_t& { return m_value; }
+    constexpr auto ref() const -> const value_t& { return m_value; }
+    DETRAY_HOST_DEVICE
+    constexpr auto ref() -> value_t& { return m_value; }
 
     /// @returns value pointer.
     DETRAY_HOST_DEVICE

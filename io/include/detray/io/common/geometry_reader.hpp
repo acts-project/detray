@@ -153,9 +153,8 @@ class geometry_reader {
 
         // Transcribe mask boundaries onto correct vector type
         std::vector<scalar_t> mask_boundaries;
-        std::copy(sf_data.mask.boundaries.begin(),
-                  sf_data.mask.boundaries.end(),
-                  std::back_inserter(mask_boundaries));
+        std::ranges::copy(sf_data.mask.boundaries,
+                          std::back_inserter(mask_boundaries));
 
         // If the concentric cylinder is shifted in z, discard the shift
         // and put it in the mask boundaries instead. Everything else

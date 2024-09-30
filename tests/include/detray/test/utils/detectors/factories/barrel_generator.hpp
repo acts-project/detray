@@ -18,6 +18,7 @@
 #include "detray/materials/material.hpp"
 
 // System include(s)
+#include <algorithm>
 #include <cassert>
 #include <limits>
 
@@ -52,7 +53,7 @@ struct barrel_generator_config {
     }
     barrel_generator_config &module_bounds(const std::vector<scalar_t> &bnds) {
         m_mask_values.clear();
-        std::copy(bnds.begin(), bnds.end(), std::back_inserter(m_mask_values));
+        std::ranges::copy(bnds, std::back_inserter(m_mask_values));
         return *this;
     }
     constexpr barrel_generator_config &tilt_phi(const scalar_t tilt) {

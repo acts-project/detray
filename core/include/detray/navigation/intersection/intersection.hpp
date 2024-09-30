@@ -58,11 +58,20 @@ struct intersection2D {
     /// false = opposite)
     bool_t direction{true};
 
+    /// @note: Three way comparison cannot be used easily with SoA boolean masks
+    /// @{
     /// @param rhs is the right hand side intersection for comparison
     DETRAY_HOST_DEVICE
     friend constexpr bool_t operator<(const intersection2D &lhs,
                                       const intersection2D &rhs) noexcept {
         return (math::fabs(lhs.path) < math::fabs(rhs.path));
+    }
+
+    /// @param rhs is the right hand side intersection for comparison
+    DETRAY_HOST_DEVICE
+    friend constexpr bool_t operator<=(const intersection2D &lhs,
+                                       const intersection2D &rhs) noexcept {
+        return (math::fabs(lhs.path) <= math::fabs(rhs.path));
     }
 
     /// @param rhs is the left hand side intersection for comparison
@@ -71,6 +80,14 @@ struct intersection2D {
                                       const intersection2D &rhs) noexcept {
         return (math::fabs(lhs.path) > math::fabs(rhs.path));
     }
+
+    /// @param rhs is the left hand side intersection for comparison
+    DETRAY_HOST_DEVICE
+    friend constexpr bool_t operator>=(const intersection2D &lhs,
+                                       const intersection2D &rhs) noexcept {
+        return (math::fabs(lhs.path) > math::fabs(rhs.path));
+    }
+    /// @}
 
     /// @param rhs is the left hand side intersection for comparison
     DETRAY_HOST_DEVICE

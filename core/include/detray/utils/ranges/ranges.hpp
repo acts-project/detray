@@ -17,6 +17,7 @@
 #include <cassert>
 #include <concepts>
 #include <memory>
+#include <ranges>
 #include <type_traits>
 
 namespace detray::ranges {

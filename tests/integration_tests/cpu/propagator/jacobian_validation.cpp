@@ -31,6 +31,7 @@
 #include "detray/options/boost_program_options.hpp"
 
 // System include(s).
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
@@ -210,9 +211,7 @@ struct ridders_derivative {
         }
     }
 
-    bool is_complete() {
-        return (std::count(complete.begin(), complete.end(), false) == 0u);
-    }
+    bool is_complete() { return (std::ranges::count(complete, false) == 0u); }
 };
 
 void wrap_angles(const bound_param_vector_type& ref_vector,
@@ -744,8 +743,7 @@ void evaluate_jacobian_difference(
             constraint_step, hs, num_iterations, convergence);
     }
 
-    bool total_convergence =
-        (std::count(convergence.begin(), convergence.end(), false) == 0);
+    bool total_convergence = (std::ranges::count(convergence, false) == 0);
 
     // Ridders number of iterations
     for (unsigned int i = 0; i < 5u; i++) {
@@ -1144,8 +1142,7 @@ void evaluate_jacobian_difference_helix(
         }
     }
 
-    bool total_convergence =
-        (std::count(convergence.begin(), convergence.end(), false) == 0);
+    bool total_convergence = (std::ranges::count(convergence, false) == 0);
 
     file << trk_count << ",";
 

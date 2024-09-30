@@ -230,7 +230,8 @@ class material_map_generator final : public factory_decorator<detector_t> {
             // Copy the number of bins to the builder
             assert(map_cfg.n_bins.size() == N);
             n_bins[sf_idx] = {};
-            std::copy_n(map_cfg.n_bins.begin(), N, n_bins.at(sf_idx).begin());
+            std::ranges::copy_n(map_cfg.n_bins.begin(), N,
+                                n_bins.at(sf_idx).begin());
 
             // Scale material thickness either over e.g. r- or z-bins
             const std::size_t bins = map_cfg.n_bins[map_cfg.axis_index];

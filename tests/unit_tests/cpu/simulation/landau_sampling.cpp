@@ -80,8 +80,8 @@ TYPED_TEST(detray_simulation_LandauSamplingValidation, landau_sampling) {
 
     const std::size_t mpv_index = this->get_index(this->mpv);
 
-    const std::size_t max_index = static_cast<std::size_t>(std::distance(
-        counter.begin(), std::max_element(counter.begin(), counter.end())));
+    const std::size_t max_index = static_cast<std::size_t>(
+        std::distance(counter.begin(), std::ranges::max_element(counter)));
 
     // Bin range for i index: [ -2 + 0.05 * i, -2 + 0.05 * (i+1) ]
     // Bin range for i = 35 : [ -0.25, -0.2] which includes mpv (-0.22278)
