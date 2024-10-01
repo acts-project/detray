@@ -19,7 +19,7 @@ namespace detray::ranges {
 
 namespace detail {
 
-template <detray::ranges::input_iterator... T>
+template <std::input_iterator... T>
 struct cartesian_product_iterator;
 
 }
@@ -116,12 +116,12 @@ DETRAY_HOST_DEVICE cartesian_product(ranges_ts &&... ranges)
 namespace detail {
 
 /// @brief Iterator implementation for the cartesian product view
-template <detray::ranges::input_iterator... iterator_ts>
+template <std::input_iterator... iterator_ts>
 struct cartesian_product_iterator {
 
     using difference_type = std::ptrdiff_t;
-    using value_type = detray::tuple<
-        typename std::iterator_traits<iterator_ts>::value_type...>;
+    using value_type =
+        std::tuple<typename std::iterator_traits<iterator_ts>::value_type...>;
     using pointer = value_type *;
     using reference = value_type &;
     using iterator_category = detray::ranges::bidirectional_iterator_tag;
@@ -142,29 +142,40 @@ struct cartesian_product_iterator {
     }
 
     /// Increment iterators.
+    /// @{
     DETRAY_HOST_DEVICE constexpr auto operator++()
         -> cartesian_product_iterator & {
         unroll_increment();
         return *this;
     }
 
+    DETRAY_HOST_DEVICE constexpr auto operator++(int)
+        -> cartesian_product_iterator {
+        auto tmp(*this);
+        ++(*this);
+        return tmp;
+    }
+    /// @}
+
     /// Decrement iterators.
+    /// @{
     DETRAY_HOST_DEVICE constexpr auto operator--()
         -> cartesian_product_iterator & {
         unroll_decrement();
         return *this;
     }
 
+    DETRAY_HOST_DEVICE constexpr auto operator--(int)
+        -> cartesian_product_iterator {
+        auto tmp(*this);
+        ++(*this);
+        return tmp;
+    }
+    /// @}
+
     /// @returns the structured binding of all current iterator values - const
     DETRAY_HOST_DEVICE
-    constexpr auto operator*() const {
-        return unroll_values(
-            std::make_integer_sequence<std::size_t, sizeof...(iterator_ts)>{});
-    }
-
-    /// @returns the structured binding of all current iterator values.
-    DETRAY_HOST_DEVICE
-    constexpr auto operator*() {
+    constexpr decltype(auto) operator*() const {
         return unroll_values(
             std::make_integer_sequence<std::size_t, sizeof...(iterator_ts)>{});
     }
@@ -208,7 +219,7 @@ struct cartesian_product_iterator {
     template <std::size_t... I>
     DETRAY_HOST_DEVICE constexpr auto unroll_values(
         std::index_sequence<I...>) const {
-        return std::tie(*detray::get<I>(m_itrs)...);
+        return std::tuple(*detray::get<I>(m_itrs)...);
     }
 
     /// Global range collection of begin and end iterators

@@ -52,7 +52,7 @@ struct bin_view : public detray::ranges::view_interface<bin_view<grid_t>> {
     /// underlying @param grid
     DETRAY_HOST_DEVICE constexpr explicit bin_view(
         const grid_t &grid, axis::multi_bin_range<grid_t::dim> &search_window)
-        : m_grid{grid},
+        : m_grid{&grid},
           m_bin_indexer{get_bin_indexer(
               search_window,
               std::make_integer_sequence<std::size_t, grid_t::dim>{})} {}
@@ -93,7 +93,7 @@ struct bin_view : public detray::ranges::view_interface<bin_view<grid_t>> {
 
     private:
     /// The underlying grid that holds the bins
-    const grid_t &m_grid;
+    const grid_t *m_grid;
     /// How to index the bins in the search window (produces local indices)
     bin_indexer_t m_bin_indexer;
 };
@@ -105,7 +105,7 @@ struct bin_iterator {
     using difference_type = std::ptrdiff_t;
     using value_type = typename grid_t::bin_type;
     using pointer = value_type *;
-    using reference = value_type &;
+    using reference = const value_type &;
     using iterator_category = detray::ranges::bidirectional_iterator_tag;
 
     /// Default constructor required by LegacyIterator trait
@@ -114,7 +114,7 @@ struct bin_iterator {
     /// Construct from a bin indexing prescription @param bin_indexer and a
     /// @param grid
     DETRAY_HOST_DEVICE
-    constexpr bin_iterator(const grid_t &grid, bin_indexer_t &&bin_indexer)
+    constexpr bin_iterator(const grid_t *grid, bin_indexer_t &&bin_indexer)
         : m_grid(grid), m_bin_indexer(std::move(bin_indexer)) {
         map_circular(*m_bin_indexer, m_lbin,
                      std::make_integer_sequence<std::size_t, grid_t::dim>{});
@@ -137,6 +137,13 @@ struct bin_iterator {
         return *this;
     }
 
+    /// Increment to find next local bin index (postfix)
+    DETRAY_HOST_DEVICE constexpr bin_iterator operator++(int) {
+        auto tmp(*this);
+        ++(*this);
+        return tmp;
+    }
+
     /// Decrement to find previous local bin index.
     DETRAY_HOST_DEVICE auto operator--() -> bin_iterator & {
         --m_bin_indexer;
@@ -148,11 +155,18 @@ struct bin_iterator {
         return *this;
     }
 
+    /// Decrement to find previous local bin index (posfix)
+    DETRAY_HOST_DEVICE constexpr bin_iterator operator--(int) {
+        auto tmp(*this);
+        --(*this);
+        return tmp;
+    }
+
     /// @returns the bin that corresponds to the current local bin index - const
     DETRAY_HOST_DEVICE
     constexpr decltype(auto) operator*() const {
         // Fetch the bin
-        return m_grid.bin(m_lbin);
+        return m_grid->bin(m_lbin);
     }
 
     private:
@@ -163,7 +177,7 @@ struct bin_iterator {
         std::tuple<Idx_t...> index_tuple, typename grid_t::loc_bin_index &lbin,
         std::index_sequence<I...>) const {
         // Run the mapping for every axis in the grid
-        (map_circular(m_grid.template get_axis<I>(), index_tuple, lbin), ...);
+        (map_circular(m_grid->template get_axis<I>(), index_tuple, lbin), ...);
     }
 
     /// Map the local bin index for the phi axis to a periodic range and fill
@@ -186,7 +200,7 @@ struct bin_iterator {
     }
 
     /// Grid
-    const grid_t &m_grid;
+    const grid_t *m_grid;
     /// Bin indexing (cartesian product over local bin index ranges)
     bin_indexer_t m_bin_indexer;
     /// Current local bin

@@ -30,47 +30,36 @@ using forward_iterator_tag = std::forward_iterator_tag;
 using bidirectional_iterator_tag = std::bidirectional_iterator_tag;
 using random_access_iterator_tag = std::random_access_iterator_tag;
 
-// Iterator categories
-template <class I>
-inline constexpr bool input_iterator_v =
-    std::is_base_of_v<detray::ranges::input_iterator_tag,
-                      typename std::iterator_traits<I>::iterator_category>;
-
-template <class I>
-inline constexpr bool output_iterator_v =
-    std::is_base_of_v<detray::ranges::output_iterator_tag,
-                      typename std::iterator_traits<I>::iterator_category>;
-
-template <class I>
-inline constexpr bool forward_iterator_v =
-    std::is_base_of_v<detray::ranges::forward_iterator_tag,
-                      typename std::iterator_traits<I>::iterator_category>;
-
-template <class I>
-inline constexpr bool bidirectional_iterator_v =
-    std::is_base_of_v<detray::ranges::bidirectional_iterator_tag,
-                      typename std::iterator_traits<I>::iterator_category>;
-
-template <class I>
-inline constexpr bool random_access_iterator_v =
-    std::is_base_of_v<detray::ranges::random_access_iterator_tag,
-                      typename std::iterator_traits<I>::iterator_category>;
-
 // Iterator concepts
 template <class I>
-concept input_iterator = detray::ranges::input_iterator_v<I>;
+concept input_iterator =
+    std::derived_from<typename std::iterator_traits<I>::iterator_category,
+                      detray::ranges::input_iterator_tag>&&
+        std::input_iterator<I>;
+
+template <class I, typename T>
+concept output_iterator =
+    std::derived_from<typename std::iterator_traits<I>::iterator_category,
+                      detray::ranges::input_iterator_tag>&&
+        std::output_iterator<I, T>;
 
 template <class I>
-concept output_iterator = detray::ranges::output_iterator_v<I>;
+concept forward_iterator =
+    std::derived_from<typename std::iterator_traits<I>::iterator_category,
+                      detray::ranges::forward_iterator_tag>&&
+        std::forward_iterator<I>;
 
 template <class I>
-concept forward_iterator = detray::ranges::forward_iterator_v<I>;
+concept bidirectional_iterator =
+    std::derived_from<typename std::iterator_traits<I>::iterator_category,
+                      detray::ranges::bidirectional_iterator_tag>&&
+        std::bidirectional_iterator<I>;
 
 template <class I>
-concept bidirectional_iterator = detray::ranges::bidirectional_iterator_v<I>;
-
-template <class I>
-concept random_access_iterator = detray::ranges::random_access_iterator_v<I>;
+concept random_access_iterator =
+    std::derived_from<typename std::iterator_traits<I>::iterator_category,
+                      detray::ranges::random_access_iterator_tag>&&
+        std::random_access_iterator<I>;
 
 namespace detail {
 /// Simply import the std versions of basic iterator functionality where
@@ -95,7 +84,7 @@ using std::empty;
 ///  @brief Reimplement std::distance.
 /// @{
 // used by every iterator up to and including bidirectional iterators
-template <detray::ranges::input_iterator iterator_t>
+template <std::input_iterator iterator_t>
 DETRAY_HOST_DEVICE constexpr
     typename std::iterator_traits<iterator_t>::difference_type
     distance_impl(iterator_t first, iterator_t last,
@@ -110,7 +99,7 @@ DETRAY_HOST_DEVICE constexpr
 }
 
 // random access iterators specialization
-template <detray::ranges::random_access_iterator iterator_t>
+template <std::random_access_iterator iterator_t>
 DETRAY_HOST_DEVICE constexpr
     typename std::iterator_traits<iterator_t>::difference_type
     distance_impl(iterator_t first, iterator_t last,
@@ -119,7 +108,7 @@ DETRAY_HOST_DEVICE constexpr
     return last - first;
 }
 
-template <detray::ranges::input_iterator iterator_t>
+template <std::input_iterator iterator_t>
 DETRAY_HOST_DEVICE constexpr
     typename std::iterator_traits<iterator_t>::difference_type
     distance(iterator_t first, iterator_t last) {
@@ -131,7 +120,7 @@ DETRAY_HOST_DEVICE constexpr
 
 ///  @brief Reimplement std::advance.
 /// @{
-template <detray::ranges::input_iterator iterator_t, typename dist_t>
+template <std::input_iterator iterator_t, typename dist_t>
 DETRAY_HOST_DEVICE constexpr void advance_impl(
     iterator_t& itr, dist_t d, detray::ranges::input_iterator_tag) {
     static_assert(std::is_integral_v<dist_t>);
@@ -143,7 +132,7 @@ DETRAY_HOST_DEVICE constexpr void advance_impl(
 }
 
 // random access iterators specialization
-template <detray::ranges::bidirectional_iterator iterator_t, typename dist_t>
+template <std::bidirectional_iterator iterator_t, typename dist_t>
 DETRAY_HOST_DEVICE constexpr void advance_impl(
     iterator_t& itr, dist_t d, detray::ranges::bidirectional_iterator_tag) {
     static_assert(std::is_integral_v<dist_t>);
@@ -159,7 +148,7 @@ DETRAY_HOST_DEVICE constexpr void advance_impl(
 }
 
 // random access iterators specialization
-template <detray::ranges::random_access_iterator iterator_t, typename dist_t>
+template <std::random_access_iterator iterator_t, typename dist_t>
 DETRAY_HOST_DEVICE constexpr void advance_impl(
     iterator_t& itr, dist_t d, detray::ranges::random_access_iterator_tag) {
     static_assert(std::is_integral_v<dist_t>);
@@ -176,7 +165,7 @@ DETRAY_HOST_DEVICE constexpr void advance_impl(
     }
 }
 
-template <detray::ranges::input_iterator iterator_t, typename dist_t>
+template <std::input_iterator iterator_t, typename dist_t>
 DETRAY_HOST_DEVICE constexpr void advance(iterator_t& itr, dist_t d) {
     return advance_impl(
         itr, d, typename std::iterator_traits<iterator_t>::iterator_category{});
@@ -185,7 +174,7 @@ DETRAY_HOST_DEVICE constexpr void advance(iterator_t& itr, dist_t d) {
 
 ///  @brief Reimplement std::next and std::prev.
 /// @{
-template <detray::ranges::input_iterator iterator_t>
+template <std::input_iterator iterator_t>
 DETRAY_HOST_DEVICE constexpr iterator_t next(
     iterator_t itr,
     typename std::iterator_traits<iterator_t>::difference_type d = 1) {
@@ -193,7 +182,7 @@ DETRAY_HOST_DEVICE constexpr iterator_t next(
     return itr;
 }
 
-template <bidirectional_iterator iterator_t>
+template <std::bidirectional_iterator iterator_t>
 DETRAY_HOST_DEVICE constexpr iterator_t prev(
     iterator_t itr,
     typename std::iterator_traits<iterator_t>::difference_type d = 1) {

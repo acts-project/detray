@@ -245,30 +245,49 @@ class bin_storage<is_owning, detray::bins::dynamic_array<entry_t>, containers>
             std::conditional_t<std::is_same_v<bin_itr_t, const_bin_iterator_t>,
                                const entry_t*, entry_t*>;
 
+        constexpr iterator_adapter() = default;
+
         DETRAY_HOST_DEVICE
         iterator_adapter(bin_itr_t&& itr, data_ptr_t entry_data)
             : m_entry_data{entry_data}, m_itr{std::move(itr)} {}
 
         /// Wrap iterator functionality
         /// @{
-        DETRAY_HOST_DEVICE bool operator==(
-            const iterator_adapter& other) const {
-            return m_itr == other.m_itr;
-        }
         DETRAY_HOST_DEVICE iterator_adapter& operator++() {
             ++m_itr;
             return *this;
         }
-        DETRAY_HOST_DEVICE iterator_adapter& operator--() {
+        DETRAY_HOST_DEVICE constexpr iterator_adapter operator++(int) {
+            auto tmp(*this);
+            ++(*this);
+            return tmp;
+        }
+        DETRAY_HOST_DEVICE iterator_adapter&
+        operator--() requires std::bidirectional_iterator<bin_itr_t> {
             --m_itr;
             return *this;
         }
-        DETRAY_HOST_DEVICE
-        constexpr decltype(auto) operator[](const difference_type i) const {
-            return *(*this + i);
+        DETRAY_HOST_DEVICE constexpr iterator_adapter operator--(
+            int) requires std::bidirectional_iterator<bin_itr_t> {
+            auto tmp(*this);
+            --(*this);
+            return tmp;
+        }
+        DETRAY_HOST_DEVICE constexpr iterator_adapter& operator+=(
+            const difference_type
+                j) requires std::random_access_iterator<bin_itr_t> {
+            m_itr += j;
+            return *this;
+        }
+        DETRAY_HOST_DEVICE constexpr iterator_adapter& operator-=(
+            const difference_type
+                j) requires std::random_access_iterator<bin_itr_t> {
+            m_itr -= j;
+            return *this;
         }
         DETRAY_HOST_DEVICE
-        constexpr decltype(auto) operator[](const difference_type i) {
+        constexpr decltype(auto) operator[](const difference_type i) const
+            requires std::random_access_iterator<bin_itr_t> {
             return *(*this + i);
         }
         /// @}
@@ -279,27 +298,55 @@ class bin_storage<is_owning, detray::bins::dynamic_array<entry_t>, containers>
         constexpr auto operator*() const {
             return detray::bins::dynamic_array{m_entry_data, *m_itr};
         }
-        DETRAY_HOST_DEVICE
-        constexpr auto operator*() {
-            return detray::bins::dynamic_array{m_entry_data, *m_itr};
-        }
         /// @}
 
         private:
+        DETRAY_HOST_DEVICE friend constexpr bool operator==(
+            const iterator_adapter& lhs, const iterator_adapter& rhs) {
+            return lhs.m_itr == rhs.m_itr;
+        }
+        DETRAY_HOST_DEVICE friend constexpr auto operator<=>(
+            const iterator_adapter& lhs,
+            const iterator_adapter& rhs) requires detray::ranges::
+            random_access_iterator<bin_itr_t> {
+#if defined(__apple_build_version__)
+            const auto l{lhs.m_itr};
+            const auto r{rhs.m_itr};
+            if (l < r || (l == r && l < r)) {
+                return std::strong_ordering::less;
+            }
+            if (l > r || (l == r && l > r)) {
+                return std::strong_ordering::greater;
+            }
+            return std::strong_ordering::equivalent;
+#else
+            return lhs.m_itr <=> rhs.m_itr;
+#endif
+        }
         DETRAY_HOST_DEVICE
-        friend difference_type operator-(const iterator_adapter& lhs,
-                                         const iterator_adapter& rhs) {
+        friend difference_type operator-(
+            const iterator_adapter& lhs,
+            const iterator_adapter& rhs) requires detray::ranges::
+            random_access_iterator<bin_itr_t> {
             return lhs.m_itr - rhs.m_itr;
         }
         DETRAY_HOST_DEVICE
-        friend iterator_adapter operator-(const iterator_adapter& itr,
-                                          difference_type i) {
+        friend iterator_adapter operator-(
+            const iterator_adapter& itr,
+            difference_type i) requires std::random_access_iterator<bin_itr_t> {
             return {itr.m_itr - i, itr.m_entry_data};
         }
         DETRAY_HOST_DEVICE
-        friend iterator_adapter operator+(const iterator_adapter& itr,
-                                          difference_type i) {
+        friend iterator_adapter operator+(
+            const iterator_adapter& itr,
+            difference_type i) requires std::random_access_iterator<bin_itr_t> {
             return {itr.m_itr + i, itr.m_entry_data};
+        }
+        DETRAY_HOST_DEVICE
+        friend iterator_adapter operator+(
+            difference_type i, const iterator_adapter& itr) requires detray::
+            ranges::random_access_iterator<bin_itr_t> {
+            return itr + i;
         }
 
         /// Access to the bin content

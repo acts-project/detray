@@ -18,7 +18,7 @@
 
 namespace detray {
 
-template <detray::ranges::random_access_iterator RandomIt>
+template <std::random_access_iterator RandomIt>
 DETRAY_HOST_DEVICE inline void insertion_sort(RandomIt first, RandomIt last) {
     for (auto it = first; it != last; it++) {
         // Searching the upper bound, i.e., first
@@ -36,8 +36,7 @@ DETRAY_HOST_DEVICE inline void insertion_sort(vector_t<TYPE> &vec) {
     insertion_sort(vec.begin(), vec.end());
 }
 
-template <detray::ranges::random_access_iterator RandomIt,
-          class Comp = std::less<void>>
+template <std::random_access_iterator RandomIt, class Comp = std::less<void>>
 DETRAY_HOST_DEVICE inline void selection_sort(RandomIt first, RandomIt last,
                                               Comp &&comp = Comp()) {
     for (RandomIt i = first; i < (last - 1); ++i) {

@@ -19,7 +19,7 @@
 namespace detray::detail {
 
 /// @brief sequential (single thread) sort function
-template <detray::ranges::random_access_iterator RandomIt>
+template <std::random_access_iterator RandomIt>
 DETRAY_HOST_DEVICE inline void sequential_sort(RandomIt first, RandomIt last) {
 #if defined(__CUDACC__) || defined(CL_SYCL_LANGUAGE_VERSION) || \
     defined(SYCL_LANGUAGE_VERSION)
@@ -30,7 +30,7 @@ DETRAY_HOST_DEVICE inline void sequential_sort(RandomIt first, RandomIt last) {
 }
 
 /// @brief find_if implementation for host/devcie (single thread)
-template <detray::ranges::random_access_iterator RandomIt, class Predicate>
+template <std::random_access_iterator RandomIt, class Predicate>
 DETRAY_HOST_DEVICE inline auto find_if(RandomIt first, RandomIt last,
                                        Predicate&& comp) {
     for (RandomIt i = first; i != last; ++i) {
@@ -43,7 +43,7 @@ DETRAY_HOST_DEVICE inline auto find_if(RandomIt first, RandomIt last,
 }
 
 /// @brief lower_bound implementation for host/device
-template <detray::ranges::forward_iterator ForwardIt, typename Value>
+template <std::forward_iterator ForwardIt, typename Value>
 DETRAY_HOST_DEVICE inline auto lower_bound(ForwardIt first, ForwardIt last,
                                            const Value& value) {
 #if defined(__CUDACC__) || defined(CL_SYCL_LANGUAGE_VERSION) || \
@@ -55,7 +55,7 @@ DETRAY_HOST_DEVICE inline auto lower_bound(ForwardIt first, ForwardIt last,
 }
 
 /// @brief upper_bound implementation for host/device
-template <detray::ranges::forward_iterator ForwardIt, typename Value>
+template <std::forward_iterator ForwardIt, typename Value>
 DETRAY_HOST_DEVICE inline auto upper_bound(ForwardIt first, ForwardIt last,
                                            const Value& value) {
 #if defined(__CUDACC__) || defined(CL_SYCL_LANGUAGE_VERSION) || \
