@@ -163,9 +163,7 @@ class brute_force_collection {
     }
 
     /// Add a new surface collection
-    template <typename sf_container_t,
-              typename std::enable_if_t<detray::ranges::range_v<sf_container_t>,
-                                        bool> = true,
+    template <detray::ranges::range sf_container_t,
               typename std::enable_if_t<
                   std::is_same_v<typename sf_container_t::value_type, value_t>,
                   bool> = true>

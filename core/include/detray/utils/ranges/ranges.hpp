@@ -15,6 +15,7 @@
 
 // System include(s)
 #include <cassert>
+#include <concepts>
 #include <memory>
 #include <type_traits>
 
@@ -91,55 +92,32 @@ using range_rvalue_reference_t = std::add_rvalue_reference_t<range_value_t<R>>;
 
 /// @}
 
-/// Range traits
+/// Range concept
+template <class R>
+concept range = std::ranges::range<R>;
+
+/// Range category concepts
 /// @{
-
-/// Base case: The type is not a 'range'
-template <class R, typename = void>
-struct range : public std::false_type {
-    using type = void;
-};
-
-/// @brief A range has a begin() and an end() member function
-///
-/// @see https://en.cppreference.com/w/cpp/ranges/range
-///
-/// Existance of 'begin' and 'end' is guranteed by simply calling std::begin
-/// and std::end.
-/// @note In case of @c vecmem::device_vector the iterator is a pointer type.
 template <class R>
-struct range<R,
-             std::enable_if_t<
-                 (std::is_class_v<detray::ranges::iterator_t<R>> ||
-                  std::is_pointer_v<detray::ranges::iterator_t<
-                      R>>)&&(std::is_class_v<detray::ranges::sentinel_t<R>> ||
-                             std::is_pointer_v<detray::ranges::sentinel_t<R>>),
-                 void>> : public std::true_type {};
+concept input_range = detray::ranges::range<R>&&
+    detray::ranges::input_iterator<detray::ranges::iterator_t<R>>;
 
-// Range
-template <class R>
-inline constexpr bool range_v = detray::ranges::range<R>::value;
-
-// Range categories
-template <class R>
-inline constexpr bool input_range_v = detray::ranges::range_v<R>&&
-    input_iterator_v<detray::ranges::iterator_t<R>>;
+template <class R, typename T>
+concept output_range = detray::ranges::range<R>&&
+    detray::ranges::output_iterator<detray::ranges::iterator_t<R>, T>;
 
 template <class R>
-inline constexpr bool output_range_v = detray::ranges::range_v<R>&&
-    output_iterator_v<detray::ranges::iterator_t<R>>;
+concept forward_range = detray::ranges::range<R>&&
+    detray::ranges::forward_iterator<detray::ranges::iterator_t<R>>;
 
 template <class R>
-inline constexpr bool forward_range_v = detray::ranges::range_v<R>&&
-    forward_iterator_v<detray::ranges::iterator_t<R>>;
+concept bidirectional_range = detray::ranges::range<R>&&
+    detray::ranges::bidirectional_iterator<detray::ranges::iterator_t<R>>;
 
 template <class R>
-inline constexpr bool bidirectional_range_v = detray::ranges::range_v<R>&&
-    bidirectional_iterator_v<detray::ranges::iterator_t<R>>;
-
-template <class R>
-inline constexpr bool random_access_range_v = detray::ranges::range_v<R>&&
-    random_access_iterator_v<detray::ranges::iterator_t<R>>;
+concept random_access_range = detray::ranges::range<R>&&
+    detray::ranges::random_access_iterator<detray::ranges::iterator_t<R>>;
+/// @}
 
 // Contiguous iterator trait is only available in c++20
 // TODO: template <typename R> inline constexpr bool contiguous_range_v = ...
@@ -152,7 +130,7 @@ inline constexpr bool disable_sized_range = false;
 template <class R>
 inline constexpr bool sized_range =
     !ranges::disable_sized_range<detray::detail::remove_cvref_t<R>> &&
-    (detray::ranges::range_v<R> &&
+    (detray::ranges::range<R> &&
      std::is_integral_v<detray::ranges::range_size_t<R>>);
 
 /// @see https://en.cppreference.com/w/cpp/ranges/borrowed_range
@@ -161,7 +139,7 @@ inline constexpr bool enable_borrowed_range = false;
 
 template <class R>
 inline constexpr bool borrowed_range =
-    detray::ranges::range_v<R> &&
+    detray::ranges::range<R> &&
     (std::is_lvalue_reference_v<R> ||
      ranges::enable_borrowed_range<detray::detail::remove_cvref_t<R>>);
 
@@ -169,10 +147,10 @@ inline constexpr bool borrowed_range =
 /// @see https://en.cppreference.com/w/cpp/ranges/dangling
 struct dangling {
     constexpr dangling() noexcept = default;
-    template <
-        class... Args,
-        std::enable_if_t<!(std::is_same_v<dangling, Args> || ...), bool> = true>
-    explicit constexpr dangling(Args&&...) noexcept {}
+
+    template <class... Args>
+    requires(!(std::same_as<dangling, Args> ||
+               ...)) explicit constexpr dangling(Args&&...) noexcept {}
 };
 
 template <class R>
@@ -183,8 +161,8 @@ using borrowed_iterator_t =
 /// @see https://en.cppreference.com/w/cpp/ranges/common_range
 template <class R>
 inline constexpr bool common_range =
-    detray::ranges::range_v<R>&& std::is_same_v<detray::ranges::iterator_t<R>,
-                                                detray::ranges::sentinel_t<R>>;
+    std::is_same_v<detray::ranges::iterator_t<R>,
+                   detray::ranges::sentinel_t<R>>;
 /// @}
 
 /// Definition of 'view'
@@ -213,8 +191,7 @@ class view_interface : public base_view {
 
     public:
     /// @note requires forward range
-    template <typename R = view_impl_t,
-              std::enable_if_t<detray::ranges::forward_range_v<R>, bool> = true>
+    template <detray::ranges::forward_range R = view_impl_t>
     DETRAY_HOST_DEVICE constexpr auto empty() const -> bool {
         return (detray::ranges::begin(cast_impl()) ==
                 detray::ranges::end(cast_impl()));
@@ -239,8 +216,7 @@ class view_interface : public base_view {
     }
 
     /// @note requires forward range
-    template <typename R = view_impl_t,
-              std::enable_if_t<detray::ranges::forward_range_v<R>, bool> = true>
+    template <detray::ranges::forward_range R = view_impl_t>
     DETRAY_HOST_DEVICE constexpr auto size() const {
         return static_cast<dindex>(
             detray::ranges::distance(detray::ranges::begin(cast_impl()),
@@ -248,8 +224,7 @@ class view_interface : public base_view {
     }
 
     /// @note requires forward range
-    template <typename R = view_impl_t,
-              std::enable_if_t<detray::ranges::forward_range_v<R>, bool> = true>
+    template <detray::ranges::forward_range R = view_impl_t>
     DETRAY_HOST_DEVICE constexpr decltype(auto) front() const {
         const auto bg = detray::ranges::begin(cast_impl());
         assert(!empty());
@@ -257,8 +232,7 @@ class view_interface : public base_view {
     }
 
     /// @note requires forward range
-    template <typename R = view_impl_t,
-              std::enable_if_t<detray::ranges::forward_range_v<R>, bool> = true>
+    template <detray::ranges::forward_range R = view_impl_t>
     DETRAY_HOST_DEVICE constexpr decltype(auto) front() {
         const auto bg = detray::ranges::begin(cast_impl());
         assert(!empty());
@@ -266,9 +240,7 @@ class view_interface : public base_view {
     }
 
     /// @note requires bidirectional range
-    template <
-        typename R = view_impl_t,
-        std::enable_if_t<detray::ranges::bidirectional_range_v<R>, bool> = true>
+    template <detray::ranges::bidirectional_range R = view_impl_t>
     DETRAY_HOST_DEVICE constexpr decltype(auto) back() const {
         auto sentinel = detray::ranges::end(cast_impl());
         assert(!empty());
@@ -276,9 +248,7 @@ class view_interface : public base_view {
     }
 
     /// @note requires bidirectional range
-    template <
-        typename R = view_impl_t,
-        std::enable_if_t<detray::ranges::bidirectional_range_v<R>, bool> = true>
+    template <detray::ranges::bidirectional_range R = view_impl_t>
     DETRAY_HOST_DEVICE constexpr decltype(auto) back() {
         auto sentinel = detray::ranges::end(cast_impl());
         assert(!empty());
@@ -288,9 +258,7 @@ class view_interface : public base_view {
     /// Subscript operator that takes detray @c dindex
     ///
     /// @note requires random access range
-    template <
-        typename R = view_impl_t,
-        std::enable_if_t<detray::ranges::random_access_range_v<R>, bool> = true>
+    template <detray::ranges::random_access_range R = view_impl_t>
     DETRAY_HOST_DEVICE constexpr decltype(auto) operator[](
         const dindex i) const {
         // Call 'begin()' directly here to make CUDA happy
@@ -300,9 +268,7 @@ class view_interface : public base_view {
     /// Subscript operator that takes detray @c dindex
     ///
     /// @note requires random access range
-    template <
-        typename R = view_impl_t,
-        std::enable_if_t<detray::ranges::random_access_range_v<R>, bool> = true>
+    template <detray::ranges::random_access_range R = view_impl_t>
     DETRAY_HOST_DEVICE constexpr decltype(auto) operator[](const dindex i) {
         // Call 'begin()' directly here to make CUDA happy
         return (cast_impl().begin())
@@ -312,17 +278,17 @@ class view_interface : public base_view {
 
 /// View traits
 /// @{
-template <typename R>
+template <class R>
 inline constexpr bool enable_view =
     std::is_base_of_v<base_view, R> || std::is_base_of_v<view_interface<R>, R>;
 
 template <class R>
-inline constexpr bool view = detray::ranges::range_v<R>&& std::is_object_v<R>&&
+inline constexpr bool view = detray::ranges::range<R>&& std::is_object_v<R>&&
     std::is_move_constructible_v<R>&& enable_view<R>;
 
 template <class R>
 inline constexpr bool viewable_range =
-    detray::ranges::range_v<R> &&
+    detray::ranges::range<R> &&
     (borrowed_range<R> || view<detray::detail::remove_cvref_t<R>>);
 /// @}
 

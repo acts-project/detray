@@ -140,13 +140,29 @@ GTEST_TEST(detray_grid, single_grid) {
     auto z_axis_dev = device_grid.get_axis<label::e_z>();
     EXPECT_EQ(z_axis_dev.nbins(), grid_n_own.get_axis<label::e_z>().nbins());
 
-    // Test the global bin iteration
+    // Test the global bin iteration: owning grid
     auto seq = detray::views::iota(1, 40'001);
     auto flat_bin_view = grid_own.all();
+
+    static_assert(detray::ranges::random_access_range<decltype(flat_bin_view)>);
+
     EXPECT_EQ(seq.size(), 40'000u);
     EXPECT_EQ(flat_bin_view.size(), 40'000u);
+    EXPECT_EQ(flat_bin_view[42], 43u);
     EXPECT_TRUE(
         std::equal(flat_bin_view.begin(), flat_bin_view.end(), seq.begin()));
+
+    // Test the global bin iteration: non-owning grid
+    auto flat_bin_view2 = grid_n_own.all();
+
+    static_assert(
+        detray::ranges::random_access_range<decltype(flat_bin_view2)>);
+
+    EXPECT_EQ(seq.size(), 40'000u);
+    EXPECT_EQ(flat_bin_view2.size(), 40'000u);
+    EXPECT_EQ(flat_bin_view2[42], 43u);
+    EXPECT_TRUE(
+        std::equal(flat_bin_view2.begin(), flat_bin_view2.end(), seq.begin()));
 
     // Test const grid view
     /*auto const_grid_view = get_data(const_cast<const
@@ -261,10 +277,27 @@ GTEST_TEST(detray_grid, dynamic_array) {
 
     // Test the global bin iteration
     auto flat_bin_view = grid_own.all();
+
+    static_assert(detray::ranges::bidirectional_range<decltype(flat_bin_view)>);
+    // TODO: Const-correctness issue
+    // static_assert(detray::ranges::random_access_range<typename decltype(
+    //                  flat_bin_view)>);
+
     EXPECT_EQ(seq.size(), 80'000u);
     EXPECT_EQ(flat_bin_view.size(), 80'000u);
     EXPECT_TRUE(
         std::equal(flat_bin_view.begin(), flat_bin_view.end(), seq.begin()));
+
+    // Test the global bin iteration: non-owning grid
+    auto flat_bin_view2 = grid_n_own.all();
+
+    static_assert(
+        detray::ranges::bidirectional_range<decltype(flat_bin_view2)>);
+
+    EXPECT_EQ(seq.size(), 80'000u);
+    EXPECT_EQ(flat_bin_view2.size(), 80'000u);
+    EXPECT_TRUE(
+        std::equal(flat_bin_view2.begin(), flat_bin_view2.end(), seq.begin()));
 }
 
 /// Test bin entry retrieval
@@ -301,6 +334,10 @@ GTEST_TEST(detray_grid, bin_view) {
     const auto joined_view1 = detray::views::join(bview1);
     const auto grid_search1 = grid_3D.search(p, search_window_size);
 
+    static_assert(detray::ranges::bidirectional_range<decltype(bview1)>);
+    static_assert(detray::ranges::bidirectional_range<decltype(joined_view1)>);
+    static_assert(detray::ranges::bidirectional_range<decltype(grid_search1)>);
+
     ASSERT_EQ(bview1.size(), 1u);
     ASSERT_EQ(joined_view1.size(), 1u);
     ASSERT_EQ(grid_search1.size(), 1u);
@@ -333,6 +370,10 @@ GTEST_TEST(detray_grid, bin_view) {
     const auto bview2 = axis::detail::bin_view(grid_3D, search_window);
     const auto joined_view2 = detray::views::join(bview2);
     const auto grid_search2 = grid_3D.search(p, search_window_size);
+
+    static_assert(detray::ranges::bidirectional_range<decltype(bview2)>);
+    static_assert(detray::ranges::bidirectional_range<decltype(joined_view2)>);
+    static_assert(detray::ranges::bidirectional_range<decltype(grid_search2)>);
 
     ASSERT_EQ(bview2.size(), 8u);
     ASSERT_EQ(joined_view2.size(), 8u);
@@ -367,6 +408,10 @@ GTEST_TEST(detray_grid, bin_view) {
     const auto bview3 = axis::detail::bin_view(grid_3D, search_window);
     const auto joined_view3 = detray::views::join(bview3);
     const auto grid_search3 = grid_3D.search(p, search_window_size);
+
+    static_assert(detray::ranges::bidirectional_range<decltype(bview3)>);
+    static_assert(detray::ranges::bidirectional_range<decltype(joined_view3)>);
+    static_assert(detray::ranges::bidirectional_range<decltype(grid_search3)>);
 
     ASSERT_EQ(bview3.size(), 27u);
     ASSERT_EQ(joined_view3.size(), 27u);
@@ -481,6 +526,9 @@ GTEST_TEST(detray_grid, complete_population) {
     std::array<dindex, 2> search_window_size{0, 0};
 
     const auto grid_search1 = g3c.search(p, search_window_size);
+
+    static_assert(detray::ranges::bidirectional_range<decltype(grid_search1)>);
+
     ASSERT_EQ(grid_search1.size(), 4u);
 
     for (scalar entry : grid_search1) {
@@ -492,6 +540,9 @@ GTEST_TEST(detray_grid, complete_population) {
     search_window_size[1] = 1;
 
     const auto grid_search2 = g3c.search(p, search_window_size);
+
+    static_assert(detray::ranges::bidirectional_range<decltype(grid_search2)>);
+
     ASSERT_EQ(grid_search2.size(), 4u);
 
     for (scalar entry : grid_search2) {
@@ -560,6 +611,9 @@ GTEST_TEST(detray_grid, regular_attach_population) {
     std::array<dindex, 2> search_window_size{0, 0};
 
     const auto grid_search1 = g3ra.search(p, search_window_size);
+
+    static_assert(detray::ranges::bidirectional_range<decltype(grid_search1)>);
+
     ASSERT_EQ(grid_search1.size(), 1u);
 
     for (scalar entry : grid_search1) {
@@ -571,6 +625,9 @@ GTEST_TEST(detray_grid, regular_attach_population) {
     search_window_size[1] = 1;
 
     const auto grid_search2 = g3ra.search(p, search_window_size);
+
+    static_assert(detray::ranges::bidirectional_range<decltype(grid_search2)>);
+
     ASSERT_EQ(grid_search2.size(), 1u);
 
     for (scalar entry : grid_search2) {

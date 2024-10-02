@@ -164,7 +164,7 @@ class illustrator {
     /// @param gctx the geometry context.
     ///
     /// @returns @c actsvg::svg::object of the detector's surfaces.
-    template <typename range_t, typename view_t>
+    template <detray::ranges::range range_t, typename view_t>
     inline auto draw_surfaces(
         const range_t& indices, const view_t& view,
         const typename detector_t::geometry_context& gctx = {}) const {
@@ -251,7 +251,7 @@ class illustrator {
     /// @param view the display view.
     ///
     /// @returns @c actsvg::svg::object of the surface's material maps.
-    template <typename range_t, typename view_t>
+    template <detray::ranges::range range_t, typename view_t>
     inline auto draw_surface_materials(const range_t& indices,
                                        const view_t& view) const {
 
@@ -341,7 +341,7 @@ class illustrator {
     /// @param gctx the geometry context.
     ///
     /// @returns @c actsvg::svg::object of the detector's volumes.
-    template <typename range_t, typename view_t>
+    template <detray::ranges::range range_t, typename view_t>
     inline auto draw_volumes(
         const range_t& indices, const view_t& view,
         const typename detector_t::geometry_context& gctx = {}) const {

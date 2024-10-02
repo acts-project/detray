@@ -20,8 +20,9 @@ namespace detray::ranges {
 
 namespace detail {
 
-template <typename T>
-struct static_join_iterator;
+template <detray::ranges::range T>
+requires std::input_iterator<
+    detray::detail::get_value_t<T>> struct static_join_iterator;
 
 }
 
@@ -39,7 +40,7 @@ struct static_join_iterator;
 /// same join instance.
 /// @note Is not fit for lazy evaluation.
 /// @todo improve performance of e.g. @c operator+ and @c operator+=
-template <std::size_t I, typename range_itr_t>
+template <std::size_t I, std::input_iterator range_itr_t>
 struct static_join_view
     : public detray::ranges::view_interface<static_join_view<I, range_itr_t>> {
 
@@ -52,14 +53,14 @@ struct static_join_view
     constexpr static_join_view() = default;
 
     /// Construct from a pack of @param ranges.
-    template <typename... ranges_t>
+    template <detray::ranges::range... ranges_t>
     DETRAY_HOST_DEVICE constexpr explicit static_join_view(
         ranges_t &&... ranges)
         : m_begins{detray::ranges::begin(std::forward<ranges_t>(ranges))...},
           m_ends{detray::ranges::end(std::forward<ranges_t>(ranges))...} {}
 
     /// Construct from a pack of @param ranges - const
-    template <typename... ranges_t>
+    template <detray::ranges::range... ranges_t>
     DETRAY_HOST_DEVICE constexpr explicit static_join_view(
         const ranges_t &... ranges)
         : m_begins{detray::ranges::cbegin(ranges)...},
@@ -111,32 +112,32 @@ struct static_join_view
 namespace views {
 
 /// @brief interface type to construct a @c static_join_view with CTAD
-template <std::size_t I, typename range_itr_t>
+template <std::size_t I, std::input_iterator range_itr_t>
 struct static_join : public ranges::static_join_view<I, range_itr_t> {
 
     using base_type = ranges::static_join_view<I, range_itr_t>;
 
     constexpr static_join() = default;
 
-    template <typename... ranges_t>
+    template <detray::ranges::range... ranges_t>
     DETRAY_HOST_DEVICE constexpr explicit static_join(
         const ranges_t &... ranges)
         : base_type(ranges...) {}
 
-    template <typename... ranges_t>
+    template <detray::ranges::range... ranges_t>
     DETRAY_HOST_DEVICE constexpr explicit static_join(ranges_t &&... ranges)
         : base_type(std::forward<ranges_t>(ranges)...) {}
 };
 
 // deduction guides
 
-template <typename... ranges_t>
+template <detray::ranges::range... ranges_t>
 DETRAY_HOST_DEVICE static_join(const ranges_t &... ranges)
     ->static_join<sizeof...(ranges_t),
                   typename detray::ranges::const_iterator_t<
                       detray::detail::first_t<ranges_t...>>>;
 
-template <typename... ranges_t>
+template <detray::ranges::range... ranges_t>
 DETRAY_HOST_DEVICE static_join(ranges_t &&... ranges)
     ->static_join<sizeof...(ranges_t),
                   typename detray::ranges::iterator_t<
@@ -156,8 +157,9 @@ namespace detail {
 ///
 /// @note The iterator must not be typed on the current range index, so that
 /// begin and sentinel type are the same.
-template <typename iterator_coll_t>
-struct static_join_iterator {
+template <detray::ranges::range iterator_coll_t>
+requires std::input_iterator<
+    detray::detail::get_value_t<iterator_coll_t>> struct static_join_iterator {
 
     using iterator_t = detray::detail::get_value_t<iterator_coll_t>;
 
@@ -185,13 +187,8 @@ struct static_join_iterator {
                                    iterator_t current, const std::size_t i)
         : m_begins(&begins), m_ends(&ends), m_iter{current}, m_idx{i} {}
 
-    /// @returns true if it points to the same value.
-    DETRAY_HOST_DEVICE constexpr bool operator==(
-        const static_join_iterator &rhs) const {
-        return (m_iter == rhs.m_iter);
-    }
-
     /// Increment current iterator and check for switch between ranges.
+    /// @{
     DETRAY_HOST_DEVICE constexpr auto operator++() -> static_join_iterator & {
         ++m_iter;
         // Switch to next range in the collection
@@ -204,11 +201,17 @@ struct static_join_iterator {
         return *this;
     }
 
+    DETRAY_HOST_DEVICE constexpr auto operator++(int) -> static_join_iterator {
+        auto tmp(*this);
+        ++(*this);
+        return tmp;
+    }
+    /// @}
+
     /// Decrement current iterator and check for switch between ranges.
-    template <typename I = iterator_t,
-              std::enable_if_t<detray::ranges::bidirectional_iterator_v<I>,
-                               bool> = true>
-    DETRAY_HOST_DEVICE constexpr auto operator--() -> static_join_iterator & {
+    /// @{
+    DETRAY_HOST_DEVICE constexpr auto operator--() -> static_join_iterator
+        &requires std::bidirectional_iterator<iterator_t> {
         if (m_iter != (*m_begins)[m_idx]) {
             // Normal case
             --m_iter;
@@ -220,21 +223,23 @@ struct static_join_iterator {
         }
         return *this;
     }
+    /// @}
+
+    DETRAY_HOST_DEVICE constexpr auto operator--(int) -> static_join_iterator
+        requires std::bidirectional_iterator<iterator_t> {
+        auto tmp(*this);
+        ++(*this);
+        return tmp;
+    }
 
     /// @returns the single value that the iterator points to.
     DETRAY_HOST_DEVICE
-    constexpr auto operator*() -> value_type & { return *m_iter; }
-
-    /// @returns the single value that the iterator points to - const
-    DETRAY_HOST_DEVICE
-    constexpr auto operator*() const -> const value_type & { return *m_iter; }
+    constexpr auto operator*() const -> decltype(auto) { return *m_iter; }
 
     /// @returns advance this iterator state by @param j.
-    template <typename I = iterator_t,
-              std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
-                               bool> = true>
     DETRAY_HOST_DEVICE constexpr auto operator+=(const difference_type j)
-        -> static_join_iterator & {
+        -> static_join_iterator
+            &requires std::random_access_iterator<iterator_t> {
         // walk through join to catch the switch between intermediate ranges
         if (difference_type i{j}; i >= difference_type{0}) {
             while (i--) {
@@ -249,43 +254,53 @@ struct static_join_iterator {
     }
 
     /// @returns advance this iterator state by @param j.
-    template <typename I = iterator_t,
-              std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
-                               bool> = true>
     DETRAY_HOST_DEVICE constexpr auto operator-=(const difference_type j)
-        -> static_join_iterator & {
+        -> static_join_iterator
+            &requires std::random_access_iterator<iterator_t> {
         m_iter += (-j);
         return *this;
     }
 
     /// @returns the value at a given position - const
-    template <typename I = iterator_t,
-              std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
-                               bool> = true>
-    DETRAY_HOST_DEVICE constexpr auto operator[](const difference_type i) const
-        -> const value_type & {
-        difference_type offset{i - (m_iter - (*m_begins)[0])};
-        return *(*this + offset);
-    }
-
-    /// @returns the value at a given position - const
-    template <typename I = iterator_t,
-              std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
-                               bool> = true>
-    DETRAY_HOST_DEVICE constexpr auto operator[](const difference_type i)
-        -> value_type & {
+    DETRAY_HOST_DEVICE constexpr decltype(auto) operator[](
+        const difference_type i) const
+        requires std::random_access_iterator<iterator_t> {
         difference_type offset{i - (m_iter - (*m_begins)[0])};
         return *(*this + offset);
     }
 
     private:
+    /// @returns true if it points to the same value.
+    DETRAY_HOST_DEVICE friend constexpr bool operator==(
+        const static_join_iterator &lhs, const static_join_iterator &rhs) {
+        return (lhs.m_iter == rhs.m_iter);
+    }
+
+    /// @returns decision of comparition operators
+    DETRAY_HOST_DEVICE friend constexpr auto operator<=>(
+        const static_join_iterator &lhs,
+        const static_join_iterator
+            &rhs) requires std::random_access_iterator<iterator_t> {
+#if defined(__apple_build_version__)
+        const auto l{lhs.m_iter};
+        const auto r{rhs.m_iter};
+        if (l < r || (l == r && l < r)) {
+            return std::strong_ordering::less;
+        }
+        if (l > r || (l == r && l > r)) {
+            return std::strong_ordering::greater;
+        }
+        return std::strong_ordering::equivalent;
+#else
+        return (lhs.m_iter <=> rhs.m_iter);
+#endif
+    }
+
     /// @returns an iterator advanced by @param j through the join.
-    template <typename I = iterator_t,
-              std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
-                               bool> = true>
     DETRAY_HOST_DEVICE friend constexpr auto operator+(
         const static_join_iterator &itr, const difference_type j)
-        -> static_join_iterator {
+        -> static_join_iterator
+        requires std::random_access_iterator<iterator_t> {
         static_join_iterator<iterator_coll_t> tmp(itr);
         // walk through join to catch the switch between intermediate ranges
         if (difference_type i{j}; i >= 0) {
@@ -301,22 +316,25 @@ struct static_join_iterator {
     }
 
     /// @returns an iterator advanced by @param j through the join.
-    template <typename I = iterator_t,
-              std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
-                               bool> = true>
+    DETRAY_HOST_DEVICE friend constexpr auto operator+(
+        const difference_type j, const static_join_iterator &itr)
+        -> static_join_iterator
+        requires std::random_access_iterator<iterator_t> {
+        return itr + j;
+    }
+
+    /// @returns an iterator advanced by @param j through the join.
     DETRAY_HOST_DEVICE friend constexpr auto operator-(
         const static_join_iterator &itr, const difference_type j)
-        -> static_join_iterator {
+        -> static_join_iterator
+        requires std::random_access_iterator<iterator_t> {
         return itr + (-j);
     }
 
     /// @returns the positional difference between two iterators
-    template <typename I = iterator_t,
-              std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
-                               bool> = true>
     DETRAY_HOST_DEVICE friend constexpr auto operator-(
         const static_join_iterator &lhs, const static_join_iterator &rhs)
-        -> difference_type {
+        -> difference_type requires std::random_access_iterator<iterator_t> {
         const static_join_iterator l{lhs};
         const static_join_iterator r{rhs};
 

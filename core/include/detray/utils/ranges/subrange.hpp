@@ -24,7 +24,7 @@ namespace detray::ranges {
 /// @see https://en.cppreference.com/w/cpp/ranges/subrange
 ///
 /// @tparam range_t the iterable which to constrain to a subrange.
-template <typename range_t>
+template <detray::ranges::range range_t>
 class subrange : public detray::ranges::view_interface<subrange<range_t>> {
 
     public:
@@ -40,40 +40,35 @@ class subrange : public detray::ranges::view_interface<subrange<range_t>> {
         : m_begin{start}, m_end{end} {}
 
     /// Construct from a @param range.
-    template <
-        typename deduced_range_t,
-        std::enable_if_t<detray::ranges::range_v<deduced_range_t>, bool> = true>
+    template <detray::ranges::range deduced_range_t>
     DETRAY_HOST_DEVICE constexpr explicit subrange(deduced_range_t &&range)
-        : m_begin{detray::ranges::begin(range)},
-          m_end{detray::ranges::end(range)} {}
+        : m_begin{detray::ranges::begin(std::forward<deduced_range_t>(range))},
+          m_end{detray::ranges::end(std::forward<deduced_range_t>(range))} {}
 
     /// Construct from a @param range and starting position @param pos. Used
     /// as an overload when only a single position is needed.
     template <
-        typename deduced_range_t, typename index_t,
-        std::enable_if_t<detray::ranges::range_v<deduced_range_t>, bool> = true,
+        detray::ranges::range deduced_range_t, typename index_t,
         std::enable_if_t<
             std::is_convertible_v<
                 index_t, detray::ranges::range_difference_t<deduced_range_t>>,
             bool> = true>
     DETRAY_HOST_DEVICE constexpr subrange(deduced_range_t &&range, index_t pos)
-        : m_begin{detray::ranges::next(detray::ranges::begin(range),
-                                       static_cast<difference_t>(pos))},
+        : m_begin{detray::ranges::next(
+              detray::ranges::begin(std::forward<deduced_range_t>(range)),
+              static_cast<difference_t>(pos))},
           m_end{detray::ranges::next(m_begin)} {}
 
     /// Construct from a @param range and an index range @param pos.
-    template <
-        typename deduced_range_t, typename index_range_t,
-        std::enable_if_t<detray::ranges::range_v<deduced_range_t>, bool> = true,
-        std::enable_if_t<detray::detail::is_interval_v<index_range_t>, bool> =
-            true>
-    DETRAY_HOST_DEVICE constexpr subrange(deduced_range_t &&range,
-                                          index_range_t &&pos)
+    template <detray::ranges::range deduced_range_t, typename index_range_t>
+    requires detray::detail::is_interval_v<index_range_t>
+        DETRAY_HOST_DEVICE constexpr subrange(deduced_range_t &&range,
+                                              index_range_t &&pos)
         : m_begin{detray::ranges::next(
-              detray::ranges::begin(range),
+              detray::ranges::begin(std::forward<deduced_range_t>(range)),
               static_cast<difference_t>(detray::detail::get<0>(pos)))},
           m_end{detray::ranges::next(
-              detray::ranges::begin(range),
+              detray::ranges::begin(std::forward<deduced_range_t>(range)),
               static_cast<difference_t>(detray::detail::get<1>(pos)))} {}
 
     /// @return start position of range.
@@ -98,30 +93,22 @@ class subrange : public detray::ranges::view_interface<subrange<range_t>> {
     iterator_t m_end;
 };
 
-template <
-    typename deduced_range_t,
-    std::enable_if_t<detray::ranges::range_v<deduced_range_t>, bool> = true>
+template <detray::ranges::range deduced_range_t>
 DETRAY_HOST_DEVICE subrange(deduced_range_t &&range)->subrange<deduced_range_t>;
 
-template <
-    typename deduced_range_t, typename index_t,
-    std::enable_if_t<detray::ranges::range_v<deduced_range_t>, bool> = true,
-    std::enable_if_t<
-        std::is_convertible_v<
-            index_t, detray::ranges::range_difference_t<deduced_range_t>>,
-        bool> = true>
-DETRAY_HOST_DEVICE subrange(deduced_range_t &&range, index_t pos)
-    ->subrange<deduced_range_t>;
+template <detray::ranges::range deduced_range_t, typename index_t>
+requires std::convertible_to<
+    index_t, detray::ranges::range_difference_t<deduced_range_t>>
+    DETRAY_HOST_DEVICE subrange(deduced_range_t &&range, index_t pos)
+        ->subrange<deduced_range_t>;
 
-template <
-    typename deduced_range_t, typename index_range_t,
-    std::enable_if_t<detray::ranges::range_v<deduced_range_t>, bool> = true,
-    std::enable_if_t<detray::detail::is_interval_v<index_range_t>, bool> = true>
-DETRAY_HOST_DEVICE subrange(deduced_range_t &&range, index_range_t &&pos)
+template <detray::ranges::range deduced_range_t, typename index_range_t>
+requires detray::detail::is_interval_v<index_range_t> DETRAY_HOST_DEVICE
+subrange(deduced_range_t &&range, index_range_t &&pos)
     ->subrange<deduced_range_t>;
 
 /// @see https://en.cppreference.com/w/cpp/ranges/borrowed_iterator_t
-template <class R>
+template <detray::ranges::range R>
 using borrowed_subrange_t =
     std::conditional_t<borrowed_range<R>, detray::ranges::subrange<R>,
                        dangling>;

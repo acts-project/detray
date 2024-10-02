@@ -19,11 +19,10 @@ namespace detray {
 /// Implementation of @c upper_bound
 /// @see
 /// https://github.com/gcc-mirror/gcc/blob/8f87b3c5ecd47f6ac0d7407ae5d436a12fb169dd/libstdc%2B%2B-v3/include/bits/stl_algo.h
-template <typename iterator_t, typename T>
-requires detray::ranges::forward_iterator_v<iterator_t>
-    DETRAY_HOST_DEVICE constexpr iterator_t upper_bound(iterator_t first,
-                                                        iterator_t last,
-                                                        const T& value) {
+template <std::forward_iterator iterator_t, typename T>
+DETRAY_HOST_DEVICE constexpr iterator_t upper_bound(iterator_t first,
+                                                    iterator_t last,
+                                                    const T& value) {
 
     using difference_t =
         typename std::iterator_traits<iterator_t>::difference_type;
@@ -49,11 +48,10 @@ requires detray::ranges::forward_iterator_v<iterator_t>
 /// Implementation of @c lower_bound
 /// @see
 /// https://github.com/gcc-mirror/gcc/blob/8f87b3c5ecd47f6ac0d7407ae5d436a12fb169dd/libstdc%2B%2B-v3/include/bits/stl_algobase.h
-template <typename iterator_t, typename T>
-requires detray::ranges::forward_iterator_v<iterator_t>
-    DETRAY_HOST_DEVICE constexpr iterator_t lower_bound(iterator_t first,
-                                                        iterator_t last,
-                                                        const T& value) {
+template <std::forward_iterator iterator_t, typename T>
+DETRAY_HOST_DEVICE constexpr iterator_t lower_bound(iterator_t first,
+                                                    iterator_t last,
+                                                    const T& value) {
 
     using difference_t =
         typename std::iterator_traits<iterator_t>::difference_type;
