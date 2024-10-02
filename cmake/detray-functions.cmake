@@ -7,6 +7,17 @@
 # CMake include(s).
 include( CMakeParseArguments )
 
+# Helper function to create and set the `--keep` flag on CUDA targets.
+function( detray_add_cuda_artifact_dir_to_target target )
+   set(cuda_keep_dir "${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/cuda_artifacts/${target}/")
+   add_custom_target(
+      ${target}_cuda_artifact_mkdir
+      COMMAND ${CMAKE_COMMAND} -E make_directory ${cuda_keep_dir}
+   )
+   add_dependencies(${target} ${target}_cuda_artifact_mkdir)
+   target_compile_options(${target} PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--keep --keep-dir ${cuda_keep_dir}>)
+endfunction( detray_add_cuda_artifact_dir_to_target )
+
 # Helper function for setting up the detray libraries.
 #
 # Usage: detray_add_library( detray_core core "header1.hpp"... )
@@ -104,6 +115,7 @@ function( detray_add_executable name )
       target_link_libraries( ${exe_name} PRIVATE ${ARG_LINK_LIBRARIES} )
    endif()
 
+   detray_add_cuda_artifact_dir_to_target(${exe_name})
 endfunction( detray_add_executable )
 
 # Helper function for setting up the detray tests.
@@ -150,6 +162,7 @@ function( detray_add_test name )
    set_tests_properties( ${test_exe_name} PROPERTIES
       ENVIRONMENT DETRAY_TEST_DATA_DIR=${PROJECT_SOURCE_DIR}/data/ )
 
+   detray_add_cuda_artifact_dir_to_target(${test_exe_name})
 endfunction( detray_add_test )
 
 # Helper function to set up a unit test
@@ -189,6 +202,7 @@ function( detray_add_tutorial name )
       target_link_libraries( ${tutorial_exe_name} PRIVATE ${ARG_LINK_LIBRARIES} )
    endif()
 
+   detray_add_cuda_artifact_dir_to_target(${tutorial_exe_name})
 endfunction( detray_add_tutorial )
 
 # Helper function for adding individual flags to "flag variables".

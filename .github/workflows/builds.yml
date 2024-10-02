@@ -166,6 +166,10 @@ jobs:
       run: |
         source ${GITHUB_WORKSPACE}/.github/ci_setup.sh ${{ matrix.PLATFORM.NAME }}
         cmake --build build
+    - name: FP64 Compliance
+      if: "matrix.PLATFORM.NAME == 'CUDA' && matrix.BUILD_TYPE == 'Debug' && matrix.SCALAR_TYPE == 'float'"
+      continue-on-error: true
+      run: ${GITHUB_WORKSPACE}/.github/find_f64_ptx.py --source ${GITHUB_WORKSPACE} --build build $(find build -name "*.ptx")
 
   benchmark-build:
     # The system to run on.

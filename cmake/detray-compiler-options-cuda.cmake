@@ -33,7 +33,7 @@ endif()
 
 # Make CUDA generate debug symbols for the device code as well in a debug
 # build.
-detray_add_flag( CMAKE_CUDA_FLAGS_DEBUG "-G" )
+detray_add_flag( CMAKE_CUDA_FLAGS_DEBUG "-G -src-in-ptx" )
 
 # Fail on warnings, if asked for that behaviour.
 if( DETRAY_FAIL_ON_WARNINGS )
