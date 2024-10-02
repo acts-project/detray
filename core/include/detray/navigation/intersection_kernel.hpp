@@ -54,7 +54,7 @@ struct intersection_initialize {
         using mask_t = typename mask_group_t::value_type;
         using algebra_t = typename mask_t::algebra_type;
 
-        const auto &ctf = contextual_transforms[surface.transform()];
+        const auto &ctf = contextual_transforms.at(surface.transform());
 
         // Run over the masks that belong to the surface (only one can be hit)
         for (const auto &mask :
@@ -143,7 +143,7 @@ struct intersection_update {
         using mask_t = typename mask_group_t::value_type;
         using algebra_t = typename mask_t::algebra_type;
 
-        const auto &ctf = contextual_transforms[sfi.sf_desc.transform()];
+        const auto &ctf = contextual_transforms.at(sfi.sf_desc.transform());
 
         // Run over the masks that belong to the surface
         for (const auto &mask :

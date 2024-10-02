@@ -87,7 +87,7 @@ class tracking_volume {
     DETRAY_HOST_DEVICE
     constexpr auto transform() const -> const
         typename detector_t::transform3_type & {
-        return m_detector.transform_store()[m_desc.transform()];
+        return m_detector.transform_store().at(m_desc.transform());
     }
 
     /// @returns the center point of the volume.
