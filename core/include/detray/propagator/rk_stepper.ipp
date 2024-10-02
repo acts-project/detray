@@ -85,7 +85,7 @@ DETRAY_HOST_DEVICE inline void detray::rk_stepper<
     // Half step length
     const scalar_type h2{h * h};
     const scalar_type half_h{h * 0.5f};
-    const scalar_type h_6{h * static_cast<scalar_type>(1. / 6.)};
+    const scalar_type h_6{h * (1.f / 6.f)};
 
     // 3X3 Identity matrix
     const matrix_type<3, 3> I33 = matrix_operator().template identity<3, 3>();
@@ -281,7 +281,7 @@ DETRAY_HOST_DEVICE inline void detray::rk_stepper<
                                      half_h * dkndr[0u], sd.b_middle);
         dkndr[1u] = dkndr[1u] -
                     sd.qop[1u] * mat_helper().column_wise_cross(
-                                     dBdr_mid * (I33 + h2 * 0.125 * dkndr[0u]),
+                                     dBdr_mid * (I33 + h2 * 0.125f * dkndr[0u]),
                                      sd.t[1u]);
 
         // dk3/dr1
@@ -289,16 +289,16 @@ DETRAY_HOST_DEVICE inline void detray::rk_stepper<
                                      half_h * dkndr[1u], sd.b_middle);
         dkndr[2u] = dkndr[2u] -
                     sd.qop[2u] * mat_helper().column_wise_cross(
-                                     dBdr_mid * (I33 + h2 * 0.125 * dkndr[0u]),
+                                     dBdr_mid * (I33 + h2 * 0.125f * dkndr[0u]),
                                      sd.t[2u]);
 
         // dk4/dr1
         dkndr[3u] = sd.qop[3u] *
                     mat_helper().column_wise_cross(h * dkndr[2u], sd.b_last);
-        dkndr[3u] =
-            dkndr[3u] -
-            sd.qop[3u] * mat_helper().column_wise_cross(
-                             dBdr_fin * (I33 + h2 * 0.5 * dkndr[2u]), sd.t[3u]);
+        dkndr[3u] = dkndr[3u] -
+                    sd.qop[3u] *
+                        mat_helper().column_wise_cross(
+                            dBdr_fin * (I33 + h2 * 0.5f * dkndr[2u]), sd.t[3u]);
 
         // Set dF/dr1 and dG/dr1
         auto dFdr = matrix_operator().template identity<3, 3>();
@@ -700,10 +700,10 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
     // Call navigation update policy
     typename rk_stepper::policy_type{}(stepping.policy_state(), propagation);
 
-    const auto step_size_scaling = static_cast<scalar_type>(
+    const scalar_type step_size_scaling =
         math::min(math::max(math::sqrt(math::sqrt(cfg.rk_error_tol / error)),
                             static_cast<scalar_type>(0.25)),
-                  static_cast<scalar_type>(4.)));
+                  static_cast<scalar_type>(4.));
 
     // Save the current step size
     stepping._prev_step_size = stepping._step_size;
