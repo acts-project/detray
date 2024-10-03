@@ -142,7 +142,7 @@ struct jacobian<polar2D<algebra_t>> {
 
         const matrix_type<1, 3> row0 = dudG * lcos_phi + dvdG * lsin_phi;
         const matrix_type<1, 3> row1 =
-            1. / lrad * (lcos_phi * dvdG - lsin_phi * dudG);
+            1.f / lrad * (lcos_phi * dvdG - lsin_phi * dudG);
 
         matrix_operator().template set_block<1, 3>(
             free_pos_to_bound_pos_derivative, row0, e_bound_loc0, e_free_pos0);
