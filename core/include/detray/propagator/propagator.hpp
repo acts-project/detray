@@ -222,7 +222,8 @@ struct propagator {
 
                 // If the track is on a sensitive surface, break the loop to
                 // synchornize the threads
-                if (propagation._navigation.is_on_sensitive()) {
+                if (propagation._navigation.is_on_sensitive() ||
+                    propagation._navigation.encountered_sf_material()) {
                     break;
                 } else {
                     run_actors(actor_state_refs, propagation);
