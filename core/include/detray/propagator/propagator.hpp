@@ -210,6 +210,8 @@ struct propagator {
 
         while (propagation._heartbeat) {
 
+            bool skip = true;
+
             while (propagation._heartbeat) {
 
                 // Take the step
@@ -223,6 +225,7 @@ struct propagator {
                 // If the track is on a sensitive surface, break the loop to
                 // synchornize the threads
                 if (propagation._navigation.is_on_sensitive()) {
+                    skip = false;
                     break;
                 } else {
                     run_actors(actor_state_refs, propagation);
@@ -233,20 +236,21 @@ struct propagator {
                 }
             }
 
-            // Synchornized actor
-            if (propagation._heartbeat) {
+            if (!skip) {
+
+                // Synchronized actor
                 run_actors(actor_state_refs, propagation);
 
                 // And check the status
                 propagation._heartbeat &=
                     m_navigator.update(propagation, m_cfg.navigation);
+            }
 
 #if defined(__NO_DEVICE__)
-                if (propagation.do_debug) {
-                    inspect(propagation);
-                }
-#endif
+            if (propagation.do_debug) {
+                inspect(propagation);
             }
+#endif
         }
 
         // Pass on the whether the propagation was successful
