@@ -30,7 +30,8 @@ namespace {
 using point3 = detray::test::point3;
 
 /// Check volume links for a collection of masks in a given detector
-template <typename detector_t, typename detector_t::mask_link::id_type mask_id>
+template <typename detector_t,
+          typename detector_t::surface_type::mask_link::id_type mask_id>
 inline void check_mask(const detector_t& d,
                        const std::vector<detray::dindex>& vol_links) {
     for (const auto [idx, mask] :
@@ -257,12 +258,13 @@ GTEST_TEST(detray_builders, tracking_volume_construction) {
          detray::views::iota(dindex_range{3, d.surfaces().size()})) {
         geometry::barcode bcd{};
         bcd.set_index(idx);
-        EXPECT_EQ(d.surface(bcd).transform(), idx + 1)
+        // Add a shift to the index for the volume placement transforms
+        EXPECT_EQ(d.surface(bcd).transform(), idx + 2)
             << "error at index: " << idx;
     }
 
     // check surface mask links
-    std::vector<typename detector_t::mask_link> mask_links{
+    std::vector<typename detector_t::surface_type::mask_link> mask_links{
         {mask_id::e_rectangle2, 0u},
         {mask_id::e_annulus2, 0u},
         {mask_id::e_trapezoid2, 0u},

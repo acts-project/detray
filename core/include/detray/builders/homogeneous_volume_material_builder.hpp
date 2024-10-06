@@ -68,7 +68,7 @@ class homogeneous_volume_material_builder final
         vol->set_material(material_id, coll_size);
 
         // Append the material
-        det.material_store().template push_back<material_id>(m_volume_material);
+        det._materials.template push_back<material_id>(m_volume_material);
 
         // Give the volume to the next decorator
         return vol;

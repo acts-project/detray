@@ -20,7 +20,7 @@
 #include "detray/test/cpu/toy_detector_test.hpp"
 #include "detray/test/utils/detectors/build_telescope_detector.hpp"
 #include "detray/test/utils/detectors/build_toy_detector.hpp"
-#include "detray/test/utils/detectors/create_wire_chamber.hpp"
+#include "detray/test/utils/detectors/build_wire_chamber.hpp"
 #include "detray/utils/consistency_checker.hpp"
 
 // Vecmem include(s)
@@ -284,7 +284,7 @@ GTEST_TEST(io, json_wire_chamber_reader) {
     // Wire chamber
     vecmem::host_memory_resource host_mr;
     wire_chamber_config wire_cfg{};
-    auto [wire_det, wire_names] = create_wire_chamber(host_mr, wire_cfg);
+    auto [wire_det, wire_names] = build_wire_chamber(host_mr, wire_cfg);
 
     std::map<std::string, std::string> file_names;
     file_names["geometry"] = "wire_chamber_geometry.json";

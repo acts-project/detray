@@ -22,7 +22,7 @@
 // Detray test include(s)
 #include "detray/test/utils/detectors/build_telescope_detector.hpp"
 #include "detray/test/utils/detectors/build_toy_detector.hpp"
-#include "detray/test/utils/detectors/create_wire_chamber.hpp"
+#include "detray/test/utils/detectors/build_wire_chamber.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -133,7 +133,8 @@ GTEST_TEST(io, json_wire_chamber_writer) {
 
     // Wire chamber
     vecmem::host_memory_resource host_mr;
-    auto [det, names] = create_wire_chamber(host_mr, wire_chamber_config{});
+    wire_chamber_config wire_cfg{};
+    auto [det, names] = build_wire_chamber(host_mr, wire_cfg);
 
     auto writer_cfg = io::detector_writer_config{}
                           .format(io::format::json)

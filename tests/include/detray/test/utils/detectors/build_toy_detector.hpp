@@ -1193,21 +1193,17 @@ inline void add_beampipe_portals(
 /// @param cfg toy detector configuration
 ///
 /// @returns a complete detector object
-template <typename scalar_t = detray::scalar>
 inline auto build_toy_detector(vecmem::memory_resource &resource,
                                toy_det_config cfg = {}) {
 
     using builder_t = detector_builder<toy_metadata, volume_builder>;
     using detector_t = typename builder_t::detector_type;
+    using scalar_t = typename detector_t::scalar_type;
     using transform3_t = typename detector_t::transform3_type;
     using nav_link_t = typename detector_t::surface_type::navigation_link;
     using cyl_factory_t = surface_factory<detector_t, concentric_cylinder2D>;
     using vol_extent_container_t =
         std::vector<std::pair<dindex, detail::extent2D<scalar_t>>>;
-
-    static_assert(std::is_same_v<typename detector_t::scalar_type, scalar_t>,
-                  "Scalar type used for toy detector config does not match the "
-                  "detector algebra type");
 
     // Check config
     if (cfg.n_edc_layers() > cfg.endcap_layer_positions().size()) {

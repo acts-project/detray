@@ -93,7 +93,7 @@ class volume_builder : public volume_builder_interface<detector_t> {
         m_volume.set_index(static_cast<dindex>(det.volumes().size()));
 
         m_volume.set_transform(det.transform_store().size());
-        det.transform_store().push_back(m_trf);
+        det._transforms.push_back(m_trf);
 
         // Add all data from the builder to the detector containers
         add_to_detector(ctx, det);
@@ -104,7 +104,7 @@ class volume_builder : public volume_builder_interface<detector_t> {
         m_masks.clear_all();
 
         // Pass to decorator builders
-        return &(det.volumes().back());
+        return &(det._volumes.back());
     }
 
     /// Adds a placement transform @param trf for the volume

@@ -15,7 +15,6 @@
 #include "detray/definitions/geometry.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes/rectangle2D.hpp"
-#include "detray/materials/material.hpp"
 
 // System include(s)
 #include <algorithm>

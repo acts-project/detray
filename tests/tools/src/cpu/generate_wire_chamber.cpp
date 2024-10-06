@@ -15,7 +15,7 @@
 #include "detray/options/detector_io_options.hpp"
 #include "detray/options/parse_options.hpp"
 #include "detray/options/wire_chamber_options.hpp"
-#include "detray/test/utils/detectors/create_wire_chamber.hpp"
+#include "detray/test/utils/detectors/build_wire_chamber.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
 
     // Build the geometry
     vecmem::host_memory_resource host_mr;
-    auto [wire_chamber, names] = create_wire_chamber(host_mr, wire_cfg);
+    auto [wire_chamber, names] = build_wire_chamber(host_mr, wire_cfg);
 
     // Write to file
     detray::io::write_detector(wire_chamber, names, writer_cfg);

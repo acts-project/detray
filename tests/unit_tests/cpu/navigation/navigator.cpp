@@ -15,7 +15,7 @@
 
 // Detray test include(s)
 #include "detray/test/utils/detectors/build_toy_detector.hpp"
-#include "detray/test/utils/detectors/create_wire_chamber.hpp"
+#include "detray/test/utils/detectors/build_wire_chamber.hpp"
 #include "detray/test/utils/inspectors.hpp"
 
 // Test include(s)
@@ -310,8 +310,9 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
     constexpr double tol{0.01};
 
     constexpr std::size_t n_layers{10};
-    auto [wire_det, names] =
-        create_wire_chamber(host_mr, wire_chamber_config{});
+    wire_chamber_config wire_cfg{};
+    auto [wire_det, names] = build_wire_chamber(host_mr, wire_cfg);
+
     using detector_t = decltype(wire_det);
     using inspector_t = navigation::print_inspector;
     using navigator_t = navigator<detector_t, cache_size, inspector_t>;

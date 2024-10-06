@@ -8,7 +8,11 @@
 #pragma once
 
 // Project include(s)
-#include "detray/builders/volume_builder.hpp"  // @TODO remove
+#include "detray/builders/grid_builder.hpp"
+#include "detray/builders/homogeneous_material_builder.hpp"
+#include "detray/builders/homogeneous_volume_material_builder.hpp"
+#include "detray/builders/material_map_builder.hpp"
+#include "detray/builders/volume_builder.hpp"
 #include "detray/core/detail/container_buffers.hpp"
 #include "detray/core/detail/container_views.hpp"
 #include "detray/core/detail/surface_lookup.hpp"
@@ -17,22 +21,29 @@
 #include "detray/definitions/detail/containers.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/geometry/detail/volume_descriptor.hpp"
-#include "detray/utils/ranges.hpp"  // @TODO remove
 
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>
 
 // System include(s)
-#include <algorithm>
 #include <map>
 #include <sstream>
 #include <string>
 
 namespace detray {
 
-// Forward declare the volume builder
-template <typename detector_t>
-class volume_builder;
+namespace detail {
+/// Temporary way to manipulate transforms in the transform store
+/// @todo Remove as soon as contices can be registered!
+template <typename detector_t, typename transform3_t>
+void set_transform(detector_t &det, const transform3_t &trf, unsigned int i) {
+    std::cout
+        << "WARNING: Modifying transforms in the detector will be deprecated! "
+           "Please, use a separate geometry context in this case"
+        << std::endl;
+    det._transforms[i] = trf;
+}
+}  // namespace detail
 
 /// @brief The detector definition.
 ///
@@ -48,6 +59,22 @@ class detector {
 
     // Allow the building of the detector containers
     friend class volume_builder<detector<metadata_t, container_t>>;
+    template <typename, typename, typename, typename>
+    friend class grid_builder;
+    friend class homogeneous_material_builder<
+        detector<metadata_t, container_t>>;
+    friend class homogeneous_volume_material_builder<
+        detector<metadata_t, container_t>>;
+    template <typename, std::size_t, typename>
+    friend class material_map_builder;
+    template <typename>
+    friend class volume_accelerator_builder;
+    /// @todo Remove
+    friend void
+    detail::set_transform<detector<metadata_t, container_t>,
+                          dtransform3D<typename metadata_t::algebra_type>>(
+        detector<metadata_t, container_t> &,
+        const dtransform3D<typename metadata_t::algebra_type> &, unsigned int);
 
     public:
     /// Main definition of geometry types
@@ -86,30 +113,28 @@ class detector {
     /// the geo context (e.g. for alignment)
     using transform_container =
         typename metadata::template transform_store<vector_type>;
-    using transform_link = typename transform_container::link_type;
     using geometry_context = typename transform_container::context_type;
 
     /// Forward mask types that are present in this detector
     using mask_container =
         typename metadata::template mask_store<tuple_type, vector_type>;
     using masks = typename mask_container::value_types;
-    using mask_link = typename mask_container::single_link;
 
     /// Forward mask types that are present in this detector
     using material_container =
         typename metadata::template material_store<tuple_type, container_t>;
     using materials = typename material_container::value_types;
-    using material_link = typename material_container::single_link;
 
     /// Surface Finders: structures that enable neigborhood searches in the
     /// detector geometry during navigation. Can be different in each volume
     using accelerator_container =
         typename metadata::template accelerator_store<tuple_type, container_t>;
     using accel = typename accelerator_container::value_types;
-    using accel_link = typename accelerator_container::single_link;
 
     /// Volume type
     using geo_obj_ids = typename metadata::geo_objects;
+    using material_link = typename material_container::single_link;
+    using accel_link = typename accelerator_container::single_link;
     using volume_type =
         volume_descriptor<geo_obj_ids, accel_link, material_link>;
     using volume_container = vector_type<volume_type>;
@@ -164,7 +189,6 @@ class detector {
 
     /// Allowed constructors
     /// @{
-
     /// Move constructor
     detector(detector &&) noexcept = default;
 
@@ -181,8 +205,7 @@ class detector {
           _masks(resource),
           _materials(resource),
           _accelerators(resource),
-          _volume_finder(resource),
-          _resource(&resource) {}
+          _volume_finder(resource) {}
 
     /// Constructor from detector data view
     template <concepts::device_view detector_view_t>
@@ -224,6 +247,16 @@ class detector {
         return _volumes[volume_index];
     }
 
+    /// @returns all portals - const
+    /// @note Depending on the detector type, this can also contain other
+    /// surfaces
+    /// @todo add range filter to skip non-portal surfaces
+    DETRAY_HOST_DEVICE
+    inline const auto &portals() const {
+        // All portals are registered with the brute force search
+        return _accelerators.template get<accel::id::e_brute_force>().all();
+    }
+
     /// @return the sub-volumes of the detector - const access
     DETRAY_HOST_DEVICE
     inline auto surfaces() const -> const surface_lookup_container & {
@@ -239,7 +272,8 @@ class detector {
 
     /// @return detector transform store
     DETRAY_HOST_DEVICE
-    inline auto transform_store() const -> const transform_container & {
+    inline auto transform_store(const geometry_context & /*ctx*/ = {}) const
+        -> const transform_container & {
         return _transforms;
     }
 
@@ -316,111 +350,6 @@ class detector {
         return ss.str();
     }
 
-    /// @return the pointer of memoery resource - non-const access
-    DETRAY_HOST
-    auto *resource() { return _resource; }
-
-    /// @return the pointer of memoery resource
-    DETRAY_HOST
-    const auto *resource() const { return _resource; }
-
-    ///------------------------------------------------------------------------
-    /// @TODO Make the following methods private or remove them once all of the
-    /// geometry building code has been migrated to the detector builder
-    ///------------------------------------------------------------------------
-
-    /// @return the sub-volumes of the detector - non-const access
-    DETRAY_HOST_DEVICE
-    inline auto volumes() -> vector_type<volume_type> & { return _volumes; }
-
-    /// Append new portals(surfaces) to the detector
-    DETRAY_HOST
-    inline void append_portals(surface_container &&new_surfaces) {
-        _accelerators.template push_back<accel::id::e_brute_force>(
-            std::move(new_surfaces));
-    }
-
-    /// @returns all portals - const
-    /// @note Depending on the detector type, this can also contain other
-    /// surfaces
-    DETRAY_HOST_DEVICE
-    inline const auto &portals() const {
-        // In case of portals, we know where they live
-        return _accelerators.template get<accel::id::e_brute_force>().all();
-    }
-
-    /// @returns the portals of a given volume @param v - const
-    /// @note Depending on the detector type, this can also container other
-    /// surfaces
-    DETRAY_HOST_DEVICE constexpr auto portals(const volume_type &v) const {
-
-        // Index of the portal collection in the surface store
-        const dindex pt_coll_idx{
-            v.template accel_link<geo_obj_ids::e_portal>().index()};
-
-        const auto &pt_coll =
-            _accelerators.template get<accel::id::e_brute_force>()[pt_coll_idx];
-
-        return pt_coll.all();
-    }
-
-    /// Append new portals(surfaces) to the detector
-    DETRAY_HOST
-    inline void append_portals(surface_lookup_container &&new_surfaces) {
-        surface_container descriptors;
-        std::transform(
-            std::move(new_surfaces).begin(), std::move(new_surfaces).end(),
-            std::back_inserter(descriptors),
-            [](typename surface_lookup_container::value_type &sf) {
-                return static_cast<typename surface_container::value_type>(sf);
-            });
-        _accelerators.template push_back<accel::id::e_brute_force>(
-            std::move(descriptors));
-    }
-
-    /// @return the sub-volumes of the detector - non-const access
-    DETRAY_HOST_DEVICE
-    inline auto surfaces() -> surface_lookup_container & { return _surfaces; }
-
-    DETRAY_HOST_DEVICE
-    inline auto transform_store(const geometry_context & /*ctx*/ = {})
-        -> transform_container & {
-        return _transforms;
-    }
-
-    /// Append a new transform store to the detector
-    DETRAY_HOST
-    inline void append_transforms(transform_container &&new_transforms,
-                                  const geometry_context ctx = {}) {
-        _transforms.append(std::move(new_transforms), ctx);
-    }
-
-    /// @return all surface/portal masks in the geometry - non-const access
-    DETRAY_HOST_DEVICE
-    inline auto mask_store() -> mask_container & { return _masks; }
-
-    /// Append a new mask store to the detector
-    DETRAY_HOST
-    inline void append_masks(mask_container &&new_masks) {
-        _masks.append(std::move(new_masks));
-    }
-
-    /// @return all materials in the geometry - non-const access
-    DETRAY_HOST_DEVICE
-    inline auto material_store() -> material_container & { return _materials; }
-
-    /// Append a new material store to the detector
-    DETRAY_HOST
-    inline void append_materials(material_container &&new_materials) {
-        _materials.append(std::move(new_materials));
-    }
-
-    /// @returns access to the surface finder container
-    DETRAY_HOST_DEVICE
-    inline auto accelerator_store() -> accelerator_container & {
-        return _accelerators;
-    }
-
     /// Add the volume grid - move semantics
     ///
     /// @param v_grid the volume grid to be added
@@ -436,116 +365,6 @@ class detector {
     inline auto set_volume_finder(const volume_finder &v_grid) -> void {
         _volume_finder = v_grid;
     }
-
-    /// @returns const access to the detector's volume search structure
-    DETRAY_HOST_DEVICE
-    inline auto volume_search_grid() -> volume_finder & {
-        return _volume_finder;
-    }
-
-    ///------------------------------------------------------------------------
-    /// @TODO Remove the following methods once all of the geometry building
-    /// code has been migrated to the detector builder
-    ///------------------------------------------------------------------------
-
-    /// Add a new volume and retrieve a reference to it.
-    ///
-    /// @param id the shape id for the volume
-    /// @param acc_link of the volume, where to entry the surface finder
-    ///
-    /// @return non-const reference to the new volume
-    DETRAY_HOST
-    volume_type &new_volume(
-        const volume_id id,
-        typename volume_type::accel_link_type::index_type acc_link = {}) {
-        volume_type &cvolume = _volumes.emplace_back(id);
-        cvolume.set_index(static_cast<dindex>(_volumes.size()) - 1u);
-        cvolume.template set_accel_link<
-            static_cast<typename volume_type::object_id>(0)>(acc_link);
-
-        return cvolume;
-    }
-
-    /// Add a new full set of detector components (e.g. transforms or volumes)
-    /// according to given geometry_context.
-    ///
-    /// @param ctx is the geometry_context of the call
-    /// @param vol is the target volume
-    /// @param surfaces_per_vol is the surface vector per volume
-    ///                         (either portals, sensitives or passives)
-    /// @param masks_per_vol is the mask container per volume
-    /// @param trfs_per_vol is the transform vector per volume
-    ///
-    /// @note can throw an exception if input data is inconsistent
-    // TODO: Provide volume builder structure separate from the detector
-    template <geo_obj_ids surface_id = static_cast<geo_obj_ids>(0)>
-    DETRAY_HOST auto add_objects_per_volume(
-        const geometry_context ctx, volume_type &vol,
-        surface_container &surfaces_per_vol, mask_container &masks_per_vol,
-        transform_container &trfs_per_vol) noexcept(false) -> void {
-
-        // Append transforms
-        const auto trf_offset = _transforms.size(ctx);
-        _transforms.append(std::move(trfs_per_vol), ctx);
-
-        // Update mask, material and transform index of surfaces and set a
-        // unique barcode (index of surface in container)
-        for (auto &sf : surfaces_per_vol) {
-            _masks.template visit<detail::mask_index_update>(sf.mask(), sf);
-            sf.update_transform(trf_offset);
-            // Don't overwrite the surface index if it has been set already
-            // (e.g. with a special sorting)
-            if (sf.barcode().is_invalid()) {
-                sf.set_index(_surfaces.size());
-                assert(!sf.barcode().is_invalid());
-            }
-            _surfaces.insert(sf);
-        }
-
-        // Append surfaces to base surface collection
-        _accelerators.template push_back<accel::id::e_default>(
-            surfaces_per_vol);
-
-        // Update the surface link in a volume
-        vol.template set_accel_link<surface_id>(
-            accel::id::e_default,
-            _accelerators.template size<accel::id::e_default>() - 1);
-
-        // Append mask and material container
-        _masks.append(std::move(masks_per_vol));
-    }
-
-    /// Add a new full set of detector components (e.g. transforms or volumes)
-    /// according to given geometry_context.
-    ///
-    /// @param ctx is the geometry_context of the call
-    /// @param vol is the target volume
-    /// @param surfaces_per_vol is the surface vector per volume
-    /// @param masks_per_vol is the mask container per volume
-    /// @param materials_per_vol is the material container per volume
-    /// @param trfs_per_vol is the transform vector per volume
-    ///
-    /// @note can throw an exception if input data is inconsistent
-    // TODO: Provide volume builder structure separate from the detector
-    DETRAY_HOST
-    auto add_objects_per_volume(
-        const geometry_context ctx, volume_type &vol,
-        surface_container &surfaces_per_vol, mask_container &masks_per_vol,
-        transform_container &trfs_per_vol,
-        material_container &materials_per_vol) noexcept(false) -> void {
-
-        // Update material index of surfaces
-        for (auto &sf : surfaces_per_vol) {
-            _materials.template visit<detail::material_index_update>(
-                sf.material(), sf);
-        }
-        _materials.append(std::move(materials_per_vol));
-
-        add_objects_per_volume(ctx, vol, surfaces_per_vol, masks_per_vol,
-                               trfs_per_vol);
-    }
-
-    ///------------------------------------------------------------------------
 
     private:
     /// Contains the detector sub-volumes.
@@ -568,10 +387,6 @@ class detector {
 
     /// Search structure for volumes
     volume_finder _volume_finder;
-
-    /// The memory resource represents how and where (host, device, managed)
-    /// the memory for the detector containers is allocated
-    vecmem::memory_resource *_resource = nullptr;
 };
 
 }  // namespace detray
