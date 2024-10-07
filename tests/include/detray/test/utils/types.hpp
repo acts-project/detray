@@ -29,7 +29,7 @@ static constexpr char filenames[] = "array-";
 static constexpr char filenames[] = "eigen-";
 #elif DETRAY_ALGEBRA_SMATRIX
 static constexpr char filenames[] = "smatrix-";
-#elif DETRAY_ALGEBRA_VC
+#elif DETRAY_ALGEBRA_VC_AOS
 static constexpr char filenames[] = "vc-";
 #endif
 

@@ -61,15 +61,15 @@ if( DETRAY_SMATRIX_PLUGIN )
 endif()
 
 # Build the Vc benchmark executable.
-if( DETRAY_VC_PLUGIN )
-   detray_add_cpu_benchmark( vc )
+if( DETRAY_VC_AOS_PLUGIN )
+   detray_add_cpu_benchmark( vc_aos )
 endif()
 
 if( DETRAY_VC_SOA_PLUGIN )
 
    macro( detray_add_soa_benchmark algebra )
       # Build the benchmark executable.
-      detray_add_executable( benchmark_soa_${algebra}
+      detray_add_executable( benchmark_cpu_vc_soa_vs_${algebra}
          "intersectors.cpp"
          LINK_LIBRARIES benchmark::benchmark benchmark::benchmark_main vecmem::core detray::core_vc_soa detray::core_${algebra} 
          detray::test_utils )

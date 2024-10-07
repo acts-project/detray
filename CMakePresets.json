@@ -37,7 +37,11 @@
             "DETRAY_SETUP_BENCHMARK": "TRUE",
             "DETRAY_SETUP_COVFIE": "TRUE",
             "DETRAY_SETUP_DFELIBS": "TRUE",
-            "DETRAY_SETUP_NLOHMANN": "TRUE"
+            "DETRAY_SETUP_NLOHMANN": "TRUE",
+            "ALGEBRA_PLUGINS_INCLUDE_EIGEN": "TRUE",
+            "ALGEBRA_PLUGINS_SETUP_EIGEN3": "TRUE",
+            "ALGEBRA_PLUGINS_INCLUDE_VC": "TRUE",
+            "ALGEBRA_PLUGINS_SETUP_VC": "TRUE"
          }
       },
       {
@@ -75,7 +79,8 @@
          "inherits" : [ "default-fp32" ],
          "cacheVariables" : {
             "DETRAY_BUILD_CUDA"     : "TRUE",
-            "DETRAY_VC_PLUGIN"      : "FALSE",
+            "DETRAY_VC_AOS_PLUGIN"  : "FALSE",
+            "DETRAY_VC_SOA_PLUGIN"  : "FALSE",
             "DETRAY_SMATRIX_PLUGIN" : "FALSE"
          }
       },
@@ -85,7 +90,8 @@
          "inherits" : [ "default-fp32" ],
          "cacheVariables" : {
             "DETRAY_BUILD_SYCL"     : "TRUE",
-            "DETRAY_VC_PLUGIN"      : "FALSE",
+            "DETRAY_VC_AOS_PLUGIN"  : "FALSE",
+            "DETRAY_VC_SOA_PLUGIN"  : "FALSE",
             "DETRAY_SMATRIX_PLUGIN" : "FALSE"
          }
       },

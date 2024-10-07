@@ -2,7 +2,7 @@
 
 Detray is part of the ACTS project (R&D line for parallelization), the ACTS project can be found: https://github.com/acts-project/acts.
 
-This is a C++17 header only library for detector surface intersections using different algebra plugin libraries. It follows the navigation and propagation concept of ACTS, however, with an attempt to create
+This is a C++20 header only library for detector surface intersections using different algebra plugin libraries. It follows the navigation and propagation concept of ACTS, however, with an attempt to create
 a geometry without polymorphic inheritance structure.
 
 
@@ -66,7 +66,8 @@ The following cmake options are available and can also be specified explicitly f
 | DETRAY_CUSTOM_SCALARTYPE | Floating point precision | double |
 | DETRAY_EIGEN_PLUGIN | Build Eigen math plugin | OFF |
 | DETRAY_SMATRIX_PLUGIN | Build ROOT/SMatrix math plugin | OFF |
-| DETRAY_VC_PLUGIN | Build Vc based math plugin | OFF |
+| DETRAY_VC_AOS_PLUGIN | Build Vc based AoS math plugin | OFF |
+| DETRAY_VC_SOA_PLUGIN | Build Vc based SoA math plugin (currently only supports the ray-surface intersectors) | OFF |
 | DETRAY_SVG_DISPLAY | Build ActSVG display module | OFF |
 
 ## Continuous benchmark
