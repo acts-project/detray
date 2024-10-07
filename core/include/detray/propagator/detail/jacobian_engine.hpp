@@ -22,10 +22,8 @@
 namespace detray::detail {
 
 /// @brief Generate Jacobians
-template <typename frame_t,
-          std::enable_if_t<std::is_object_v<typename frame_t::loc_point>,
-                           bool> = true>
-struct jacobian_engine {
+template <typename frame_t>
+requires std::is_object_v<typename frame_t::loc_point> struct jacobian_engine {
 
     /// @name Type definitions for the struct
     /// @{

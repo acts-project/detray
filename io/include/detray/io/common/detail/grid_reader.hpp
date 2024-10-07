@@ -148,9 +148,10 @@ class grid_reader {
     ///
     /// @param binning_ids runtime queue of binning type ids (read from file)
     template <typename detector_t, typename bounds_ts, typename binning_ts,
-              typename... Ts,
-              std::enable_if_t<types::size<bounds_ts> == dim, bool> = true>
-    static void convert(std::queue<axis::binning> &binning_ids, Ts &&... data) {
+              typename... Ts>
+    requires(types::size<bounds_ts> ==
+             dim) static void convert(std::queue<axis::binning> &binning_ids,
+                                      Ts &&... data) {
 
         using namespace axis;
 
@@ -200,14 +201,12 @@ class grid_reader {
     /// @param grid_data grid IO payload (read from file)
     /// @param det_builder gather the grid data and build the final volume
     template <typename detector_t, typename bounds_ts, typename binning_ts,
-              typename content_t,
-              std::enable_if_t<types::size<bounds_ts> == dim &&
-                                   types::size<binning_ts> == dim,
-                               bool> = true>
-    static void convert(
-        const std::pair<dindex, grid_payload<content_t>> &grid_data,
-        detector_builder<typename detector_t::metadata, volume_builder>
-            &det_builder) {
+              typename content_t>
+        requires(types::size<bounds_ts> == dim) &&
+        (types::size<binning_ts> == dim) static void convert(
+            const std::pair<dindex, grid_payload<content_t>> &grid_data,
+            detector_builder<typename detector_t::metadata, volume_builder>
+                &det_builder) {
 
         using algebra_t = typename detector_t::algebra_type;
 
@@ -282,15 +281,13 @@ class grid_reader {
 
     /// @brief End of recursion: build the grid from the @param grid_data
     template <typename detector_t, typename local_frame_t, typename content_t,
-              typename... bounds_ts, typename... binning_ts,
-              std::enable_if_t<sizeof...(bounds_ts) == dim &&
-                                   sizeof...(binning_ts) == dim,
-                               bool> = true>
-    static void convert(
-        const std::pair<dindex, grid_payload<content_t>> &grid_idx_and_data,
-        detector_builder<typename detector_t::metadata, volume_builder>
-            &det_builder,
-        types::list<bounds_ts...>, types::list<binning_ts...>) {
+              typename... bounds_ts, typename... binning_ts>
+        requires(sizeof...(bounds_ts) == dim) &&
+        (sizeof...(binning_ts) == dim) static void convert(
+            const std::pair<dindex, grid_payload<content_t>> &grid_idx_and_data,
+            detector_builder<typename detector_t::metadata, volume_builder>
+                &det_builder,
+            types::list<bounds_ts...>, types::list<binning_ts...>) {
 
         using scalar_t = typename detector_t::scalar_type;
 

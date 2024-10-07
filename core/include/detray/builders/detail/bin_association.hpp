@@ -36,14 +36,13 @@ namespace detray::detail {
 ///        taken absolute or relative
 template <typename context_t, typename surface_container_t,
           typename transform_container_t, typename mask_container_t,
-          typename grid_t, std::enable_if_t<grid_t::dim == 2, bool> = true>
-static inline void bin_association(const context_t & /*context*/,
-                                   const surface_container_t &surfaces,
-                                   const transform_container_t &transforms,
-                                   const mask_container_t &surface_masks,
-                                   grid_t &grid,
-                                   const std::array<scalar, 2> &bin_tolerance,
-                                   bool absolute_tolerance = true) {
+          typename grid_t>
+requires(grid_t::dim == 2) static inline void bin_association(
+    const context_t & /*context*/, const surface_container_t &surfaces,
+    const transform_container_t &transforms,
+    const mask_container_t &surface_masks, grid_t &grid,
+    const std::array<scalar, 2> &bin_tolerance,
+    bool absolute_tolerance = true) {
 
     using algebra_t = typename grid_t::local_frame_type::algebra_type;
     using point2_t = dpoint2D<algebra_t>;

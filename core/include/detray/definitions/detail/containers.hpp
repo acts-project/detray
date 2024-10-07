@@ -98,13 +98,15 @@ struct has_reserve {
 /// @name Functions calling or not calling reserve(...) based on whether it's
 /// available
 /// @{
-template <typename T, std::enable_if_t<has_reserve<T>::value, bool> = true>
-DETRAY_HOST_DEVICE void call_reserve(T& obj, std::size_t newsize) {
+template <typename T>
+requires has_reserve<T>::value DETRAY_HOST_DEVICE void call_reserve(
+    T& obj, std::size_t newsize) {
     obj.reserve(newsize);
 }
 
-template <typename T, std::enable_if_t<!(has_reserve<T>::value), bool> = true>
-DETRAY_HOST_DEVICE void call_reserve(T& /*obj*/, std::size_t /*newsize*/) {
+template <typename T>
+requires(!has_reserve<T>::value) DETRAY_HOST_DEVICE
+    void call_reserve(T& /*obj*/, std::size_t /*newsize*/) {
     /*Not defined*/
 }
 /// @}

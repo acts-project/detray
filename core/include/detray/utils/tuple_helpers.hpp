@@ -119,22 +119,18 @@ template <class T>
 using unwrap_decay_t = typename unwrap_refwrapper<std::decay_t<T>>::type;
 
 // make_tuple for std::tuple
-template <template <typename...> class tuple_t, class... value_types,
-          std::enable_if_t<std::is_same_v<tuple_t<value_types...>,
-                                          std::tuple<value_types...>>,
-                           bool> = true>
-DETRAY_HOST constexpr std::tuple<unwrap_decay_t<value_types>...> make_tuple(
-    value_types&&... args) {
+template <template <typename...> class tuple_t, class... value_types>
+requires std::is_same_v<tuple_t<value_types...>, std::tuple<value_types...>>
+    DETRAY_HOST constexpr std::tuple<unwrap_decay_t<value_types>...> make_tuple(
+        value_types&&... args) {
     return std::make_tuple(std::forward<value_types>(args)...);
 }
 
 // make_tuple for detray::tuple
-template <template <typename...> class tuple_t, class... value_types,
-          std::enable_if_t<std::is_same_v<tuple_t<value_types...>,
-                                          detray::tuple<value_types...>>,
-                           bool> = true>
-DETRAY_HOST_DEVICE constexpr detray::tuple<unwrap_decay_t<value_types>...>
-make_tuple(value_types&&... args) {
+template <template <typename...> class tuple_t, class... value_types>
+requires std::is_same_v<tuple_t<value_types...>, detray::tuple<value_types...>>
+    DETRAY_HOST_DEVICE constexpr detray::tuple<unwrap_decay_t<value_types>...>
+    make_tuple(value_types&&... args) {
     return detray::tuple<unwrap_decay_t<value_types>...>{
         std::forward<value_types>(args)...};
 }

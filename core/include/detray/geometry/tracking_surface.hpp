@@ -73,9 +73,8 @@ class tracking_surface {
         : tracking_surface(det, det.surface(sf_idx)) {}
 
     /// Conversion to surface interface around constant detector type
-    template <typename detector_type = detector_t,
-              std::enable_if_t<!std::is_const_v<detector_type>, bool> = true>
-    DETRAY_HOST_DEVICE constexpr
+    template <typename detector_type = detector_t>
+    requires(!std::is_const_v<detector_type>) DETRAY_HOST_DEVICE constexpr
     operator tracking_surface<const detector_type>() const {
         return tracking_surface<const detector_type>{this->m_detector,
                                                      this->m_desc};
@@ -168,12 +167,10 @@ class tracking_surface {
     }
 
     /// @returns the mask volume link
-    template <typename point_t = point2_type,
-              std::enable_if_t<std::is_same_v<point_t, point3_type> ||
-                                   std::is_same_v<point_t, point2_type>,
-                               bool> = true>
-    DETRAY_HOST_DEVICE constexpr bool is_inside(const point_t &loc_p,
-                                                const scalar_type tol) const {
+    template <typename point_t = point2_type>
+        requires std::is_same_v<point_t, point3_type> ||
+        std::is_same_v<point_t, point2_type> DETRAY_HOST_DEVICE constexpr bool
+        is_inside(const point_t &loc_p, const scalar_type tol) const {
         return visit_mask<typename kernels::is_inside>(loc_p, tol);
     }
 
@@ -199,27 +196,21 @@ class tracking_surface {
 
     /// @returns the surface normal in global coordinates at a given bound/local
     /// position @param p
-    template <typename point_t = point2_type,
-              std::enable_if_t<std::is_same_v<point_t, point3_type> ||
-                                   std::is_same_v<point_t, point2_type>,
-                               bool> = true>
-    DETRAY_HOST_DEVICE constexpr auto normal(const context &ctx,
-                                             const point_t &p) const
-        -> vector3_type {
+    template <typename point_t = point2_type>
+        requires std::is_same_v<point_t, point3_type> ||
+        std::is_same_v<point_t, point2_type> DETRAY_HOST_DEVICE constexpr auto
+        normal(const context &ctx, const point_t &p) const -> vector3_type {
         return visit_mask<typename kernels::normal>(transform(ctx), p);
     }
 
     /// @returns the cosine of the incidence angle given a local/bound position
     /// @param p and a global direction @param dir
     /// @note The direction has to be normalized
-    template <typename point_t = point2_type,
-              std::enable_if_t<std::is_same_v<point_t, point3_type> ||
-                                   std::is_same_v<point_t, point2_type>,
-                               bool> = true>
-    DETRAY_HOST_DEVICE constexpr auto cos_angle(const context &ctx,
-                                                const vector3_type &dir,
-                                                const point_t &p) const
-        -> scalar_type {
+    template <typename point_t = point2_type>
+        requires std::is_same_v<point_t, point3_type> ||
+        std::is_same_v<point_t, point2_type> DETRAY_HOST_DEVICE constexpr auto
+        cos_angle(const context &ctx, const vector3_type &dir,
+                  const point_t &p) const -> scalar_type {
         return math::fabs(vector::dot(dir, normal(ctx, p)));
     }
 

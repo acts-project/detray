@@ -24,23 +24,21 @@ struct tuple<T, Ts...> {
 
     DETRAY_HOST_DEVICE constexpr tuple(){};
 
-    template <
-        typename U, typename... Us,
-        std::enable_if_t<std::is_constructible_v<T, U &&> &&
-                             std::is_constructible_v<tuple<Ts...>, Us &&...>,
-                         bool> = true>
-    DETRAY_HOST_DEVICE explicit constexpr tuple(const tuple<U, Us...> &o)
+    template <typename U, typename... Us>
+    requires std::is_constructible_v<T, U &&>
+        &&std::is_constructible_v<tuple<Ts...>, Us &&...>
+            DETRAY_HOST_DEVICE explicit constexpr tuple(
+                const tuple<U, Us...> &o)
         : v(o.v), r(o.r) {}
 
-    template <
-        typename U, typename... Us,
-        std::enable_if_t<std::is_constructible_v<T, U &&> &&
-                             std::is_constructible_v<tuple<Ts...>, Us &&...> &&
-                             !(std::is_same_v<tuple, U> ||
-                               (std::is_same_v<tuple, Us> || ...)),
-                         bool> = true>
-    DETRAY_HOST_DEVICE explicit constexpr tuple(U &&_v, Us &&... _r)
-        : v(std::forward<U>(_v)), r(std::forward<Us>(_r)...) {}
+    template <typename U, typename... Us>
+        requires std::is_constructible_v<T, U &&>
+            &&std::is_constructible_v<tuple<Ts...>, Us &&...> &&
+        (!(std::is_same_v<tuple, U> ||
+           (std::is_same_v<tuple, Us> || ...))) DETRAY_HOST_DEVICE
+        explicit constexpr tuple(U &&_v, Us &&... _r)
+        : v(std::forward<U>(_v)),
+    r(std::forward<Us>(_r)...) {}
 
     T v;
     tuple<Ts...> r;

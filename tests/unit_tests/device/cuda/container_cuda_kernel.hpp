@@ -56,11 +56,11 @@ struct test {
     using buffer_type =
         dmulti_buffer<dvector_buffer<int>, dvector_buffer<double>>;
 
-    DETRAY_HOST test(vecmem::memory_resource* mr) : first(mr), second(mr) {}
+    DETRAY_HOST explicit test(vecmem::memory_resource* mr)
+        : first(mr), second(mr) {}
 
-    template <typename view_t,
-              std::enable_if_t<detail::is_device_view_v<view_t>, bool> = true>
-    DETRAY_HOST_DEVICE test(view_t v)
+    template <typename view_t>
+    requires detail::is_device_view_v<view_t> DETRAY_HOST_DEVICE test(view_t v)
         : first(detail::get<0>(v.m_view)), second(detail::get<1>(v.m_view)) {}
 
     DETRAY_HOST view_type get_data() {

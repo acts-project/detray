@@ -64,8 +64,8 @@ using algebra::vc_soa::math::theta;
 
 /// Function extracting a slice from the matrix used by
 /// @c algebra::vc::transform3<float>
-template <std::size_t SIZE, std::enable_if_t<SIZE <= 4, bool> = true>
-ALGEBRA_HOST_DEVICE inline auto vector(
+template <std::size_t SIZE>
+requires(SIZE <= 4) ALGEBRA_HOST_DEVICE inline auto vector(
     const algebra::vc_soa::math::transform3<float>::matrix44& m,
     [[maybe_unused]] std::size_t row, std::size_t col) {
 
@@ -87,8 +87,8 @@ ALGEBRA_HOST_DEVICE inline auto vector(
 
 /// Function extracting a slice from the matrix used by
 /// @c algebra::vc::transform3<double>
-template <std::size_t SIZE, std::enable_if_t<SIZE <= 4, bool> = true>
-ALGEBRA_HOST_DEVICE inline auto vector(
+template <std::size_t SIZE>
+requires(SIZE <= 4) ALGEBRA_HOST_DEVICE inline auto vector(
     const algebra::vc_soa::math::transform3<double>::matrix44& m,
     [[maybe_unused]] std::size_t row, std::size_t col) {
 

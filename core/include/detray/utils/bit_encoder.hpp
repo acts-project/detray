@@ -40,19 +40,17 @@ class bit_encoder {
 
     /// @returns the masked bits from the encoded value as value of the same
     /// type.
-    template <value_t mask,
-              std::enable_if_t<mask != static_cast<value_t>(0), bool> = true>
-    DETRAY_HOST_DEVICE static constexpr value_t get_bits(
-        const value_t v) noexcept {
+    template <value_t mask>
+    requires(mask != static_cast<value_t>(0)) DETRAY_HOST_DEVICE
+        static constexpr value_t get_bits(const value_t v) noexcept {
         // Use integral constant to enforce compile time evaluation of shift
         return (v & mask) >> extract_shift(mask);
     }
 
     /// Set the masked bits to id in the encoded value.
-    template <value_t mask,
-              std::enable_if_t<mask != static_cast<value_t>(0), bool> = true>
-    DETRAY_HOST_DEVICE static constexpr void set_bits(
-        value_t& v, const value_t id) noexcept {
+    template <value_t mask>
+    requires(mask != static_cast<value_t>(0)) DETRAY_HOST_DEVICE
+        static constexpr void set_bits(value_t& v, const value_t id) noexcept {
         // Use integral constant to enforce compile time evaluation of shift
         v = (v & ~mask) | ((id << extract_shift(mask)) & mask);
     }

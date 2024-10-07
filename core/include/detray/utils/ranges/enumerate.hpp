@@ -232,13 +232,10 @@ class enumerate_view : public detray::ranges::view_interface<
 
 namespace views {
 
-template <
-    std::input_iterator range_itr_t, std::incrementable incr_t,
-    std::enable_if_t<std::is_convertible_v<typename std::iterator_traits<
-                                               range_itr_t>::difference_type,
-                                           incr_t>,
-                     bool> = true>
-struct enumerate : public enumerate_view<range_itr_t, incr_t> {
+template <std::input_iterator range_itr_t, std::incrementable incr_t = dindex>
+requires std::convertible_to<
+    typename std::iterator_traits<range_itr_t>::difference_type,
+    incr_t> struct enumerate : public enumerate_view<range_itr_t, incr_t> {
 
     using base_type = enumerate_view<range_itr_t, incr_t>;
 

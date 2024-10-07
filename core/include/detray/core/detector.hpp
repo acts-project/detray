@@ -185,10 +185,9 @@ class detector {
           _resource(&resource) {}
 
     /// Constructor from detector data view
-    template <typename detector_view_t,
-              typename std::enable_if_t<
-                  detail::is_device_view_v<detector_view_t>, bool> = true>
-    DETRAY_HOST_DEVICE explicit detector(detector_view_t &det_data)
+    template <typename detector_view_t>
+    requires detail::is_device_view_v<detector_view_t>
+        DETRAY_HOST_DEVICE explicit detector(detector_view_t &det_data)
         : _volumes(detray::detail::get<0>(det_data.m_view)),
           _surfaces(detray::detail::get<1>(det_data.m_view)),
           _transforms(detray::detail::get<2>(det_data.m_view)),

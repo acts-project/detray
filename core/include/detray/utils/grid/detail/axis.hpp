@@ -246,14 +246,15 @@ class multi_axis {
     constexpr multi_axis() = default;
 
     /// Construct containers using a specific memory resources
-    template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
-    DETRAY_HOST explicit multi_axis(vecmem::memory_resource &resource)
+    template <bool owner = is_owning>
+    requires owner DETRAY_HOST explicit multi_axis(
+        vecmem::memory_resource &resource)
         : m_edge_offsets(&resource), m_edges(&resource) {}
 
     /// Construct from containers - move
-    template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
-    DETRAY_HOST_DEVICE multi_axis(edge_offset_range_t &&edge_offsets,
-                                  edge_range_t &&edges)
+    template <bool owner = is_owning>
+    requires owner DETRAY_HOST_DEVICE
+    multi_axis(edge_offset_range_t &&edge_offsets, edge_range_t &&edges)
         : m_edge_offsets(std::move(edge_offsets)), m_edges(std::move(edges)) {}
 
     /// Construct from containers that are not owned by this class
@@ -261,20 +262,20 @@ class multi_axis {
     /// @param edge_offsets offsets into the global edge container
     /// @param edges the global edge container
     /// @param offset offset into the global edge offset container
-    template <bool owner = is_owning, std::enable_if_t<!owner, bool> = true>
-    DETRAY_HOST_DEVICE multi_axis(const vector_type<dindex_range> &edge_offsets,
-                                  const vector_type<scalar_type> &edges,
-                                  const unsigned int offset = 0)
+    template <bool owner = is_owning>
+    requires(!owner) DETRAY_HOST_DEVICE
+        multi_axis(const vector_type<dindex_range> &edge_offsets,
+                   const vector_type<scalar_type> &edges,
+                   const unsigned int offset = 0)
         : m_edge_offsets(edge_offsets, dindex_range{offset, offset + dim}),
           m_edges(&edges) {}
 
     /// Construct containers from vecmem based view type
     ///
     /// @param view vecmem view on the axes data
-    template <typename view_t,
-              typename std::enable_if_t<
-                  detray::detail::is_device_view_v<view_t>, bool> = true>
-    DETRAY_HOST_DEVICE explicit multi_axis(const view_t &view)
+    template <typename view_t>
+    requires detray::detail::is_device_view_v<view_t>
+        DETRAY_HOST_DEVICE explicit multi_axis(const view_t &view)
         : m_edge_offsets(detray::detail::get<0>(view.m_view)),
           m_edges(detray::detail::get<1>(view.m_view)) {}
 
@@ -386,16 +387,16 @@ class multi_axis {
     }
 
     /// @returns a vecmem view on the axes data. Only allowed if it owns data.
-    template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
-    DETRAY_HOST auto get_data() -> view_type {
+    template <bool owner = is_owning>
+    requires owner DETRAY_HOST auto get_data() -> view_type {
         return view_type{detray::get_data(m_edge_offsets),
                          detray::get_data(m_edges)};
     }
 
     /// @returns a vecmem const view on the axes data. Only allowed if it is
     /// owning data.
-    template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
-    DETRAY_HOST auto get_data() const -> const_view_type {
+    template <bool owner = is_owning>
+    requires owner DETRAY_HOST auto get_data() const -> const_view_type {
         return const_view_type{detray::get_data(m_edge_offsets),
                                detray::get_data(m_edges)};
     }

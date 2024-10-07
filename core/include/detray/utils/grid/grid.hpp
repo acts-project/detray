@@ -127,10 +127,9 @@ class grid_impl {
           m_axes(std::move(axes)) {}
 
     /// Device-side construction from a vecmem based view type
-    template <typename grid_view_t,
-              typename std::enable_if_t<detail::is_device_view_v<grid_view_t>,
-                                        bool> = true>
-    DETRAY_HOST_DEVICE explicit grid_impl(grid_view_t &view)
+    template <typename grid_view_t>
+    requires detail::is_device_view_v<grid_view_t>
+        DETRAY_HOST_DEVICE explicit grid_impl(grid_view_t &view)
         : m_bins(detray::detail::get<0>(view.m_view)),
           m_axes(detray::detail::get<1>(view.m_view)) {}
 
@@ -217,8 +216,9 @@ class grid_impl {
     }
 
     /// @param indices the single indices corresponding to a multi_bin
-    template <typename... I, std::enable_if_t<sizeof...(I) == dim, bool> = true>
-    DETRAY_HOST_DEVICE decltype(auto) bin(I... indices) const {
+    template <typename... I>
+    requires(sizeof...(I) == dim) DETRAY_HOST_DEVICE decltype(auto)
+        bin(I... indices) const {
         return bin(loc_bin_index{indices...});
     }
     /// @}
@@ -354,16 +354,16 @@ class grid_impl {
     /// @returns view of a grid, including the grids multi_axis. Also valid if
     /// the value type of the grid is cv qualified (then value_t propagates
     /// quialifiers) - non-const
-    template <bool owning = is_owning, std::enable_if_t<owning, bool> = true>
-    DETRAY_HOST auto get_data() -> view_type {
+    template <bool owning = is_owning>
+    requires owning DETRAY_HOST auto get_data() -> view_type {
         return view_type{detray::get_data(m_bins), detray::get_data(m_axes)};
     }
 
     /// @returns view of a grid, including the grids multi_axis. Also valid if
     /// the value type of the grid is cv qualified (then value_t propagates
     /// quialifiers) - const
-    template <bool owning = is_owning, std::enable_if_t<owning, bool> = true>
-    DETRAY_HOST auto get_data() const -> const_view_type {
+    template <bool owning = is_owning>
+    requires owning DETRAY_HOST auto get_data() const -> const_view_type {
         return const_view_type{detray::get_data(m_bins),
                                detray::get_data(m_axes)};
     }

@@ -29,8 +29,7 @@ class quadratic_equation {};
 /// @note The solutions are sorted by default. If there is only one solution,
 /// the larger value is undefined.
 template <typename scalar_t>
-class quadratic_equation<
-    scalar_t, std::enable_if_t<std::is_arithmetic_v<scalar_t>, void>> {
+requires std::is_arithmetic_v<scalar_t> class quadratic_equation<scalar_t> {
     public:
     quadratic_equation() = delete;
 
@@ -96,8 +95,7 @@ class quadratic_equation<
 /// @note The solutions are sorted by default. If there is only one
 /// solution, the larger value is undefined.
 template <typename scalar_t>
-class quadratic_equation<
-    scalar_t, std::enable_if_t<!std::is_arithmetic_v<scalar_t>, void>> {
+requires(!std::is_arithmetic_v<scalar_t>) class quadratic_equation<scalar_t> {
     public:
     quadratic_equation() = delete;
 
