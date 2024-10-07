@@ -163,18 +163,41 @@ inline auto build_wire_chamber(vecmem::memory_resource &resource,
     const scalar_t inner_rad{cfg.first_layer_inner_radius()};
     const scalar_t cell_size{cfg.cell_size()};
 
+    // Prepare grid building
+    constexpr auto grid_id{detector_t::accel::id::e_cylinder2_grid};
+    using cyl_grid_t =
+        typename detector_t::accelerator_container::template get_type<grid_id>;
+    using loc_bin_idx_t = typename cyl_grid_t::loc_bin_index;
+    using grid_builder_t =
+        grid_builder<detector_t, cyl_grid_t, detray::fill_by_pos>;
+
+    // Binning of the grid
+    axis::multi_bin_range<cyl_grid_t::dim> bin_range{};
+    // Min, max bin indices per axis
+    bin_range[static_cast<std::size_t>(axis::label::e_rphi)] = {0, 100};
+    bin_range[static_cast<std::size_t>(axis::label::e_cyl_z)] = {0, 1};
+
+    // Spans of the grid axes
+    std::vector<scalar_t> sf_grid_spans{-constant<scalar_t>::pi,
+                                        constant<scalar_t>::pi, -cfg.half_z(),
+                                        cfg.half_z()};
+
+    constexpr unsigned int bin_capacity{3u};
+    std::vector<std::pair<loc_bin_idx_t, dindex>> capacities{};
+    capacities.reserve(
+        static_cast<std::size_t>(bin_range[0][1] * bin_range[1][1]));
+
     //
     // Build empty inner volume, where silicon subdetectors would sit
     //
     auto inner_v_builder = det_builder.new_volume(volume_id::e_cylinder);
-    inner_v_builder->add_volume_placement();
+    inner_v_builder->add_volume_placement(/*identity*/);
     const dindex inner_vol_idx{inner_v_builder->vol_index()};
-    name_map[1u] = "inner_vol_0";
+    name_map[1u] = "inner_vol_" + std::to_string(inner_vol_idx);
 
     // Configure the portal factory
     // TODO: Add material maps that model the silicon detector budget
     cylinder_portal_config<scalar_t> inner_pt_cfg{};
-
     inner_pt_cfg.do_autofit(false)
         .fixed_half_length(cfg.half_z())
         .fixed_inner_radius(0.f)
@@ -202,8 +225,7 @@ inline auto build_wire_chamber(vecmem::memory_resource &resource,
     mat_cfg.sensitive_material(tungsten<scalar_t>{})
         .thickness(cfg.mat_radius());
 
-    const unsigned int n_layers{cfg.n_layers()};
-    for (unsigned int i_lay = 0; i_lay < n_layers; i_lay++) {
+    for (unsigned int i_lay = 0; i_lay < cfg.n_layers(); i_lay++) {
 
         // New volume for layer
         auto v_builder = det_builder.new_volume(volume_id::e_cylinder);
@@ -211,10 +233,12 @@ inline auto build_wire_chamber(vecmem::memory_resource &resource,
             det_builder
                 .template decorate<homogeneous_material_builder<detector_t>>(
                     v_builder);
+
         const dindex vol_idx{vm_builder->vol_index()};
+        name_map[vol_idx + 1u] = "layer_vol_" + std::to_string(vol_idx);
 
         // The barrel volumes are centered at the origin
-        vm_builder->add_volume_placement();
+        vm_builder->add_volume_placement(/*identity*/);
 
         // The maximal inner and outer radius of the volume
         const scalar_t inner_layer_rad =
@@ -231,11 +255,9 @@ inline auto build_wire_chamber(vecmem::memory_resource &resource,
 
         // Configure the portal factory
         cylinder_portal_config<scalar_t> layer_portal_cfg{};
-
         // Limit to maximum valid link
         auto link_north{i_lay == cfg.n_layers() - 1u ? leaving_world
                                                      : vol_idx + 1u};
-        auto link_south{vol_idx - 1u};
 
         layer_portal_cfg.do_autofit(false)
             .fixed_half_length(cfg.half_z())
@@ -243,11 +265,11 @@ inline auto build_wire_chamber(vecmem::memory_resource &resource,
             .fixed_outer_radius(outer_layer_rad)
             // Link the volume portals to its neighbors
             .link_north(link_north)
-            .link_south(link_south)
+            .link_south(vol_idx - 1u)
             .link_east(leaving_world)
             .link_west(leaving_world);
 
-        // Register sensitive wires with material
+        // Register sensitive wires together with material
         auto wire_factory =
             std::make_unique<wire_layer_generator<detector_t, wire_shape_t>>(
                 layer_cfg);
@@ -255,17 +277,36 @@ inline auto build_wire_chamber(vecmem::memory_resource &resource,
             std::make_shared<homogeneous_material_generator<detector_t>>(
                 std::move(wire_factory), mat_cfg);
 
+        // Register portals
         auto portal_mat_factory =
             std::make_shared<cylinder_portal_generator<detector_t>>(
                 layer_portal_cfg);
 
+        // Add surfaces and material to volume builder
         vm_builder->add_surfaces(portal_mat_factory);
         vm_builder->add_surfaces(wire_mat_factory, gctx);
 
-        name_map[vol_idx + 1u] = "layer_vol_" + std::to_string(vol_idx);
+        // Add a cylinder grid to every barrel layer
+        auto vgr_builder =
+            det_builder.template decorate<grid_builder_t>(vm_builder);
 
-        // Add a cylinder grid to every barrel module layer
-        // add_cylinder_grid(det_builder, cfg, vol_idx);
+        // Determine bin capacities
+        capacities.clear();
+        auto bin_indexer2D = axis::detail::get_bin_indexer(
+            bin_range,
+            std::make_integer_sequence<std::size_t, cyl_grid_t::dim>{});
+        for (const auto [bin_idx0, bin_idx1] : bin_indexer2D) {
+            // @Todo: fine-tune capacity
+            loc_bin_idx_t loc_bin{static_cast<unsigned int>(bin_idx0),
+                                  static_cast<unsigned int>(bin_idx1)};
+            capacities.emplace_back(loc_bin, bin_capacity);
+        }
+
+        vgr_builder->set_type(detector_t::geo_obj_ids::e_sensitive);
+        vgr_builder->init_grid(sf_grid_spans,
+                               {static_cast<std::size_t>(bin_range[0][1]),
+                                static_cast<std::size_t>(bin_range[1][1])},
+                               capacities);
     }
 
     // Build and return the detector

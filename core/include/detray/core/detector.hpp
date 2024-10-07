@@ -59,7 +59,7 @@ class detector {
 
     // Allow the building of the detector containers
     friend class volume_builder<detector<metadata_t, container_t>>;
-    template <typename, typename, typename, typename>
+    template <typename, concepts::grid, typename, typename>
     friend class grid_builder;
     friend class homogeneous_material_builder<
         detector<metadata_t, container_t>>;
