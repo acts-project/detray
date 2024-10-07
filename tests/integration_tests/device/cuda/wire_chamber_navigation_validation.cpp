@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
     using wire_chamber_t = detector<>;
     using scalar_t = typename wire_chamber_t::scalar_type;
 
-    wire_chamber_config wire_chamber_cfg{};
+    wire_chamber_config<> wire_chamber_cfg{};
     wire_chamber_cfg.half_z(500.f * unit<scalar>::mm);
 
     std::cout << wire_chamber_cfg << std::endl;

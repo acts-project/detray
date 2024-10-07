@@ -23,7 +23,7 @@ GTEST_TEST(detray_detectors, wire_chamber) {
 
     vecmem::host_memory_resource host_mr;
 
-    wire_chamber_config cfg{};
+    wire_chamber_config<> cfg{};
     auto [wire_det, names] = build_wire_chamber(host_mr, cfg);
 
     // Check general consistency of the detector

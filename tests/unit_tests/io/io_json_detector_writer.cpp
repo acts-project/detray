@@ -133,7 +133,7 @@ GTEST_TEST(io, json_wire_chamber_writer) {
 
     // Wire chamber
     vecmem::host_memory_resource host_mr;
-    wire_chamber_config wire_cfg{};
+    wire_chamber_config<> wire_cfg{};
     auto [det, names] = build_wire_chamber(host_mr, wire_cfg);
 
     auto writer_cfg = io::detector_writer_config{}

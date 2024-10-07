@@ -79,10 +79,6 @@ class wire_layer_generator final
     using point3_t = typename detector_t::point3_type;
     using vector3_t = typename detector_t::vector3_type;
 
-    static_assert(std::is_same_v<mask_shape_t, line_square> &&
-                      std::is_same_v<mask_shape_t, line_square>,
-                  "Wire layer can only be built using line shapes");
-
     public:
     /// Build a wire chamber/straw tube layer according to the parameters given
     /// in @param cfg

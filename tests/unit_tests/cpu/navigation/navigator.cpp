@@ -310,7 +310,7 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
     constexpr double tol{0.01};
 
     constexpr std::size_t n_layers{10};
-    wire_chamber_config wire_cfg{};
+    wire_chamber_config<> wire_cfg{};
     auto [wire_det, names] = build_wire_chamber(host_mr, wire_cfg);
 
     using detector_t = decltype(wire_det);

@@ -283,7 +283,7 @@ GTEST_TEST(io, json_wire_chamber_reader) {
 
     // Wire chamber
     vecmem::host_memory_resource host_mr;
-    wire_chamber_config wire_cfg{};
+    wire_chamber_config<> wire_cfg{};
     auto [wire_det, wire_names] = build_wire_chamber(host_mr, wire_cfg);
 
     std::map<std::string, std::string> file_names;

@@ -383,7 +383,7 @@ GTEST_TEST(detray_geometry, surface_wire_chamber) {
     using vector3_t = tracking_surface<detector_t>::vector3_type;
 
     vecmem::host_memory_resource host_mr;
-    wire_chamber_config cfg{};
+    wire_chamber_config<> cfg{};
     const auto [wire_chmbr, names] = build_wire_chamber(host_mr, cfg);
 
     auto ctx = typename detector_t::geometry_context{};

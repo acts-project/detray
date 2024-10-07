@@ -17,6 +17,7 @@
 #include "detray/core/detector_metadata.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/geometry/shapes/line.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/utils/consistency_checker.hpp"
 
@@ -26,12 +27,10 @@
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>
 
-// System include(s)
-#include <format>
-
 namespace detray {
 
 /// Configuration for building a wire chamber detector
+template <typename wire_shape_t = line_square>
 struct wire_chamber_config {
 
     /// Number of layers
@@ -46,6 +45,8 @@ struct wire_chamber_config {
     material<scalar> m_wire_mat{tungsten<scalar>()};
     /// Config for the wire generation (barrel)
     wire_layer_generator_config<scalar> m_wire_factory_cfg{};
+    /// Configuration for the homogeneous material generator
+    hom_material_config<scalar> m_material_config{};
     /// Do a full detector consistency check after building
     bool m_do_check{true};
 
@@ -105,6 +106,11 @@ struct wire_chamber_config {
     constexpr wire_layer_generator_config<scalar> &layer_config() {
         return m_wire_factory_cfg;
     }
+    constexpr const wire_layer_generator_config<scalar> &layer_config() const {
+        return m_wire_factory_cfg;
+    }
+    constexpr auto &material_config() { return m_material_config; }
+    constexpr const auto &material_config() const { return m_material_config; }
     constexpr bool do_check() const { return m_do_check; }
     /// @}
 
@@ -117,8 +123,15 @@ struct wire_chamber_config {
             << "  No. layers            : " << cfg.n_layers() << "\n"
             << "  First layer inner rad.: " << cfg.first_layer_inner_radius()
             << " [mm]\n"
-            << "  Half length z         : " << cfg.half_z() << " [mm]\n"
-            << "  Cell size             : " << cfg.cell_size() << " [mm]\n"
+            << "  Half length z         : " << cfg.half_z() << " [mm]\n";
+
+        if constexpr (std::same_as<wire_shape_t, line_square>) {
+            out << "  Shape                 : wire cell\n";
+        } else {
+            out << "  Shape                 : straw tube\n";
+        }
+
+        out << "  Cell size             : " << cfg.cell_size() << " [mm]\n"
             << "  Stereo angle          : " << cfg.stereo_angle() << " [rad]\n"
             << "  Wire material         : " << cfg.wire_material() << "\n"
             << "  Material rad.         : " << cfg.mat_radius() << " [mm]\n";
@@ -128,8 +141,9 @@ struct wire_chamber_config {
 
 };  // wire chamber config
 
+template <typename wire_shape_t>
 inline auto build_wire_chamber(vecmem::memory_resource &resource,
-                               wire_chamber_config &cfg) {
+                               wire_chamber_config<wire_shape_t> &cfg) {
 
     using builder_t = detector_builder<default_metadata, volume_builder>;
     using detector_t = typename builder_t::detector_type;
@@ -179,12 +193,24 @@ inline auto build_wire_chamber(vecmem::memory_resource &resource,
     //
     // Build layer volumes
     //
+
+    // Configure the homogeneous material generation
+    auto &mat_cfg = cfg.material_config();
+    // Only build material on sensitive surfaces
+    constexpr auto vac{vacuum<scalar_t>{}};
+    mat_cfg.portal_material(vac).passive_material(vac);
+    mat_cfg.sensitive_material(tungsten<scalar_t>{})
+        .thickness(cfg.mat_radius());
+
     const unsigned int n_layers{cfg.n_layers()};
     for (unsigned int i_lay = 0; i_lay < n_layers; i_lay++) {
 
-        // New volume
-        auto vm_builder = det_builder.new_volume(volume_id::e_cylinder);
-        // auto vm_builder = decorate_material(cfg, det_builder, v_builder);
+        // New volume for layer
+        auto v_builder = det_builder.new_volume(volume_id::e_cylinder);
+        auto vm_builder =
+            det_builder
+                .template decorate<homogeneous_material_builder<detector_t>>(
+                    v_builder);
         const dindex vol_idx{vm_builder->vol_index()};
 
         // The barrel volumes are centered at the origin
@@ -221,32 +247,22 @@ inline auto build_wire_chamber(vecmem::memory_resource &resource,
             .link_east(leaving_world)
             .link_west(leaving_world);
 
-        // Configure the material
-        // cfg.material_config().thickness(cfg.mat_radius());
+        // Register sensitive wires with material
+        auto wire_factory =
+            std::make_unique<wire_layer_generator<detector_t, wire_shape_t>>(
+                layer_cfg);
         auto wire_mat_factory =
-            std::make_shared<wire_layer_generator<detector_t>>(layer_cfg);
+            std::make_shared<homogeneous_material_generator<detector_t>>(
+                std::move(wire_factory), mat_cfg);
 
         auto portal_mat_factory =
             std::make_shared<cylinder_portal_generator<detector_t>>(
                 layer_portal_cfg);
 
-        // Add a layer of module surfaces (may have material)
-        /*auto wire_mat_factory = decorate_material<detector_t>(
-            cfg,
-            std::make_unique<wire_layer_generator<detector_t, line_square>>(
-                layer_cfg),
-            true);
-
-        // Add cylinder and disc portals (may have material, depending on
-        // whether material maps are being used or not)
-        auto portal_mat_factory = decorate_material<detector_t>(
-            cfg, std::make_unique<cylinder_portal_generator<detector_t>>(
-                        layer_portal_cfg));*/
-
         vm_builder->add_surfaces(portal_mat_factory);
         vm_builder->add_surfaces(wire_mat_factory, gctx);
 
-        name_map[vol_idx + 1u] = std::format("layer_vol_{}", vol_idx);
+        name_map[vol_idx + 1u] = "layer_vol_" + std::to_string(vol_idx);
 
         // Add a cylinder grid to every barrel module layer
         // add_cylinder_grid(det_builder, cfg, vol_idx);
