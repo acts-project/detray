@@ -43,8 +43,8 @@ inline auto rms(
     using value_t = detray::ranges::range_value_t<range_t>;
 
     std::vector<value_t> diff(r.size());
-    std::transform(r.begin(), r.end(), diff.begin(),
-                   [mean](value_t x) { return x - mean; });
+    std::ranges::transform(r, diff.begin(),
+                           [mean](value_t x) { return x - mean; });
     value_t sq_sum =
         std::inner_product(diff.begin(), diff.end(), diff.begin(), value_t{});
     value_t variance = sq_sum * (1.0f / static_cast<value_t>(r.size()));
@@ -67,8 +67,8 @@ inline auto variance(const range_t& r) noexcept(false)
     value_t mean = statistics::mean(r);
 
     std::vector<value_t> diff(r.size());
-    std::transform(r.begin(), r.end(), diff.begin(),
-                   [mean](value_t x) { return x - mean; });
+    std::ranges::transform(r, diff.begin(),
+                           [mean](value_t x) { return x - mean; });
     value_t sq_sum =
         std::inner_product(diff.begin(), diff.end(), diff.begin(), value_t{});
 

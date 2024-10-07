@@ -221,7 +221,7 @@ class detector {
             _volume_finder.project(identity, p, identity.translation());
 
         // Only one entry per bin
-        dindex volume_index{*_volume_finder.search(loc_pos)};
+        dindex volume_index{_volume_finder.search(loc_pos).value()};
         return _volumes[volume_index];
     }
 
@@ -547,19 +547,6 @@ class detector {
     }
 
     ///------------------------------------------------------------------------
-
-    /// @returns the maximum number of surface candidates that any volume may
-    /// return.
-    DETRAY_HOST
-    inline auto n_max_candidates() const -> std::size_t {
-        std::vector<std::size_t> n_candidates;
-        n_candidates.reserve(_volumes.size());
-        for (const auto &vol : _volumes) {
-            n_candidates.push_back(
-                tracking_volume{*this, vol}.n_max_candidates());
-        }
-        return *std::max_element(n_candidates.begin(), n_candidates.end());
-    }
 
     private:
     /// Contains the detector sub-volumes.

@@ -14,6 +14,9 @@
 #include "detray/utils/invalid_values.hpp"
 #include "detray/utils/ranges.hpp"
 
+// System include(s)
+#include <algorithm>
+
 namespace detray::bins {
 
 /// @brief Bin with a single entry
@@ -38,14 +41,14 @@ class single : public detray::ranges::single_view<entry_t> {
     /// Add a new entry to the bin
     template <typename E = entry_t>
     DETRAY_HOST_DEVICE constexpr void push_back(E&& entry) noexcept {
-        *(*this) = std::forward<E>(entry);
+        (*this).ref() = std::forward<E>(entry);
     }
 
     /// @returns an initialized bin in the backend storage
     DETRAY_HOST_DEVICE
     constexpr auto init(entry_t entry = detail::invalid_value<entry_t>())
         -> single& {
-        *(*this) = entry;
+        (*this).ref() = entry;
         return *this;
     }
 };
@@ -202,18 +205,24 @@ class dynamic_array
     /// in @param bin_data
     DETRAY_HOST_DEVICE
     dynamic_array(entry_type* bin_storage, data& bin_data)
-        : m_global_storage{bin_storage + bin_data.offset},
-          m_data{&bin_data},
-          m_capacity{bin_data.capacity} {}
+        : m_data{&bin_data}, m_capacity{bin_data.capacity} {
+        // Prevent null-dereference warning
+        if (bin_storage) {
+            m_global_storage = bin_storage + bin_data.offset;
+        }
+    }
 
     /// Construct from an externally owned container of bin content
     /// @param bin_storage and access to an offset, size and capacity
     /// in @param bin_data - const
     DETRAY_HOST_DEVICE
     dynamic_array(const entry_type* bin_storage, const data& bin_data)
-        : m_global_storage{bin_storage + bin_data.offset},
-          m_data{&bin_data},
-          m_capacity{bin_data.capacity} {}
+        : m_data{&bin_data}, m_capacity{bin_data.capacity} {
+        // Prevent null-dereference warning
+        if (bin_storage) {
+            m_global_storage = bin_storage + bin_data.offset;
+        }
+    }
 
     /// @returns view iterator over bin content in start or end position
     /// @{
@@ -264,8 +273,7 @@ class dynamic_array
         }
 
         // Initialize the storage element
-        std::fill(this->begin(), this->end(),
-                  detail::invalid_value<entry_type>());
+        std::ranges::fill(this, detail::invalid_value<entry_type>());
 
         if (entry == detail::invalid_value<entry_type>()) {
             const_cast<data*>(m_data)->size = 0u;

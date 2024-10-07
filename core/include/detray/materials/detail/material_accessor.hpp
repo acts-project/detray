@@ -36,7 +36,7 @@ requires detail::is_grid_v<typename material_coll_t::value_type>
             &loc_point) noexcept {
 
     // Find the material slab (only one entry per bin)
-    return *(material_coll[idx].search(loc_point));
+    return material_coll[idx].search(loc_point).ref();
 }
 
 }  // namespace detray::detail::material_accessor

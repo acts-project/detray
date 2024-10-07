@@ -246,6 +246,7 @@ class bin_storage<is_owning, detray::bins::dynamic_array<entry_t>, containers>
             std::conditional_t<std::is_same_v<bin_itr_t, const_bin_iterator_t>,
                                const entry_t*, entry_t*>;
 
+        /// Default constructor required by LegacyIterator trait
         constexpr iterator_adapter() = default;
 
         DETRAY_HOST_DEVICE
@@ -351,9 +352,9 @@ class bin_storage<is_owning, detray::bins::dynamic_array<entry_t>, containers>
         }
 
         /// Access to the bin content
-        data_ptr_t m_entry_data;
+        data_ptr_t m_entry_data{};
         /// Iterator over bin data from which to construct a bin instance
-        bin_itr_t m_itr;
+        bin_itr_t m_itr{};
     };
 
     public:

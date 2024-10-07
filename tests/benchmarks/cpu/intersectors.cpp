@@ -25,6 +25,9 @@
 // Google Benchmark include(s)
 #include <benchmark/benchmark.h>
 
+// System include(s)
+#include <algorithm>
+
 using namespace detray;
 
 static constexpr unsigned int theta_steps{2000u};
@@ -68,8 +71,7 @@ std::vector<detail::ray<algebra_s>> generate_rays() {
     ray_generator.config().theta_steps(theta_steps).phi_steps(phi_steps);
 
     std::vector<detail::ray<algebra_s>> rays;
-    std::copy(ray_generator.begin(), ray_generator.end(),
-              std::back_inserter(rays));
+    std::ranges::copy(ray_generator, std::back_inserter(rays));
 
     return rays;
 }

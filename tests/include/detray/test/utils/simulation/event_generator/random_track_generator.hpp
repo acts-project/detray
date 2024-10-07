@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <array>
 #include <limits>
+#include <memory>
 #include <random>
 
 namespace detray {
@@ -65,8 +66,11 @@ class random_track_generator
         constexpr iterator() = delete;
 
         DETRAY_HOST_DEVICE
-        iterator(generator_t& rand_gen, configuration cfg, std::size_t n_tracks)
-            : m_rnd_numbers{rand_gen}, m_tracks{n_tracks}, m_cfg{cfg} {}
+        iterator(std::shared_ptr<generator_t> rand_gen, configuration cfg,
+                 std::size_t n_tracks)
+            : m_rnd_numbers{std::move(rand_gen)},
+              m_tracks{n_tracks},
+              m_cfg{cfg} {}
 
         /// @returns whether we reached the end of iteration
         DETRAY_HOST_DEVICE
@@ -80,30 +84,42 @@ class random_track_generator
             return not(*this == rhs);
         }
 
-        /// @returns the generator at its next position.
+        /// @returns the generator at its next position (prefix)
         DETRAY_HOST_DEVICE
         constexpr auto operator++() -> iterator& {
             ++m_tracks;
             return *this;
         }
 
+        /// @returns the generator at its next position (postfix)
+        DETRAY_HOST_DEVICE
+        constexpr auto operator++(int) -> iterator& {
+            auto tmp(m_tracks);
+            ++m_tracks;
+            return tmp;
+        }
+
         /// @returns a track instance from random-generated momentum
         DETRAY_HOST_DEVICE
         track_t operator*() const {
+
+            if (!m_rnd_numbers) {
+                throw std::invalid_argument("Invalid random number generator");
+            }
 
             const auto& ori = m_cfg.origin();
             const auto& ori_stddev = m_cfg.origin_stddev();
 
             const point3 vtx =
                 m_cfg.do_vertex_smearing()
-                    ? point3{m_rnd_numbers.normal(ori[0], ori_stddev[0]),
-                             m_rnd_numbers.normal(ori[1], ori_stddev[1]),
-                             m_rnd_numbers.normal(ori[2], ori_stddev[2])}
+                    ? point3{m_rnd_numbers->normal(ori[0], ori_stddev[0]),
+                             m_rnd_numbers->normal(ori[1], ori_stddev[1]),
+                             m_rnd_numbers->normal(ori[2], ori_stddev[2])}
                     : point3{ori[0], ori[1], ori[2]};
 
-            scalar p_mag{m_rnd_numbers(m_cfg.mom_range())};
-            scalar phi{m_rnd_numbers(m_cfg.phi_range())};
-            scalar theta{m_rnd_numbers(m_cfg.theta_range())};
+            scalar p_mag{(*m_rnd_numbers)(m_cfg.mom_range())};
+            scalar phi{(*m_rnd_numbers)(m_cfg.phi_range())};
+            scalar theta{(*m_rnd_numbers)(m_cfg.theta_range())};
             scalar sin_theta{math::sin(theta)};
 
             // Momentum direction from angles
@@ -120,14 +136,14 @@ class random_track_generator
             // Randomly flip the charge sign
             std::array<double, 2> signs{1., -1.};
             const auto sign{static_cast<scalar>(
-                signs[m_cfg.randomize_charge() ? m_rnd_numbers.coin_toss()
+                signs[m_cfg.randomize_charge() ? m_rnd_numbers->coin_toss()
                                                : 0u])};
 
             return track_t{vtx, m_cfg.time(), mom, sign * m_cfg.charge()};
         }
 
         /// Random number generator
-        generator_t& m_rnd_numbers;
+        std::shared_ptr<generator_t> m_rnd_numbers;
 
         /// How many tracks will be generated
         std::size_t m_tracks{0u};
@@ -136,7 +152,7 @@ class random_track_generator
         configuration m_cfg{};
     };
 
-    generator_t m_gen;
+    std::shared_ptr<generator_t> m_gen{nullptr};
     configuration m_cfg{};
 
     public:
@@ -148,7 +164,7 @@ class random_track_generator
     /// Construct from external configuration
     DETRAY_HOST_DEVICE
     explicit constexpr random_track_generator(const configuration& cfg)
-        : m_gen{generator_t(cfg.seed())}, m_cfg(cfg) {}
+        : m_gen{std::make_shared<generator_t>(cfg.seed())}, m_cfg(cfg) {}
 
     /// Paramtetrized constructor for quick construction of simple tasks
     ///
@@ -163,7 +179,7 @@ class random_track_generator
         std::array<scalar, 2> mom_range = {1.f * unit<scalar>::GeV,
                                            1.f * unit<scalar>::GeV},
         scalar charge = -1.f * unit<scalar>::e)
-        : m_gen{}, m_cfg{} {
+        : m_gen{std::make_shared<generator_t>()}, m_cfg{} {
         m_cfg.n_tracks(n_tracks);
         m_cfg.mom_range(mom_range);
         m_cfg.charge(charge);

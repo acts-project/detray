@@ -57,22 +57,22 @@ GTEST_TEST(detray_grid, replace_populator) {
     // Create some bin data
     dvector<bins::single<dindex>> bin_data{};
     bin_data.reserve(50);
-    std::generate_n(bin_data.begin(), 50,
-                    bin_content_sequence<bins::single<dindex>>());
+    std::ranges::generate_n(bin_data.begin(), 50,
+                            bin_content_sequence<bins::single<dindex>>());
 
     // Check test setup
-    EXPECT_EQ(*bin_data[0], 1u);
-    EXPECT_EQ(*bin_data[1], 2u);
-    EXPECT_EQ(*bin_data[2], 3u);
-    EXPECT_EQ(*bin_data[3], 4u);
-    EXPECT_EQ(*bin_data[19], 20u);
-    EXPECT_EQ(*bin_data[20], 21u);
-    EXPECT_EQ(*bin_data[21], 22u);
-    EXPECT_EQ(*bin_data[41], 42u);
-    EXPECT_EQ(*bin_data[42], 43u);
-    EXPECT_EQ(*bin_data[43], 44u);
-    EXPECT_EQ(*bin_data[48], 49u);
-    EXPECT_EQ(*bin_data[49], 50u);
+    EXPECT_EQ(bin_data[0].value(), 1u);
+    EXPECT_EQ(bin_data[1].value(), 2u);
+    EXPECT_EQ(bin_data[2].value(), 3u);
+    EXPECT_EQ(bin_data[3].value(), 4u);
+    EXPECT_EQ(bin_data[19].value(), 20u);
+    EXPECT_EQ(bin_data[20].value(), 21u);
+    EXPECT_EQ(bin_data[21].value(), 22u);
+    EXPECT_EQ(bin_data[41].value(), 42u);
+    EXPECT_EQ(bin_data[42].value(), 43u);
+    EXPECT_EQ(bin_data[43].value(), 44u);
+    EXPECT_EQ(bin_data[48].value(), 49u);
+    EXPECT_EQ(bin_data[49].value(), 50u);
 
     // Replace some bin entries
     replacer(bin_data[0], 500u);
@@ -81,18 +81,18 @@ GTEST_TEST(detray_grid, replace_populator) {
     replacer(bin_data[42], 55u);
     replacer(bin_data[49], 6u);
 
-    EXPECT_EQ(*bin_data[0], 500u);
-    EXPECT_EQ(*bin_data[1], 2u);
-    EXPECT_EQ(*bin_data[2], 5u);
-    EXPECT_EQ(*bin_data[3], 4u);
-    EXPECT_EQ(*bin_data[19], 20u);
-    EXPECT_EQ(*bin_data[20], 50u);
-    EXPECT_EQ(*bin_data[21], 22u);
-    EXPECT_EQ(*bin_data[41], 42u);
-    EXPECT_EQ(*bin_data[42], 55u);
-    EXPECT_EQ(*bin_data[43], 44u);
-    EXPECT_EQ(*bin_data[48], 49u);
-    EXPECT_EQ(*bin_data[49], 6u);
+    EXPECT_EQ(bin_data[0].value(), 500u);
+    EXPECT_EQ(bin_data[1].value(), 2u);
+    EXPECT_EQ(bin_data[2].value(), 5u);
+    EXPECT_EQ(bin_data[3].value(), 4u);
+    EXPECT_EQ(bin_data[19].value(), 20u);
+    EXPECT_EQ(bin_data[20].value(), 50u);
+    EXPECT_EQ(bin_data[21].value(), 22u);
+    EXPECT_EQ(bin_data[41].value(), 42u);
+    EXPECT_EQ(bin_data[42].value(), 55u);
+    EXPECT_EQ(bin_data[43].value(), 44u);
+    EXPECT_EQ(bin_data[48].value(), 49u);
+    EXPECT_EQ(bin_data[49].value(), 6u);
 }
 
 /// Complete populator
@@ -103,8 +103,9 @@ GTEST_TEST(detray_grid, complete_populator) {
     // Create some bin data
     dvector<bins::static_array<dindex, 4>> bin_data{};
     bin_data.reserve(50);
-    std::generate_n(bin_data.begin(), 50,
-                    bin_content_sequence<bins::static_array<dindex, 4>>());
+    std::ranges::generate_n(
+        bin_data.begin(), 50,
+        bin_content_sequence<bins::static_array<dindex, 4>>());
 
     // Check test setup
     std::array<dindex, 4> stored = {1u, inf, inf, inf};
@@ -173,8 +174,9 @@ GTEST_TEST(detray_grid, regular_attach_populator) {
     // Create some bin data
     dvector<bins::static_array<dindex, 4>> bin_data{};
     bin_data.reserve(50);
-    std::generate_n(bin_data.begin(), 50,
-                    bin_content_sequence<bins::static_array<dindex, 4>>());
+    std::ranges::generate_n(
+        bin_data.begin(), 50,
+        bin_content_sequence<bins::static_array<dindex, 4>>());
 
     // Check test setup
     std::array<dindex, 4> stored = {1u, inf, inf, inf};

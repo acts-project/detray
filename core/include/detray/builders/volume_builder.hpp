@@ -14,6 +14,7 @@
 #include "detray/geometry/tracking_surface.hpp"
 
 // System include(s)
+#include <algorithm>
 #include <memory>
 #include <string>
 
@@ -179,14 +180,14 @@ class volume_builder : public volume_builder_interface<detector_t> {
             };
 
             auto first = static_cast<dindex>(
-                math::abs(std::find_if(std::begin(m_surfaces),
-                                       std::end(m_surfaces), is_sf_type) -
+                math::abs(std::ranges::find_if(m_surfaces, is_sf_type) -
                           std::begin(m_surfaces)));
 
             auto last = static_cast<dindex>(
-                math::abs(std::rend(m_surfaces) -
-                          std::find_if(std::rbegin(m_surfaces),
-                                       std::rend(m_surfaces), is_sf_type)));
+                math::abs(std::ranges::rend(m_surfaces) -
+                          std::ranges::find_if(std::ranges::rbegin(m_surfaces),
+                                               std::ranges::rend(m_surfaces),
+                                               is_sf_type)));
 
             // Set correct empty range, otherwise shift by global surface offset
             return (first >= last)
@@ -228,9 +229,8 @@ class volume_builder : public volume_builder_interface<detector_t> {
         // Strip the source link from the lookup data structure
         typename detector_t::surface_container descriptors;
         descriptors.reserve(m_surfaces.size());
-        std::transform(
-            m_surfaces.begin(), m_surfaces.end(),
-            std::back_inserter(descriptors),
+        std::ranges::transform(
+            m_surfaces, std::back_inserter(descriptors),
             [](typename detector_t::surface_lookup_container::value_type& sf) {
                 return static_cast<
                     typename detector_t::surface_container::value_type>(sf);
@@ -241,9 +241,9 @@ class volume_builder : public volume_builder_interface<detector_t> {
             typename detector_t::surface_container portals{};
             portals.reserve(n_portals);
 
-            std::copy_if(descriptors.begin(), descriptors.end(),
-                         std::back_inserter(portals),
-                         [](auto& sf_desc) { return !sf_desc.is_sensitive(); });
+            std::ranges::copy_if(
+                descriptors, std::back_inserter(portals),
+                [](auto& sf_desc) { return !sf_desc.is_sensitive(); });
 
             // Add only the portals to the brute force method
             det._accelerators.template push_back<default_acc_id>(

@@ -63,7 +63,7 @@ GTEST_TEST(detray_intersection, intersection2D) {
     ASSERT_FALSE(invalid.status);
 
     dvector<intersection_t> intersections = {invalid, i0, i1};
-    std::sort(intersections.begin(), intersections.end());
+    std::ranges::sort(intersections);
 
     ASSERT_NEAR(intersections[0].path, 1.7f, tol);
     ASSERT_NEAR(intersections[1].path, 2.f, tol);

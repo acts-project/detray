@@ -107,7 +107,7 @@ struct material_converter {
                         bin_idx = {j, i};
                     }
 
-                    const auto& mat_slab = *(material_map.bin(bin_idx));
+                    const auto& mat_slab = material_map.bin(bin_idx).ref();
                     const auto& mat = mat_slab.get_material();
 
                     actsvg::proto::material_slab p_mat_slab;

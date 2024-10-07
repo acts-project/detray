@@ -19,6 +19,7 @@
 #include "detray/utils/type_list.hpp"
 
 // System include(s)
+#include <algorithm>
 #include <queue>
 #include <stdexcept>
 #include <string>
@@ -340,8 +341,7 @@ class grid_reader {
             for (const auto &axis_data : grid_data.axes) {
                 n_bins_per_axis.push_back(axis_data.bins);
                 std::vector<scalar_t> edges{};
-                std::copy(axis_data.edges.begin(), axis_data.edges.end(),
-                          std::back_inserter(edges));
+                std::ranges::copy(axis_data.edges, std::back_inserter(edges));
                 ax_bin_edges.emplace_back(std::move(edges));
                 spans.push_back(static_cast<scalar_t>(axis_data.edges.front()));
                 spans.push_back(static_cast<scalar_t>(axis_data.edges.back()));

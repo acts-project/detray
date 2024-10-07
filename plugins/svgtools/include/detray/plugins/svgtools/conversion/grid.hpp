@@ -197,12 +197,12 @@ auto grid(const store_t& store, const link_t& link, const view_t& view,
         }
     }
 
-    std::transform(edges0.cbegin(), edges0.cend(),
-                   std::back_inserter(p_grid._edges_0),
-                   [](scalar_t v) { return static_cast<actsvg::scalar>(v); });
-    std::transform(edges1.cbegin(), edges1.cend(),
-                   std::back_inserter(p_grid._edges_1),
-                   [](scalar_t v) { return static_cast<actsvg::scalar>(v); });
+    std::ranges::transform(
+        edges0, std::back_inserter(p_grid._edges_0),
+        [](scalar_t v) { return static_cast<actsvg::scalar>(v); });
+    std::ranges::transform(
+        edges1, std::back_inserter(p_grid._edges_1),
+        [](scalar_t v) { return static_cast<actsvg::scalar>(v); });
 
     svgtools::styling::apply_style(p_grid, style);
 

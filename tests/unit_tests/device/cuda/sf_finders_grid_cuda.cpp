@@ -85,7 +85,7 @@ TEST(grids_cuda, grid3_replace_populator) {
             for (unsigned int i_z = 0u; i_z < axis_z.nbins(); i_z++) {
                 const auto& bin = g3.bin({i_x, i_y, i_z});
                 auto invalid_bin = bin_t{};
-                test_content(*bin, *invalid_bin);
+                test_content(bin.value(), invalid_bin.value());
             }
         }
     }
@@ -105,7 +105,7 @@ TEST(grids_cuda, grid3_replace_populator) {
                                 axis_y.min() + gbin_f * axis_y.bin_width(),
                                 axis_z.min() + gbin_f * axis_z.bin_width()};
 
-                test_content(*bin, tp);
+                test_content(bin.value(), tp);
             }
         }
     }
@@ -149,7 +149,7 @@ TEST(grids_cuda, grid2_replace_populator_ci) {
             const auto& bin = g2.bin({i_r, i_phi});
             auto invalid_bin = bin_t{};
 
-            test_content(*bin, *invalid_bin);
+            test_content(bin.value(), invalid_bin.value());
         }
     }
 
@@ -167,7 +167,7 @@ TEST(grids_cuda, grid2_replace_populator_ci) {
                             axis_phi.min() + gbin_f * axis_phi.bin_width(),
                             0.5f};
 
-            test_content(*bin, tp);
+            test_content(bin.value(), tp);
         }
     }
 

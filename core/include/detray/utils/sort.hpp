@@ -26,7 +26,7 @@ DETRAY_HOST_DEVICE inline void insertion_sort(RandomIt first, RandomIt last) {
         auto const insertion_point = detray::upper_bound(first, it, *it);
 
         // Shifting the unsorted part
-        std::rotate(insertion_point, it, it + 1);
+        std::ranges::rotate(insertion_point, it, it + 1);
     }
 }
 

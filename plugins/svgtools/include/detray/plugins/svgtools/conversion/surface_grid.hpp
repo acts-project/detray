@@ -102,7 +102,7 @@ struct bin_association_getter {
                     }
 
                     // Remove duplicates
-                    std::sort(entries.begin(), entries.end());
+                    std::ranges::sort(entries);
                     auto last = std::unique(entries.begin(), entries.end());
                     entries.erase(last, entries.end());
 
@@ -162,8 +162,8 @@ auto surface_grid(const detector_t& detector, const dindex index,
 
     scalar_t cyl_ref_radius{0.f};
     if (!radii.empty()) {
-        scalar_t inner_r = *std::min_element(radii.begin(), radii.end());
-        scalar_t outer_r = *std::max_element(radii.begin(), radii.end());
+        scalar_t inner_r = *std::ranges::min_element(radii);
+        scalar_t outer_r = *std::ranges::max_element(radii);
 
         cyl_ref_radius = 0.5f * static_cast<actsvg::scalar>(inner_r + outer_r);
     }

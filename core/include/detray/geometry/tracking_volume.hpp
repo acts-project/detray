@@ -244,7 +244,7 @@ class tracking_volume {
             return rg1[0] < rg2[0];
         };
 
-        std::sort(std::begin(sf_ranges), std::end(sf_ranges), compare_ranges);
+        std::ranges::sort(sf_ranges, compare_ranges);
 
         if ((sf_ranges.size() > 1 && sf_ranges[0][1] != sf_ranges[1][0]) ||
             (sf_ranges.size() > 2 && sf_ranges[1][1] != sf_ranges[2][0])) {

@@ -58,10 +58,10 @@ class detector_components_writer final {
                "No writers registered! Need at least a geometry writer");
 
         // Call the write method on all optional writers
-        std::for_each(m_writers.begin(), m_writers.end(),
-                      [&det, &names, mode, &file_path](writer_ptr_t& writer) {
-                          writer->write(det, names, mode, file_path);
-                      });
+        std::ranges::for_each(
+            m_writers, [&det, &names, mode, &file_path](writer_ptr_t& writer) {
+                writer->write(det, names, mode, file_path);
+            });
     }
 
     private:

@@ -33,8 +33,8 @@ inline void set_measures(
     auto cast_scalar = [](const typename mask_t::scalar_type& v) {
         return static_cast<actsvg::scalar>(v);
     };
-    std::transform(m.values().cbegin(), m.values().cend(),
-                   std::back_inserter(p_surface._measures), cast_scalar);
+    std::ranges::transform(m.values(), std::back_inserter(p_surface._measures),
+                           cast_scalar);
 }
 
 /// @brief Sets the vertices of the proto surface to be the same as the mask.

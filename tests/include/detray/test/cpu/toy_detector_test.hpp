@@ -19,6 +19,7 @@
 #include <gtest/gtest.h>
 
 // System include(s)
+#include <algorithm>
 #include <type_traits>
 
 namespace detray {
@@ -51,8 +52,7 @@ inline void test_finder(const acc_t& finder, const dindex volume_index,
     // Check if surface indices are consistent with given range of indices
     EXPECT_EQ(finder.size(), range[1] - range[0]);
     for (dindex idx : detray::views::iota(range)) {
-        EXPECT_TRUE(std::find(indices.begin(), indices.end(), idx) !=
-                    indices.end());
+        EXPECT_TRUE(std::ranges::find(indices, idx) != indices.end());
     }
 }
 

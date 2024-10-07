@@ -122,13 +122,13 @@ void BM_GRID_REGULAR_BIN_CAP1(benchmark::State &state) {
 
     for (auto _ : state) {
         for (const auto &p : points) {
-            benchmark::DoNotOptimize(*g2r.search(p));
+            benchmark::DoNotOptimize(g2r.search(p).value());
         }
     }
 
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
     std::cout << "BM_GRID_REGULAR_BIN_CAP1:" << std::endl;
-    std::cout << *g2r.search(tp) << std::endl;
+    std::cout << g2r.search(p).value() << std::endl;
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 
@@ -293,13 +293,13 @@ void BM_GRID_IRREGULAR_BIN_CAP1(benchmark::State &state) {
 
     for (auto _ : state) {
         for (const auto &p : points) {
-            benchmark::DoNotOptimize(*g2irr.search(p));
+            benchmark::DoNotOptimize(g2irr.search(p).value());
         }
     }
 
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
     std::cout << "BM_GRID_IRREGULAR_BIN_CAP1:" << std::endl;
-    std::cout << *g2irr.search(tp) << std::endl;
+    std::cout << g2irr.search(tp).value() << std::endl;
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 

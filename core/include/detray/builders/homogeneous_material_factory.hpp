@@ -19,7 +19,6 @@
 #include <cassert>
 #include <memory>
 #include <numeric>
-#include <ranges>
 #include <tuple>
 #include <type_traits>
 #include <vector>
@@ -98,12 +97,10 @@ class material_data {
     DETRAY_HOST
     void append(material_data &&other) {
         m_mat.reserve(m_mat.size() + other.m_mat.size());
-        std::ranges::move(other.m_mat.begin(), other.m_mat.end(),
-                          std::back_inserter(m_mat));
+        std::ranges::move(other.m_mat, std::back_inserter(m_mat));
 
         m_thickness.reserve(m_thickness.size() + other.m_thickness.size());
-        std::ranges::move(other.m_thickness.begin(), other.m_thickness.end(),
-                          std::back_inserter(m_thickness));
+        std::ranges::move(other.m_thickness, std::back_inserter(m_thickness));
     }
 
     /// Append new material
@@ -272,8 +269,8 @@ class homogeneous_material_factory final
         // If no concrete surface ordering was passed, use index sequence
         // and add the materials to the trailing elements in the surfaces cont.
         if (m_indices.empty() ||
-            std::find(m_indices.begin(), m_indices.end(),
-                      detail::invalid_value<std::size_t>()) !=
+            std::ranges::find(m_indices,
+                              detail::invalid_value<std::size_t>()) !=
                 m_indices.end()) {
             m_indices.resize(n_materials);
             std::iota(std::begin(m_indices), std::end(m_indices),
@@ -281,8 +278,7 @@ class homogeneous_material_factory final
         }
 
         // Correctly index the data in this factory
-        std::size_t sf_offset{
-            *std::min_element(m_indices.begin(), m_indices.end())};
+        std::size_t sf_offset{*std::ranges::min_element(m_indices)};
 
         // Add the material to the surfaces that the data links against
         for (auto [i, sf] : detray::views::pick(surfaces, m_indices)) {

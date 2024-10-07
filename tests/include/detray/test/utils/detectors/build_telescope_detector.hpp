@@ -99,9 +99,8 @@ struct tel_det_config {
     }
     constexpr tel_det_config &positions(const std::vector<scalar> &dists) {
         m_positions.clear();
-        std::copy_if(dists.begin(), dists.end(),
-                     std::back_inserter(m_positions),
-                     [](scalar d) { return (d >= 0.f); });
+        std::ranges::copy_if(dists, std::back_inserter(m_positions),
+                             [](scalar d) { return (d >= 0.f); });
         return *this;
     }
     constexpr tel_det_config &module_material(const material<scalar> &mat) {

@@ -176,8 +176,7 @@ struct complete_populator {
      **/
     DETRAY_HOST_DEVICE
     void shift(store_value &stored, const bare_value &offset) const {
-        std::for_each(stored.begin(), stored.end(),
-                      [&](auto &d) { d += offset; });
+        std::ranges::for_each(stored, [&](auto &d) { d += offset; });
     }
 
     /** Return an initialized bin value
@@ -234,7 +233,7 @@ struct attach_populator {
     void operator()(store_value &stored, bare_value &&bvalue) const {
         stored.push_back(std::move(bvalue));
         if (kSORT) {
-            std::sort(stored.begin(), stored.end());
+            std::ranges::sort(stored);
         }
     }
 
@@ -267,8 +266,7 @@ struct attach_populator {
      **/
     DETRAY_HOST_DEVICE
     void shift(store_value &stored, const bare_value &offset) const {
-        std::for_each(stored.begin(), stored.end(),
-                      [&](auto &d) { d += offset; });
+        std::ranges::for_each(stored, [&](auto &d) { d += offset; });
     }
 
     /** Return an initialized bin value

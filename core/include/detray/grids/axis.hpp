@@ -157,8 +157,7 @@ struct regular {
                                      nh_range[1] - nh_range[0] + 1u),
                                  nh_range[0]);
         dindex m = 0u;
-        std::for_each(sequence.begin(), sequence.end(),
-                      [&](auto &n) { n += m++; });
+        std::ranges::for_each(sequence, [&](auto &n) { n += m++; });
         return sequence;
     }
 
@@ -329,8 +328,7 @@ struct circular {
                                          nh_range[1] - nh_range[0] + 1u),
                                      nh_range[0]);
             dindex m = 0;
-            std::for_each(sequence.begin(), sequence.end(),
-                          [&](auto &n) { n += m++; });
+            std::ranges::for_each(sequence, [&](auto &n) { n += m++; });
             return sequence;
         }
         dindex vl =
@@ -339,7 +337,7 @@ struct circular {
         dindex mo = 0;
         dindex_sequence sequence(static_cast<dindex_sequence::size_type>(vl),
                                  nh_range[0]);
-        std::for_each(sequence.begin(), sequence.end(), [&](auto &n) {
+        std::ranges::for_each(sequence, [&](auto &n) {
             n += mi++;
             if (n > n_bins - 1u) {
                 n = mo++;
@@ -495,9 +493,8 @@ struct irregular {
      **/
     DETRAY_HOST_DEVICE
     dindex bin(scalar v) const {
-        int ibin = static_cast<int>(
-            std::lower_bound(boundaries.begin(), boundaries.end(), v) -
-            boundaries.begin());
+        auto ibin = static_cast<int>(std::ranges::lower_bound(boundaries, v) -
+                                     boundaries.begin());
         if (ibin > 0 && ibin < static_cast<int>(boundaries.size())) {
             return static_cast<dindex>(--ibin);
         } else {
@@ -561,8 +558,7 @@ struct irregular {
                                      nh_range[1] - nh_range[0] + 1u),
                                  nh_range[0]);
         dindex m = 0u;
-        std::for_each(sequence.begin(), sequence.end(),
-                      [&](auto &n) { n += m++; });
+        std::ranges::for_each(sequence, [&](auto &n) { n += m++; });
         return sequence;
     }
 

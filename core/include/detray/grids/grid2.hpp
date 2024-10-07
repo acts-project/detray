@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2022 CERN for the benefit of the ACTS project
+ * (c) 2020-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -15,6 +15,9 @@
 // VecMem include(s).
 #include <vecmem/containers/data/buffer_type.hpp>
 #include <vecmem/memory/memory_resource.hpp>
+
+// System include(s)
+#include <algorithm>
 
 namespace detray {
 
@@ -124,8 +127,8 @@ class grid2 {
      *
      **/
     void shift(const typename populator_type::bare_value &offset) {
-        std::for_each(_data_serialized.begin(), _data_serialized.end(),
-                      [&](auto &ds) { _populator.shift(ds, offset); });
+        std::ranges::for_each(_data_serialized,
+                              [&](auto &ds) { _populator.shift(ds, offset); });
     }
 
     /** Fill/populate operation
@@ -282,7 +285,7 @@ class grid2 {
         }
 
         if (sort) {
-            std::sort(zone.begin(), zone.end());
+            std::ranges::sort(zone);
         }
         return zone;
     }
