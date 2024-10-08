@@ -665,7 +665,8 @@ inline std::string print_trace(const truth_trace_t &truth_trace,
 /// Print an adjacency list
 inline std::string print_adj(const dvector<dindex> &adjacency_matrix) {
 
-    std::size_t dim = static_cast<dindex>(math::sqrt(adjacency_matrix.size()));
+    std::size_t dim = static_cast<dindex>(
+        math::sqrt(static_cast<scalar>(adjacency_matrix.size())));
     std::stringstream out_stream{};
 
     for (std::size_t i = 0u; i < dim - 1; ++i) {

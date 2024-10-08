@@ -428,7 +428,8 @@ inline auto print_efficiency(std::size_t n_tracks, std::size_t n_surfaces,
     }
 
     // How many significant digits to print
-    const auto n_sig{2 + static_cast<int>(math::ceil(math::log10(n_surfaces)))};
+    const auto n_sig{2 + static_cast<int>(math::ceil(
+                             math::log10(static_cast<scalar>(n_surfaces))))};
 
     assert(n_miss_nav <= n_surfaces);
 
