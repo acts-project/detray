@@ -83,23 +83,23 @@ class multi_store {
     /// Construct with a specific vecmem memory resource @param resource
     /// (host-side only)
     template <typename allocator_t = vecmem::memory_resource>
-    requires(!detail::is_device_view_v<allocator_t>) DETRAY_HOST
-        explicit multi_store(allocator_t &resource)
+    requires(std::derived_from<allocator_t, std::pmr::memory_resource>)
+        DETRAY_HOST explicit multi_store(allocator_t &resource)
         : m_tuple_container(resource) {}
 
     /// Copy Construct with a specific (vecmem) memory resource @param resource
     /// (host-side only)
     template <typename allocator_t = vecmem::memory_resource,
               typename T = tuple_t<Ts...>>
-    requires std::is_same_v<T, detray::tuple<Ts...>>
-        DETRAY_HOST explicit multi_store(allocator_t &resource,
-                                         const Ts &... args)
+    requires(std::is_same_v<T, detray::tuple<Ts...>>
+                 &&std::derived_from<allocator_t, std::pmr::memory_resource>)
+        DETRAY_HOST
+        explicit multi_store(allocator_t &resource, const Ts &... args)
         : m_tuple_container(resource, args...) {}
 
     /// Construct from the container @param view . Mainly used device-side.
-    template <typename tuple_view_t>
-    requires detail::is_device_view_v<tuple_view_t>
-        DETRAY_HOST_DEVICE explicit multi_store(tuple_view_t &view)
+    template <concepts::device_view tuple_view_t>
+    DETRAY_HOST_DEVICE explicit multi_store(tuple_view_t &view)
         : m_tuple_container(view) {}
 
     /// Move assignment operator
@@ -262,7 +262,7 @@ class multi_store {
                             const context_type & /*ctx*/ = {}) noexcept(false)
         -> void {
 
-        using collection_t = detail::remove_cvref_t<derived_collection_t>;
+        using collection_t = std::remove_cvref_t<derived_collection_t>;
 
         static_assert((std::is_same_v<collection_t, Ts> || ...) == true,
                       "The type is not included in the parameter pack.");

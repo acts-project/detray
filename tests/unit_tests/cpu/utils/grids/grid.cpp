@@ -11,6 +11,7 @@
 #include "detray/builders/grid_builder.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/geometry/shapes/cuboid3D.hpp"
+#include "detray/utils/grid/detail/concepts.hpp"
 
 // Detray test include(s)
 #include "detray/test/utils/types.hpp"
@@ -71,7 +72,7 @@ struct bin_content_sequence {
 };
 
 /// Test bin content element by element
-template <typename grid_t, typename content_t>
+template <concepts::grid grid_t, typename content_t>
 void test_content(const grid_t& g, const point3& p, const content_t& expected) {
     dindex i = 0u;
     for (const auto& entry : g.search(p)) {
@@ -93,6 +94,10 @@ GTEST_TEST(detray_grid, single_grid) {
 
     using grid_device_t = grid<axes<cuboid3D>, bins::single<scalar>,
                                simple_serializer, device_container_types>;
+
+    static_assert(concepts::grid<grid_owning_t>);
+    static_assert(concepts::grid<grid_n_owning_t>);
+    static_assert(concepts::grid<grid_device_t>);
 
     // Fill the bin data for every test
     // bin test entries
@@ -196,6 +201,10 @@ GTEST_TEST(detray_grid, dynamic_array) {
 
     using grid_device_t = grid<axes<cuboid3D>, bins::dynamic_array<scalar>,
                                simple_serializer, device_container_types>;
+
+    static_assert(concepts::grid<grid_owning_t>);
+    static_assert(concepts::grid<grid_n_owning_t>);
+    static_assert(concepts::grid<grid_device_t>);
 
     // Fill the bin data for every test
     // bin test entries
@@ -307,6 +316,8 @@ GTEST_TEST(detray_grid, bin_view) {
 
     // Non-owning, 3D cartesian, replacing grid
     using grid_t = grid<axes<cuboid3D>, bins::single<scalar>>;
+
+    static_assert(concepts::grid<grid_t>);
 
     // Fill the bin data for every test
     // bin test entries
@@ -441,6 +452,9 @@ GTEST_TEST(detray_grid, replace_population) {
     // Non-owning, 3D cartesian  grid
     using grid_t = grid<decltype(ax_n_own), bins::single<scalar>,
                         simple_serializer, host_container_types, false>;
+
+    static_assert(concepts::grid<grid_t>);
+
     // init
     using bin_t = grid_t::bin_type;
     grid_t::bin_container_type bin_data{};
@@ -494,6 +508,8 @@ GTEST_TEST(detray_grid, complete_population) {
                         simple_serializer, host_container_types, false>;
     using bin_t = grid_t::bin_type;
     using bin_content_t = std::array<scalar, 4>;
+
+    static_assert(concepts::grid<grid_t>);
 
     // init
     grid_t::bin_container_type bin_data{};
@@ -578,6 +594,8 @@ GTEST_TEST(detray_grid, regular_attach_population) {
                         simple_serializer, host_container_types, false>;
     using bin_t = grid_t::bin_type;
     using bin_content_t = std::array<scalar, 4>;
+
+    static_assert(concepts::grid<grid_t>);
 
     // init
     grid_t::bin_container_type bin_data{};

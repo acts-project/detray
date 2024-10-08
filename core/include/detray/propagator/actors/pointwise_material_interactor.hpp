@@ -11,6 +11,7 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
 #include "detray/geometry/tracking_surface.hpp"
+#include "detray/materials/detail/concepts.hpp"
 #include "detray/materials/detail/material_accessor.hpp"
 #include "detray/materials/interaction.hpp"
 #include "detray/propagator/base_actor.hpp"
@@ -73,7 +74,7 @@ struct pointwise_material_interactor : actor {
             using material_t = typename mat_group_t::value_type;
 
             // Filter material types for which to do "pointwise" interactions
-            if constexpr (detail::is_surface_material_v<material_t>) {
+            if constexpr (concepts::surface_material<material_t>) {
 
                 const auto mat = detail::material_accessor::get(
                     material_group, mat_index, bound_params.bound_local());

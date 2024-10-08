@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/materials/detail/concepts.hpp"
 #include "detray/materials/detail/material_accessor.hpp"
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actor_chain.hpp"
@@ -77,7 +78,7 @@ struct get_material_params {
         constexpr auto inv{detail::invalid_value<scalar_t>()};
 
         // Access homogeneous surface material or material maps
-        if constexpr (detail::is_surface_material_v<material_t>) {
+        if constexpr (concepts::surface_material<material_t>) {
 
             // Slab or rod
             const auto mat =

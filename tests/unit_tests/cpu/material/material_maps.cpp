@@ -9,6 +9,7 @@
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes.hpp"
+#include "detray/materials/detail/concepts.hpp"
 #include "detray/materials/material_map.hpp"
 
 // GTest include(s)
@@ -36,6 +37,11 @@ GTEST_TEST(detray_material, annulus_map) {
     mask<annulus2D> ann2{0u, minR, maxR, minPhi, maxPhi, 0.f, -2.f, 2.f};
 
     auto annulus_map = mat_map_factory.new_grid(ann2, {10u, 20u});
+
+    static_assert(concepts::material_map<decltype(annulus_map)>);
+    static_assert(!concepts::homogeneous_material<decltype(annulus_map)>);
+    static_assert(concepts::surface_material<decltype(annulus_map)>);
+    static_assert(!concepts::volume_material<decltype(annulus_map)>);
 
     EXPECT_EQ(annulus_map.dim, 2u);
     EXPECT_EQ(annulus_map.nbins(), 200u);
@@ -80,6 +86,11 @@ GTEST_TEST(detray_material, cylinder_map) {
 
     auto cylinder_map = mat_map_factory.new_grid(cyl, {10u, 20u});
 
+    static_assert(concepts::material_map<decltype(cylinder_map)>);
+    static_assert(!concepts::homogeneous_material<decltype(cylinder_map)>);
+    static_assert(concepts::surface_material<decltype(cylinder_map)>);
+    static_assert(!concepts::volume_material<decltype(cylinder_map)>);
+
     EXPECT_EQ(cylinder_map.dim, 2u);
     EXPECT_EQ(cylinder_map.nbins(), 200u);
 
@@ -122,6 +133,11 @@ GTEST_TEST(detray_material, rectangle_map) {
 
     auto rectangle_map = mat_map_factory.new_grid(r2, {10u, 20u});
 
+    static_assert(concepts::material_map<decltype(rectangle_map)>);
+    static_assert(!concepts::homogeneous_material<decltype(rectangle_map)>);
+    static_assert(concepts::surface_material<decltype(rectangle_map)>);
+    static_assert(!concepts::volume_material<decltype(rectangle_map)>);
+
     EXPECT_EQ(rectangle_map.dim, 2u);
     EXPECT_EQ(rectangle_map.nbins(), 200u);
 
@@ -163,6 +179,11 @@ GTEST_TEST(detray_material, disc_map) {
     mask<ring2D> r2{0u, inner_r, outer_r};
 
     auto disc_map = mat_map_factory.new_grid(r2, {10u, 20u});
+
+    static_assert(concepts::material_map<decltype(disc_map)>);
+    static_assert(!concepts::homogeneous_material<decltype(disc_map)>);
+    static_assert(concepts::surface_material<decltype(disc_map)>);
+    static_assert(!concepts::volume_material<decltype(disc_map)>);
 
     EXPECT_EQ(disc_map.dim, 2u);
     EXPECT_EQ(disc_map.nbins(), 200u);
@@ -207,6 +228,11 @@ GTEST_TEST(detray_material, trapezoid_map) {
     mask<trapezoid2D> t2{0u, hx_miny, hx_maxy, hy, divisor};
 
     auto trapezoid_map = mat_map_factory.new_grid(t2, {10u, 20u});
+
+    static_assert(concepts::material_map<decltype(trapezoid_map)>);
+    static_assert(!concepts::homogeneous_material<decltype(trapezoid_map)>);
+    static_assert(concepts::surface_material<decltype(trapezoid_map)>);
+    static_assert(!concepts::volume_material<decltype(trapezoid_map)>);
 
     EXPECT_EQ(trapezoid_map.dim, 2u);
     EXPECT_EQ(trapezoid_map.nbins(), 200u);

@@ -11,6 +11,9 @@
 #include "detray/core/detector.hpp"
 #include "detray/definitions/grid_axis.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/utils/grid/detail/concepts.hpp"
+
+// PLugin include(s)
 #include "detray/plugins/svgtools/conversion/grid.hpp"
 #include "detray/plugins/svgtools/styling/styling.hpp"
 
@@ -40,7 +43,7 @@ struct bin_association_getter {
 
         using accel_t = typename group_t::value_type;
 
-        if constexpr (detray::detail::is_grid_v<accel_t>) {
+        if constexpr (concepts::grid<accel_t>) {
 
             using transform3_t =
                 typename accel_t::local_frame_type::transform3_type;

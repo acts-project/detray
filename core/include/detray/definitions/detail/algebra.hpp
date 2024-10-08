@@ -21,6 +21,9 @@
 #error "No algebra plugin selected! Please link to one of the algebra plugins."
 #endif
 
+// Project include(s)
+#include "detray/utils/concepts.hpp"
+
 // System include(s)
 #include <type_traits>
 
@@ -29,37 +32,28 @@ namespace detray {
 namespace detail {
 /// The detray scalar types (can be SIMD)
 /// @{
-template <typename T, typename = void>
+template <typename T>
 struct get_scalar {};
 
-template <typename T>
-struct get_scalar<T, std::enable_if_t<std::is_arithmetic_v<T>, void>> {
+// TODO replace by scalar concept from algebra-plugins
+template <concepts::arithmetic T>
+struct get_scalar<T> {
     using scalar = T;
 };
 
 template <typename T>
-struct get_scalar<
-    T, std::enable_if_t<!std::is_same_v<typename T::scalar, void>, void>> {
+requires(!std::same_as<typename T::scalar, void>) struct get_scalar<T> {
     using scalar = typename T::scalar;
 };
 /// @}
 
 /// The detray algebra types (can be SIMD)
 /// @{
-template <typename T, typename = void>
+template <typename T>
 struct get_algebra {};
 
 template <typename T>
-struct get_algebra<T, std::enable_if_t<std::is_arithmetic_v<T>, void>> {
-    // vectors and transforms defined in 4D homogeneous coordinates
-    using point3D = std::array<T, 4>;
-    using vector3D = std::array<T, 4>;
-    using transform3D = std::array<T, 16>;
-};
-
-template <typename T>
-struct get_algebra<
-    T, std::enable_if_t<!std::is_same_v<typename T::point3D, void>, void>> {
+requires(!std::same_as<typename T::point3D, void>) struct get_algebra<T> {
     using point2D = typename T::point2D;
     using point3D = typename T::point3D;
     using vector3D = typename T::vector3D;
@@ -69,13 +63,12 @@ struct get_algebra<
 
 /// The detray matrix types
 /// @{
-template <typename T, typename = void>
+template <typename T>
 struct get_matrix {};
 
 template <typename T>
-struct get_matrix<
-    T, std::enable_if_t<!std::is_same_v<typename T::matrix_operator, void>,
-                        void>> {
+requires(
+    !std::same_as<typename T::matrix_operator, void>) struct get_matrix<T> {
     using matrix_operator = typename T::matrix_operator;
     using size_type = typename matrix_operator::size_ty;
 
@@ -114,21 +107,17 @@ using dsize_type = typename detail::get_matrix<A>::size_type;
 template <typename A, std::size_t R, std::size_t C>
 using dmatrix = typename detail::get_matrix<A>::template matrix<R, C>;
 
-namespace detail {
+namespace concepts {
 
 /// Check if an algebra has soa layout
 /// @{
-template <typename A, typename = void>
-struct is_soa : public std::false_type {};
+template <typename A>
+concept soa_algebra = (!concepts::arithmetic<dscalar<A>>);
 
 template <typename A>
-struct is_soa<A, std::enable_if_t<!std::is_arithmetic_v<dscalar<A>>, void>>
-    : public std::true_type {};
-
-template <typename A>
-inline constexpr bool is_soa_v = is_soa<A>::value;
+concept aos_algebra = (!concepts::soa_algebra<A>);
 /// @}
 
-}  // namespace detail
+}  // namespace concepts
 
 }  // namespace detray

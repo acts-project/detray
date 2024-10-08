@@ -127,9 +127,8 @@ class grid_impl {
           m_axes(std::move(axes)) {}
 
     /// Device-side construction from a vecmem based view type
-    template <typename grid_view_t>
-    requires detail::is_device_view_v<grid_view_t>
-        DETRAY_HOST_DEVICE explicit grid_impl(grid_view_t &view)
+    template <concepts::device_view grid_view_t>
+    DETRAY_HOST_DEVICE explicit grid_impl(grid_view_t &view)
         : m_bins(detray::detail::get<0>(view.m_view)),
           m_axes(detray::detail::get<1>(view.m_view)) {}
 
@@ -344,13 +343,6 @@ class grid_impl {
     }
     /// @}
 
-    /// @return the maximum number of surface candidates during a
-    /// neighborhood lookup
-    DETRAY_HOST_DEVICE constexpr auto n_max_candidates() const -> unsigned int {
-        // @todo: Hotfix for the toy geometry
-        return 20u;
-    }
-
     /// @returns view of a grid, including the grids multi_axis. Also valid if
     /// the value type of the grid is cv qualified (then value_t propagates
     /// quialifiers) - non-const
@@ -383,14 +375,5 @@ template <typename axes_t, typename bin_t,
 using grid =
     grid_impl<coordinate_axes<axes_t, ownership, containers, algebra_t>, bin_t,
               simple_serializer>;
-
-namespace detail {
-
-template <typename multi_axis_t, typename bin_t,
-          template <std::size_t> class serializer_t>
-struct is_grid<grid_impl<multi_axis_t, bin_t, serializer_t>>
-    : public std::true_type {};
-
-}  // namespace detail
 
 }  // namespace detray

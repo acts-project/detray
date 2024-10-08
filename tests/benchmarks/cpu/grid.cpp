@@ -12,6 +12,7 @@
 #include "detray/definitions/detail/containers.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/geometry/shapes/rectangle2D.hpp"
+#include "detray/utils/grid/detail/concepts.hpp"
 
 // Detray test include(s).
 #include "detray/test/utils/types.hpp"
@@ -98,7 +99,7 @@ auto make_irregular_grid(vecmem::memory_resource &mr) {
 }
 
 /// Fill a grid with some values.
-template <typename populator_t, typename grid_t>
+template <typename populator_t, concepts::grid grid_t>
 void populate_grid(grid_t &grid) {
 
     for (dindex gbin = 0u; gbin < grid.nbins(); ++gbin) {

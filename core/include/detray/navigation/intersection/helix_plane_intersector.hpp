@@ -29,7 +29,7 @@ struct helix_intersector_impl;
 ///
 /// The algorithm uses the Newton-Raphson method to find an intersection on
 /// the unbounded surface and then applies the mask.
-template <typename algebra_t>
+template <concepts::aos_algebra algebra_t>
 struct helix_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
 
     using scalar_type = dscalar<algebra_t>;
@@ -191,7 +191,7 @@ struct helix_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
     bool run_rtsafe{true};
 };
 
-template <typename algebra_t>
+template <concepts::aos_algebra algebra_t>
 struct helix_intersector_impl<polar2D<algebra_t>, algebra_t>
     : public helix_intersector_impl<cartesian2D<algebra_t>, algebra_t> {};
 

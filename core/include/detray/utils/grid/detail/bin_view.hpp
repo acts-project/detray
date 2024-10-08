@@ -11,6 +11,7 @@
 #include "detray/definitions/detail/containers.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/utils/grid/detail/axis_bounds.hpp"
+#include "detray/utils/grid/detail/concepts.hpp"
 #include "detray/utils/ranges.hpp"
 
 // System include(s)
@@ -18,7 +19,7 @@
 
 namespace detray::axis::detail {
 
-template <typename G, typename I>
+template <concepts::grid G, std::input_iterator I>
 struct bin_iterator;
 
 /// @returns the local bin indexer for the given @param search_window.
@@ -33,7 +34,7 @@ DETRAY_HOST_DEVICE inline auto get_bin_indexer(
 }
 
 /// @brief Range adaptor that fetches grid bins according to a search window.
-template <typename grid_t>
+template <concepts::grid grid_t>
 struct bin_view : public detray::ranges::view_interface<bin_view<grid_t>> {
 
     /// Cartesian product view over the local bin index sequences
@@ -99,7 +100,7 @@ struct bin_view : public detray::ranges::view_interface<bin_view<grid_t>> {
 };
 
 /// @brief Iterate through the bin search area.
-template <typename grid_t, typename bin_indexer_t>
+template <concepts::grid grid_t, std::input_iterator bin_indexer_t>
 struct bin_iterator {
 
     using difference_type = std::ptrdiff_t;

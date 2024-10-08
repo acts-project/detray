@@ -9,6 +9,7 @@
 
 // Project include(s).
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/utils/grid/detail/concepts.hpp"
 #include "detray/utils/grid/grid.hpp"
 
 // VecMem include(s).
@@ -24,7 +25,7 @@ namespace detray {
 ///
 /// @tparam grid_t The type of grid in this collection. Must be non-owning, so
 ///                that the grid collection can manage the underlying memory.
-template <typename grid_t, typename = void>
+template <concepts::grid grid_t, typename = void>
 class grid_collection {};
 
 /// Specialization for @c detray::grid
@@ -153,9 +154,8 @@ requires(!detray::grid_impl<axes_t, bin_t, serializer_t>::
           m_bin_edges(std::move(edges)) {}
 
     /// Device-side construction from a vecmem based view type
-    template <typename coll_view_t>
-    requires detail::is_device_view_v<coll_view_t>
-        DETRAY_HOST_DEVICE explicit grid_collection(coll_view_t &view)
+    template <concepts::device_view coll_view_t>
+    DETRAY_HOST_DEVICE explicit grid_collection(coll_view_t &view)
         : m_bin_offsets(detail::get<0>(view.m_view)),
           m_bins(detail::get<1>(view.m_view)),
           m_bin_edge_offsets(detail::get<2>(view.m_view)),
@@ -188,11 +188,11 @@ requires(!detray::grid_impl<axes_t, bin_t, serializer_t>::
 
     /// @returns an iterator that points to the first grid
     DETRAY_HOST_DEVICE
-    constexpr auto begin() const noexcept { return iterator{*this, 0u}; }
+    constexpr auto begin() const { return iterator{*this, 0u}; }
 
     /// @returns an iterator that points to the coll. end
     DETRAY_HOST_DEVICE
-    constexpr auto end() const noexcept { return iterator{*this, size()}; }
+    constexpr auto end() const { return iterator{*this, size()}; }
 
     /// @returns the number of grids in the collection - const
     DETRAY_HOST_DEVICE

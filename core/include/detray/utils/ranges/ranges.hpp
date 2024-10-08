@@ -73,17 +73,16 @@ template <class R>
 using range_size_t = decltype(detray::ranges::size(std::declval<R&>()));
 
 template <class R>
-using range_difference_t =
-    typename std::iterator_traits<detray::ranges::iterator_t<
-        detray::detail::remove_cvref_t<R>>>::difference_type;
+using range_difference_t = typename std::iterator_traits<
+    detray::ranges::iterator_t<std::remove_cvref_t<R>>>::difference_type;
 
 template <class R>
 using range_value_t = typename std::iterator_traits<
-    detray::ranges::iterator_t<detray::detail::remove_cvref_t<R>>>::value_type;
+    detray::ranges::iterator_t<std::remove_cvref_t<R>>>::value_type;
 
 template <class R>
 using range_reference_t = typename std::iterator_traits<
-    detray::ranges::iterator_t<detray::detail::remove_cvref_t<R>>>::reference;
+    detray::ranges::iterator_t<std::remove_cvref_t<R>>>::reference;
 
 template <class R>
 using range_const_reference_t = const range_reference_t<R>;
@@ -130,7 +129,7 @@ inline constexpr bool disable_sized_range = false;
 /// @brief A function 'size' is implemented for the range @tparam R
 template <class R>
 inline constexpr bool sized_range =
-    !ranges::disable_sized_range<detray::detail::remove_cvref_t<R>> &&
+    !ranges::disable_sized_range<std::remove_cvref_t<R>> &&
     (detray::ranges::range<R> &&
      std::is_integral_v<detray::ranges::range_size_t<R>>);
 
@@ -142,7 +141,7 @@ template <class R>
 inline constexpr bool borrowed_range =
     detray::ranges::range<R> &&
     (std::is_lvalue_reference_v<R> ||
-     ranges::enable_borrowed_range<detray::detail::remove_cvref_t<R>>);
+     ranges::enable_borrowed_range<std::remove_cvref_t<R>>);
 
 /// @brief models a dangling iterator
 /// @see https://en.cppreference.com/w/cpp/ranges/dangling
@@ -288,9 +287,9 @@ inline constexpr bool view = detray::ranges::range<R>&& std::is_object_v<R>&&
     std::is_move_constructible_v<R>&& enable_view<R>;
 
 template <class R>
-inline constexpr bool viewable_range =
-    detray::ranges::range<R> &&
-    (borrowed_range<R> || view<detray::detail::remove_cvref_t<R>>);
+inline constexpr bool viewable_range = detray::ranges::range<R> &&
+                                       (borrowed_range<R> ||
+                                        view<std::remove_cvref_t<R>>);
 /// @}
 
 }  // namespace detray::ranges

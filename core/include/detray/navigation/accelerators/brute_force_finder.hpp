@@ -78,13 +78,6 @@ class brute_force_collection {
 
         /// @returns an iterator over all surfaces in the data structure
         DETRAY_HOST_DEVICE auto all() { return *this; }
-
-        /// @return the maximum number of surface candidates during a
-        /// neighborhood lookup
-        DETRAY_HOST_DEVICE constexpr auto n_max_candidates() const
-            -> unsigned int {
-            return static_cast<unsigned int>(this->size());
-        }
     };
 
     using value_type = brute_forcer;
@@ -116,9 +109,8 @@ class brute_force_collection {
         : brute_force_collection(&resource) {}
 
     /// Device-side construction from a vecmem based view type
-    template <typename coll_view_t>
-    requires detail::is_device_view_v<coll_view_t>
-        DETRAY_HOST_DEVICE explicit brute_force_collection(coll_view_t& view)
+    template <concepts::device_view coll_view_t>
+    DETRAY_HOST_DEVICE explicit brute_force_collection(coll_view_t& view)
         : m_offsets(detail::get<0>(view.m_view)),
           m_surfaces(detail::get<1>(view.m_view)) {}
 

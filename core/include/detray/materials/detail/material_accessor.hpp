@@ -9,6 +9,9 @@
 
 // Project include(s)
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/materials/detail/concepts.hpp"
+#include "detray/utils/grid/detail/concepts.hpp"
+#include "detray/utils/ranges/ranges.hpp"
 #include "detray/utils/type_traits.hpp"
 
 /// @brief Access a single unit of material in different types of material
@@ -18,8 +21,8 @@ namespace detray::detail::material_accessor {
 /// Access to material slabs or rods in a homogeneous material
 /// description and to raw material in a homogeneous volume material
 /// description
-template <class material_coll_t, typename point_t = void>
-requires detail::is_hom_material_v<typename material_coll_t::value_type>
+template <detray::ranges::range material_coll_t, typename point_t = void>
+requires concepts::homogeneous_material<typename material_coll_t::value_type>
     DETRAY_HOST_DEVICE constexpr decltype(auto) get(
         const material_coll_t &material_coll, const dindex idx,
         const point_t &) noexcept {
@@ -28,8 +31,8 @@ requires detail::is_hom_material_v<typename material_coll_t::value_type>
 }
 
 /// Access to material slabs in a material map or volume material
-template <class material_coll_t>
-requires detail::is_grid_v<typename material_coll_t::value_type>
+template <typename material_coll_t>
+requires concepts::material_map<typename material_coll_t::value_type>
     DETRAY_HOST_DEVICE constexpr decltype(auto) get(
         const material_coll_t &material_coll, const dindex idx,
         const typename material_coll_t::value_type::point_type

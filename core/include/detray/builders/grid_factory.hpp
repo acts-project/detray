@@ -14,6 +14,7 @@
 #include "detray/geometry/shapes.hpp"
 #include "detray/utils/grid/detail/axis.hpp"
 #include "detray/utils/grid/detail/axis_helpers.hpp"
+#include "detray/utils/grid/detail/concepts.hpp"
 #include "detray/utils/grid/grid.hpp"
 #include "detray/utils/grid/grid_collection.hpp"
 #include "detray/utils/grid/populators.hpp"
@@ -532,8 +533,8 @@ class grid_factory {
 
     /// Helper overload for grid builder: Build from mask and resolve bounds
     /// and binnings from concrete grid type
-    template <typename grid_t, typename grid_shape_t>
-    requires detail::is_grid_v<grid_t> auto new_grid(
+    template <concepts::grid grid_t, typename grid_shape_t>
+    auto new_grid(
         const mask<grid_shape_t> &m,
         const std::array<std::size_t, grid_t::dim> &n_bins,
         const std::vector<std::pair<typename grid_t::loc_bin_index, dindex>>
@@ -578,8 +579,8 @@ class grid_factory {
     /// @param ax_bin_edges the explicit bin edges for irregular axes
     ///                     (lower bin edges + the the upper edge of the
     ///                     last bin), otherwise ignored.
-    template <typename grid_t>
-    requires detail::is_grid_v<grid_t> auto new_grid(
+    template <concepts::grid grid_t>
+    auto new_grid(
         const std::vector<scalar_type> spans,
         const std::vector<std::size_t> n_bins,
         [[maybe_unused]] const std::vector<
@@ -684,7 +685,8 @@ class grid_factory {
 };
 
 // Infer a grid factory type from an already completely assembled grid type
-template <typename grid_t, typename algebra_t = ALGEBRA_PLUGIN<detray::scalar>>
+template <concepts::grid grid_t,
+          typename algebra_t = ALGEBRA_PLUGIN<detray::scalar>>
 using grid_factory_type =
     grid_factory<typename grid_t::bin_type,
                  simple_serializer /*grid_t::template serializer_type*/,

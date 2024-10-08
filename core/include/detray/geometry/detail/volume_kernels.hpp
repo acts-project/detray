@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/materials/detail/concepts.hpp"
 #include "detray/materials/detail/material_accessor.hpp"
 #include "detray/materials/material.hpp"
 
@@ -23,9 +24,9 @@ struct get_material_params {
                                               const point_t &loc_p) const {
         using material_t = typename mat_group_t::value_type;
 
-        if constexpr (detail::is_volume_material_v<material_t>) {
+        if constexpr (concepts::volume_material<material_t>) {
 
-            if constexpr (detail::is_hom_material_v<material_t>) {
+            if constexpr (concepts::homogeneous_material<material_t>) {
                 // Homogeneous volume material
                 return &(detail::material_accessor::get(mat_group, idx, loc_p));
             } else {

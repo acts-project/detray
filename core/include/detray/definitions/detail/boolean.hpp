@@ -22,13 +22,13 @@ namespace detail {
 template <typename A, typename = void>
 struct get_bool {};
 
-template <typename A>
-struct get_bool<A, std::enable_if_t<!detray::detail::is_soa_v<A>, void>> {
+template <concepts::aos_algebra A>
+struct get_bool<A> {
     using boolean = bool;
 };
 
-template <typename A>
-struct get_bool<A, std::enable_if_t<detray::detail::is_soa_v<A>, void>> {
+template <concepts::soa_algebra A>
+struct get_bool<A> {
     using boolean = typename A::boolean;
 };
 /// @}
@@ -54,21 +54,18 @@ constexpr bool none_of(bool b) {
 }
 
 #if (IS_SOA)
-template <typename T,
-          std::enable_if_t<Vc::Traits::is_simd_mask<T>::value, bool> = true>
-inline bool any_of(T &&mask) {
+template <typename T>
+requires Vc::Traits::is_simd_mask<T>::value inline bool any_of(T &&mask) {
     return Vc::any_of(std::forward<T>(mask));
 }
 
-template <typename T,
-          std::enable_if_t<Vc::Traits::is_simd_mask<T>::value, bool> = true>
-inline bool all_of(T &&mask) {
+template <typename T>
+requires Vc::Traits::is_simd_mask<T>::value inline bool all_of(T &&mask) {
     return Vc::all_of(std::forward<T>(mask));
 }
 
-template <typename T,
-          std::enable_if_t<Vc::Traits::is_simd_mask<T>::value, bool> = true>
-inline bool none_of(T &&mask) {
+template <typename T>
+requires Vc::Traits::is_simd_mask<T>::value inline bool none_of(T &&mask) {
     return Vc::none_of(std::forward<T>(mask));
 }
 #endif

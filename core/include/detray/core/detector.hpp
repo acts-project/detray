@@ -129,7 +129,7 @@ class detector {
                                   typename accelerator_container::view_type,
                                   typename volume_finder::view_type>;
 
-    static_assert(detail::is_device_view_v<view_type>,
+    static_assert(concepts::device_view<view_type>,
                   "Detector view type ill-formed");
 
     using const_view_type =
@@ -141,7 +141,7 @@ class detector {
                     typename accelerator_container::const_view_type,
                     typename volume_finder::const_view_type>;
 
-    static_assert(detail::is_device_view_v<const_view_type>,
+    static_assert(concepts::device_view<const_view_type>,
                   "Detector const view type ill-formed");
 
     /// Detector buffer types
@@ -154,7 +154,7 @@ class detector {
                       typename accelerator_container::buffer_type,
                       typename volume_finder::buffer_type>;
 
-    static_assert(detail::is_buffer_v<buffer_type>,
+    static_assert(concepts::device_buffer<buffer_type>,
                   "Detector buffer type ill-formed");
 
     detector() = delete;
@@ -185,9 +185,8 @@ class detector {
           _resource(&resource) {}
 
     /// Constructor from detector data view
-    template <typename detector_view_t>
-    requires detail::is_device_view_v<detector_view_t>
-        DETRAY_HOST_DEVICE explicit detector(detector_view_t &det_data)
+    template <concepts::device_view detector_view_t>
+    DETRAY_HOST_DEVICE explicit detector(detector_view_t &det_data)
         : _volumes(detray::detail::get<0>(det_data.m_view)),
           _surfaces(detray::detail::get<1>(det_data.m_view)),
           _transforms(detray::detail::get<2>(det_data.m_view)),
