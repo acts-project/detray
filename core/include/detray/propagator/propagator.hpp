@@ -52,7 +52,7 @@ struct propagator {
 
     /// Construct from a propagator configuration
     DETRAY_HOST_DEVICE
-    explicit constexpr propagator(const propagation::config &cfg = {})
+    explicit constexpr propagator(const propagation::config &cfg)
         : m_cfg{cfg} {}
 
     /// Propagation that state aggregates a stepping and a navigation state. It

@@ -95,7 +95,9 @@ GTEST_TEST(detray_propagator, covariance_transport) {
     parameter_transporter<algebra_t>::state bound_updater{};
     parameter_resetter<algebra_t>::state rst{};
 
-    propagator_t p{};
+    propagation::config prop_cfg{};
+    prop_cfg.navigation.overstep_tolerance = -100.f * unit<float>::um;
+    propagator_t p{prop_cfg};
     propagator_t::state propagation(bound_param0, det);
 
     // Run propagator
