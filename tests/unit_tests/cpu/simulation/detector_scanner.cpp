@@ -6,7 +6,7 @@
  */
 
 // Project include(s).
-#include "detray/test/utils/detector_scanner.hpp"
+#include "detray/test/validation/detector_scanner.hpp"
 
 #include "detray/definitions/units.hpp"
 #include "detray/navigation/detail/trajectories.hpp"

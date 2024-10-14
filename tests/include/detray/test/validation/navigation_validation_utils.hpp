@@ -19,8 +19,8 @@
 
 // Detray test include(s)
 #include "detray/test/utils/inspectors.hpp"
-#include "detray/test/utils/material_validation_utils.hpp"
-#include "detray/test/utils/step_tracer.hpp"
+#include "detray/test/validation/material_validation_utils.hpp"
+#include "detray/test/validation/step_tracer.hpp"
 
 // System include(s)
 #include <algorithm>

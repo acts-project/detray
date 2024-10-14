@@ -24,7 +24,7 @@
 // Detray test include(s)
 #include "detray/test/utils/inspectors.hpp"
 #include "detray/test/utils/simulation/event_generator/track_generators.hpp"
-#include "detray/test/utils/step_tracer.hpp"
+#include "detray/test/validation/step_tracer.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>

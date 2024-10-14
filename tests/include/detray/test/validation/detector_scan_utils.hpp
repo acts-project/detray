@@ -14,7 +14,7 @@
 #include "detray/plugins/svgtools/illustrator.hpp"
 
 // Detray test include(s)
-#include "detray/test/utils/svg_display.hpp"
+#include "detray/test/validation/svg_display.hpp"
 
 // System include(s)
 #include <algorithm>

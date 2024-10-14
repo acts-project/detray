@@ -6,6 +6,9 @@
 #
 # Mozilla Public License Version 2.0
 
+# Absolute path of detray git root directory
+root_dir="$(git rev-parse --show-toplevel)"
+
 # Number of threads
 n_threads=1
 
@@ -240,28 +243,28 @@ cd ${output_dir}
 if [ "$skip_first_phase" = false ] && [ "$skip_second_phase" = false ]; then
     
     # Run rk_tolerance_comparision.C
-    root -q '../../../tests/validation/root/rk_tolerance_comparison.C+O('${log10_min_rk_tol}','${log10_max_rk_tol}')'
+    root -q "$root_dir"'/tests/tools/root/rk_tolerance_comparison.C+O('${log10_min_rk_tol}','${log10_max_rk_tol}')'
     
     # Run jacobian_histogram.C
-    root -q -l '../../../tests/validation/root/jacobian_histogram.C+O('${log10_min_rk_tol}')'
+    root -q -l "$root_dir"'/tests/tools/root/jacobian_histogram.C+O('${log10_min_rk_tol}')'
         
     # Run jacobian_comparison.C
-    root -q -l ../../../tests/validation/root/jacobian_comparison.C+O
+    root -q -l "$root_dir"/tests/tools/root/jacobian_comparison.C+O
     
     # Run covariance_validation.C
-    root -q -l ../../../tests/validation/root/covariance_validation.C+O
+    root -q -l "$root_dir"/tests/tools/root/covariance_validation.C+O
     
     elif [ "$skip_first_phase" = true ] && [ "$skip_second_phase" = false ]; then
     
     # Run covariance_validation.C
-    root ../../../tests/validation/root/covariance_validation.C+O
+    root "$root_dir"/tests/tools/root/covariance_validation.C+O
     
     elif [ "$skip_first_phase" = false ] && [ "$skip_second_phase" = true ]; then
     
     # Run rk_tolerance_comparision.C
-    root '../../../tests/validation/root/rk_tolerance_comparison.C+O('${log10_min_rk_tol}','${log10_max_rk_tol}')'
+    root "$root_dir"'/tests/tools/root/rk_tolerance_comparison.C+O('${log10_min_rk_tol}','${log10_max_rk_tol}')'
     
     # Run jacobian_histogram.C
-    root '../../../tests/validation/root/jacobian_histogram.C+O('${log10_min_rk_tol}')'
+    root "$root_dir"'/tests/tools/root/jacobian_histogram.C+O('${log10_min_rk_tol}')'
     
 fi

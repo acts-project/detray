@@ -14,18 +14,32 @@ include_directories( SYSTEM $<TARGET_PROPERTY:dfelibs::dfelibs,INTERFACE_INCLUDE
 
 # Set up a test library, which can be used by downstream projects without
 # building the detray unit and integration
-file( GLOB _detray_test_utils_headers
-   RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
-   "include/detray/test/utils/*.hpp"
-   "include/detray/test/utils/detectors/*.hpp"
-   "include/detray/test/utils/detectors/factories/*.hpp"
-   "include/detray/test/utils/simulation/event_generator/*.hpp"
-   "include/detray/test/utils/simulation/*.hpp" )
+if ( DETRAY_BUILD_TEST_UTILS )
+   file( GLOB _detray_test_utils_headers
+      RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
+      "include/detray/test/utils/*.hpp"
+      "include/detray/test/utils/detectors/*.hpp"
+      "include/detray/test/utils/detectors/factories/*.hpp"
+      "include/detray/test/utils/simulation/event_generator/*.hpp"
+      "include/detray/test/utils/simulation/*.hpp" )
 
-detray_add_library( detray_test_utils test_utils ${_detray_test_headers} )
-target_link_libraries( detray_test_utils INTERFACE vecmem::core detray::core detray::detectors detray::csv_io detray::svgtools )
+   detray_add_library( detray_test_utils test_utils ${_detray_test_utils_headers} )
+   target_link_libraries( detray_test_utils INTERFACE vecmem::core detray::core detray::detectors )
 
-unset( _detray_test_utils_headers )
+   unset( _detray_test_utils_headers )
+endif()
+
+# Build extended validation tools
+if ( DETRAY_BUILD_VALIDATION_TOOLS )
+   file( GLOB _detray_validation_headers
+      RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
+      "include/detray/test/validation/*.hpp" )
+
+   detray_add_library( detray_validation_utils validation_utils ${_detray_validation_headers} )
+   target_link_libraries( detray_validation_utils INTERFACE vecmem::core detray::core detray::test_utils detray::csv_io detray::svgtools )
+
+   unset( _detray_validation_headers )
+endif()
 
 # Build the common (host and device) test library (mostly for integration tests)
 if( DETRAY_BUILD_TESTING )

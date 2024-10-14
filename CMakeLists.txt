@@ -63,6 +63,7 @@ option( DETRAY_BUILD_CUDA "Build the CUDA sources included in detray"
    ${DETRAY_BUILD_CUDA_DEFAULT} )
 cmake_dependent_option(DETRAY_BUILD_HOST "Build the host sources included in detray" ON "DETRAY_BUILD_CUDA OR DETRAY_BUILD_SYCL" ON)
 option( DETRAY_BUILD_TEST_UTILS "Build the test utility library of Detray" OFF )
+option( DETRAY_BUILD_VALIDATION_TOOLS "Build the validation tools of Detray" OFF )
 option( DETRAY_BUILD_UNITTESTS "Build the unit tests of Detray" OFF )
 option( DETRAY_BUILD_INTEGRATIONTESTS "Build the integration tests of Detray"
    OFF )
@@ -90,13 +91,19 @@ if ( BUILD_TESTING AND (DETRAY_BUILD_UNITTESTS OR DETRAY_BUILD_INTEGRATIONTESTS)
    set( DETRAY_BUILD_TESTING ON )
 endif()
 
-# Test utilities are needed for tests, tutorials and benchmarks
-if ( DETRAY_BUILD_TESTING OR DETRAY_BUILD_BENCHMARKS OR DETRAY_BUILD_TUTORIALS )
+# Validation utilities are needed for integration tests and tutorials
+if ( DETRAY_BUILD_TESTING OR DETRAY_BUILD_TUTORIALS )
+   set( DETRAY_BUILD_VALIDATION_TOOLS ON )
+endif()
+
+# Test utilities are needed for validation utilities and benchmarks
+if ( DETRAY_BUILD_TESTING OR DETRAY_BUILD_VALIDATION_TOOLS
+     OR DETRAY_BUILD_BENCHMARKS )
    set( DETRAY_BUILD_TEST_UTILS ON )
 endif()
 
-# Svg display is needed for the test utilities
-if ( DETRAY_BUILD_TEST_UTILS )
+# Svg display is needed for the validation utilities
+if ( DETRAY_BUILD_VALIDATION_TOOLS )
    set( DETRAY_SVG_DISPLAY ON )
 endif()
 
