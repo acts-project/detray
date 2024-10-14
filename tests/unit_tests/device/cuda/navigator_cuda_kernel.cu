@@ -13,7 +13,8 @@
 namespace detray {
 
 __global__ void navigator_test_kernel(
-    typename detector_host_t::view_type det_data, navigation::config cfg,
+    typename detector_host_t::view_type det_data, navigation::config nav_cfg,
+    stepping::config step_cfg,
     vecmem::data::vector_view<free_track_parameters<algebra_t>> tracks_data,
     vecmem::data::jagged_vector_view<dindex> volume_records_data,
     vecmem::data::jagged_vector_view<point3> position_records_data) {
@@ -45,14 +46,14 @@ __global__ void navigator_test_kernel(
     navigation.set_volume(0u);
 
     // Start propagation and record volume IDs
-    bool heartbeat = nav.init(propagation, cfg);
+    bool heartbeat = nav.init(propagation, nav_cfg);
     while (heartbeat) {
 
-        heartbeat &= stepper.step(propagation);
+        heartbeat &= stepper.step(propagation, step_cfg);
 
         navigation.set_high_trust();
 
-        heartbeat = nav.update(propagation, cfg);
+        heartbeat = nav.update(propagation, nav_cfg);
 
         // Record volume
         volume_records[gid].push_back(navigation.volume());
@@ -61,7 +62,8 @@ __global__ void navigator_test_kernel(
 }
 
 void navigator_test(
-    typename detector_host_t::view_type det_data, navigation::config& cfg,
+    typename detector_host_t::view_type det_data, navigation::config& nav_cfg,
+    stepping::config& step_cfg,
     vecmem::data::vector_view<free_track_parameters<algebra_t>>& tracks_data,
     vecmem::data::jagged_vector_view<dindex>& volume_records_data,
     vecmem::data::jagged_vector_view<point3>& position_records_data) {
@@ -71,7 +73,8 @@ void navigator_test(
 
     // run the test kernel
     navigator_test_kernel<<<block_dim, thread_dim>>>(
-        det_data, cfg, tracks_data, volume_records_data, position_records_data);
+        det_data, nav_cfg, step_cfg, tracks_data, volume_records_data,
+        position_records_data);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());

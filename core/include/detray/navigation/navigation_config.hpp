@@ -32,14 +32,14 @@ struct config {
     /// Minimal tolerance: ~ position uncertainty on surface
     float min_mask_tolerance{1e-5f * unit<float>::mm};
     /// Maximal tolerance: loose tolerance when still far away from surface
-    float max_mask_tolerance{1.f * unit<float>::mm};
+    float max_mask_tolerance{3.f * unit<float>::mm};
     /// Scale factor on the path used for the mask tolerance calculation
     float mask_tolerance_scalor{5e-2f};
     /// @}
     /// Maximal absolute path distance for a track to be considered 'on surface'
     float path_tolerance{1.f * unit<float>::um};
     /// How far behind the track position to look for candidates
-    float overstep_tolerance{-100.f * unit<float>::um};
+    float overstep_tolerance{-300.f * unit<float>::um};
     /// Search window size for grid based acceleration structures
     /// (0, 0): only look at current bin
     std::array<dindex, 2> search_window = {0u, 0u};

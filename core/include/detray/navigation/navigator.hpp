@@ -706,7 +706,8 @@ class navigator {
 
             init(propagation, cfg);
 
-            // Fresh initialization, reset trust and hearbeat
+            // Fresh initialization, reset trust and hearbeat even though we are
+            // on inner portal
             navigation.m_trust_level = navigation::trust_level::e_full;
             navigation.m_heartbeat = true;
 
@@ -717,9 +718,16 @@ class navigator {
         navigation.m_heartbeat &= init(propagation, cfg);
 
         // Sanity check: Should never be the case after complete update call
-        if (navigation.trust_level() != navigation::trust_level::e_full ||
-            navigation.is_exhausted()) {
-            navigation.abort();
+        if (navigation.trust_level() != navigation::trust_level::e_full) {
+            // Try to save the navigation flow: Look further behind the track
+            auto loose_cfg{cfg};
+            loose_cfg.overstep_tolerance = -10.f * cfg.max_mask_tolerance;
+            navigation.m_heartbeat &= init(propagation, loose_cfg);
+
+            // Unrecoverable
+            if (navigation.trust_level() != navigation::trust_level::e_full) {
+                navigation.abort();
+            }
         }
 
         return navigation.m_heartbeat;
