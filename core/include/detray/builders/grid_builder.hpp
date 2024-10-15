@@ -184,7 +184,7 @@ class grid_builder : public volume_decorator<detector_t> {
 
         // Add the grid to the detector and link it to its volume
         constexpr auto gid{detector_t::accel::template get_id<grid_t>()};
-        det.accelerator_store().template push_back<gid>(m_grid);
+        det._accelerators.template push_back<gid>(m_grid);
         vol_ptr->set_link(m_id, gid,
                           det.accelerator_store().template size<gid>() - 1);
 

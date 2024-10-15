@@ -52,7 +52,6 @@ class surface_factory : public surface_factory_interface<detector_t> {
     using sf_data_collection = std::vector<surface_data_t>;
 
     /// Empty factory.
-    DETRAY_HOST
     surface_factory() = default;
 
     /// @returns the current number of surfaces that will be built by this

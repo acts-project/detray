@@ -237,6 +237,17 @@ dvector_buffer<std::remove_cv_t<T>> get_buffer(
                               buff_type);
 }
 
+/// @brief Get the buffer representation of a vecmem vector - non-const
+template <class T>
+dvector_buffer<std::remove_cv_t<T>> get_buffer(
+    const dvector<T>& vec, vecmem::memory_resource& mr, vecmem::copy& cpy,
+    detray::copy cpy_type = detray::copy::sync,
+    vecmem::data::buffer_type buff_type = vecmem::data::buffer_type::fixed_size
+    /*, stream*/) {
+    return detray::get_buffer(detray::get_data(vec), mr, cpy, cpy_type,
+                              buff_type);
+}
+
 /// Get the vecmem view type of a vector buffer
 ///
 /// @note this is needed, because the corresponding vecmem::get_data() function

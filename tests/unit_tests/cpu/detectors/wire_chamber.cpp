@@ -9,7 +9,7 @@
 #include "detray/utils/consistency_checker.hpp"
 
 // Detray test include(s)
-#include "detray/test/utils/detectors/create_wire_chamber.hpp"
+#include "detray/test/utils/detectors/build_wire_chamber.hpp"
 
 // VecMem include(s).
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -23,8 +23,8 @@ GTEST_TEST(detray_detectors, wire_chamber) {
 
     vecmem::host_memory_resource host_mr;
 
-    auto [wire_det, names] =
-        create_wire_chamber(host_mr, wire_chamber_config{});
+    wire_chamber_config<> cfg{};
+    auto [wire_det, names] = build_wire_chamber(host_mr, cfg);
 
     // Check general consistency of the detector
     detail::check_consistency(wire_det, true, names);

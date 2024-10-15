@@ -17,7 +17,6 @@
 #include "detray/geometry/shapes.hpp"
 
 // Detray test include(s)
-#include "detray/test/utils/prefill_detector.hpp"
 #include "detray/test/utils/types.hpp"
 
 // Vecmem include(s)

@@ -15,7 +15,7 @@
 #include "detray/test/cpu/material_scan.hpp"
 #include "detray/test/device/cuda/material_validation.hpp"
 #include "detray/test/device/cuda/navigation_validation.hpp"
-#include "detray/test/utils/detectors/create_wire_chamber.hpp"
+#include "detray/test/utils/detectors/build_wire_chamber.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/cuda/device_memory_resource.hpp>
@@ -48,12 +48,12 @@ int main(int argc, char **argv) {
     using wire_chamber_t = detector<>;
     using scalar_t = typename wire_chamber_t::scalar_type;
 
-    wire_chamber_config wire_chamber_cfg{};
+    wire_chamber_config<> wire_chamber_cfg{};
     wire_chamber_cfg.half_z(500.f * unit<scalar>::mm);
 
     std::cout << wire_chamber_cfg << std::endl;
 
-    auto [det, names] = create_wire_chamber(host_mr, wire_chamber_cfg);
+    auto [det, names] = build_wire_chamber(host_mr, wire_chamber_cfg);
 
     auto white_board = std::make_shared<test::whiteboard>();
 

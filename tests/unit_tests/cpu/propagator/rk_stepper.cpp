@@ -58,16 +58,17 @@ struct nav_state {
         : m_step_size{1.f * unit<scalar>::mm},
           m_det{std::make_unique<detray::detector<>>(mr)} {
 
-        using material_id = detray::detector<>::materials::id;
-
         // Empty dummy volume
-        volume_builder<detray::detector<>> vbuilder{volume_id::e_cylinder};
-        vbuilder.build(*m_det);
+        auto vbuilder = std::make_unique<volume_builder<detray::detector<>>>(
+            volume_id::e_cylinder);
 
-        // @TODO: Homogeneous volume material builder
-        m_det->material_store().template push_back<material_id::e_raw_material>(
-            vol_mat);
-        m_det->volumes().back().set_material(material_id::e_raw_material, 0u);
+        // with homogeneous volume material
+        auto vm_builder = std::make_unique<
+            homogeneous_volume_material_builder<detray::detector<>>>(
+            std::move(vbuilder));
+        vm_builder->set_material(vol_mat);
+
+        vm_builder->build(*m_det);
     }
 
     scalar operator()() const { return m_step_size; }

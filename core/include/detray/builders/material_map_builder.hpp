@@ -129,7 +129,7 @@ class material_map_builder final : public volume_decorator<detector_t> {
             [[maybe_unused]] auto [mat_id, mat_idx] = sf.template visit_mask<
                 detail::add_sf_material_map<materials_t>>(
                 m_factory, m_bin_data.at(sf_idx), m_n_bins.at(sf_idx),
-                axis_spans, det.material_store());
+                axis_spans, det._materials);
 
             // Make sure the linking was precomputed correctly
             assert(mat_id == sf_desc.material().id());
@@ -176,7 +176,7 @@ class material_map_builder final : public volume_decorator<detector_t> {
 
         // Current sizes of the material stores
         std::map<std::size_t, dindex> size_map;
-        det.material_store().template apply<detail::material_coll_size>(
+        det._materials.template apply<detail::material_coll_size>(
             size_map, std::make_index_sequence<materials_t::n_types>{});
 
         // Update the counts with the detector offset

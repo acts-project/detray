@@ -78,7 +78,7 @@ GTEST_TEST(detray_core, detector) {
         // TODO: add B-field check
         EXPECT_EQ(d.volumes().size(), 1u);
         EXPECT_EQ(d.portals().size(), 3u);
-        EXPECT_EQ(d.transform_store().size(), 3u);
+        EXPECT_EQ(d.transform_store().size(), 4u);
         EXPECT_EQ(d.mask_store().template size<mask_id::e_rectangle2>(), 1u);
         EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_rectangle2>(),
                   1u);

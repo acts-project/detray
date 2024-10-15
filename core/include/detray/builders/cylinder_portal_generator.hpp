@@ -29,6 +29,8 @@ struct cylinder_portal_config {
     /// Build inner cylinder portal (will use the same distance to the layer
     /// that was found for the outer cylinder portal)
     bool m_build_inner{true};
+    /// Autofit the lower/upper z extend and inner/outer radii
+    bool m_do_autofit{true};
     /// Minimal envelope for the portals (used in autofitting)
     scalar_t m_envelope{100.f * unit<scalar_t>::um};
     /// Fixed inner radius during autofit
@@ -45,6 +47,10 @@ struct cylinder_portal_config {
     /// @{
     constexpr cylinder_portal_config &build_inner(const bool b) {
         m_build_inner = b;
+        return *this;
+    }
+    constexpr cylinder_portal_config &do_autofit(const bool b) {
+        m_do_autofit = b;
         return *this;
     }
     constexpr cylinder_portal_config &envelope(const scalar_t e) {
@@ -83,8 +89,9 @@ struct cylinder_portal_config {
 
     /// Getters
     /// @{
-    constexpr scalar_t envelope() const { return m_envelope; }
     constexpr bool build_inner() const { return m_build_inner; }
+    constexpr bool do_autofit() const { return m_do_autofit; }
+    constexpr scalar_t envelope() const { return m_envelope; }
     constexpr scalar_t fixed_inner_radius() const { return m_fixed_inner_r; }
     constexpr scalar_t fixed_outer_radius() const { return m_fixed_outer_r; }
     constexpr scalar_t fixed_half_length() const { return m_fixed_z; }
@@ -181,42 +188,57 @@ class cylinder_portal_generator final
         assert(volume.id() == volume_id::e_cylinder);
         const dindex vol_idx{volume.index()};
 
-        // Need surfaces to wrap
         const std::size_t n_surfaces{surfaces.size()};
-        assert(n_surfaces != 0u);
 
-        // The bounding boxes around the module surfaces
-        std::vector<aabb_t> boxes;
-        boxes.reserve(n_surfaces);
-
-        for (const auto &sf : surfaces) {
-            masks.template visit<bounding_box_creator>(
-                sf.mask(), m_cfg.envelope(), transforms.at(sf.transform(), ctx),
-                boxes);
+        if (!m_cfg.do_autofit()) {
+            // Without autofit, the portal bounds have to be given explicitly
+            assert(!(m_cfg.fixed_inner_radius() == 0.f &&
+                     m_cfg.fixed_outer_radius() == 0.f) ||
+                   m_cfg.fixed_half_length() != 0.f);
+        } else {
+            // Need surfaces in volume to do autofit
+            assert(n_surfaces != 0u);
         }
 
-        // Build an aabb in the global space around the surface aabbs
-        aabb_t world_box{boxes, boxes.size(), m_cfg.envelope()};
-        // translation
-        const point3_t center = world_box.template center<point3_t>();
+        scalar_t inner_r{m_cfg.fixed_inner_radius()};
+        scalar_t outer_r{m_cfg.fixed_outer_radius()};
+        scalar_t lower_z{-m_cfg.fixed_half_length()};
+        scalar_t upper_z{m_cfg.fixed_half_length()};
 
-        // The world box local frame is the global coordinate frame
-        const point3_t box_min = world_box.template loc_min<point3_t>();
-        const point3_t box_max = world_box.template loc_max<point3_t>();
+        if (m_cfg.do_autofit()) {
+            // The bounding boxes around the module surfaces
+            std::vector<aabb_t> boxes;
+            boxes.reserve(n_surfaces);
 
-        // Get the half lengths for the cylinder height and disc translation
-        const point3_t h_lengths = 0.5f * (box_max - box_min);
-        const scalar h_x{math::fabs(h_lengths[0])};
-        const scalar h_y{math::fabs(h_lengths[1])};
-        const scalar h_z{math::fabs(h_lengths[2])};
+            for (const auto &sf : surfaces) {
+                masks.template visit<bounding_box_creator>(
+                    sf.mask(), m_cfg.envelope(),
+                    transforms.at(sf.transform(), ctx), boxes);
+            }
 
-        const scalar_t outer_r_min{math::max(h_x, h_y)};
-        const scalar_t mean_radius{get_mean_radius(surfaces, transforms)};
+            // Build an aabb in the global space around the surface aabbs
+            aabb_t world_box{boxes, boxes.size(), m_cfg.envelope()};
+            // translation
+            const point3_t center = world_box.template center<point3_t>();
 
-        scalar_t outer_r{outer_r_min};
-        scalar_t inner_r{mean_radius - (outer_r - mean_radius)};
-        scalar_t lower_z{math::min(center[2] - h_z, center[2] + h_z)};
-        scalar_t upper_z{math::max(center[2] - h_z, center[2] + h_z)};
+            // The world box local frame is the global coordinate frame
+            const point3_t box_min = world_box.template loc_min<point3_t>();
+            const point3_t box_max = world_box.template loc_max<point3_t>();
+
+            // Get the half lengths for the cylinder height and disc translation
+            const point3_t h_lengths = 0.5f * (box_max - box_min);
+            const scalar h_x{math::fabs(h_lengths[0])};
+            const scalar h_y{math::fabs(h_lengths[1])};
+            const scalar h_z{math::fabs(h_lengths[2])};
+
+            const scalar_t outer_r_min{math::max(h_x, h_y)};
+            const scalar_t mean_radius{get_mean_radius(surfaces, transforms)};
+
+            outer_r = outer_r_min;
+            inner_r = mean_radius - (outer_r - mean_radius);
+            lower_z = math::min(center[2] - h_z, center[2] + h_z);
+            upper_z = math::max(center[2] - h_z, center[2] + h_z);
+        }
 
         // Observe boundary conditions
         if (m_cfg.fixed_inner_radius() > 0.f) {

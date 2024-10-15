@@ -89,7 +89,7 @@ class homogeneous_material_builder final : public volume_decorator<detector_t> {
         }
 
         // Add material to the detector
-        det.append_materials(std::move(m_materials));
+        det._materials.append(std::move(m_materials));
         m_materials.clear_all();
 
         // Call the underlying volume builder(s) and give the volume to the
