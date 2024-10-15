@@ -57,8 +57,8 @@ GTEST_TEST(detray_core, single_store) {
     EXPECT_EQ(store.size(), 4u);
 
     // Check  access to the data
-    EXPECT_NEAR(store[0], 1., tol_double);
-    EXPECT_NEAR(store[2], 10.5, tol_double);
+    EXPECT_NEAR(store.at(0, ctx), 1., tol_double);
+    EXPECT_NEAR(store.at(2, ctx), 10.5, tol_double);
     EXPECT_NEAR(store.at(1, ctx), 2., tol_double);
     EXPECT_NEAR(store.at(3, ctx), 7.6, tol_double);
 }
