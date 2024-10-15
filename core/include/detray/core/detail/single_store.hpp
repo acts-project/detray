@@ -105,13 +105,13 @@ class single_store {
         return m_container.empty();
     }
 
-    /// @returns the collections iterator at the start position.
+    /// @returns the collections iterator at the start position
     DETRAY_HOST_DEVICE
     constexpr auto begin(const context_type & /*ctx*/ = {}) const {
         return m_container.begin();
     }
 
-    /// @returns the collections iterator sentinel.
+    /// @returns the collections iterator sentinel
     DETRAY_HOST_DEVICE
     constexpr auto end(const context_type & /*ctx*/ = {}) const {
         return m_container.end();
@@ -133,17 +133,19 @@ class single_store {
     /// @returns context based access to an element (also range checked)
     DETRAY_HOST_DEVICE
     constexpr auto at(const dindex i,
-                      const context_type & ctx = {}) const noexcept
+                      const context_type &ctx = {}) const noexcept
         -> const T & {
-        [[maybe_unused]] context_type tmp_ctx{ctx}; // Temporary measure to avoid warnings
+        [[maybe_unused]] context_type tmp_ctx{
+            ctx};  // Temporary measure to avoid warnings
         return m_container.at(i);
     }
 
     /// @returns context based access to an element (also range checked)
     DETRAY_HOST_DEVICE
-    constexpr auto at(const dindex i, const context_type & ctx = {}) noexcept
+    constexpr auto at(const dindex i, const context_type &ctx = {}) noexcept
         -> T & {
-        [[maybe_unused]] context_type tmp_ctx{ctx}; // Temporary measure to avoid warnings
+        [[maybe_unused]] context_type tmp_ctx{
+            ctx};  // Temporary measure to avoid warnings
         return m_container.at(i);
     }
 

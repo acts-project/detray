@@ -177,7 +177,8 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
             global =
                 annl.to_global_frame(transform_store.at(2), sfi_init[i].local);
         } else if (sfi_init[i].sf_desc.mask().id() == e_cylinder2) {
-            global = cyl.to_global_frame(transform_store.at(3), sfi_init[i].local);
+            global =
+                cyl.to_global_frame(transform_store.at(3), sfi_init[i].local);
         } else if (sfi_init[i].sf_desc.mask().id() == e_cylinder2_portal) {
             global = cyl_portal.to_global_frame(transform_store.at(4),
                                                 sfi_init[i].local);
