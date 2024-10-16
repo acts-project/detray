@@ -18,7 +18,6 @@ def read_scan_data(inputdir, det_name, momentum, logging):
     # Input data directory
     data_dir = os.fsencode(inputdir)
 
-    detector_name = "default_detector"
     ray_scan_intersections_file = ray_scan_track_param_file = ""
     helix_scan_intersections_file = helix_scan_track_param_file = ""
 
@@ -28,12 +27,10 @@ def read_scan_data(inputdir, det_name, momentum, logging):
 
         if filename.find(det_name + '_ray_scan_intersections_' + momentum) != -1:
             ray_scan_intersections_file = inputdir + "/" + filename
-            file_name = os.path.basename(ray_scan_intersections_file)
         elif filename.find(det_name + '_ray_scan_track_parameters_' + momentum) != -1:
             ray_scan_track_param_file = inputdir + "/" + filename
         elif filename.find(det_name + '_helix_scan_intersections_' + momentum) != -1:
             helix_scan_intersections_file = inputdir + "/" + filename
-            file_name = os.path.basename(helix_scan_intersections_file)
         elif filename.find(det_name + '_helix_scan_track_parameters_' + momentum) != -1:
             helix_scan_track_param_file = inputdir + "/" + filename
 

@@ -19,20 +19,20 @@ __global__ void mask_test_kernel(
     vecmem::data::vector_view<point3> input_point3_data,
     vecmem::data::jagged_vector_view<int> output_data) {
 
-    /** get mask store **/
+    // get mask store
     device_store_type store(store_data);
 
-    /** get mask objects **/
+    // get mask objects
     vecmem::device_vector<point3> input_point3(input_point3_data);
     vecmem::jagged_device_vector<int> output_device(output_data);
 
-    const auto& rectangle_mask = store.get<e_rectangle2>()[0];
-    const auto& trapezoid_mask = store.get<e_trapezoid2>()[0];
-    const auto& ring_mask = store.get<e_ring2>()[0];
-    const auto& cylinder_mask = store.get<e_cylinder2>()[0];
-    const auto& annulus_mask = store.get<e_annulus2>()[0];
+    const auto& rectangle_mask = store.get<mask_ids::e_rectangle2>()[0];
+    const auto& trapezoid_mask = store.get<mask_ids::e_trapezoid2>()[0];
+    const auto& ring_mask = store.get<mask_ids::e_ring2>()[0];
+    const auto& cylinder_mask = store.get<mask_ids::e_cylinder2>()[0];
+    const auto& annulus_mask = store.get<mask_ids::e_annulus2>()[0];
 
-    /** get device results from is_inside function **/
+    // get device results from is_inside function
     for (int i = 0; i < n_points; i++) {
         output_device[0].push_back(rectangle_mask.is_inside(input_point3[i]));
         output_device[1].push_back(trapezoid_mask.is_inside(input_point3[i]));

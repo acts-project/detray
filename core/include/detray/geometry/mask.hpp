@@ -76,7 +76,8 @@ class mask {
         : _volume_link(link) {
         assert(values.size() == boundaries::e_size &&
                " Given number of boundaries does not match mask shape.");
-        std::copy(std::cbegin(values), std::cend(values), std::begin(_values));
+        std::ranges::copy(std::cbegin(values), std::cend(values),
+                          std::begin(_values));
     }
 
     /// Assignment operator from an array, convenience function

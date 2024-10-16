@@ -36,7 +36,7 @@ namespace {
 constexpr const scalar tol{1e-3f};
 constexpr const scalar is_close{1e-5f};
 
-enum mask_ids : unsigned int {
+enum class mask_ids : unsigned int {
     e_rectangle2 = 0u,
     e_trapezoid2 = 1u,
     e_annulus2 = 2u,
@@ -44,7 +44,7 @@ enum mask_ids : unsigned int {
     e_cylinder2_portal = 4u,
 };
 
-enum material_ids : unsigned int {
+enum class material_ids : unsigned int {
     e_slab = 0u,
 };
 
@@ -109,23 +109,30 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
     const cylinder_t cyl{0u, 5.f, -10.f, 10.f};
     const cylinder_portal_t cyl_portal{0u, 1.f, 0.f, 1000.f};
 
-    mask_store.template push_back<e_rectangle2>(rect, empty_context{});
-    mask_store.template push_back<e_trapezoid2>(trap, empty_context{});
-    mask_store.template push_back<e_annulus2>(annl, empty_context{});
-    mask_store.template push_back<e_cylinder2>(cyl, empty_context{});
-    mask_store.template push_back<e_cylinder2_portal>(cyl_portal,
-                                                      empty_context{});
+    mask_store.template push_back<mask_ids::e_rectangle2>(rect,
+                                                          empty_context{});
+    mask_store.template push_back<mask_ids::e_trapezoid2>(trap,
+                                                          empty_context{});
+    mask_store.template push_back<mask_ids::e_annulus2>(annl, empty_context{});
+    mask_store.template push_back<mask_ids::e_cylinder2>(cyl, empty_context{});
+    mask_store.template push_back<mask_ids::e_cylinder2_portal>(
+        cyl_portal, empty_context{});
 
     // The surfaces and their store
-    surface_t rectangle_surface(0u, {e_rectangle2, 0u}, {e_slab, 0u}, 0u,
+    surface_t rectangle_surface(0u, {mask_ids::e_rectangle2, 0u},
+                                {material_ids::e_slab, 0u}, 0u,
                                 surface_id::e_sensitive);
-    surface_t trapezoid_surface(1u, {e_trapezoid2, 0u}, {e_slab, 1u}, 0u,
+    surface_t trapezoid_surface(1u, {mask_ids::e_trapezoid2, 0u},
+                                {material_ids::e_slab, 1u}, 0u,
                                 surface_id::e_sensitive);
-    surface_t annulus_surface(2u, {e_annulus2, 0u}, {e_slab, 2u}, 0u,
+    surface_t annulus_surface(2u, {mask_ids::e_annulus2, 0u},
+                              {material_ids::e_slab, 2u}, 0u,
                               surface_id::e_sensitive);
-    surface_t cyl_surface(3u, {e_cylinder2, 0u}, {e_slab, 2u}, 0u,
+    surface_t cyl_surface(3u, {mask_ids::e_cylinder2, 0u},
+                          {material_ids::e_slab, 2u}, 0u,
                           surface_id::e_passive);
-    surface_t cyl_portal_surface(4u, {e_cylinder2_portal, 0u}, {e_slab, 2u}, 0u,
+    surface_t cyl_portal_surface(4u, {mask_ids::e_cylinder2_portal, 0u},
+                                 {material_ids::e_slab, 2u}, 0u,
                                  surface_id::e_portal);
     surface_container_t surfaces = {rectangle_surface, trapezoid_surface,
                                     annulus_surface, cyl_surface,
@@ -167,19 +174,20 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
 
         vector3 global;
 
-        if (sfi_init[i].sf_desc.mask().id() == e_rectangle2) {
+        if (sfi_init[i].sf_desc.mask().id() == mask_ids::e_rectangle2) {
             global =
                 rect.to_global_frame(transform_store.at(0), sfi_init[i].local);
-        } else if (sfi_init[i].sf_desc.mask().id() == e_trapezoid2) {
+        } else if (sfi_init[i].sf_desc.mask().id() == mask_ids::e_trapezoid2) {
             global =
                 trap.to_global_frame(transform_store.at(1), sfi_init[i].local);
-        } else if (sfi_init[i].sf_desc.mask().id() == e_annulus2) {
+        } else if (sfi_init[i].sf_desc.mask().id() == mask_ids::e_annulus2) {
             global =
                 annl.to_global_frame(transform_store.at(2), sfi_init[i].local);
-        } else if (sfi_init[i].sf_desc.mask().id() == e_cylinder2) {
+        } else if (sfi_init[i].sf_desc.mask().id() == mask_ids::e_cylinder2) {
             global =
                 cyl.to_global_frame(transform_store.at(3), sfi_init[i].local);
-        } else if (sfi_init[i].sf_desc.mask().id() == e_cylinder2_portal) {
+        } else if (sfi_init[i].sf_desc.mask().id() ==
+                   mask_ids::e_cylinder2_portal) {
             global = cyl_portal.to_global_frame(transform_store.at(4),
                                                 sfi_init[i].local);
         }
@@ -247,16 +255,21 @@ GTEST_TEST(detray_intersection, intersection_kernel_helix) {
     const rectangle_t rect{0u, 10.f, 10.f};
     const trapezoid_t trap{0u, 10.f, 20.f, 30.f, 1.f / 60.f};
     const annulus_t annl{0u, 15.f, 55.f, 0.75f, 1.95f, 0.f, 2.f, -2.f};
-    mask_store.template push_back<e_rectangle2>(rect, empty_context{});
-    mask_store.template push_back<e_trapezoid2>(trap, empty_context{});
-    mask_store.template push_back<e_annulus2>(annl, empty_context{});
+    mask_store.template push_back<mask_ids::e_rectangle2>(rect,
+                                                          empty_context{});
+    mask_store.template push_back<mask_ids::e_trapezoid2>(trap,
+                                                          empty_context{});
+    mask_store.template push_back<mask_ids::e_annulus2>(annl, empty_context{});
 
     // The surfaces and their store
-    const surface_t rectangle_surface(0u, {e_rectangle2, 0u}, {e_slab, 0u}, 0u,
+    const surface_t rectangle_surface(0u, {mask_ids::e_rectangle2, 0u},
+                                      {material_ids::e_slab, 0u}, 0u,
                                       surface_id::e_sensitive);
-    const surface_t trapezoid_surface(1u, {e_trapezoid2, 0u}, {e_slab, 1u}, 0u,
+    const surface_t trapezoid_surface(1u, {mask_ids::e_trapezoid2, 0u},
+                                      {material_ids::e_slab, 1u}, 0u,
                                       surface_id::e_sensitive);
-    const surface_t annulus_surface(2u, {e_annulus2, 0u}, {e_slab, 2u}, 0u,
+    const surface_t annulus_surface(2u, {mask_ids::e_annulus2, 0u},
+                                    {material_ids::e_slab, 2u}, 0u,
                                     surface_id::e_sensitive);
     surface_container_t surfaces = {rectangle_surface, trapezoid_surface,
                                     annulus_surface};
@@ -283,13 +296,13 @@ GTEST_TEST(detray_intersection, intersection_kernel_helix) {
 
         vector3 global;
 
-        if (surface.mask().id() == e_rectangle2) {
+        if (surface.mask().id() == mask_ids::e_rectangle2) {
             global =
                 rect.to_global_frame(transform_store.at(0), sfi_helix[0].local);
-        } else if (surface.mask().id() == e_trapezoid2) {
+        } else if (surface.mask().id() == mask_ids::e_trapezoid2) {
             global =
                 trap.to_global_frame(transform_store.at(1), sfi_helix[0].local);
-        } else if (surface.mask().id() == e_annulus2) {
+        } else if (surface.mask().id() == mask_ids::e_annulus2) {
             global =
                 annl.to_global_frame(transform_store.at(2), sfi_helix[0].local);
         }

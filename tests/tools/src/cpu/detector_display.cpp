@@ -51,7 +51,9 @@ int main(int argc, char** argv) {
     // Specific options for this test
     po::options_description desc("\ndetray detector validation options");
 
-    std::vector<dindex> volumes, surfaces, window;
+    std::vector<dindex> volumes;
+    std::vector<dindex> surfaces;
+    std::vector<dindex> window;
     desc.add_options()("outdir", po::value<std::string>(),
                        "Output directory for plots")(
         "context", po::value<dindex>(), "Number of the geometry context")(
@@ -163,13 +165,9 @@ int main(int argc, char** argv) {
         [[maybe_unused]] const auto [sf_zr_svg, mat_zr_svg] =
             il.draw_surfaces(surfaces, zr, gctx);
         detray::svgtools::write_svg(path / sf_zr_svg._id, {zr_axis, sf_zr_svg});
-        /*detray::svgtools::write_svg(path / mat_zr_svg._id,
-                                    {zr_axis, mat_zr_svg});*/
 
         [[maybe_unused]] const auto [sf_zphi_svg, mat_zphi_svg] =
             il.draw_surfaces(surfaces, zphi, gctx);
-        /*detray::svgtools::write_svg(path / sf_zphi_svg._id,
-                                    {zphi_axis, sf_zphi_svg});*/
         detray::svgtools::write_svg(path / mat_zphi_svg._id,
                                     {zphi_axis, mat_zphi_svg});
     }

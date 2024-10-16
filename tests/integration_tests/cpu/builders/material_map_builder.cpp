@@ -199,7 +199,9 @@ GTEST_TEST(detray_builders, decorator_material_map_builder) {
     EXPECT_EQ(d.material_store().template size<mat_id::e_trapezoid2_map>(), 3u);
 
     // Check the material links
-    std::size_t pt_cyl_idx{0u}, cyl_idx{0u}, cart_idx{0u};
+    std::size_t pt_cyl_idx{0u};
+    std::size_t cyl_idx{0u};
+    std::size_t cart_idx{0u};
     for (auto& sf_desc : d.surfaces()) {
         const auto& mat_link = sf_desc.material();
         switch (mat_link.id()) {

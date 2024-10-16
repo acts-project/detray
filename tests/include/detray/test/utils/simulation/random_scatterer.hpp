@@ -216,7 +216,6 @@ struct random_scatterer : actor {
         const vector3_type& dir, const scalar_type projected_scattering_angle,
         generator_t& generator) const {
 
-        // Scattering angle = sqrt(2) * projected_scattering_angle
         const auto scattering_angle =
             constant<scalar_type>::sqrt2 * projected_scattering_angle;
 

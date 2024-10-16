@@ -74,7 +74,7 @@ class square_surface_generator final
         // The material will be added in a later step
         constexpr auto no_material = surface_t::material_id::e_none;
         // In case the surfaces container is prefilled with other surfaces
-        dindex surfaces_offset = static_cast<dindex>(surfaces.size());
+        auto surfaces_offset = static_cast<dindex>(surfaces.size());
 
         constexpr auto invalid_src_link{detail::invalid_value<std::uint64_t>()};
 

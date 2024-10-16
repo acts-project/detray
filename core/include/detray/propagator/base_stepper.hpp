@@ -73,7 +73,7 @@ class base_stepper {
                 matrix_operator()
                     .template identity<e_bound_size, e_bound_size>());
 
-            // A dummy barcode - should not be used
+            // An invalid barcode - should not be used
             m_bound_params.set_surface_link(geometry::barcode{});
 
             // Reset jacobian transport to identity matrix

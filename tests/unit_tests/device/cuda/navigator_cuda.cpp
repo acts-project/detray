@@ -19,7 +19,11 @@
 // GTest include(s)
 #include <gtest/gtest.h>
 
+using namespace detray;
+
 TEST(navigator_cuda, navigator) {
+
+    using scalar_t = dscalar<algebra_t>;
 
     // Helper object for performing memory copies.
     vecmem::cuda::copy copy;

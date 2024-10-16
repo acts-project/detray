@@ -254,9 +254,9 @@ GTEST_TEST(detray_utils, ranges_iota_interval) {
 // Unittest for the generation of a cartesian product (trivial case)
 GTEST_TEST(detray_utils, ranges_cartesian_product_trivial) {
 
-    const auto seq1 = detray::views::iota(dindex_range{1u, 2u});
-    const auto seq2 = detray::views::iota(dindex_range{2u, 3u});
-    const auto seq3 = detray::views::iota(dindex_range{3u, 4u});
+    auto seq1 = detray::views::iota(dindex_range{1u, 2u});
+    auto seq2 = detray::views::iota(dindex_range{2u, 3u});
+    auto seq3 = detray::views::iota(dindex_range{3u, 4u});
 
     detray::views::cartesian_product cp{std::move(seq1), std::move(seq2),
                                         std::move(seq3)};
@@ -292,9 +292,15 @@ GTEST_TEST(detray_utils, ranges_cartesian_product_trivial) {
 // Unittest for the generation of a cartesian product from a range of intervals
 GTEST_TEST(detray_utils, ranges_cartesian_product) {
 
-    const auto seq1 = detray::views::iota(dindex_range{2u, 7u});
-    const auto seq2 = detray::views::iota(dindex_range{1u, 10u});
-    const auto seq3 = detray::views::iota(dindex_range{3u, 4u});
+    const dindex_range range1{2u, 7u};
+    const dindex_range range2{1u, 10u};
+    const dindex_range range3{3u, 4u};
+
+    auto seq1 = detray::views::iota(range1);
+    auto seq2 = detray::views::iota(range2);
+    auto seq3 = detray::views::iota(range3);
+
+    const std::size_t size{seq1.size() * seq2.size() * seq3.size()};
 
     detray::views::cartesian_product cp{std::move(seq1), std::move(seq2),
                                         std::move(seq3)};
@@ -315,13 +321,13 @@ GTEST_TEST(detray_utils, ranges_cartesian_product) {
     static_assert(std::is_destructible_v<typename decltype(cp)::iterator_t>);
 
     // Test size
-    ASSERT_EQ(cp.size(), seq1.size() * seq2.size() * seq3.size());
+    ASSERT_EQ(cp.size(), size);
 
     // Generate truth
     std::vector<std::tuple<dindex, dindex, dindex>> result;
-    for (auto i : seq1) {
-        for (auto j : seq2) {
-            for (auto k : seq3) {
+    for (auto i : detray::views::iota(range1)) {
+        for (auto j : detray::views::iota(range2)) {
+            for (auto k : detray::views::iota(range3)) {
                 result.emplace_back(i, j, k);
             }
         }

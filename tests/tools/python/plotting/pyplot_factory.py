@@ -40,6 +40,8 @@ plt_data  = namedtuple('plt_data', 'fig ax lgd data bins mu rms errors')
 """ Wrap the configuration for a legend """
 legend_options = namedtuple('legend_options', 'loc ncol colspacing handletextpad')
 
+default_color = 'tab:blue'
+
 """ Conveniently get the legend options """
 def get_legend_options():
     return legend_options('upper right', 1, 1, 1)
@@ -53,9 +55,9 @@ Plotter interface that uses pyplot/matplotlib.
 """
 class pyplot_factory():
 
-    def __init__(self, outDir, logger, atlas_badge = ""):
+    def __init__(self, out_dir, logger, atlas_badge = ""):
         self.name = 'Pyplot',
-        self.outputPrefix = outDir
+        self.output_prefix = out_dir
         self.logger = logger
         self.atlas_badge = atlas_badge
         self.badge_scale = 1.1
@@ -78,15 +80,15 @@ class pyplot_factory():
     calculated as the square root of the bin content.
     """
     def hist1D(self, x, errors = None, w = None,
-               xLabel = 'x', yLabel = '', title = "",  label = "",
-               xMin   = None, xMax  = None, bins = 1,
-               color  = 'tab:blue', alpha = 0.75,
-               setLog    = False,
+               x_label = 'x', y_label = '', title = "",  label = "",
+               x_min   = None, x_max  = None, bins = 1,
+               color  = default_color, alpha = 0.75,
+               set_log    = False,
                normalize = False,
-               showError = False,
-               showStats = True,
-               uOutlier  = -1,
-               oOutlier  = -1,
+               show_error = False,
+               show_stats = True,
+               u_outlier  = -1,
+               o_outlier  = -1,
                figsize   = (8, 8),
                lgd_ops   = get_legend_options(),
                layout    = 'constrained',
@@ -104,19 +106,19 @@ class pyplot_factory():
         ax.xaxis.set_major_formatter(ScalarFormatter(useOffset=False))
 
         # Do calculations on data in the range of the histogram
-        if not xMin is None and not xMax is None:
-            x = x[np.nonzero(x >= xMin)]
-            x = x[np.nonzero(x <= xMax)]
+        if x_min is not None and x_max is not None:
+            x = x[np.nonzero(x >= x_min)]
+            x = x[np.nonzero(x <= x_max)]
         else:
-            xMin = np.min(x)
-            xMax = np.max(x)
+            x_min = np.min(x)
+            x_max = np.max(x)
 
         # Display number of entries in under- and overflow bins
-        underflow = len(np.argwhere(x < xMin))
-        overflow  = len(np.argwhere(x > xMax))
-        if uOutlier >= 0 or oOutlier >= 0:
-            underflow = underflow + uOutlier
-            overflow  = overflow + oOutlier
+        underflow = len(np.argwhere(x < x_min))
+        overflow  = len(np.argwhere(x > x_max))
+        if u_outlier >= 0 or o_outlier >= 0:
+            underflow = underflow + u_outlier
+            overflow  = overflow + o_outlier
 
         # Nothing left to do
         if len(x) == 0:
@@ -131,23 +133,23 @@ class pyplot_factory():
 
         # Name of the datat collection
         label_str = f'{label} ({len(x)} entries)'
-        if uOutlier >= 0 or oOutlier >= 0:
+        if u_outlier >= 0 or o_outlier >= 0:
             label_str = label_str + f'{newline} underflow: {underflow}' +      \
                         f'{newline} overflow:  {overflow}'
 
         # Fill data
-        data, bins, hist = ax.hist(x,
-                                   weights   = w,
-                                   range     = (xMin, xMax),
-                                   bins      = bins,
-                                   label     = label_str,
-                                   histtype  = 'stepfilled',
-                                   density   = normalize,
-                                   facecolor = mcolors.to_rgba(color, alpha),
-                                   edgecolor = color)
+        data, bins, _ = ax.hist(x,
+                                weights   = w,
+                                range     = (x_min, x_max),
+                                bins      = bins,
+                                label     = label_str,
+                                histtype  = 'stepfilled',
+                                density   = normalize,
+                                facecolor = mcolors.to_rgba(color, alpha),
+                                edgecolor = color)
 
         # Add some additional information
-        if showStats:
+        if show_stats:
             mean  = np.mean(x, axis=0)
             #rms  = np.sqrt(np.mean(np.square(x)))
             stdev = np.std(x, axis=0)
@@ -162,8 +164,8 @@ class pyplot_factory():
 
         # Refine plot
         ax.set_title(title)
-        ax.set_xlabel(xLabel)
-        ax.set_ylabel(yLabel)
+        ax.set_xlabel(x_label)
+        ax.set_ylabel(y_label)
         ax.grid(True, alpha = 0.25)
 
         # Add legend
@@ -171,17 +173,17 @@ class pyplot_factory():
 
         # Adjust spacing in box
         lgd.legend_handles[0].set_visible(False)
-        if showStats:
+        if show_stats:
             lgd.legend_handles[1].set_visible(False)
         for vpack in lgd._legend_handle_box.get_children():
             for hpack in vpack.get_children():
                 hpack.get_children()[0].set_width(0)
 
         # Calculate the bin error
-        binCenters = 0.5 * (bins[1:] + bins[:-1])
+        bin_centers = 0.5 * (bins[1:] + bins[:-1])
         err        = np.sqrt(scale * data) if errors is None else errors
-        if showError or not errors is None:
-            ax.errorbar(binCenters, data,
+        if show_error or errors is not None:
+            ax.errorbar(bin_centers, data,
                         yerr      = err,
                         fmt       = '.',
                         linestyle = '',
@@ -190,35 +192,35 @@ class pyplot_factory():
                         capsize   = 2.5)
 
         # Plot log scale
-        if setLog:
+        if set_log:
             ax.set_yscale('log')
 
         return plt_data(fig, ax, lgd, data, bins, mean, stdev, err)
 
 
     """ Add new data to an existing plot """
-    def add_plot(self, oldHist, x, errors = None, w = None,
+    def add_plot(self, old_hist, x, errors = None, w = None,
                  label = "",
                  color = 'tab:orange',
                  alpha = 0.75,
                  normalize = False,
-                 showError = False):
+                 show_error = False):
 
         # do calculations on data in the range of the histogram
-        xMin = np.min(oldHist.bins)
-        xMax = np.max(oldHist.bins)
+        x_min = np.min(old_hist.bins)
+        x_max = np.max(old_hist.bins)
 
-        x = x[np.nonzero(x >= xMin)]
-        x = x[np.nonzero(x <= xMax)]
+        x = x[np.nonzero(x >= x_min)]
+        x = x[np.nonzero(x <= x_max)]
 
         # Nothing left to do
-        if len(x) == 0 or oldHist.data is None:
+        if len(x) == 0 or old_hist.data is None:
             self.logger.debug(rf" add hist: empty data {label}")
-            return oldHist
+            return old_hist
 
         # Add new data to old hist axis
         scale = 1./len(x) if normalize else 1.
-        data, bins, hist = oldHist.ax.hist(x = x, bins = oldHist.bins,
+        data, bins, _ = old_hist.ax.hist(x = x, bins = old_hist.bins,
                                    label = f"{label} ({len(x)} entries)",
                                    weights   = w,
                                    histtype  ='stepfilled',
@@ -226,7 +228,7 @@ class pyplot_factory():
                                    edgecolor = color)
 
         # Update legend
-        lgd = oldHist.lgd
+        lgd = old_hist.lgd
         handles, labels = lgd.axes.get_legend_handles_labels()
         lgd._legend_box = None
         lgd._init_legend_box(handles, labels)
@@ -234,10 +236,10 @@ class pyplot_factory():
         lgd.set_title(lgd.get_title().get_text())
 
         # Calculate the bin error
-        binCenters = 0.5 * (bins[1:] + bins[:-1])
+        bin_centers = 0.5 * (bins[1:] + bins[:-1])
         err        = np.sqrt(scale * data) if errors is None else errors
-        if showError or not errors is None:
-            oldHist.ax.errorbar(binCenters, data,
+        if show_error or errors is not None:
+            old_hist.ax.errorbar(bin_centers, data,
                                 yerr      = err,
                                 fmt       = '.',
                                 linestyle = '',
@@ -245,18 +247,17 @@ class pyplot_factory():
                                 color     = 'black',
                                 capsize   = 2.5)
 
-        return plt_data(oldHist.fig, oldHist.ax, oldHist.lgd, data, bins, None,\
-                        None, err)
+        return plt_data(old_hist.fig, old_hist.ax, old_hist.lgd, data, bins,   \
+                        None, None, err)
 
 
     """
     Plot the ratio of two histograms. The data is assumed to be uncorrelated.
     """
     def add_ratio(self, nom, denom, label,
-                  nBins      = 20,
                   color      = 'tab:red',
-                  setLog     = False,
-                  showErrors = False):
+                  set_log     = False,
+                  show_error = False):
 
         # Resize figure
         nom.fig.set_figheight(7)
@@ -283,7 +284,7 @@ class pyplot_factory():
             ratio = np.nan_to_num(nom.data/denom.data, nan = 0, posinf = 0)
 
             # Calculate errors by Gaussian propagation
-            binCenters     = 0.5 * (nom.bins[1:] + nom.bins[:-1])
+            bin_centers     = 0.5 * (nom.bins[1:] + nom.bins[:-1])
             n_data, d_data = (nom.data, denom.data)
 
             # Gaussian approximation for large number of events in bin
@@ -300,14 +301,14 @@ class pyplot_factory():
         ratio_plot = divider.append_axes("bottom", 1.2,
                                          pad    = 0.2,
                                          sharex = nom.ax)
-        if showErrors:
-            ratio_plot.errorbar(binCenters, ratio,
+        if show_error:
+            ratio_plot.errorbar(bin_centers, ratio,
                                 yerr  = errors,
                                 label = label,
                                 color = color,
                                 fmt   = '.')
         else:
-            ratio_plot.plot(binCenters, ratio,
+            ratio_plot.plot(bin_centers, ratio,
                             label     = label,
                             color     = color,
                             marker    = '.',
@@ -317,7 +318,7 @@ class pyplot_factory():
         ratio_plot.set_ylabel("ratio")
         ratio_plot.grid(True, alpha = 0.25)
         # Plot log scale
-        if setLog:
+        if set_log:
             ratio_plot.set_yscale('log')
 
         # Add a horizontal blue line at y = 1.
@@ -340,13 +341,11 @@ class pyplot_factory():
     be used as weights per bin.
     """
     def hist2D(self, x, y, z = None,
-                xLabel = 'x', yLabel = 'y', zLabel = '', title = "", label = "",
-                xMin   = None, xMax  = None, xBins = 1,
-                yMin   = None, yMax  = None, yBins = 1,
-                color  = 'tab:blue', alpha = 0.75,
-                setLog    = False,
-                showError = False,
-                showStats = True,
+                x_label = 'x', y_label = 'y', z_label = '', title = "", label = "",
+                x_min   = None, x_max  = None, x_bins = 1,
+                y_min   = None, y_max  = None, y_bins = 1,
+                color  = default_color, alpha = 0.75,
+                show_stats = True,
                 figsize   = (8, 6)):
 
         # Create fresh plot
@@ -354,19 +353,19 @@ class pyplot_factory():
         ax = fig.add_subplot(1, 1, 1)
 
         # Do calculations on data in the range of the histogram
-        if not xMin is None and not xMax is None:
-            x = x[np.nonzero(x >= xMin)]
-            x = x[np.nonzero(x <= xMax)]
+        if x_min is not None and x_max is not None:
+            x = x[np.nonzero(x >= x_min)]
+            x = x[np.nonzero(x <= x_max)]
         else:
-            xMin = np.min(x)
-            xMax = np.max(x)
+            x_min = np.min(x)
+            x_max = np.max(x)
 
-        if not yMin is None and not yMax is None:
-            y = y[np.nonzero(y >= yMin)]
-            y = y[np.nonzero(y <= yMax)]
+        if y_min is not None and y_max is not None:
+            y = y[np.nonzero(y >= y_min)]
+            y = y[np.nonzero(y <= y_max)]
         else:
-            yMin = np.min(y)
-            yMax = np.max(y)
+            y_min = np.min(y)
+            y_max = np.max(y)
 
         # Nothing left to do
         if len(x) == 0 or len(y) == 0:
@@ -374,53 +373,53 @@ class pyplot_factory():
             return plt_data(fig, ax, None, None, None, None, None, None)
 
         # Fill data
-        data, xbins, ybins, hist = ax.hist2d(
+        data, _, _, hist = ax.hist2d(
                                     x, y, weights = z,
-                                    range      = [(xMin, xMax), (yMin, yMax)],
-                                    bins       = (xBins, yBins),
+                                    range      = [(x_min, x_max), (y_min, y_max)],
+                                    bins       = (x_bins, y_bins),
                                     label=f"{label}  ({len(x)*len(y)} entries)",
                                     facecolor  = mcolors.to_rgba(color, alpha),
                                     edgecolor  = None,
                                     rasterized = True)
 
         # Add some additional information
-        if showStats:
-            xMean = np.mean(x, axis=0)
-            xRms  = np.sqrt(np.mean(np.square(x)))
-            yMean = np.mean(y, axis=0)
-            yRms  = np.sqrt(np.mean(np.square(y)))
+        if show_stats:
+            x_mean = np.mean(x, axis=0)
+            x_rms  = np.sqrt(np.mean(np.square(x)))
+            y_mean = np.mean(y, axis=0)
+            y_rms  = np.sqrt(np.mean(np.square(y)))
 
             # Create empty plot with blank marker containing the extra label
             newline = '\n'
-            ax.plot([], [], ' ', label= rf'xMean = {xMean:.2e}'
-                                        rf'{newline}xRMS  = {xRms:.2e}'
-                                        rf'yMean = {yMean:.2e}'
-                                        rf'{newline}yRMS  = {yRms:.2e}')
+            ax.plot([], [], ' ', label= rf'xMean = {x_mean:.2e}'
+                                        rf'{newline}xRMS  = {x_rms:.2e}'
+                                        rf'yMean = {y_mean:.2e}'
+                                        rf'{newline}yRMS  = {y_rms:.2e}')
 
         # Refine plot
         ax.set_title(title)
-        ax.set_xlabel(xLabel)
-        ax.set_ylabel(yLabel)
+        ax.set_xlabel(x_label)
+        ax.set_ylabel(y_label)
 
         # Add the colorbar
-        fig.colorbar(hist, label = zLabel)
+        fig.colorbar(hist, label = z_label)
 
         return plt_data(fig, ax, None, data, None, None, None, None)
 
 
     """ Create a 2D scatter plot """
     def scatter(self, x, y,
-                xLabel = "", yLabel = "", title = "", label = "",
-                color  = 'tab:blue', alpha = 1,
+                x_label = "", y_label = "", title = "", label = "",
+                color  = default_color, alpha = 1,
                 figsize   = (8, 6), 
-                showStats = lambda x, _: f"{len(x)} entries", 
+                show_stats = lambda x, _: f"{len(x)} entries", 
                 lgd_ops   = get_legend_options()):
 
         fig = plt.figure(figsize = figsize, layout='constrained')
         ax = fig.add_subplot(1, 1, 1)
 
         # Create empty plot with blank marker containing the extra label
-        ax.plot([], [], ' ', label=showStats(x, y))
+        ax.plot([], [], ' ', label=show_stats(x, y))
         scatter = ax.scatter(x, y,
                              label = label,
                              c     = color,
@@ -430,8 +429,8 @@ class pyplot_factory():
 
         # Refine plot
         ax.set_title(title)
-        ax.set_xlabel(xLabel)
-        ax.set_ylabel(yLabel)
+        ax.set_xlabel(x_label)
+        ax.set_ylabel(y_label)
         ax.grid(True, alpha = 0.25)
 
         # Add legend
@@ -451,17 +450,17 @@ class pyplot_factory():
 
 
     """ Add new data in a different color to a scatter plot """
-    def highlight_region(self, plotData, x, y, color, label = ""):
+    def highlight_region(self, plot_data, x, y, color, label = ""):
 
         if label == "":
-            plotData.ax.scatter(x, y, c = color, alpha = 1, s = 0.1,
+            plot_data.ax.scatter(x, y, c = color, alpha = 1, s = 0.1,
                                 rasterized=True)
         else:
-            plotData.ax.scatter(x, y, c = color, alpha = 1, s = 0.1,
+            plot_data.ax.scatter(x, y, c = color, alpha = 1, s = 0.1,
                                 label=label, rasterized=True)
 
             # Update legend
-            lgd = plotData.lgd
+            lgd = plot_data.lgd
             handles, labels = lgd.axes.get_legend_handles_labels()
             lgd._legend_box = None
             lgd._init_legend_box(handles, labels)
@@ -507,7 +506,7 @@ class pyplot_factory():
                 sigma = np.std(bin_centers, axis=0)
                 a     = np.max(dist.data) * (math.sqrt(2*math.pi)*sigma)
 
-                popt, pcov = curve_fit(gaussian, bin_centers, dist.data, p0 = [a, mean, sigma])
+                popt, _ = curve_fit(gaussian, bin_centers, dist.data, p0 = [a, mean, sigma])
             except RuntimeError:
                 # If fit failed, return empty result
                 return None, None
@@ -523,7 +522,7 @@ class pyplot_factory():
             step = (max_val - min_val)/1000
             x = [v for v in np.arange(min_val, max_val + step, step)]
 
-            fit = dist.ax.plot(x, gaussian(x, *popt),
+            dist.ax.plot(x, gaussian(x, *popt),
                         label = rf'gaussian fit:{newline}$\mu$ = {mu:.2e}' +   \
                                 rf'{newline}$\sigma$ = {abs(sig):.2e}',        \
                         color = 'tab:orange')
@@ -549,29 +548,29 @@ class pyplot_factory():
 
     """ Safe a plot to disk """
     def write_plot(self, plot_data, name = "plot", file_format = "svg",
-                   outPrefix = "", dpi = 450):
-        if (outPrefix == ""):
-            fileName = self.outputPrefix + name + "." + file_format
+                   out_prefix = "", dpi = 450):
+        if (out_prefix == ""):
+            file_name = self.output_prefix + name + "." + file_format
         else:
-            fileName = outPrefix + name + "." + file_format
+            file_name = out_prefix + name + "." + file_format
 
-        plot_data.fig.savefig(fileName, dpi=dpi)
+        plot_data.fig.savefig(file_name, dpi=dpi)
         plt.close(plot_data.fig)
 
 
     """ Safe a plot as svg """
-    def write_svg(self, plot_data, name, outPrefix = ""):
+    def write_svg(self, plot_data, name, out_prefix = ""):
 
-        self.write_plot(plot_data, name, ".svg", outPrefix)
+        self.write_plot(plot_data, name, ".svg", out_prefix)
 
 
     """ Safe a plot as pdf """
-    def write_pdf(self, plot_data, name, outPrefix = ""):
+    def write_pdf(self, plot_data, name, out_prefix = ""):
 
-        self.write_plot(plot_data, name, ".pdf", outPrefix)
+        self.write_plot(plot_data, name, ".pdf", out_prefix)
 
 
     """ Safe a plot as png """
-    def write_png(self, plot_data, name, outPrefix = ""):
+    def write_png(self, plot_data, name, out_prefix = ""):
 
-        self.write_plot(plot_data, name, ".png", outPrefix)
+        self.write_plot(plot_data, name, ".png", out_prefix)

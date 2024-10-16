@@ -48,7 +48,7 @@ namespace {
 
 constexpr scalar_t tol{1e-3f};
 
-stepping::config step_cfg{};
+const stepping::config step_cfg{};
 constexpr scalar_t step_size{1.f * unit<scalar_t>::mm};
 constexpr material<scalar_t> vol_mat{
     detray::cesium_iodide_with_ded<scalar_t>()};

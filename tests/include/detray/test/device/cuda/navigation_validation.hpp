@@ -262,8 +262,12 @@ class navigation_validation : public test::fixture_base<> {
                 truth_intersection_traces);
 
         // Collect some statistics
-        std::size_t n_tracks{0u}, n_surfaces{0u}, n_miss_nav{0u},
-            n_miss_truth{0u}, n_matching_error{0u}, n_fatal{0u};
+        std::size_t n_tracks{0u};
+        std::size_t n_surfaces{0u};
+        std::size_t n_miss_nav{0u};
+        std::size_t n_miss_truth{0u};
+        std::size_t n_matching_error{0u};
+        std::size_t n_fatal{0u};
 
         std::vector<std::pair<trajectory_type, std::vector<intersection_t>>>
             missed_intersections{};

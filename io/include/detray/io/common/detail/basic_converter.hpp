@@ -14,10 +14,8 @@
 // System include(s)
 #include <string_view>
 
-namespace detray::io::detail {
-
 // Convert basic information like links and header data
-namespace basic_converter {
+namespace detray::io::detail::basic_converter {
 
 /// @returns a link from its io payload @param link_data
 inline dindex convert(const single_link_payload& link_data) {
@@ -60,6 +58,4 @@ inline common_header_payload convert(const std::string_view det_name,
     return header_data;
 }
 
-}  // namespace basic_converter
-
-}  // namespace detray::io::detail
+}  // namespace detray::io::detail::basic_converter

@@ -27,7 +27,7 @@ class detray_simulation_LandauSamplingValidation : public ::testing::Test {
     using scalar_type = T;
 
     // Function for getting the corresponding index of a value
-    std::size_t get_index(const scalar_type value) {
+    std::size_t get_index(const scalar_type value) const {
         return static_cast<std::size_t>((value - min) / bin_size);
     }
 
@@ -80,7 +80,7 @@ TYPED_TEST(detray_simulation_LandauSamplingValidation, landau_sampling) {
 
     const std::size_t mpv_index = this->get_index(this->mpv);
 
-    const std::size_t max_index = static_cast<std::size_t>(
+    const auto max_index = static_cast<std::size_t>(
         std::distance(counter.begin(), std::ranges::max_element(counter)));
 
     // Bin range for i index: [ -2 + 0.05 * i, -2 + 0.05 * (i+1) ]

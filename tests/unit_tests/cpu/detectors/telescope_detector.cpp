@@ -56,9 +56,9 @@ struct prop_state {
         : _stepping(t_in, field), _navigation(det) {}
 };
 
-static constexpr bool verbose_check = true;
+inline constexpr bool verbose_check = true;
 
-propagation::config prop_cfg{};
+const propagation::config prop_cfg{};
 
 }  // anonymous namespace
 

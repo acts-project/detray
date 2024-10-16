@@ -55,7 +55,6 @@ TEST(detray_builders, homogeneous_material_factory) {
 
     vecmem::host_memory_resource host_mr;
     detector_t d(host_mr);
-    // auto geo_ctx = typename detector_t::geometry_context{};
 
     EXPECT_TRUE(d.material_store().template empty<material_id::e_slab>());
     EXPECT_TRUE(d.material_store().template empty<material_id::e_rod>());

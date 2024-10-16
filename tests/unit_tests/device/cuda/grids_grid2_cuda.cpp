@@ -119,7 +119,7 @@ TEST(grids_cuda, grid2_replace_populator_ci) {
 
 // Equality operator in complete populator does not work correctly in CUDA
 // (!constexpr)
-/*TEST(grids_cuda, grid2_complete_populator) {
+TEST(grids_cuda, grid2_complete_populator) {
     // memory resource
     vecmem::cuda::managed_memory_resource mng_mr;
 
@@ -168,13 +168,12 @@ TEST(grids_cuda, grid2_replace_populator_ci) {
                     static_cast<detray::scalar>(i_p + bin_id * data.size());
 
                 test::point3 tp({xaxis.min + gid * x_interval,
-                                                 yaxis.min + gid * y_interval,
-                                                 0.5f});
+                                 yaxis.min + gid * y_interval, 0.5f});
                 EXPECT_EQ(pt, tp);
             }
         }
     }
-}*/
+}
 
 TEST(grids_cuda, grid2_attach_populator) {
 

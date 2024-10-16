@@ -200,8 +200,7 @@ class volume_descriptor {
         -> void {
         auto& rg = sf_link<id>();
         // Range not set yet - initialize
-        constexpr typename sf_link_type::index_type empty{};
-        if (rg == empty) {
+        if (constexpr typename sf_link_type::index_type empty{}; rg == empty) {
             rg = {0u, static_cast<dindex>(n_surfaces)};
         }
         // Update

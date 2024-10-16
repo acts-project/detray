@@ -53,7 +53,7 @@ class landau_distribution {
     private:
     scalar_type quantile(const scalar_type z) const {
 
-        static const double f[982] = {
+        static const std::array<double, 982> f{
             0.,        0.,        0.,        0.,        0.,        -2.244733,
             -2.204365, -2.168163, -2.135219, -2.104898, -2.076740, -2.050397,
             -2.025605, -2.002150, -1.979866, -1.958612, -1.938275, -1.918760,
@@ -220,25 +220,29 @@ class landau_distribution {
             51.005773, 53.437996, 56.123356, 59.103894};
 
         if (z <= 0) {
-            // Is using max OK?
+            // @TODO: Is using max OK?
             return -std::numeric_limits<scalar_type>::max();
         }
         if (z >= 1) {
             return std::numeric_limits<scalar_type>::max();
         }
 
-        double ranlan = 0., u = 0., v = 0.;
+        double ranlan = 0.;
+        double u = 0.;
+        double v = 0.;
         u = 1000. * z;
-        int i = static_cast<int>(u);
-        u -= static_cast<double>(i);
-        if (i >= 70 && i < 800) {
+        auto k = static_cast<int>(u);
+        u -= static_cast<double>(k);
+        if (k >= 70 && k < 800) {
+            auto i{static_cast<std::size_t>(k)};
             ranlan = f[i - 1] + u * (f[i] - f[i - 1]);
-        } else if (i >= 7 && i <= 980) {
+        } else if (k >= 7 && k <= 980) {
+            auto i{static_cast<std::size_t>(k)};
             ranlan =
                 f[i - 1] +
                 u * (f[i] - f[i - 1] -
                      0.25 * (1 - u) * (f[i + 1] - f[i] - f[i - 1] + f[i - 2]));
-        } else if (i < 7) {
+        } else if (k < 7) {
             v = math::log(z);
             u = 1 / v;
             ranlan = ((0.99858950 + (3.45213058E1 + 1.70854528E1 * u) * u) /

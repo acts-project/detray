@@ -96,11 +96,12 @@ inline bool check_connectivity(
     std::function<records_iterator_t(index_t)> get_connected_record;
     if constexpr (check_sorted_trace) {
         // Get the next record
-        get_connected_record = [&](index_t next) -> records_iterator_t {
-            auto rec = trace.begin() + next;
+        get_connected_record =
+            [&trace, &current_volume](index_t next) -> records_iterator_t {
             // Make sure that the record contains the volume that is currently
             // being checked for connectivity
-            if (rec != trace.end() &&
+            if (auto rec = trace.begin() + next;
+                rec != trace.end() &&
                 ((std::get<1>(rec->first) == current_volume) ||
                  (std::get<1>(rec->second) == current_volume))) {
                 return rec;
@@ -109,9 +110,10 @@ inline bool check_connectivity(
         };
     } else {
         // Search for the existence of a fitting record over the entire trace
-        get_connected_record = [&](index_t /*next*/) -> records_iterator_t {
-            return find_if(
-                trace.begin(), trace.end(),
+        get_connected_record =
+            [&trace, &current_volume](index_t /*next*/) -> records_iterator_t {
+            return std::ranges::find_if(
+                trace,
                 [&](const std::pair<entry_type, entry_type> &rec) -> bool {
                     return (std::get<1>(rec.first) == current_volume) ||
                            (std::get<1>(rec.second) == current_volume);
@@ -165,8 +167,7 @@ inline bool check_connectivity(
         err_stream << record_stream.str();
 
         err_stream << "\nPairs left to match:" << std::endl;
-        for (std::size_t j = static_cast<std::size_t>(i); j < trace.size();
-             ++j) {
+        for (auto j = static_cast<std::size_t>(i); j < trace.size(); ++j) {
             auto first_vol = std::get<1>(trace[j].first);
             auto second_vol = std::get<1>(trace[j].second);
 

@@ -1,6 +1,6 @@
 # Detray library, part of the ACTS project (R&D line)
 #
-# (c) 2023 CERN for the benefit of the ACTS project
+# (c) 2023-2024 CERN for the benefit of the ACTS project
 #
 # Mozilla Public License Version 2.0
 
@@ -13,19 +13,19 @@ import numpy as np
 
 """ Filter the data in a data frame by a given prescription """
 def filter_data(data, filter = lambda df: [], variables = []):
-    dataColl = []
+    data_coll = []
 
     # Get global data
     if len(filter(data)) == 0:
         for var in variables:
-            dataColl.append(data[var].to_numpy(dtype = np.double))
+            data_coll.append(data[var].to_numpy(dtype = np.double))
 
     # Filtered data
     else:
         filtered = data.loc[filter]
         for var in variables:
-            dataColl.append(filtered[var].to_numpy(dtype = np.double))
+            data_coll.append(filtered[var].to_numpy(dtype = np.double))
 
-    return tuple(dataColl)
+    return tuple(data_coll)
 
 #-------------------------------------------------------------------------------

@@ -30,36 +30,36 @@
 
 namespace {
 
-double x_pos1 = -13.4f;
-double x_pos2 = 0.06f;
-double y_pos1 = 2e5;
-double y_pos2 = 6.75e4;
+const double x_pos1 = -13.4;
+const double x_pos2 = 0.06;
+const double y_pos1 = 2e5;
+const double y_pos2 = 6.75e4;
 
-// double title_x = x_pos;
-// double title_y = 0.8197f;
+// const double title_x = x_pos;
+// const double title_y = 0.8197;
 
-int label_font = 132;
-double label_font_size = 0.055;
-double header_text_size = 0.055;
-double geom_text_size = 0.0434028;
-double titleX_font_size = 0.05;
-double titleY_font_size = 0.055;
-double x_title_offset = 1.75;
-double y_title_offset = 1.34;
-double x_label_offset = 0.015;
-double y_label_offset = 0.015;
-int fill_style = 1001;
-double color_alpha = 0.5;
+const int label_font = 132;
+const double label_font_size = 0.055;
+const double header_text_size = 0.055;
+const double geom_text_size = 0.0434028;
+const double titleX_font_size = 0.05;
+const double titleY_font_size = 0.055;
+const double x_title_offset = 1.75;
+const double y_title_offset = 1.34;
+const double x_label_offset = 0.015;
+const double y_label_offset = 0.015;
+const int fill_style = 1001;
+const double color_alpha = 0.5;
 
 const std::array<float, 2> cdim{700, 600};
-double maximum = 1e6;
+const double maximum = 1e6;
 
-double pad_x0 = 0.00f;
-double pad_x1 = 1.f;
-double pad_y0 = 0.00f;
-double pad_y1 = 1.f;
+const double pad_x0 = 0.00;
+const double pad_x1 = 1.;
+const double pad_y0 = 0.00;
+const double pad_y1 = 1.;
 
-double bin_width = 0.2f;
+const double bin_width = 0.2;
 }  // namespace
 
 void draw_text(double x1, double y1, double y2, double s1, double s2,

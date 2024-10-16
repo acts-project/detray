@@ -151,7 +151,8 @@ GTEST_TEST(detray_grid, grid_collection_dynamic_bin) {
     bin_data.entries.resize(4u * 197u);
 
     int i{0};
-    dindex entry{0u}, offset{0u};
+    dindex entry{0u};
+    dindex offset{0u};
     attach<> attacher{};
     for (auto& data : bin_data.bins) {
 

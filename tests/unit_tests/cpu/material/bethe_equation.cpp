@@ -95,7 +95,7 @@ INSTANTIATE_TEST_SUITE_P(
                                       0.1003f * unit<scalar>::GeV, 3.082f)));
 
 /*
-//@ NOTE: Test fails with He Gas and 10 GeV muons (18 % difference)
+//@fixme: Test fails with He Gas and 10 GeV muons (18 % difference)
 INSTANTIATE_TEST_SUITE_P(
     detray_material_Bethe_1GeV_HeGas, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(helium_gas<scalar>(), muon<scalar>(),
@@ -181,9 +181,8 @@ INSTANTIATE_TEST_SUITE_P(
     ::testing::Values(std::make_tuple(argon_liquid<scalar>(), muon<scalar>(),
                                       0.1003f * unit<scalar>::GeV, 2.34f)));
 
-/*
-~6% discrepancy
-INSTANTIATE_TEST_SUITE_P(
+// @fixme ~6% discrepancy
+/*INSTANTIATE_TEST_SUITE_P(
     detray_material_Bethe_1GeV_ArLiquid, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(argon_liquid<scalar>(), muon<scalar>(),
                                       1.101f * unit<scalar>::GeV, 1.644f)));
@@ -204,9 +203,8 @@ INSTANTIATE_TEST_SUITE_P(
     ::testing::Values(std::make_tuple(iron<scalar>(), muon<scalar>(),
                                       0.1003f * unit<scalar>::GeV, 2.274f)));
 
-/*
-// ~6% discrepancy
-INSTANTIATE_TEST_SUITE_P(
+// @fixme ~6% discrepancy
+/*INSTANTIATE_TEST_SUITE_P(
     detray_material_Bethe_1GeV_Fe, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(iron<scalar>(), muon<scalar>(),
                                       1.101f * unit<scalar>::GeV, 1.581f)));
@@ -247,8 +245,8 @@ INSTANTIATE_TEST_SUITE_P(
     ::testing::Values(std::make_tuple(copper<scalar>(), muon<scalar>(),
                                       0.1003f * unit<scalar>::GeV, 2.198f)));
 
-/*
-INSTANTIATE_TEST_SUITE_P(
+// @fixme
+/*INSTANTIATE_TEST_SUITE_P(
     detray_material_Bethe_1GeV_Cu, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(copper<scalar>(), muon<scalar>(),
                                       1.101f * unit<scalar>::GeV, 1.532f)));
@@ -284,17 +282,15 @@ INSTANTIATE_TEST_SUITE_P(
     ::testing::Values(std::make_tuple(copper_with_ded<scalar>(), muon<scalar>(),
                                       100.1f * unit<scalar>::GeV, 2.155f)));
 
-/*
-// ~10% discrepancy
-INSTANTIATE_TEST_SUITE_P(
+// @fixme ~10% discrepancy
+/*INSTANTIATE_TEST_SUITE_P(
     detray_material_Bethe_0p1GeV_CsI, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(cesium_iodide<scalar>(), muon<scalar>(),
                                       0.1003f * unit<scalar>::GeV, 1.869f)));
 */
 
-/*
-// ~10% discrepancy
-INSTANTIATE_TEST_SUITE_P(
+// @fixme ~10% discrepancy
+/*INSTANTIATE_TEST_SUITE_P(
     detray_material_Bethe_1GeV_CsI, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(cesium_iodide<scalar>(), muon<scalar>(),
                                       1.101f * unit<scalar>::GeV, 1.391f)));

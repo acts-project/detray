@@ -18,11 +18,10 @@
 // Detray test include(s)
 #include "detray/test/utils/simulation/event_generator/track_generators.hpp"
 
-using namespace detray;
+namespace detray {
 
 using algebra_t = ALGEBRA_PLUGIN<detray::scalar>;
 using point3 = dpoint3D<algebra_t>;
-using scalar_t = dscalar<algebra_t>;
 
 // some useful type declarations
 using detector_host_t = detector<toy_metadata, host_container_types>;
@@ -43,7 +42,7 @@ constexpr std::size_t n_edc_layers{3u};
 constexpr unsigned int theta_steps{100u};
 constexpr unsigned int phi_steps{100u};
 
-constexpr scalar_t pos_diff_tolerance{1e-3f};
+constexpr dscalar<algebra_t> pos_diff_tolerance{1e-3f};
 
 // dummy propagator state
 template <typename navigation_t>
@@ -51,8 +50,6 @@ struct prop_state {
     stepper_t::state _stepping;
     navigation_t _navigation;
 };
-
-namespace detray {
 
 /// test function for navigator with single state
 void navigator_test(

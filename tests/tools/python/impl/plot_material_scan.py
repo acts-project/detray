@@ -13,6 +13,16 @@ import numpy as np
 import os
 import pandas as pd
 
+# Common plot labels
+label_eta = r'$\eta$'
+label_phi = r'$\phi\,\mathrm{[rad]}$'
+label_thickness_x0 = r'thickness / $X_0$'
+label_path_x0 = r'path length / $X_0$'
+label_thickness_l0 = r'thickness / $\Lambda_0$'
+label_path_l0 = r'path length / $\Lambda_0$'
+
+# Common options
+ldg_loc = 'upper center'
 
 """ Read the material scan data from file and prepare data frame """
 def read_material_data(inputdir, logging, det_name, read_cuda):
@@ -20,7 +30,6 @@ def read_material_data(inputdir, logging, det_name, read_cuda):
     # Input data directory
     data_dir = os.fsencode(inputdir)
 
-    detector_name = "default_detector"
     material_scan_file = cpu_material_trace_file = cuda_material_trace_file = ""
 
     # Find the data files by naming convention
@@ -50,18 +59,18 @@ def read_material_data(inputdir, logging, det_name, read_cuda):
 def get_n_bins(df):
     # Find the number of ray directions
     row_count = df.groupby(df['eta']).count()
-    yBins = row_count['phi'].max()
-    xBins = int(len(df['eta']) / yBins)
-    assert len(df['eta']) == xBins * yBins, "Could not infer the number of rays correctly"
+    y_bins = row_count['phi'].max()
+    x_bins = int(len(df['eta']) / y_bins)
+    assert len(df['eta']) == x_bins * y_bins, "Could not infer the number of rays correctly"
 
     # Get the axis spacing
     x_range = np.max(df['eta']) - np.min(df['eta'])
-    xBinning = np.linspace(np.min(df['eta']) - 0.5 * x_range/xBins, np.max(df['eta']) + 0.5 * x_range/xBins, xBins + 1)
+    x_binning = np.linspace(np.min(df['eta']) - 0.5 * x_range/x_bins, np.max(df['eta']) + 0.5 * x_range/x_bins, x_bins + 1)
 
     y_range = np.max(df['phi']) - np.min(df['phi'])
-    yBinning = np.linspace(np.min(df['phi']) - 0.5 * y_range/yBins, np.max(df['phi']) + 0.5 * y_range/yBins, yBins + 1)
+    y_binning = np.linspace(np.min(df['phi']) - 0.5 * y_range/y_bins, np.max(df['phi']) + 0.5 * y_range/y_bins, y_bins + 1)
 
-    return xBinning, yBinning
+    return x_binning, y_binning
 
 
 """ Calculate the binwise errors: Standard Error on the Mean """
@@ -80,205 +89,205 @@ def get_errors(df, n, name):
 
 
 """ Plot the material thickenss vs phi and eta in units of X_0 """
-def X0_vs_eta_phi(df, label, detector, plotFactory,  out_format =  "pdf"):
+def X0_vs_eta_phi(df, label, detector, plot_factory, out_format =  "pdf"):
 
     # Histogram bin edges
-    xBinning, yBinning = get_n_bins(df)
+    x_binning, y_binning = get_n_bins(df)
 
     # Plot the thickness of every material slab in units of X_0
-    hist_data = plotFactory.hist2D(
+    hist_data = plot_factory.hist2D(
                             x      = df["eta"],
                             y      = df["phi"],
                             z      = df['mat_tX0'],
                             label  = detector,
-                            xLabel = r'$\eta$',
-                            yLabel = r'$\phi\,\mathrm{[rad]}$',
-                            zLabel = r'thickness / $X_0$',
-                            xBins = xBinning, yBins = yBinning,
+                            x_label = label_eta,
+                            y_label = label_phi,
+                            z_label = label_thickness_x0,
+                            x_bins = x_binning, y_bins = y_binning,
                             figsize  = (9, 7),
-                            showStats = False)
+                            show_stats = False)
 
-    plotFactory.write_plot(hist_data, detector + "_" + label + "_t_X0_map",  out_format)
+    plot_factory.write_plot(hist_data, detector + "_" + label + "_t_X0_map",  out_format)
 
     # Plot path length through material of the respective ray in units of X_0
-    hist_data = plotFactory.hist2D(
+    hist_data = plot_factory.hist2D(
                             x      = df["eta"],
                             y      = df["phi"],
                             z      = df['mat_sX0'],
                             label  = detector,
-                            xLabel = r'$\eta$',
-                            yLabel = r'$\phi\,\mathrm{[rad]}$',
-                            zLabel = r'path length / $X_0$',
-                            xBins = xBinning, yBins = yBinning,
+                            x_label = label_eta,
+                            y_label = label_phi,
+                            z_label = label_path_x0,
+                            x_bins = x_binning, y_bins = y_binning,
                             figsize  = (9, 7),
-                            showStats = False)
+                            show_stats = False)
 
-    plotFactory.write_plot(hist_data, detector + "_" + label + "_s_X0_map",  out_format)
+    plot_factory.write_plot(hist_data, detector + "_" + label + "_s_X0_map",  out_format)
 
 
 """ Plot the material thickenss vs phi and eta in units of L_0 """
-def L0_vs_eta_phi(df, label, detector, plotFactory,  out_format =  "pdf"):
+def L0_vs_eta_phi(df, label, detector, plot_factory, out_format =  "pdf"):
 
     # Histogram bin edges
-    xBinning, yBinning = get_n_bins(df)
+    x_binning, y_binning = get_n_bins(df)
 
     # Plot the thickness of every material slab in units of L_0
-    hist_data = plotFactory.hist2D(
+    hist_data = plot_factory.hist2D(
                             x      = df["eta"],
                             y      = df["phi"],
                             z      = df['mat_tL0'],
                             label  = detector,
-                            xLabel = r'$\eta$',
-                            yLabel = r'$\phi\,\mathrm{[rad]}$',
-                            zLabel = r'thickness / $\Lambda_0$',
-                            xBins = xBinning, yBins = yBinning,
+                            x_label = label_eta,
+                            y_label = label_phi,
+                            z_label = label_thickness_l0,
+                            x_bins = x_binning, y_bins = y_binning,
                             figsize  = (9, 7),
-                            showStats = False)
+                            show_stats = False)
 
-    plotFactory.write_plot(hist_data, detector + "_" + label + "_t_L0_map",  out_format)
+    plot_factory.write_plot(hist_data, detector + "_" + label + "_t_L0_map",  out_format)
 
     # Plot path length through material of the respective ray in units of L_0
-    hist_data = plotFactory.hist2D(
+    hist_data = plot_factory.hist2D(
                             x      = df["eta"],
                             y      = df["phi"],
                             z      = df['mat_sL0'],
                             label  = detector,
-                            xLabel = r'$\eta$',
-                            yLabel = r'$\phi\,\mathrm{[rad]}$',
-                            zLabel = r'path length / $\Lambda_0$',
-                            xBins = xBinning, yBins = yBinning,
+                            x_label = label_eta,
+                            y_label = label_phi,
+                            z_label = label_path_l0,
+                            x_bins = x_binning, y_bins = y_binning,
                             figsize  = (9, 7),
-                            showStats = False)
+                            show_stats = False)
 
-    plotFactory.write_plot(hist_data, detector + "_" + label + "_s_L0_map",  out_format)
+    plot_factory.write_plot(hist_data, detector + "_" + label + "_s_L0_map",  out_format)
 
 
 """ Plot the material thickness in units of X_0 vs eta """
-def X0_vs_eta(df, label, detector, plotFactory,  out_format =  "pdf"):
+def X0_vs_eta(df, label, detector, plot_factory, out_format =  "pdf"):
     # Where to place the legend box
     box_anchor_x = 1.02
     box_anchor_y = 1.145
 
     # Histogram bin edges
-    xBinning, yBinning = get_n_bins(df)
+    x_binning, y_binning = get_n_bins(df)
     lgd_ops = plotting.get_legend_options()
-    lgd_ops._replace(loc = 'upper center')
+    lgd_ops._replace(loc = ldg_loc)
 
     # Same number of entries in every bin as per uniform ray scan
-    n_phi = len(yBinning) - 1
+    n_phi = len(y_binning) - 1
 
-    hist_data = plotFactory.hist1D(
+    hist_data = plot_factory.hist1D(
                             x      = df['eta'],
                             w      = df['mat_tX0'] / n_phi,
                             errors = get_errors(df, n_phi, 'mat_tX0'),
                             normalize = False,
                             label  = rf'{detector}',
-                            xLabel = r'$\eta$',
-                            yLabel = r'thickness / $X_0$',
-                            bins = xBinning,
-                            showStats = False,
+                            x_label = label_eta,
+                            y_label = label_thickness_x0,
+                            bins = x_binning,
+                            show_stats = False,
                             figsize  = (9, 7),
                             lgd_ops = lgd_ops)
 
     # Move the legend ouside plot
     hist_data.lgd.set_bbox_to_anchor((box_anchor_x, box_anchor_y))
 
-    plotFactory.write_plot(hist_data, detector + "_" + label + "_t_X0",  out_format)
+    plot_factory.write_plot(hist_data, detector + "_" + label + "_t_X0",  out_format)
 
-    hist_data = plotFactory.hist1D(
+    hist_data = plot_factory.hist1D(
                             x      = df['eta'],
                             w      = df['mat_sX0'] / n_phi,
                             errors = get_errors(df, n_phi, 'mat_sX0'),
                             normalize = False,
                             label  = rf'{detector}',
-                            xLabel = r'$\eta$',
-                            yLabel = r'path length / $X_0$',
-                            bins = xBinning,
-                            showStats = False,
+                            x_label = label_eta,
+                            y_label = label_path_x0,
+                            bins = x_binning,
+                            show_stats = False,
                             figsize  = (9, 7),
                             lgd_ops = lgd_ops)
 
     # Move the legend ouside plot
     hist_data.lgd.set_bbox_to_anchor((box_anchor_x, box_anchor_y))
 
-    plotFactory.write_plot(hist_data, detector + "_" + label + "_s_X0",  out_format)
+    plot_factory.write_plot(hist_data, detector + "_" + label + "_s_X0",  out_format)
 
 
 """ Plot the material thickness in units of L_0 vs eta """
-def L0_vs_eta(df, label, detector, plotFactory,  out_format =  "pdf"):
+def L0_vs_eta(df, label, detector, plot_factory, out_format =  "pdf"):
     # Where to place the legend box
     box_anchor_x = 1.02
     box_anchor_y = 1.145
 
     # Histogram bin edges
-    xBinning, yBinning = get_n_bins(df)
+    x_binning, y_binning = get_n_bins(df)
     lgd_ops = plotting.get_legend_options()
-    lgd_ops._replace(loc = 'upper center')
+    lgd_ops._replace(loc = ldg_loc)
 
     # Same number of entries in every bin as per uniform ray scan
-    n_phi = len(yBinning) - 1
+    n_phi = len(y_binning) - 1
 
-    hist_data = plotFactory.hist1D(
+    hist_data = plot_factory.hist1D(
                             x      = df['eta'],
                             w      = df['mat_tL0'] / n_phi,
                             errors = get_errors(df, n_phi, 'mat_tL0'),
                             normalize = False,
                             label  = rf'{detector}',
-                            xLabel = r'$\eta$',
-                            yLabel = r'thickness / $\Lambda_0$',
-                            bins = xBinning,
-                            showStats = False,
+                            x_label = label_eta,
+                            y_label = label_thickness_l0,
+                            bins = x_binning,
+                            show_stats = False,
                             figsize  = (9, 7),
                             lgd_ops = lgd_ops)
 
     # Move the legend ouside plot
     hist_data.lgd.set_bbox_to_anchor((box_anchor_x, box_anchor_y))
 
-    plotFactory.write_plot(hist_data, detector + "_" + label + "_t_L0",  out_format)
+    plot_factory.write_plot(hist_data, detector + "_" + label + "_t_L0",  out_format)
 
-    hist_data = plotFactory.hist1D(
+    hist_data = plot_factory.hist1D(
                             x      = df['eta'],
                             w      = df['mat_sL0'] / n_phi,
                             errors = get_errors(df, n_phi, 'mat_sL0'),
                             normalize = False,
                             label  = rf'{detector}',
-                            xLabel = r'$\eta$',
-                            yLabel = r'path length / $\Lambda_0$',
-                            bins = xBinning,
-                            showStats = False,
+                            x_label = label_eta,
+                            y_label = label_path_l0,
+                            bins = x_binning,
+                            show_stats = False,
                             figsize  = (9, 7),
                             lgd_ops = lgd_ops)
 
     # Move the legend ouside plot
     hist_data.lgd.set_bbox_to_anchor((box_anchor_x, box_anchor_y))
 
-    plotFactory.write_plot(hist_data, detector + "_" + label + "_s_L0",  out_format)
+    plot_factory.write_plot(hist_data, detector + "_" + label + "_s_L0",  out_format)
 
 
 """ Compare two material distributions """
-def compare_mat(df_truth, df_rec, label, detector, plotFactory, out_format =  "pdf"):
+def compare_mat(df_truth, df_rec, label, detector, plot_factory, out_format =  "pdf"):
     # Where to place the legend box
     box_anchor_x = 1.02
     box_anchor_y = 1.29
 
     # Histogram bin edges
-    xBinning, yBinning = get_n_bins(df_truth)
+    x_binning, y_binning = get_n_bins(df_truth)
     lgd_ops = plotting.get_legend_options()
-    lgd_ops._replace(loc = 'upper center')
+    lgd_ops._replace(loc = ldg_loc)
 
     # Same number of entries in every bin as per uniform ray scan
-    n_phi = len(yBinning) - 1
+    n_phi = len(y_binning) - 1
 
-    truth_data = plotFactory.hist1D(
+    truth_data = plot_factory.hist1D(
                             x      = df_truth['eta'],
                             w      = df_truth['mat_sX0'] / n_phi,
                             errors = get_errors(df_truth, n_phi, 'mat_sX0'),
                             normalize = False,
                             label  = rf'{detector}: scan',
-                            xLabel = r'$\eta$',
-                            yLabel = r'path length / $X_0$',
-                            bins = xBinning,
-                            showStats = False,
+                            x_label = label_eta,
+                            y_label = label_path_x0,
+                            bins = x_binning,
+                            show_stats = False,
                             figsize  = (10, 10),
                             layout = 'tight',
                             lgd_ops = lgd_ops)
@@ -287,8 +296,8 @@ def compare_mat(df_truth, df_rec, label, detector, plotFactory, out_format =  "p
     truth_data.lgd.set_bbox_to_anchor((box_anchor_x, box_anchor_y))
 
     # Add recorded data for comparison
-    rec_data = plotFactory.add_plot(
-                            oldHist   = truth_data,
+    rec_data = plot_factory.add_plot(
+                            old_hist   = truth_data,
                             x         = df_rec['eta'].to_numpy(dtype = np.double),
                             w         = df_rec['mat_sX0'] / n_phi,
                             errors    = get_errors(df_rec, n_phi, 'mat_sX0'),
@@ -296,11 +305,11 @@ def compare_mat(df_truth, df_rec, label, detector, plotFactory, out_format =  "p
                             label     = rf'{detector}: navigator')
 
     # Add a ratio plot to hist_data
-    ratio_data = plotFactory.add_ratio(
+    ratio_data = plot_factory.add_ratio(
                         nom        = truth_data,
                         denom      = rec_data,
                         label      = 'scan/navigation',
-                        setLog     = False,
-                        showErrors = True)
+                        set_log     = False,
+                        show_error = True)
 
-    plotFactory.write_plot(ratio_data, detector + "_" + label + "_comparison_s_X0",  out_format)
+    plot_factory.write_plot(ratio_data, detector + "_" + label + "_comparison_s_X0",  out_format)

@@ -203,7 +203,6 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
 
         // Terminate the propagation if the next sensitive surface was not found
         if (!next_surface_aborter_state.success) {
-            // if (alt_state._navigation.is_complete()){
             const scalar altP =
                 alt_state._stepping.bound_params().p(ptc.charge());
             altE = std::hypot(altP, mass);

@@ -61,7 +61,7 @@ struct navigation_validation_config
 
     /// Setters
     /// @{
-    navigation_validation_config &name(const std::string n) {
+    navigation_validation_config &name(const std::string &n) {
         m_name = n;
         return *this;
     }
@@ -74,12 +74,12 @@ struct navigation_validation_config
         m_white_board = std::move(w_board);
         return *this;
     }
-    navigation_validation_config &intersection_file(const std::string f) {
-        m_intersection_file = std::move(f);
+    navigation_validation_config &intersection_file(const std::string &f) {
+        m_intersection_file = f;
         return *this;
     }
-    navigation_validation_config &track_param_file(const std::string f) {
-        m_track_param_file = std::move(f);
+    navigation_validation_config &track_param_file(const std::string &f) {
+        m_track_param_file = f;
         return *this;
     }
     navigation_validation_config &n_tracks(std::size_t n) {

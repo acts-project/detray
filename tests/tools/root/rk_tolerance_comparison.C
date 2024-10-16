@@ -28,34 +28,34 @@
 #include <vector>
 
 namespace {
-double step_title_x_offset = 1.4;
-double step_title_x = 0.175;
-double step_title_y = 0.835;
-double step_ygap = -0.0505;
-double x_label_offset = 0.015;
-double x_margin = 1;
-double y_label_offset = 0.015;
-double rk_title_x_offset = 0.9;
-double rk_title_offset_fraction = 0.0218;
-double rk_title_y = 14.69;
-double rk_ygap = -0.83;
-double rk_header_text_size = 0.046;
-double rk_geom_text_size = 0.0362903;
-double step_header_text_size = 0.055;
-double step_geom_text_size = 0.0434028;
-double label_font_size_step = 0.055;
-double title_font_size_step = 0.055;
-double label_font_size_rk_tol = 0.046;
-double title_font_size_rk_tol = 0.046;
-int title_font = 132;
-int label_font = 132;
-int legend_font = 132;
-double pad_x0 = 0.005f;
-double pad_x1 = 1.f;
-double pad_y0 = 0.005f;
-double pad_y1 = 1.f;
-double ymin = -2;
-double ymax = 4.;
+const double step_title_x_offset = 1.4;
+const double step_title_x = 0.175;
+const double step_title_y = 0.835;
+const double step_ygap = -0.0505;
+const double x_label_offset = 0.015;
+const double x_margin = 1.;
+const double y_label_offset = 0.015;
+const double rk_title_x_offset = 0.9;
+const double rk_title_offset_fraction = 0.0218;
+const double rk_title_y = 14.69;
+const double rk_ygap = -0.83;
+const double rk_header_text_size = 0.046;
+const double rk_geom_text_size = 0.0362903;
+const double step_header_text_size = 0.055;
+const double step_geom_text_size = 0.0434028;
+const double label_font_size_step = 0.055;
+const double title_font_size_step = 0.055;
+const double label_font_size_rk_tol = 0.046;
+const double title_font_size_rk_tol = 0.046;
+const int title_font = 132;
+const int label_font = 132;
+const int legend_font = 132;
+const double pad_x0 = 0.005;
+const double pad_x1 = 1.;
+const double pad_y0 = 0.005;
+const double pad_y1 = 1.;
+const double ymin = -2.;
+const double ymax = 4.;
 std::array<double, 4u> ldim{0.20985, 0.533, 0.87997, 0.939};
 }  // namespace
 

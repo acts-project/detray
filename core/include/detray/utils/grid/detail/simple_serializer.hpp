@@ -78,7 +78,7 @@ struct simple_serializer<2> {
         dindex nbins_axis0 = axes.template get_axis<0>().nbins();
 
         dindex bin0{gbin % nbins_axis0};
-        auto bin1{static_cast<dindex>(gbin / nbins_axis0)};
+        dindex bin1{gbin / nbins_axis0};
 
         return {bin0, bin1};
     }
@@ -124,8 +124,9 @@ struct simple_serializer<3> {
         dindex nbins_axis1 = axes.template get_axis<1>().nbins();
 
         dindex bin0{gbin % nbins_axis0};
-        auto bin1{static_cast<dindex>(gbin / nbins_axis0) % nbins_axis1};
-        auto bin2{static_cast<dindex>(gbin / (nbins_axis0 * nbins_axis1))};
+        dindex bin1{(gbin / nbins_axis0) % nbins_axis1};
+        dindex bin2{gbin / (nbins_axis0 * nbins_axis1)};
+
         return {bin0, bin1, bin2};
     }
 };

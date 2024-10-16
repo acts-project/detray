@@ -54,7 +54,8 @@ struct random_numbers {
     DETRAY_HOST auto operator()(const std::array<scalar_t, 2> range = {
                                     -std::numeric_limits<scalar_t>::max(),
                                     std::numeric_limits<scalar_t>::max()}) {
-        const scalar_t min{range[0]}, max{range[1]};
+        const scalar_t min{range[0]};
+        const scalar_t max{range[1]};
         assert(min <= max);
 
         // Uniform

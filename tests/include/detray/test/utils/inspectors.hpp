@@ -315,6 +315,8 @@ struct print_inspector {
             case e_on_portal:
                 debug_stream << "status" << tabs << "on_portal" << std::endl;
                 break;
+            default:
+                break;
         }
 
         debug_stream << "current object\t\t\t";
@@ -344,6 +346,8 @@ struct print_inspector {
                 break;
             case e_full:
                 debug_stream << "trust" << tabs << "full_trust" << std::endl;
+                break;
+            default:
                 break;
         }
         debug_stream << std::endl;
@@ -414,6 +418,8 @@ struct print_inspector {
                 break;
             case e_backward:
                 debug_stream << "direction" << tabs << "backward" << std::endl;
+                break;
+            default:
                 break;
         }
 

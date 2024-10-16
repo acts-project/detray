@@ -69,7 +69,7 @@ inline void detray::test::whiteboard::add(const std::string& name, T&& object) {
     if (name.empty()) {
         throw std::invalid_argument("Object cannot have an empty name");
     }
-    if (0 < m_store.count(name)) {
+    if (m_store.contains(name)) {
         throw std::invalid_argument("Object '" + name + "' already exists");
     }
     m_store.emplace(name, std::forward<T>(object));
@@ -98,7 +98,7 @@ inline T& detray::test::whiteboard::get(const std::string& name) noexcept(
 }
 
 inline bool detray::test::whiteboard::exists(const std::string& name) const {
-    return m_store.find(name) != m_store.end();
+    return m_store.contains(name);
 }
 
 }  // namespace detray::test

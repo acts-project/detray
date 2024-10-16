@@ -178,7 +178,6 @@ GTEST_TEST(detray_grid2, irregular_closed_axis) {
     EXPECT_EQ(nonreg.bin(14), 4u);
 
     // Axis range access - binned  (symmetric & asymmetric)
-    // darray<dindex, 2> zone00 = {0u, 0u};
     darray<dindex, 2> zone01 = {0u, 1u};
     darray<dindex, 2> zone11 = {1u, 1u};
     darray<dindex, 2> zone22 = {2u, 2u};

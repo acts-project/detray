@@ -41,7 +41,7 @@ def __main__():
     filename_dict = {}
 
     geo_file = args.geometry_file
-    if not geo_file == "":
+    if geo_file != "":
         if not os.path.isfile(geo_file):
             print(f"Geometry file does not exist! ({geo_file})")
             sys.exit(1)
@@ -49,7 +49,7 @@ def __main__():
             filename_dict[geo_file] = geometry_schema
 
     hom_mat_file = args.homogeneous_material_file
-    if not hom_mat_file == "":
+    if hom_mat_file != "":
         if not os.path.isfile(hom_mat_file):
             print(f"Homogeneous material file does not exist! ({hom_mat_file})")
             sys.exit(1)
@@ -57,7 +57,7 @@ def __main__():
             filename_dict[hom_mat_file] = homogeneous_material_schema
 
     mat_map_file = args.material_map_file
-    if not mat_map_file == "":
+    if mat_map_file =!= "":
         if not os.path.isfile(mat_map_file):
             print(f"Material map file does not exist! ({mat_map_file})")
             sys.exit(1)
@@ -65,7 +65,7 @@ def __main__():
             filename_dict[mat_map_file] = material_map_schema
 
     grid_file = args.grid_file
-    if not grid_file == "":
+    if grid_file != "":
         if not os.path.isfile(grid_file):
             print(f"Surface grid file does not exist! ({grid_file})")
             sys.exit(1)

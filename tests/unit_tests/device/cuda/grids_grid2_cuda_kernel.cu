@@ -99,12 +99,11 @@ void grid_replace_ci_test(grid2_view<host_grid2_replace_ci> grid_view) {
   ---------------------------------------------------------------*/
 
 // cuda kernel for grid_complete_test
-/*__global__ void grid_complete_kernel(
+__global__ void grid_complete_kernel(
     grid2_view<host_grid2_complete> grid_view) {
 
     // Let's try building the grid object
-    device_grid2_complete g2_device(
-        grid_view, test::point3{0.f, 0.f, 0.f});
+    device_grid2_complete g2_device(grid_view, test::point3{0.f, 0.f, 0.f});
 
     const auto& axis0 = g2_device.axis_p0();
     const auto& axis1 = g2_device.axis_p1();
@@ -116,9 +115,8 @@ void grid_replace_ci_test(grid2_view<host_grid2_replace_ci> grid_view) {
 
     for (int i_p = 0; i_p < n_points; i_p++) {
         auto gid = i_p + bin_id * n_points;
-        auto pt = test::point3{
-            axis0.min + gid * x_interval, axis1.min + gid * y_interval, 0.5f};
-        // printf("%f %f %f \n", pt[0], pt[1], pt[2]);
+        auto pt = test::point3{axis0.min + gid * x_interval,
+                               axis1.min + gid * y_interval, 0.5f};
         g2_device.populate(threadIdx.x, threadIdx.y, std::move(pt));
     }
 }
@@ -138,7 +136,7 @@ void grid_complete_test(grid2_view<host_grid2_complete> grid_view) {
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
     DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
-}*/
+}
 
 /*---------------------------------------------------------
   read test function for grid with attach populator

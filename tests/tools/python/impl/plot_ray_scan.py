@@ -31,7 +31,7 @@ def read_ray_scan_data(intersection_file, track_param_file, logging):
 
 
 """ Plot the intersection points of the detector with the rays - xy view """
-def plot_intersection_points_xy(opts, df, detector, scan_type, plotFactory,  out_format = "png"):
+def plot_intersection_points_xy(opts, df, detector, scan_type, plot_factory,  out_format = "png"):
 
     n_rays = np.max(df['track_id']) + 1
     tracks = "rays" if scan_type == "ray" else "helices"
@@ -51,15 +51,15 @@ def plot_intersection_points_xy(opts, df, detector, scan_type, plotFactory,  out
 
     # Plot the xy coordinates of the filtered intersections points
     lgd_ops = plotting.legend_options('upper center', 4, 0.4, 0.005)
-    hist_data = plotFactory.scatter(
+    hist_data = plot_factory.scatter(
                             figsize = (10, 10),
                             x       = senstive_x,
                             y       = senstive_y,
-                            xLabel  = r'$x\,\mathrm{[mm]}$',
-                            yLabel  = r'$y\,\mathrm{[mm]}$',
+                            x_label  = r'$x\,\mathrm{[mm]}$',
+                            y_label  = r'$y\,\mathrm{[mm]}$',
                             label   = "sensitives",
                             color   = 'C5',
-                            showStats = lambda x, y: f"{n_rays} {tracks}",
+                            show_stats = lambda x, y: f"{n_rays} {tracks}",
                             lgd_ops = lgd_ops)
 
     # Portal surfaces
@@ -69,7 +69,7 @@ def plot_intersection_points_xy(opts, df, detector, scan_type, plotFactory,  out
                                          filter    = portal_range,
                                          variables = ['x', 'y'])
 
-        plotFactory.highlight_region(hist_data, portal_x, portal_y, 'C0',      \
+        plot_factory.highlight_region(hist_data, portal_x, portal_y, 'C0',     \
                                      "portals")
 
     # Passive surfaces
@@ -79,7 +79,7 @@ def plot_intersection_points_xy(opts, df, detector, scan_type, plotFactory,  out
                                            filter    = passive_range,
                                            variables = ['x', 'y'])
 
-        plotFactory.highlight_region(hist_data, passive_x, passive_y, 'C2',    \
+        plot_factory.highlight_region(hist_data, passive_x, passive_y, 'C2',   \
                                      "passives")
 
     # Set aspect ratio
@@ -99,11 +99,11 @@ def plot_intersection_points_xy(opts, df, detector, scan_type, plotFactory,  out
             hpack.get_children()[0].set_width(0)
 
     detector_name = detector.replace(' ', '_')
-    plotFactory.write_plot(hist_data, f"{detector_name}_{scan_type}_scan_xy",  out_format)
+    plot_factory.write_plot(hist_data, f"{detector_name}_{scan_type}_scan_xy",  out_format)
 
 
 """ Plot the intersection points of the detector with the rays - rz view """
-def plot_intersection_points_rz(opts, df, detector, scan_type, plotFactory,  out_format = "png"):
+def plot_intersection_points_rz(opts, df, detector, scan_type, plot_factory,  out_format = "png"):
 
     n_rays = np.max(df['track_id']) + 1
     tracks =  "rays" if scan_type == "ray" else "helices"
@@ -120,15 +120,15 @@ def plot_intersection_points_rz(opts, df, detector, scan_type, plotFactory,  out
 
     # Plot the xy coordinates of the filtered intersections points
     lgd_ops = plotting.legend_options('upper center', 4, 0.8, 0.005)
-    hist_data = plotFactory.scatter(
+    hist_data = plot_factory.scatter(
                             figsize = (12, 6),
                             x      = sensitive_z,
                             y      = np.hypot(sensitive_x, sensitive_y),
-                            xLabel = r'$z\,\mathrm{[mm]}$',
-                            yLabel = r'$r\,\mathrm{[mm]}$',
+                            x_label = r'$z\,\mathrm{[mm]}$',
+                            y_label = r'$r\,\mathrm{[mm]}$',
                             label  = "sensitives",
                             color  = 'C5',
-                            showStats = lambda x, y: f"{n_rays} {tracks}",
+                            show_stats = lambda x, y: f"{n_rays} {tracks}",
                             lgd_ops = lgd_ops)
 
     # Portal surfaces
@@ -138,7 +138,7 @@ def plot_intersection_points_rz(opts, df, detector, scan_type, plotFactory,  out
                                                    filter    = portal_range,
                                                    variables = ['x', 'y', 'z'])
 
-        plotFactory.highlight_region(hist_data, portal_z,                      \
+        plot_factory.highlight_region(hist_data, portal_z,                     \
                                      np.hypot(portal_x, portal_y),             \
                                      'C0', "portals")
 
@@ -149,7 +149,7 @@ def plot_intersection_points_rz(opts, df, detector, scan_type, plotFactory,  out
                                                     filter    = passive_range,
                                                     variables = ['x', 'y', 'z'])
 
-        plotFactory.highlight_region(hist_data, passive_z,                     \
+        plot_factory.highlight_region(hist_data, passive_z,                    \
                                     np.hypot(passive_x, passive_y),            \
                                     'C2', "passives")
 
@@ -167,11 +167,11 @@ def plot_intersection_points_rz(opts, df, detector, scan_type, plotFactory,  out
             hpack.get_children()[0].set_width(0)
 
     detector_name = detector.replace(' ', '_')
-    plotFactory.write_plot(hist_data, f"{detector_name}_{scan_type}_scan_rz",  out_format)
+    plot_factory.write_plot(hist_data, f"{detector_name}_{scan_type}_scan_rz",  out_format)
 
 
 """ Plot the data gathered during the navigaiton validation """
-def plot_detector_scan_data(args, det_name, plot_factory, data_type, df, name, out_format = "png"):
+def plot_detector_scan_data(args, det_name, plot_factory, data_type, df, out_format = "png"):
 
     # Plot truth scan
     plot_intersection_points_xy(args, df, det_name,

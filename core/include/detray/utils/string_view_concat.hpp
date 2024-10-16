@@ -16,6 +16,8 @@ struct string_view_concat2 {
     std::string_view s1;
     std::string_view s2;
 
-    operator std::string() const { return std::string(s1) + std::string(s2); }
+    explicit operator std::string() const {
+        return std::string(s1) + std::string(s2);
+    }
 };
 }  // namespace detray

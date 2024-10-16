@@ -30,41 +30,41 @@
 #include <vector>
 
 namespace {
-double x_pos = 0.205f;
-double title_x = x_pos;
-double title_y = 0.8197f;
-double y_gap = -0.0505;
-double header_text_size = 0.055;
-double geom_text_size = 0.0434028;
+const double x_pos = 0.205;
+const double title_x = x_pos;
+const double title_y = 0.8197;
+const double y_gap = -0.0505;
+const double header_text_size = 0.055;
+const double geom_text_size = 0.0434028;
 
-double pull_fit_title_x = x_pos;
-double pull_fit_title_y = 0.700f;
-double pval_fit_title_x = x_pos;
-double pval_fit_title_y = 0.700f;
-double gaus_fit_par_x = x_pos;
-double number_offset = 0.125;
-double gaus_fit_par_y = pull_fit_title_y - 0.065;
-double const_fit_par_x = x_pos;
-double const_fit_par_y = pval_fit_title_y - 0.0459;
-double tolerance_x = 0.7f;
-double tolerance_y = 0.67f;
-double pull_text_size = 0.0434028;
-double pval_text_size = 0.0434028;
-double pad_x0 = 0.00f;
-double pad_x1 = 1.f;
-double pad_y0 = 0.00f;
-double pad_y1 = 1.f;
-int label_font = 132;
-double label_font_size = 0.055;
-double titleX_font_size = 0.055;
-double titleY_font_size = 0.055;
-double x_title_offset = 1.25;
-double y_title_offset = 1.34;
-double y_title_offset_pval = 0.9;
-double x_label_offset = 0.015;
-double y_label_offset = 0.015;
-double pull_min = -6.5f;
-double pull_max = 6.5f;
+const double pull_fit_title_x = x_pos;
+const double pull_fit_title_y = 0.700;
+const double pval_fit_title_x = x_pos;
+const double pval_fit_title_y = 0.700;
+const double gaus_fit_par_x = x_pos;
+const double number_offset = 0.125;
+const double gaus_fit_par_y = pull_fit_title_y - 0.065;
+const double const_fit_par_x = x_pos;
+const double const_fit_par_y = pval_fit_title_y - 0.0459;
+const double tolerance_x = 0.7;
+const double tolerance_y = 0.67;
+const double pull_text_size = 0.0434028;
+const double pval_text_size = 0.0434028;
+const double pad_x0 = 0.00;
+const double pad_x1 = 1.;
+const double pad_y0 = 0.00;
+const double pad_y1 = 1.;
+const int label_font = 132;
+const double label_font_size = 0.055;
+const double titleX_font_size = 0.055;
+const double titleY_font_size = 0.055;
+const double x_title_offset = 1.25;
+const double y_title_offset = 1.34;
+const double y_title_offset_pval = 0.9;
+const double x_label_offset = 0.015;
+const double y_label_offset = 0.015;
+const double pull_min = -6.5;
+const double pull_max = 6.5;
 
 }  // namespace
 
