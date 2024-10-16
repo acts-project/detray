@@ -22,7 +22,6 @@
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/toy_metadata.hpp"
-#include "detray/geometry/tracking_surface.hpp"
 #include "detray/geometry/tracking_volume.hpp"
 #include "detray/materials/mixture.hpp"
 #include "detray/materials/predefined_materials.hpp"
