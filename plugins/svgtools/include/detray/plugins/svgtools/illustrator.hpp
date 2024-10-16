@@ -109,7 +109,8 @@ class illustrator {
         const auto surface =
             detray::tracking_surface<detector_t>{_detector, index};
 
-        actsvg::svg::object ret, material;
+        actsvg::svg::object ret;
+        actsvg::svg::object material;
         const auto& style = _style._detector_style._volume_style;
 
         if (surface.is_portal()) {
@@ -215,20 +216,21 @@ class illustrator {
         const styling::surface_material_style* mat_style{nullptr};
         const auto& vol_style = _style._detector_style._volume_style;
         switch (surface.id()) {
-            case surface_id::e_portal: {
+            using enum surface_id;
+            case e_portal: {
                 mat_style =
                     &vol_style._portal_style._surface_style._material_style;
                 break;
             }
-            case surface_id::e_sensitive: {
+            case e_sensitive: {
                 mat_style = &vol_style._sensitive_surface_style._material_style;
                 break;
             }
-            case surface_id::e_passive: {
+            case e_passive: {
                 mat_style = &vol_style._passive_surface_style._material_style;
                 break;
             }
-            case surface_id::e_unknown: {
+            case e_unknown: {
                 throw std::runtime_error(
                     "Encountered surface of unknown type.");
                 break;

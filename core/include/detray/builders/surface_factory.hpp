@@ -87,7 +87,8 @@ class surface_factory : public surface_factory_interface<detector_t> {
     DETRAY_HOST
     void push_back(surface_data_t &&sf_data) override {
 
-        auto [type, vlink, index, source, bounds, trf] = sf_data.get_data();
+        auto [type, vlink, index, source, bounds, trf] =
+            std::move(sf_data).get_data();
 
         assert(bounds.size() == mask_shape_t::boundaries::e_size);
 

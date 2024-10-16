@@ -53,7 +53,7 @@ class geometry_writer {
     static detector_payload convert(
         const detector_t& det, const typename detector_t::name_map& names) {
         detector_payload det_data;
-        det_data.volumes.reserve((det.volumes().size()));
+        det_data.volumes.reserve(det.volumes().size());
 
         for (const auto& vol : det.volumes()) {
             const auto map_itr = names.find(vol.index() + 1u);
@@ -122,7 +122,7 @@ class geometry_writer {
     template <typename detector_t>
     static volume_payload convert(
         const typename detector_t::volume_type& vol_desc, const detector_t& det,
-        const std::string& name) {
+        const std::string_view name) {
         volume_payload vol_data;
 
         vol_data.index = detail::basic_converter::convert(vol_desc.index());
@@ -165,8 +165,8 @@ class geometry_writer {
     /// Retrieve @c mask_payload from mask_store element
     struct get_mask_payload {
         template <typename mask_group_t, typename index_t>
-        inline auto operator()(const mask_group_t& mask_group,
-                               const index_t& index) const {
+        constexpr auto operator()(const mask_group_t& mask_group,
+                                  const index_t& index) const {
             return geometry_writer::convert(mask_group[index]);
         }
     };
@@ -174,8 +174,8 @@ class geometry_writer {
     /// Retrieve @c material_link_payload from material_store element
     struct get_material_payload {
         template <typename material_group_t, typename index_t>
-        inline auto operator()(const material_group_t&,
-                               const index_t& index) const {
+        constexpr auto operator()(const material_group_t&,
+                                  const index_t& index) const {
             using material_t = typename material_group_t::value_type;
 
             // Find the correct material type index
@@ -187,8 +187,8 @@ class geometry_writer {
     /// Retrieve @c acc_links_payload from surface_tore collection
     struct get_acc_link_payload {
         template <typename acc_group_t, typename index_t>
-        constexpr inline auto operator()(const acc_group_t&,
-                                         const index_t& index) const {
+        constexpr auto operator()(const acc_group_t&,
+                                  const index_t& index) const {
 
             using accel_t = typename acc_group_t::value_type;
 

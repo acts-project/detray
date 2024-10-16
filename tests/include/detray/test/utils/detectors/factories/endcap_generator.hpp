@@ -242,11 +242,10 @@ class endcap_generator final : public surface_factory_interface<detector_t> {
             // Generate the position in z (observe ring stagger)
             // Convention: inner ring is closer to origin
             const scalar_t center{m_cfg.center()};
-            const scalar_t rz{
-                radii.size() == 1u
-                    ? center
-                    : (ir % 2u ? center + 0.5f * m_cfg.ring_stagger()
-                               : center - 0.5f * m_cfg.ring_stagger())};
+            const scalar_t staggered_center{
+                (ir % 2u ? center + 0.5f * m_cfg.ring_stagger()
+                         : center - 0.5f * m_cfg.ring_stagger())};
+            const scalar_t rz{radii.size() == 1u ? center : staggered_center};
 
             // Generate the ring module positions (observe phi stagger)
             const scalar_t sub_stagger{m_cfg.phi_sub_stagger().size() > 1u

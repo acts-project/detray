@@ -57,14 +57,13 @@ requires std::is_invocable_v<hash_function_t, data_t>
     /// Default node in the hash tree.
     struct hashed_node {
 
-        hashed_node(hash_t hash)
-            : _key(hash),
-              _parent(detail::invalid_value<dindex>()),
-              _left_child(detail::invalid_value<dindex>()),
-              _right_child(detail::invalid_value<dindex>()) {}
+        explicit hashed_node(hash_t hash) : _key(hash) {}
 
         hash_t _key;
-        dindex _parent, _left_child, _right_child;
+        dindex _parent{detail::invalid_value<dindex>()};
+        dindex _left_child{detail::invalid_value<dindex>()};
+        dindex _right_child{detail::invalid_value<dindex>()};
+
         const hash_t &key() const { return _key; }
         hash_t &key() { return _key; }
 
@@ -84,8 +83,7 @@ requires std::is_invocable_v<hash_function_t, data_t>
     /// @param volumes geometry volumes that become the graph nodes
     /// @param portals geometry portals link volumes and become edges
     hash_tree(const input_collection_t &data,
-              const hash_function_t & /*hf*/ = {})
-        : _hash(hash_function_t{}) {
+              const hash_function_t & /*hf*/ = {}) {
         build(data);
     }
 
@@ -98,7 +96,7 @@ requires std::is_invocable_v<hash_function_t, data_t>
     auto root() { return _tree.back().key(); }
 
     /// @returns the hash tree as a string
-    inline const std::string to_string() const {
+    inline std::string to_string() const {
         std::stringstream ss;
         for (const auto &n : _tree) {
             ss << n.key() << std::endl;
@@ -171,7 +169,7 @@ requires std::is_invocable_v<hash_function_t, data_t>
     }
 
     /// How to encode tha node data
-    hash_function_t _hash;
+    hash_function_t _hash{hash_function_t{}};
 
     /// Tree nodes
     vector_t<hashed_node> _tree = {};

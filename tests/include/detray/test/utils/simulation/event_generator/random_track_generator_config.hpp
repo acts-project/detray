@@ -51,14 +51,15 @@ struct random_track_generator_config {
     bool m_is_pT{false};
 
     /// Track origin
-    std::array<scalar, 3> m_origin{0.f, 0.f, 0.f},
-        m_origin_stddev{0.f, 0.f, 0.f};
+    std::array<scalar, 3> m_origin{0.f, 0.f, 0.f};
+    std::array<scalar, 3> m_origin_stddev{0.f, 0.f, 0.f};
 
     /// Randomly flip the charge sign?
     bool m_randomize_charge{false};
 
     /// Time parameter and charge of the track
-    scalar m_time{0.f * unit<scalar>::us}, m_charge{-1.f * unit<scalar>::e};
+    scalar m_time{0.f * unit<scalar>::us};
+    scalar m_charge{-1.f * unit<scalar>::e};
 
     /// Setters
     /// @{
@@ -228,56 +229,57 @@ struct random_track_generator_config {
     DETRAY_HOST_DEVICE constexpr scalar time() const { return m_time; }
     DETRAY_HOST_DEVICE constexpr scalar charge() const { return m_charge; }
     /// @}
+
+    /// Print the random track generator configuration
+    DETRAY_HOST
+    friend std::ostream& operator<<(std::ostream& out,
+                                    const random_track_generator_config& cfg) {
+        const auto& ori = cfg.origin();
+        const auto& mom_range = cfg.mom_range();
+        const auto& phi_range = cfg.phi_range();
+        const auto& theta_range = cfg.theta_range();
+
+        // General
+        out << "\nRandom track generator\n"
+            << "----------------------------\n"
+            << "  No. tracks            : " << cfg.n_tracks() << "\n"
+            << "  Charge                : "
+            << cfg.charge() / detray::unit<scalar>::e << " [e]\n"
+            << "  Rand. charge          : " << std::boolalpha
+            << cfg.randomize_charge() << std::noboolalpha << "\n";
+
+        // Momentum and direction
+        if (cfg.is_pT()) {
+            out << "  Transverse mom.       : [";
+        } else {
+            out << "  Momentum              : [";
+        }
+        out << mom_range[0] / detray::unit<scalar>::GeV << ", "
+            << mom_range[1] / detray::unit<scalar>::GeV << ") [GeV]\n"
+            << "  Phi range             : ["
+            << phi_range[0] / detray::unit<scalar>::rad << ", "
+            << phi_range[1] / detray::unit<scalar>::rad << ") [rad]\n"
+            << "  Theta range           : ["
+            << theta_range[0] / detray::unit<scalar>::rad << ", "
+            << theta_range[1] / detray::unit<scalar>::rad << ") [rad]\n"
+            << "  Origin                : ["
+            << ori[0] / detray::unit<scalar>::mm << ", "
+            << ori[1] / detray::unit<scalar>::mm << ", "
+            << ori[2] / detray::unit<scalar>::mm << "] [mm]\n"
+            << "  Do vertex smearing    : " << std::boolalpha
+            << cfg.do_vertex_smearing() << "\n"
+            << std::noboolalpha;
+
+        if (cfg.do_vertex_smearing()) {
+            const auto& ori_stddev = cfg.origin_stddev();
+            out << "  Origin stddev         : ["
+                << ori_stddev[0] / detray::unit<scalar>::mm << ", "
+                << ori_stddev[1] / detray::unit<scalar>::mm << ", "
+                << ori_stddev[2] / detray::unit<scalar>::mm << "] [mm]\n";
+        }
+
+        return out;
+    }
 };
-
-/// Print the random track generator configuration
-DETRAY_HOST
-inline std::ostream& operator<<(std::ostream& out,
-                                const random_track_generator_config& cfg) {
-    const auto& ori = cfg.origin();
-    const auto& mom_range = cfg.mom_range();
-    const auto& phi_range = cfg.phi_range();
-    const auto& theta_range = cfg.theta_range();
-
-    // General
-    out << "\nRandom track generator\n"
-        << "----------------------------\n"
-        << "  No. tracks            : " << cfg.n_tracks() << "\n"
-        << "  Charge                : "
-        << cfg.charge() / detray::unit<scalar>::e << " [e]\n"
-        << "  Rand. charge          : " << std::boolalpha
-        << cfg.randomize_charge() << std::noboolalpha << "\n";
-
-    // Momentum and direction
-    if (cfg.is_pT()) {
-        out << "  Transverse mom.       : [";
-    } else {
-        out << "  Momentum              : [";
-    }
-    out << mom_range[0] / detray::unit<scalar>::GeV << ", "
-        << mom_range[1] / detray::unit<scalar>::GeV << ") [GeV]\n"
-        << "  Phi range             : ["
-        << phi_range[0] / detray::unit<scalar>::rad << ", "
-        << phi_range[1] / detray::unit<scalar>::rad << ") [rad]\n"
-        << "  Theta range           : ["
-        << theta_range[0] / detray::unit<scalar>::rad << ", "
-        << theta_range[1] / detray::unit<scalar>::rad << ") [rad]\n"
-        << "  Origin                : [" << ori[0] / detray::unit<scalar>::mm
-        << ", " << ori[1] / detray::unit<scalar>::mm << ", "
-        << ori[2] / detray::unit<scalar>::mm << "] [mm]\n"
-        << "  Do vertex smearing    : " << std::boolalpha
-        << cfg.do_vertex_smearing() << "\n"
-        << std::noboolalpha;
-
-    if (cfg.do_vertex_smearing()) {
-        const auto& ori_stddev = cfg.origin_stddev();
-        out << "  Origin stddev         : ["
-            << ori_stddev[0] / detray::unit<scalar>::mm << ", "
-            << ori_stddev[1] / detray::unit<scalar>::mm << ", "
-            << ori_stddev[2] / detray::unit<scalar>::mm << "] [mm]\n";
-    }
-
-    return out;
-}
 
 }  // namespace detray

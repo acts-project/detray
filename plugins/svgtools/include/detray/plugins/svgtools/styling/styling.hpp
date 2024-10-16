@@ -40,7 +40,6 @@ struct grid_style {
 /// Style applied to an actsvg proto surface_material
 struct surface_material_style {
     actsvg::point2 _info_pos;
-    // unsigned int _info_font_size;
 
     actsvg::point2 _gradient_pos;
     std::array<actsvg::scalar, 2u> _gradient_box;
@@ -48,7 +47,6 @@ struct surface_material_style {
     actsvg::style::label _gradient_label;
     actsvg::style::color _gradient_stroke_color;
     actsvg::scalar _gradient_stroke_width;
-    // unsigned int _gradient_font_size;
     std::vector<actsvg::style::color> _gradient_color_scale;
     unsigned int _gradient_n_stops;
 
@@ -67,14 +65,10 @@ struct surface_style {
           _material_style{mat_style} {
 
         _stroke_color = fill_color;
-        _highlight_rgb = colors::macaroni_and_cheese;
-        _highlights = {};
         _highlight_stroke_rgb = _highlight_rgb;
         _highlight_stroke_width = stroke_width;
-        _font_size = 22u;
         _material_style._gradient_font._size = 26u;
         _material_style._gradient_label._font._size = 26u;
-        _n_segments = 72u;
     }
     // Fill color
     actsvg::style::color _fill_color;
@@ -84,14 +78,14 @@ struct surface_style {
     actsvg::style::color _stroke_color;
 
     // Highlights
-    std::array<int, 3> _highlight_rgb;
-    std::vector<std::string> _highlights;
+    std::array<int, 3> _highlight_rgb{colors::macaroni_and_cheese};
+    std::vector<std::string> _highlights{};
     std::array<int, 3> _highlight_stroke_rgb;
     actsvg::scalar _highlight_stroke_width;
 
-    unsigned int _font_size;
+    unsigned int _font_size{22u};
     // Granularity of vertex approximation of arcs
-    unsigned int _n_segments;
+    unsigned int _n_segments{72u};
 
     surface_material_style _material_style;
 };

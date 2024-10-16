@@ -12,6 +12,7 @@
 
 // System include(s)
 #include <array>
+#include <random>
 #include <stdexcept>
 #include <vector>
 
@@ -20,8 +21,10 @@ namespace detray::svgtools::styling::colors {
 /// @brief Picks a random element in the container.
 template <typename container_t>
 inline auto pick_random(container_t container) {
-    const auto idx = static_cast<std::size_t>(std::rand()) % container.size();
-    return container[idx];
+    typename container_t::value_type c{};
+    std::sample(container.cbegin(), container.cend(), &c, 1,
+                std::mt19937{std::random_device{}()});
+    return c;
 }
 
 // Black

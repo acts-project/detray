@@ -331,8 +331,7 @@ struct circular {
             std::ranges::for_each(sequence, [&](auto &n) { n += m++; });
             return sequence;
         }
-        dindex vl =
-            static_cast<dindex>(n_bins - nh_range[0] + nh_range[1] + 1u);
+        dindex vl = n_bins - nh_range[0] + nh_range[1] + 1u;
         dindex mi = 0;
         dindex mo = 0;
         dindex_sequence sequence(static_cast<dindex_sequence::size_type>(vl),
@@ -521,9 +520,9 @@ struct irregular {
         int bins = static_cast<int>(boundaries.size()) - 1;
         int ibinmin = static_cast<int>(ibin) - static_cast<int>(nhood[0]);
         int ibinmax = static_cast<int>(ibin + nhood[1]);
-        dindex min_bin = (ibinmin >= 0) ? static_cast<dindex>(ibinmin) : 0u;
-        dindex max_bin = (ibinmax < bins) ? static_cast<dindex>(ibinmax)
-                                          : static_cast<dindex>(bins - 1);
+        auto min_bin = (ibinmin >= 0) ? static_cast<dindex>(ibinmin) : 0u;
+        auto max_bin = (ibinmax < bins) ? static_cast<dindex>(ibinmax)
+                                        : static_cast<dindex>(bins - 1);
         return {min_bin, max_bin};
     }
 

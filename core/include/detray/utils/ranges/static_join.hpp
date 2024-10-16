@@ -178,7 +178,7 @@ requires std::input_iterator<
     DETRAY_HOST_DEVICE
     constexpr static_join_iterator(const iterator_coll_t &begins,
                                    const iterator_coll_t &ends)
-        : m_begins(&begins), m_ends(&ends), m_iter{(*m_begins)[0]}, m_idx{0u} {}
+        : m_begins(&begins), m_ends(&ends), m_iter{(*m_begins)[0]} {}
 
     /// Fully parametrized construction
     DETRAY_HOST_DEVICE

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -23,27 +23,25 @@
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
 
-using namespace detray;
-
 using algebra_t = ALGEBRA_PLUGIN<detray::scalar>;
 
-using detector_host_type = detector<toy_metadata, host_container_types>;
-using detector_device_type = detector<toy_metadata, device_container_types>;
+using detector_host_type =
+    detray::detector<detray::toy_metadata, detray::host_container_types>;
+using detector_device_type =
+    detray::detector<detray::toy_metadata, detray::device_container_types>;
 
-using intersection_t =
-    intersection2D<typename detector_device_type::surface_type, algebra_t>;
-
-using navigator_host_type = navigator<detector_host_type>;
-using navigator_device_type = navigator<detector_device_type>;
-using field_type = bfield::const_field_t;
-using rk_stepper_type = rk_stepper<field_type::view_t, algebra_t>;
-using actor_chain_t = actor_chain<tuple, parameter_transporter<algebra_t>,
-                                  pointwise_material_interactor<algebra_t>,
-                                  parameter_resetter<algebra_t>>;
+using navigator_host_type = detray::navigator<detector_host_type>;
+using navigator_device_type = detray::navigator<detector_device_type>;
+using field_type = detray::bfield::const_field_t;
+using rk_stepper_type = detray::rk_stepper<field_type::view_t, algebra_t>;
+using actor_chain_t =
+    detray::actor_chain<detray::tuple, detray::parameter_transporter<algebra_t>,
+                        detray::pointwise_material_interactor<algebra_t>,
+                        detray::parameter_resetter<algebra_t>>;
 using propagator_host_type =
-    propagator<rk_stepper_type, navigator_host_type, actor_chain_t>;
+    detray::propagator<rk_stepper_type, navigator_host_type, actor_chain_t>;
 using propagator_device_type =
-    propagator<rk_stepper_type, navigator_device_type, actor_chain_t>;
+    detray::propagator<rk_stepper_type, navigator_device_type, actor_chain_t>;
 
 enum class propagate_option {
     e_unsync = 0,

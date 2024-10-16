@@ -34,7 +34,7 @@ struct consistency_check_config
 
     /// Setters
     /// @{
-    consistency_check_config &name(const std::string n) {
+    consistency_check_config &name(const std::string &n) {
         m_name = n;
         return *this;
     }

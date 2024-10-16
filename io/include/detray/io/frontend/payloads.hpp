@@ -62,7 +62,8 @@ struct typed_link_payload {
 
 /// @brief a payload for the geometry specific part of the file header
 struct geo_sub_header_payload {
-    std::size_t n_volumes{0ul}, n_surfaces{0ul};
+    std::size_t n_volumes{0ul};
+    std::size_t n_surfaces{0ul};
 };
 
 /// @brief a payload for the geometry file header
@@ -122,7 +123,8 @@ struct volume_payload {
 
 /// @brief a payload for the material specific part of the file header
 struct homogeneous_material_sub_header_payload {
-    std::size_t n_slabs{0ul}, n_rods{0ul};
+    std::size_t n_slabs{0ul};
+    std::size_t n_rods{0ul};
 };
 
 /// @brief a payload for the homogeneous material file header

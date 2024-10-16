@@ -226,22 +226,15 @@ inline void check_empty(const detector_t &det, const bool verbose) {
         }
         // In the brute force finder, also other surfaces can be contained, e.g.
         // passive surfaces (depends on the detector)
-        for (const auto &pt_desc : det.portals()) {
-            if (pt_desc.is_portal()) {
-                return true;
-            }
-        }
-        return false;
+        return std::ranges::any_of(
+            det.portals(), [](auto pt_desc) { return pt_desc.is_portal(); });
     };
 
     // Check if there is at least one volume in the detector volume finder
     auto find_volumes = [](const typename detector_t::volume_finder &vf) {
-        for (const auto &v : vf.all()) {
-            if (!detail::is_invalid_value(v)) {
-                return true;
-            }
-        }
-        return false;
+        return std::ranges::any_of(vf.all(), [](const auto &v) {
+            return !detail::is_invalid_value(v);
+        });
     };
 
     // Fatal errors

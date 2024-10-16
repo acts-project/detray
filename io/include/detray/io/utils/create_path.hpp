@@ -30,7 +30,7 @@ inline std::string alt_file_name(const std::string& name) {
 
     /// @returns alternate file stem upon collision
     auto get_alternate_file_stem = [](std::string& file_stem,
-                                      const std::size_t n) -> std::string {
+                                      const std::size_t n) {
         const std::string delim{"_"};
 
         // File stem already comes with a number, simply update it

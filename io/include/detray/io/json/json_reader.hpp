@@ -40,10 +40,10 @@ class json_reader final : public reader_interface<detector_t> {
     json_reader() : reader_interface<detector_t>(".json") {}
 
     /// Writes the geometry to file with a given name
-    virtual void read(detector_builder<typename detector_t::metadata,
-                                       volume_builder>& det_builder,
-                      typename detector_t::name_map& name_map,
-                      const std::string& file_name) override {
+    void read(detector_builder<typename detector_t::metadata, volume_builder>&
+                  det_builder,
+              typename detector_t::name_map& name_map,
+              const std::string& file_name) override {
 
         // Read json from file
         io::file_handle file{file_name,

@@ -62,7 +62,7 @@ class homogeneous_material_writer {
     static detector_homogeneous_material_payload convert(
         const detector_t& det, const typename detector_t::name_map&) {
         detector_homogeneous_material_payload dm_data;
-        dm_data.volumes.reserve((det.volumes().size()));
+        dm_data.volumes.reserve(det.volumes().size());
 
         for (const auto& vol : det.volumes()) {
             dm_data.volumes.push_back(convert(vol, det));
@@ -99,16 +99,18 @@ class homogeneous_material_writer {
         }
 
         // Find all surfaces that belong to the volume and count them
-        std::size_t sf_idx{0u}, slab_idx{0u}, rod_idx{0u};
+        std::size_t sf_idx{0u};
+        std::size_t slab_idx{0u};
+        std::size_t rod_idx{0u};
         auto vol = tracking_volume{det, vol_desc};
         for (const auto& sf_desc : vol.surfaces()) {
 
             // Convert material slabs and rods
             const auto sf = tracking_surface{det, sf_desc};
-            material_slab_payload mslp =
-                sf.template visit_material<get_material_payload>(sf_idx);
 
-            if (mslp.type == material_type::slab) {
+            if (material_slab_payload mslp =
+                    sf.template visit_material<get_material_payload>(sf_idx);
+                mslp.type == material_type::slab) {
                 mslp.index_in_coll = slab_idx++;
                 mv_data.mat_slabs.push_back(mslp);
             } else if (mslp.type == material_type::rod) {
