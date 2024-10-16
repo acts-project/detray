@@ -10,14 +10,12 @@
 // Project include(s).
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
-#include "detray/geometry/tracking_surface.hpp"
 #include "detray/materials/detail/concepts.hpp"
 #include "detray/materials/detail/material_accessor.hpp"
+#include "detray/materials/detail/material_utils.hpp"
 #include "detray/materials/interaction.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/tracks/bound_track_parameters.hpp"
-#include "detray/utils/ranges.hpp"
-#include "detray/utils/type_traits.hpp"
 
 namespace detray {
 
@@ -165,8 +163,8 @@ struct pointwise_material_interactor : actor {
         // Closest approach of the track to a line surface. Otherwise this is
         // ignored.
         const auto approach{bound_params[e_bound_loc0]};
-        const scalar_type cos_inc_angle{math::fabs(sf.cos_angle(
-            gctx, bound_params.dir(), bound_params.bound_local()))};
+        const scalar_type cos_inc_angle{detail::cos_angle(
+            gctx, sf, bound_params.dir(), bound_params.bound_local())};
 
         const bool succeed = sf.template visit_material<kernel>(
             interactor_state, ptc, bound_params, cos_inc_angle, approach);

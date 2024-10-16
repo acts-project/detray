@@ -13,7 +13,7 @@
 #include "detray/builders/material_map_generator.hpp"
 #include "detray/builders/surface_factory_interface.hpp"
 #include "detray/builders/volume_builder_interface.hpp"
-#include "detray/geometry/tracking_surface.hpp"
+#include "detray/geometry/surface.hpp"
 #include "detray/materials/material_map.hpp"
 
 // System include(s)
@@ -125,7 +125,7 @@ class material_map_builder final : public volume_decorator<detector_t> {
             }
 
             // Construct and append the material map for a given surface shape
-            auto sf = tracking_surface{det, sf_desc};
+            auto sf = geometry::surface{det, sf_desc};
             [[maybe_unused]] auto [mat_id, mat_idx] = sf.template visit_mask<
                 detail::add_sf_material_map<materials_t>>(
                 m_factory, m_bin_data.at(sf_idx), m_n_bins.at(sf_idx),

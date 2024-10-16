@@ -25,9 +25,6 @@ class ray {
     using vector3_type = dvector3D<algebra_type>;
     using transform3_type = dtransform3D<algebra_type>;
 
-    using free_track_parameters_type = free_track_parameters<algebra_t>;
-    using free_vector_type = typename free_track_parameters_type::vector_type;
-
     ray() = default;
 
     /// Parametrized constructor from a position and direction
@@ -48,7 +45,8 @@ class ray {
     /// Parametrized constructor that complies with track interface
     ///
     /// @param track the track state that should be approximated
-    DETRAY_HOST_DEVICE explicit ray(const free_track_parameters_type &track)
+    DETRAY_HOST_DEVICE explicit ray(
+        const free_track_parameters<algebra_t> &track)
         : ray(track.pos(), track.dir()) {}
 
     /// @returns position on the ray (compatible with tracks/intersectors)
