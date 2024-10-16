@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021-2023 CERN for the benefit of the ACTS project
+ * (c) 2021-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -10,9 +10,39 @@
 // Project include(s)
 #include "detray/definitions/detail/containers.hpp"
 #include "detray/definitions/detail/math.hpp"
+#include "detray/geometry/surface.hpp"
 #include "detray/utils/ranges.hpp"
 
 namespace detray::detail {
+
+template <typename point2_t, typename point3_t>
+struct vertexer;
+
+/// Compute vertices in global frame along the boundary of a surface
+///
+/// @param ctx geometry context
+/// @param sf the surface
+/// @param n_seg the number of segments used along arcs
+///
+/// @returns a vector of vetices (3D points)
+template <typename detector_t>
+DETRAY_HOST constexpr auto get_global_vertices(
+    const typename detector_t::geometry_context &ctx,
+    geometry::surface<detector_t> sf, const dindex n_seg) {
+    using algebra_t = typename detector_t::algebra_type;
+    using point2_t = dpoint2D<algebra_t>;
+    using point3_t = dpoint3D<algebra_t>;
+
+    auto vertices = sf.template visit_mask<vertexer<point2_t, point3_t>>(n_seg);
+    const auto &trf = sf.transform(ctx);
+
+    const std::size_t n_vertices{vertices.size()};
+    for (std::size_t i = 0u; i < n_vertices; ++i) {
+        vertices[i] = trf.point_to_global(vertices[i]);
+    }
+
+    return vertices;
+}
 
 /// Generate phi values along an arc
 ///

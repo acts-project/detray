@@ -10,9 +10,9 @@
 // Project include(s).
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
-#include "detray/geometry/tracking_surface.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/detail/jacobian_engine.hpp"
+#include "detray/propagator/tracking_surface.hpp"
 
 namespace detray {
 
@@ -102,7 +102,7 @@ struct parameter_transporter : actor {
         const geo_cxt_t ctx{};
 
         // Current Surface
-        const auto sf = navigation.get_surface();
+        const auto sf = tracking_surface{navigation.get_surface()};
 
         // Covariance is transported only when the previous surface is an
         // actual tracking surface. (i.e. This disables the covariance transport

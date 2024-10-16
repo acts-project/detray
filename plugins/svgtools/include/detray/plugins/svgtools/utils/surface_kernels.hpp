@@ -11,7 +11,7 @@
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes.hpp"
-#include "detray/geometry/tracking_surface.hpp"
+#include "detray/geometry/surface.hpp"
 #include "detray/geometry/tracking_volume.hpp"
 
 // System include(s)
@@ -231,7 +231,7 @@ struct link_end_getter {
             const vector3_t& surface_normal) const {
         for (const auto& desc : volume.portals()) {
 
-            const detray::tracking_surface surface{detector, desc};
+            const detray::geometry::surface surface{detector, desc};
 
             if (auto r = surface.template visit_mask<outer_radius_getter>()) {
                 if (*r > mask[shape_t::e_r]) {

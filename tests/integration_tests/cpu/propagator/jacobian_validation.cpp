@@ -14,6 +14,7 @@
 #include "detray/propagator/actors/parameter_transporter.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
+#include "detray/propagator/tracking_surface.hpp"
 
 // Detray test include(s)
 #include "detray/test/utils/detectors/build_telescope_detector.hpp"

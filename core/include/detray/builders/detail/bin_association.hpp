@@ -14,7 +14,7 @@
 #include "detray/geometry/coordinates/concentric_cylindrical2D.hpp"
 #include "detray/geometry/coordinates/cylindrical2D.hpp"
 #include "detray/geometry/coordinates/polar2D.hpp"
-#include "detray/geometry/detail/vertexing.hpp"
+#include "detray/geometry/detail/vertexer.hpp"
 #include "detray/navigation/accelerators/concepts.hpp"
 #include "detray/utils/grid/populators.hpp"
 #include "detray/utils/ranges.hpp"
