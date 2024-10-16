@@ -14,9 +14,6 @@
 #include "detray/materials/detail/concepts.hpp"
 #include "detray/materials/detail/material_accessor.hpp"
 #include "detray/materials/material.hpp"
-#include "detray/propagator/detail/jacobian_engine.hpp"
-#include "detray/tracks/detail/transform_track_parameters.hpp"
-#include "detray/tracks/tracks.hpp"
 
 // System include(s)
 #include <limits>
@@ -34,9 +31,6 @@ struct surface_kernels {
     using point3_type = dpoint3D<algebra_t>;
     using vector3_type = dvector3D<algebra_t>;
     using transform3_type = dtransform3D<algebra_t>;
-    using bound_param_vector_type = bound_parameters_vector<algebra_t>;
-    using free_param_vector_type = free_parameters_vector<algebra_t>;
-    using free_matrix_type = free_matrix<algebra_t>;
 
     /// A functor to retrieve the masks shape name
     struct get_shape_name {
@@ -159,21 +153,6 @@ struct surface_kernels {
         }
     };
 
-    /// A functor to perform global to local bound transformation
-    struct global_to_bound {
-        template <typename mask_group_t, typename index_t>
-        DETRAY_HOST_DEVICE inline point2_type operator()(
-            const mask_group_t& /*mask_group*/, const index_t& /*index*/,
-            const transform3_type& trf3, const point3_type& global,
-            const vector3_type& dir) const {
-            using mask_t = typename mask_group_t::value_type;
-
-            const point3_type local = mask_t::to_local_frame(trf3, global, dir);
-
-            return {local[0], local[1]};
-        }
-    };
-
     /// A functor to perform global to local transformation
     struct global_to_local {
         template <typename mask_group_t, typename index_t>
@@ -209,127 +188,6 @@ struct surface_kernels {
             using mask_t = typename mask_group_t::value_type;
 
             return mask_t::to_global_frame(trf3, local);
-        }
-    };
-
-    /// A functor to get from a free to a bound vector
-    struct free_to_bound_vector {
-
-        // Visitor to the detector mask store that is called on the mask
-        // collection that contains the mask (shape) type of the surface
-        template <typename mask_group_t, typename index_t>
-        DETRAY_HOST_DEVICE inline bound_param_vector_type operator()(
-            const mask_group_t& /*mask_group*/, const index_t& /*index*/,
-            const transform3_type& trf3,
-            const free_param_vector_type& free_vec) const {
-
-            using frame_t = typename mask_group_t::value_type::local_frame;
-
-            return detail::free_to_bound_vector<frame_t>(trf3, free_vec);
-        }
-    };
-
-    /// A functor to get from a bound to a free vector
-    struct bound_to_free_vector {
-
-        template <typename mask_group_t, typename index_t>
-        DETRAY_HOST_DEVICE inline free_param_vector_type operator()(
-            const mask_group_t& mask_group, const index_t& index,
-            const transform3_type& trf3,
-            const bound_param_vector_type& bound_vec) const {
-
-            return detail::bound_to_free_vector(trf3, mask_group[index],
-                                                bound_vec);
-        }
-    };
-
-    /// A functor to get the free-to-bound Jacobian
-    struct free_to_bound_jacobian {
-
-        template <typename mask_group_t, typename index_t>
-        DETRAY_HOST_DEVICE inline auto operator()(
-            const mask_group_t& /*mask_group*/, const index_t& /*index*/,
-            const transform3_type& trf3,
-            const free_param_vector_type& free_vec) const {
-
-            using frame_t = typename mask_group_t::value_type::local_frame;
-
-            return detail::jacobian_engine<frame_t>::free_to_bound_jacobian(
-                trf3, free_vec);
-        }
-    };
-
-    /// A functor to get the bound-to-free Jacobian
-    struct bound_to_free_jacobian {
-
-        template <typename mask_group_t, typename index_t>
-        DETRAY_HOST_DEVICE inline auto operator()(
-            const mask_group_t& mask_group, const index_t& index,
-            const transform3_type& trf3,
-            const bound_param_vector_type& bound_vec) const {
-
-            using frame_t = typename mask_group_t::value_type::local_frame;
-
-            return detail::jacobian_engine<frame_t>::bound_to_free_jacobian(
-                trf3, mask_group[index], bound_vec);
-        }
-    };
-
-    /// A functor to get the path correction
-    struct path_correction {
-
-        template <typename mask_group_t, typename index_t,
-                  concepts::scalar scalar_t>
-        DETRAY_HOST_DEVICE inline free_matrix_type operator()(
-            const mask_group_t& /*mask_group*/, const index_t& /*index*/,
-            const transform3_type& trf3, const vector3_type& pos,
-            const vector3_type& dir, const vector3_type& dtds,
-            const scalar_t dqopds) const {
-
-            using frame_t = typename mask_group_t::value_type::local_frame;
-
-            return detail::jacobian_engine<frame_t>::path_correction(
-                pos, dir, dtds, dqopds, trf3);
-        }
-    };
-
-    /// A functor to get the local min bounds.
-    struct local_min_bounds {
-
-        template <typename mask_group_t, typename index_t,
-                  concepts::scalar scalar_t>
-        DETRAY_HOST_DEVICE inline auto operator()(
-            const mask_group_t& mask_group, const index_t& index,
-            const scalar_t env =
-                std::numeric_limits<scalar_t>::epsilon()) const {
-
-            return mask_group[index].local_min_bounds(env);
-        }
-    };
-
-    /// A functor to get the minimum distance to any surface boundary.
-    struct min_dist_to_boundary {
-
-        template <typename mask_group_t, typename index_t,
-                  concepts::point point_t>
-        DETRAY_HOST_DEVICE inline auto operator()(
-            const mask_group_t& mask_group, const index_t& index,
-            const point_t& loc_p) const {
-
-            return mask_group[index].min_dist_to_boundary(loc_p);
-        }
-    };
-
-    /// A functor to get the vertices in local coordinates.
-    struct local_vertices {
-
-        template <typename mask_group_t, typename index_t,
-                  concepts::scalar scalar_t>
-        DETRAY_HOST_DEVICE inline auto operator()(
-            const mask_group_t& mask_group, const index_t& index,
-            const dindex n_seg) const {
-
-            return mask_group[index].vertices(n_seg);
         }
     };
 };

@@ -13,7 +13,6 @@
 #include "detray/builders/surface_factory_interface.hpp"
 #include "detray/builders/volume_builder.hpp"
 #include "detray/builders/volume_builder_interface.hpp"
-#include "detray/geometry/tracking_surface.hpp"
 #include "detray/geometry/tracking_volume.hpp"
 #include "detray/utils/grid/detail/concepts.hpp"
 
