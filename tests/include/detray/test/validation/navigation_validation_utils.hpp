@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/geometry/barcode.hpp"
+#include "detray/geometry/surface.hpp"
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
@@ -42,6 +43,18 @@
 #include <sstream>
 
 namespace detray::navigation_validator {
+
+/// A functor to get the minimum distance to any surface boundary.
+struct min_dist_to_boundary {
+
+    template <typename mask_group_t, typename index_t, typename point_t>
+    DETRAY_HOST_DEVICE inline auto operator()(const mask_group_t &mask_group,
+                                              const index_t &index,
+                                              const point_t &loc_p) const {
+
+        return mask_group[index].min_dist_to_boundary(loc_p);
+    }
+};
 
 /// B-field placeholder for straight-line navigation
 struct empty_bfield {};
@@ -675,10 +688,12 @@ auto write_dist_to_boundary(
         for (const auto &missed_sfi : missed_inters_vec) {
 
             const auto &track = entry.first;
-            const auto sf = tracking_surface{det, missed_sfi.sf_desc.barcode()};
+            const auto sf =
+                geometry::surface{det, missed_sfi.sf_desc.barcode()};
             const auto vol = tracking_volume{det, sf.volume()};
 
-            const auto dist = sf.min_dist_to_boundary(missed_sfi.local);
+            const auto dist =
+                sf.template visit_mask<min_dist_to_boundary>(missed_sfi.local);
             const auto glob_pos = sf.local_to_global(
                 gctx, missed_sfi.local, track.dir(missed_sfi.path));
 

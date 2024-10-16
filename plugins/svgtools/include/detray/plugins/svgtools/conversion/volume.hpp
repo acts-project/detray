@@ -8,8 +8,10 @@
 #pragma once
 
 // Project include(s)
-#include "detray/geometry/tracking_surface.hpp"
+#include "detray/geometry/surface.hpp"
 #include "detray/geometry/tracking_volume.hpp"
+
+// Plugin include(s)
 #include "detray/plugins/svgtools/conversion/portal.hpp"
 #include "detray/plugins/svgtools/conversion/surface.hpp"
 #include "detray/plugins/svgtools/conversion/surface_grid.hpp"
@@ -65,7 +67,7 @@ auto volume(const typename detector_t::geometry_context& context,
 
     for (const auto& desc : d_volume.surfaces()) {
 
-        const auto sf = detray::tracking_surface<detector_t>{detector, desc};
+        const auto sf = detray::geometry::surface<detector_t>{detector, desc};
 
         if (sf.is_portal()) {
             if (!hide_portals) {

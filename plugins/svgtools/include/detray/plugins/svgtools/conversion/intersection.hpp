@@ -8,6 +8,9 @@
 #pragma once
 
 // Project include(s)
+#include "detray/geometry/surface.hpp"
+
+// Plugin include(s)
 #include "detray/plugins/svgtools/conversion/landmark.hpp"
 #include "detray/plugins/svgtools/meta/proto/intersection.hpp"
 
@@ -32,13 +35,13 @@ inline auto intersection(const detector_t& detector,
 
     for (const auto& intr : intersections) {
 
-        const detray::tracking_surface<detector_t> sf{detector, intr.sf_desc};
+        const detray::geometry::surface<detector_t> sf{detector, intr.sf_desc};
         if (sf.barcode().is_invalid()) {
             continue;
         }
 
         const point2_t bound{intr.local[0], intr.local[1]};
-        const auto position = sf.bound_to_global(gctx, bound, dir);
+        const auto position = sf.local_to_global(gctx, bound, dir);
         const auto p_lm = svgtools::conversion::landmark(position, style);
 
         p_ir._landmarks.push_back(p_lm);
