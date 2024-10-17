@@ -113,7 +113,7 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
         << state.debug_stream.str() << std::endl;
 
     // new momentum
-    const scalar newP{state._stepping._bound_params.p(ptc.charge())};
+    const scalar newP{state._stepping.bound_params().p(ptc.charge())};
 
     // mass
     const auto mass = ptc.mass();
@@ -126,7 +126,7 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
 
     // New qop variance
     const scalar new_var_qop{
-        matrix_operator().element(state._stepping._bound_params.covariance(),
+        matrix_operator().element(state._stepping.bound_params().covariance(),
                                   e_bound_qoverp, e_bound_qoverp)};
 
     // Interaction object
@@ -199,13 +199,13 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
         // Propagate
         alt_p.propagate(alt_state, alt_actor_states);
 
-        alt_bound_param = alt_state._stepping._bound_params;
+        alt_bound_param = alt_state._stepping.bound_params();
 
         // Terminate the propagation if the next sensitive surface was not found
         if (!next_surface_aborter_state.success) {
             // if (alt_state._navigation.is_complete()){
             const scalar altP =
-                alt_state._stepping._bound_params.p(ptc.charge());
+                alt_state._stepping.bound_params().p(ptc.charge());
             altE = std::hypot(altP, mass);
             break;
         }
@@ -293,7 +293,7 @@ GTEST_TEST(detray_material, telescope_geometry_scattering_angle) {
         ASSERT_TRUE(p.propagate(state, actor_states))
             << state.debug_stream.str() << std::endl;
 
-        const auto& final_param = state._stepping._bound_params;
+        const auto& final_param = state._stepping.bound_params();
 
         // Updated phi and theta variance
         if (i == 0u) {
@@ -395,7 +395,7 @@ GTEST_TEST(detray_material, telescope_geometry_volume_material) {
 
         const auto eloss_approx =
             interaction<scalar>().compute_energy_loss_bethe_bloch(
-                state._stepping._path_length, mat, ptc,
+                state._stepping.path_length(), mat, ptc,
                 {ptc, bound_param.qop()});
 
         const auto iniE = std::sqrt(iniP * iniP + mass * mass);

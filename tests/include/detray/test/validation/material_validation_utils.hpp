@@ -191,7 +191,7 @@ struct material_tracer : detray::actor {
                           typename parameter_transporter<algebra_t>::state &,
                           typename propagator_state_t::actor_chain_type::
                               state>) {
-            const auto &track_param = prop_state._stepping._bound_params;
+            const auto &track_param = prop_state._stepping.bound_params();
             loc_pos = track_param.bound_local();
         } else {
             const auto &track_param = prop_state._stepping();

@@ -445,13 +445,13 @@ struct print_inspector {
                      << "\t\t" << step_scalor << std::endl;
 
         debug_stream << "Bfield points:" << std::endl;
-        const auto &f = state._step_data.b_first;
+        const auto &f = state.step_data().b_first;
         debug_stream << "\tfirst:" << tabs << f[0] << ", " << f[1] << ", "
                      << f[2] << std::endl;
-        const auto &m = state._step_data.b_middle;
+        const auto &m = state.step_data().b_middle;
         debug_stream << "\tmiddle:" << tabs << m[0] << ", " << m[1] << ", "
                      << m[2] << std::endl;
-        const auto &l = state._step_data.b_last;
+        const auto &l = state.step_data().b_last;
         debug_stream << "\tlast:" << tabs << l[0] << ", " << l[1] << ", "
                      << l[2] << std::endl;
 

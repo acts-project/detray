@@ -74,44 +74,45 @@ struct helix_inspector : actor {
         inspector_state._nav_status.push_back(navigation.status());
 
         // Nothing has happened yet (first call of actor chain)
-        if (stepping.path_length() < tol || stepping._s < tol) {
+        if (stepping.path_length() < tol ||
+            stepping.path_from_surface() < tol) {
             return;
         }
 
-        if (stepping._bound_params.surface_link().is_invalid()) {
+        if (stepping.bound_params().surface_link().is_invalid()) {
             return;
         }
 
         // Surface
-        const auto sf = tracking_surface{navigation.detector(),
-                                         stepping._bound_params.surface_link()};
+        const auto sf = tracking_surface{
+            navigation.detector(), stepping.bound_params().surface_link()};
 
         const free_track_parameters<algebra_t> free_params =
-            sf.bound_to_free_vector(ctx, stepping._bound_params);
+            sf.bound_to_free_vector(ctx, stepping.bound_params());
 
         const auto last_pos = free_params.pos();
 
         const auto bvec =
-            stepping._magnetic_field.at(last_pos[0], last_pos[1], last_pos[2]);
+            stepping.field().at(last_pos[0], last_pos[1], last_pos[2]);
         const vector3 b{bvec[0], bvec[1], bvec[2]};
 
         detail::helix<algebra_t> hlx(free_params, &b);
 
-        const auto true_pos = hlx(stepping._s);
+        const auto true_pos = hlx(stepping.path_from_surface());
 
-        const point3 relative_error{1.f / stepping._s *
+        const point3 relative_error{1.f / stepping.path_from_surface() *
                                     (stepping().pos() - true_pos)};
 
         ASSERT_NEAR(getter::norm(relative_error), 0.f, tol);
 
-        auto true_J = hlx.jacobian(stepping._s);
+        auto true_J = hlx.jacobian(stepping.path_from_surface());
 
         for (unsigned int i = 0u; i < e_free_size; i++) {
             for (unsigned int j = 0u; j < e_free_size; j++) {
-                ASSERT_NEAR(
-                    matrix_operator().element(stepping._jac_transport, i, j),
-                    matrix_operator().element(true_J, i, j),
-                    stepping._s * tol * 10.f);
+                ASSERT_NEAR(matrix_operator().element(
+                                stepping.transport_jacobian(), i, j),
+                            matrix_operator().element(true_J, i, j),
+                            stepping.path_from_surface() * tol * 10.f);
             }
         }
     }
@@ -267,8 +268,8 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
             //<< lim_state.debug_stream.str() << std::endl;
             << lim_state._navigation.inspector().to_string() << std::endl;
 
-        ASSERT_GE(std::abs(path_limit), lim_state._stepping._abs_path_length)
-            << "Absolute path length: " << lim_state._stepping._abs_path_length
+        ASSERT_GE(std::abs(path_limit), lim_state._stepping.abs_path_length())
+            << "Absolute path length: " << lim_state._stepping.abs_path_length()
             << ", path limit: " << path_limit << std::endl;
         //<< state._navigation.inspector().to_string() << std::endl;
 

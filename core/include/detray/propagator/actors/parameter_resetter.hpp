@@ -42,16 +42,16 @@ struct parameter_resetter : actor {
 
             // Reset the free vector
             stepping() = detail::bound_to_free_vector(trf3, mask,
-                                                      stepping._bound_params);
+                                                      stepping.bound_params());
 
             // Reset the path length
-            stepping._s = 0;
+            stepping.reset_path_from_surface();
 
             // Reset jacobian transport to identity matrix
-            matrix_operator().set_identity(stepping._jac_transport);
+            stepping.reset_transport_jacobian();
 
             // Reset the surface index
-            stepping._prev_sf_id = sf_idx;
+            stepping.set_prev_sf_index(sf_idx);
         }
     };
 

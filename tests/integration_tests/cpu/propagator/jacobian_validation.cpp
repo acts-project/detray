@@ -407,7 +407,7 @@ struct bound_getter : actor {
         const scalar N = static_cast<scalar>(actor_state.step_count);
 
         actor_state.m_avg_step_size = ((N - 1.f) * actor_state.m_avg_step_size +
-                                       stepping._prev_step_size) /
+                                       stepping.prev_step_size()) /
                                       N;
 
         // Warning for too many step counts
@@ -428,23 +428,23 @@ struct bound_getter : actor {
         if ((navigation.is_on_sensitive() || navigation.is_on_passive()) &&
             navigation.barcode().index() == 0u) {
 
-            actor_state.m_param_departure = stepping._bound_params;
+            actor_state.m_param_departure = stepping.bound_params();
         }
         // Get the bound track parameters and jacobian at the destination
         // surface
         else if ((navigation.is_on_sensitive() || navigation.is_on_passive()) &&
                  navigation.barcode().index() == 1u) {
 
-            actor_state.m_path_length = stepping._path_length;
-            actor_state.m_abs_path_length = stepping._abs_path_length;
-            actor_state.m_param_destination = stepping._bound_params;
-            actor_state.m_jacobi = stepping._full_jacobian;
+            actor_state.m_path_length = stepping.path_length();
+            actor_state.m_abs_path_length = stepping.abs_path_length();
+            actor_state.m_param_destination = stepping.bound_params();
+            actor_state.m_jacobi = stepping.full_jacobian();
 
             // Stop navigation if the destination surface found
             propagation._heartbeat &= navigation.exit();
         }
 
-        if (stepping._path_length > actor_state.m_min_path_length) {
+        if (stepping.path_length() > actor_state.m_min_path_length) {
             propagation._navigation.set_no_trust();
         }
 
