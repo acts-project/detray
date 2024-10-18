@@ -136,7 +136,8 @@ GTEST_TEST(detray_propagator, propagator_line_stepper) {
     const vector3 mom{1.f, 1.f, 0.f};
     free_track_parameters<algebra_t> track(pos, 0.f, mom, -1.f);
 
-    propagator_t p{};
+    propagation::config prop_cfg{};
+    propagator_t p{prop_cfg};
 
     propagator_t::state state(track, d);
 
@@ -384,7 +385,7 @@ INSTANTIATE_TEST_SUITE_P(
 INSTANTIATE_TEST_SUITE_P(
     detray_propagator_validation2, PropagatorWithRkStepper,
     ::testing::Values(std::make_tuple(-400.f * unit<scalar_t>::um,
-                                      40.f * unit<scalar_t>::mm,
+                                      std::numeric_limits<scalar_t>::max(),
                                       vector3{0.f * unit<scalar_t>::T,
                                               1.f * unit<scalar_t>::T,
                                               1.f * unit<scalar_t>::T})));
@@ -392,7 +393,7 @@ INSTANTIATE_TEST_SUITE_P(
 INSTANTIATE_TEST_SUITE_P(
     detray_propagator_validation3, PropagatorWithRkStepper,
     ::testing::Values(std::make_tuple(-400.f * unit<scalar_t>::um,
-                                      40.f * unit<scalar_t>::mm,
+                                      std::numeric_limits<scalar_t>::max(),
                                       vector3{1.f * unit<scalar_t>::T,
                                               0.f * unit<scalar_t>::T,
                                               1.f * unit<scalar_t>::T})));
@@ -400,7 +401,7 @@ INSTANTIATE_TEST_SUITE_P(
 INSTANTIATE_TEST_SUITE_P(
     detray_propagator_validation4, PropagatorWithRkStepper,
     ::testing::Values(std::make_tuple(-600.f * unit<scalar_t>::um,
-                                      35.f * unit<scalar_t>::mm,
+                                      std::numeric_limits<scalar_t>::max(),
                                       vector3{1.f * unit<scalar_t>::T,
                                               1.f * unit<scalar_t>::T,
                                               1.f * unit<scalar_t>::T})));
