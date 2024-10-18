@@ -122,17 +122,17 @@ struct propagator {
 #endif
     };
 
-    /// Propagate method: Coordinates the calls of the stepper, navigator and
-    /// all registered actors.
+    /// Initialize propagation state, including the actors, and the navigation
+    /// state.
     ///
     /// @param propagation the state of a propagation flow
     /// @param actor_state_refs tuple containing refences to the actor states
     ///
-    /// @return propagation success.
-    DETRAY_HOST_DEVICE bool propagate(
+    /// @return true if the propagation state is ready for propagation, false
+    /// otherwise.
+    DETRAY_HOST_DEVICE navigation::status propagate_init(
         state &propagation,
         typename actor_chain_t::state actor_state_refs) const {
-
         // Initialize the navigation
         propagation._heartbeat =
             m_navigator.init(propagation, m_cfg.navigation);
@@ -144,33 +144,81 @@ struct propagator {
         propagation._heartbeat &=
             m_navigator.update(propagation, m_cfg.navigation);
 
-        // Run while there is a heartbeat
-        while (propagation._heartbeat) {
+        return propagation._navigation.status();
+    }
 
-            // Take the step
-            propagation._heartbeat &=
-                m_stepper.step(propagation, m_cfg.stepping);
+    /// Make a single propagation step.
+    ///
+    /// @param propagation the state of a propagation flow
+    /// @param actor_state_refs tuple containing refences to the actor states
+    ///
+    /// @note When this method returns false, call `propagate_is_complete` to
+    /// obtain the final propagation state.
+    ///
+    /// @warning Calling this method on a propagator state on which the
+    /// `propagate_init` function has not been called is undefined behaviour.
+    ///
+    /// @return true if the propagation state can be further propagated, false
+    /// otherwise.
+    DETRAY_HOST_DEVICE navigation::status propagate_step(
+        state &propagation,
+        typename actor_chain_t::state actor_state_refs) const {
+        // Initialize the navigation
+        // Take the step
+        propagation._heartbeat &= m_stepper.step(propagation, m_cfg.stepping);
 
-            // Find next candidate
-            propagation._heartbeat &=
-                m_navigator.update(propagation, m_cfg.navigation);
+        // Find next candidate
+        propagation._heartbeat &=
+            m_navigator.update(propagation, m_cfg.navigation);
 
-            // Run all registered actors/aborters after update
-            run_actors(actor_state_refs, propagation);
+        // Run all registered actors/aborters after update
+        run_actors(actor_state_refs, propagation);
 
-            // And check the status
-            propagation._heartbeat &=
-                m_navigator.update(propagation, m_cfg.navigation);
+        // And check the status
+        propagation._heartbeat &=
+            m_navigator.update(propagation, m_cfg.navigation);
 
 #if defined(__NO_DEVICE__)
-            if (propagation.do_debug) {
-                inspect(propagation);
-            }
+        if (propagation.do_debug) {
+            inspect(propagation);
+        }
 #endif
+
+        return propagation._navigation.status();
+    }
+
+    /// Check whether propagation was a success.
+    ///
+    /// @param propagation the state of a propagation flow
+    ///
+    /// @return true if the propagation was a success, false otherwise.
+    DETRAY_HOST_DEVICE bool propagate_is_complete(state &propagation) const {
+        return propagation._navigation.is_complete();
+    }
+
+    /// Propagate method: Coordinates the calls of the stepper, navigator and
+    /// all registered actors.
+    ///
+    /// @param propagation the state of a propagation flow
+    /// @param actor_state_refs tuple containing refences to the actor states
+    ///
+    /// @return propagation success.
+    DETRAY_HOST_DEVICE bool propagate(
+        state &propagation,
+        typename actor_chain_t::state actor_state_refs) const {
+
+        using enum navigation::status;
+
+        // Initialize the navigation
+        navigation::status s = propagate_init(propagation, actor_state_refs);
+
+        // Run while there is a heartbeat
+        while (s == e_towards_object || s == e_on_module || s == e_on_portal) {
+            s = propagate_step(propagation, actor_state_refs);
         }
 
         // Pass on the whether the propagation was successful
-        return propagation._navigation.is_complete();
+        return propagate_is_complete(propagation);
     }
 
     /// Overload for emtpy actor chain
