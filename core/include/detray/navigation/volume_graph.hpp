@@ -124,16 +124,11 @@ class volume_graph {
             /// Constructor from an iterator on the detector volume container
             /// and a reference to its surface container.
             iterator(volume_iter &&vol_itr, const detector_t &det)
-                : m_vol_itr(vol_itr), m_det(det) {}
+                : m_vol_itr(std::move(vol_itr)), m_det(det) {}
 
             /// Equality operator
             bool operator==(const iterator &rhs) const {
                 return m_vol_itr == rhs.m_vol_itr;
-            }
-
-            /// Inequality operator
-            bool operator!=(const iterator &rhs) const {
-                return not(*this == rhs);
             }
 
             /// Dereference operator @returns a graph node
@@ -151,24 +146,6 @@ class volume_graph {
                 return *this;
             }
 
-            /// @returns an iterator that has been advanced by @param j
-            constexpr auto operator+(const difference_type j) const
-                -> iterator {
-                return {m_vol_itr + j, m_det};
-            }
-
-            /// @returns an iterator that has been advanced by - @param j
-            constexpr auto operator-(const difference_type j) const
-                -> iterator {
-                return *this + -j;
-            }
-
-            /// @returns distance between two iterators
-            constexpr auto operator-(const iterator &other) const
-                -> difference_type {
-                return m_vol_itr - other.m_vol_itr;
-            }
-
             /// Advances iterator by @param j
             constexpr auto operator+=(const difference_type j) -> iterator & {
                 m_vol_itr += j;
@@ -180,6 +157,27 @@ class volume_graph {
                 return *this += -j;
             }
 
+            protected:
+            /// @returns an iterator that has been advanced by @param j
+            friend constexpr auto operator+(const difference_type j,
+                                            const iterator &itr) -> iterator {
+                return {itr.m_vol_itr + j, itr.m_det};
+            }
+
+            /// @returns an iterator that has been advanced by - @param j
+            friend constexpr auto operator-(const difference_type j,
+                                            const iterator &itr) -> iterator {
+                return itr + -j;
+            }
+
+            /// @returns distance between two iterators
+            friend constexpr auto operator-(const iterator &lhs,
+                                            const iterator &rhs)
+                -> difference_type {
+                return lhs.m_vol_itr - rhs.m_vol_itr;
+            }
+
+            private:
             /// Iterator over the detector volume container.
             volume_iter m_vol_itr;
             /// Access to detector surfaces
@@ -230,7 +228,8 @@ class volume_graph {
             dindex from() const { return _from; }
             dindex to() const { return _to; }
 
-            dindex _from, _to;
+            dindex _from;
+            dindex _to;
         };
 
         /// Nested functor that fills the edges from a mask container
@@ -388,7 +387,7 @@ class volume_graph {
     }*/
 
     /// @returns the linking description as a string.
-    inline const std::string to_string() const {
+    inline std::string to_string() const {
         std::stringstream stream;
         dindex dim = n_nodes() + 1u;
         for (const auto &n : _nodes) {
@@ -415,7 +414,7 @@ class volume_graph {
     }
 
     /// @returns the linking description as a string in DOT syntax.
-    inline const std::string to_dot_string() const {
+    inline std::string to_dot_string() const {
         std::stringstream stream;
         dindex dim = n_nodes() + 1u;
 
@@ -426,7 +425,7 @@ class volume_graph {
         stream << "    splines=true;" << std::endl;
         stream << "    mode=KK;" << std::endl;
         stream << std::endl;
-        stream << "    exit [label=\"OOB\",fillcolor=\"firebrick1\"];"
+        stream << R"(    exit [label="OOB",fillcolor="firebrick1"];)"
                << std::endl;
 
         for (const auto &n : _nodes) {

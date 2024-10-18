@@ -17,7 +17,7 @@ namespace detray::detail {
 /// @return the opening angle of a chord the size of tol (= 2*arcsin(c/(2r)))
 /// using a small angle approximation
 template <typename scalar_t>
-inline constexpr scalar_t phi_tolerance(scalar_t tol, scalar_t radius) {
+constexpr scalar_t phi_tolerance(scalar_t tol, scalar_t radius) {
     return tol / radius;
 }
 

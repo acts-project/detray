@@ -212,7 +212,7 @@ class grid_reader {
         using algebra_t = typename detector_t::algebra_type;
 
         // Throw expection if the accelerator link type id is invalid
-        auto print_error = [](io::accel_id grid_link) -> void {
+        auto print_error = [](io::accel_id grid_link) {
             if (grid_link == io::accel_id::unknown) {
                 throw std::invalid_argument(
                     "Unknown accelerator id in geometry file!");

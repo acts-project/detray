@@ -68,25 +68,26 @@ struct detector_writer_config {
         return *this;
     }
     /// @}
-};
 
-/// Print the detector writer configuration
-inline std::ostream& operator<<(std::ostream& out,
-                                const detector_writer_config& cfg) {
-    out << "\nDetector writer\n"
-        << "----------------------------\n"
-        << "  Path                  : " << cfg.path() << "\n"
-        << "  Write grids           : " << std::boolalpha << cfg.write_grids()
-        << "\n"
-        << "  Write material        : " << cfg.write_material() << "\n";
+    /// Print the detector writer configuration
+    friend std::ostream& operator<<(std::ostream& out,
+                                    const detector_writer_config& cfg) {
+        out << "\nDetector writer\n"
+            << "----------------------------\n"
+            << "  Path                  : " << cfg.path() << "\n"
+            << "  Write grids           : " << std::boolalpha
+            << cfg.write_grids() << "\n"
+            << "  Write material        : " << cfg.write_material() << "\n";
 
-    if (cfg.format() == detray::io::format::json) {
-        out << "  Compactify json       : " << cfg.compactify_json() << "\n";
+        if (cfg.format() == detray::io::format::json) {
+            out << "  Compactify json       : " << cfg.compactify_json()
+                << "\n";
+        }
+        // Reset state
+        out << std::noboolalpha;
+
+        return out;
     }
-    // Reset state
-    out << std::noboolalpha;
-
-    return out;
-}
+};
 
 }  // namespace detray::io

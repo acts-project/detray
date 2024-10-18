@@ -78,12 +78,6 @@ class random_track_generator
             return rhs.m_tracks == m_tracks;
         }
 
-        /// @returns whether we reached the end of iteration
-        DETRAY_HOST_DEVICE
-        constexpr bool operator!=(const iterator& rhs) const {
-            return not(*this == rhs);
-        }
-
         /// @returns the generator at its next position (prefix)
         DETRAY_HOST_DEVICE
         constexpr auto operator++() -> iterator& {

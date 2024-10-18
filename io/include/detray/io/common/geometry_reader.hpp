@@ -64,8 +64,7 @@ class geometry_reader {
         // Convert the volumes one-by-one
         for (const auto& vol_data : det_data.volumes) {
             // Get a generic volume builder first and decorate it later
-            auto vbuilder =
-                det_builder.new_volume(static_cast<volume_id>(vol_data.type));
+            auto vbuilder = det_builder.new_volume(vol_data.type);
 
             // Set the volume name
             name_map[vbuilder->vol_index() + 1u] = vol_data.name;
@@ -75,7 +74,8 @@ class geometry_reader {
                 convert<detector_t>(vol_data.transform));
 
             // Prepare the surface factories (one per shape and surface type)
-            std::map<io_shape_id, sf_factory_ptr_t> pt_factories, sf_factories;
+            std::map<io_shape_id, sf_factory_ptr_t> pt_factories;
+            std::map<io_shape_id, sf_factory_ptr_t> sf_factories;
 
             // Add the surfaces to the factories
             for (const auto& sf_data : vol_data.surfaces) {
@@ -210,8 +210,8 @@ class geometry_reader {
             }
         }
         // Test next shape id
-        constexpr int current_id{static_cast<int>(I)};
-        if constexpr (current_id > 0) {
+        if constexpr (constexpr int current_id{static_cast<int>(I)};
+                      current_id > 0) {
             return init_factory<static_cast<io_shape_id>(current_id - 1),
                                 detector_t>(shape_id);
         }

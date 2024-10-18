@@ -18,11 +18,11 @@
 
 namespace detray::test {
 
-enum plane_mask_ids : unsigned int {
+enum class plane_mask_ids : unsigned int {
     e_plane_rectangle2 = 0u,
 };
 
-enum plane_material_ids : unsigned int {
+enum class plane_material_ids : unsigned int {
     e_plane_slab = 0u,
 };
 

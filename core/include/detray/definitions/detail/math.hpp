@@ -147,31 +147,6 @@ namespace detail {
 using math::copysign;
 using math::signbit;
 
-/// Composes a floating point value with the magnitude of @param mag and the
-/// sign of @param sgn
-/*template <typename scalar_t>
-DETRAY_HOST_DEVICE inline scalar_t copysign(scalar_t mag, scalar_t sgn) {
-#if defined(__CUDACC__)
-    if constexpr (std::is_same_v<scalar_t, float>) {
-        return copysignf(mag, sgn);
-    } else {
-        return copysign(mag, sgn);
-    }
-#elif !defined(__CUDACC__)
-    return math::copysign(mag, sgn);
-#endif
-}
-
-/// Gets the signbit from a variable
-template <typename scalar_t>
-DETRAY_HOST_DEVICE inline bool signbit(scalar_t arg) {
-#if defined(__CUDACC__)
-    return signbit(arg);
-#elif !defined(__CUDACC__)
-    return math::signbit(arg);
-#endif
-}*/
-
 }  // namespace detail
 
 }  // namespace detray

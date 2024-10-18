@@ -58,9 +58,9 @@ class detector_components_reader final {
 
     /// Reads the full detector into @param det by calling the readers, while
     /// using the name map @param volume_names for to write the volume names.
-    virtual void read(detector_builder<typename detector_t::metadata,
-                                       volume_builder>& det_builder,
-                      typename detector_t::name_map& volume_names) {
+    void read(detector_builder<typename detector_t::metadata, volume_builder>&
+                  det_builder,
+              typename detector_t::name_map& volume_names) {
 
         // We have to at least read a geometry
         assert(size() != 0u &&

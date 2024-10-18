@@ -26,6 +26,7 @@
 // System include(s)
 #include <cstdlib>
 #include <iostream>
+#include <random>
 #include <vector>
 
 // Use the detray:: namespace implicitly.
@@ -41,12 +42,14 @@ const auto tp = test::point2{12.f, 30.f};
 /// Prepare test points
 auto make_random_points() {
 
-    std::srand(42);
+    std::random_device rd;
+    std::mt19937_64 gen(rd());
+    std::uniform_real_distribution<scalar> dist1(0.f, 24.f);
+    std::uniform_real_distribution<scalar> dist2(0.f, 59.f);
 
     std::vector<test::point2> points{};
     for (unsigned int itest = 0u; itest < 1000000u; ++itest) {
-        points.push_back({static_cast<scalar>((std::rand() % 50)) * 0.5f,
-                          static_cast<scalar>((std::rand() % 120)) * 0.5f});
+        points.push_back({dist1(gen), dist2(gen)});
     }
 
     return points;

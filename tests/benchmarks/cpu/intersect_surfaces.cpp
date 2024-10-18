@@ -79,13 +79,13 @@ BENCHMARK(BM_INTERSECT_PLANES)
 
 namespace {
 
-enum mask_ids : unsigned int {
+enum class mask_ids : unsigned int {
     e_rectangle2 = 0,
     e_cylinder2 = 1,
     e_conc_cylinder3 = 2,
 };
 
-enum material_ids : unsigned int {
+enum class material_ids : unsigned int {
     e_slab = 0,
 };
 

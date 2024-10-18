@@ -63,7 +63,7 @@ inline void add_json_readers(
     io::detail::detector_components_reader<detector_t>& reader,
     const std::vector<std::string>& files) noexcept(false) {
 
-    for (const std::string& file_name : files) {
+    for (const std::filesystem::path file_name : files) {
 
         if (file_name.empty()) {
             std::cout << "WARNING: Empty file name. Component will not be built"
@@ -71,10 +71,8 @@ inline void add_json_readers(
             continue;
         }
 
-        std::string extension{std::filesystem::path{file_name}.extension()};
-
         // Only add readers for json files
-        if (extension != ".json") {
+        if (file_name.extension() != ".json") {
             continue;
         }
 
@@ -123,8 +121,9 @@ inline void add_json_readers(
                 print_type_warning<detector_t>(header.tag);
             }
         } else {
-            throw std::invalid_argument("Unsupported file tag '" + header.tag +
-                                        "' in input file: " + file_name);
+            throw std::invalid_argument(
+                "Unsupported file tag '" + header.tag +
+                "' in input file: " + file_name.string());
         }
     }
 }

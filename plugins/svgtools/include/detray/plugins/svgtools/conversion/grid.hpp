@@ -31,7 +31,11 @@ namespace detray::svgtools::conversion {
 
 namespace detail {
 
-enum grid_type : std::uint8_t { e_barrel = 0, e_endcap = 1, e_unknown = 2 };
+enum class grid_type : std::uint8_t {
+    e_barrel = 0,
+    e_endcap = 1,
+    e_unknown = 2
+};
 
 /// @returns the actsvg grid type and edge values for a detray 2D cylinder grid.
 template <concepts::grid grid_t, typename view_t>

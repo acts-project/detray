@@ -33,8 +33,8 @@ struct detector_reader_config {
 
     /// Setters
     /// @{
-    detector_reader_config& add_file(const std::string file_name) {
-        m_files.push_back(std::move(file_name));
+    detector_reader_config& add_file(const std::string& file_name) {
+        m_files.push_back(file_name);
         return *this;
     }
     detector_reader_config& do_check(const bool check) {
@@ -49,20 +49,20 @@ struct detector_reader_config {
         return *this;
     }
     /// @}
-};
 
-/// Print the detector reader configuration
-inline std::ostream& operator<<(std::ostream& out,
-                                const detector_reader_config& cfg) {
+    /// Print the detector reader configuration
+    friend std::ostream& operator<<(std::ostream& out,
+                                    const detector_reader_config& cfg) {
 
-    out << "\nDetector reader\n"
-        << "----------------------------\n"
-        << "  Detector files:       : \n";
-    for (const auto& file_name : cfg.files()) {
-        out << "    -> " << file_name << "\n";
+        out << "\nDetector reader\n"
+            << "----------------------------\n"
+            << "  Detector files:       : \n";
+        for (const auto& file_name : cfg.files()) {
+            out << "    -> " << file_name << "\n";
+        }
+
+        return out;
     }
-
-    return out;
-}
+};
 
 }  // namespace detray::io

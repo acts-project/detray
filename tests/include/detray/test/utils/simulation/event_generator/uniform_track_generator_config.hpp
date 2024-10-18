@@ -213,56 +213,57 @@ struct uniform_track_generator_config {
     DETRAY_HOST_DEVICE constexpr scalar time() const { return m_time; }
     DETRAY_HOST_DEVICE constexpr scalar charge() const { return m_charge; }
     /// @}
+
+    /// Print the unifrom track generator configuration
+    DETRAY_HOST
+    friend std::ostream& operator<<(std::ostream& out,
+                                    const uniform_track_generator_config& cfg) {
+        const auto& ori = cfg.origin();
+        const auto& phi_range = cfg.phi_range();
+
+        // General
+        out << "\nUnform track generator\n"
+            << "----------------------------\n"
+            << "  No. tracks            : " << cfg.n_tracks() << "\n"
+            << "    -> phi steps        : " << cfg.phi_steps() << "\n"
+            << "    -> theta/eta steps  : " << cfg.theta_steps() << "\n"
+            << "  Charge                : "
+            << cfg.charge() / detray::unit<scalar>::e << " [e]\n"
+            << "  Rand. charge          : " << std::boolalpha
+            << cfg.randomize_charge() << std::noboolalpha << "\n";
+
+        // Momentum
+        if (cfg.is_pT()) {
+            out << "  Transverse mom.       : "
+                << cfg.m_p_mag / detray::unit<scalar>::GeV << " [GeV]\n";
+        } else {
+            out << "  Momentum              : "
+                << cfg.m_p_mag / detray::unit<scalar>::GeV << " [GeV]\n";
+        }
+
+        // Direction
+        out << "  Phi range             : ["
+            << phi_range[0] / detray::unit<scalar>::rad << ", "
+            << phi_range[1] / detray::unit<scalar>::rad << ") [rad]\n";
+        if (cfg.uniform_eta()) {
+            const auto& eta_range = cfg.eta_range();
+            out << "  Eta range             : [" << eta_range[0] << ", "
+                << eta_range[1] << "]\n";
+        } else {
+            const auto& theta_range = cfg.theta_range();
+            out << "  Theta range           : ["
+                << theta_range[0] / detray::unit<scalar>::rad << ", "
+                << theta_range[1] / detray::unit<scalar>::rad << ") [rad]\n";
+        }
+
+        // Origin
+        out << "  Origin                : ["
+            << ori[0] / detray::unit<scalar>::mm << ", "
+            << ori[1] / detray::unit<scalar>::mm << ", "
+            << ori[2] / detray::unit<scalar>::mm << "] [mm]\n";
+
+        return out;
+    }
 };
-
-/// Print the unifrom track generator configuration
-DETRAY_HOST
-inline std::ostream& operator<<(std::ostream& out,
-                                const uniform_track_generator_config& cfg) {
-    const auto& ori = cfg.origin();
-    const auto& phi_range = cfg.phi_range();
-
-    // General
-    out << "\nUnform track generator\n"
-        << "----------------------------\n"
-        << "  No. tracks            : " << cfg.n_tracks() << "\n"
-        << "    -> phi steps        : " << cfg.phi_steps() << "\n"
-        << "    -> theta/eta steps  : " << cfg.theta_steps() << "\n"
-        << "  Charge                : "
-        << cfg.charge() / detray::unit<scalar>::e << " [e]\n"
-        << "  Rand. charge          : " << std::boolalpha
-        << cfg.randomize_charge() << std::noboolalpha << "\n";
-
-    // Momentum
-    if (cfg.is_pT()) {
-        out << "  Transverse mom.       : "
-            << cfg.m_p_mag / detray::unit<scalar>::GeV << " [GeV]\n";
-    } else {
-        out << "  Momentum              : "
-            << cfg.m_p_mag / detray::unit<scalar>::GeV << " [GeV]\n";
-    }
-
-    // Direction
-    out << "  Phi range             : ["
-        << phi_range[0] / detray::unit<scalar>::rad << ", "
-        << phi_range[1] / detray::unit<scalar>::rad << ") [rad]\n";
-    if (cfg.uniform_eta()) {
-        const auto& eta_range = cfg.eta_range();
-        out << "  Eta range             : [" << eta_range[0] << ", "
-            << eta_range[1] << "]\n";
-    } else {
-        const auto& theta_range = cfg.theta_range();
-        out << "  Theta range           : ["
-            << theta_range[0] / detray::unit<scalar>::rad << ", "
-            << theta_range[1] / detray::unit<scalar>::rad << ") [rad]\n";
-    }
-
-    // Origin
-    out << "  Origin                : [" << ori[0] / detray::unit<scalar>::mm
-        << ", " << ori[1] / detray::unit<scalar>::mm << ", "
-        << ori[2] / detray::unit<scalar>::mm << "] [mm]\n";
-
-    return out;
-}
 
 }  // namespace detray

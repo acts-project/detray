@@ -80,9 +80,6 @@ class base_stepper {
             // A dummy barcode - should not be used
             _bound_params.set_surface_link(geometry::barcode{});
 
-            // Reset the path length
-            _s = 0.f;
-
             // Reset jacobian transport to identity matrix
             matrix_operator().set_identity(_jac_transport);
         }
