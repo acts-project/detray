@@ -13,6 +13,7 @@
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/barcode.hpp"
 #include "detray/geometry/tracking_surface.hpp"
+#include "detray/materials/material.hpp"
 #include "detray/propagator/actors/parameter_resetter.hpp"
 #include "detray/propagator/constrained_step.hpp"
 #include "detray/propagator/stepping_config.hpp"
@@ -160,6 +161,16 @@ class base_stepper {
 
         /// Previous barcode to calculate the bound_to_free_jacobian
         dindex _prev_sf_id = detail::invalid_value<dindex>();
+
+        /// Volume material that track is passing through
+        const detray::material<scalar_type> *_mat{nullptr};
+
+        /// Access the current volume material
+        DETRAY_HOST_DEVICE
+        const auto &volume_material() const {
+            assert(_mat != nullptr);
+            return *_mat;
+        }
 
         /// Set new step constraint
         template <step::constraint type = step::constraint::e_actor>
