@@ -257,7 +257,7 @@ GTEST_TEST(detray_builders, detector_builder_with_material) {
     // Check the volume placement
     typename detector_t::transform3_type trf{t};
     EXPECT_TRUE(vol.transform() == trf);
-    EXPECT_TRUE(d.transform_store()[0u] == trf);
+    EXPECT_TRUE(d.transform_store().at(0u) == trf);
 
     EXPECT_EQ(d.surfaces().size(), 7u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_rectangle2>(), 3u);

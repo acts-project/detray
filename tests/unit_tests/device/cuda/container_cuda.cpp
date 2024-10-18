@@ -59,8 +59,8 @@ TEST(container_cuda, single_store) {
     EXPECT_EQ(mng_store.size(), 4u);
 
     // Check the host-side access to the data
-    EXPECT_NEAR(mng_store[0], 1., tol);
-    EXPECT_NEAR(mng_store[2], 10.5, tol);
+    EXPECT_NEAR(mng_store.at(0, ctx), 1., tol);
+    EXPECT_NEAR(mng_store.at(2, ctx), 10.5, tol);
     EXPECT_NEAR(mng_store.at(1, ctx), 2., tol);
     EXPECT_NEAR(mng_store.at(3, ctx), 7.6, tol);
 

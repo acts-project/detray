@@ -166,7 +166,7 @@ static inline void bin_association(const context_t & /*context*/,
                     }
 
                     // Unroll the mask container and generate vertices
-                    const auto &transform = transforms[sf.transform()];
+                    const auto &transform = transforms.at(sf.transform());
 
                     auto vertices_per_masks = surface_masks.template visit<
                         detail::vertexer<point2_t, point3_t>>(sf.mask());

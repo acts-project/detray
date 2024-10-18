@@ -41,7 +41,7 @@ void set_transform(detector_t &det, const transform3_t &trf, unsigned int i) {
         << "WARNING: Modifying transforms in the detector will be deprecated! "
            "Please, use a separate geometry context in this case"
         << std::endl;
-    det._transforms[i] = trf;
+    det._transforms.at(i) = trf;
 }
 }  // namespace detail
 

@@ -169,17 +169,18 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
 
         if (sfi_init[i].sf_desc.mask().id() == e_rectangle2) {
             global =
-                rect.to_global_frame(transform_store[0], sfi_init[i].local);
+                rect.to_global_frame(transform_store.at(0), sfi_init[i].local);
         } else if (sfi_init[i].sf_desc.mask().id() == e_trapezoid2) {
             global =
-                trap.to_global_frame(transform_store[1], sfi_init[i].local);
+                trap.to_global_frame(transform_store.at(1), sfi_init[i].local);
         } else if (sfi_init[i].sf_desc.mask().id() == e_annulus2) {
             global =
-                annl.to_global_frame(transform_store[2], sfi_init[i].local);
+                annl.to_global_frame(transform_store.at(2), sfi_init[i].local);
         } else if (sfi_init[i].sf_desc.mask().id() == e_cylinder2) {
-            global = cyl.to_global_frame(transform_store[3], sfi_init[i].local);
+            global =
+                cyl.to_global_frame(transform_store.at(3), sfi_init[i].local);
         } else if (sfi_init[i].sf_desc.mask().id() == e_cylinder2_portal) {
-            global = cyl_portal.to_global_frame(transform_store[4],
+            global = cyl_portal.to_global_frame(transform_store.at(4),
                                                 sfi_init[i].local);
         }
 
@@ -284,13 +285,13 @@ GTEST_TEST(detray_intersection, intersection_kernel_helix) {
 
         if (surface.mask().id() == e_rectangle2) {
             global =
-                rect.to_global_frame(transform_store[0], sfi_helix[0].local);
+                rect.to_global_frame(transform_store.at(0), sfi_helix[0].local);
         } else if (surface.mask().id() == e_trapezoid2) {
             global =
-                trap.to_global_frame(transform_store[1], sfi_helix[0].local);
+                trap.to_global_frame(transform_store.at(1), sfi_helix[0].local);
         } else if (surface.mask().id() == e_annulus2) {
             global =
-                annl.to_global_frame(transform_store[2], sfi_helix[0].local);
+                annl.to_global_frame(transform_store.at(2), sfi_helix[0].local);
         }
 
         ASSERT_NEAR(global[0], expected_points[sf_idx][0], is_close);

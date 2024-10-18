@@ -276,7 +276,7 @@ class grid_impl {
         const track_t &track, const config_t &cfg) const {
 
         // Track position in grid coordinates
-        const auto &trf = det.transform_store()[volume.transform()];
+        const auto &trf = det.transform_store().at(volume.transform());
         const auto loc_pos = project(trf, track.pos(), track.dir());
 
         // Grid lookup

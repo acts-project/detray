@@ -208,7 +208,7 @@ GTEST_TEST(detray_builders, tracking_volume_construction) {
 
     // Check the volume placement
     typename detector_t::transform3_type trf{t};
-    EXPECT_TRUE(d.transform_store()[first_trf] == trf);
+    EXPECT_TRUE(d.transform_store().at(first_trf) == trf);
 
     // Check the acceleration data structure link
     dtyped_index<accel_id, dindex> acc_link{accel_id::e_default, 1u};

@@ -128,7 +128,7 @@ class geometry_writer {
         vol_data.index = detail::basic_converter::convert(vol_desc.index());
         vol_data.name = name;
         vol_data.transform =
-            convert<detector_t>(det.transform_store()[vol_desc.transform()]);
+            convert<detector_t>(det.transform_store().at(vol_desc.transform()));
         vol_data.type = vol_desc.id();
 
         // Count the surfaces belonging to this volume

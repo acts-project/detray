@@ -326,7 +326,7 @@ std::pair<euler_rotation<algebra_type>, std::array<scalar, 3u>> tilt_surface(
 
     const auto& sf = det.surface(sf_id);
     const auto& trf_link = sf.transform();
-    auto& trf = det.transform_store()[trf_link];
+    auto& trf = det.transform_store().at(trf_link);
 
     euler_rotation<algebra_type> euler;
     euler.alpha = alpha;
@@ -620,7 +620,7 @@ bound_track_parameters<algebra_type> get_initial_parameter(
 
     const auto& departure_sf = det.surface(0u);
     const auto& trf_link = departure_sf.transform();
-    const auto& departure_trf = det.transform_store()[trf_link];
+    const auto& departure_trf = det.transform_store().at(trf_link);
     const auto& mask_link = departure_sf.mask();
     const auto& departure_mask =
         det.mask_store().template get<mask_id>().at(mask_link.index());
@@ -985,7 +985,7 @@ bound_param_vector_type get_displaced_bound_vector_helix(
 
     const auto& destination_sf = det.surface(1u);
     const auto& trf_link = destination_sf.transform();
-    const auto& destination_trf = det.transform_store()[trf_link];
+    const auto& destination_trf = det.transform_store().at(trf_link);
     const auto& mask_link = destination_sf.mask();
     const auto& destination_mask =
         det.mask_store().template get<mask_id>().at(mask_link.index());
@@ -1047,7 +1047,7 @@ void evaluate_jacobian_difference_helix(
 
     const auto& destination_sf = det.surface(1u);
     const auto& trf_link = destination_sf.transform();
-    const auto& destination_trf = det.transform_store()[trf_link];
+    const auto& destination_trf = det.transform_store().at(trf_link);
     const auto& mask_link = destination_sf.mask();
     const auto& destination_mask =
         det.mask_store().template get<mask_id>().at(mask_link.index());

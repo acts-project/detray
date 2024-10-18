@@ -114,10 +114,10 @@ GTEST_TEST(detray_builders, detector_builder) {
     // Check the volume placements for both volumes
     typename detector_t::transform3_type identity{};
     EXPECT_TRUE(vol0.transform() == identity);
-    EXPECT_TRUE(d.transform_store()[0u] == identity);
+    EXPECT_TRUE(d.transform_store().at(0u) == identity);
     typename detector_t::transform3_type trf{t};
     EXPECT_TRUE(vol1.transform() == trf);
-    EXPECT_TRUE(d.transform_store()[4u] == trf);
+    EXPECT_TRUE(d.transform_store().at(4u) == trf);
 
     EXPECT_EQ(d.surfaces().size(), 12u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_cylinder2>(), 0u);

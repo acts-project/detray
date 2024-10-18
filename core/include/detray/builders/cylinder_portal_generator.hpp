@@ -360,7 +360,7 @@ class cylinder_portal_generator final
         double mean{0.};
 
         for (const auto &sf_desc : surfaces) {
-            const auto &trf = transforms[sf_desc.transform()];
+            const auto &trf = transforms.at(sf_desc.transform());
             mean += getter::perp(trf.translation());
         }
 
