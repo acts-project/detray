@@ -86,6 +86,8 @@ GTEST_TEST(detray_propagator, line_stepper) {
     free_track_parameters<algebra_t> track(pos, 0.f, mom, -1.f);
     free_track_parameters<algebra_t> c_track(pos, 0.f, mom, -1.f);
 
+    stepping::config step_cfg{};
+
     line_stepper_t l_stepper;
     cline_stepper_t cl_stepper;
 
@@ -121,10 +123,10 @@ GTEST_TEST(detray_propagator, line_stepper) {
                 0.5f * unit<scalar>::mm, tol);
 
     // Run a few steps
-    ASSERT_TRUE(l_stepper.step(propagation));
+    ASSERT_TRUE(l_stepper.step(propagation, step_cfg));
     // Step constraint to half step size
-    ASSERT_TRUE(cl_stepper.step(c_propagation));
-    ASSERT_TRUE(cl_stepper.step(c_propagation));
+    ASSERT_TRUE(cl_stepper.step(c_propagation, step_cfg));
+    ASSERT_TRUE(cl_stepper.step(c_propagation, step_cfg));
 
     track = propagation._stepping();
     ASSERT_NEAR(track.pos()[0], constant<scalar>::inv_sqrt2, tol);
@@ -136,7 +138,7 @@ GTEST_TEST(detray_propagator, line_stepper) {
     ASSERT_NEAR(c_track.pos()[1], constant<scalar>::inv_sqrt2, tol);
     ASSERT_NEAR(c_track.pos()[2], 0.f, tol);
 
-    ASSERT_TRUE(l_stepper.step(propagation));
+    ASSERT_TRUE(l_stepper.step(propagation, step_cfg));
 
     track = propagation._stepping();
     ASSERT_NEAR(track.pos()[0], constant<scalar>::sqrt2, tol);
