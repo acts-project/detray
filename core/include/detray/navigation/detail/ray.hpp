@@ -30,6 +30,13 @@ class ray {
 
     ray() = default;
 
+    /// Parametrized constructor from a position and direction
+    ///
+    /// @param pos the track position
+    /// @param dir the track momentum direction
+    DETRAY_HOST_DEVICE ray(point3_type &&pos, vector3_type &&dir)
+        : _pos{std::move(pos)}, _dir{std::move(dir)} {}
+
     /// Parametrized constructor that complies with track interface
     ///
     /// @param pos the track position
@@ -42,7 +49,7 @@ class ray {
     ///
     /// @param track the track state that should be approximated
     DETRAY_HOST_DEVICE explicit ray(const free_track_parameters_type &track)
-        : ray(track.pos(), 0.f, track.dir(), 0.f) {}
+        : ray(track.pos(), track.dir()) {}
 
     /// @returns position on the ray (compatible with tracks/intersectors)
     DETRAY_HOST_DEVICE point3_type pos() const { return _pos; }

@@ -45,14 +45,15 @@ __global__ void navigator_test_kernel(
     navigation.set_volume(0u);
 
     // Start propagation and record volume IDs
-    bool heartbeat = nav.init(propagation, cfg);
+    bool heartbeat = nav.init(stepping(), navigation, cfg);
     while (heartbeat) {
 
-        heartbeat &= stepper.step(propagation);
+        const bool do_reset{navigation.is_on_surface() || navigation.is_init()};
+        heartbeat &= stepper.step(navigation(), do_reset, stepping);
 
         navigation.set_high_trust();
 
-        heartbeat = nav.update(propagation, cfg);
+        heartbeat = nav.update(stepping(), navigation, cfg);
 
         // Record volume
         volume_records[gid].push_back(navigation.volume());
