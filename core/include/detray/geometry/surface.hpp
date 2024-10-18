@@ -21,7 +21,7 @@
 #include <ostream>
 #include <type_traits>
 
-namespace detray {
+namespace detray::geometry {
 
 /// @brief Facade for a detray detector surface.
 ///
@@ -31,16 +31,12 @@ namespace detray {
 /// that contains the indices into the detector data containers for the
 /// specific surface instance.
 template <typename detector_t>  // @TODO: This needs a concept
-class tracking_surface {
+class surface {
 
     /// Surface descriptor type
     using descr_t = typename detector_t::surface_type;
-
+    /// Implementation
     using kernels = detail::surface_kernels<typename detector_t::algebra_type>;
-    /// Vector type for track parameters in global coordinates
-    using free_param_vector_type = typename kernels::free_param_vector_type;
-    /// Vector type for track parameters in local (bound) coordinates
-    using bound_param_vector_type = typename kernels::bound_param_vector_type;
 
     public:
     using algebra_type = typename detector_t::algebra_type;
@@ -52,39 +48,37 @@ class tracking_surface {
     using context = typename detector_t::geometry_context;
 
     /// Not allowed: always needs a detector and a descriptor.
-    tracking_surface() = delete;
+    surface() = delete;
 
     /// Constructor from detector @param det and surface descriptor
     /// @param desc from that detector.
     DETRAY_HOST_DEVICE
-    constexpr tracking_surface(const detector_t &det, const descr_t &desc)
+    constexpr surface(const detector_t &det, const descr_t &desc)
         : m_detector{det}, m_desc{desc} {}
 
     /// Constructor from detector @param det and barcode @param bcd in
     /// that detector.
     DETRAY_HOST_DEVICE
-    constexpr tracking_surface(const detector_t &det,
-                               const geometry::barcode bcd)
-        : tracking_surface(det, det.surface(bcd)) {}
+    constexpr surface(const detector_t &det, const geometry::barcode bcd)
+        : surface(det, det.surface(bcd)) {}
 
     /// Constructor from detector @param det and surface index @param sf_idx
     DETRAY_HOST_DEVICE
-    constexpr tracking_surface(const detector_t &det, const dindex sf_idx)
-        : tracking_surface(det, det.surface(sf_idx)) {}
+    constexpr surface(const detector_t &det, const dindex sf_idx)
+        : surface(det, det.surface(sf_idx)) {}
 
     /// Conversion to surface interface around constant detector type
     template <typename detector_type = detector_t>
     requires(!std::is_const_v<detector_type>) DETRAY_HOST_DEVICE constexpr
-    operator tracking_surface<const detector_type>() const {
-        return tracking_surface<const detector_type>{this->m_detector,
-                                                     this->m_desc};
+    operator surface<const detector_type>() const {
+        return surface<const detector_type>{this->m_detector, this->m_desc};
     }
 
     /// Equality operator
     ///
     /// @param rhs is the right hand side to be compared to
     DETRAY_HOST_DEVICE
-    constexpr auto operator==(const tracking_surface &rhs) const -> bool {
+    constexpr auto operator==(const surface &rhs) const -> bool {
         return (&m_detector == &(rhs.m_detector) && m_desc == rhs.m_desc);
     }
 
@@ -203,17 +197,6 @@ class tracking_surface {
         return visit_mask<typename kernels::normal>(transform(ctx), p);
     }
 
-    /// @returns the cosine of the incidence angle given a local/bound position
-    /// @param p and a global direction @param dir
-    /// @note The direction has to be normalized
-    template <typename point_t = point2_type>
-        requires std::is_same_v<point_t, point3_type> ||
-        std::is_same_v<point_t, point2_type> DETRAY_HOST_DEVICE constexpr auto
-        cos_angle(const context &ctx, const vector3_type &dir,
-                  const point_t &p) const -> scalar_type {
-        return math::fabs(vector::dot(dir, normal(ctx, p)));
-    }
-
     /// @returns a pointer to the material parameters at the local position
     /// @param loc_p
     DETRAY_HOST_DEVICE constexpr const material<scalar_type>
@@ -227,8 +210,10 @@ class tracking_surface {
     constexpr point2_type global_to_bound(const context &ctx,
                                           const point3_type &global,
                                           const vector3_type &dir) const {
-        return visit_mask<typename kernels::global_to_bound>(transform(ctx),
-                                                             global, dir);
+        const point3_type local = visit_mask<typename kernels::global_to_local>(
+            transform(ctx), global, dir);
+
+        return {local[0], local[1]};
     }
 
     /// @returns the local position to the global point @param global for
@@ -243,102 +228,14 @@ class tracking_surface {
 
     /// @returns the global position to the given local position @param local
     /// for a given geometry context @param ctx
-    DETRAY_HOST_DEVICE constexpr point3_type local_to_global(
-        const context &ctx, const point3_type &local,
-        const vector3_type &dir) const {
+    template <typename point_t = point2_type>
+        requires std::is_same_v<point_t, point3_type> ||
+        std::is_same_v<point_t, point2_type>
+            DETRAY_HOST_DEVICE constexpr point3_type local_to_global(
+                const context &ctx, const point_t &local,
+                const vector3_type &dir) const {
         return visit_mask<typename kernels::local_to_global>(transform(ctx),
                                                              local, dir);
-    }
-
-    /// @returns the global position to the given bound position @param bound
-    /// for a given geometry context @param ctx
-    DETRAY_HOST_DEVICE constexpr point3_type bound_to_global(
-        const context &ctx, const point2_type &bound,
-        const vector3_type &dir) const {
-        return visit_mask<typename kernels::local_to_global>(transform(ctx),
-                                                             bound, dir);
-    }
-
-    /// @returns the track parametrization projected onto the surface (bound)
-    DETRAY_HOST_DEVICE
-    constexpr auto free_to_bound_vector(
-        const context &ctx, const free_param_vector_type &free_vec) const {
-        return visit_mask<typename kernels::free_to_bound_vector>(
-            transform(ctx), free_vec);
-    }
-
-    /// @returns the global track parametrization from a bound representation
-    DETRAY_HOST_DEVICE
-    constexpr auto bound_to_free_vector(
-        const context &ctx, const bound_param_vector_type &bound_vec) const {
-        return visit_mask<typename kernels::bound_to_free_vector>(
-            transform(ctx), bound_vec);
-    }
-
-    /// @returns the jacobian to go from a free to a bound track parametrization
-    DETRAY_HOST_DEVICE
-    constexpr auto free_to_bound_jacobian(
-        const context &ctx, const free_param_vector_type &free_vec) const {
-        return this
-            ->template visit_mask<typename kernels::free_to_bound_jacobian>(
-                transform(ctx), free_vec);
-    }
-
-    /// @returns the jacobian to go from a bound to a free track parametrization
-    DETRAY_HOST_DEVICE
-    constexpr auto bound_to_free_jacobian(
-        const context &ctx, const bound_param_vector_type &bound_vec) const {
-        return this
-            ->template visit_mask<typename kernels::bound_to_free_jacobian>(
-                transform(ctx), bound_vec);
-    }
-
-    /// @returns the path correction term
-    DETRAY_HOST_DEVICE
-    constexpr auto path_correction(const context &ctx, const vector3_type &pos,
-                                   const vector3_type &dir,
-                                   const vector3_type &dtds,
-                                   const scalar_type dqopds) const {
-        return visit_mask<typename kernels::path_correction>(
-            transform(ctx), pos, dir, dtds, dqopds);
-    }
-
-    /// @returns the vertices in local frame with @param n_seg the number of
-    /// segments used along acrs
-    DETRAY_HOST
-    constexpr auto local_vertices(const dindex n_seg) const {
-        return visit_mask<typename kernels::vertices>(n_seg);
-    }
-
-    /// @returns the vertices in global frame with @param n_seg the number of
-    /// segments used along acrs
-    DETRAY_HOST
-    constexpr auto global_vertices(const context &ctx,
-                                   const dindex n_seg) const {
-        auto vertices = local_vertices(n_seg);
-        for (std::size_t i = 0u; i < vertices.size(); ++i) {
-            vertices[i] = transform(ctx).point_to_global(vertices[i]);
-        }
-        return vertices;
-    }
-
-    /// @returns the vertices in local frame with @param n_seg the number of
-    /// segments used along acrs
-    /// @note the point has to be inside the surface mask
-    template <typename point_t>
-    DETRAY_HOST constexpr auto min_dist_to_boundary(
-        const point_t &loc_p) const {
-        return visit_mask<typename kernels::min_dist_to_boundary>(loc_p);
-    }
-
-    /// @brief Lower and upper point for minimal axis aligned bounding box.
-    ///
-    /// Computes the min and max vertices in a local cartesian frame.
-    DETRAY_HOST
-    constexpr auto local_min_bounds(
-        const scalar_type env =
-            std::numeric_limits<scalar_type>::epsilon()) const {
-        return visit_mask<typename kernels::local_min_bounds>(env);
     }
 
     /// Call a functor on the surfaces mask with additional arguments.
@@ -431,13 +328,21 @@ class tracking_surface {
         return true;
     }
 
+    protected:
     /// @returns a string stream that prints the surface details
     DETRAY_HOST
-    friend std::ostream &operator<<(std::ostream &os,
-                                    const tracking_surface &sf) {
+    friend std::ostream &operator<<(std::ostream &os, const surface &sf) {
         os << sf.m_desc;
         return os;
     }
+
+    /// @returns access to the underlying detector object
+    DETRAY_HOST_DEVICE
+    const detector_t &detector() const { return m_detector; }
+
+    /// @returns access to the underlying surface descriptor object
+    DETRAY_HOST_DEVICE
+    descr_t descriptor() const { return m_desc; }
 
     private:
     /// Access to the detector stores
@@ -447,11 +352,11 @@ class tracking_surface {
 };
 
 template <typename detector_t, typename descr_t>
-DETRAY_HOST_DEVICE tracking_surface(const detector_t &, const descr_t &)
-    ->tracking_surface<detector_t>;
+DETRAY_HOST_DEVICE surface(const detector_t &, const descr_t &)
+    ->surface<detector_t>;
 
 template <typename detector_t>
-DETRAY_HOST_DEVICE tracking_surface(const detector_t &, const geometry::barcode)
-    ->tracking_surface<detector_t>;
+DETRAY_HOST_DEVICE surface(const detector_t &, const geometry::barcode)
+    ->surface<detector_t>;
 
-}  // namespace detray
+}  // namespace detray::geometry

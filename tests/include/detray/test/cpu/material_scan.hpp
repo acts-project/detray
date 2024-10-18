@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/geometry/surface.hpp"
 #include "detray/navigation/detail/ray.hpp"
 
 // Detray IO include(s)
@@ -151,7 +152,7 @@ class material_scan : public test::fixture_base<> {
                 }
 
                 const auto sf =
-                    tracking_surface{m_det, record.intersection.sf_desc};
+                    geometry::surface{m_det, record.intersection.sf_desc};
 
                 if (!sf.has_material()) {
                     continue;
@@ -160,7 +161,8 @@ class material_scan : public test::fixture_base<> {
                 const auto &p = record.intersection.local;
                 const auto mat_params = sf.template visit_material<
                     material_validator::get_material_params>(
-                    point2_t{p[0], p[1]}, sf.cos_angle(m_gctx, ray.dir(), p));
+                    point2_t{p[0], p[1]},
+                    detail::cos_angle(m_gctx, sf, ray.dir(), p));
 
                 const scalar_t seg{mat_params.path};
                 const scalar_t t{mat_params.thickness};

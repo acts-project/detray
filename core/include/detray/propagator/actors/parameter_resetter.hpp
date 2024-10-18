@@ -10,7 +10,6 @@
 // Project include(s).
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
-#include "detray/geometry/tracking_surface.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/detail/jacobian_engine.hpp"
 
