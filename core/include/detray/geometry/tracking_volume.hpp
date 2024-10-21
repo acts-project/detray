@@ -55,12 +55,14 @@ class tracking_volume {
     /// Constructor from detector @param det and volume descriptor
     /// @param vol_idx from that detector.
     constexpr tracking_volume(const detector_t &det, const descr_t &desc)
-        : m_detector{det}, m_desc{desc} {}
+        : m_detector{det},
+          m_desc{(assert(desc.index() < m_detector.volumes().size()), desc)} {}
 
     /// Constructor from detector @param det and volume index @param vol_idx in
     /// that detector.
     constexpr tracking_volume(const detector_t &det, const dindex vol_idx)
-        : tracking_volume(det, det.volume(vol_idx)) {}
+        : tracking_volume(det, (assert(vol_idx < det.volumes().size()),
+                                det.volume(vol_idx))) {}
 
     /// @returns access to the underlying detector
     DETRAY_HOST_DEVICE

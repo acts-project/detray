@@ -58,7 +58,8 @@ class tracking_surface {
     /// @param desc from that detector.
     DETRAY_HOST_DEVICE
     constexpr tracking_surface(const detector_t &det, const descr_t &desc)
-        : m_detector{det}, m_desc{desc} {}
+        : m_detector{det},
+          m_desc{(assert(desc.volume() < m_detector.volumes().size()), desc)} {}
 
     /// Constructor from detector @param det and barcode @param bcd in
     /// that detector.
