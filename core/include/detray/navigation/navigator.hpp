@@ -748,10 +748,7 @@ class navigator {
 
         // Update only the current candidate and the corresponding next target
         // - do this only when the navigation state is still coherent
-        if (navigation.trust_level() == navigation::trust_level::e_high ||
-            (navigation.n_candidates() == 1 &&
-             navigation.trust_level() == navigation::trust_level::e_high)) {
-
+        if (navigation.trust_level() == navigation::trust_level::e_high) {
             // Update next candidate: If not reachable, 'high trust' is broken
             if (!update_candidate(navigation.target(), track, det, cfg)) {
                 navigation.m_status = navigation::status::e_unknown;
