@@ -92,13 +92,21 @@ struct step_tracer : actor {
         const auto& navigation = prop_state._navigation;
         const auto& stepping = prop_state._stepping;
 
-        // Collect the data whenever requested
-        if (navigation.is_on_module() || navigation.is_on_portal() ||
-            tracer_state.m_collect_every_step) {
+        const bool is_on_sf{navigation.is_on_module() ||
+                            navigation.is_on_portal()};
 
-            step_data_t sd{stepping.step_size(),         stepping.path_length(),
-                           stepping.n_total_trials(),    navigation.direction(),
-                           navigation.barcode(),         stepping(),
+        // Collect the data whenever requested
+        if (is_on_sf || tracer_state.m_collect_every_step) {
+
+            const geometry::barcode bcd{is_on_sf ? navigation.barcode()
+                                                 : geometry::barcode{}};
+
+            step_data_t sd{stepping.step_size(),
+                           stepping.path_length(),
+                           stepping.n_total_trials(),
+                           navigation.direction(),
+                           bcd,
+                           stepping(),
                            stepping.transport_jacobian()};
 
             tracer_state.m_steps.push_back(std::move(sd));
