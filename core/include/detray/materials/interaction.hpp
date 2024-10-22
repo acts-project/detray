@@ -68,9 +68,20 @@ struct interaction {
 
         scalar_type stopping_power{0.f};
 
-        // Only consider electrons at the moment
+        // Only consider electrons and positrons at the moment
         // For middle-heavy particles muons, the bremss is negligibe
-        if (ptc.pdg_num() == electron<scalar_type>().pdg_num()) {
+        //
+        // Also, over 10 MeV, positron and electron bremss might be similar.
+        // In ICRU 37, it is written that "In our tabulations, the radiative
+        // stopping power for positrons has been assumed to be the same as that
+        // for electrons, which is a good approximation at energies above, say,
+        // 10 MeV. However, it should be mentioned that exploratory calculations
+        // by Feng et at. (1981), employing the same method as that previously
+        // used by them for electrons, indicate significant differences between
+        // positrons and electrons in regard to the differential bremsstrahlung
+        // cross sections in oxygen and uranium at 500, 50, and 10 keV"
+        if (ptc.pdg_num() == electron<scalar_type>().pdg_num() ||
+            ptc.pdg_num() == positron<scalar_type>().pdg_num()) {
             // Stopping power ~ E/X (B. B. Rossi, High-energy particles,1952)
             // This approximation gets poor in low energy below 10 MeV
             stopping_power = rq.m_gamma * ptc.mass() / mat.X0();
@@ -148,7 +159,8 @@ struct interaction {
 
         scalar_type derivative{0.f};
 
-        if (ptc.pdg_num() == electron<scalar_type>().pdg_num()) {
+        if (ptc.pdg_num() == electron<scalar_type>().pdg_num() ||
+            ptc.pdg_num() == positron<scalar_type>().pdg_num()) {
             // Stopping power ~ E/X = gamma * m/X
             // Derivative = dgamma/dqop * m/X = -beta^2 gamma/qop * m/X
             // (Eq (D.5) of arXiv:2403.16720)
