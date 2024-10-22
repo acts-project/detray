@@ -21,6 +21,7 @@
 
 // System include(s)
 #include <concepts>
+#include <type_traits>
 
 namespace detray {
 
@@ -40,18 +41,26 @@ struct dbase_buffer {};
 /// vecemem buffer. This is the case if it inherits from @c dbase_buffer or if
 /// it matches one of the vecmem specializations
 /// @{
-template <typename T>
+template <typename T, typename = void>
 struct is_buffer : public std::false_type {};
+
+/// Specialization of @c is_buffer for types that inherit from @c dbase_buffer
+template <typename T>
+struct is_buffer<
+    T, std::enable_if_t<std::is_base_of_v<detray::detail::dbase_buffer,
+                                          std::remove_cvref_t<T>>,
+                        void>> : public std::true_type {};
 
 /// Specialization of @c is_buffer for @c vecmem::data::vector_buffer containers
 template <typename T>
-struct is_buffer<vecmem::data::vector_buffer<T>> : public std::true_type {};
+struct is_buffer<vecmem::data::vector_buffer<T>, void> : public std::true_type {
+};
 
 /// Specialization of @c is_buffer for constant @c vecmem::data::vector_buffer
 /// containers
 template <typename T>
-struct is_buffer<const vecmem::data::vector_buffer<T>> : public std::true_type {
-};
+struct is_buffer<const vecmem::data::vector_buffer<T>, void>
+    : public std::true_type {};
 
 template <typename T>
 inline constexpr bool is_buffer_v = is_buffer<T>::value;
@@ -71,38 +80,38 @@ concept device_buffer =
 namespace detail {
 /// Helper trait to check whether a type has a [vecmem] buffer type defined
 /// @{
-template <class T>
-struct get_buffer : public std::false_type {
-    using type = void;
-};
+template <class T, typename = void>
+struct get_buffer {};
 
 template <class T>
-requires concepts::device_buffer<typename T::buffer_type> struct get_buffer<T>
-    : public std::true_type {
+struct get_buffer<
+    T, std::enable_if_t<detray::detail::is_buffer_v<
+                            typename std::remove_cvref_t<T>::buffer_type>,
+                        void>> {
     using type = typename T::buffer_type;
 };
 
 /// Specialization of the buffer getter for @c vecmem::vector
 template <typename T>
-struct get_buffer<vecmem::vector<T>> : public std::true_type {
+struct get_buffer<vecmem::vector<T>, void> {
     using type = vecmem::data::vector_buffer<T>;
 };
 
 /// Specialization of the buffer getter for @c vecmem::vector - const
 template <typename T>
-struct get_buffer<const vecmem::vector<T>> : public std::true_type {
+struct get_buffer<const vecmem::vector<T>, void> {
     using type = vecmem::data::vector_buffer<const T>;
 };
 
 /// Specialization of the buffer getter for @c vecmem::device_vector
 template <typename T>
-struct get_buffer<vecmem::device_vector<T>> : public std::true_type {
+struct get_buffer<vecmem::device_vector<T>, void> {
     using type = vecmem::data::vector_buffer<T>;
 };
 
 /// Specialization of the buffer getter for @c vecmem::device_vector - const
 template <typename T>
-struct get_buffer<const vecmem::device_vector<T>> : public std::true_type {
+struct get_buffer<const vecmem::device_vector<T>, void> {
     using type = vecmem::data::vector_buffer<const T>;
 };
 
