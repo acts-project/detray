@@ -11,7 +11,6 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/materials/interaction.hpp"
-#include "detray/materials/material.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/navigation/policies.hpp"
 #include "detray/propagator/base_stepper.hpp"
@@ -87,16 +86,6 @@ class rk_stepper final
         /// Magnetic field view
         const magnetic_field_t _magnetic_field;
 
-        /// Material that track is passing through. Usually a volume material
-        const detray::material<scalar_type>* _mat{nullptr};
-
-        /// Access the current volume material
-        DETRAY_HOST_DEVICE
-        const auto& volume_material() const {
-            assert(_mat != nullptr);
-            return *_mat;
-        }
-
         /// Update the track state by Runge-Kutta-Nystrom integration.
         DETRAY_HOST_DEVICE
         void advance_track();
@@ -152,10 +141,15 @@ class rk_stepper final
 
     /// Take a step, using an adaptive Runge-Kutta algorithm.
     ///
+    /// @param dist_to_next The straight line distance to the next surface
+    /// @param stepping The state object of a stepper
+    /// @param cfg The stepping configuration
+    /// @param do_reset whether to reset the RKN step size to "dist to next"
+    ///
     /// @return returning the heartbeat, indicating if the stepping is alive
-    template <typename propagation_state_t>
-    DETRAY_HOST_DEVICE bool step(propagation_state_t& propagation,
-                                 const stepping::config& cfg) const;
+    DETRAY_HOST_DEVICE bool step(const scalar_type dist_to_next,
+                                 state& stepping, const stepping::config& cfg,
+                                 bool do_reset) const;
 };
 
 }  // namespace detray

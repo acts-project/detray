@@ -13,6 +13,7 @@
 #include "detray/detectors/toy_metadata.hpp"
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/line_stepper.hpp"
+#include "detray/propagator/propagation_config.hpp"
 
 // Detray test include(s)
 #include "detray/test/utils/simulation/event_generator/track_generators.hpp"
@@ -55,7 +56,7 @@ namespace detray {
 
 /// test function for navigator with single state
 void navigator_test(
-    typename detector_host_t::view_type det_data, navigation::config& cfg,
+    typename detector_host_t::view_type det_data, propagation::config& cfg,
     vecmem::data::vector_view<free_track_parameters<algebra_t>>& tracks_data,
     vecmem::data::jagged_vector_view<dindex>& volume_records_data,
     vecmem::data::jagged_vector_view<point3>& position_records_data);

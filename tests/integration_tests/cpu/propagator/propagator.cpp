@@ -373,7 +373,7 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
 // No step size constraint
 INSTANTIATE_TEST_SUITE_P(
     detray_propagator_validation1, PropagatorWithRkStepper,
-    ::testing::Values(std::make_tuple(-100.f * unit<scalar_t>::mm,
+    ::testing::Values(std::make_tuple(-100.f * unit<scalar_t>::um,
                                       std::numeric_limits<scalar_t>::max(),
                                       vector3{0.f * unit<scalar_t>::T,
                                               0.f * unit<scalar_t>::T,

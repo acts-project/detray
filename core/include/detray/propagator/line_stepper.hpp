@@ -76,33 +76,25 @@ class line_stepper final
         }
 
         DETRAY_HOST_DEVICE
-        inline vector3_type dtds() const { return {0.f, 0.f, 0.f}; }
+        constexpr vector3_type dtds() const { return {0.f, 0.f, 0.f}; }
 
         DETRAY_HOST_DEVICE
-        inline scalar_type dqopds() const { return 0.f; }
+        constexpr scalar_type dqopds() const { return 0.f; }
     };
 
     /// Take a step, regulared by a constrained step
     ///
+    /// @param dist_to_next The straight line distance to the next surface
     /// @param stepping The state object of a stepper
-    /// @param navigation The state object of a navigator
-    /// @param max_step_size Maximal distance for this step
+    /// @param cfg The stepping configuration
     ///
-    /// @return returning the heartbeat, indicating if the stepping is alive
-    template <typename propagation_state_t>
-    DETRAY_HOST_DEVICE bool step(propagation_state_t& propagation,
-                                 const stepping::config& cfg = {}) const {
-        // Get stepper and navigator states
-        state& stepping = propagation._stepping;
-        auto& navigation = propagation._navigation;
+    /// @returns returning the heartbeat, indicating if the stepping is alive
+    DETRAY_HOST_DEVICE bool step(const scalar_type dist_to_next,
+                                 state& stepping, const stepping::config& cfg,
+                                 const bool = true) const {
 
-        if (stepping._step_size == 0.f) {
-            stepping._step_size = navigation();
-        } else if (stepping._step_size > 0) {
-            stepping._step_size = math::min(stepping._step_size, navigation());
-        } else {
-            stepping._step_size = math::max(stepping._step_size, navigation());
-        }
+        // Straight line stepping: The distance given by the navigator is exact
+        stepping._step_size = dist_to_next;
 
         // Update navigation direction
         const step::direction step_dir = stepping._step_size >= 0.f
@@ -111,14 +103,14 @@ class line_stepper final
         stepping.set_direction(step_dir);
 
         // Check constraints
-        if (math::fabs(stepping.step_size()) >
-            math::fabs(
-                stepping.constraints().template size<>(stepping.direction()))) {
+        if (const scalar_type max_step =
+                stepping.constraints().template size<>(stepping.direction());
+            math::fabs(stepping._step_size) > math::fabs(max_step)) {
+
             // Run inspection before step size is cut
             stepping.run_inspector(cfg, "Before constraint: ");
 
-            stepping.set_step_size(
-                stepping.constraints().template size<>(stepping.direction()));
+            stepping.set_step_size(max_step);
         }
 
         // Update track state
@@ -129,10 +121,6 @@ class line_stepper final
 
         // Count the number of steps
         stepping.count_trials();
-
-        // Call navigation update policy
-        typename line_stepper::policy_type{}(stepping.policy_state(),
-                                             propagation);
 
         // Run inspection if needed
         stepping.run_inspector(cfg, "Step complete: ");

@@ -318,8 +318,7 @@ struct print_inspector {
         }
 
         debug_stream << "current object\t\t\t";
-        if (state.is_on_portal() || state.is_on_module() ||
-            state.status() == status::e_on_target) {
+        if (state.is_on_surface() || state.status() == status::e_on_target) {
             debug_stream << state.barcode() << std::endl;
         } else {
             debug_stream << "undefined" << std::endl;

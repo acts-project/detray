@@ -139,7 +139,7 @@ struct random_scatterer : actor {
 
         auto& navigation = prop_state._navigation;
 
-        if (!navigation.is_on_module()) {
+        if (!navigation.encountered_sf_material()) {
             return;
         }
 
