@@ -30,7 +30,8 @@ using scalar_type = test::scalar;
 using matrix_operator = test::matrix_operator;
 using transform3 = test::transform3;
 using vector3 = test::vector3;
-using intersection_t = intersection2D<surface_descriptor<>, test::algebra>;
+using intersection_t =
+    intersection2D<surface_descriptor<>, test::algebra, true>;
 
 // Mask types to be tested
 // @TODO: Remove unbounded tag

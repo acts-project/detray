@@ -39,6 +39,7 @@ constexpr scalar tol{std::numeric_limits<scalar>::epsilon()};
 }  // namespace
 
 using algebra_t = test::algebra;
+using scalar_t = dscalar<algebra_t>;
 using point2 = test::point2;
 using vector3 = test::vector3;
 using point3 = test::point3;
@@ -50,14 +51,29 @@ using surface_t = surface_descriptor<mask_link_t, material_link_t, algebra_t>;
 // This tests the construction of a intresection
 GTEST_TEST(detray_intersection, intersection2D) {
 
-    using intersection_t = intersection2D<surface_t, algebra_t>;
+    using intersection_t = intersection2D<surface_t, algebra_t, true>;
+    using nominal_inters_t = intersection2D<surface_t, algebra_t, false>;
 
-    intersection_t i0 = {surface_t{}, point3{0.2f, 0.4f, 0.f}, 2.f, 1u, false,
-                         true};
+    // Check memory layout of intersection struct
+    static_assert(offsetof(nominal_inters_t, sf_desc) == 0);
+    static_assert(offsetof(nominal_inters_t, path) == 16);
+    // Depends on floating point precision of 'path' member variable
+    static_assert((offsetof(nominal_inters_t, volume_link) == 20) ||
+                  (offsetof(nominal_inters_t, volume_link) == 24));
+    static_assert((offsetof(nominal_inters_t, status) == 22) ||
+                  (offsetof(nominal_inters_t, status) == 26));
+    static_assert((offsetof(nominal_inters_t, direction) == 23) ||
+                  (offsetof(nominal_inters_t, direction) == 27));
 
-    intersection_t i1 = {
-        surface_t{}, point3{0.2f, 0.4f, 0.f}, 1.7f, 0u, true, false,
-    };
+    // 24 bytes for single precision, 32 bytes for double
+    static_assert((sizeof(nominal_inters_t) == 24) ||
+                  (sizeof(nominal_inters_t) == 32));
+
+    const surface_t sf{};
+    const point3 test_pt{0.2f, 0.4f, 0.f};
+
+    intersection_t i0{{sf, 2.f, 1u, false, true}, test_pt};
+    intersection_t i1{{sf, 1.7f, 0u, true, false}, test_pt};
 
     intersection_t invalid{};
     ASSERT_FALSE(invalid.status);

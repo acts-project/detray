@@ -82,7 +82,7 @@ struct toy_metadata {
         single_store<dtransform3D<algebra_type>, vector_t, geometry_context>;
 
     /// Mask type ids
-    enum class mask_ids : std::uint8_t {
+    enum class mask_ids : std::uint_least8_t {
         e_rectangle2 = 0,
         e_trapezoid2 = 1,
         e_portal_cylinder2 = 2,
@@ -98,7 +98,7 @@ struct toy_metadata {
                             rectangle, trapezoid, cylinder_portal, disc_portal>;
 
     /// Material type ids
-    enum class material_ids : std::uint8_t {
+    enum class material_ids : std::uint_least8_t {
         e_disc2_map = 0u,
         e_concentric_cylinder2_map = 1u,
         e_rectangle2_map = 2u,
@@ -125,7 +125,7 @@ struct toy_metadata {
         surface_descriptor<mask_link, material_link, transform_link, nav_link>;
 
     /// Portals and passives in the brute froce search, sensitives in the grids
-    enum geo_objects : std::uint8_t {
+    enum geo_objects : std::uint_least8_t {
         e_portal = 0,
         e_passive = 0,
         e_sensitive = 1,
@@ -134,7 +134,7 @@ struct toy_metadata {
     };
 
     /// Acceleration data structures
-    enum class accel_ids : std::uint8_t {
+    enum class accel_ids : std::uint_least8_t {
         e_brute_force = 0,     // test all surfaces in a volume (brute force)
         e_disc_grid = 1,       // endcap
         e_cylinder2_grid = 2,  // barrel

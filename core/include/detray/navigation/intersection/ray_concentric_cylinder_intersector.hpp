@@ -24,7 +24,7 @@ namespace detray {
 
 /// A functor to find intersections between trajectory and concentric cylinder
 /// mask
-template <concepts::aos_algebra algebra_t>
+template <concepts::aos_algebra algebra_t, bool do_debug = false>
 struct ray_concentric_cylinder_intersector {
 
     /// linear algebra types
@@ -36,7 +36,8 @@ struct ray_concentric_cylinder_intersector {
     /// @}
 
     template <typename surface_descr_t>
-    using intersection_type = intersection2D<surface_descr_t, algebra_t>;
+    using intersection_type =
+        intersection2D<surface_descr_t, algebra_t, do_debug>;
     using ray_type = detail::ray<algebra_t>;
 
     /// Operator function to find intersections between ray and concentric
@@ -109,17 +110,20 @@ struct ray_concentric_cylinder_intersector {
 
                 const point3_type p3 = candidates[cindex];
                 const scalar_type phi{getter::phi(p3)};
-                is.local = {r * phi, p3[2], r};
+                const point3_type loc{r * phi, p3[2], r};
+                if constexpr (intersection_type<surface_descr_t>::is_debug()) {
+                    is.local = loc;
+                }
 
                 is.path = t01[cindex];
                 // In this case, the point has to be in cylinder3 coordinates
                 // for the r-check
                 // Tolerance: per mille of the distance
                 is.status = mask.is_inside(
-                    is.local, math::max(mask_tolerance[0],
-                                        math::min(mask_tolerance[1],
-                                                  mask_tol_scalor *
-                                                      math::fabs(is.path))));
+                    loc, math::max(
+                             mask_tolerance[0],
+                             math::min(mask_tolerance[1],
+                                       mask_tol_scalor * math::fabs(is.path))));
                 is.sf_desc = sf;
                 is.direction = !detail::signbit(is.path);
                 is.volume_link = mask.volume_link();

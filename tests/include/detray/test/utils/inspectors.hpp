@@ -277,14 +277,18 @@ struct print_inspector {
 
         using geo_ctx_t = typename state_type::detector_type::geometry_context;
         for (const auto &sf_cand : state) {
-            const auto &local = sf_cand.local;
-            const auto pos =
-                tracking_surface{state.detector(), sf_cand.sf_desc}
-                    .local_to_global(geo_ctx_t{}, local, track_dir);
 
             debug_stream << sf_cand;
-            debug_stream << ", glob: [r:" << getter::perp(pos)
-                         << ", z:" << pos[2] << "]" << std::endl;
+
+            // Use additional debug information that was gathered on the cand.
+            if constexpr (state_type::value_type::is_debug()) {
+                const auto &local = sf_cand.local;
+                const auto pos =
+                    tracking_surface{state.detector(), sf_cand.sf_desc}
+                        .local_to_global(geo_ctx_t{}, local, track_dir);
+                debug_stream << ", glob: [r:" << getter::perp(pos)
+                             << ", z:" << pos[2] << "]" << std::endl;
+            }
         }
         if (!state.candidates().empty()) {
             debug_stream << "=> next: ";

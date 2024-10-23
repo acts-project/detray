@@ -59,7 +59,7 @@ inline auto read_intersection2D(const std::string &file_name) {
     using mask_id_t = typename detector_t::masks::id;
     using material_id_t = typename detector_t::materials::id;
 
-    using intersection_t = detray::intersection2D<surface_t, algebra_t>;
+    using intersection_t = detray::intersection2D<surface_t, algebra_t, true>;
 
     dfe::NamedTupleCsvReader<io::csv::intersection2D> inters_reader(file_name);
 
