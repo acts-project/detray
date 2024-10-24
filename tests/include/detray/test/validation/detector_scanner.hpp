@@ -32,7 +32,7 @@ struct intersection_record {
     using scalar_t = dscalar<algebra_t>;
     using track_parameter_type = free_track_parameters<algebra_t>;
     using intersection_type =
-        intersection2D<typename detector_t::surface_type, algebra_t>;
+        intersection2D<typename detector_t::surface_type, algebra_t, true>;
 
     /// The charge associated with the track parameters
     scalar_t charge;
@@ -70,7 +70,7 @@ struct brute_force_scan {
         using nav_link_t = typename detector_t::surface_type::navigation_link;
 
         using intersection_t =
-            intersection2D<sf_desc_t, typename detector_t::algebra_type>;
+            intersection2D<sf_desc_t, typename detector_t::algebra_type, true>;
 
         using intersection_kernel_t = intersection_initialize<intersector>;
 

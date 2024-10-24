@@ -49,7 +49,7 @@ inline auto record_propagation(
 
     /// Type that holds the intersection information
     using intersection_t =
-        intersection2D<typename detector_t::surface_type, algebra_t>;
+        intersection2D<typename detector_t::surface_type, algebra_t, true>;
 
     /// Inspector that records all encountered surfaces
     using object_tracer_t =
@@ -64,8 +64,8 @@ inline auto record_propagation(
         aggregate_inspector<object_tracer_t, nav_print_inspector_t>;
 
     // Navigation with inspection
-    using navigator_t =
-        navigator<detector_t, navigation::default_cache_size, inspector_t>;
+    using navigator_t = navigator<detector_t, navigation::default_cache_size,
+                                  inspector_t, intersection_t>;
 
     // Propagator with pathlimit aborter and validation actors
     using step_tracer_t = step_tracer<algebra_t, dvector>;

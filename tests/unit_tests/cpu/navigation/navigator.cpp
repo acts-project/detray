@@ -35,8 +35,8 @@ namespace detray {
 
 namespace {
 
-constexpr std::size_t cache_size{navigation::default_cache_size};
-
+// constexpr std::size_t cache_size{navigation::default_cache_size};
+constexpr std::size_t cache_size{10u};
 // dummy propagator state
 template <typename stepping_t, typename navigation_t>
 struct prop_state {
@@ -138,6 +138,12 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
     using constraint_t = constrained_step<>;
     using stepper_t = line_stepper<algebra_t, constraint_t>;
 
+    // 24 bytes for single precision
+    std::cout << sizeof(navigator<detector_t, cache_size>::state) << std::endl;
+    // static_assert(sizeof(navigator_t::state) == 17 +
+    // navigation::default_cache_size * sizeof(typename
+    // navigator_t::state::value_type));
+
     // test track
     point3 pos{0.f, 0.f, 0.f};
     vector3 mom{1.f, 1.f, 0.f};
@@ -154,6 +160,19 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
         stepper_t::state{traj}, navigator_t::state(toy_det)};
     navigator_t::state &navigation = propagation._navigation;
     stepper_t::state &stepping = propagation._stepping;
+
+    std::cout << "Candidates: "
+              << sizeof(std::as_const(navigation).candidates()) << std::endl;
+    std::cout << "det: " << sizeof(&std::as_const(navigation).detector())
+              << std::endl;
+    std::cout << "Vol: " << sizeof(std::as_const(navigation).volume())
+              << std::endl;
+    std::cout << "Status: " << sizeof(std::as_const(navigation).status())
+              << std::endl;
+    std::cout << "dir: " << sizeof(std::as_const(navigation).direction())
+              << std::endl;
+    std::cout << "trust: " << sizeof(std::as_const(navigation).trust_level())
+              << std::endl;
 
     // Check that the state is unitialized
     // Default volume is zero

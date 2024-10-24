@@ -239,7 +239,7 @@ GTEST_TEST(detray_material, material_rod) {
     const mask<line_circular> ln{0u, 1.f * unit<scalar_t>::mm,
                                  std::numeric_limits<scalar_t>::infinity()};
 
-    auto is = ray_intersector<line_circular, algebra_t>{}(
+    auto is = ray_intersector<line_circular, algebra_t, true>{}(
         detail::ray<algebra_t>(trk), surface_descriptor<>{}, ln, tf);
 
     const scalar_t cos_inc_ang{std::abs(vector::dot(

@@ -20,12 +20,12 @@
 
 namespace detray {
 
-template <typename frame_t, typename algebra_t>
+template <typename frame_t, typename algebra_t, bool do_debug>
 struct ray_intersector_impl;
 
 /// A functor to find intersections between straight line and planar surface
-template <concepts::soa_algebra algebra_t>
-struct ray_intersector_impl<line2D<algebra_t>, algebra_t> {
+template <concepts::soa_algebra algebra_t, bool do_debug>
+struct ray_intersector_impl<line2D<algebra_t>, algebra_t, do_debug> {
 
     /// Linear algebra types
     /// @{
@@ -36,7 +36,8 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t> {
     /// @}
 
     template <typename surface_descr_t>
-    using intersection_type = intersection2D<surface_descr_t, algebra_t>;
+    using intersection_type =
+        intersection2D<surface_descr_t, algebra_t, do_debug>;
 
     /// Operator function to find intersections between ray and line mask
     ///
@@ -98,12 +99,14 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t> {
 
         // point of closest approach on the track
         const point3_type m = ro + rd * is.path;
-        is.local = mask_t::to_local_frame(trf, m, rd);
+        const auto loc = mask_t::to_local_frame(trf, m, rd);
+        if constexpr (intersection_type<surface_descr_t>::is_debug()) {
+            is.local = loc;
+        }
         is.status = mask.is_inside(
-            is.local,
-            math::max(mask_tolerance[0],
-                      math::min(mask_tolerance[1],
-                                mask_tol_scalor * math::fabs(is.path))));
+            loc, math::max(mask_tolerance[0],
+                           math::min(mask_tolerance[1],
+                                     mask_tol_scalor * math::fabs(is.path))));
 
         // Early return, in case all intersections are invalid
         if (detray::detail::none_of(is.status)) {

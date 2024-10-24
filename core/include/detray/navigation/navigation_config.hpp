@@ -18,11 +18,12 @@
 namespace detray::navigation {
 
 /// Navigation trust levels determine how the candidates chache is updated
-enum class trust_level {
-    e_no_trust = 0,  ///< re-initialize the volume (i.e. run local navigation)
-    e_fair = 1,      ///< update the distance & order of the candidates
-    e_high = 3,  ///< update the distance to the next candidate (current target)
-    e_full = 4   ///< don't update anything
+enum class trust_level : std::uint_least8_t {
+    e_no_trust = 0u,  ///< re-initialize the volume (i.e. run local navigation)
+    e_fair = 1u,      ///< update the distance & order of the candidates
+    e_high =
+        3u,      ///< update the distance to the next candidate (current target)
+    e_full = 4u  ///< don't update anything
 };
 
 /// Navigation configuration

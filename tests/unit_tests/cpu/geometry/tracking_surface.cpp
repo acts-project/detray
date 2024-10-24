@@ -51,6 +51,8 @@ GTEST_TEST(detray_geometry, surface_descriptor) {
     surface_descriptor<mask_link_t, material_link_t> desc(
         1u, mask_id, material_id, 2u, surface_id::e_sensitive);
 
+    static_assert(sizeof(decltype(desc)) == 16);
+
     // Test access
     ASSERT_EQ(desc.transform(), 1u);
     ASSERT_EQ(desc.volume(), 2u);

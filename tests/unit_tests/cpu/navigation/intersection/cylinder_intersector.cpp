@@ -47,7 +47,7 @@ const scalar hz{10.f};
 GTEST_TEST(detray_intersection, translated_cylinder) {
     // Create a translated cylinder and test untersection
     const transform3_t shifted(vector3{3.f, 2.f, 10.f});
-    ray_intersector<cylinder2D, algebra_t> ci;
+    ray_intersector<cylinder2D, algebra_t, true> ci;
 
     // Test ray
     const point3 ori = {3.f, 2.f, 5.f};
@@ -101,8 +101,8 @@ GTEST_TEST(detray_intersection, cylinder_portal) {
     const transform3_t identity{};
     mask<cylinder2D, std::uint_least16_t, algebra_t> cylinder{0u, r, -hz, hz};
 
-    ray_intersector<cylinder2D, algebra_t> ci;
-    ray_intersector<concentric_cylinder2D, algebra_t> cpi;
+    ray_intersector<cylinder2D, algebra_t, true> ci;
+    ray_intersector<concentric_cylinder2D, algebra_t, true> cpi;
 
     // Intersect
     const auto hits_cylinrical =
@@ -145,8 +145,8 @@ GTEST_TEST(detray_intersection, concentric_cylinders) {
     const transform3_t identity{};
     mask<cylinder2D, std::uint_least16_t, algebra_t> cylinder{0u, r, -hz, hz};
 
-    ray_intersector<cylinder2D, algebra_t> ci;
-    ray_concentric_cylinder_intersector<algebra_t> cci;
+    ray_intersector<cylinder2D, algebra_t, true> ci;
+    ray_concentric_cylinder_intersector<algebra_t, true> cci;
 
     // Intersect
     const auto hits_cylinrical =

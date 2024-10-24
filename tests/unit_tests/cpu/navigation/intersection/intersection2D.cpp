@@ -39,6 +39,7 @@ constexpr scalar tol{std::numeric_limits<scalar>::epsilon()};
 }  // namespace
 
 using algebra_t = test::algebra;
+using scalar_t = dscalar<algebra_t>;
 using point2 = test::point2;
 using vector3 = test::vector3;
 using point3 = test::point3;
@@ -50,14 +51,17 @@ using surface_t = surface_descriptor<mask_link_t, material_link_t, algebra_t>;
 // This tests the construction of a intresection
 GTEST_TEST(detray_intersection, intersection2D) {
 
-    using intersection_t = intersection2D<surface_t, algebra_t>;
+    using intersection_t = intersection2D<surface_t, algebra_t, true>;
 
-    intersection_t i0 = {surface_t{}, point3{0.2f, 0.4f, 0.f}, 2.f, 1u, false,
-                         true};
+    // 24 bytes for single precision
+    static_assert(sizeof(intersection2D<surface_t, algebra_t>) ==
+                  20 + sizeof(scalar_t));
 
-    intersection_t i1 = {
-        surface_t{}, point3{0.2f, 0.4f, 0.f}, 1.7f, 0u, true, false,
-    };
+    intersection_t i0 = {false, true,        1u,
+                         2.f,   surface_t{}, point3{0.2f, 0.4f, 0.f}};
+
+    intersection_t i1 = {true, false,       0u,
+                         1.7f, surface_t{}, point3{0.2f, 0.4f, 0.f}};
 
     intersection_t invalid{};
     ASSERT_FALSE(invalid.status);

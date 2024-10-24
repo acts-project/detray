@@ -20,12 +20,12 @@
 
 namespace detray {
 
-template <typename frame_t, typename algebra_t>
+template <typename frame_t, typename algebra_t, bool do_debug>
 struct ray_intersector_impl;
 
 /// A functor to find intersections between trajectory and line mask
-template <concepts::aos_algebra algebra_t>
-struct ray_intersector_impl<line2D<algebra_t>, algebra_t> {
+template <concepts::aos_algebra algebra_t, bool do_debug>
+struct ray_intersector_impl<line2D<algebra_t>, algebra_t, do_debug> {
 
     using scalar_type = dscalar<algebra_t>;
     using point3_type = dpoint3D<algebra_t>;
@@ -33,7 +33,8 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t> {
     using transform3_type = dtransform3D<algebra_t>;
 
     template <typename surface_descr_t>
-    using intersection_type = intersection2D<surface_descr_t, algebra_t>;
+    using intersection_type =
+        intersection2D<surface_descr_t, algebra_t, do_debug>;
     using ray_type = detail::ray<algebra_t>;
 
     /// Operator function to find intersections between ray and line mask
@@ -102,10 +103,13 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t> {
             // point of closest approach on the track
             const point3_type m = _p + _d * A;
 
-            is.local = mask_t::to_local_frame(trf, m, _d);
+            const auto loc{mask_t::to_local_frame(trf, m, _d)};
+            if constexpr (intersection_type<surface_descr_t>::is_debug()) {
+                is.local = loc;
+            }
             // Tolerance: per mille of the distance
             is.status = mask.is_inside(
-                is.local,
+                loc,
                 math::max(mask_tolerance[0],
                           math::min(mask_tolerance[1],
                                     mask_tol_scalor * math::fabs(is.path))));

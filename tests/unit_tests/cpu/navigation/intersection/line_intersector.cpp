@@ -33,8 +33,8 @@ using cartesian = cartesian2D<transform3>;
 using vector3 = test::vector3;
 using point3 = test::point3;
 using point2 = test::point2;
-using intersection_t = intersection2D<surface_descriptor<>, algebra_t>;
-using line_intersector_type = ray_intersector<line_circular, algebra_t>;
+using intersection_t = intersection2D<surface_descriptor<>, algebra_t, true>;
+using line_intersector_type = ray_intersector<line_circular, algebra_t, true>;
 
 constexpr scalar tol{1e-5f};
 

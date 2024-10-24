@@ -22,12 +22,12 @@
 
 namespace detray {
 
-template <typename frame_t, typename algebra_t>
+template <typename frame_t, typename algebra_t, bool do_debug>
 struct ray_intersector_impl;
 
 /// A functor to find intersections between a ray and a 2D cylinder mask
-template <concepts::aos_algebra algebra_t>
-struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t> {
+template <concepts::aos_algebra algebra_t, bool do_debug>
+struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
 
     /// Linear algebra types
     /// @{
@@ -38,7 +38,8 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t> {
     /// @}
 
     template <typename surface_descr_t>
-    using intersection_type = intersection2D<surface_descr_t, algebra_t>;
+    using intersection_type =
+        intersection2D<surface_descr_t, algebra_t, do_debug>;
     using ray_type = detail::ray<algebra_t>;
 
     /// Operator function to find intersections between a ray and a 2D cylinder
@@ -189,10 +190,13 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t> {
             is.path = path;
             const point3_type p3 = ro + is.path * rd;
 
-            is.local = mask_t::to_local_frame(trf, p3);
+            const auto loc{mask_t::to_local_frame(trf, p3)};
+            if constexpr (intersection_type<surface_descr_t>::is_debug()) {
+                is.local = loc;
+            }
             // Tolerance: per mille of the distance
             is.status = mask.is_inside(
-                is.local,
+                loc,
                 math::max(mask_tolerance[0],
                           math::min(mask_tolerance[1],
                                     mask_tol_scalor * math::fabs(is.path))));

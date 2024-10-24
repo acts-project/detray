@@ -22,11 +22,14 @@
 
 namespace detray {
 
+template <typename surface_descr_t, typename algebra_t, bool debug = false>
+struct intersection2D {};
+
 /// @brief This class holds the intersection information.
 ///
 /// @tparam surface_descr_t is the type of surface descriptor
 template <typename surface_descr_t, typename algebra_t>
-struct intersection2D {
+struct intersection2D<surface_descr_t, algebra_t, false> {
 
     using T = typename algebra_t::value_type;
     using algebra_type = algebra_t;
@@ -38,25 +41,24 @@ struct intersection2D {
     using transform3_type = dtransform3D<algebra_t>;
     using nav_link_t = typename surface_descr_t::navigation_link;
 
-    /// Descriptor of the surface this intersection belongs to
-    surface_descr_t sf_desc{};
-
-    /// Local position of the intersection on the surface
-    point3_type local{detail::invalid_value<T>(), detail::invalid_value<T>(),
-                      detail::invalid_value<T>()};
-
-    /// Distance between track and candidate
-    scalar_type path = detail::invalid_value<T>();
-
-    /// Navigation information (next volume to go to)
-    nav_link_t volume_link{detail::invalid_value<nav_link_t>()};
-
     /// Result of the intersection (true = inside, false = outside)
     bool_t status{false};
 
     /// Direction of the intersection with respect to the track (true = along,
     /// false = opposite)
     bool_t direction{true};
+
+    /// Navigation information (next volume to go to)
+    nav_link_t volume_link{detail::invalid_value<nav_link_t>()};
+
+    /// Distance between track and candidate
+    scalar_type path = detail::invalid_value<T>();
+
+    /// Descriptor of the surface this intersection belongs to
+    surface_descr_t sf_desc{};
+
+    /// @returns true if debug information needs to be filled
+    static consteval bool is_debug() { return false; }
 
     /// @note: Three way comparison cannot be used easily with SoA boolean masks
     /// @{
@@ -107,9 +109,7 @@ struct intersection2D {
         out_stream << "dist:" << is.path
                    << "\tsurface: " << is.sf_desc.barcode()
                    << ", type: " << static_cast<int>(is.sf_desc.mask().id())
-                   << ", links to vol:" << is.volume_link << ")"
-                   << ", loc [" << is.local[0] << ", " << is.local[1] << ", "
-                   << is.local[2] << "], ";
+                   << ", links to vol:" << is.volume_link << ")";
 
         if constexpr (std::is_scalar_v<bool_t>) {
             out_stream << (is.status ? ", status: inside"
@@ -122,6 +122,39 @@ struct intersection2D {
         }
 
         out_stream << std::endl;
+        return out_stream;
+    }
+};
+
+/// @brief This class holds the intersection information with additional debug
+///        information.
+///
+/// @tparam surface_descr_t is the type of surface descriptor
+template <typename surface_descr_t, typename algebra_t>
+struct intersection2D<surface_descr_t, algebra_t, true>
+    : public intersection2D<surface_descr_t, algebra_t, false> {
+
+    using T = typename algebra_t::value_type;
+    using algebra_type = algebra_t;
+    using point3_type = dpoint3D<algebra_t>;
+
+    /// @returns true if debug information needs to be filled
+    static consteval bool is_debug() { return true; }
+
+    /// Local position of the intersection on the surface
+    point3_type local{detail::invalid_value<T>(), detail::invalid_value<T>(),
+                      detail::invalid_value<T>()};
+
+    /// Transform to a string for output debugging
+    DETRAY_HOST
+    friend std::ostream &operator<<(std::ostream &out_stream,
+                                    const intersection2D &is) {
+        using base_t = intersection2D<surface_descr_t, algebra_t, false>;
+
+        out_stream << static_cast<base_t>(is);
+        out_stream << ", loc [" << is.local[0] << ", " << is.local[1] << ", "
+                   << is.local[2] << "], ";
+
         return out_stream;
     }
 };

@@ -37,7 +37,7 @@ struct helix_intersector_impl<line2D<algebra_t>, algebra_t> {
     using transform3_type = dtransform3D<algebra_t>;
 
     template <typename surface_descr_t>
-    using intersection_type = intersection2D<surface_descr_t, algebra_t>;
+    using intersection_type = intersection2D<surface_descr_t, algebra_t, true>;
     using helix_type = detail::helix<algebra_t>;
 
     /// Operator function to find intersections between helix and line mask

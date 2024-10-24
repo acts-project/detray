@@ -30,7 +30,7 @@ namespace detray {
 template <typename mask_link_t = dtyped_index<dindex, dindex>,
           typename material_link_t = dtyped_index<dindex, dindex>,
           typename transform_link_t = dindex,
-          typename navigation_link_t = dindex>
+          typename navigation_link_t = std::uint_least16_t>
 class surface_descriptor {
 
     public:

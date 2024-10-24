@@ -22,6 +22,8 @@
 // Google include(s).
 #include <benchmark/benchmark.h>
 
+#include <iostream>
+
 using namespace detray;
 
 // VecMem memory resource(s)
@@ -61,6 +63,7 @@ static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
     vecmem::cuda::copy copy;
 
     std::size_t total_tracks = 0;
+    std::cout << sizeof(navigator_host_type::state) << std::endl;
 
     for (auto _ : state) {
 

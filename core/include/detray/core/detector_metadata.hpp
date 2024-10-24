@@ -33,7 +33,7 @@ struct default_metadata {
     using algebra_type = ALGEBRA_PLUGIN<detray::scalar>;
 
     /// Mask-to-(next)-volume link (potentially switchable for SoA)
-    using nav_link = std::uint_least16_t;
+    using nav_link = std::uint16_t;
 
     /// Mask types
     /// @TODO: Need to duplicate for pixel/strip measurement dimensions?
@@ -151,7 +151,7 @@ struct default_metadata {
 
     /// Give your mask types a name (needs to be consecutive and has to match
     /// the types position in the mask store!)
-    enum class mask_ids : std::uint8_t {
+    enum class mask_ids : std::uint_least8_t {
         e_rectangle2 = 0,
         e_portal_rectangle2 = 0,
         e_trapezoid2 = 1,
@@ -188,7 +188,7 @@ unbounded_cell, unmasked_plane*/>;
 
     /// Give your material types a name (needs to be consecutive and has to
     /// match the types position in the mask store!)
-    enum class material_ids : std::uint8_t {
+    enum class material_ids : std::uint_least8_t {
         // Material texture (grid) shapes
         e_disc2_map = 0u,
         e_concentric_cylinder2_map = 1u,
@@ -234,7 +234,7 @@ unbounded_cell, unmasked_plane*/>;
     /// How to index the constituent objects (surfaces) in a volume
     /// If they share the same index value here, they will be added into the
     /// same acceleration data structure (brute force is always at 0)
-    enum geo_objects : std::uint8_t {
+    enum geo_objects : std::uint_least8_t {
         e_portal = 0,     // Brute force search
         e_sensitive = 1,  // Grid accelerated search (can be different types)
         e_passive = 0,    // Brute force search
@@ -243,7 +243,7 @@ unbounded_cell, unmasked_plane*/>;
     };
 
     /// Acceleration data structures
-    enum class accel_ids : std::uint8_t {
+    enum class accel_ids : std::uint_least8_t {
         e_brute_force = 0,     // test all surfaces in a volume (brute force)
         e_disc_grid = 1,       // e.g. endcap layers
         e_cylinder2_grid = 2,  // e.g. barrel layers
