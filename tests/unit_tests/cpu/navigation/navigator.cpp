@@ -11,7 +11,6 @@
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/line_stepper.hpp"
-#include "detray/propagator/propagation_config.hpp"
 #include "detray/tracks/tracks.hpp"
 
 // Detray test include(s)
@@ -93,18 +92,19 @@ inline void check_volume_switch(state_t &state, dindex vol_id) {
 template <typename navigator_t, typename stepper_t, typename prop_state_t>
 inline void step_and_check(navigator_t &nav, stepper_t &stepper,
                            prop_state_t &propagation,
-                           const propagation::config &cfg, dindex vol_id,
+                           const navigation::config &nav_cfg,
+                           const stepping::config &step_cfg, dindex vol_id,
                            std::size_t n_candidates, dindex current_id,
                            dindex next_id) {
     auto &navigation = propagation._navigation;
     auto &stepping = propagation._stepping;
 
     // Step onto the surface in volume
-    stepper.step(navigation(), stepping, cfg.stepping);
+    stepper.step(navigation(), stepping, step_cfg);
     navigation.set_high_trust();
     // Stepper reduced trust level
     ASSERT_TRUE(navigation.trust_level() == navigation::trust_level::e_high);
-    ASSERT_TRUE(nav.update(stepping(), navigation, cfg.navigation));
+    ASSERT_TRUE(nav.update(stepping(), navigation, nav_cfg));
     // Trust level is restored
     ASSERT_EQ(navigation.trust_level(), navigation::trust_level::e_full);
     // The status is on surface
@@ -145,10 +145,10 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
 
     stepper_t stepper;
     navigator_t nav;
-    propagation::config prop_cfg{};
-    stepping::config &stp_cfg = prop_cfg.stepping;
-    navigation::config &nav_cfg = prop_cfg.navigation;
+    navigation::config nav_cfg{};
     nav_cfg.search_window = {3u, 3u};
+
+    stepping::config step_cfg{};
 
     prop_state<stepper_t::state, navigator_t::state> propagation{
         stepper_t::state{traj}, navigator_t::state(toy_det)};
@@ -182,7 +182,7 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
     // Let's make half the step towards the beampipe
     stepping.template set_constraint<step::constraint::e_user>(navigation() *
                                                                0.5f);
-    stepper.step(navigation(), stepping, stp_cfg);
+    stepper.step(navigation(), stepping, step_cfg);
     // Navigation policy might reduce trust level to fair trust
     navigation.set_fair_trust();
     // Release user constraint again
@@ -203,12 +203,13 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
     ASSERT_NEAR(navigation(), 9.5f, tol);
 
     // Now step onto the beampipe (idx 0)
-    step_and_check(nav, stepper, propagation, prop_cfg, 0u, 1u, 0u, 8u);
+    step_and_check(nav, stepper, propagation, nav_cfg, step_cfg, 0u, 1u, 0u,
+                   8u);
     // New target: Distance to the beampipe volume cylinder portal
     ASSERT_NEAR(navigation(), 6.f, tol);
 
     // Step onto portal 7 in volume 0
-    stepper.step(navigation(), stepping, stp_cfg);
+    stepper.step(navigation(), stepping, step_cfg);
     navigation.set_high_trust();
     ASSERT_TRUE(navigation.trust_level() == trust_level::e_high);
     ASSERT_TRUE(nav.update(stepping(), navigation, nav_cfg))
@@ -269,12 +270,13 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
         // Step through the module surfaces
         for (std::size_t sf = 1u; sf < sf_seq.size() - 1u; ++sf) {
             // Count only the currently reachable candidates
-            step_and_check(nav, stepper, propagation_cpy, prop_cfg, vol_id,
-                           n_candidates - sf, sf_seq[sf], sf_seq[sf + 1u]);
+            step_and_check(nav, stepper, propagation_cpy, nav_cfg, step_cfg,
+                           vol_id, n_candidates - sf, sf_seq[sf],
+                           sf_seq[sf + 1u]);
         }
 
         // Step onto the portal in volume
-        stepper.step(navigation_cpy(), stepping_cpy, stp_cfg);
+        stepper.step(navigation_cpy(), stepping_cpy, step_cfg);
         navigation_cpy.set_high_trust();
 
         // Check agianst last volume
@@ -331,12 +333,12 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
 
     stepper_t stepper;
     navigator_t nav;
-    propagation::config prop_cfg{};
-    stepping::config &stp_cfg = prop_cfg.stepping;
-    navigation::config &nav_cfg = prop_cfg.navigation;
+    navigation::config nav_cfg{};
     nav_cfg.mask_tolerance_scalor = 1e-2f;
     nav_cfg.path_tolerance = 1.f * unit<float>::um;
     nav_cfg.search_window = {3u, 3u};
+
+    stepping::config step_cfg{};
 
     prop_state<stepper_t::state, navigator_t::state> propagation{
         stepper_t::state{traj}, navigator_t::state(wire_det)};
@@ -369,7 +371,7 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
     // Let's make half the step towards the portal
     stepping.template set_constraint<step::constraint::e_user>(navigation() *
                                                                0.5f);
-    stepper.step(navigation(), stepping, stp_cfg);
+    stepper.step(navigation(), stepping, step_cfg);
     // Navigation policy might reduce trust level to fair trust
     navigation.set_fair_trust();
     // Release user constraint again
@@ -390,7 +392,7 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
     ASSERT_NEAR(navigation(), 250.f * unit<scalar>::mm, tol);
 
     // Step onto portal in volume 0
-    stepper.step(navigation(), stepping, stp_cfg);
+    stepper.step(navigation(), stepping, step_cfg);
     navigation.set_high_trust();
     ASSERT_TRUE(navigation.trust_level() == trust_level::e_high);
     ASSERT_TRUE(nav.update(stepping(), navigation, nav_cfg))
@@ -440,12 +442,13 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
         // Step through the module surfaces
         for (std::size_t sf = 1u; sf < sf_seq.size() - 1u; ++sf) {
             // Count only the currently reachable candidates
-            step_and_check(nav, stepper, propagation_cpy, prop_cfg, vol_id,
-                           n_candidates - sf, sf_seq[sf], sf_seq[sf + 1u]);
+            step_and_check(nav, stepper, propagation_cpy, nav_cfg, step_cfg,
+                           vol_id, n_candidates - sf, sf_seq[sf],
+                           sf_seq[sf + 1u]);
         }
 
         // Step onto the portal in volume
-        stepper.step(navigation_cpy(), stepping_cpy, stp_cfg);
+        stepper.step(navigation_cpy(), stepping_cpy, step_cfg);
         navigation_cpy.set_high_trust();
 
         // Check agianst last volume

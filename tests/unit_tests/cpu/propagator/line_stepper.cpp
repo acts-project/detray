@@ -29,7 +29,7 @@ namespace {
 
 constexpr scalar tol{1e-3f};
 constexpr scalar step_size{1.f * unit<scalar>::mm};
-constexpr stepping::config stp_cfg{};
+constexpr stepping::config step_cfg{};
 
 }  // namespace
 
@@ -77,10 +77,10 @@ GTEST_TEST(detray_propagator, line_stepper) {
                 0.5f * unit<scalar>::mm, tol);
 
     // Run a few steps
-    ASSERT_TRUE(l_stepper.step(step_size, l_state, stp_cfg));
+    ASSERT_TRUE(l_stepper.step(step_size, l_state, step_cfg));
     // Step constraint to half step size
-    ASSERT_TRUE(cl_stepper.step(step_size, cl_state, stp_cfg));
-    ASSERT_TRUE(cl_stepper.step(step_size, cl_state, stp_cfg));
+    ASSERT_TRUE(cl_stepper.step(step_size, cl_state, step_cfg));
+    ASSERT_TRUE(cl_stepper.step(step_size, cl_state, step_cfg));
 
     track = l_state();
     ASSERT_NEAR(track.pos()[0], constant<scalar>::inv_sqrt2, tol);
@@ -92,7 +92,7 @@ GTEST_TEST(detray_propagator, line_stepper) {
     ASSERT_NEAR(c_track.pos()[1], constant<scalar>::inv_sqrt2, tol);
     ASSERT_NEAR(c_track.pos()[2], 0.f, tol);
 
-    ASSERT_TRUE(l_stepper.step(step_size, l_state, stp_cfg));
+    ASSERT_TRUE(l_stepper.step(step_size, l_state, step_cfg));
 
     track = l_state();
     ASSERT_NEAR(track.pos()[0], constant<scalar>::sqrt2, tol);

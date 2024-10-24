@@ -56,7 +56,8 @@ namespace detray {
 
 /// test function for navigator with single state
 void navigator_test(
-    typename detector_host_t::view_type det_data, propagation::config& cfg,
+    typename detector_host_t::view_type det_data, navigation::config& nav_cfg,
+    stepping::config& step_cfg,
     vecmem::data::vector_view<free_track_parameters<algebra_t>>& tracks_data,
     vecmem::data::jagged_vector_view<dindex>& volume_records_data,
     vecmem::data::jagged_vector_view<point3>& position_records_data);

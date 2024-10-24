@@ -116,7 +116,9 @@ class line_stepper final
         stepping.advance_track();
 
         // Advance jacobian transport
-        stepping.advance_jacobian();
+        if (cfg.do_covariance_transport) {
+            stepping.advance_jacobian();
+        }
 
         // Count the number of steps
         stepping.count_trials();
