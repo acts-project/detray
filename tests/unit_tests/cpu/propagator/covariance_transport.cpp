@@ -102,7 +102,7 @@ GTEST_TEST(detray_propagator, covariance_transport) {
     p.propagate(propagation, detray::tie(bound_updater, rst));
 
     // Bound state after one turn propagation
-    const auto& bound_param1 = propagation._stepping._bound_params;
+    const auto& bound_param1 = propagation._stepping.bound_params();
 
     // const auto bound_vec0 = bound_param0;
     // const auto bound_vec1 = bound_param1;

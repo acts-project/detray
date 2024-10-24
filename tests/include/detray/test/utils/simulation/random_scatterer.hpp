@@ -144,8 +144,8 @@ struct random_scatterer : actor {
         }
 
         auto& stepping = prop_state._stepping;
-        const auto& ptc = stepping._ptc;
-        auto& bound_params = stepping._bound_params;
+        const auto& ptc = stepping.particle_hypothesis();
+        auto& bound_params = stepping.bound_params();
         const auto sf = navigation.get_surface();
         const scalar_type cos_inc_angle{
             sf.cos_angle(geo_context_type{}, bound_params.dir(),
@@ -170,8 +170,8 @@ struct random_scatterer : actor {
                                      simulator_state.generator);
 
         // Update Phi and Theta
-        stepping._bound_params.set_phi(getter::phi(new_dir));
-        stepping._bound_params.set_theta(getter::theta(new_dir));
+        stepping.bound_params().set_phi(getter::phi(new_dir));
+        stepping.bound_params().set_theta(getter::theta(new_dir));
 
         // Flag renavigation of the current candidate
         prop_state._navigation.set_high_trust();
