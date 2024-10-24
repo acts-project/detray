@@ -26,13 +26,13 @@ GTEST_TEST(detray_core, static_mask_store) {
 
     using namespace detray;
 
-    enum mask_ids : unsigned int {
-        e_rectangle2 = 0,
-        e_trapezoid2 = 1,
-        e_annulus2 = 2,
-        e_cylinder3 = 3,
-        e_ring2 = 4,
-        e_single3 = 5,
+    enum class mask_ids : unsigned int {
+        e_rectangle2 = 0u,
+        e_trapezoid2 = 1u,
+        e_annulus2 = 2u,
+        e_cylinder3 = 3u,
+        e_ring2 = 4u,
+        e_single3 = 5u,
     };
 
     using rectangle = mask<rectangle2D>;

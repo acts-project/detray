@@ -13,8 +13,6 @@
 #include "detray/detectors/toy_metadata.hpp"
 #include "detray/utils/ranges.hpp"
 
-using namespace detray;
-
 namespace detray {
 
 // some useful type declarations

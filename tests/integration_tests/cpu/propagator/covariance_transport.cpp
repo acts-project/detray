@@ -255,12 +255,12 @@ class detray_propagation_HelixCovarianceTransportValidation
         return ret;
     }
 
-    const intersection_t get_intersection(
+    intersection_t get_intersection(
         const std::array<intersection_t, 2>& inters) const {
         return inters[0];
     }
 
-    const intersection_t get_intersection(const intersection_t& inters) const {
+    intersection_t get_intersection(const intersection_t& inters) const {
         return inters;
     }
 };

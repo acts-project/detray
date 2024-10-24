@@ -210,7 +210,7 @@ struct circular {
     /// @returns an index of a remapped bin
     DETRAY_HOST_DEVICE
     constexpr int wrap(const int ibin, const std::size_t nbins) const {
-        const int bins = static_cast<int>(nbins);
+        const auto bins = static_cast<int>(nbins);
         return (bins + (ibin % bins)) % bins;
     }
 

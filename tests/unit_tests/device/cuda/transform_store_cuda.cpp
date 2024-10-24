@@ -21,6 +21,8 @@
 // System include(s)
 #include <climits>
 
+using namespace detray;
+
 TEST(transform_store_cuda, transform_store) {
 
     using algebra_t = ALGEBRA_PLUGIN<detray::scalar>;

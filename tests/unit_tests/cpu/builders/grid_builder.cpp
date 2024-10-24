@@ -134,8 +134,6 @@ GTEST_TEST(detray_builders, grid_factory_static) {
     EXPECT_EQ(bin2[0], 3u);
     EXPECT_EQ(bin2[1], 5u);
 
-    // gr_builder.to_string(ann_gr);
-
     // Build from parameters
     const std::vector<scalar> bin_edges_z{-10.f, -8.f, -6.5f, -1.f,
                                           4.f,   5.f,  6.f,   9.f};
@@ -213,9 +211,8 @@ GTEST_TEST(detray_builders, grid_factory_dynamic) {
     auto bin_indexer2D = detray::views::cartesian_product{
         detray::views::iota{0u, 2u}, detray::views::iota{0u, 3u}};
     dindex capacity{0u};
-    for (const auto& bin_idx : bin_indexer2D) {
-        typename ann_grid_t::loc_bin_index mbin{std::get<0>(bin_idx),
-                                                std::get<1>(bin_idx)};
+    for (const auto [bin_idx0, bin_idx1] : bin_indexer2D) {
+        typename ann_grid_t::loc_bin_index mbin{bin_idx0, bin_idx1};
         capacities.emplace_back(mbin, ++capacity);
     }
 
@@ -262,8 +259,6 @@ GTEST_TEST(detray_builders, grid_factory_dynamic) {
 
     EXPECT_EQ(ann_gr.size(), 2u);
 
-    // gr_builder.to_string(ann_gr);
-
     // Build from parameters
     const std::vector<scalar> bin_edges_z{-10.f, -8.f, -6.5f, -1.f,
                                           4.f,   5.f,  6.f,   9.f};
@@ -273,9 +268,8 @@ GTEST_TEST(detray_builders, grid_factory_dynamic) {
         detray::views::iota{0u, 10u}, detray::views::iota{0u, 7u}};
     capacity = 0u;
     capacities.clear();
-    for (const auto& bin_idx : bin_indexer2D) {
-        typename ann_grid_t::loc_bin_index mbin{std::get<0>(bin_idx),
-                                                std::get<1>(bin_idx)};
+    for (const auto [bin_idx0, bin_idx1] : bin_indexer2D) {
+        typename ann_grid_t::loc_bin_index mbin{bin_idx0, bin_idx1};
         capacities.emplace_back(mbin, ++capacity);
     }
 
@@ -367,7 +361,8 @@ GTEST_TEST(detray_builders, grid_builder) {
 
     // The cylinder portals are at the end of the surface range by construction
     const auto cyl_mask = mask<concentric_cylinder2D>{0u, 10.f, -500.f, 500.f};
-    std::size_t n_phi_bins{5u}, n_z_bins{4u};
+    std::size_t n_phi_bins{5u};
+    std::size_t n_z_bins{4u};
 
     // Build empty grid
     gbuilder.init_grid(cyl_mask, {n_phi_bins, n_z_bins});

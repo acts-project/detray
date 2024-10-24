@@ -24,12 +24,12 @@
 namespace {
 
 /// Define mask types
-enum mask_ids : unsigned int {
+enum class mask_ids : unsigned int {
     e_unmasked = 0u,
 };
 
 /// Define material types
-enum material_ids : unsigned int {
+enum class material_ids : unsigned int {
     e_slab = 0u,
 };
 

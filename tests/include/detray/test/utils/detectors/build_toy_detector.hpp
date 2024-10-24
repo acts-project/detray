@@ -264,48 +264,53 @@ struct toy_det_config {
     }
     constexpr bool do_check() const { return m_do_check; }
     /// @}
-};
 
-/// Print the toy detector configuration
-inline std::ostream &operator<<(std::ostream &out, const toy_det_config &cfg) {
-    out << "\nToy Detector\n"
-        << "----------------------------\n"
-        << "  No. barrel layers     : " << cfg.n_brl_layers() << "\n"
-        << "  No. endcap layers     : " << cfg.n_edc_layers() << "\n"
-        << "  Portal envelope       : " << cfg.envelope() << " [mm]\n";
+    /// Print the toy detector configuration
+    friend std::ostream &operator<<(std::ostream &out,
+                                    const toy_det_config &cfg) {
+        out << "\nToy Detector\n"
+            << "----------------------------\n"
+            << "  No. barrel layers     : " << cfg.n_brl_layers() << "\n"
+            << "  No. endcap layers     : " << cfg.n_edc_layers() << "\n"
+            << "  Portal envelope       : " << cfg.envelope() << " [mm]\n";
 
-    if (cfg.use_material_maps()) {
-        const auto &cyl_map_bins = cfg.cyl_map_bins();
-        const auto &disc_map_bins = cfg.disc_map_bins();
+        if (cfg.use_material_maps()) {
+            const auto &cyl_map_bins = cfg.cyl_map_bins();
+            const auto &disc_map_bins = cfg.disc_map_bins();
 
-        out << "  Material maps \n"
-            << "    -> cyl. map bins    : (phi: " << cyl_map_bins[0]
-            << ", z: " << cyl_map_bins[1] << ")\n"
-            << "    -> disc map bins    : (r: " << disc_map_bins[0]
-            << ", phi: " << disc_map_bins[1] << ")\n"
-            << "    -> cyl. min. thickness: "
-            << cfg.cyl_material_map().thickness / detray::unit<float>::mm
-            << " [mm]\n"
-            << "    -> disc min. thickness: "
-            << cfg.disc_material_map().thickness / detray::unit<float>::mm
-            << " [mm]\n"
-            << "    -> Material         : " << cfg.mapped_material() << "\n";
-    } else {
-        out << "  Homogeneous material \n"
-            << "    -> Thickness        : "
-            << cfg.module_mat_thickness() / detray::unit<float>::mm << " [mm]\n"
-            << "    -> Material         : " << silicon_tml<scalar>() << "\n";
+            out << "  Material maps \n"
+                << "    -> cyl. map bins    : (phi: " << cyl_map_bins[0]
+                << ", z: " << cyl_map_bins[1] << ")\n"
+                << "    -> disc map bins    : (r: " << disc_map_bins[0]
+                << ", phi: " << disc_map_bins[1] << ")\n"
+                << "    -> cyl. min. thickness: "
+                << cfg.cyl_material_map().thickness / detray::unit<float>::mm
+                << " [mm]\n"
+                << "    -> disc min. thickness: "
+                << cfg.disc_material_map().thickness / detray::unit<float>::mm
+                << " [mm]\n"
+                << "    -> Material         : " << cfg.mapped_material()
+                << "\n";
+        } else {
+            out << "  Homogeneous material \n"
+                << "    -> Thickness        : "
+                << cfg.module_mat_thickness() / detray::unit<float>::mm
+                << " [mm]\n"
+                << "    -> Material         : " << silicon_tml<scalar>()
+                << "\n";
+        }
+
+        return out;
     }
-
-    return out;
-}
+};
 
 namespace detail {
 
 // Helper type, used to define the r- or z-extent of detector volumes
 template <typename scalar_t>
 struct extent2D {
-    scalar_t lower, upper;
+    scalar_t lower;
+    scalar_t upper;
 };
 
 /// Helper method to decorate a volume builder with material

@@ -39,9 +39,6 @@ def __main__():
     parser.add_argument("--bindir", "-bin",
                         help=("Directoy containing the validation executables"),
                         default = "./bin", type=str)
-    parser.add_argument("--datadir", "-data",
-                        help=("Directoy containing the data files"),
-                        default = "./validation_data/material", type=str)
     parser.add_argument("--tolerance", "-t",
                         help=("Tolerance for material comparisons [%]"),
                         default = 1, type=float)
@@ -57,9 +54,6 @@ def __main__():
     logging = parse_common_options(args, descr)
     parse_detector_io_options(args, logging)
     in_dir, out_dir, out_format = parse_plotting_options(args, logging)
-
-    # IO path for data files
-    datadir = args.datadir.strip("/")
 
     # Check bin path
     bindir = args.bindir.strip("/")

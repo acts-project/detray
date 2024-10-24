@@ -46,7 +46,8 @@ bool compare_files(const std::string& file_name1, const std::string& file_name2,
     auto file2 =
         io::file_handle(file_name2, std::ios_base::in | std::ios_base::binary);
 
-    std::string line1, line2;
+    std::string line1;
+    std::string line2;
 
     // Check files line by line
     std::size_t i{1u};
@@ -82,10 +83,10 @@ bool compare_files(const std::string& file_name1, const std::string& file_name2,
 /// Full IO round trip for a given detector
 /// @returns a detector read back in from the writter files
 template <std::size_t CAP = 0u, typename detector_t>
-auto test_detector_json_io(const detector_t& det,
-                           const typename detector_t::name_map& names,
-                           std::map<std::string, std::string>& file_names,
-                           vecmem::host_memory_resource& host_mr) {
+auto test_detector_json_io(
+    const detector_t& det, const typename detector_t::name_map& names,
+    std::map<std::string, std::string, std::less<>>& file_names,
+    vecmem::host_memory_resource& host_mr) {
 
     auto writer_cfg = io::detector_writer_config{}
                           .format(io::format::json)
@@ -159,7 +160,7 @@ GTEST_TEST(io, json_telescope_detector_reader) {
     vecmem::host_memory_resource host_mr;
     auto [tel_det, tel_names] = build_telescope_detector(host_mr, tel_cfg);
 
-    std::map<std::string, std::string> file_names;
+    std::map<std::string, std::string, std::less<>> file_names;
     file_names["geometry"] = "telescope_detector_geometry.json";
     file_names["homogeneous_material"] =
         "telescope_detector_homogeneous_material.json";
@@ -238,7 +239,7 @@ GTEST_TEST(io, json_toy_detector_roundtrip_homogeneous_material) {
     toy_cfg.use_material_maps(false);
     const auto [toy_det, toy_names] = build_toy_detector(host_mr, toy_cfg);
 
-    std::map<std::string, std::string> file_names;
+    std::map<std::string, std::string, std::less<>> file_names;
     file_names["geometry"] = "toy_detector_geometry.json";
     file_names["homogeneous_material"] =
         "toy_detector_homogeneous_material.json";
@@ -264,7 +265,7 @@ GTEST_TEST(io, json_toy_detector_roundtrip_material_maps) {
     toy_cfg.use_material_maps(true);
     const auto [toy_det, toy_names] = build_toy_detector(host_mr, toy_cfg);
 
-    std::map<std::string, std::string> file_names;
+    std::map<std::string, std::string, std::less<>> file_names;
     file_names["geometry"] = "toy_detector_geometry.json";
     file_names["homogeneous_material"] =
         "toy_detector_homogeneous_material.json";
@@ -286,7 +287,7 @@ GTEST_TEST(io, json_wire_chamber_reader) {
     wire_chamber_config<> wire_cfg{};
     auto [wire_det, wire_names] = build_wire_chamber(host_mr, wire_cfg);
 
-    std::map<std::string, std::string> file_names;
+    std::map<std::string, std::string, std::less<>> file_names;
     file_names["geometry"] = "wire_chamber_geometry.json";
     file_names["homogeneous_material"] =
         "wire_chamber_homogeneous_material.json";

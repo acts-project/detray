@@ -78,7 +78,8 @@ struct example_actor : detray::actor {
     template <typename subj_state_t, typename propagator_state_t>
     requires(!std::is_same_v<subj_state_t, state>) void operator()(
         state & /*example_state*/, const subj_state_t & /*subject_state*/,
-        const propagator_state_t & /*p_state*/) const {}
+        const propagator_state_t & /*p_state*/) const { /*Do nothing*/
+    }
 };
 
 using example_actor_t = example_actor<std::vector>;

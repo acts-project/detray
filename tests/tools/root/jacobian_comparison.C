@@ -27,27 +27,27 @@
 #include <vector>
 
 namespace {
-double labelx_font_size = 0.055;
-double labelx_offset = 0.0065;
-double labely_font_size = 0.055;
-double labely_offset = 0.01;
-double title_font_size = 0.055;
-double title_offset = 0.71;
-double marker_size = 1.3875;
-double legend_margin = 0.12;
-int title_font = 132;
-int label_font = 132;
-int legend_font = 132;
-double legend_font_size = 0.045;
-double y_min = -15;
-double y_max = 10;
-double y_margin = 1;
-double header_size = 0.05;
-std::array<float, 4> ldim{0.59015, 0.62395, 0.942404, 0.880252};
-double pad_x0 = 0.00;
-double pad_x1 = 1;
-double pad_y0 = 0.00;
-double pad_y1 = 1;
+const double labelx_font_size = 0.055;
+const double labelx_offset = 0.0065;
+const double labely_font_size = 0.055;
+const double labely_offset = 0.01;
+const double title_font_size = 0.055;
+const double title_offset = 0.71;
+const double marker_size = 1.3875;
+const double legend_margin = 0.12;
+const int title_font = 132;
+const int label_font = 132;
+const int legend_font = 132;
+const double legend_font_size = 0.045;
+const double y_min = -15;
+const double y_max = 10;
+const double y_margin = 1;
+const double header_size = 0.05;
+const std::array<float, 4> ldim{0.59015, 0.62395, 0.942404, 0.880252};
+const double pad_x0 = 0.00;
+const double pad_x1 = 1;
+const double pad_y0 = 0.00;
+const double pad_y1 = 1;
 
 }  // namespace
 

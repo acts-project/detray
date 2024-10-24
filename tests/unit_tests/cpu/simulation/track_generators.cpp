@@ -137,7 +137,7 @@ GTEST_TEST(detray_simulation, uniform_track_generator_eta) {
 
     // Loop over eta values [-5, 5]
     for (std::size_t ieta{0u}; ieta < eta_steps; ++ieta) {
-        const scalar_t eta{-5.f + static_cast<scalar_t>(ieta) * (10.f) /
+        const scalar_t eta{-5.f + static_cast<scalar_t>(ieta) * 10.f /
                                       static_cast<scalar_t>(eta_steps - 1u)};
         const scalar_t theta{2.f * std::atan(std::exp(-eta))};
 

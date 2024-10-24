@@ -123,7 +123,6 @@ inline auto run_propagation_host(vecmem::memory_resource *mr,
         rk_stepper_t<typename covfie::field<bfield_bknd_t>::view_t>;
     using host_navigator_t =
         navigator_w_insp_t<host_detector_t, navigation::print_inspector>;
-    // using host_navigator_t = navigator_t<host_detector_t>;
     using propagator_host_t =
         propagator<host_stepper_t, host_navigator_t, actor_chain_host_t>;
 

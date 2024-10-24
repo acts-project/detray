@@ -125,7 +125,8 @@ auto compare_traces(truth_trace_t &truth_trace,
     using truth_record_t = typename truth_trace_t::value_type;
     using intersection_t = typename truth_record_t::intersection_type;
 
-    std::stringstream debug_stream, matching_stream;
+    std::stringstream debug_stream;
+    std::stringstream matching_stream;
     std::size_t n_inters_nav{recorded_trace.size()};
     std::size_t max_entries{math::max(n_inters_nav, truth_trace.size())};
     std::size_t min_entries{math::min(n_inters_nav, truth_trace.size())};

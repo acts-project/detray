@@ -16,7 +16,7 @@ using namespace detray;
 namespace {
 
 /// Define mask types
-enum mask_ids : unsigned int {
+enum class mask_ids : unsigned int {
     e_unmasked = 0u,
 };
 
@@ -29,7 +29,7 @@ GTEST_TEST(detray_core, typed_index) {
     auto ti = index_t{};
 
     // Check a empty barcode
-    EXPECT_EQ(ti.id(), static_cast<unsigned int>((1u << 4) - 1u));
+    EXPECT_EQ(ti.id(), static_cast<mask_ids>((1u << 4) - 1u));
     EXPECT_EQ(ti.index(), static_cast<unsigned int>((1u << 28) - 1u));
 
     ti.set_id(mask_ids::e_unmasked).set_index(42u);

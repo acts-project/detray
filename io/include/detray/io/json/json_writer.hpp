@@ -41,7 +41,7 @@ class json_writer final : public writer_interface<detector_t> {
     json_writer() : writer_interface<detector_t>(".json") {}
 
     /// Writes the geometry to file with a given name
-    virtual std::string write(
+    std::string write(
         const detector_t &det, const typename detector_t::name_map &names,
         const std::ios_base::openmode mode = std::ios::out | std::ios::binary,
         const std::filesystem::path &file_path = {"./"}) override {

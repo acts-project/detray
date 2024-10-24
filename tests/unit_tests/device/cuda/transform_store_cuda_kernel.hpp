@@ -14,8 +14,6 @@
 // Vecmem include(s)
 #include <vecmem/containers/device_vector.hpp>
 
-using namespace detray;
-
 namespace detray {
 
 using algebra_t = ALGEBRA_PLUGIN<detray::scalar>;

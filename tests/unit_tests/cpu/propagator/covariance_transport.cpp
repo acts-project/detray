@@ -104,9 +104,6 @@ GTEST_TEST(detray_propagator, covariance_transport) {
     // Bound state after one turn propagation
     const auto& bound_param1 = propagation._stepping.bound_params();
 
-    // const auto bound_vec0 = bound_param0;
-    // const auto bound_vec1 = bound_param1;
-
     // Check if the track reaches the final surface
     EXPECT_EQ(bound_param0.surface_link().volume(), 4095u);
     EXPECT_EQ(bound_param0.surface_link().index(), 0u);

@@ -31,7 +31,7 @@ void test_hash(std::size_t first_child, std::size_t n_prev_level,
         auto digest = hasher_t{}(digests[i], digests[i + 1u]);
         digests.push_back(digest);
     }
-    std::size_t n_level =
+    auto n_level =
         static_cast<std::size_t>(0.5f * static_cast<float>(n_prev_level));
     // Need dummy leaf node for next level?
     if (n_level % 2u != 0u && n_level > 1u) {

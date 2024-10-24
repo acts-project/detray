@@ -164,7 +164,8 @@ class PropagatorWithRkStepper
     }
 
     /// Clean up
-    virtual void TearDown() {}
+    virtual void TearDown() { /* Do nothing */
+    }
 
     protected:
     /// Detector configuration
@@ -177,7 +178,8 @@ class PropagatorWithRkStepper
     generator_t::configuration trk_gen_cfg{};
 
     /// Stepper configuration
-    scalar_t overstep_tol, step_constr;
+    scalar_t overstep_tol;
+    scalar_t step_constr;
 };
 
 /// Test propagation in a constant magnetic field using a Runge-Kutta stepper

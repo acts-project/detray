@@ -37,7 +37,8 @@ void test_entry_collection(const content_t& bin_content,
 
     // Running indices for the points in the collection and the elements of a
     // single point3
-    unsigned int i = 0u, j = 0u;
+    unsigned int i = 0u;
+    unsigned int j = 0u;
     for (const auto& entry : bin_content) {
         const auto& expt_entry = expected[i++];
         j = 0u;

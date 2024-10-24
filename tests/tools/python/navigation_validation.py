@@ -68,7 +68,7 @@ def __main__():
 
     logging = parse_common_options(args, descr)
     parse_detector_io_options(args, logging)
-    in_dir, out_dir, out_format = parse_plotting_options(args, logging)
+    _, out_dir, out_format = parse_plotting_options(args, logging)
 
     # IO path for data files
     datadir = args.datadir.strip("/")
@@ -142,8 +142,8 @@ def __main__():
     # Read the truth data
     ray_scan_df, helix_scan_df = read_scan_data(datadir, det_name, str(args.transverse_momentum), logging)
 
-    plot_detector_scan_data(args, det_name, plot_factory, "ray", ray_scan_df, "ray_scan", "png")
-    plot_detector_scan_data(args, det_name, plot_factory, "helix", helix_scan_df, "helix_scan", "png")
+    plot_detector_scan_data(args, det_name, plot_factory, "ray", ray_scan_df, "png")
+    plot_detector_scan_data(args, det_name, plot_factory, "helix", helix_scan_df, "png")
 
     # Plot distributions of track parameter values
     # Only take initial track parameters from generator
@@ -159,20 +159,23 @@ def __main__():
                                              logging)
 
     # Plot
-    plot_navigation_data(args, det_name, plot_factory, "ray", ray_truth_df, "truth", ray_nav_df, "navigation (CPU)", out_format)
+    label_cpu = "navigation (CPU)"
+    label_cuda = "navigation (CUDA)"
 
-    plot_navigation_data(args, det_name, plot_factory, "helix", helix_truth_df, "truth", helix_nav_df, "navigation (CPU)", out_format)
+    plot_navigation_data(args, det_name, plot_factory, "ray", ray_truth_df, "truth", ray_nav_df, label_cpu, out_format)
+
+    plot_navigation_data(args, det_name, plot_factory, "helix", helix_truth_df, "truth", helix_nav_df, label_cpu, out_format)
 
     if args.cuda:
         # Truth vs. Device
-        plot_navigation_data(args, det_name, plot_factory, "ray", ray_truth_df, "truth", ray_nav_cuda_df, "navigation (CUDA)", out_format)
+        plot_navigation_data(args, det_name, plot_factory, "ray", ray_truth_df, "truth", ray_nav_cuda_df, label_cuda, out_format)
 
-        plot_navigation_data(args, det_name, plot_factory, "helix", helix_truth_df, "truth", helix_nav_cuda_df, "navigation (CUDA)", out_format)
+        plot_navigation_data(args, det_name, plot_factory, "helix", helix_truth_df, "truth", helix_nav_cuda_df, label_cuda, out_format)
 
         # Host vs. Device
-        plot_navigation_data(args, det_name, plot_factory, "ray", ray_nav_df, "navigation (CPU)", ray_nav_cuda_df, "navigation (CUDA)", out_format)
+        plot_navigation_data(args, det_name, plot_factory, "ray", ray_nav_df, label_cpu, ray_nav_cuda_df, label_cuda, out_format)
 
-        plot_navigation_data(args, det_name, plot_factory, "helix", helix_nav_df, "navigation (CPU)", helix_nav_cuda_df, "navigation (CUDA)", out_format)
+        plot_navigation_data(args, det_name, plot_factory, "helix", helix_nav_df, label_cpu, helix_nav_cuda_df, label_cuda, out_format)
 
 #-------------------------------------------------------------------------------
 

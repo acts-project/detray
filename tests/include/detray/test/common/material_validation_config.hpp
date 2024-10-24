@@ -56,7 +56,7 @@ struct material_validation_config : public test::fixture_base<>::configuration {
 
     /// Setters
     /// @{
-    material_validation_config &name(const std::string n) {
+    material_validation_config &name(const std::string &n) {
         m_name = n;
         return *this;
     }
@@ -73,8 +73,8 @@ struct material_validation_config : public test::fixture_base<>::configuration {
         m_white_board = std::move(w_board);
         return *this;
     }
-    material_validation_config &material_file(const std::string f) {
-        m_material_file = std::move(f);
+    material_validation_config &material_file(const std::string &f) {
+        m_material_file = f;
         return *this;
     }
     material_validation_config &n_tracks(std::size_t n) {

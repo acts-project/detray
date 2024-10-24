@@ -18,6 +18,7 @@
 // System include(s)
 #include <iostream>
 #include <string>
+#include <string_view>
 
 namespace detray::test {
 
@@ -34,8 +35,8 @@ struct consistency_check_config
 
     /// Setters
     /// @{
-    consistency_check_config &name(const std::string n) {
-        m_name = n;
+    consistency_check_config &name(const std::string_view v) {
+        m_name = v;
         return *this;
     }
     consistency_check_config &write_graph(const bool do_write) {

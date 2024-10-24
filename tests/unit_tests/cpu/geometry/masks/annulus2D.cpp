@@ -120,11 +120,7 @@ GTEST_TEST(detray_masks, annulus2D) {
     ASSERT_NEAR(loc_bounds[cuboid3D::e_max_y], 10.89317f + envelope, tol);
     ASSERT_NEAR(loc_bounds[cuboid3D::e_max_z], envelope, tol);
 
-    // TODO: Check against visualization
-    /*const auto centroid = ann2.centroid();
-    ASSERT_NEAR(centroid[0], 0.f, tol);
-    ASSERT_NEAR(centroid[1], 0.f, tol);
-    ASSERT_NEAR(centroid[2], 0.f, tol);*/
+    // TODO: Check centroid against visualization
 }
 
 /// This tests the inside/outside method of the mask

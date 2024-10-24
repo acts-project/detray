@@ -71,16 +71,16 @@ struct detector_scan_config : public test::fixture_base<>::configuration {
 
     /// Setters
     /// @{
-    detector_scan_config &name(const std::string n) {
+    detector_scan_config &name(const std::string_view n) {
         m_name = n;
         return *this;
     }
-    detector_scan_config &intersection_file(const std::string f) {
-        m_intersection_file = std::move(f);
+    detector_scan_config &intersection_file(const std::string_view f) {
+        m_intersection_file = f;
         return *this;
     }
-    detector_scan_config &track_param_file(const std::string f) {
-        m_track_param_file = std::move(f);
+    detector_scan_config &track_param_file(const std::string_view f) {
+        m_track_param_file = f;
         return *this;
     }
     detector_scan_config &mask_tolerance(const std::array<scalar_type, 2> tol) {

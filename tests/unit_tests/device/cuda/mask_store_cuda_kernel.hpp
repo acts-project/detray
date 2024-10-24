@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021 CERN for the benefit of the ACTS project
+ * (c) 2021-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -19,14 +19,12 @@
 #include <vecmem/containers/jagged_device_vector.hpp>
 #include <vecmem/utils/cuda/copy.hpp>
 
-using namespace detray;
+namespace detray {
 
 using algebra_t = ALGEBRA_PLUGIN<detray::scalar>;
-using point3 = dpoint3D<algebra_t>;
-using transform3 = dtransform3D<algebra_t>;
+using point3 = detray::dpoint3D<algebra_t>;
+using transform3 = detray::dtransform3D<algebra_t>;
 const int n_points = 1000;
-
-namespace detray {
 
 using annulus = mask<annulus2D>;
 using cylinder = mask<cylinder2D>;
@@ -35,9 +33,8 @@ using ring = mask<ring2D>;
 using single = mask<single3D<>>;
 using trapezoid = mask<trapezoid2D>;
 
-/** Enumerate different mask types for convenience
- **/
-enum mask_ids : unsigned int {
+/// Enumerate different mask types for convenience
+enum class mask_ids : unsigned int {
     e_rectangle2 = 0u,
     e_trapezoid2 = 1u,
     e_ring2 = 2u,

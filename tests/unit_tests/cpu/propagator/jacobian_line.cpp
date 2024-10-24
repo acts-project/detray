@@ -32,8 +32,9 @@ using matrix_type = test::matrix<ROWS, COLS>;
 
 constexpr scalar isclose{1e-5f};
 
-const scalar r{2.f}, hz{50.f};
-mask<line<>> ln{0u, r, hz};
+const scalar r{2.f};
+const scalar hz{50.f};
+const mask<line<>> ln{0u, r, hz};
 
 GTEST_TEST(detray_propagator, jacobian_line2D_case1) {
 

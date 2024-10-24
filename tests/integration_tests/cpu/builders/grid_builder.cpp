@@ -76,7 +76,8 @@ GTEST_TEST(detray_builders, decorator_grid_builder) {
 
     // The cylinder portals are at the end of the surface range by construction
     const auto cyl_mask = mask<concentric_cylinder2D>{0u, 10.f, -500.f, 500.f};
-    std::size_t n_phi_bins{5u}, n_z_bins{4u};
+    std::size_t n_phi_bins{5u};
+    std::size_t n_z_bins{4u};
 
     // Build empty grid
     gbuilder.init_grid(cyl_mask, {n_phi_bins, n_z_bins});

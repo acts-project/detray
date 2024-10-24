@@ -24,16 +24,16 @@ namespace {
 
 // geo object ids for testing
 enum geo_objects : unsigned int {
-    e_sensitive = 0,
-    e_portal = 1,
-    e_size = 2,
+    e_sensitive = 0u,
+    e_portal = 1u,
+    e_size = 2u,
     e_all = e_size,
 };
 
 // surface finder ids for testing
-enum accel_ids : unsigned int {
-    e_default = 0,
-    e_grid = 1,
+enum class accel_ids : unsigned int {
+    e_default = 0u,
+    e_grid = 1u,
 };
 
 }  // namespace

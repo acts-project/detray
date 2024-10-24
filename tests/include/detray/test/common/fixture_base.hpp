@@ -87,7 +87,7 @@ class fixture_base : public scope {
     };
 
     /// Constructor
-    fixture_base(const configuration& cfg = {})
+    explicit fixture_base(const configuration& cfg = {})
         : tolerance{cfg.tol()},
           inf{cfg.inf},
           epsilon{cfg.epsilon},
@@ -99,13 +99,22 @@ class fixture_base : public scope {
     std::string name() const { return "detray_test"; };
 
     protected:
-    float tolerance{}, inf{}, epsilon{}, path_limit{}, overstep_tolerance{},
-        step_constraint{};
+    static void SetUpTestSuite() { /* Do nothing */
+    }
+    static void TearDownTestSuite() { /* Do nothing */
+    }
+    void SetUp() override { /* Do nothing */
+    }
+    void TearDown() override { /* Do nothing */
+    }
 
-    static void SetUpTestSuite() {}
-    static void TearDownTestSuite() {}
-    virtual void SetUp() override {}
-    virtual void TearDown() override {}
+    private:
+    float tolerance{};
+    float inf{};
+    float epsilon{};
+    float path_limit{};
+    float overstep_tolerance{};
+    float step_constraint{};
 };
 
 }  // namespace detray::test
