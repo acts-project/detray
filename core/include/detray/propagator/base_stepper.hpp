@@ -12,7 +12,7 @@
 #include "detray/definitions/pdg_particle.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/barcode.hpp"
-#include "detray/geometry/tracking_surface.hpp"
+#include "detray/geometry/surface.hpp"
 #include "detray/materials/material.hpp"
 #include "detray/propagator/actors/parameter_resetter.hpp"
 #include "detray/propagator/constrained_step.hpp"
@@ -88,7 +88,7 @@ class base_stepper {
             : m_bound_params(bound_params) {
 
             // Surface
-            const auto sf = tracking_surface{det, bound_params.surface_link()};
+            const auto sf = geometry::surface{det, bound_params.surface_link()};
 
             const typename detector_t::geometry_context ctx{};
             sf.template visit_mask<

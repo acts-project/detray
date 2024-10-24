@@ -15,6 +15,7 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/barcode.hpp"
+#include "detray/geometry/tracking_surface.hpp"
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
@@ -252,19 +253,18 @@ class navigator {
         }
 
         /// @returns the next surface the navigator intends to reach
-        DETRAY_HOST_DEVICE
-        inline auto next_surface() const {
+        template <template <typename> class surface_t = tracking_surface>
+        DETRAY_HOST_DEVICE inline auto next_surface() const {
             return tracking_surface<detector_type>{*m_detector,
                                                    target().sf_desc};
         }
 
         /// @returns current detector surface the navigator is on
         /// (cannot be used when not on surface) - const
-        DETRAY_HOST_DEVICE
-        inline auto get_surface() const {
+        template <template <typename> class surface_t = tracking_surface>
+        DETRAY_HOST_DEVICE inline auto get_surface() const {
             assert(is_on_surface());
-            return tracking_surface<detector_type>{*m_detector,
-                                                   current().sf_desc};
+            return surface_t<detector_type>{*m_detector, current().sf_desc};
         }
 
         /// @returns current detector volume of the navigation stream
@@ -608,7 +608,7 @@ class navigator {
             const scalar_type mask_tol_scalor,
             const scalar_type overstep_tol) const {
 
-            const auto sf = tracking_surface{det, sf_descr};
+            const auto sf = geometry::surface{det, sf_descr};
 
             sf.template visit_mask<intersection_initialize<ray_intersector>>(
                 nav_state, detail::ray(track), sf_descr, det.transform_store(),
@@ -890,7 +890,7 @@ class navigator {
             return false;
         }
 
-        const auto sf = tracking_surface{det, candidate.sf_desc};
+        const auto sf = geometry::surface{det, candidate.sf_desc};
 
         // Check whether this candidate is reachable by the track
         return sf.template visit_mask<intersection_update<ray_intersector>>(

@@ -201,7 +201,7 @@ struct material_tracer : detray::actor {
 
         // Fetch the material parameters and pathlength through the material
         const auto mat_params = sf.template visit_material<get_material_params>(
-            loc_pos, sf.cos_angle(gctx, glob_dir, loc_pos));
+            loc_pos, detail::cos_angle(gctx, sf, glob_dir, loc_pos));
 
         const scalar_t seg{mat_params.path};
         const scalar_t t{mat_params.thickness};
