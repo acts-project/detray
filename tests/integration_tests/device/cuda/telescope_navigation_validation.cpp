@@ -105,7 +105,7 @@ int main(int argc, char **argv) {
     cfg_hel_nav.name("telescope_detector_helix_navigation_cuda");
     cfg_hel_nav.whiteboard(white_board);
     cfg_hel_nav.propagation().navigation.overstep_tolerance =
-        -300.f * unit<float>::um;
+        -100.f * unit<float>::um;
 
     detail::register_checks<detray::cuda::helix_navigation>(tel_det, tel_names,
                                                             cfg_hel_nav);

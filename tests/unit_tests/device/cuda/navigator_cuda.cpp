@@ -37,8 +37,10 @@ TEST(navigator_cuda, navigator) {
 
     // Create navigator
     navigator_host_t nav;
-    propagation::config cfg{};
-    cfg.navigation.search_window = {1u, 1u};
+    navigation::config nav_cfg{};
+    nav_cfg.search_window = {3u, 3u};
+
+    stepping::config step_cfg{};
 
     // Create the vector of initial track parameters
     vecmem::vector<free_track_parameters<algebra_t>> tracks_host(&mng_mr);
@@ -73,17 +75,17 @@ TEST(navigator_cuda, navigator) {
         stepper_t::state& stepping = propagation._stepping;
 
         // Start propagation and record volume IDs
-        bool heartbeat = nav.init(stepping(), navigation, cfg.navigation);
+        bool heartbeat = nav.init(stepping(), navigation, nav_cfg);
         while (heartbeat) {
 
             const bool do_reset{navigation.is_on_surface() ||
                                 navigation.is_init()};
             heartbeat &=
-                stepper.step(navigation(), stepping, cfg.stepping, do_reset);
+                stepper.step(navigation(), stepping, step_cfg, do_reset);
 
             navigation.set_high_trust();
 
-            heartbeat &= nav.update(stepping(), navigation, cfg.navigation);
+            heartbeat &= nav.update(stepping(), navigation, nav_cfg);
 
             // Record volume
             volume_records_host[i].push_back(navigation.volume());
@@ -117,8 +119,8 @@ TEST(navigator_cuda, navigator) {
     auto tracks_data = vecmem::get_data(tracks_device);
 
     // Run navigator test
-    navigator_test(det_data, cfg, tracks_data, volume_records_buffer,
-                   position_records_buffer);
+    navigator_test(det_data, nav_cfg, step_cfg, tracks_data,
+                   volume_records_buffer, position_records_buffer);
 
     // Copy volume record buffer into volume & position records device
     copy(volume_records_buffer, volume_records_device);

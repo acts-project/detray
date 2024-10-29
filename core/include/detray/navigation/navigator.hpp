@@ -633,7 +633,6 @@ class navigator {
     template <typename track_t>
     DETRAY_HOST_DEVICE inline bool init(const track_t &track, state &navigation,
                                         const navigation::config &cfg) const {
-
         const auto &det = navigation.detector();
         const auto volume = tracking_volume{det, navigation.volume()};
 
@@ -685,7 +684,6 @@ class navigator {
     DETRAY_HOST_DEVICE inline bool update(const track_t &track,
                                           state &navigation,
                                           const navigation::config &cfg) const {
-
         // Candidates are re-evaluated based on the current trust level.
         // Should result in 'full trust'
         update_kernel(track, navigation, cfg);
@@ -716,7 +714,8 @@ class navigator {
 
             init(track, navigation, cfg);
 
-            // Fresh init after volume switch: reset trust and hearbeat
+            // Fresh initialization, reset trust and hearbeat even though we are
+            // on inner portal
             navigation.m_trust_level = navigation::trust_level::e_full;
             navigation.m_heartbeat = !navigation.is_exhausted();
         }
@@ -726,9 +725,22 @@ class navigator {
             navigation.m_heartbeat &= init(track, navigation, cfg);
 
             // Sanity check: Should never be the case after complete update call
-            if (navigation.trust_level() != navigation::trust_level::e_full ||
-                navigation.is_exhausted()) {
-                navigation.abort();
+            if (navigation.trust_level() != navigation::trust_level::e_full) {
+                // Try to save the navigation flow: Look further behind the
+                // track
+                auto loose_cfg{cfg};
+                // Use the max mask tolerance in case a track leaves the volume
+                // when a sf is 'sticking' out of the portals due to the tol
+                loose_cfg.overstep_tolerance =
+                    math::min(100.f * cfg.overstep_tolerance,
+                              -10.f * cfg.max_mask_tolerance);
+                navigation.m_heartbeat = init(track, navigation, loose_cfg);
+
+                // Unrecoverable
+                if (navigation.trust_level() !=
+                    navigation::trust_level::e_full) {
+                    navigation.abort();
+                }
             }
         }
 

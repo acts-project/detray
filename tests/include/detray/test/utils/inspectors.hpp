@@ -264,6 +264,8 @@ struct print_inspector {
         debug_stream << msg << std::endl;
 
         debug_stream << "Volume" << tabs << state.volume() << std::endl;
+        debug_stream << "Overstep tol:\t\t\t" << cfg.overstep_tolerance
+                     << std::endl;
         debug_stream << "Track pos: [r:" << getter::perp(track_pos)
                      << ", z:" << track_pos[2] << "], dir: [" << track_dir[0]
                      << ", " << track_dir[1] << ", " << track_dir[2] << "]"

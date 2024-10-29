@@ -70,7 +70,8 @@ int main() {
     typename toy_detector_t::geometry_context gctx{};
 
     // Build the propagator
-    propagator_t prop{};
+    detray::propagation::config prop_cfg{};
+    propagator_t prop{prop_cfg};
 
     // Track generation config
     // Trivial example: Single track escapes through beampipe
