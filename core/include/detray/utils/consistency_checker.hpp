@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/geometry/tracking_surface.hpp"
+#include "detray/geometry/surface.hpp"
 #include "detray/geometry/tracking_volume.hpp"
 #include "detray/materials/detail/concepts.hpp"
 #include "detray/materials/predefined_materials.hpp"
@@ -56,7 +56,7 @@ struct surface_checker {
         const detector_t &det, const dindex vol_idx,
         const typename detector_t::name_map &names) const {
 
-        const auto sf = tracking_surface{det, sf_descr};
+        const auto sf = geometry::surface{det, sf_descr};
         const auto vol = tracking_volume{det, vol_idx};
         std::stringstream err_stream{};
         err_stream << "VOLUME \"" << print_volume_name(vol, names) << "\":\n";
@@ -93,7 +93,7 @@ struct surface_checker {
         // Check that the same surface is registered in the detector surface
         // lookup
         const auto sf_from_lkp =
-            tracking_surface{det, det.surface(sf.barcode())};
+            geometry::surface{det, det.surface(sf.barcode())};
         if (sf_from_lkp != sf) {
             err_stream << "ERROR: Surfaces in volume and detector lookups "
                        << "differ:\n In volume acceleration data structure: "
@@ -121,7 +121,7 @@ struct surface_checker {
         if (ref_descr.volume() != check_descr.volume()) {
             std::stringstream err_stream{};
             err_stream << "Incorrect volume index on surface: "
-                       << tracking_surface{det, check_descr};
+                       << geometry::surface{det, check_descr};
 
             throw std::invalid_argument(err_stream.str());
         }
@@ -323,7 +323,7 @@ inline bool check_consistency(const detector_t &det, const bool verbose = false,
     // Check the surfaces in the detector's surface lookup
     for (const auto &[idx, sf_desc] :
          detray::views::enumerate(det.surfaces())) {
-        const auto sf = tracking_surface{det, sf_desc};
+        const auto sf = geometry::surface{det, sf_desc};
         const auto vol = tracking_volume{det, sf.volume()};
         err_stream << "VOLUME \"" << print_volume_name(vol, names) << "\":\n";
 

@@ -8,6 +8,7 @@
 // Project include(s)
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/bfield.hpp"
+#include "detray/geometry/tracking_surface.hpp"
 #include "detray/navigation/intersection/helix_intersector.hpp"
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actors/parameter_resetter.hpp"
