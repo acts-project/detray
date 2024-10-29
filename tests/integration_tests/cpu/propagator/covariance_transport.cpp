@@ -185,7 +185,6 @@ class detray_propagation_HelixCovarianceTransportValidation
         // Get the intersection on the next surface
         helix_intersector<typename destination_mask_type::shape, algebra_type>
             helix_inters{};
-        helix_inters.run_rtsafe = false;
         const intersection_t is = get_intersection(helix_inters(
             hlx, surface_descriptor<>{}, mask_1, trf_1, this->mask_tolerance));
         // Check for successfull intersection
