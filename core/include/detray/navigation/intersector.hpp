@@ -16,7 +16,7 @@ namespace detray {
 /// @brief Intersection interface for detector surfaces.
 ///
 /// Composes the different intersector options into a unifyed interface
-template <typename shape_t, typename algebra_t>
+template <typename shape_t, typename algebra_t, bool do_debug = false>
 struct intersector {
 
     using algebra_type = algebra_t;
@@ -24,10 +24,17 @@ struct intersector {
     using transform3_type = dtransform3D<algebra_t>;
 
     /// How to intersect surfaces with rays
-    using ray_intersector_type = ray_intersector<shape_t, algebra_t>;
+    using ray_intersector_type = ray_intersector<shape_t, algebra_t, do_debug>;
 
     /// How to intersect surfaces with helices
-    using helix_intersector_type = helix_intersector<shape_t, algebra_t>;
+    using helix_intersector_type =
+        helix_intersector<shape_t, algebra_t, do_debug>;
+
+    // Test with int as dummy surface descriptor type
+    static_assert(
+        std::same_as<
+            typename ray_intersector_type::template intersection_type<int>,
+            typename helix_intersector_type::template intersection_type<int>>);
 
     /// @returns the intersection(s) between a surface and the ray @param ray
     template <typename surface_descr_t, typename mask_t>

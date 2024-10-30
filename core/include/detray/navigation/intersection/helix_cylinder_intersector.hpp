@@ -35,7 +35,7 @@ struct helix_intersector_impl;
 /// @note Don't use for low p_t tracks!
 template <concepts::aos_algebra algebra_t>
 struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
-    : public ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t> {
+    : public ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, true> {
 
     using scalar_type = dscalar<algebra_t>;
     using point3_type = dpoint3D<algebra_t>;
@@ -43,7 +43,7 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
     using transform3_type = dtransform3D<algebra_t>;
 
     template <typename surface_descr_t>
-    using intersection_type = intersection2D<surface_descr_t, algebra_t>;
+    using intersection_type = intersection2D<surface_descr_t, algebra_t, true>;
     using helix_type = detail::helix<algebra_t>;
 
     /// Operator function to find intersections between helix and cylinder mask

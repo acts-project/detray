@@ -25,7 +25,7 @@ namespace detray {
 template <typename frame_t, typename algebra_t>
 struct helix_intersector_impl {};
 
-template <typename shape_t, typename algebra_t>
+template <typename shape_t, typename algebra_t, bool = true>
 using helix_intersector = helix_intersector_impl<
     typename shape_t::template local_frame_type<algebra_t>, algebra_t>;
 

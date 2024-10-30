@@ -71,7 +71,7 @@ struct my_metadata {
     /// How to index the constituent objects in a volume
     /// If they share the same index value here, they will be added into the
     /// same acceleration data structure in every respective volume
-    enum geo_objects : std::uint8_t {
+    enum geo_objects : std::uint_least8_t {
         e_surface = 0u,  //< This detector keeps all surfaces in the same
                          //  acceleration data structure (id 0)
         e_size = 1u
@@ -91,7 +91,7 @@ struct my_metadata {
     /// good idea to have the most common types in the first tuple entries, in
     /// order to minimize the depth of the 'unrolling' before a mask is found
     /// in the tuple
-    enum class mask_ids : std::uint8_t {
+    enum class mask_ids : std::uint_least8_t {
         e_square2 = 0,
         e_trapezoid2 = 1,
         e_portal_rectangle2 = 2
@@ -107,7 +107,7 @@ struct my_metadata {
                             trapezoid, rectangle>;
 
     /// Similar to the mask store, there is a material store, which
-    enum class material_ids : std::uint8_t {
+    enum class material_ids : std::uint_least8_t {
         e_slab = 0,
         e_none = 1,
     };
@@ -131,7 +131,7 @@ struct my_metadata {
 
     /// The acceleration data structures live in another tuple that needs to
     /// indexed correctly
-    enum class accel_ids : std::uint8_t {
+    enum class accel_ids : std::uint_least8_t {
         e_brute_force = 0,  //< test all surfaces in a volume (brute force)
         e_default = e_brute_force,
     };

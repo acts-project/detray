@@ -31,7 +31,7 @@ namespace detray::svgtools::conversion {
 
 namespace detail {
 
-enum class grid_type : std::uint8_t {
+enum class grid_type : std::uint_least8_t {
     e_barrel = 0,
     e_endcap = 1,
     e_unknown = 2

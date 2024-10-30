@@ -155,7 +155,7 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
         expected_cylinder1, expected_cylinder2, expected_cylinder_pt};
 
     // Initialize kernel
-    std::vector<intersection2D<surface_t, algebra_t>> sfi_init;
+    std::vector<intersection2D<surface_t, algebra_t, true>> sfi_init;
     sfi_init.reserve(expected_points.size());
 
     for (const auto &surface : surfaces) {
@@ -285,7 +285,7 @@ GTEST_TEST(detray_intersection, intersection_kernel_helix) {
     const point3 expected_annulus{0.03f, 0.03f, 30.f};
     const std::vector<point3> expected_points = {
         expected_rectangle, expected_trapezoid, expected_annulus};
-    std::vector<intersection2D<surface_t, algebra_t>> sfi_helix{};
+    std::vector<intersection2D<surface_t, algebra_t, true>> sfi_helix{};
     sfi_helix.reserve(expected_points.size());
 
     // Try the intersections - with automated dispatching via the kernel

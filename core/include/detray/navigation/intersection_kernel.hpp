@@ -17,7 +17,7 @@
 namespace detray {
 
 /// A functor to add all valid intersections between the trajectory and surface
-template <template <typename, typename> class intersector_t>
+template <template <typename, typename, bool> class intersector_t>
 struct intersection_initialize {
 
     /// Operator function to initalize intersections
@@ -53,6 +53,7 @@ struct intersection_initialize {
 
         using mask_t = typename mask_group_t::value_type;
         using algebra_t = typename mask_t::algebra_type;
+        using intersection_t = typename is_container_t::value_type;
 
         const auto &ctf = contextual_transforms.at(surface.transform());
 
@@ -61,7 +62,8 @@ struct intersection_initialize {
              detray::ranges::subrange(mask_group, mask_range)) {
 
             if (place_in_collection(
-                    intersector_t<typename mask_t::shape, algebra_t>{}(
+                    intersector_t<typename mask_t::shape, algebra_t,
+                                  intersection_t::is_debug()>{}(
                         traj, surface, mask, ctf, mask_tolerance,
                         mask_tol_scalor, overstep_tol),
                     is_container)) {
@@ -107,7 +109,7 @@ struct intersection_initialize {
 
 /// A functor to update the closest intersection between the trajectory and
 /// surface
-template <template <typename, typename> class intersector_t>
+template <template <typename, typename, bool> class intersector_t>
 struct intersection_update {
 
     /// Operator function to update the intersection
@@ -149,9 +151,10 @@ struct intersection_update {
         for (const auto &mask :
              detray::ranges::subrange(mask_group, mask_range)) {
 
-            intersector_t<typename mask_t::shape, algebra_t>{}.update(
-                traj, sfi, mask, ctf, mask_tolerance, mask_tol_scalor,
-                overstep_tol);
+            intersector_t<typename mask_t::shape, algebra_t,
+                          intersection_t::is_debug()>{}
+                .update(traj, sfi, mask, ctf, mask_tolerance, mask_tol_scalor,
+                        overstep_tol);
 
             if (sfi.status) {
                 return true;

@@ -75,17 +75,20 @@ TEST(navigator_cuda, navigator) {
         stepper_t::state& stepping = propagation._stepping;
 
         // Start propagation and record volume IDs
-        bool heartbeat = nav.init(stepping(), navigation, nav_cfg);
+        nav.init(stepping(), navigation, nav_cfg);
+        bool heartbeat = navigation.is_alive();
+        bool do_reset{true};
+
         while (heartbeat) {
 
-            const bool do_reset{navigation.is_on_surface() ||
-                                navigation.is_init()};
             heartbeat &=
                 stepper.step(navigation(), stepping, step_cfg, do_reset);
 
             navigation.set_high_trust();
 
-            heartbeat &= nav.update(stepping(), navigation, nav_cfg);
+            do_reset = nav.update(stepping(), navigation, nav_cfg);
+            do_reset |= navigation.is_on_surface();
+            heartbeat &= navigation.is_alive();
 
             // Record volume
             volume_records_host[i].push_back(navigation.volume());

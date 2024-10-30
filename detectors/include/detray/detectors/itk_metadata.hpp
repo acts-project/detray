@@ -84,7 +84,7 @@ struct itk_metadata {
     /// good idea to have the most common types in the first tuple entries, in
     /// order to minimize the depth of the 'unrolling' before a mask is found
     /// in the tuple
-    enum class mask_ids : std::uint8_t {
+    enum class mask_ids : std::uint_least8_t {
         e_rectangle2 = 0u,
         e_annulus2 = 1u,
         e_portal_cylinder2 = 2u,
@@ -101,7 +101,7 @@ struct itk_metadata {
                             rectangle, annulus, cylinder_portal, disc_portal>;
 
     /// Similar to the mask store, there is a material store, which
-    enum class material_ids : std::uint8_t {
+    enum class material_ids : std::uint_least8_t {
         e_disc2_map = 0u,
         e_annulus2_map = 0u,
         e_concentric_cylinder2_map = 1u,
@@ -134,7 +134,7 @@ struct itk_metadata {
     /// How to index the constituent objects in a volume
     /// If they share the same index value here, they will be added into the
     /// same acceleration data structure in every respective volume
-    enum geo_objects : std::uint8_t {
+    enum geo_objects : std::uint_least8_t {
         e_surface = 0u,  //< This detector keeps all surfaces in the same
         e_portal = 0u,   //  acceleration data structure (id 0)
         e_passive = 0u,
@@ -143,7 +143,7 @@ struct itk_metadata {
 
     /// The acceleration data structures live in another tuple that needs to be
     /// indexed correctly:
-    enum class accel_ids : std::uint8_t {
+    enum class accel_ids : std::uint_least8_t {
         e_brute_force = 0u,  //< test all surfaces in a volume (brute force)
         e_default = e_brute_force,
     };

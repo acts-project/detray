@@ -110,6 +110,10 @@ struct propagator {
             _stepping.set_particle(ptc);
         }
 
+        /// @returns the propagation heartbeat
+        DETRAY_HOST_DEVICE
+        bool is_alive() const { return _heartbeat; }
+
         // Is the propagation still alive?
         bool _heartbeat = false;
 
@@ -131,7 +135,7 @@ struct propagator {
     ///
     /// @note If the return value of this function is true, a propagation step
     /// can be taken afterwards.
-    DETRAY_HOST_DEVICE bool propagate_init(
+    DETRAY_HOST_DEVICE void propagate_init(
         state &propagation,
         typename actor_chain_t::state actor_state_refs) const {
         auto &navigation = propagation._navigation;
@@ -139,17 +143,15 @@ struct propagator {
         const auto &track = stepping();
 
         // Initialize the navigation
-        propagation._heartbeat =
-            m_navigator.init(track, navigation, m_cfg.navigation);
+        m_navigator.init(track, navigation, m_cfg.navigation);
+        propagation._heartbeat = navigation.is_alive();
 
         // Run all registered actors/aborters after init
         run_actors(actor_state_refs, propagation);
 
         // Find next candidate
-        propagation._heartbeat &=
-            m_navigator.update(track, navigation, m_cfg.navigation);
-
-        return propagation._heartbeat;
+        m_navigator.update(track, navigation, m_cfg.navigation);
+        propagation._heartbeat &= navigation.is_alive();
     }
 
     /// Propagate method step: Perform a single propagation step.
@@ -162,7 +164,7 @@ struct propagator {
     /// @note If the return value of this function is true, another step can
     /// be taken afterwards.
     DETRAY_HOST_DEVICE bool propagate_step(
-        state &propagation,
+        state &propagation, bool is_init,
         typename actor_chain_t::state actor_state_refs) const {
         auto &navigation = propagation._navigation;
         auto &stepping = propagation._stepping;
@@ -176,8 +178,7 @@ struct propagator {
 
         // Break automatic step size scaling by the stepper when a surface
         // was reached and whenever the navigation is (re-)initialized
-        const bool reset_stepsize{navigation.is_on_surface() ||
-                                  navigation.is_init()};
+        const bool reset_stepsize{navigation.is_on_surface() || is_init};
         // Take the step
         propagation._heartbeat &= m_stepper.step(
             navigation(), stepping, m_cfg.stepping, reset_stepsize);
@@ -186,15 +187,15 @@ struct propagator {
         typename stepper_t::policy_type{}(stepping.policy_state(), propagation);
 
         // Find next candidate
-        propagation._heartbeat &=
-            m_navigator.update(track, navigation, m_cfg.navigation);
+        is_init = m_navigator.update(track, navigation, m_cfg.navigation);
+        propagation._heartbeat &= navigation.is_alive();
 
         // Run all registered actors/aborters after update
         run_actors(actor_state_refs, propagation);
 
         // And check the status
-        propagation._heartbeat &=
-            m_navigator.update(track, navigation, m_cfg.navigation);
+        is_init |= m_navigator.update(track, navigation, m_cfg.navigation);
+        propagation._heartbeat &= navigation.is_alive();
 
 #if defined(__NO_DEVICE__)
         if (propagation.do_debug) {
@@ -202,7 +203,7 @@ struct propagator {
         }
 #endif
 
-        return propagation._heartbeat;
+        return is_init;
     }
 
     /// Propagate method finale: Return whether or not the propagation
@@ -226,11 +227,12 @@ struct propagator {
         state &propagation,
         typename actor_chain_t::state actor_state_refs) const {
 
-        bool status = propagate_init(propagation, actor_state_refs);
+        propagate_init(propagation, actor_state_refs);
+        bool is_init = true;
 
         // Run while there is a heartbeat
-        while (status) {
-            status = propagate_step(propagation, actor_state_refs);
+        while (propagation.is_alive()) {
+            is_init = propagate_step(propagation, is_init, actor_state_refs);
         }
 
         // Pass on the whether the propagation was successful
@@ -240,9 +242,9 @@ struct propagator {
     /// Overload for emtpy actor chain
     DETRAY_HOST_DEVICE bool propagate(state &propagation) {
         // Will not be used
-        actor_chain<>::state emty_state{};
+        actor_chain<>::state empty_state{};
         // Run propagation
-        return propagate(propagation, emty_state);
+        return propagate(propagation, empty_state);
     }
 
     /// Propagate method with two while loops. In the CPU, propagate and
@@ -262,16 +264,17 @@ struct propagator {
         typename actor_chain_t::state actor_state_refs) const {
 
         propagate_init(propagation, actor_state_refs);
+        bool is_init = true;
 
         auto &navigation = propagation._navigation;
         auto &stepping = propagation._stepping;
         const auto &track = stepping();
 
-        while (propagation._heartbeat) {
+        while (propagation.is_alive()) {
 
             bool skip = true;
 
-            while (propagation._heartbeat) {
+            while (propagation.is_alive()) {
 
                 // Set access to the volume material for the stepper
                 auto vol = navigation.get_volume();
@@ -281,7 +284,7 @@ struct propagator {
 
                 // Break automatic step size scaling by the stepper
                 const bool reset_stepsize{navigation.is_on_surface() ||
-                                          navigation.is_init()};
+                                          is_init};
                 // Take the step
                 propagation._heartbeat &= m_stepper.step(
                     navigation(), stepping, m_cfg.stepping, reset_stepsize);
@@ -291,8 +294,9 @@ struct propagator {
                                                   propagation);
 
                 // Find next candidate
-                propagation._heartbeat &=
+                is_init =
                     m_navigator.update(track, navigation, m_cfg.navigation);
+                propagation._heartbeat &= navigation.is_alive();
 
                 // If the track is on a sensitive surface, break the loop to
                 // synchornize the threads
@@ -303,8 +307,9 @@ struct propagator {
                     run_actors(actor_state_refs, propagation);
 
                     // And check the status
-                    propagation._heartbeat &=
+                    is_init |=
                         m_navigator.update(track, navigation, m_cfg.navigation);
+                    propagation._heartbeat &= navigation.is_alive();
                 }
             }
 
@@ -314,8 +319,9 @@ struct propagator {
                 run_actors(actor_state_refs, propagation);
 
                 // And check the status
-                propagation._heartbeat &=
+                is_init |=
                     m_navigator.update(track, navigation, m_cfg.navigation);
+                propagation._heartbeat &= navigation.is_alive();
             }
 
 #if defined(__NO_DEVICE__)

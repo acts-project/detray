@@ -36,7 +36,7 @@ int main() {
     /// Type that holds the intersection information
     using intersection_t =
         detray::intersection2D<typename toy_detector_t::surface_type,
-                               detray::tutorial::algebra_t>;
+                               detray::tutorial::algebra_t, true>;
 
     /// Inspector that records all encountered surfaces
     using object_tracer_t = detray::navigation::object_tracer<
@@ -55,8 +55,8 @@ int main() {
     constexpr std::size_t cache_size{detray::navigation::default_cache_size};
 
     // Navigation with inspection
-    using navigator_t =
-        detray::navigator<toy_detector_t, cache_size, inspector_t>;
+    using navigator_t = detray::navigator<toy_detector_t, cache_size,
+                                          inspector_t, intersection_t>;
     // Line stepper
     using stepper_t = detray::line_stepper<detray::tutorial::algebra_t>;
     // Propagator with empty actor chain

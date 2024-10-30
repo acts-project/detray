@@ -21,12 +21,12 @@
 
 namespace detray {
 
-template <typename frame_t, typename algebra_t>
+template <typename frame_t, typename algebra_t, bool do_debug>
 struct ray_intersector_impl;
 
 /// A functor to find intersections between straight line and planar surface
-template <concepts::aos_algebra algebra_t>
-struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
+template <concepts::aos_algebra algebra_t, bool do_debug>
+struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, do_debug> {
 
     /// linear algebra types
     /// @{
@@ -37,7 +37,8 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
     /// @}
 
     template <typename surface_descr_t>
-    using intersection_type = intersection2D<surface_descr_t, algebra_t>;
+    using intersection_type =
+        intersection2D<surface_descr_t, algebra_t, do_debug>;
     using ray_type = detail::ray<algebra_t>;
 
     /// Operator function to find intersections between ray and planar mask
@@ -81,13 +82,16 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
             if (is.path >= overstep_tol) {
 
                 const point3_type p3 = ro + is.path * rd;
-                is.local = mask_t::to_local_frame(trf, p3, ray.dir());
+                const auto loc{mask_t::to_local_frame(trf, p3, ray.dir())};
+                if constexpr (intersection_type<surface_descr_t>::is_debug()) {
+                    is.local = loc;
+                }
                 // Tolerance: per mille of the distance
                 is.status = mask.is_inside(
-                    is.local, math::max(mask_tolerance[0],
-                                        math::min(mask_tolerance[1],
-                                                  mask_tol_scalor *
-                                                      math::fabs(is.path))));
+                    loc, math::max(
+                             mask_tolerance[0],
+                             math::min(mask_tolerance[1],
+                                       mask_tol_scalor * math::fabs(is.path))));
                 is.sf_desc = sf;
                 is.direction = !detail::signbit(is.path);
                 is.volume_link = mask.volume_link();
@@ -133,8 +137,9 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
     }
 };
 
-template <concepts::aos_algebra algebra_t>
-struct ray_intersector_impl<polar2D<algebra_t>, algebra_t>
-    : public ray_intersector_impl<cartesian2D<algebra_t>, algebra_t> {};
+template <concepts::aos_algebra algebra_t, bool do_debug>
+struct ray_intersector_impl<polar2D<algebra_t>, algebra_t, do_debug>
+    : public ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, do_debug> {
+};
 
 }  // namespace detray

@@ -26,9 +26,11 @@ namespace detray {
 ///
 /// With the way the navigation works, only the closest one of the two possible
 /// intersection points is needed in the case of a cylinderical portal surface.
-template <concepts::soa_algebra algebra_t>
-struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t>
-    : public ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t> {
+template <concepts::soa_algebra algebra_t, bool do_debug>
+struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
+                            do_debug>
+    : public ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t,
+                                  do_debug> {
 
     /// Linear algebra types
     /// @{
@@ -39,7 +41,8 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t>
     /// @}
 
     template <typename surface_descr_t>
-    using intersection_type = intersection2D<surface_descr_t, algebra_t>;
+    using intersection_type =
+        intersection2D<surface_descr_t, algebra_t, do_debug>;
 
     /// Operator function to find intersections between ray and cylinder mask
     ///

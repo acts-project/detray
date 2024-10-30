@@ -49,7 +49,7 @@ struct telescope_metadata {
 
     /// Rectangles are always needed as portals (but the yhave the same type as
     /// module rectangles). Only one additional mask shape is allowed
-    enum class mask_ids : std::uint8_t {
+    enum class mask_ids : std::uint_least8_t {
         e_rectangle2 = 0,
         e_portal_rectangle2 = 0,
         e_annulus2 = 1,
@@ -82,7 +82,7 @@ struct telescope_metadata {
                             rectangle, mask<mask_shape_t, nav_link>>>;
 
     /// Material type ids
-    enum class material_ids : std::uint8_t {
+    enum class material_ids : std::uint_least8_t {
         e_slab = 0u,
         e_raw_material = 1u,  //< used for homogeneous volume material
         e_rod = 2u,
@@ -111,7 +111,7 @@ struct telescope_metadata {
         surface_descriptor<mask_link, material_link, transform_link, nav_link>;
 
     /// No grids/other acceleration data structure, everything is brute forced
-    enum geo_objects : std::uint8_t {
+    enum geo_objects : std::uint_least8_t {
         e_portal = 0,
         e_sensitive = 1,
         e_size = 2,

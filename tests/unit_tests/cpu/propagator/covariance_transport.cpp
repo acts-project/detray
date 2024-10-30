@@ -38,7 +38,6 @@ using algebra_t = test::algebra;
 using point2 = test::point2;
 using vector3 = test::vector3;
 using matrix_operator = test::matrix_operator;
-using intersection_t = intersection2D<surface_descriptor<>, algebra_t>;
 
 // Mask types to be tested
 // @TODO: Remove unbounded tag
