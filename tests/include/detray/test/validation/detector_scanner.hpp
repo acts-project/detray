@@ -56,7 +56,7 @@ struct brute_force_scan {
     using trajectory_type = trajectory_t;
 
     template <typename detector_t>
-    inline auto operator()(const typename detector_t::geometry_context,
+    inline auto operator()(const typename detector_t::geometry_context ctx,
                            const detector_t &detector, const trajectory_t &traj,
                            const std::array<typename detector_t::scalar_type, 2>
                                mask_tolerance = {0.f, 0.f},
@@ -89,7 +89,7 @@ struct brute_force_scan {
             // Retrieve candidate(s) from the surface
             const auto sf = tracking_surface{detector, sf_desc};
             sf.template visit_mask<intersection_kernel_t>(
-                intersections, traj, sf_desc, trf_store,
+                intersections, traj, sf_desc, trf_store, ctx,
                 sf.is_portal() ? std::array<scalar_t, 2>{0.f, 0.f}
                                : mask_tolerance);
 

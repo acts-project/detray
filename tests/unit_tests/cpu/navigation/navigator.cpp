@@ -39,8 +39,10 @@ constexpr std::size_t cache_size{navigation::default_cache_size};
 // dummy propagator state
 template <typename stepping_t, typename navigation_t>
 struct prop_state {
+    using context_t = typename navigation_t::detector_type::geometry_context;
     stepping_t _stepping;
     navigation_t _navigation;
+    context_t _context{};
 };
 
 /// Checks for a correct 'towards_surface' state
@@ -163,6 +165,7 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
         stepper_t::state{traj}, navigator_t::state(toy_det)};
     navigator_t::state &navigation = propagation._navigation;
     stepper_t::state &stepping = propagation._stepping;
+    const auto &ctx = propagation._context;
 
     // Check that the state is unitialized
     // Default volume is zero
@@ -180,7 +183,7 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
 
     // Initialize navigation
     // Test that the navigator has a heartbeat
-    nav.init(stepping(), navigation, nav_cfg);
+    nav.init(stepping(), navigation, nav_cfg, ctx);
     ASSERT_TRUE(navigation.is_alive());
     // The status is towards beampipe
     // Two candidates: beampipe and portal
@@ -358,6 +361,7 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
         stepper_t::state{traj}, navigator_t::state(wire_det)};
     navigator_t::state &navigation = propagation._navigation;
     stepper_t::state &stepping = propagation._stepping;
+    const auto &ctx = propagation._context;
 
     // Check that the state is unitialized
     // Default volume is zero
@@ -375,7 +379,7 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
 
     // Initialize navigation
     // Test that the navigator has a heartbeat
-    nav.init(stepping(), navigation, nav_cfg);
+    nav.init(stepping(), navigation, nav_cfg, ctx);
     ASSERT_TRUE(navigation.is_alive());
     // The status is towards portal
     // One candidates: barrel cylinder portal

@@ -73,9 +73,10 @@ TEST(navigator_cuda, navigator) {
 
         navigator_host_t::state& navigation = propagation._navigation;
         stepper_t::state& stepping = propagation._stepping;
+        const auto& ctx = propagation._context;
 
         // Start propagation and record volume IDs
-        nav.init(stepping(), navigation, nav_cfg);
+        nav.init(stepping(), navigation, nav_cfg, ctx);
         bool heartbeat = navigation.is_alive();
         bool do_reset{true};
 

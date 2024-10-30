@@ -41,12 +41,13 @@ __global__ void navigator_test_kernel(
 
     navigator_device_t::state& navigation = propagation._navigation;
     stepper_t::state& stepping = propagation._stepping;
+    const auto& ctx = propagation._context;
 
     // Set initial volume
     navigation.set_volume(0u);
 
     // Start propagation and record volume IDs
-    nav.init(stepping(), navigation, nav_cfg);
+    nav.init(stepping(), navigation, nav_cfg, ctx);
     bool heartbeat = navigation.is_alive();
     bool do_reset{true};
 
