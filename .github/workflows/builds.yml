@@ -125,7 +125,7 @@ jobs:
         PLATFORM:
           - NAME: "CUDA"
             CXX_STANDARD: "20"
-            CONTAINER: "ghcr.io/acts-project/ubuntu2404_cuda:56"
+            CONTAINER: "ghcr.io/acts-project/ubuntu2404_cuda:67"
             OPTIONS: -DDETRAY_BUILD_CUDA=ON -DDETRAY_EIGEN_PLUGIN=ON -DDETRAY_SMATRIX_PLUGIN=OFF -DDETRAY_VC_AOS_PLUGIN=OFF -DDETRAY_VC_SOA_PLUGIN=OFF
           - NAME: "SYCL"
             CXX_STANDARD: "20"
