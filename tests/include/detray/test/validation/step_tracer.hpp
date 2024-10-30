@@ -95,9 +95,16 @@ struct step_tracer : actor {
         // Collect the data whenever requested
         if (navigation.is_on_surface() || tracer_state.m_collect_every_step) {
 
-            step_data_t sd{stepping.step_size(),         stepping.path_length(),
-                           stepping.n_total_trials(),    navigation.direction(),
-                           navigation.barcode(),         stepping(),
+            const geometry::barcode bcd{navigation.is_on_surface()
+                                            ? navigation.barcode()
+                                            : geometry::barcode{}};
+
+            step_data_t sd{stepping.step_size(),
+                           stepping.path_length(),
+                           stepping.n_total_trials(),
+                           navigation.direction(),
+                           bcd,
+                           stepping(),
                            stepping.transport_jacobian()};
 
             tracer_state.m_steps.push_back(std::move(sd));

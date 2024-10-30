@@ -134,7 +134,9 @@ inline void write_free_track_params(
         for (const auto &[charge, track_param] : track_params) {
 
             const auto &glob_pos = track_param.pos();
-            const auto &p = track_param.mom(charge);
+            // Momentum may not be retrievable for straight-line tracks
+            const auto &p{charge != 0.f ? track_param.mom(charge)
+                                        : track_param.dir()};
 
             io::csv::free_track_parameters track_param_data{};
             track_param_data.track_id = track_idx;
