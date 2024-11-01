@@ -51,6 +51,20 @@ class rk_stepper final
 
     rk_stepper() = default;
 
+    struct intermediate_state {
+        vector3_type b_first{0.f, 0.f, 0.f};
+        vector3_type b_middle{0.f, 0.f, 0.f};
+        vector3_type b_last{0.f, 0.f, 0.f};
+        // t = tangential direction = dr/ds
+        std::array<vector3_type, 4u> t;
+        // q/p
+        std::array<scalar_type, 4u> qop;
+        // dt/ds = d^2r/ds^2 = q/p ( t X B )
+        std::array<vector3_type, 4u> dtds;
+        // d(q/p)/ds
+        std::array<scalar_type, 4u> dqopds;
+    };
+
     struct state : public base_type::state {
 
         friend rk_stepper;
@@ -72,29 +86,27 @@ class rk_stepper final
         /// @returns the B-field view
         magnetic_field_type field() const { return m_magnetic_field; }
 
-        /// @returns access to the step data
-        const auto& step_data() const { return m_step_data; }
-
         /// Update the track state by Runge-Kutta-Nystrom integration.
         DETRAY_HOST_DEVICE
-        void advance_track();
+        void advance_track(const intermediate_state& sd);
 
         /// Update the jacobian transport from free propagation
         DETRAY_HOST_DEVICE
-        void advance_jacobian(const stepping::config& cfg = {});
+        void advance_jacobian(const stepping::config& cfg,
+                              const intermediate_state&);
 
         /// evaulate dqopds for a given step size and material
         DETRAY_HOST_DEVICE
-        scalar_type evaluate_dqopds(const std::size_t i, const scalar_type h,
-                                    const scalar_type dqopds_prev,
-                                    const detray::stepping::config& cfg);
+        detray::pair<scalar_type, scalar_type> evaluate_dqopds(
+            const std::size_t i, const scalar_type h,
+            const scalar_type dqopds_prev, const detray::stepping::config& cfg);
 
         /// evaulate dtds for runge kutta stepping
         DETRAY_HOST_DEVICE
-        vector3_type evaluate_dtds(const vector3_type& b_field,
-                                   const std::size_t i, const scalar_type h,
-                                   const vector3_type& dtds_prev,
-                                   const scalar_type qop);
+        detray::pair<vector3_type, vector3_type> evaluate_dtds(
+            const vector3_type& b_field, const std::size_t i,
+            const scalar_type h, const vector3_type& dtds_prev,
+            const scalar_type qop);
 
         DETRAY_HOST_DEVICE
         matrix_type<3, 3> evaluate_field_gradient(const point3_type& pos);
@@ -128,20 +140,8 @@ class rk_stepper final
         }
 
         private:
-        /// stepping data required for RKN4
-        struct {
-            vector3_type b_first{0.f, 0.f, 0.f};
-            vector3_type b_middle{0.f, 0.f, 0.f};
-            vector3_type b_last{0.f, 0.f, 0.f};
-            // t = tangential direction = dr/ds
-            std::array<vector3_type, 4u> t;
-            // q/p
-            std::array<scalar_type, 4u> qop;
-            // dt/ds = d^2r/ds^2 = q/p ( t X B )
-            std::array<vector3_type, 4u> dtds;
-            // d(q/p)/ds
-            std::array<scalar_type, 4u> dqopds;
-        } m_step_data;
+        vector3_type m_dtds_3;
+        scalar_type m_dqopds_3;
 
         /// Magnetic field view
         const magnetic_field_t m_magnetic_field;
