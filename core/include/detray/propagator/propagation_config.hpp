@@ -11,6 +11,7 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/navigation/navigation_config.hpp"
 #include "detray/propagator/stepping_config.hpp"
+#include "detray/core/detail/data_context.hpp"
 
 // System inlcudes
 #include <ostream>
@@ -21,6 +22,7 @@ namespace detray::propagation {
 struct config {
     navigation::config navigation{};
     stepping::config stepping{};
+    geometry_context context{};
 
     /// Print the propagation configuration
     DETRAY_HOST
@@ -29,7 +31,9 @@ struct config {
             << "----------------------------\n"
             << cfg.navigation << "\nParameter Transport\n"
             << "----------------------------\n"
-            << cfg.stepping << "\n";
+            << cfg.stepping << "\nGeometry Context\n"
+	    << "----------------------------\n"
+	    << cfg.context.get() << "\n";
 
         return out;
     }
