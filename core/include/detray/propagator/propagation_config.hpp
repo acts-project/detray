@@ -8,10 +8,10 @@
 #pragma once
 
 // Project include(s).
+#include "detray/core/detail/data_context.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/navigation/navigation_config.hpp"
 #include "detray/propagator/stepping_config.hpp"
-#include "detray/core/detail/data_context.hpp"
 
 // System inlcudes
 #include <ostream>
@@ -32,8 +32,8 @@ struct config {
             << cfg.navigation << "\nParameter Transport\n"
             << "----------------------------\n"
             << cfg.stepping << "\nGeometry Context\n"
-	    << "----------------------------\n"
-	    << cfg.context.get() << "\n";
+            << "----------------------------\n"
+            << cfg.context.get() << "\n";
 
         return out;
     }

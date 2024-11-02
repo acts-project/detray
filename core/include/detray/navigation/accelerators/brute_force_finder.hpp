@@ -59,8 +59,8 @@ class brute_force_collection {
         DETRAY_HOST_DEVICE constexpr auto search(
             const detector_t& /*det*/,
             const typename detector_t::volume_type& /*volume*/,
-            const track_t& /*track*/,
-            const config_t& /*navigation_config*/) const {
+            const track_t& /*track*/, const config_t& /*navigation_config*/,
+            const typename detector_t::geometry_context& /*ctx*/) const {
             return *this;
         }
 
