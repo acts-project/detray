@@ -1,18 +1,21 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
 #pragma once
 
-#include <type_traits>
-#include <utility>
-
+// Propagate include(s)
 #include "detray/definitions/detail/containers.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/utils/tuple_helpers.hpp"
+
+// System include(s)
+#include <concepts>
+#include <type_traits>
+#include <utility>
 
 namespace detray {
 
@@ -77,7 +80,7 @@ class composite_actor final : public actor_impl_t {
         }
 
         // ... then run the observers on the updated state
-        notify(_observers, states, actor_state, p_state,
+        notify(m_observers, states, actor_state, p_state,
                std::make_index_sequence<sizeof...(observers)>{});
     }
 
@@ -97,8 +100,14 @@ class composite_actor final : public actor_impl_t {
                                           propagator_state_t &p_state) const {
         // Two cases: observer is a simple actor or a composite actor
         if constexpr (!typename observer_t::is_comp_actor()) {
-            observer(detail::get<typename observer_t::state &>(states),
-                     actor_state, p_state);
+            // No actor state defined (empty)
+            if constexpr (std::same_as<typename observer_t::state,
+                                       detray::actor::state>) {
+                observer(actor_state, p_state);
+            } else {
+                observer(detail::get<typename observer_t::state &>(states),
+                         actor_state, p_state);
+            }
         } else {
             observer(states, actor_state, p_state);
         }
@@ -126,7 +135,7 @@ class composite_actor final : public actor_impl_t {
     }
 
     /// Keep the observers (might be composites again)
-    tuple_t<observers...> _observers = {};
+    tuple_t<observers...> m_observers = {};
 };
 
 }  // namespace detray
