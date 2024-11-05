@@ -8,29 +8,42 @@ import argparse
 import os
 import sys
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 # Options parsing
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 """ Parent detector reader that contains common options """
+
+
 def detector_io_options():
 
     parser = argparse.ArgumentParser(add_help=False)
 
-    parser.add_argument("--geometry_file", "-geo",
-                        help=("Detector geometry file"),
-                        default = "", type=str, required=True)
-    parser.add_argument("--grid_file", "-grid",
-                        help=("Detector surface grids file"),
-                        default = "", type=str)
-    parser.add_argument("--material_file", "-mat",
-                        help=("Detector material file"),
-                        default = "", type=str)
+    parser.add_argument(
+        "--geometry_file",
+        "-geo",
+        help=("Detector geometry file"),
+        default="",
+        type=str,
+        required=True,
+    )
+    parser.add_argument(
+        "--grid_file",
+        "-grid",
+        help=("Detector surface grids file"),
+        default="",
+        type=str,
+    )
+    parser.add_argument(
+        "--material_file", "-mat", help=("Detector material file"), default="", type=str
+    )
 
     return parser
 
 
 """ Parse detector reader options from commandline """
+
+
 def parse_detector_io_options(args, logging):
 
     # Check detector files
@@ -46,4 +59,5 @@ def parse_detector_io_options(args, logging):
         logging.error(f"Detector material file does not exist! ({args.material_file})")
         sys.exit(1)
 
-#-------------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------------
