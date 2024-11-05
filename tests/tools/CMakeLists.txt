@@ -4,17 +4,28 @@
 #
 # Mozilla Public License Version 2.0
 
-include( CMakeFindDependencyMacro )
+include(CMakeFindDependencyMacro)
 
-find_dependency( Boost COMPONENTS program_options )
+find_dependency(Boost COMPONENTS program_options)
 
-add_library( detray_tools INTERFACE )
-add_library( detray::tools ALIAS detray_tools )
+add_library(detray_tools INTERFACE)
+add_library(detray::tools ALIAS detray_tools)
 
-target_include_directories( detray_tools
-   INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/include" )
+target_include_directories(
+    detray_tools
+    INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/include"
+)
 
-target_link_libraries( detray_tools
-   INTERFACE Boost::program_options vecmem::core detray::core_array detray::test_common detray::io detray::csv_io detray::test_utils )
+target_link_libraries(
+    detray_tools
+    INTERFACE
+        Boost::program_options
+        vecmem::core
+        detray::core_array
+        detray::test_common
+        detray::io
+        detray::csv_io
+        detray::test_utils
+)
 
-add_subdirectory( src )
+add_subdirectory(src)

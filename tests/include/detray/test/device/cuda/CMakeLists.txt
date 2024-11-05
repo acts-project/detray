@@ -14,11 +14,24 @@ enable_language(CUDA)
 include(detray-compiler-options-cuda)
 
 # Set up a test library, which the "new style" benchmarks and tests could use.
-add_library( detray_test_cuda STATIC "material_validation.hpp"
-                                     "material_validation.cu"
-                                     "navigation_validation.hpp" 
-                                     "navigation_validation.cu")
+add_library(
+    detray_test_cuda
+    STATIC
+    "material_validation.hpp"
+    "material_validation.cu"
+    "navigation_validation.hpp"
+    "navigation_validation.cu"
+)
 
-add_library( detray::test_cuda ALIAS detray_test_cuda )
+add_library(detray::test_cuda ALIAS detray_test_cuda)
 
-target_link_libraries( detray_test_cuda PUBLIC vecmem::cuda covfie::cuda detray::core_array detray::test_device detray::test_cpu detray::validation_utils )
+target_link_libraries(
+    detray_test_cuda
+    PUBLIC
+        vecmem::cuda
+        covfie::cuda
+        detray::core_array
+        detray::test_device
+        detray::test_cpu
+        detray::validation_utils
+)

@@ -5,36 +5,41 @@
 # Mozilla Public License Version 2.0
 
 # CMake include(s).
-cmake_minimum_required( VERSION 3.14 )
-include( FetchContent )
+cmake_minimum_required(VERSION 3.14)
+include(FetchContent)
 
 # Silence FetchContent warnings with CMake >=3.24.
-if( POLICY CMP0135 )
-   cmake_policy( SET CMP0135 NEW )
+if(POLICY CMP0135)
+    cmake_policy(SET CMP0135 NEW)
 endif()
 
 # Tell the user what's happening.
-message( STATUS "Building VecMem as part of the Detray project" )
+message(STATUS "Building VecMem as part of the Detray project")
 
 # Declare where to get VecMem from.
-set( DETRAY_VECMEM_SOURCE
-   "URL;https://github.com/acts-project/vecmem/archive/refs/tags/v1.8.0.tar.gz;URL_MD5;afddf52d9568964f25062e1c887246b7"
-   CACHE STRING "Source for VecMem, when built as part of this project" )
-mark_as_advanced( DETRAY_VECMEM_SOURCE )
+set(DETRAY_VECMEM_SOURCE
+    "URL;https://github.com/acts-project/vecmem/archive/refs/tags/v1.8.0.tar.gz;URL_MD5;afddf52d9568964f25062e1c887246b7"
+    CACHE STRING
+    "Source for VecMem, when built as part of this project"
+)
+mark_as_advanced(DETRAY_VECMEM_SOURCE)
 
 # Mark the import as a system library on modern CMake versions
-if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.25.0)
-   set(DETRAY_VECMEM_SOURCE_FULL "${DETRAY_VECMEM_SOURCE};SYSTEM")
+if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.25.0)
+    set(DETRAY_VECMEM_SOURCE_FULL "${DETRAY_VECMEM_SOURCE};SYSTEM")
 else()
-   set(DETRAY_VECMEM_SOURCE_FULL "${DETRAY_VECMEM_SOURCE}")
+    set(DETRAY_VECMEM_SOURCE_FULL "${DETRAY_VECMEM_SOURCE}")
 endif()
-mark_as_advanced( DETRAY_VECMEM_SOURCE_FULL )
+mark_as_advanced(DETRAY_VECMEM_SOURCE_FULL)
 
-FetchContent_Declare( VecMem ${DETRAY_VECMEM_SOURCE_FULL} )
+FetchContent_Declare(VecMem ${DETRAY_VECMEM_SOURCE_FULL})
 
 # Options used in the build of VecMem.
-set( VECMEM_BUILD_TESTING FALSE CACHE BOOL
-   "Turn off the build of the VecMem unit tests" )
+set(VECMEM_BUILD_TESTING
+    FALSE
+    CACHE BOOL
+    "Turn off the build of the VecMem unit tests"
+)
 
 # Get it into the current directory.
-FetchContent_MakeAvailable( VecMem )
+FetchContent_MakeAvailable(VecMem)

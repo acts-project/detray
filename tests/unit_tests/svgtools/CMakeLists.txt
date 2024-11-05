@@ -17,9 +17,11 @@ detray_add_unit_test( svgtools
    "trajectories.cpp"
    "volumes.cpp"
    LINK_LIBRARIES GTest::gtest_main detray::core_array detray::test_utils
-                  actsvg::core actsvg::meta detray::svgtools)
+                  actsvg::core actsvg::meta detray::svgtools
+)
 
 detray_add_unit_test( svgtools_web
    "web.cpp"
    LINK_LIBRARIES GTest::gtest_main detray::core_array detray::test_utils
-                  actsvg::core actsvg::meta detray::svgtools actsvg::web)
+                  actsvg::core actsvg::meta detray::svgtools actsvg::web
+)
