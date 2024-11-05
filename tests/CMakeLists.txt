@@ -112,7 +112,7 @@ if(DETRAY_BUILD_TESTING)
         add_subdirectory(integration_tests)
     endif()
 
-    # Build the command line tools (also required for the host jacobian 
+    # Build the command line tools (also required for the host jacobian
     # validation integration test)
     if(
         (DETRAY_BUILD_INTEGRATIONTESTS AND DETRAY_BUILD_HOST)

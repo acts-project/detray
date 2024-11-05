@@ -31,7 +31,7 @@ detray_add_unit_test( cuda_grid2_array
       "grids_grid2_cuda_kernel.hpp"
       "grids_grid2_cuda.cpp"
       "grids_grid2_cuda_kernel.cu"
-   LINK_LIBRARIES GTest::gtest_main detray::test_utils vecmem::cuda 
+   LINK_LIBRARIES GTest::gtest_main detray::test_utils vecmem::cuda
                   detray::core_array
 )
 

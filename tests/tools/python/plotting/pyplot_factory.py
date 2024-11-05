@@ -86,8 +86,8 @@ class pyplot_factory:
         )
 
     """
-    Create a histogram from given input data. The normalization is achieved by 
-    dividing the bin count by the total number of observations. The error is 
+    Create a histogram from given input data. The normalization is achieved by
+    dividing the bin count by the total number of observations. The error is
     calculated as the square root of the bin content.
     """
 
