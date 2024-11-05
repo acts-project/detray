@@ -8,29 +8,45 @@ import argparse
 import os
 import sys
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 # Options parsing
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 """ Parent parser that contains plotting options """
+
+
 def plotting_options():
 
     parser = argparse.ArgumentParser(add_help=False)
 
-    parser.add_argument("--inputdir", "-i",
-                        help=("Directory containing input data files."),
-                        default = "./", type=str)
-    parser.add_argument("--outdir", "-o",
-                        help=("Output directory for plots."),
-                        default = "./plots/", type=str)
-    parser.add_argument("--output_format", "-of",
-                        help=("Format of the plot files (svg|png|pdf)."),
-                        default = "png", type=str)
+    parser.add_argument(
+        "--inputdir",
+        "-i",
+        help=("Directory containing input data files."),
+        default="./",
+        type=str,
+    )
+    parser.add_argument(
+        "--outdir",
+        "-o",
+        help=("Output directory for plots."),
+        default="./plots/",
+        type=str,
+    )
+    parser.add_argument(
+        "--output_format",
+        "-of",
+        help=("Format of the plot files (svg|png|pdf)."),
+        default="png",
+        type=str,
+    )
 
     return parser
 
 
 """ Parse plotting options from commandline """
+
+
 def parse_plotting_options(args, logging):
 
     # Check input path
@@ -48,4 +64,5 @@ def parse_plotting_options(args, logging):
 
     return args.inputdir, args.outdir, args.output_format
 
-#-------------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------------

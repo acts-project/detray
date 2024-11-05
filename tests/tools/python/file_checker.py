@@ -17,23 +17,30 @@ import os
 import sys
 from jsonschema import validate
 
+
 def __main__():
-#----------------------------------------------------------------arg parsing
+    # ----------------------------------------------------------------arg parsing
 
-    parser = argparse.ArgumentParser(description = "Detray File Validation")
+    parser = argparse.ArgumentParser(description="Detray File Validation")
 
-    parser.add_argument("--geometry_file",
-                        help=("Input geometry json file."),
-                        default = "", type=str)
-    parser.add_argument("--homogeneous_material_file",
-                        help=("Input homogeneous material json file."),
-                        default = "", type=str)
-    parser.add_argument("--material_map_file",
-                        help=("Input material map json file."),
-                        default = "", type=str)
-    parser.add_argument("--grid_file",
-                        help=("Surface grid json file."),
-                        default = "", type=str)
+    parser.add_argument(
+        "--geometry_file", help=("Input geometry json file."), default="", type=str
+    )
+    parser.add_argument(
+        "--homogeneous_material_file",
+        help=("Input homogeneous material json file."),
+        default="",
+        type=str,
+    )
+    parser.add_argument(
+        "--material_map_file",
+        help=("Input material map json file."),
+        default="",
+        type=str,
+    )
+    parser.add_argument(
+        "--grid_file", help=("Surface grid json file."), default="", type=str
+    )
 
     args = parser.parse_args()
 
@@ -72,7 +79,7 @@ def __main__():
         else:
             filename_dict[grid_file] = surface_grid_schema
 
-#------------------------------------------------------------------------run
+    # ------------------------------------------------------------------------run
 
     for filename, schema in filename_dict.items():
         with open(filename) as file:
@@ -84,9 +91,10 @@ def __main__():
                 validate(instance=input_json, schema=schema)
                 print(f"{filename}: OK")
 
-#-------------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------------
 
 if __name__ == "__main__":
     __main__()
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
