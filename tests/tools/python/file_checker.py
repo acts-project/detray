@@ -57,7 +57,7 @@ def __main__():
             filename_dict[hom_mat_file] = homogeneous_material_schema
 
     mat_map_file = args.material_map_file
-    if mat_map_file =!= "":
+    if mat_map_file != "":
         if not os.path.isfile(mat_map_file):
             print(f"Material map file does not exist! ({mat_map_file})")
             sys.exit(1)
