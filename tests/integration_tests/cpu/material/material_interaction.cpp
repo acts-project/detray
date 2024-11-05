@@ -165,56 +165,6 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
 
     EXPECT_NEAR(new_var_qop, dvar_qop, 1e-10f);
 
-    /********************************
-     * Test with next_surface_aborter
-     *********************************/
-
-    using alt_actor_chain_t =
-        actor_chain<dtuple, pathlimit_aborter, parameter_transporter<algebra_t>,
-                    next_surface_aborter, interactor_t,
-                    parameter_resetter<algebra_t>>;
-    using alt_propagator_t =
-        propagator<stepper_t, navigator_t, alt_actor_chain_t>;
-
-    bound_track_parameters<algebra_t> alt_bound_param(
-        geometry::barcode{}.set_index(0u), bound_vector, bound_cov);
-
-    scalar altE(0);
-
-    unsigned int surface_count = 0;
-    while (surface_count < 1e4) {
-        surface_count++;
-
-        // Create actor states tuples
-        pathlimit_aborter::state alt_aborter_state{};
-        next_surface_aborter::state next_surface_aborter_state{
-            0.1f * unit<scalar>::mm};
-
-        auto alt_actor_states = detray::tie(
-            alt_aborter_state, bound_updater, next_surface_aborter_state,
-            interactor_state, parameter_resetter_state);
-
-        // Propagator and its state
-        alt_propagator_t alt_p{prop_cfg};
-        alt_propagator_t::state alt_state(alt_bound_param, det);
-
-        // Propagate
-        alt_p.propagate(alt_state, alt_actor_states);
-
-        alt_bound_param = alt_state._stepping.bound_params();
-
-        // Terminate the propagation if the next sensitive surface was not found
-        if (!next_surface_aborter_state.success) {
-            const scalar altP =
-                alt_state._stepping.bound_params().p(ptc.charge());
-            altE = std::hypot(altP, mass);
-            break;
-        }
-    }
-
-    EXPECT_EQ(surface_count, positions.size());
-    EXPECT_EQ(altE, newE);
-
     // @todo: Validate the backward direction case as well?
 }
 

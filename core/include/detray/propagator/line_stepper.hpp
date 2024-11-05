@@ -78,7 +78,9 @@ class line_stepper final
         constexpr vector3_type dtds() const { return {0.f, 0.f, 0.f}; }
 
         DETRAY_HOST_DEVICE
-        constexpr scalar_type dqopds() const { return 0.f; }
+        constexpr scalar_type dqopds(const material<scalar_type>*) const {
+            return 0.f;
+        }
     };
 
     /// Take a step, regulared by a constrained step
@@ -90,16 +92,11 @@ class line_stepper final
     /// @returns returning the heartbeat, indicating if the stepping is alive
     DETRAY_HOST_DEVICE bool step(const scalar_type dist_to_next,
                                  state& stepping, const stepping::config& cfg,
-                                 const bool = true) const {
+                                 const bool = true,
+                                 const material<scalar_type>* = nullptr) const {
 
         // Straight line stepping: The distance given by the navigator is exact
         stepping.set_step_size(dist_to_next);
-
-        // Update navigation direction
-        const step::direction step_dir = stepping.step_size() >= 0.f
-                                             ? step::direction::e_forward
-                                             : step::direction::e_backward;
-        stepping.set_direction(step_dir);
 
         // Check constraints
         if (const scalar_type max_step =

@@ -14,7 +14,6 @@
 #include "detray/geometry/barcode.hpp"
 #include "detray/geometry/tracking_surface.hpp"
 #include "detray/materials/material.hpp"
-#include "detray/propagator/actors/parameter_resetter.hpp"
 #include "detray/propagator/constrained_step.hpp"
 #include "detray/propagator/stepping_config.hpp"
 #include "detray/tracks/tracks.hpp"
@@ -75,9 +74,6 @@ class base_stepper {
 
             // An invalid barcode - should not be used
             m_bound_params.set_surface_link(geometry::barcode{});
-
-            // Reset jacobian transport to identity matrix
-            matrix_operator().set_identity(m_jac_transport);
         }
 
         /// Sets track parameters from bound track parameter.
@@ -88,12 +84,11 @@ class base_stepper {
             const typename detector_t::geometry_context &ctx)
             : m_bound_params(bound_params) {
 
-            // Surface
+            // Departure surface
             const auto sf = tracking_surface{det, bound_params.surface_link()};
 
-            sf.template visit_mask<
-                typename parameter_resetter<algebra_t>::kernel>(
-                sf.transform(ctx), sf.index(), *this);
+            // Set free track parameters for stepping/navigation
+            m_track = sf.bound_to_free_vector(ctx, bound_params);
         }
 
         /// @returns free track parameters - non-const access
@@ -108,7 +103,7 @@ class base_stepper {
         DETRAY_HOST_DEVICE
         bound_track_parameters_type &bound_params() { return m_bound_params; }
 
-        /// @returns bound track parameters.
+        /// @returns bound track parameters - non-const access
         DETRAY_HOST_DEVICE
         const bound_track_parameters_type &bound_params() const {
             return m_bound_params;
@@ -116,12 +111,13 @@ class base_stepper {
 
         /// Get stepping direction
         DETRAY_HOST_DEVICE
-        inline step::direction direction() const { return m_direction; }
-
-        /// Set stepping direction
-        DETRAY_HOST_DEVICE inline void set_direction(step::direction dir) {
-            m_direction = dir;
+        inline step::direction direction() const {
+            return m_step_size >= 0.f ? step::direction::e_forward
+                                      : step::direction::e_backward;
         }
+
+        /// Updates the total number of step trials
+        DETRAY_HOST_DEVICE inline void count_trials() { ++m_n_total_trials; }
 
         /// @returns the total number of step trials. For steppers that don't
         /// use adaptive step size scaling, this is the number of steps
@@ -129,25 +125,15 @@ class base_stepper {
             return m_n_total_trials;
         }
 
-        /// Set next step size
+        /// Set the current step size
         DETRAY_HOST_DEVICE
         inline void set_step_size(const scalar_type step) {
             m_step_size = step;
         }
 
-        /// @returns the current step size of this state.
+        /// @returns the step size of the current step.
         DETRAY_HOST_DEVICE
         inline scalar_type step_size() const { return m_step_size; }
-
-        /// Set previous step size
-        DETRAY_HOST_DEVICE
-        inline void set_prev_step_size(const scalar_type step) {
-            m_prev_step_size = step;
-        }
-
-        /// @returns the previous step size of this state.
-        DETRAY_HOST_DEVICE
-        inline scalar_type prev_step_size() const { return m_prev_step_size; }
 
         /// @returns this states path length.
         DETRAY_HOST_DEVICE
@@ -157,24 +143,11 @@ class base_stepper {
         DETRAY_HOST_DEVICE
         inline scalar_type abs_path_length() const { return m_abs_path_length; }
 
-        /// @returns path length since last surface was encountered
-        DETRAY_HOST_DEVICE
-        inline scalar_type path_from_surface() const { return m_path_from_sf; }
-
-        /// Reset the path length since last surface
-        DETRAY_HOST_DEVICE inline void reset_path_from_surface() {
-            m_path_from_sf = 0.f;
-        }
-
         /// Add a new segment to all path lengths (forward or backward)
         DETRAY_HOST_DEVICE inline void update_path_lengths(scalar_type seg) {
             m_path_length += seg;
-            m_path_from_sf += seg;
             m_abs_path_length += math::fabs(seg);
         }
-
-        /// Updates the total number of step trials
-        DETRAY_HOST_DEVICE inline void count_trials() { ++m_n_total_trials; }
 
         /// Set new step constraint
         template <step::constraint type = step::constraint::e_actor>
@@ -192,34 +165,7 @@ class base_stepper {
             m_constraint.template release<type>();
         }
 
-        /// @returns the index of the previous surface for cov. transport
-        DETRAY_HOST_DEVICE dindex prev_sf_index() const { return m_prev_sf_id; }
-
-        /// Set the index of the previous surface for cov. transport
-        DETRAY_HOST_DEVICE
-        void set_prev_sf_index(dindex prev_idx) {
-            assert(!detail::is_invalid_value(prev_idx));
-            m_prev_sf_id = prev_idx;
-        }
-
-        /// @returns true if the current volume contains volume material
-        DETRAY_HOST_DEVICE
-        bool volume_has_material() const { return (m_vol_mat != nullptr); }
-
-        /// Access the current volume material
-        DETRAY_HOST_DEVICE
-        const auto &volume_material() const {
-            assert(m_vol_mat != nullptr);
-            return *m_vol_mat;
-        }
-
-        /// Set new volume material access
-        DETRAY_HOST_DEVICE
-        inline void set_volume_material(const material<scalar_type> *mat_ptr) {
-            m_vol_mat = mat_ptr;
-        }
-
-        /// Access the current particle hypothesis
+        /// @returns the current particle hypothesis
         DETRAY_HOST_DEVICE
         const auto &particle_hypothesis() const { return m_ptc; }
 
@@ -253,7 +199,7 @@ class base_stepper {
             matrix_operator().set_identity(m_jac_transport);
         }
 
-        /// @returns access to this states step constraints
+        /// @returns access to this states navigation policy state
         DETRAY_HOST_DEVICE
         inline typename policy_t::state &policy_state() {
             return m_policy_state;
@@ -281,8 +227,22 @@ class base_stepper {
         }
 
         private:
-        /// Stepping direction
-        step::direction m_direction{step::direction::e_forward};
+        /// Jacobian transport matrix
+        free_matrix_type m_jac_transport =
+            matrix_operator().template identity<e_free_size, e_free_size>();
+
+        /// Full jacobian
+        bound_matrix_type m_full_jacobian =
+            matrix_operator().template identity<e_bound_size, e_bound_size>();
+
+        /// Bound covariance
+        bound_track_parameters_type m_bound_params;
+
+        /// Free track parameters
+        free_track_parameters_type m_track;
+
+        /// The default particle hypothesis is 'muon'
+        pdg_particle<scalar_type> m_ptc = muon<scalar_type>();
 
         /// Total number of step trials
         std::size_t m_n_total_trials{0u};
@@ -290,50 +250,20 @@ class base_stepper {
         /// Current step size
         scalar_type m_step_size{0.f};
 
-        /// Previous step size
-        scalar_type m_prev_step_size{0.f};
-
-        /// Track path length
+        /// Track path length (current position along track)
         scalar_type m_path_length{0.f};
 
-        /// Absolute path length
+        /// Absolute path length (total path length covered by the integration)
         scalar_type m_abs_path_length{0.f};
 
-        /// Track path length from the last surface. It will be reset to 0 when
-        /// the track reaches a new surface
-        scalar_type m_path_from_sf{0.f};
-
-        /// The default particle hypothesis is muon
-        pdg_particle<scalar_type> m_ptc = muon<scalar_type>();
-
-        /// Volume material that track is passing through
-        const material<scalar_type> *m_vol_mat{nullptr};
-
-        /// Previous surface index to calculate the bound_to_free_jacobian
-        dindex m_prev_sf_id = detail::invalid_value<dindex>();
-
-        /// free track parameter
-        free_track_parameters_type m_track;
-
-        /// Full jacobian
-        bound_matrix_type m_full_jacobian =
-            matrix_operator().template identity<e_bound_size, e_bound_size>();
-
-        /// jacobian transport matrix
-        free_matrix_type m_jac_transport =
-            matrix_operator().template identity<e_free_size, e_free_size>();
-
-        /// bound covariance
-        bound_track_parameters_type m_bound_params;
-
-        /// Step size constraints
-        constraint_t m_constraint = {};
+        /// Step size constraints (optional)
+        [[no_unique_address]] constraint_t m_constraint = {};
 
         /// Navigation policy state
-        typename policy_t::state m_policy_state = {};
+        [[no_unique_address]] typename policy_t::state m_policy_state = {};
 
-        /// The inspector type of the stepping
-        inspector_type m_inspector;
+        /// The inspector type of the stepping (for debugging only)
+        [[no_unique_address]] inspector_type m_inspector;
     };
 };
 

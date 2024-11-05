@@ -87,20 +87,34 @@ class rk_stepper final
         /// @returns the B-field view
         magnetic_field_type field() const { return m_magnetic_field; }
 
+        /// Set the next step size
+        DETRAY_HOST_DEVICE
+        inline void set_next_step_size(const scalar_type step) {
+            m_next_step_size = step;
+        }
+
+        /// @returns the next step size to be taken on the following step.
+        DETRAY_HOST_DEVICE
+        inline scalar_type next_step_size() const { return m_next_step_size; }
+
         /// Update the track state by Runge-Kutta-Nystrom integration.
         DETRAY_HOST_DEVICE
-        void advance_track(const intermediate_state& sd);
+        void advance_track(const intermediate_state& sd,
+                           const material<scalar_type>* vol_mat_ptr);
 
         /// Update the jacobian transport from free propagation
         DETRAY_HOST_DEVICE
         void advance_jacobian(const stepping::config& cfg,
-                              const intermediate_state&);
+                              const intermediate_state&,
+                              const material<scalar_type>* vol_mat_ptr);
 
         /// evaulate dqopds for a given step size and material
         DETRAY_HOST_DEVICE
         detray::pair<scalar_type, scalar_type> evaluate_dqopds(
             const std::size_t i, const scalar_type h,
-            const scalar_type dqopds_prev, const detray::stepping::config& cfg);
+            const scalar_type dqopds_prev,
+            const material<scalar_type>* vol_mat_ptr,
+            const detray::stepping::config& cfg);
 
         /// evaulate dtds for runge kutta stepping
         DETRAY_HOST_DEVICE
@@ -118,14 +132,16 @@ class rk_stepper final
 
         /// Evaulate d(qop)/ds
         DETRAY_HOST_DEVICE
-        scalar_type dqopds() const;
+        scalar_type dqopds(const material<scalar_type>* vol_mat_ptr) const;
 
         DETRAY_HOST_DEVICE
-        scalar_type dqopds(const scalar_type qop) const;
+        scalar_type dqopds(const scalar_type qop,
+                           const material<scalar_type>* vol_mat_ptr) const;
 
         /// Evaulate d(d(qop)/ds)dqop
         DETRAY_HOST_DEVICE
-        scalar_type d2qopdsdqop(const scalar_type qop) const;
+        scalar_type d2qopdsdqop(const scalar_type qop,
+                                const material<scalar_type>* vol_mat_ptr) const;
 
         /// Call the stepping inspector
         template <typename... Args>
@@ -144,6 +160,9 @@ class rk_stepper final
         vector3_type m_dtds_3;
         scalar_type m_dqopds_3;
 
+        /// Next step size after adaptive step size scaling
+        scalar_type m_next_step_size{0.f};
+
         /// Magnetic field view
         const magnetic_field_t m_magnetic_field;
     };
@@ -156,9 +175,10 @@ class rk_stepper final
     /// @param do_reset whether to reset the RKN step size to "dist to next"
     ///
     /// @return returning the heartbeat, indicating if the stepping is alive
-    DETRAY_HOST_DEVICE bool step(const scalar_type dist_to_next,
-                                 state& stepping, const stepping::config& cfg,
-                                 bool do_reset) const;
+    DETRAY_HOST_DEVICE bool step(
+        const scalar_type dist_to_next, state& stepping,
+        const stepping::config& cfg, bool do_reset,
+        const material<scalar_type>* vol_mat_ptr = nullptr) const;
 };
 
 }  // namespace detray

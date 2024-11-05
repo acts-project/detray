@@ -60,15 +60,17 @@ class actor_chain {
         // Only possible if each state is default initializable
         if constexpr ((std::default_initializable<typename actors_t::state> &&
                        ...)) {
-            tuple_t<typename actors_t::state...> states{};
-
-            return std::make_tuple(
-                states,
-                make_ref_tuple(
-                    states, std::make_index_sequence<sizeof...(actors_t)>{}));
+            return tuple_t<typename actors_t::state...>{};
         } else {
             return std::nullopt;
         }
+    }
+
+    /// @returns a tuple of reference for every state in the tuple @param t
+    DETRAY_HOST_DEVICE static constexpr state make_ref_tuple(
+        tuple_t<typename actors_t::state...> &t) {
+        return make_ref_tuple(t,
+                              std::make_index_sequence<sizeof...(actors_t)>{});
     }
 
     private:
