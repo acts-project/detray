@@ -13,6 +13,7 @@
 #include "detray/geometry/tracking_surface.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/detail/jacobian_engine.hpp"
+#include "detray/utils/curvilinear_frame.hpp"
 
 namespace detray {
 
@@ -24,19 +25,81 @@ struct parameter_transporter : actor {
     using scalar_type = dscalar<algebra_t>;
     // Transformation matching this struct
     using transform3_type = dtransform3D<algebra_t>;
+    // The track parameters bound to the current sensitive/material surface
+    using bound_track_parameters_type = bound_track_parameters<algebra_t>;
     // Matrix actor
     using matrix_operator = dmatrix_operator<algebra_t>;
     // bound matrix type
-    using bound_matrix_t = bound_matrix<algebra_t>;
+    using bound_matrix_type = bound_matrix<algebra_t>;
     // Matrix type for bound to free jacobian
     using bound_to_free_matrix_t = bound_to_free_matrix<algebra_t>;
     /// @}
+
+    struct state {
+
+        friend parameter_transporter;
+
+        state() = default;
+
+        /// Start from free track parameters
+        DETRAY_HOST_DEVICE
+        explicit state(const free_track_parameters<algebra_t>& free_params) {
+
+            curvilinear_frame<algebra_t> cf(free_params);
+
+            // Set bound track parameters
+            m_bound_params.set_parameter_vector(cf.m_bound_vec);
+
+            // A dummy covariance - should not be used
+            m_bound_params.set_covariance(
+                matrix_operator()
+                    .template identity<e_bound_size, e_bound_size>());
+
+            // An invalid barcode - should not be used
+            m_bound_params.set_surface_link(geometry::barcode{});
+        }
+
+        /// Start from bound track parameters
+        DETRAY_HOST_DEVICE
+        explicit state(const bound_track_parameters_type& bound_params)
+            : m_bound_params{bound_params} {}
+
+        /// @returns bound track parameters - const access
+        DETRAY_HOST_DEVICE
+        bound_track_parameters_type& bound_params() { return m_bound_params; }
+
+        /// @returns bound track parameters.
+        DETRAY_HOST_DEVICE
+        const bound_track_parameters_type& bound_params() const {
+            return m_bound_params;
+        }
+
+        /// @returns the current full Jacbian.
+        DETRAY_HOST_DEVICE
+        inline const bound_matrix_type& full_jacobian() const {
+            return m_full_jacobian;
+        }
+
+        private:
+        /// Set new full Jacbian.
+        DETRAY_HOST_DEVICE
+        inline void set_full_jacobian(const bound_matrix_type& jac) {
+            m_full_jacobian = jac;
+        }
+
+        /// Full jacobian
+        bound_matrix_type m_full_jacobian =
+            matrix_operator().template identity<e_bound_size, e_bound_size>();
+
+        /// bound covariance
+        bound_track_parameters_type m_bound_params;
+    };
 
     struct get_full_jacobian_kernel {
 
         template <typename mask_group_t, typename index_t,
                   typename stepper_state_t>
-        DETRAY_HOST_DEVICE inline bound_matrix_t operator()(
+        DETRAY_HOST_DEVICE inline bound_matrix_type operator()(
             const mask_group_t& /*mask_group*/, const index_t& /*index*/,
             const transform3_type& trf3,
             const bound_to_free_matrix_t& bound_to_free_jacobian,
@@ -73,7 +136,8 @@ struct parameter_transporter : actor {
     };
 
     template <typename propagator_state_t>
-    DETRAY_HOST_DEVICE void operator()(propagator_state_t& propagation) const {
+    DETRAY_HOST_DEVICE void operator()(state& transporter_state,
+                                       propagator_state_t& propagation) const {
         auto& stepping = propagation._stepping;
         const auto& navigation = propagation._navigation;
 
@@ -90,7 +154,7 @@ struct parameter_transporter : actor {
         const auto sf = navigation.get_surface();
 
         // Bound track params of departure surface
-        auto& bound_params = stepping.bound_params();
+        auto& bound_params = transporter_state.bound_params();
 
         // Covariance is transported only when the previous surface is an
         // actual tracking surface. (i.e. This disables the covariance transport
@@ -108,17 +172,17 @@ struct parameter_transporter : actor {
             const auto vol_mat_ptr =
                 vol.has_material() ? vol.material_parameters(stepping().pos())
                                    : nullptr;
-            stepping.set_full_jacobian(
+            transporter_state.set_full_jacobian(
                 sf.template visit_mask<get_full_jacobian_kernel>(
                     sf.transform(gctx), bound_to_free_jacobian, vol_mat_ptr,
                     propagation._stepping));
 
             // Calculate surface-to-surface covariance transport
-            const bound_matrix_t new_cov =
-                stepping.full_jacobian() * bound_params.covariance() *
-                matrix_operator().transpose(stepping.full_jacobian());
+            const bound_matrix_type new_cov =
+                transporter_state.full_jacobian() * bound_params.covariance() *
+                matrix_operator().transpose(transporter_state.full_jacobian());
 
-            stepping.bound_params().set_covariance(new_cov);
+            bound_params.set_covariance(new_cov);
         }
 
         // Convert free to bound vector
@@ -128,7 +192,43 @@ struct parameter_transporter : actor {
         // Set surface link
         bound_params.set_surface_link(sf.barcode());
     }
+};
 
-};  // namespace detray
+/// Update the stepper state after the bound track parameters were updated
+template <typename algebra_t>
+struct parameter_resetter : actor {
+
+    template <typename propagator_state_t>
+    DETRAY_HOST_DEVICE void operator()(
+        const parameter_transporter<algebra_t>::state& transporter_state,
+        propagator_state_t& propagation) const {
+
+        const auto& navigation = propagation._navigation;
+        auto& stepping = propagation._stepping;
+
+        // Do covariance transport when the track is on surface
+        if (!(navigation.is_on_sensitive() ||
+              navigation.encountered_sf_material())) {
+            return;
+        }
+
+        typename propagator_state_t::detector_type::geometry_context ctx{};
+
+        // Update free params after bound params were changed by actors
+        const auto sf = navigation.get_surface();
+        stepping() =
+            sf.bound_to_free_vector(ctx, transporter_state.bound_params());
+
+        // Reset jacobian transport to identity matrix
+        stepping.reset_transport_jacobian();
+    }
+};
+
+/// Call actors that depend on the bound track parameters safely together with
+/// the parameter transporter and parameter resetter
+template <typename algebra_t, typename... transporter_observers>
+using parameter_updater =
+    composite_actor<detray::tuple, parameter_transporter<algebra_t>,
+                    transporter_observers..., parameter_resetter<algebra_t>>;
 
 }  // namespace detray

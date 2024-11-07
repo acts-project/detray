@@ -49,6 +49,7 @@ class composite_actor final : public actor_impl_t {
     /// derived from another composition (final).
     using actor_type = actor_impl_t;
     using state = typename actor_type::state;
+    using observer_states = detray::tuple<typename observers::state...>;
 
     /// Call to the implementation of the actor (the actor possibly being an
     /// observer itself)

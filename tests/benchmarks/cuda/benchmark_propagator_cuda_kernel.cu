@@ -30,13 +30,11 @@ __global__ void __launch_bounds__(256, 4) propagator_benchmark_kernel(
     cfg.navigation.search_window = {3u, 3u};
     propagator_device_type p{cfg};
 
-    parameter_transporter<algebra_t>::state transporter_state{};
+    parameter_transporter<algebra_t>::state transporter_state{tracks.at(gid)};
     pointwise_material_interactor<algebra_t>::state interactor_state{};
-    parameter_resetter<algebra_t>::state resetter_state{};
 
     // Create the actor states
-    auto actor_states =
-        detray::tie(transporter_state, interactor_state, resetter_state);
+    auto actor_states = detray::tie(transporter_state, interactor_state);
     // Create the propagator state
     propagator_device_type::state p_state(tracks.at(gid), field_data, det);
 

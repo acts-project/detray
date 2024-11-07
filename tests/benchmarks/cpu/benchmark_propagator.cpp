@@ -16,8 +16,7 @@
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
-#include "detray/propagator/actors/parameter_resetter.hpp"
-#include "detray/propagator/actors/parameter_transporter.hpp"
+#include "detray/propagator/actors/parameter_updater.hpp"
 #include "detray/propagator/actors/pointwise_material_interactor.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/propagator.hpp"
@@ -55,9 +54,11 @@ using navigator_host_type = navigator<detector_host_type>;
 using navigator_device_type = navigator<detector_device_type>;
 using field_type = bfield::const_field_t;
 using rk_stepper_type = rk_stepper<field_type::view_t, algebra_t>;
-using actor_chain_t = actor_chain<tuple, parameter_transporter<algebra_t>,
-                                  pointwise_material_interactor<algebra_t>,
-                                  parameter_resetter<algebra_t>>;
+
+using parameter_updater_t =
+    parameter_updater<algebra_t, pointwise_material_interactor<algebra_t>>;
+
+using actor_chain_t = actor_chain<tuple, parameter_updater_t>;
 using propagator_host_type =
     propagator<rk_stepper_type, navigator_host_type, actor_chain_t>;
 using propagator_device_type =
@@ -119,12 +120,11 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
 #pragma omp parallel for
         for (auto &track : tracks) {
 
-            parameter_transporter<algebra_t>::state transporter_state{};
+            parameter_transporter<algebra_t>::state transporter_state{track};
             pointwise_material_interactor<algebra_t>::state interactor_state{};
-            parameter_resetter<algebra_t>::state resetter_state{};
 
             auto actor_states =
-                tie(transporter_state, interactor_state, resetter_state);
+                detray::tie(transporter_state, interactor_state);
 
             // Create the propagator state
             propagator_host_type::state p_state(track, bfield, det);

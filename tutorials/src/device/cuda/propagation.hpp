@@ -15,8 +15,7 @@
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
-#include "detray/propagator/actors/parameter_resetter.hpp"
-#include "detray/propagator/actors/parameter_transporter.hpp"
+#include "detray/propagator/actors/parameter_updater.hpp"
 #include "detray/propagator/actors/pointwise_material_interactor.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
@@ -56,11 +55,14 @@ using stepper_t =
     rk_stepper<device_field_t::view_t, detray::tutorial::algebra_t>;
 
 // Actors
+
+// Add the material interaction to the bound track parameter update scheme
+using parameter_updater_t = parameter_updater<
+    detray::tutorial::algebra_t,
+    pointwise_material_interactor<detray::tutorial::algebra_t>>;
+// Make actor call chain
 using actor_chain_t =
-    actor_chain<tuple, pathlimit_aborter,
-                parameter_transporter<detray::tutorial::algebra_t>,
-                pointwise_material_interactor<detray::tutorial::algebra_t>,
-                parameter_resetter<detray::tutorial::algebra_t>>;
+    actor_chain<tuple, pathlimit_aborter, parameter_updater_t>;
 
 // Propagator
 using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;

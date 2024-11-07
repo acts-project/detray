@@ -13,8 +13,7 @@
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
-#include "detray/propagator/actors/parameter_resetter.hpp"
-#include "detray/propagator/actors/parameter_transporter.hpp"
+#include "detray/propagator/actors/parameter_updater.hpp"
 #include "detray/propagator/actors/pointwise_material_interactor.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/propagator.hpp"
@@ -80,16 +79,13 @@ struct propagator_test_config {
 // Assemble actor chain type
 using step_tracer_host_t = step_tracer<algebra_t, vecmem::vector>;
 using step_tracer_device_t = step_tracer<algebra_t, vecmem::device_vector>;
-using actor_chain_host_t =
-    actor_chain<tuple, step_tracer_host_t, pathlimit_aborter,
-                parameter_transporter<algebra_t>,
-                pointwise_material_interactor<algebra_t>,
-                parameter_resetter<algebra_t>>;
+using parameter_updater_t =
+    parameter_updater<algebra_t, pointwise_material_interactor<algebra_t>>;
+using actor_chain_host_t = actor_chain<tuple, step_tracer_host_t,
+                                       pathlimit_aborter, parameter_updater_t>;
 using actor_chain_device_t =
     actor_chain<tuple, step_tracer_device_t, pathlimit_aborter,
-                parameter_transporter<algebra_t>,
-                pointwise_material_interactor<algebra_t>,
-                parameter_resetter<algebra_t>>;
+                parameter_updater_t>;
 
 /// Precompute the tracks
 template <typename track_generator_t = uniform_track_generator<track_t>>
@@ -137,12 +133,10 @@ inline auto run_propagation_host(vecmem::memory_resource *mr,
         step_tracer_host_t::state tracer_state{*mr};
         tracer_state.collect_only_on_surface(true);
         pathlimit_aborter::state pathlimit_state{cfg.stepping.path_limit};
-        parameter_transporter<algebra_t>::state transporter_state{};
+        parameter_transporter<algebra_t>::state transporter_state{trk};
         pointwise_material_interactor<algebra_t>::state interactor_state{};
-        parameter_resetter<algebra_t>::state resetter_state{};
-        auto actor_states =
-            detray::tie(tracer_state, pathlimit_state, transporter_state,
-                        interactor_state, resetter_state);
+        auto actor_states = detray::tie(tracer_state, pathlimit_state,
+                                        transporter_state, interactor_state);
 
         typename propagator_host_t::state state(trk, field, det);
 
