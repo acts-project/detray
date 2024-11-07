@@ -43,8 +43,18 @@ __global__ void __launch_bounds__(256, 4) propagator_benchmark_kernel(
     propagator_device_t p{cfg};
 
     // Create the actor states on a fresh copy
-    typename actor_chain_t::state_tuple actor_states = *device_actor_state_ptr;
+    using actor_states_t = typename actor_chain_t::state_tuple;
+    actor_states_t actor_states = *device_actor_state_ptr;
     auto actor_state_refs = actor_chain_t::setup_actor_states(actor_states);
+
+    // Init the parameter transport, if present
+    using transporter_state_t = parameter_transporter<algebra_t>::state;
+    if constexpr (detail::has_type_v<transporter_state_t, actor_states_t>) {
+        // @TODO: Make non-owning to avoid the copy
+        auto &transporter_state =
+            detail::get<transporter_state_t>(actor_states);
+        transporter_state.init(tracks.at(gid));
+    }
 
     // Create the propagator state
 

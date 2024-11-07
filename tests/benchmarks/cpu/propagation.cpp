@@ -46,10 +46,8 @@ int main(int argc, char** argv) {
     using field_t = bfield::const_field_t<scalar>;
     using stepper_t = rk_stepper<typename field_t::view_t, test_algebra>;
     using empty_chain_t = actor_chain<>;
-    using default_chain =
-        actor_chain<parameter_transporter<test_algebra>,
-                    pointwise_material_interactor<test_algebra>,
-                    parameter_resetter<test_algebra>>;
+    using default_chain = actor_chain<parameter_updater<
+        test_algebra, pointwise_material_interactor<test_algebra>>>;
 
     vecmem::host_memory_resource host_mr;
 
@@ -113,8 +111,10 @@ int main(int argc, char** argv) {
     dtuple<> empty_state{};
 
     pointwise_material_interactor<test_algebra>::state interactor_state{};
+    parameter_updater<test_algebra>::state transporter_state{};
 
-    auto actor_states = detail::make_tuple<dtuple>(interactor_state);
+    auto actor_states =
+        detail::make_tuple<dtuple>(transporter_state, interactor_state);
 
     //
     // Register benchmarks

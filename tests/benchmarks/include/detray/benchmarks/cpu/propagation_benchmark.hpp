@@ -104,6 +104,17 @@ struct host_propagation_bm : public benchmark_base {
                                        &track) {
             // Fresh copy of actor states
             actor_states_t actor_states(*input_actor_states);
+
+            // Init the parameter transport, if present
+            using transporter_state_t = parameter_transporter<algebra_t>::state;
+            if constexpr (detail::has_type_v<transporter_state_t,
+                                             actor_states_t>) {
+                // @TODO: Make non-owning to avoid the copy
+                auto &transporter_state =
+                    detail::get<transporter_state_t>(actor_states);
+                transporter_state.init(track);
+            }
+
             // Tuple of references to pass to the propagator
             typename actor_chain_t::state_ref_tuple actor_state_refs =
                 actor_chain_t::setup_actor_states(actor_states);

@@ -16,6 +16,7 @@
 #include "detray/geometry/tracking_surface.hpp"
 #include "detray/materials/detail/concepts.hpp"
 #include "detray/materials/interaction.hpp"
+#include "detray/propagator/actors/parameter_updater.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/tracks/bound_track_parameters.hpp"
 #include "detray/utils/axis_rotation.hpp"
@@ -128,8 +129,10 @@ struct random_scatterer : actor {
     };
 
     template <typename propagator_state_t>
-    DETRAY_HOST inline void operator()(state& simulator_state,
-                                       propagator_state_t& prop_state) const {
+    DETRAY_HOST inline void operator()(
+        state& simulator_state,
+        parameter_transporter<algebra_t>::state& transporter_state,
+        propagator_state_t& prop_state) const {
 
         // @Todo: Make context part of propagation state
         using detector_type = typename propagator_state_t::detector_type;
@@ -143,7 +146,7 @@ struct random_scatterer : actor {
 
         auto& stepping = prop_state._stepping;
         const auto& ptc = stepping.particle_hypothesis();
-        auto& bound_params = stepping.bound_params();
+        auto& bound_params = transporter_state.bound_params();
         const auto sf = navigation.get_surface();
         const scalar_type cos_inc_angle{
             sf.cos_angle(geo_context_type{}, bound_params.dir(),
@@ -168,8 +171,8 @@ struct random_scatterer : actor {
                                      simulator_state.generator);
 
         // Update Phi and Theta
-        stepping.bound_params().set_phi(vector::phi(new_dir));
-        stepping.bound_params().set_theta(vector::theta(new_dir));
+        bound_params.set_phi(vector::phi(new_dir));
+        bound_params.set_theta(vector::theta(new_dir));
 
         // Flag renavigation of the current candidate
         prop_state._navigation.set_high_trust();
