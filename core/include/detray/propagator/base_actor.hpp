@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2024 CERN for the benefit of the ACTS project
+ * (c) 2022-2025 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -28,25 +28,80 @@ struct actor {
     struct state {};
 };
 
+namespace detail {
+/// Extrac the tuple of actor states from an actor type
+/// @{
+// Simple actor: No observers
+template <typename actor_t>
+struct get_state_tuple {
+    private:
+    using state_t = typename actor_t::state;
+
+    // Remove empty default state of base actor type from tuple
+    using principal = std::conditional_t<std::same_as<state_t, actor::state>,
+                                         dtuple<>, dtuple<state_t>>;
+    using principal_ref =
+        std::conditional_t<std::same_as<state_t, actor::state>, dtuple<>,
+                           dtuple<state_t &>>;
+
+    public:
+    using type = principal;
+    using ref_type = principal_ref;
+};
+
+// Composite actor: Has observers
+template <typename actor_t>
+requires(!std::same_as<typename std::remove_cvref_t<actor_t>::observer_states,
+                       void>) struct get_state_tuple<actor_t> {
+    private:
+    using principal_actor_t = typename actor_t::actor_type;
+
+    using principal = typename get_state_tuple<principal_actor_t>::type;
+    using principal_ref = typename get_state_tuple<principal_actor_t>::ref_type;
+
+    using observers = typename actor_t::observer_states;
+    using observer_refs = typename actor_t::observer_state_refs;
+
+    public:
+    using type = detail::tuple_cat_t<principal, observers>;
+    using ref_type = detail::tuple_cat_t<principal_ref, observer_refs>;
+};
+
+/// Tuple of state types
+template <typename actor_t>
+using state_tuple_t = get_state_tuple<actor_t>::type;
+
+/// Tuple of references
+template <typename actor_t>
+using state_ref_tuple_t = get_state_tuple<actor_t>::ref_type;
+/// @}
+
+}  // namespace detail
+
 /// Composition of actors
 ///
 /// The composition represents an actor together with its observers. In
 /// addition to running its own implementation, it notifies its observing actors
 ///
-/// @tparam actor_impl_t the actor the compositions implements itself.
+/// @tparam principal_actor_t the actor the compositions implements itself.
 /// @tparam observers a pack of observing actors that get called on the updated
 ///         actor state of the compositions actor implementation.
-template <class actor_impl_t = actor, typename... observers>
-class composite_actor final : public actor_impl_t {
+template <class principal_actor_t = actor, typename... observers>
+class composite_actor final : public principal_actor_t {
 
     public:
     /// Tag whether this is a composite type (hides the def in the actor)
     struct is_comp_actor : public std::true_type {};
 
-    /// The composite is an actor in itself. For simplicity, it cannot be
-    /// derived from another composition (final).
-    using actor_type = actor_impl_t;
+    /// The composite is an actor in itself.
+    using actor_type = principal_actor_t;
     using state = typename actor_type::state;
+
+    /// Tuple of states of observing actors
+    using observer_states =
+        detail::tuple_cat_t<detail::state_tuple_t<observers>...>;
+    using observer_state_refs =
+        detail::tuple_cat_t<detail::state_ref_tuple_t<observers>...>;
 
     /// Call to the implementation of the actor (the actor possibly being an
     /// observer itself)
@@ -133,7 +188,7 @@ class composite_actor final : public actor_impl_t {
     }
 
     /// Keep the observers (might be composites again)
-    dtuple<observers...> m_observers = {};
+    [[no_unique_address]] dtuple<observers...> m_observers = {};
 };
 
 }  // namespace detray

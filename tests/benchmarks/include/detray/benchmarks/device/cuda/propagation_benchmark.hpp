@@ -47,9 +47,8 @@ template <concepts::algebra algebra_t>
 using empty_chain = actor_chain<>;
 
 template <concepts::algebra algebra_t>
-using default_chain = actor_chain<parameter_transporter<algebra_t>,
-                                  pointwise_material_interactor<algebra_t>,
-                                  parameter_resetter<algebra_t>>;
+using default_chain = actor_chain<
+    parameter_updater<algebra_t, pointwise_material_interactor<algebra_t>>>;
 
 using const_field_t = bfield::const_bknd_t<test::scalar>;
 
