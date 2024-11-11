@@ -21,8 +21,6 @@ struct parameter_resetter : actor {
 
     using scalar_type = dscalar<algebra_t>;
 
-    struct state {};
-
     /// Mask store visitor
     struct kernel {
 
@@ -56,8 +54,7 @@ struct parameter_resetter : actor {
     };
 
     template <typename propagator_state_t>
-    DETRAY_HOST_DEVICE void operator()(state& /*resetter_state*/,
-                                       propagator_state_t& propagation) const {
+    DETRAY_HOST_DEVICE void operator()(propagator_state_t& propagation) const {
 
         const auto& navigation = propagation._navigation;
         auto& stepping = propagation._stepping;
