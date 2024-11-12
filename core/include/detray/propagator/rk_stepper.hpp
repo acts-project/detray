@@ -80,7 +80,7 @@ class rk_stepper final
         DETRAY_HOST_DEVICE state(
             const bound_track_parameters_type& bound_params,
             const magnetic_field_t& mag_field, const detector_t& det,
-            const typename detector_t::geometry_context& ctx = {})
+            const typename detector_t::geometry_context& ctx)
             : base_type::state(bound_params, det, ctx),
               m_magnetic_field(mag_field) {}
 

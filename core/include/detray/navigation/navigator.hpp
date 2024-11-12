@@ -762,7 +762,7 @@ class navigator {
     template <typename track_t>
     DETRAY_HOST_DEVICE inline bool update_kernel(
         const track_t &track, state &navigation, const navigation::config &cfg,
-        const context_type &ctx = {}) const {
+        const context_type &ctx) const {
 
         const auto &det = navigation.detector();
 

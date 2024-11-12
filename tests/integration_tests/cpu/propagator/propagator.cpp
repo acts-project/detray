@@ -140,7 +140,7 @@ GTEST_TEST(detray_propagator, propagator_line_stepper) {
     propagation::config prop_cfg{};
     propagator_t p{prop_cfg};
 
-    propagator_t::state state(track, d);
+    propagator_t::state state(track, d, prop_cfg.context);
 
     EXPECT_TRUE(p.propagate(state))
         << state._navigation.inspector().to_string() << std::endl;

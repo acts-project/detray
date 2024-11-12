@@ -68,7 +68,7 @@ struct propagator {
         /// Construct the propagation state with free parameter
         DETRAY_HOST_DEVICE state(const free_track_parameters_type &free_params,
                                  const detector_type &det,
-                                 const context_type &ctx = {})
+                                 const context_type &ctx)
             : _stepping(free_params), _navigation(det), _context(ctx) {}
 
         /// Construct the propagation state with free parameter
@@ -106,7 +106,7 @@ struct propagator {
         DETRAY_HOST_DEVICE state(const bound_track_parameters_type &param,
                                  const detector_type &det,
                                  const context_type &ctx = {})
-            : _stepping(param, det), _navigation(det), _context(ctx) {}
+            : _stepping(param, det, ctx), _navigation(det), _context(ctx) {}
 
         /// Construct the propagation state with bound parameter
         template <typename field_t>
