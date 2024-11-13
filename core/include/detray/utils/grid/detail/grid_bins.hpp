@@ -58,7 +58,7 @@ class single : public detray::ranges::single_view<entry_t> {
     ///
     /// @returns true if the single value is equal
     DETRAY_HOST_DEVICE
-    constexpr bool operator==(const single &rhs) const {
+    constexpr bool operator==(const single& rhs) const {
         return (*this).value() == rhs.value();
     }
 };
@@ -169,10 +169,9 @@ class static_array
     ///
     /// @returns true if the content is equal
     DETRAY_HOST_DEVICE
-    constexpr bool operator==(const static_array &rhs) const {
+    constexpr bool operator==(const static_array& rhs) const {
         return m_content == rhs.m_content;
     }
-
 
     private:
     /// @returns the subrange on the valid bin content - const
@@ -337,10 +336,9 @@ class dynamic_array
     ///
     /// @returns true if the view is identical
     DETRAY_HOST_DEVICE
-    constexpr bool operator==(const dynamic_array &rhs) const {
+    constexpr bool operator==(const dynamic_array& rhs) const {
         return view() == rhs.view();
     }
-
 
     private:
     /// @returns the subrange on the valid bin content - const

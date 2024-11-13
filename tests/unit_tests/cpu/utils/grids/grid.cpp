@@ -348,7 +348,6 @@ GTEST_TEST(detray_grid, dynamic_array) {
         std::equal(flat_bin_view2.begin(), flat_bin_view2.end(), seq.begin()));
 }
 
-
 /// Unittest: Test dynamic grid construction
 GTEST_TEST(detray_grid, dynamic_array_comparison) {
 
@@ -418,7 +417,6 @@ GTEST_TEST(detray_grid, dynamic_array_comparison) {
 
     // CHECK equality
     EXPECT_TRUE(grid_own == grid_own2);
-
 }
 
 /// Test bin entry retrieval

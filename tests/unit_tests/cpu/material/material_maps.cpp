@@ -287,7 +287,7 @@ GTEST_TEST(detray_material, material_grid_comparison) {
             material_grid.template populate<replace<>>(
                 gbin, material_t(oxygen_gas<scalar>{}, thickness));
             thickness += 1.f * unit<scalar>::mm;
-            if (distort_entries){
+            if (distort_entries) {
                 thickness += 1.f * unit<scalar>::mm;
             }
         }

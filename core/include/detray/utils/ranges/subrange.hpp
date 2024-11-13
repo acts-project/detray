@@ -48,10 +48,10 @@ class subrange : public detray::ranges::view_interface<subrange<range_t>> {
     /// Construct from a @param range and starting position @param pos. Used
     /// as an overload when only a single position is needed.
     template <detray::ranges::range deduced_range_t, typename index_t>
-        requires std::is_convertible_v<
-                     index_t,
-                     detray::ranges::range_difference_t<deduced_range_t>>
-    DETRAY_HOST_DEVICE constexpr subrange(deduced_range_t &&range, index_t pos)
+    requires std::is_convertible_v<
+        index_t, detray::ranges::range_difference_t<deduced_range_t>>
+        DETRAY_HOST_DEVICE constexpr subrange(deduced_range_t &&range,
+                                              index_t pos)
         : m_begin{detray::ranges::next(
               detray::ranges::begin(std::forward<deduced_range_t>(range)),
               static_cast<difference_t>(pos))},
@@ -104,19 +104,18 @@ class subrange : public detray::ranges::view_interface<subrange<range_t>> {
 };
 
 template <detray::ranges::range deduced_range_t>
-DETRAY_HOST_DEVICE subrange(deduced_range_t &&range)
-    -> subrange<deduced_range_t>;
+DETRAY_HOST_DEVICE subrange(deduced_range_t &&range)->subrange<deduced_range_t>;
 
 template <detray::ranges::range deduced_range_t, typename index_t>
-    requires std::convertible_to<
-        index_t, detray::ranges::range_difference_t<deduced_range_t>>
-DETRAY_HOST_DEVICE subrange(deduced_range_t &&range, index_t pos)
-    -> subrange<deduced_range_t>;
+requires std::convertible_to<
+    index_t, detray::ranges::range_difference_t<deduced_range_t>>
+    DETRAY_HOST_DEVICE subrange(deduced_range_t &&range, index_t pos)
+        ->subrange<deduced_range_t>;
 
 template <detray::ranges::range deduced_range_t,
           concepts::interval index_range_t>
 DETRAY_HOST_DEVICE subrange(deduced_range_t &&range, index_range_t &&pos)
-    -> subrange<deduced_range_t>;
+    ->subrange<deduced_range_t>;
 
 /// @see https://en.cppreference.com/w/cpp/ranges/borrowed_iterator_t
 template <detray::ranges::range R>

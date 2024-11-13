@@ -58,30 +58,29 @@ class bin_storage : public detray::ranges::view_interface<
 
     /// Construct containers using a memory resources
     template <bool owner = is_owning>
-        requires owner
-    DETRAY_HOST explicit bin_storage(vecmem::memory_resource& resource)
+    requires owner DETRAY_HOST explicit bin_storage(
+        vecmem::memory_resource& resource)
         : m_bin_data(&resource) {}
 
     /// Construct grid data from containers - move
     template <bool owner = is_owning>
-        requires owner
-    DETRAY_HOST_DEVICE explicit bin_storage(bin_container_type&& bin_data)
+    requires owner DETRAY_HOST_DEVICE explicit bin_storage(
+        bin_container_type&& bin_data)
         : m_bin_data(std::move(bin_data)) {}
 
     /// Construct the non-owning type from the @param offset into the global
     /// container @param bin_data and the number of bins @param size
     template <bool owner = is_owning>
-        requires(!owner)
-    DETRAY_HOST_DEVICE bin_storage(bin_container_type& bin_data, dindex offset,
-                                   dindex size)
+    requires(!owner) DETRAY_HOST_DEVICE
+        bin_storage(bin_container_type& bin_data, dindex offset, dindex size)
         : m_bin_data(bin_data, dindex_range{offset, offset + size}) {}
 
     /// Construct the non-owning type from the @param offset into the global
     /// container @param bin_data and the number of bins @param size
     template <bool owner = is_owning>
-        requires(!owner)
-    DETRAY_HOST_DEVICE bin_storage(const bin_container_type& bin_data,
-                                   dindex offset, dindex size)
+    requires(!owner) DETRAY_HOST_DEVICE
+        bin_storage(const bin_container_type& bin_data, dindex offset,
+                    dindex size)
         : m_bin_data(bin_data, dindex_range{offset, offset + size}) {}
 
     /// Construct bin storage from its vecmem view
@@ -103,15 +102,13 @@ class bin_storage : public detray::ranges::view_interface<
 
     /// @returns the vecmem view of the bin storage
     template <bool owner = is_owning>
-        requires owner
-    DETRAY_HOST auto get_data() -> view_type {
+    requires owner DETRAY_HOST auto get_data() -> view_type {
         return detray::get_data(m_bin_data);
     }
 
     /// @returns the vecmem view of the bin storage - const
     template <bool owner = is_owning>
-        requires owner
-    DETRAY_HOST auto get_data() const -> const_view_type {
+    requires owner DETRAY_HOST auto get_data() const -> const_view_type {
         return detray::get_data(m_bin_data);
     }
 
@@ -121,8 +118,7 @@ class bin_storage : public detray::ranges::view_interface<
     ///
     /// @returns true if the bin data is equal
     DETRAY_HOST_DEVICE
-    constexpr bool operator==(
-        const bin_storage& rhs) const {
+    constexpr bool operator==(const bin_storage& rhs) const {
         return m_bin_data == rhs.m_bin_data;
     }
 
@@ -276,37 +272,32 @@ class bin_storage<is_owning, detray::bins::dynamic_array<entry_t>, containers>
             ++(*this);
             return tmp;
         }
-        DETRAY_HOST_DEVICE iterator_adapter& operator--()
-            requires std::bidirectional_iterator<bin_itr_t>
-        {
+        DETRAY_HOST_DEVICE iterator_adapter&
+        operator--() requires std::bidirectional_iterator<bin_itr_t> {
             --m_itr;
             return *this;
         }
-        DETRAY_HOST_DEVICE constexpr iterator_adapter operator--(int)
-            requires std::bidirectional_iterator<bin_itr_t>
-        {
+        DETRAY_HOST_DEVICE constexpr iterator_adapter operator--(
+            int) requires std::bidirectional_iterator<bin_itr_t> {
             auto tmp(*this);
             --(*this);
             return tmp;
         }
         DETRAY_HOST_DEVICE constexpr iterator_adapter& operator+=(
-            const difference_type j)
-            requires std::random_access_iterator<bin_itr_t>
-        {
+            const difference_type
+                j) requires std::random_access_iterator<bin_itr_t> {
             m_itr += j;
             return *this;
         }
         DETRAY_HOST_DEVICE constexpr iterator_adapter& operator-=(
-            const difference_type j)
-            requires std::random_access_iterator<bin_itr_t>
-        {
+            const difference_type
+                j) requires std::random_access_iterator<bin_itr_t> {
             m_itr -= j;
             return *this;
         }
         DETRAY_HOST_DEVICE
         constexpr decltype(auto) operator[](const difference_type i) const
-            requires std::random_access_iterator<bin_itr_t>
-        {
+            requires std::random_access_iterator<bin_itr_t> {
             return *(*this + i);
         }
         /// @}
@@ -325,9 +316,9 @@ class bin_storage<is_owning, detray::bins::dynamic_array<entry_t>, containers>
             return lhs.m_itr == rhs.m_itr;
         }
         DETRAY_HOST_DEVICE friend constexpr auto operator<=>(
-            const iterator_adapter& lhs, const iterator_adapter& rhs)
-            requires detray::ranges::random_access_iterator<bin_itr_t>
-        {
+            const iterator_adapter& lhs,
+            const iterator_adapter& rhs) requires detray::ranges::
+            random_access_iterator<bin_itr_t> {
 #if defined(__apple_build_version__)
             const auto l{lhs.m_itr};
             const auto r{rhs.m_itr};
@@ -343,31 +334,28 @@ class bin_storage<is_owning, detray::bins::dynamic_array<entry_t>, containers>
 #endif
         }
         DETRAY_HOST_DEVICE
-        friend difference_type operator-(const iterator_adapter& lhs,
-                                         const iterator_adapter& rhs)
-            requires detray::ranges::random_access_iterator<bin_itr_t>
-        {
+        friend difference_type operator-(
+            const iterator_adapter& lhs,
+            const iterator_adapter& rhs) requires detray::ranges::
+            random_access_iterator<bin_itr_t> {
             return lhs.m_itr - rhs.m_itr;
         }
         DETRAY_HOST_DEVICE
-        friend iterator_adapter operator-(const iterator_adapter& itr,
-                                          difference_type i)
-            requires std::random_access_iterator<bin_itr_t>
-        {
+        friend iterator_adapter operator-(
+            const iterator_adapter& itr,
+            difference_type i) requires std::random_access_iterator<bin_itr_t> {
             return {itr.m_itr - i, itr.m_entry_data};
         }
         DETRAY_HOST_DEVICE
-        friend iterator_adapter operator+(const iterator_adapter& itr,
-                                          difference_type i)
-            requires std::random_access_iterator<bin_itr_t>
-        {
+        friend iterator_adapter operator+(
+            const iterator_adapter& itr,
+            difference_type i) requires std::random_access_iterator<bin_itr_t> {
             return {itr.m_itr + i, itr.m_entry_data};
         }
         DETRAY_HOST_DEVICE
-        friend iterator_adapter operator+(difference_type i,
-                                          const iterator_adapter& itr)
-            requires detray::ranges::random_access_iterator<bin_itr_t>
-        {
+        friend iterator_adapter operator+(
+            difference_type i, const iterator_adapter& itr) requires detray::
+            ranges::random_access_iterator<bin_itr_t> {
             return itr + i;
         }
 
@@ -402,23 +390,22 @@ class bin_storage<is_owning, detray::bins::dynamic_array<entry_t>, containers>
 
     /// Construct containers using a memory resources
     template <bool owner = is_owning>
-        requires owner
-    DETRAY_HOST explicit bin_storage(vecmem::memory_resource& resource)
+    requires owner DETRAY_HOST explicit bin_storage(
+        vecmem::memory_resource& resource)
         : m_bin_data(&resource), m_entry_data(&resource) {}
 
     /// Construct grid data from containers - move
     template <bool owner = is_owning>
-        requires owner
-    DETRAY_HOST_DEVICE explicit bin_storage(bin_container_type&& bin_data)
+    requires owner DETRAY_HOST_DEVICE explicit bin_storage(
+        bin_container_type&& bin_data)
         : m_bin_data(std::move(bin_data.bins)),
           m_entry_data(std::move(bin_data.entries)) {}
 
     /// Construct the non-owning type from the @param offset into the global
     /// containers @param bin_data and the number of bins @param size
     template <bool owner = is_owning>
-        requires(!owner)
-    DETRAY_HOST_DEVICE bin_storage(bin_container_type& bin_data, dindex offset,
-                                   dindex size)
+    requires(!owner) DETRAY_HOST_DEVICE
+        bin_storage(bin_container_type& bin_data, dindex offset, dindex size)
         : m_bin_data(bin_data.bins, dindex_range{offset, offset + size}),
           m_entry_data(
               bin_data.entries,
@@ -464,16 +451,14 @@ class bin_storage<is_owning, detray::bins::dynamic_array<entry_t>, containers>
 
     /// @returns the vecmem view of the bin storage
     template <bool owner = is_owning>
-        requires owner
-    DETRAY_HOST auto get_data() -> view_type {
+    requires owner DETRAY_HOST auto get_data() -> view_type {
         return view_type{detray::get_data(m_bin_data),
                          detray::get_data(m_entry_data)};
     }
 
     /// @returns the vecmem view of the bin storage - const
     template <bool owner = is_owning>
-        requires owner
-    DETRAY_HOST auto get_data() const -> const_view_type {
+    requires owner DETRAY_HOST auto get_data() const -> const_view_type {
         return const_view_type{detray::get_data(m_bin_data),
                                detray::get_data(m_entry_data)};
     }
@@ -484,8 +469,7 @@ class bin_storage<is_owning, detray::bins::dynamic_array<entry_t>, containers>
     ///
     /// @returns true if the bin data is equal
     DETRAY_HOST_DEVICE
-    constexpr bool operator==(
-        const bin_storage& rhs) const {
+    constexpr bool operator==(const bin_storage& rhs) const {
         return m_bin_data == rhs.m_bin_data && m_entry_data == rhs.m_entry_data;
     }
 

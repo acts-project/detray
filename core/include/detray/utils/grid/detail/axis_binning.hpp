@@ -173,8 +173,7 @@ struct regular {
     /// @param rhs the axis to compare to
     ///
     /// @returns whether the two axes are equal
-    DETRAY_HOST_DEVICE constexpr bool operator==(
-        const regular &rhs) const {
+    DETRAY_HOST_DEVICE constexpr bool operator==(const regular &rhs) const {
         return m_offset == rhs.m_offset && m_n_bins == rhs.m_n_bins &&
                m_bin_edges == rhs.m_bin_edges;
     }
@@ -323,8 +322,7 @@ struct irregular {
     /// @param rhs the axis to compare to
     ///
     /// @returns whether the two axes are equal
-    DETRAY_HOST_DEVICE constexpr bool operator==(
-        const irregular &rhs) const {
+    DETRAY_HOST_DEVICE constexpr bool operator==(const irregular &rhs) const {
         return m_offset == rhs.m_offset && m_n_bins == rhs.m_n_bins &&
                m_bin_edges == rhs.m_bin_edges;
     }
