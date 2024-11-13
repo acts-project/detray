@@ -91,7 +91,7 @@ int main() {
         // the same volumes and distances along the way
         detray::free_track_parameters<detray::tutorial::algebra_t> track(
             ray.pos(), 0.f, ray.dir(), -1.f);
-        propagator_t::state propagation(track, det);
+        propagator_t::state propagation(track, det, prop_cfg.context);
 
         // Run the actual propagation
         prop.propagate(propagation);

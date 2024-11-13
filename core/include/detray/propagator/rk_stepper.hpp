@@ -79,8 +79,9 @@ class rk_stepper final
         template <typename detector_t>
         DETRAY_HOST_DEVICE state(
             const bound_track_parameters_type& bound_params,
-            const magnetic_field_t& mag_field, const detector_t& det)
-            : base_type::state(bound_params, det),
+            const magnetic_field_t& mag_field, const detector_t& det,
+            const typename detector_t::geometry_context& ctx)
+            : base_type::state(bound_params, det, ctx),
               m_magnetic_field(mag_field) {}
 
         /// @returns the B-field view

@@ -60,49 +60,63 @@ struct propagator {
     struct state {
 
         using detector_type = typename navigator_t::detector_type;
+        using context_type = typename detector_type::geometry_context;
         using navigator_state_type = typename navigator_t::state;
         using actor_chain_type = actor_chain_t;
         using scalar_type = typename navigator_t::scalar_type;
 
         /// Construct the propagation state with free parameter
         DETRAY_HOST_DEVICE state(const free_track_parameters_type &free_params,
-                                 const detector_type &det)
-            : _stepping(free_params), _navigation(det) {}
+                                 const detector_type &det,
+                                 const context_type &ctx)
+            : _stepping(free_params), _navigation(det), _context(ctx) {}
 
         /// Construct the propagation state with free parameter
         template <typename field_t>
         DETRAY_HOST_DEVICE state(const free_track_parameters_type &free_params,
                                  const field_t &magnetic_field,
-                                 const detector_type &det)
-            : _stepping(free_params, magnetic_field), _navigation(det) {}
+                                 const detector_type &det,
+                                 const context_type &ctx = {})
+            : _stepping(free_params, magnetic_field),
+              _navigation(det),
+              _context(ctx) {}
 
         /// Construct the propagation state from the navigator state view
         DETRAY_HOST_DEVICE state(
             const free_track_parameters_type &free_params,
             const detector_type &det,
-            typename navigator_type::state::view_type nav_view)
-            : _stepping(free_params), _navigation(det, nav_view) {}
+            typename navigator_type::state::view_type nav_view,
+            const context_type &ctx = {})
+            : _stepping(free_params),
+              _navigation(det, nav_view),
+              _context(ctx) {}
 
         /// Construct the propagation state from the navigator state view
         template <typename field_t>
         DETRAY_HOST_DEVICE state(
             const free_track_parameters_type &free_params,
             const field_t &magnetic_field, const detector_type &det,
-            typename navigator_type::state::view_type nav_view)
+            typename navigator_type::state::view_type nav_view,
+            const context_type &ctx = {})
             : _stepping(free_params, magnetic_field),
-              _navigation(det, nav_view) {}
+              _navigation(det, nav_view),
+              _context(ctx) {}
 
         /// Construct the propagation state with bound parameter
         DETRAY_HOST_DEVICE state(const bound_track_parameters_type &param,
-                                 const detector_type &det)
-            : _stepping(param, det), _navigation(det) {}
+                                 const detector_type &det,
+                                 const context_type &ctx = {})
+            : _stepping(param, det, ctx), _navigation(det), _context(ctx) {}
 
         /// Construct the propagation state with bound parameter
         template <typename field_t>
         DETRAY_HOST_DEVICE state(const bound_track_parameters_type &param,
                                  const field_t &magnetic_field,
-                                 const detector_type &det)
-            : _stepping(param, magnetic_field, det), _navigation(det) {}
+                                 const detector_type &det,
+                                 const context_type &ctx = {})
+            : _stepping(param, magnetic_field, det, ctx),
+              _navigation(det),
+              _context(ctx) {}
 
         /// Set the particle hypothesis
         DETRAY_HOST_DEVICE
@@ -119,6 +133,7 @@ struct propagator {
 
         typename stepper_t::state _stepping;
         typename navigator_t::state _navigation;
+        context_type _context;
 
         bool do_debug = false;
 #if defined(__NO_DEVICE__)
@@ -140,17 +155,18 @@ struct propagator {
         typename actor_chain_t::state actor_state_refs) const {
         auto &navigation = propagation._navigation;
         auto &stepping = propagation._stepping;
+        auto &context = propagation._context;
         const auto &track = stepping();
 
         // Initialize the navigation
-        m_navigator.init(track, navigation, m_cfg.navigation);
+        m_navigator.init(track, navigation, m_cfg.navigation, context);
         propagation._heartbeat = navigation.is_alive();
 
         // Run all registered actors/aborters after init
         run_actors(actor_state_refs, propagation);
 
         // Find next candidate
-        m_navigator.update(track, navigation, m_cfg.navigation);
+        m_navigator.update(track, navigation, m_cfg.navigation, context);
         propagation._heartbeat &= navigation.is_alive();
     }
 
@@ -168,6 +184,7 @@ struct propagator {
         typename actor_chain_t::state actor_state_refs) const {
         auto &navigation = propagation._navigation;
         auto &stepping = propagation._stepping;
+        auto &context = propagation._context;
         const auto &track = stepping();
 
         // Set access to the volume material for the stepper
@@ -187,14 +204,16 @@ struct propagator {
         typename stepper_t::policy_type{}(stepping.policy_state(), propagation);
 
         // Find next candidate
-        is_init = m_navigator.update(track, navigation, m_cfg.navigation);
+        is_init =
+            m_navigator.update(track, navigation, m_cfg.navigation, context);
         propagation._heartbeat &= navigation.is_alive();
 
         // Run all registered actors/aborters after update
         run_actors(actor_state_refs, propagation);
 
         // And check the status
-        is_init |= m_navigator.update(track, navigation, m_cfg.navigation);
+        is_init |=
+            m_navigator.update(track, navigation, m_cfg.navigation, context);
         propagation._heartbeat &= navigation.is_alive();
 
 #if defined(__NO_DEVICE__)
@@ -268,6 +287,7 @@ struct propagator {
 
         auto &navigation = propagation._navigation;
         auto &stepping = propagation._stepping;
+        auto &context = propagation._context;
         const auto &track = stepping();
 
         while (propagation.is_alive()) {
@@ -294,8 +314,8 @@ struct propagator {
                                                   propagation);
 
                 // Find next candidate
-                is_init =
-                    m_navigator.update(track, navigation, m_cfg.navigation);
+                is_init = m_navigator.update(track, navigation,
+                                             m_cfg.navigation, context);
                 propagation._heartbeat &= navigation.is_alive();
 
                 // If the track is on a sensitive surface, break the loop to
@@ -307,8 +327,8 @@ struct propagator {
                     run_actors(actor_state_refs, propagation);
 
                     // And check the status
-                    is_init |=
-                        m_navigator.update(track, navigation, m_cfg.navigation);
+                    is_init |= m_navigator.update(track, navigation,
+                                                  m_cfg.navigation, context);
                     propagation._heartbeat &= navigation.is_alive();
                 }
             }
@@ -319,8 +339,8 @@ struct propagator {
                 run_actors(actor_state_refs, propagation);
 
                 // And check the status
-                is_init |=
-                    m_navigator.update(track, navigation, m_cfg.navigation);
+                is_init |= m_navigator.update(track, navigation,
+                                              m_cfg.navigation, context);
                 propagation._heartbeat &= navigation.is_alive();
             }
 

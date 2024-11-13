@@ -44,6 +44,7 @@ class tracking_volume {
 
     /// Volume descriptor type
     using descr_t = typename detector_t::volume_type;
+    using context_t = typename detector_t::geometry_context;
 
     public:
     /// In case the geometry needs to be printed
@@ -154,9 +155,10 @@ class tracking_volume {
               int I = static_cast<int>(descr_t::object_id::e_size) - 1,
               typename track_t, typename config_t, typename... Args>
     DETRAY_HOST_DEVICE constexpr void visit_neighborhood(
-        const track_t &track, const config_t &cfg, Args &&... args) const {
+        const track_t &track, const config_t &cfg, const context_t &ctx,
+        Args &&... args) const {
         visit_surfaces_impl<detail::neighborhood_getter<functor_t>>(
-            m_detector, m_desc, track, cfg, std::forward<Args>(args)...);
+            m_detector, m_desc, track, cfg, ctx, std::forward<Args>(args)...);
     }
 
     /// Call a functor on the volume material with additional arguments.

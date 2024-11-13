@@ -72,12 +72,14 @@ struct neighborhood_getter {
     DETRAY_HOST_DEVICE inline void operator()(
         const accel_group_t &group, const accel_index_t index,
         const detector_t &det, const typename detector_t::volume_type &volume,
-        const track_t &track, const config_t &cfg, Args &&... args) const {
+        const track_t &track, const config_t &cfg,
+        const typename detector_t::geometry_context &ctx,
+        Args &&... args) const {
 
         decltype(auto) accel = group[index];
 
         // Run over the surfaces in a single acceleration data structure
-        for (const auto &sf : accel.search(det, volume, track, cfg)) {
+        for (const auto &sf : accel.search(det, volume, track, cfg, ctx)) {
             functor_t{}(sf, std::forward<Args>(args)...);
         }
     }

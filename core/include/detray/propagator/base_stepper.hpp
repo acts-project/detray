@@ -84,13 +84,13 @@ class base_stepper {
         template <typename detector_t>
         DETRAY_HOST_DEVICE state(
             const bound_track_parameters_type &bound_params,
-            const detector_t &det)
+            const detector_t &det,
+            const typename detector_t::geometry_context &ctx)
             : m_bound_params(bound_params) {
 
             // Surface
             const auto sf = tracking_surface{det, bound_params.surface_link()};
 
-            const typename detector_t::geometry_context ctx{};
             sf.template visit_mask<
                 typename parameter_resetter<algebra_t>::kernel>(
                 sf.transform(ctx), sf.index(), *this);

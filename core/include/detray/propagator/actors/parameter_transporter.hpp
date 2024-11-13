@@ -95,8 +95,6 @@ struct parameter_transporter : actor {
         }
 
         using detector_type = typename propagator_state_t::detector_type;
-        using geo_cxt_t = typename detector_type::geometry_context;
-        const geo_cxt_t ctx{};
 
         // Current Surface
         const auto sf = navigation.get_surface();
@@ -111,11 +109,13 @@ struct parameter_transporter : actor {
                                                     stepping.prev_sf_index()};
 
             const bound_to_free_matrix<algebra_t> bound_to_free_jacobian =
-                prev_sf.bound_to_free_jacobian(ctx, stepping.bound_params());
+                prev_sf.bound_to_free_jacobian(propagation._context,
+                                               stepping.bound_params());
 
             stepping.set_full_jacobian(
                 sf.template visit_mask<get_full_jacobian_kernel>(
-                    sf.transform(ctx), bound_to_free_jacobian, propagation));
+                    sf.transform(propagation._context), bound_to_free_jacobian,
+                    propagation));
 
             // Calculate surface-to-surface covariance transport
             const bound_matrix_t new_cov =
@@ -127,7 +127,7 @@ struct parameter_transporter : actor {
 
         // Convert free to bound vector
         stepping.bound_params().set_parameter_vector(
-            sf.free_to_bound_vector(ctx, stepping()));
+            sf.free_to_bound_vector(propagation._context, stepping()));
 
         // Set surface link
         stepping.bound_params().set_surface_link(sf.barcode());

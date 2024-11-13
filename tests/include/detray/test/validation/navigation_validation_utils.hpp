@@ -38,7 +38,7 @@ struct empty_bfield {};
 template <typename stepper_t, typename detector_t,
           typename bfield_t = empty_bfield>
 inline auto record_propagation(
-    const typename detector_t::geometry_context,
+    const typename detector_t::geometry_context ctx,
     vecmem::memory_resource *host_mr, const detector_t &det,
     const propagation::config &cfg,
     const free_track_parameters<typename detector_t::algebra_type> &track,
@@ -88,10 +88,10 @@ inline auto record_propagation(
     std::unique_ptr<typename propagator_t::state> propagation{nullptr};
     if constexpr (std::is_same_v<bfield_t, empty_bfield>) {
         propagation =
-            std::make_unique<typename propagator_t::state>(track, det);
+            std::make_unique<typename propagator_t::state>(track, det, ctx);
     } else {
-        propagation =
-            std::make_unique<typename propagator_t::state>(track, bfield, det);
+        propagation = std::make_unique<typename propagator_t::state>(
+            track, bfield, det, ctx);
     }
 
     // Access to navigation information
