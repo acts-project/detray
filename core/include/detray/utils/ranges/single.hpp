@@ -125,6 +125,7 @@ struct single : public detray::ranges::single_view<value_t> {
     template <class... Args>
     DETRAY_HOST_DEVICE constexpr single(std::in_place_t, Args&&... args)
         : base_type(std::in_place, std::forward<Args>(args)...) {}
+
 };
 
 // deduction guides

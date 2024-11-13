@@ -360,6 +360,19 @@ class grid_impl {
                                detray::get_data(m_axes)};
     }
 
+
+    /// Equality comparison
+    ///
+    /// @param rhs the right-hand side of the comparison
+    ///
+    /// @note in the non-owning case, we compare the values not the pointers
+    ///
+    /// @returns whether the two grids are equal
+    DETRAY_HOST_DEVICE constexpr auto operator==(
+        const grid_impl &rhs) const -> bool {
+        return m_bins == rhs.m_bins && m_axes == rhs.m_axes;
+    }
+
     private:
     /// Struct that contains the grid's data state
     bin_storage m_bins{};

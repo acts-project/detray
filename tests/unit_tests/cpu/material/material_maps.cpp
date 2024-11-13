@@ -265,3 +265,50 @@ GTEST_TEST(detray_material, trapezoid_map) {
     EXPECT_FALSE(trapezoid_map.at(199, 0) ==
                  material_t(aluminium<scalar>{}, 201.f * unit<scalar>::mm));
 }
+
+/// Unittest: Test the material grid comparisons
+GTEST_TEST(detray_material, material_grid_comparison) {
+
+    /** Allows to create a regular grid to check the equality opeartor
+     * grids can differ in:
+     * - type (will never be compared)
+     * - bins/axes
+     * - entries (i.e. material data)
+     */
+    auto createGrid = [](const scalar hx = 10.f, const scalar hy = 20.f,
+                         unsigned int bx = 10u, unsigned int by = 20u,
+                         bool distort_entries = false) {
+        mask<rectangle2D> r2{0u, hx, hy};
+        auto material_grid = mat_map_factory.new_grid(r2, {bx, by});
+
+        // Fill the material grid with some data
+        scalar thickness = 2.f * unit<scalar>::mm;
+        for (dindex gbin = 0; gbin < material_grid.nbins(); ++gbin) {
+            material_grid.template populate<replace<>>(
+                gbin, material_t(oxygen_gas<scalar>{}, thickness));
+            thickness += 1.f * unit<scalar>::mm;
+            if (distort_entries){
+                thickness += 1.f * unit<scalar>::mm;
+            }
+        }
+        // Return it
+        return material_grid;
+    };
+
+    // Two equal grids
+    auto grid_ref = createGrid();
+    auto grid_eq = createGrid();
+    EXPECT_EQ(grid_ref, grid_eq);
+
+    // One grid with different size
+    auto grid_neq_size = createGrid(11.f, 21.f);
+    EXPECT_FALSE(grid_ref == grid_neq_size);
+
+    // One grid with different binning
+    auto grid_neq_bins = createGrid(10.f, 20.f, 11u, 21u);
+    EXPECT_FALSE(grid_ref == grid_neq_bins);
+
+    // One grid with different entries
+    auto grid_neq_entries = createGrid(10.f, 20.f, 10u, 20u, true);
+    EXPECT_FALSE(grid_ref == grid_neq_entries);
+}

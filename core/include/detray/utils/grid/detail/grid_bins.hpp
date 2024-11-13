@@ -51,6 +51,16 @@ class single : public detray::ranges::single_view<entry_t> {
         (*this).ref() = entry;
         return *this;
     }
+
+    /// Equality operator
+    ///
+    /// @param rhs the single view to compare with
+    ///
+    /// @returns true if the single value is equal
+    DETRAY_HOST_DEVICE
+    constexpr bool operator==(const single &rhs) const {
+        return (*this).value() == rhs.value();
+    }
 };
 
 /// @brief Bin that holds a collection of entries.
@@ -153,6 +163,17 @@ class static_array
         return *this;
     }
 
+    /// Equality operator
+    ///
+    /// @param rhs the bin entry to compare with
+    ///
+    /// @returns true if the content is equal
+    DETRAY_HOST_DEVICE
+    constexpr bool operator==(const static_array &rhs) const {
+        return m_content == rhs.m_content;
+    }
+
+
     private:
     /// @returns the subrange on the valid bin content - const
     DETRAY_HOST_DEVICE constexpr auto view() const {
@@ -186,6 +207,12 @@ class dynamic_array
         dindex offset{0u};
         dindex size{0u};
         dindex capacity{0u};
+
+        DETRAY_HOST_DEVICE
+        constexpr bool operator==(const data& rhs) const {
+            return offset == rhs.offset && size == rhs.size &&
+                   capacity == rhs.capacity;
+        }
 
         DETRAY_HOST_DEVICE
         constexpr void update_offset(std::size_t shift) {
@@ -303,6 +330,17 @@ class dynamic_array
         }
         return *this;
     }
+
+    /// Equality operator
+    ///
+    /// @param rhs the bin to be compared with
+    ///
+    /// @returns true if the view is identical
+    DETRAY_HOST_DEVICE
+    constexpr bool operator==(const dynamic_array &rhs) const {
+        return view() == rhs.view();
+    }
+
 
     private:
     /// @returns the subrange on the valid bin content - const
