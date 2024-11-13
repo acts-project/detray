@@ -46,6 +46,7 @@ struct intersection_initialize {
         is_container_t &is_container, const traj_t &traj,
         const surface_t &surface,
         const transform_container_t &contextual_transforms,
+        const typename transform_container_t::context_type &ctx,
         const std::array<scalar_t, 2u> &mask_tolerance =
             {0.f, 1.f * unit<scalar_t>::mm},
         const scalar_t mask_tol_scalor = 0.f,
@@ -55,7 +56,7 @@ struct intersection_initialize {
         using algebra_t = typename mask_t::algebra_type;
         using intersection_t = typename is_container_t::value_type;
 
-        const auto &ctf = contextual_transforms.at(surface.transform());
+        const auto &ctf = contextual_transforms.at(surface.transform(), ctx);
 
         // Run over the masks that belong to the surface (only one can be hit)
         for (const auto &mask :
@@ -137,6 +138,7 @@ struct intersection_update {
         const mask_group_t &mask_group, const mask_range_t &mask_range,
         const traj_t &traj, intersection_t &sfi,
         const transform_container_t &contextual_transforms,
+        const typename transform_container_t::context_type &ctx,
         const std::array<scalar_t, 2u> &mask_tolerance =
             {0.f, 1.f * unit<scalar_t>::mm},
         const scalar_t mask_tol_scalor = 0.f,
@@ -145,7 +147,8 @@ struct intersection_update {
         using mask_t = typename mask_group_t::value_type;
         using algebra_t = typename mask_t::algebra_type;
 
-        const auto &ctf = contextual_transforms.at(sfi.sf_desc.transform());
+        const auto &ctf =
+            contextual_transforms.at(sfi.sf_desc.transform(), ctx);
 
         // Run over the masks that belong to the surface
         for (const auto &mask :

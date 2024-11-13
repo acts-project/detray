@@ -47,8 +47,10 @@ constexpr dscalar<algebra_t> pos_diff_tolerance{1e-3f};
 // dummy propagator state
 template <typename navigation_t>
 struct prop_state {
+    using context_t = typename navigation_t::detector_type::geometry_context;
     stepper_t::state _stepping;
     navigation_t _navigation;
+    context_t _context{};
 };
 
 /// test function for navigator with single state

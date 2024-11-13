@@ -65,14 +65,11 @@ struct parameter_resetter : actor {
             return;
         }
 
-        using geo_cxt_t =
-            typename propagator_state_t::detector_type::geometry_context;
-        const geo_cxt_t ctx{};
-
         // Surface
         const auto sf = navigation.get_surface();
 
-        sf.template visit_mask<kernel>(sf.transform(ctx), sf.index(), stepping);
+        sf.template visit_mask<kernel>(sf.transform(propagation._context),
+                                       sf.index(), stepping);
     }
 };
 

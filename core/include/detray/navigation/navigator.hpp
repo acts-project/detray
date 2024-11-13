@@ -116,6 +116,7 @@ class navigator {
 
     public:
     using detector_type = detector_t;
+    using context_type = detector_type::geometry_context;
 
     using algebra_type = typename detector_type::algebra_type;
     using scalar_type = dscalar<algebra_type>;
@@ -602,7 +603,8 @@ class navigator {
         template <typename track_t>
         DETRAY_HOST_DEVICE void operator()(
             const typename detector_type::surface_type &sf_descr,
-            const detector_type &det, const track_t &track, state &nav_state,
+            const detector_type &det, const context_type &ctx,
+            const track_t &track, state &nav_state,
             const std::array<scalar_type, 2> mask_tol,
             const scalar_type mask_tol_scalor,
             const scalar_type overstep_tol) const {
@@ -611,6 +613,7 @@ class navigator {
 
             sf.template visit_mask<intersection_initialize<ray_intersector>>(
                 nav_state, detail::ray(track), sf_descr, det.transform_store(),
+                ctx,
                 sf.is_portal() ? std::array<scalar_type, 2>{0.f, 0.f}
                                : mask_tol,
                 mask_tol_scalor, overstep_tol);
@@ -631,7 +634,8 @@ class navigator {
     /// @param cfg the navigation configuration
     template <typename track_t>
     DETRAY_HOST_DEVICE inline void init(const track_t &track, state &navigation,
-                                        const navigation::config &cfg) const {
+                                        const navigation::config &cfg,
+                                        const context_type &ctx) const {
         const auto &det = navigation.detector();
         const auto volume = tracking_volume{det, navigation.volume()};
 
@@ -641,7 +645,7 @@ class navigator {
 
         // Search for neighboring surfaces and fill candidates into cache
         volume.template visit_neighborhood<candidate_search>(
-            track, cfg, det, track, navigation,
+            track, cfg, ctx, det, ctx, track, navigation,
             std::array<scalar_type, 2u>{cfg.min_mask_tolerance,
                                         cfg.max_mask_tolerance},
             static_cast<scalar_type>(cfg.mask_tolerance_scalor),
@@ -677,10 +681,11 @@ class navigator {
     template <typename track_t>
     DETRAY_HOST_DEVICE inline bool update(const track_t &track,
                                           state &navigation,
-                                          const navigation::config &cfg) const {
+                                          const navigation::config &cfg,
+                                          const context_type &ctx = {}) const {
         // Candidates are re-evaluated based on the current trust level.
         // Should result in 'full trust'
-        bool is_init = update_kernel(track, navigation, cfg);
+        bool is_init = update_kernel(track, navigation, cfg, ctx);
 
         // Update was completely successful (most likely case)
         if (navigation.trust_level() == navigation::trust_level::e_full) {
@@ -706,7 +711,7 @@ class navigator {
             // navigation.run_inspector(cfg, track.pos(), track.dir(), "Volume
             // switch: ");
 
-            init(track, navigation, cfg);
+            init(track, navigation, cfg, ctx);
             is_init = true;
 
             // Fresh initialization, reset trust and hearbeat even though we are
@@ -717,7 +722,7 @@ class navigator {
         // If no trust could be restored for the current state, (local)
         // navigation might be exhausted: re-initialize volume
         else {
-            init(track, navigation, cfg);
+            init(track, navigation, cfg, ctx);
             is_init = true;
 
             // Sanity check: Should never be the case after complete update call
@@ -731,7 +736,7 @@ class navigator {
                     math::min(100.f * cfg.overstep_tolerance,
                               -10.f * cfg.max_mask_tolerance);
 
-                init(track, navigation, loose_cfg);
+                init(track, navigation, loose_cfg, ctx);
 
                 // Unrecoverable
                 if (navigation.trust_level() !=
@@ -756,8 +761,8 @@ class navigator {
     /// @param cfg the navigation configuration
     template <typename track_t>
     DETRAY_HOST_DEVICE inline bool update_kernel(
-        const track_t &track, state &navigation,
-        const navigation::config &cfg) const {
+        const track_t &track, state &navigation, const navigation::config &cfg,
+        const context_type &ctx) const {
 
         const auto &det = navigation.detector();
 
@@ -770,7 +775,7 @@ class navigator {
         // - do this only when the navigation state is still coherent
         if (navigation.trust_level() == navigation::trust_level::e_high) {
             // Update next candidate: If not reachable, 'high trust' is broken
-            if (!update_candidate(navigation.target(), track, det, cfg)) {
+            if (!update_candidate(navigation.target(), track, det, cfg, ctx)) {
                 navigation.m_status = navigation::status::e_unknown;
                 navigation.set_fair_trust();
             } else {
@@ -792,7 +797,8 @@ class navigator {
 
                 // Else: Track is on module.
                 // Ready the next candidate after the current module
-                if (update_candidate(navigation.target(), track, det, cfg)) {
+                if (update_candidate(navigation.target(), track, det, cfg,
+                                     ctx)) {
                     return false;
                 }
 
@@ -809,7 +815,7 @@ class navigator {
 
             for (auto &candidate : navigation) {
                 // Disregard this candidate if it is not reachable
-                if (!update_candidate(candidate, track, det, cfg)) {
+                if (!update_candidate(candidate, track, det, cfg, ctx)) {
                     // Forcefully set dist to numeric max for sorting
                     candidate.path = std::numeric_limits<scalar_type>::max();
                 }
@@ -833,7 +839,7 @@ class navigator {
         // Actor flagged cache as broken (other cases of 'no trust' are
         // handeled after volume switch was checked in 'update()')
         if (navigation.trust_level() == navigation::trust_level::e_no_trust) {
-            init(track, navigation, cfg);
+            init(track, navigation, cfg, ctx);
             return true;
         }
 
@@ -892,7 +898,8 @@ class navigator {
     template <typename track_t>
     DETRAY_HOST_DEVICE inline bool update_candidate(
         intersection_type &candidate, const track_t &track,
-        const detector_type &det, const navigation::config &cfg) const {
+        const detector_type &det, const navigation::config &cfg,
+        const context_type &ctx) const {
 
         if (candidate.sf_desc.barcode().is_invalid()) {
             return false;
@@ -902,7 +909,7 @@ class navigator {
 
         // Check whether this candidate is reachable by the track
         return sf.template visit_mask<intersection_update<ray_intersector>>(
-            detail::ray(track), candidate, det.transform_store(),
+            detail::ray(track), candidate, det.transform_store(), ctx,
             sf.is_portal() ? std::array<scalar_type, 2>{0.f, 0.f}
                            : std::array<scalar_type, 2>{cfg.min_mask_tolerance,
                                                         cfg.max_mask_tolerance},
