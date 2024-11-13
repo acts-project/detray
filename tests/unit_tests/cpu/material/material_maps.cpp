@@ -275,9 +275,8 @@ GTEST_TEST(detray_material, material_grid_comparison) {
      * - bins/axes
      * - entries (i.e. material data)
      */
-    auto createGrid = [](const scalar hx = 10.f, const scalar hy = 20.f,
-                         unsigned int bx = 10u, unsigned int by = 20u,
-                         bool distort_entries = false) {
+    auto createGrid = [](const scalar hx, const scalar hy, unsigned int bx,
+                         unsigned int by, bool distort_entries) {
         mask<rectangle2D> r2{0u, hx, hy};
         auto material_grid = mat_map_factory.new_grid(r2, {bx, by});
 
@@ -296,19 +295,19 @@ GTEST_TEST(detray_material, material_grid_comparison) {
     };
 
     // Two equal grids
-    auto grid_ref = createGrid();
-    auto grid_eq = createGrid();
+    auto grid_ref = createGrid(10.f, 20.f, 10u, 20u, false);
+    auto grid_eq = createGrid(10.f, 20.f, 10u, 20u, false);
     EXPECT_EQ(grid_ref, grid_eq);
 
     // One grid with different size
-    auto grid_neq_size = createGrid(11.f, 21.f);
-    EXPECT_FALSE(grid_ref == grid_neq_size);
+    auto grid_neq_size = createGrid(11.f, 21.f, 10u, 20u, false);
+    EXPECT_NE(grid_ref, grid_neq_size);
 
     // One grid with different binning
-    auto grid_neq_bins = createGrid(10.f, 20.f, 11u, 21u);
-    EXPECT_FALSE(grid_ref == grid_neq_bins);
+    auto grid_neq_bins = createGrid(10.f, 20.f, 11u, 21u, false);
+    EXPECT_NE(grid_ref, grid_neq_bins);
 
     // One grid with different entries
     auto grid_neq_entries = createGrid(10.f, 20.f, 10u, 20u, true);
-    EXPECT_FALSE(grid_ref == grid_neq_entries);
+    EXPECT_NE(grid_ref, grid_neq_entries);
 }

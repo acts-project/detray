@@ -337,7 +337,24 @@ class dynamic_array
     /// @returns true if the view is identical
     DETRAY_HOST_DEVICE
     constexpr bool operator==(const dynamic_array& rhs) const {
-        return view() == rhs.view();
+        // Check if the bin points to the same data
+        if (m_data == rhs.m_data || *m_data == *rhs.m_data) {
+            return true;
+        }
+        if (m_data->size != rhs.m_data->size) {
+            return false;
+        }
+        // It could still point to different data, but the
+        // content is the same
+        auto this_view = view();
+        auto rhs_view = rhs.view();
+        // Loop over the size of the bin and compare
+        for (dindex i{0u}; i < m_data->size; ++i) {
+            if (this_view[i] != rhs_view[i]) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private:
