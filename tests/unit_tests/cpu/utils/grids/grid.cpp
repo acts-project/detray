@@ -117,6 +117,19 @@ GTEST_TEST(detray_grid, single_grid) {
         std::move(edge_ranges_cp), std::move(bin_edges_cp));
     grid_owning_t grid_own(std::move(bin_data_cp), std::move(axes_own));
 
+    // Copy a second time for the comparison
+    dvector<scalar> bin_edges_cp2(bin_edges);
+    dvector<dindex_range> edge_ranges_cp2(edge_ranges);
+    grid_owning_t::bin_container_type bin_data_cp2(bin_data);
+
+    // Make a second grid
+    cartesian_3D<is_owning, host_container_types> axes_own2(
+        std::move(edge_ranges_cp2), std::move(bin_edges_cp2));
+    grid_owning_t grid_own2(std::move(bin_data_cp2), std::move(axes_own2));
+
+    // CHECK equality
+    EXPECT_TRUE(grid_own == grid_own2);
+
     // Check a few basics
     EXPECT_EQ(grid_own.dim, 3u);
     EXPECT_EQ(grid_own.nbins(), 40'000u);
@@ -187,43 +200,6 @@ GTEST_TEST(detray_grid, single_grid) {
         std::is_same_v<typename decltype(const_device_grid)::bin_type,
                        typename replace::template bin_type<const scalar>>,
         "Const grid was not correctly constructed from view!");*/
-}
-
-/// Unittest: Test single grid construction
-GTEST_TEST(detray_grid, single_comparison) {
-
-    // Owning and nowning, 3-dimensional grids
-    using grid_owning_t = grid<axes<cuboid3D>, bins::single<scalar>>;
-
-    // Fill the bin data f
-    grid_owning_t::bin_container_type bin_data{};
-    bin_data.resize(100u);
-    std::ranges::generate_n(
-        bin_data.begin(), 100u,
-        bin_content_sequence<replace<>, bins::single<scalar>>());
-
-    // Copy data that will be moved into the data owning types
-    dvector<scalar> bin_edges_cp(bin_edges);
-    dvector<dindex_range> edge_ranges_cp(edge_ranges);
-    grid_owning_t::bin_container_type bin_data_cp(bin_data);
-
-    // Copy a second time for the comparison
-    dvector<scalar> bin_edges_cp2(bin_edges);
-    dvector<dindex_range> edge_ranges_cp2(edge_ranges);
-    grid_owning_t::bin_container_type bin_data_cp2(bin_data);
-
-    // Data-owning axes and grid
-    cartesian_3D<is_owning, host_container_types> axes_own(
-        std::move(edge_ranges_cp), std::move(bin_edges_cp));
-    grid_owning_t grid_own(std::move(bin_data_cp), std::move(axes_own));
-
-    // Make a second grid
-    cartesian_3D<is_owning, host_container_types> axes_own2(
-        std::move(edge_ranges_cp2), std::move(bin_edges_cp2));
-    grid_owning_t grid_own2(std::move(bin_data_cp2), std::move(axes_own2));
-
-    // CHECK equality
-    EXPECT_TRUE(grid_own == grid_own2);
 }
 
 /// Unittest: Test dynamic grid construction
@@ -302,6 +278,21 @@ GTEST_TEST(detray_grid, dynamic_array) {
         grid_own.get_axis<single_axis<closed<label::e_z>, regular<>>>();
     EXPECT_EQ(z_axis.nbins(), 50u);
 
+    // Check equality operator:
+    // - Copy a second time for the comparison
+    dvector<scalar> bin_edges_cp2(bin_edges);
+    dvector<dindex_range> edge_ranges_cp2(edge_ranges);
+    grid_owning_t::bin_container_type bin_data_cp2(bin_data);
+
+    // Make a second grid
+    cartesian_3D<is_owning, host_container_types> axes_own2(
+        std::move(edge_ranges_cp2), std::move(bin_edges_cp2));
+
+    grid_owning_t grid_own2(std::move(bin_data_cp2), std::move(axes_own2));
+
+    // CHECK equality
+    EXPECT_TRUE(grid_own == grid_own2);
+
     // Create non-owning grid
     grid_n_owning_t grid_n_own(&bin_data, ax_n_own);
 
@@ -346,77 +337,6 @@ GTEST_TEST(detray_grid, dynamic_array) {
     EXPECT_EQ(flat_bin_view2.size(), 80'000u);
     EXPECT_TRUE(
         std::equal(flat_bin_view2.begin(), flat_bin_view2.end(), seq.begin()));
-}
-
-/// Unittest: Test dynamic grid construction
-GTEST_TEST(detray_grid, dynamic_array_comparison) {
-
-    // Owning and non-owning, cartesian, 3-dimensional grids
-    using grid_owning_t = grid<axes<cuboid3D>, bins::dynamic_array<scalar>>;
-
-    // Fill the bin data for every test
-    // bin test entries
-    grid_owning_t::bin_container_type bin_data{};
-    // 48 000 entries
-    bin_data.entries.resize(80'000u);
-    // 20 000 bins
-    bin_data.bins.resize(40'000u);
-
-    int i{0};
-    dindex offset{0u};
-    scalar entry{0.f};
-    complete<> completer{};
-
-    // Test data to compare bin content against
-    std::vector<scalar> seq;
-    seq.reserve(80'000);
-
-    for (auto& data : bin_data.bins) {
-        data.offset = offset;
-        // Every second bin holds one element, otherwise three
-        data.capacity = (i % 2) ? 1u : 3u;
-
-        detray::bins::dynamic_array bin{bin_data.entries.data(), data};
-
-        ASSERT_TRUE(bin.capacity() == (i % 2 ? 1u : 3u));
-        ASSERT_TRUE(bin.size() == 0);
-
-        offset += bin.capacity();
-
-        // Populate the bin
-        completer(bin, entry);
-
-        for (auto e : bin) {
-            ASSERT_TRUE(e == entry);
-            seq.push_back(e);
-        }
-        entry += 1.f;
-        ++i;
-    }
-
-    // Copy data that will be moved into the data owning types
-    dvector<scalar> bin_edges_cp(bin_edges);
-    dvector<dindex_range> edge_ranges_cp(edge_ranges);
-    grid_owning_t::bin_container_type bin_data_cp(bin_data);
-
-    // Copy a second time for the comparison
-    dvector<scalar> bin_edges_cp2(bin_edges);
-    dvector<dindex_range> edge_ranges_cp2(edge_ranges);
-    grid_owning_t::bin_container_type bin_data_cp2(bin_data);
-
-    // Data-owning axes and grid
-    cartesian_3D<is_owning, host_container_types> axes_own(
-        std::move(edge_ranges_cp), std::move(bin_edges_cp));
-    grid_owning_t grid_own(std::move(bin_data_cp), std::move(axes_own));
-
-    // Make a second grid
-    cartesian_3D<is_owning, host_container_types> axes_own2(
-        std::move(edge_ranges_cp2), std::move(bin_edges_cp2));
-
-    grid_owning_t grid_own2(std::move(bin_data_cp2), std::move(axes_own2));
-
-    // CHECK equality
-    EXPECT_TRUE(grid_own == grid_own2);
 }
 
 /// Test bin entry retrieval
