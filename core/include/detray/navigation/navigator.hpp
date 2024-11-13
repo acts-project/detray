@@ -559,7 +559,7 @@ class navigator {
         }
 
         /// Our cache of candidates (intersections with any kind of surface)
-        candidate_cache_t m_candidates{};
+        candidate_cache_t m_candidates;
 
         /// Detector pointer
         const detector_type *m_detector{nullptr};

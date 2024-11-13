@@ -35,8 +35,6 @@ struct parameter_transporter : actor {
     using bound_matrix_t = bound_matrix<algebra_t>;
     /// @}
 
-    struct state {};
-
     struct get_full_jacobian_kernel {
 
         template <typename mask_group_t, typename index_t,
@@ -86,8 +84,7 @@ struct parameter_transporter : actor {
     };
 
     template <typename propagator_state_t>
-    DETRAY_HOST_DEVICE void operator()(state& /*actor_state*/,
-                                       propagator_state_t& propagation) const {
+    DETRAY_HOST_DEVICE void operator()(propagator_state_t& propagation) const {
         auto& stepping = propagation._stepping;
         const auto& navigation = propagation._navigation;
 
