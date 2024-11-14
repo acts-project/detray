@@ -208,10 +208,7 @@ class dynamic_array
         dindex capacity{0u};
 
         DETRAY_HOST_DEVICE
-        constexpr bool operator==(const data& rhs) const {
-            return offset == rhs.offset && size == rhs.size &&
-                   capacity == rhs.capacity;
-        }
+        constexpr bool operator==(const data& rhs) const = default;
 
         DETRAY_HOST_DEVICE
         constexpr void update_offset(std::size_t shift) {

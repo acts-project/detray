@@ -88,10 +88,8 @@ struct single_axis {
     /// @param rhs is the right-hand side of the comparison
     ///
     /// @returns whether the two axes are equal
-    DETRAY_HOST_DEVICE constexpr auto operator==(const single_axis &rhs) const
-        -> bool {
-        return m_bounds == rhs.m_bounds && m_binning == rhs.m_binning;
-    }
+    DETRAY_HOST_DEVICE constexpr bool operator==(const single_axis &rhs) const =
+        default;
 
     /// @returns the axis label, i.e. x, y, z, r or phi axis.
     DETRAY_HOST_DEVICE
@@ -418,7 +416,6 @@ class multi_axis {
     /// @note in the non-owning case, we compare the values not the pointers
     ///
     /// @returns whether the two axes are equal
-    // template <bool owner = is_owning>
     DETRAY_HOST_DEVICE constexpr auto operator==(const multi_axis &rhs) const
         -> bool {
         if constexpr (!std::is_pointer_v<edge_range_t>) {

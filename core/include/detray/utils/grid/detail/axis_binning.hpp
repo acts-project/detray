@@ -326,10 +326,15 @@ struct irregular {
     ///
     /// @param rhs the axis to compare to
     ///
+    /// @note as we cannot guarantee to have the same pointer for the bin edges,
+    /// we make a fast comparison of the pointer first, but also allow for a
+    /// value based comparison
+    ///
     /// @returns whether the two axes are equal
     DETRAY_HOST_DEVICE constexpr bool operator==(const irregular &rhs) const {
-        return m_offset == rhs.m_offset && m_n_bins == rhs.m_n_bins &&
-               m_bin_edges == rhs.m_bin_edges;
+        return (m_offset == rhs.m_offset && m_n_bins == rhs.m_n_bins &&
+                m_bin_edges == rhs.m_bin_edges) ||
+               bin_edges() == rhs.bin_edges();
     }
 };
 

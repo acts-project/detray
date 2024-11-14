@@ -94,9 +94,7 @@ struct open {
     ///
     /// @returns whether the two axes are equal
     DETRAY_HOST_DEVICE
-    constexpr bool operator==(const open &rhs) const noexcept {
-        return label == rhs.label && type == rhs.type;
-    }
+    constexpr bool operator==(const open &rhs) const = default;
 };
 
 /// @brief Describes the behaviour of a closed axis.
@@ -172,9 +170,7 @@ struct closed {
     ///
     /// @returns whether the two axes are equal
     DETRAY_HOST_DEVICE
-    constexpr bool operator==(const closed &rhs) const noexcept {
-        return label == rhs.label && type == rhs.type;
-    }
+    constexpr bool operator==(const closed &rhs) const = default;
 };
 
 /// @brief Describes the behaviour of a circular axis.
@@ -268,9 +264,7 @@ struct circular {
     ///
     /// @returns whether the two axes are equal
     DETRAY_HOST_DEVICE
-    constexpr bool operator==(const circular &rhs) const noexcept {
-        return label == rhs.label && type == rhs.type;
-    }
+    constexpr bool operator==(const circular &rhs) const = default;
 };
 
 }  // namespace detray::axis

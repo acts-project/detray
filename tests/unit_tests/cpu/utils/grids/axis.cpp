@@ -342,6 +342,44 @@ GTEST_TEST(detray_grid, closed_irregular_axis) {
     EXPECT_EQ(cir_axis.range(3.f, nhood11s), expected_range);
 }
 
+template <typename axis_type>
+void test_axis(const axis_type& /*unused*/) {
+
+    // Lower bin edges: min and max bin edge for the regular axis
+    vecmem::vector<scalar> bin_edges = {-10.f, -5.f, -3.f,  7.f,   7.f,  14.f,
+                                        20.f,  50.f, 100.f, 120.f, 150.f};
+
+    vecmem::vector<scalar> different_bin_edges = {
+        -10.f, -5.f, -4.f, 7.f, 7.f, 14.f, 20.f, 50.f, 100.f, 120.f, 150.f};
+
+    // Regular axis: first entry is the offset in the bin edges vector (2),
+    // the second entry is the number of bins (10): Lower and upper bin
+    // edges of the max and min bin are -3 and 7 => stepsize is (7 - (-3)) /
+    // 10 = 1
+    // ... -3, -2, -1,  0,  1,  2,  3,  4,  5,  6,  7 ...
+    //   [0] [1] [2] [3] [4] [5] [6] [7] [8] [9] [10] [11]
+    const dindex_range edge_range = {2u, 10u};
+
+    const dindex_range different_edge_range = {2u, 8u};
+
+    axis_type t_axis{edge_range, &bin_edges};
+
+    axis_type another_t_axis{edge_range, &bin_edges};
+
+    axis_type differnt_t_axis{edge_range, &different_bin_edges};
+
+    axis_type differnt_edges_range_t_axis{different_edge_range, &bin_edges};
+
+    // Test if the axes are equal
+    EXPECT_EQ(t_axis, another_t_axis);
+
+    // Confirm that the axes are not equal
+    EXPECT_NE(t_axis, differnt_t_axis);
+
+    // Confirm that the axes are not equal
+    EXPECT_NE(t_axis, differnt_edges_range_t_axis);
+};
+
 GTEST_TEST(detray_grid, axis_comparison) {
 
     // Should be sufficient to test the comparison operators
@@ -355,44 +393,6 @@ GTEST_TEST(detray_grid, axis_comparison) {
     std::tuple<x_axis_op_r_t, x_axis_cl_r_t, x_axis_ci_r_t, x_axis_op_ir_t,
                x_axis_cl_ir_t, x_axis_ci_orr_t>
         axes = {};
-
-    auto test_axis = [](auto axis) -> void {
-        using axis_type = decltype(axis);
-
-        // Lower bin edges: min and max bin edge for the regular axis
-        vecmem::vector<scalar> bin_edges = {
-            -10.f, -5.f, -3.f, 7.f, 7.f, 14.f, 20.f, 50.f, 100.f, 120.f, 150.f};
-
-        vecmem::vector<scalar> different_bin_edges = {
-            -10.f, -5.f, -4.f, 7.f, 7.f, 14.f, 20.f, 50.f, 100.f, 120.f, 150.f};
-
-        // Regular axis: first entry is the offset in the bin edges vector (2),
-        // the second entry is the number of bins (10): Lower and upper bin
-        // edges of the max and min bin are -3 and 7 => stepsize is (7 - (-3)) /
-        // 10 = 1
-        // ... -3, -2, -1,  0,  1,  2,  3,  4,  5,  6,  7 ...
-        //   [0] [1] [2] [3] [4] [5] [6] [7] [8] [9] [10] [11]
-        const dindex_range edge_range = {2u, 10u};
-
-        const dindex_range different_edge_range = {2u, 8u};
-
-        axis_type t_axis{edge_range, &bin_edges};
-
-        axis_type another_t_axis{edge_range, &bin_edges};
-
-        axis_type differnt_t_axis{edge_range, &different_bin_edges};
-
-        axis_type differnt_edges_range_t_axis{different_edge_range, &bin_edges};
-
-        // Test if the axes are equal
-        EXPECT_EQ(t_axis, another_t_axis);
-
-        // Confirm that the axes are not equal
-        EXPECT_NE(t_axis, differnt_t_axis);
-
-        // Confirm that the axes are not equal
-        EXPECT_NE(t_axis, differnt_edges_range_t_axis);
-    };
 
     // Test them all
     std::apply([&](auto&... axis) { (test_axis(axis), ...); }, axes);
