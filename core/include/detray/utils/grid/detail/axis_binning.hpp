@@ -178,9 +178,7 @@ struct regular {
     ///
     /// @returns whether the two axes are equal
     DETRAY_HOST_DEVICE constexpr bool operator==(const regular &rhs) const {
-        return (m_offset == rhs.m_offset && m_n_bins == rhs.m_n_bins &&
-                m_bin_edges == rhs.m_bin_edges) ||
-               bin_edges() == rhs.bin_edges();
+        return (nbins() == rhs.nbins()) && (span() == rhs.span());
     }
 };
 
@@ -332,9 +330,24 @@ struct irregular {
     ///
     /// @returns whether the two axes are equal
     DETRAY_HOST_DEVICE constexpr bool operator==(const irregular &rhs) const {
-        return (m_offset == rhs.m_offset && m_n_bins == rhs.m_n_bins &&
-                m_bin_edges == rhs.m_bin_edges) ||
-               bin_edges() == rhs.bin_edges();
+        if (m_n_bins != rhs.m_n_bins) {
+            return false;
+        }
+        if (m_offset == rhs.m_offset && m_bin_edges == rhs.m_bin_edges) {
+            return true;
+        }
+        auto edge_range_lhs = detray::ranges::subrange(
+            *m_bin_edges, dindex_range{m_offset, m_offset + m_n_bins});
+        auto edge_range_rhs = detray::ranges::subrange(
+            *rhs.m_bin_edges,
+            dindex_range{rhs.m_offset, rhs.m_offset + rhs.m_n_bins});
+
+        for (dindex i = 0; i < m_n_bins; ++i) {
+            if (edge_range_lhs[i] != edge_range_rhs[i]) {
+                return false;
+            }
+        }
+        return true;
     }
 };
 
