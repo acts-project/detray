@@ -93,7 +93,6 @@ struct open {
     /// @param rhs the open axis to compare with
     ///
     /// @returns whether the two axes are equal
-    DETRAY_HOST_DEVICE
     constexpr bool operator==(const open &rhs) const = default;
 };
 
@@ -169,7 +168,6 @@ struct closed {
     /// @param rhs the open axis to compare with
     ///
     /// @returns whether the two axes are equal
-    DETRAY_HOST_DEVICE
     constexpr bool operator==(const closed &rhs) const = default;
 };
 
@@ -263,7 +261,6 @@ struct circular {
     /// @param rhs the open axis to compare with
     ///
     /// @returns whether the two axes are equal
-    DETRAY_HOST_DEVICE
     constexpr bool operator==(const circular &rhs) const = default;
 };
 

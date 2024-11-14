@@ -207,7 +207,6 @@ class dynamic_array
         dindex size{0u};
         dindex capacity{0u};
 
-        DETRAY_HOST_DEVICE
         constexpr bool operator==(const data& rhs) const = default;
 
         DETRAY_HOST_DEVICE
