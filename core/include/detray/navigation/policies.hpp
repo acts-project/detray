@@ -73,8 +73,7 @@ struct stepper_default_policy : actor {
         auto &navigation = propagation._navigation;
 
         // Not a severe change to track state expected
-        // Policy is called after stepsize update -> use prev. step size
-        if (math::fabs(stepping.prev_step_size()) <
+        if (math::fabs(stepping.step_size()) <
             math::fabs(
                 stepping.constraints().template size<>(stepping.direction())) -
                 pol_state.tol) {
@@ -111,20 +110,19 @@ struct stepper_rk_policy : actor {
         const auto &stepping = propagation._stepping;
         auto &navigation = propagation._navigation;
 
-        // Policy is called after stepsize update -> use prev. step size
-        const scalar rel_correction{(stepping.prev_step_size() - navigation()) /
+        // How strongly did the RKN algorithm reduce the step size?
+        const scalar rel_correction{(stepping.step_size() - navigation()) /
                                     navigation()};
 
         // Large correction to the stepsize - re-initialize the volume
         if (rel_correction > pol_state.m_threshold_no_trust) {
-            // Re-evaluate only next candidate
             navigation.set_no_trust();
         }
-        // Medium correction - re-evaluate the current candidates
+        // Medium correction - re-evaluate all current candidates
         else if (rel_correction > pol_state.m_threshold_fair_trust) {
-            // Re-evaluate all candidates
             navigation.set_fair_trust();
         } else {
+            // Small correction - re-evaluate only the next candidate
             navigation.set_high_trust();
         }
     }

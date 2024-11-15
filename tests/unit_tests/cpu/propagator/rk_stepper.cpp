@@ -248,19 +248,17 @@ TEST(detray_propagator, qop_derivative) {
         // RK Stepping into forward direction
         rk_stepper_t<bfield_t>::state rk_state{track, hom_bfield};
 
-        rk_state.set_volume_material(&vol_mat);
-
         for (unsigned int i_s = 0u; i_s < rk_steps; i_s++) {
 
             const scalar_t qop1 = rk_state().qop();
-            const scalar_t d2qopdsdqop = rk_state.d2qopdsdqop(qop1);
+            const scalar_t d2qopdsdqop = rk_state.d2qopdsdqop(qop1, &vol_mat);
 
-            const scalar_t dqopds1 = rk_state.dqopds(qop1);
+            const scalar_t dqopds1 = rk_state.dqopds(qop1, &vol_mat);
 
-            rk_stepper.step(ds, rk_state, step_cfg, true);
+            rk_stepper.step(ds, rk_state, step_cfg, true, &vol_mat);
 
             const scalar_t qop2 = rk_state().qop();
-            const scalar_t dqopds2 = rk_state.dqopds(qop2);
+            const scalar_t dqopds2 = rk_state.dqopds(qop2, &vol_mat);
 
             ASSERT_TRUE(qop1 > qop2);
             ASSERT_NEAR((qop2 - qop1) / ds, dqopds1, 1e-4);

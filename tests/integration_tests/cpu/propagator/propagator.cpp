@@ -55,6 +55,7 @@ struct helix_inspector : actor {
     struct state {
         /// navigation status for every step
         std::vector<navigation::status> _nav_status;
+        scalar path_from_surface{0.f};
     };
 
     using matrix_operator = test::matrix_operator;
@@ -67,15 +68,18 @@ struct helix_inspector : actor {
         const auto& navigation = prop_state._navigation;
         const auto& stepping = prop_state._stepping;
 
-        using geo_cxt_t =
-            typename propagator_state_t::detector_type::geometry_context;
-        const geo_cxt_t ctx{};
+        typename propagator_state_t::detector_type::geometry_context ctx{};
 
+        // Update inspector state
         inspector_state._nav_status.push_back(navigation.status());
+        // The propagation does not start on a surface, skipp the inital path
+        if (!stepping.bound_params().surface_link().is_invalid()) {
+            inspector_state.path_from_surface += stepping.step_size();
+        }
 
         // Nothing has happened yet (first call of actor chain)
         if (stepping.path_length() < tol ||
-            stepping.path_from_surface() < tol) {
+            inspector_state.path_from_surface < tol) {
             return;
         }
 
@@ -98,22 +102,27 @@ struct helix_inspector : actor {
 
         detail::helix<algebra_t> hlx(free_params, &b);
 
-        const auto true_pos = hlx(stepping.path_from_surface());
+        const auto true_pos = hlx(inspector_state.path_from_surface);
 
-        const point3 relative_error{1.f / stepping.path_from_surface() *
+        const point3 relative_error{1.f / inspector_state.path_from_surface *
                                     (stepping().pos() - true_pos)};
 
         ASSERT_NEAR(getter::norm(relative_error), 0.f, tol);
 
-        auto true_J = hlx.jacobian(stepping.path_from_surface());
+        auto true_J = hlx.jacobian(inspector_state.path_from_surface);
 
         for (unsigned int i = 0u; i < e_free_size; i++) {
             for (unsigned int j = 0u; j < e_free_size; j++) {
                 ASSERT_NEAR(matrix_operator().element(
                                 stepping.transport_jacobian(), i, j),
                             matrix_operator().element(true_J, i, j),
-                            stepping.path_from_surface() * tol * 10.f);
+                            inspector_state.path_from_surface * tol * 10.f);
             }
+        }
+        // Reset path from surface
+        if (navigation.is_on_sensitive() ||
+            navigation.encountered_sf_material()) {
+            inspector_state.path_from_surface = 0.f;
         }
     }
 };
@@ -230,44 +239,47 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
         track_t lim_track(track);
 
         // Build actor states: the helix inspector can be shared
-        helix_inspector::state helix_insp_state{};
-        pathlimit_aborter::state unlimted_aborter_state{};
-        pathlimit_aborter::state pathlimit_aborter_state{path_limit};
-        parameter_transporter<algebra_t>::state transporter_state{};
-        pointwise_material_interactor<algebra_t>::state interactor_state{};
-        parameter_resetter<algebra_t>::state resetter_state{};
+        auto actor_states = actor_chain_t::make_actor_states();
+        auto actor_states_lim = actor_chain_t::make_actor_states();
+        auto actor_states_sync = actor_chain_t::make_actor_states();
 
-        // Create actor states tuples
-        auto actor_states =
-            detray::tie(helix_insp_state, unlimted_aborter_state,
-                        transporter_state, interactor_state, resetter_state);
-        auto sync_actor_states =
-            detray::tie(helix_insp_state, unlimted_aborter_state,
-                        transporter_state, interactor_state, resetter_state);
-        auto lim_actor_states =
-            detray::tie(helix_insp_state, pathlimit_aborter_state,
-                        transporter_state, interactor_state, resetter_state);
+        // Make sure the lim state is being terminated
+        auto& pathlimit_aborter_state =
+            detail::get<pathlimit_aborter::state>(actor_states_lim);
+        pathlimit_aborter_state.set_path_limit(path_limit);
 
         // Init propagator states
         propagator_t::state state(track, bfield, det);
+        propagator_t::state sync_state(track, bfield, det);
         propagator_t::state lim_state(lim_track, bfield, det);
+
+        state.do_debug = true;
+        sync_state.do_debug = true;
+        lim_state.do_debug = true;
 
         // Set step constraints
         state._stepping.template set_constraint<step::constraint::e_accuracy>(
             step_constr);
+        sync_state._stepping
+            .template set_constraint<step::constraint::e_accuracy>(step_constr);
         lim_state._stepping
             .template set_constraint<step::constraint::e_accuracy>(step_constr);
 
         // Propagate the entire detector
-        state.do_debug = true;
-        ASSERT_TRUE(p.propagate(state, actor_states))
+        ASSERT_TRUE(
+            p.propagate(state, actor_chain_t::make_ref_tuple(actor_states)))
             //<< state.debug_stream.str() << std::endl;
             << state._navigation.inspector().to_string() << std::endl;
 
+        // Test propagate sync method
+        ASSERT_TRUE(p.propagate_sync(
+            sync_state, actor_chain_t::make_ref_tuple(actor_states_sync)))
+            //<< state.debug_stream.str() << std::endl;
+            << sync_state._navigation.inspector().to_string() << std::endl;
+
         // Propagate with path limit
-        ASSERT_NEAR(pathlimit_aborter_state.path_limit(), path_limit, tol);
-        lim_state.do_debug = true;
-        ASSERT_FALSE(p.propagate(lim_state, lim_actor_states))
+        ASSERT_FALSE(p.propagate(
+            lim_state, actor_chain_t::make_ref_tuple(actor_states_lim)))
             //<< lim_state.debug_stream.str() << std::endl;
             << lim_state._navigation.inspector().to_string() << std::endl;
 
@@ -279,9 +291,9 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
         // Compare the navigation status vector between propagate and
         // propagate_sync function
         const auto nav_status =
-            detray::get<helix_inspector::state&>(actor_states)._nav_status;
+            detray::get<helix_inspector::state>(actor_states)._nav_status;
         const auto sync_nav_status =
-            detray::get<helix_inspector::state&>(sync_actor_states)._nav_status;
+            detray::get<helix_inspector::state>(actor_states_sync)._nav_status;
         ASSERT_TRUE(nav_status.size() > 0);
         ASSERT_TRUE(nav_status == sync_nav_status);
     }

@@ -35,7 +35,6 @@ struct pointwise_material_interactor : actor {
 
     struct state {
 
-        /// @TODO: Consider using the particle information in stepping::config
         /// Evaluated energy loss
         scalar_type e_loss{0.f};
         /// Evaluated projected scattering angle

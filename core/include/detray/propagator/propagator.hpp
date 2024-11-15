@@ -189,16 +189,16 @@ struct propagator {
 
         // Set access to the volume material for the stepper
         auto vol = navigation.get_volume();
-        stepping.set_volume_material(vol.has_material()
-                                         ? vol.material_parameters(track.pos())
-                                         : nullptr);
+        const material<scalar_type> *vol_mat_ptr =
+            vol.has_material() ? vol.material_parameters(track.pos()) : nullptr;
 
         // Break automatic step size scaling by the stepper when a surface
         // was reached and whenever the navigation is (re-)initialized
         const bool reset_stepsize{navigation.is_on_surface() || is_init};
         // Take the step
-        propagation._heartbeat &= m_stepper.step(
-            navigation(), stepping, m_cfg.stepping, reset_stepsize);
+        propagation._heartbeat &=
+            m_stepper.step(navigation(), stepping, m_cfg.stepping,
+                           reset_stepsize, vol_mat_ptr);
 
         // Reduce navigation trust level according to stepper update
         typename stepper_t::policy_type{}(stepping.policy_state(), propagation);
@@ -298,16 +298,17 @@ struct propagator {
 
                 // Set access to the volume material for the stepper
                 auto vol = navigation.get_volume();
-                stepping.set_volume_material(
+                const material<scalar_type> *vol_mat_ptr =
                     vol.has_material() ? vol.material_parameters(track.pos())
-                                       : nullptr);
+                                       : nullptr;
 
                 // Break automatic step size scaling by the stepper
                 const bool reset_stepsize{navigation.is_on_surface() ||
                                           is_init};
                 // Take the step
-                propagation._heartbeat &= m_stepper.step(
-                    navigation(), stepping, m_cfg.stepping, reset_stepsize);
+                propagation._heartbeat &=
+                    m_stepper.step(navigation(), stepping, m_cfg.stepping,
+                                   reset_stepsize, vol_mat_ptr);
 
                 // Reduce navigation trust level according to stepper update
                 typename stepper_t::policy_type{}(stepping.policy_state(),
@@ -401,7 +402,7 @@ struct propagator {
         }
 
         propagation.debug_stream << "step_size: " << std::setw(10)
-                                 << stepping.prev_step_size() << std::endl;
+                                 << stepping.step_size() << std::endl;
 
         propagation.debug_stream << std::setw(10)
                                  << detail::ray<algebra_type>(stepping())
