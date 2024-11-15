@@ -87,6 +87,13 @@ struct open {
                             const std::size_t nbins) const noexcept {
         return map(range[0], range[1], nbins);
     }
+
+    /// Equality operator
+    ///
+    /// @param rhs the open axis to compare with
+    ///
+    /// @returns whether the two axes are equal
+    constexpr bool operator==(const open &rhs) const = default;
 };
 
 /// @brief Describes the behaviour of a closed axis.
@@ -155,6 +162,13 @@ struct closed {
                             const std::size_t nbins) const {
         return map(range[0], range[1], nbins);
     }
+
+    /// Equality operator
+    ///
+    /// @param rhs the open axis to compare with
+    ///
+    /// @returns whether the two axes are equal
+    constexpr bool operator==(const closed &rhs) const = default;
 };
 
 /// @brief Describes the behaviour of a circular axis.
@@ -241,6 +255,13 @@ struct circular {
                              const std::size_t nbins) const noexcept {
         return wrap(range[0], range[1], nbins);
     }
+
+    /// Equality operator
+    ///
+    /// @param rhs the open axis to compare with
+    ///
+    /// @returns whether the two axes are equal
+    constexpr bool operator==(const circular &rhs) const = default;
 };
 
 }  // namespace detray::axis

@@ -361,6 +361,29 @@ class grid_impl {
                                detray::get_data(m_axes)};
     }
 
+    /// Equality comparison
+    ///
+    /// @param rhs the right-hand side of the comparison
+    ///
+    /// @note grids could have different bin storage ranges, but could still be
+    /// identical, hence compare the actual grid content
+    ///
+    /// @returns whether the two grids are equal
+    DETRAY_HOST_DEVICE constexpr auto operator==(const grid_impl &rhs) const
+        -> bool {
+        // Check axes: they need to be identical
+        if (m_axes != rhs.m_axes) {
+            return false;
+        }
+        // Loop over global bin index and compare the two
+        for (glob_bin_index i = 0; i < nbins(); ++i) {
+            if (bin(i) != rhs.bin(i)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private:
     /// Struct that contains the grid's data state
     bin_storage m_bins{};

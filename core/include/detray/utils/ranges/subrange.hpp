@@ -87,6 +87,16 @@ class subrange : public detray::ranges::view_interface<subrange<range_t>> {
     DETRAY_HOST_DEVICE
     constexpr auto end() const -> const_iterator_t { return m_end; }
 
+    /// Equality operator
+    ///
+    /// @param rhs the subrange to compare with
+    ///
+    /// @returns whether the two subranges are equal
+    DETRAY_HOST_DEVICE
+    constexpr auto operator==(const subrange &rhs) const -> bool {
+        return m_begin == rhs.m_begin && m_end == rhs.m_end;
+    }
+
     private:
     /// Start and end position of the subrange
     iterator_t m_begin;
