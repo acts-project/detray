@@ -88,8 +88,7 @@ struct single_axis {
     /// @param rhs is the right-hand side of the comparison
     ///
     /// @returns whether the two axes are equal
-    DETRAY_HOST_DEVICE constexpr bool operator==(const single_axis &rhs) const =
-        default;
+    constexpr bool operator==(const single_axis &rhs) const = default;
 
     /// @returns the axis label, i.e. x, y, z, r or phi axis.
     DETRAY_HOST_DEVICE
