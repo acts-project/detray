@@ -62,6 +62,7 @@ macro(detray_add_cpu_test algebra)
       "material/material_maps.cpp"
       "material/materials.cpp"
       "material/stopping_power_derivative.cpp"
+      "material/stopping_power.cpp"
       "navigation/intersection/cuboid_intersector.cpp"
       "navigation/intersection/cylinder_intersector.cpp"
       "navigation/intersection/helix_intersector.cpp"

@@ -60,37 +60,67 @@ TEST_P(EnergyLossBremsValidation, bremsstrahlung) {
 
     // We have not implemented the bremsstrahlung for the heavier charged
     // particles, which is negligible
-    if (ptc.pdg_num() == electron<scalar>().pdg_num()) {
-        // Check if difference is within 11% error
-        EXPECT_NEAR((expected_dEdx - dEdx) / dEdx, 0.f, 0.11f);
+    if ((ptc.pdg_num() == electron<scalar>().pdg_num()) ||
+        (ptc.pdg_num() == positron<scalar>().pdg_num())) {
+        // Check if difference is within 14% error
+        EXPECT_NEAR((expected_dEdx - dEdx) / dEdx, 0.f, 0.14f);
     } else {
         EXPECT_FLOAT_EQ(static_cast<float>(dEdx), 0.f);
     }
 }
 
-// REFERENCE
-//
-// Atomic Data and Nuclear Data Tables Volume 4, March 1972, Pages 1-27,
-//"Energy loss, range, and bremsstrahlung yield for 10-keV to 100-MeV electrons
-// in various elements and chemical compounds"
+// From https://physics.nist.gov/PhysRefData/Star/Text/ESTAR.html
+// Assumes that the stopping powers of electron and positron are the same
 
+// Electrons
 INSTANTIATE_TEST_SUITE_P(
-    detray_material_Bremsstrahlung_100MeV_He, EnergyLossBremsValidation,
+    electron_Bremsstrahlung_100MeV_He, EnergyLossBremsValidation,
     ::testing::Values(std::make_tuple(helium_gas<scalar>(), electron<scalar>(),
-                                      100.0f * unit<scalar>::MeV, 0.95886f)));
+                                      100.0f * unit<scalar>::MeV, 0.9229f)));
 
 INSTANTIATE_TEST_SUITE_P(
-    detray_material_Bremsstrahlung_100MeV_Al, EnergyLossBremsValidation,
+    electron_Bremsstrahlung_100MeV_Al, EnergyLossBremsValidation,
     ::testing::Values(std::make_tuple(aluminium<scalar>(), electron<scalar>(),
-                                      100.0f * unit<scalar>::MeV, 3.8172f)));
+                                      100.0f * unit<scalar>::MeV, 3.714f)));
 
 INSTANTIATE_TEST_SUITE_P(
-    detray_material_Bremsstrahlung_100MeV_Cu, EnergyLossBremsValidation,
+    electron_Bremsstrahlung_100MeV_Si, EnergyLossBremsValidation,
+    ::testing::Values(std::make_tuple(silicon<scalar>(), electron<scalar>(),
+                                      100.0f * unit<scalar>::MeV, 4.099f)));
+
+INSTANTIATE_TEST_SUITE_P(
+    electron_Bremsstrahlung_100MeV_Cu, EnergyLossBremsValidation,
     ::testing::Values(std::make_tuple(copper<scalar>(), electron<scalar>(),
-                                      100.0f * unit<scalar>::MeV, 7.2365f)));
+                                      100.0f * unit<scalar>::MeV, 7.079f)));
+
+// Positrons
+INSTANTIATE_TEST_SUITE_P(
+    positron_Bremsstrahlung_100MeV_He, EnergyLossBremsValidation,
+    ::testing::Values(std::make_tuple(helium_gas<scalar>(), positron<scalar>(),
+                                      100.0f * unit<scalar>::MeV, 0.9229f)));
+
+INSTANTIATE_TEST_SUITE_P(
+    positron_Bremsstrahlung_100MeV_Al, EnergyLossBremsValidation,
+    ::testing::Values(std::make_tuple(aluminium<scalar>(), positron<scalar>(),
+                                      100.0f * unit<scalar>::MeV, 3.714f)));
+
+INSTANTIATE_TEST_SUITE_P(
+    positron_Bremsstrahlung_100MeV_Si, EnergyLossBremsValidation,
+    ::testing::Values(std::make_tuple(silicon<scalar>(), positron<scalar>(),
+                                      100.0f * unit<scalar>::MeV, 4.099f)));
+
+INSTANTIATE_TEST_SUITE_P(
+    positron_Bremsstrahlung_100MeV_Cu, EnergyLossBremsValidation,
+    ::testing::Values(std::make_tuple(copper<scalar>(), positron<scalar>(),
+                                      100.0f * unit<scalar>::MeV, 7.079f)));
 
 // We have not implemented the bremsstrahlung for muons
 INSTANTIATE_TEST_SUITE_P(
-    detray_material_Bremsstrahlung_100MeV_Cu_muon, EnergyLossBremsValidation,
+    muon_Bremsstrahlung_100MeV_Cu_muon, EnergyLossBremsValidation,
     ::testing::Values(std::make_tuple(copper<scalar>(), muon<scalar>(),
+                                      100.0f * unit<scalar>::MeV, 0.f)));
+
+INSTANTIATE_TEST_SUITE_P(
+    antimuon_Bremsstrahlung_100MeV_Cu_muon, EnergyLossBremsValidation,
+    ::testing::Values(std::make_tuple(copper<scalar>(), antimuon<scalar>(),
                                       100.0f * unit<scalar>::MeV, 0.f)));

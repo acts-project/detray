@@ -23,7 +23,7 @@ struct interaction {
     using relativistic_quantities =
         detail::relativistic_quantities<scalar_type>;
 
-    // @returns the total stopping power
+    // @returns the total stopping power (<-dE/dx>)
     DETRAY_HOST_DEVICE scalar_type
     compute_stopping_power(const detray::material<scalar_type>& mat,
                            const pdg_particle<scalar_type>& ptc,
