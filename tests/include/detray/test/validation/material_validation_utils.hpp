@@ -262,7 +262,7 @@ inline auto record_material(
         detray::tie(pathlimit_aborter_state, transporter_state, resetter_state,
                     interactor_state, mat_tracer_state);
 
-    typename propagator_t::state propagation{track, det};
+    typename propagator_t::state propagation{track, det, cfg.context};
 
     // Run the propagation
     bool success = prop.propagate(propagation, actor_states);

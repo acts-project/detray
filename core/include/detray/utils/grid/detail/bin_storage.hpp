@@ -112,6 +112,16 @@ class bin_storage : public detray::ranges::view_interface<
         return detray::get_data(m_bin_data);
     }
 
+    /// Equality operator
+    ///
+    /// @param rhs bin storage to compare with
+    ///
+    /// @returns true if the bin data is equal
+    DETRAY_HOST_DEVICE
+    constexpr bool operator==(const bin_storage& rhs) const {
+        return m_bin_data == rhs.m_bin_data;
+    }
+
     private:
     /// Container that holds all bin data when owning or a view into an
     /// externally owned container
@@ -451,6 +461,16 @@ class bin_storage<is_owning, detray::bins::dynamic_array<entry_t>, containers>
     requires owner DETRAY_HOST auto get_data() const -> const_view_type {
         return const_view_type{detray::get_data(m_bin_data),
                                detray::get_data(m_entry_data)};
+    }
+
+    /// Equality operator
+    ///
+    /// @param rhs bin storage to compare with
+    ///
+    /// @returns true if the bin data is equal
+    DETRAY_HOST_DEVICE
+    constexpr bool operator==(const bin_storage& rhs) const {
+        return m_bin_data == rhs.m_bin_data && m_entry_data == rhs.m_entry_data;
     }
 
     private:

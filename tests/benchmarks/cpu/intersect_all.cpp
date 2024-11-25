@@ -81,6 +81,7 @@ void BM_INTERSECT_ALL(benchmark::State &state) {
                 sf.template visit_mask<
                     intersection_initialize<ray_intersector>>(
                     intersections, detail::ray(track), sf_desc, transforms,
+                    geo_context,
                     std::array<scalar_t, 2>{1.f * unit<scalar_t>::um,
                                             1.f * unit<scalar_t>::mm},
                     scalar_t{0.f});

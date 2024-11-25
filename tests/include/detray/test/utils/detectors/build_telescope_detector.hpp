@@ -208,10 +208,6 @@ inline auto build_telescope_detector(
             cfg.positions(), cfg.module_mask().values(), cfg.pilot_track());
     }
 
-    // @todo: Temporal restriction due to missing local navigation
-    assert((tel_generator->size() < 20u) &&
-           "Due to WIP, please choose less than 20 surfaces for now");
-
     // Add homogeneous material description if a valid material was configured
     volume_builder_interface<detector_t> *vm_builder{v_builder};
     std::shared_ptr<surface_factory_interface<detector_t>> module_generator;

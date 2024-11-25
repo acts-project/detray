@@ -83,6 +83,13 @@ struct single_axis {
                                    const vector_type<scalar_type> *edges)
         : m_binning(indx_range, edges) {}
 
+    /// Equality operator
+    ///
+    /// @param rhs is the right-hand side of the comparison
+    ///
+    /// @returns whether the two axes are equal
+    constexpr bool operator==(const single_axis &rhs) const = default;
+
     /// @returns the axis label, i.e. x, y, z, r or phi axis.
     DETRAY_HOST_DEVICE
     constexpr auto label() const -> axis::label { return bounds_type::label; }
@@ -399,6 +406,25 @@ class multi_axis {
     requires owner DETRAY_HOST auto get_data() const -> const_view_type {
         return const_view_type{detray::get_data(m_edge_offsets),
                                detray::get_data(m_edges)};
+    }
+
+    /// Equality operator
+    ///
+    /// @param rhs the right-hand side of the comparison
+    ///
+    /// @note in the non-owning case, we compare the values not the pointers
+    ///
+    /// @returns whether the two axes are equal
+    DETRAY_HOST_DEVICE constexpr auto operator==(const multi_axis &rhs) const
+        -> bool {
+        if constexpr (!std::is_pointer_v<edge_range_t>) {
+            return m_edge_offsets == rhs.m_edge_offsets &&
+                   m_edges == rhs.m_edges;
+        } else {
+            return m_edge_offsets == rhs.m_edge_offsets &&
+                   *m_edges == *rhs.m_edges;
+        }
+        return false;
     }
 
     private:

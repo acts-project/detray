@@ -14,8 +14,8 @@ DETRAY_HOST_DEVICE inline void detray::rk_stepper<
     magnetic_field_t, algebra_t, constraint_t, policy_t, inspector_t>::state::
     advance_track(
         const detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t,
-                                 policy_t, inspector_t>::intermediate_state&
-            sd) {
+                                 policy_t, inspector_t>::intermediate_state& sd,
+        const material<scalar_type>* vol_mat_ptr) {
 
     const scalar_type h{this->step_size()};
     const scalar_type h_6{h * static_cast<scalar_type>(1. / 6.)};
@@ -35,7 +35,7 @@ DETRAY_HOST_DEVICE inline void detray::rk_stepper<
     track.set_dir(dir);
 
     auto qop = track.qop();
-    if (this->volume_has_material()) {
+    if (vol_mat_ptr != nullptr) {
         // Reference: Eq (82) of https://doi.org/10.1016/0029-554X(81)90063-X
         qop =
             qop + h_6 * (sd.dqopds[0u] + 2.f * (sd.dqopds[1u] + sd.dqopds[2u]) +
@@ -52,7 +52,9 @@ template <typename magnetic_field_t, typename algebra_t, typename constraint_t,
 DETRAY_HOST_DEVICE inline void detray::rk_stepper<
     magnetic_field_t, algebra_t, constraint_t, policy_t,
     inspector_t>::state::advance_jacobian(const detray::stepping::config& cfg,
-                                          const intermediate_state& sd) {
+                                          const intermediate_state& sd,
+                                          const material<scalar_type>*
+                                              vol_mat_ptr) {
     /// The calculations are based on ATL-SOFT-PUB-2009-002. The update of the
     /// Jacobian matrix is requires only the calculation of eq. 17 and 18.
     /// Since the terms of eq. 18 are currently 0, this matrix is not needed
@@ -186,21 +188,22 @@ DETRAY_HOST_DEVICE inline void detray::rk_stepper<
         getter::element(D, e_free_qoverp, e_free_qoverp) = 1.f;
     } else {
         // Pre-calculate dqop_n/dqop1
-        const scalar_type d2qop1dsdqop1 = this->d2qopdsdqop(sd.qop[0u]);
+        const scalar_type d2qop1dsdqop1 =
+            this->d2qopdsdqop(sd.qop[0u], vol_mat_ptr);
 
         dqopn_dqop[0u] = 1.f;
         dqopn_dqop[1u] = 1.f + half_h * d2qop1dsdqop1;
 
         const scalar_type d2qop2dsdqop1 =
-            this->d2qopdsdqop(sd.qop[1u]) * dqopn_dqop[1u];
+            this->d2qopdsdqop(sd.qop[1u], vol_mat_ptr) * dqopn_dqop[1u];
         dqopn_dqop[2u] = 1.f + half_h * d2qop2dsdqop1;
 
         const scalar_type d2qop3dsdqop1 =
-            this->d2qopdsdqop(sd.qop[2u]) * dqopn_dqop[2u];
+            this->d2qopdsdqop(sd.qop[2u], vol_mat_ptr) * dqopn_dqop[2u];
         dqopn_dqop[3u] = 1.f + h * d2qop3dsdqop1;
 
         const scalar_type d2qop4dsdqop1 =
-            this->d2qopdsdqop(sd.qop[3u]) * dqopn_dqop[3u];
+            this->d2qopdsdqop(sd.qop[3u], vol_mat_ptr) * dqopn_dqop[3u];
 
         /*-----------------------------------------------------------------
          * Calculate the first terms of d(dqop_n/ds)/dqop1
@@ -331,16 +334,16 @@ DETRAY_HOST_DEVICE inline void detray::rk_stepper<
 template <typename magnetic_field_t, typename algebra_t, typename constraint_t,
           typename policy_t, typename inspector_t>
 DETRAY_HOST_DEVICE inline auto detray::rk_stepper<
-    magnetic_field_t, algebra_t, constraint_t, policy_t,
-    inspector_t>::state::evaluate_dqopds(const std::size_t i,
-                                         const scalar_type h,
-                                         const scalar_type dqopds_prev,
-                                         const detray::stepping::config& cfg)
-    -> detray::pair<scalar_type, scalar_type> {
+    magnetic_field_t, algebra_t, constraint_t, policy_t, inspector_t>::state::
+    evaluate_dqopds(const std::size_t i, const scalar_type h,
+                    const scalar_type dqopds_prev,
+                    const material<scalar_type>* vol_mat_ptr,
+                    const detray::stepping::config& cfg)
+        -> detray::pair<scalar_type, scalar_type> {
 
     const auto& track = (*this)();
 
-    if (!(this->volume_has_material())) {
+    if (!vol_mat_ptr) {
         const scalar_type qop = track.qop();
         return detray::make_pair(scalar_type(0.f), qop);
     } else if (cfg.use_mean_loss && i != 0u) {
@@ -351,10 +354,10 @@ DETRAY_HOST_DEVICE inline auto detray::rk_stepper<
         // "For y  we  have  similar  formulae  as  for x, for y' and
         // \lambda similar  formulae as for  x'"
         const scalar_type qop = track.qop() + h * dqopds_prev;
-        return detray::make_pair(this->dqopds(qop), qop);
+        return detray::make_pair(this->dqopds(qop, vol_mat_ptr), qop);
     } else {
         const scalar_type qop = track.qop();
-        return detray::make_pair(this->dqopds(qop), qop);
+        return detray::make_pair(this->dqopds(qop, vol_mat_ptr), qop);
     }
 }
 
@@ -442,13 +445,14 @@ detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
 
 template <typename magnetic_field_t, typename algebra_t, typename constraint_t,
           typename policy_t, typename inspector_t>
-DETRAY_HOST_DEVICE inline auto
-detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
-                   inspector_t>::state::dqopds() const -> scalar_type {
+DETRAY_HOST_DEVICE inline auto detray::rk_stepper<
+    magnetic_field_t, algebra_t, constraint_t, policy_t,
+    inspector_t>::state::dqopds(const material<scalar_type>* vol_mat_ptr) const
+    -> scalar_type {
 
     // In case there was no step before
     if (this->path_length() == 0.f) {
-        return this->dqopds((*this)().qop());
+        return this->dqopds((*this)().qop(), vol_mat_ptr);
     }
 
     return m_dqopds_3;
@@ -456,17 +460,16 @@ detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
 
 template <typename magnetic_field_t, typename algebra_t, typename constraint_t,
           typename policy_t, typename inspector_t>
-DETRAY_HOST_DEVICE auto
-detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
-                   inspector_t>::state::dqopds(const scalar_type qop) const
+DETRAY_HOST_DEVICE auto detray::rk_stepper<
+    magnetic_field_t, algebra_t, constraint_t, policy_t,
+    inspector_t>::state::dqopds(const scalar_type qop,
+                                const material<scalar_type>* vol_mat_ptr) const
     -> scalar_type {
 
     // d(qop)ds is zero for empty space
-    if (!(this->volume_has_material())) {
+    if (!vol_mat_ptr) {
         return 0.f;
     }
-
-    const auto& mat = this->volume_material();
 
     const scalar_type q = this->particle_hypothesis().charge();
     const scalar_type p = q / qop;
@@ -476,7 +479,7 @@ detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
     // Compute stopping power
     const scalar_type stopping_power =
         interaction<scalar_type>().compute_stopping_power(
-            mat, this->particle_hypothesis(), {mass, qop, q});
+            *vol_mat_ptr, this->particle_hypothesis(), {mass, qop, q});
 
     // Assert that a momentum is a positive value
     assert(p >= 0.f);
@@ -490,14 +493,15 @@ template <typename magnetic_field_t, typename algebra_t, typename constraint_t,
           typename policy_t, typename inspector_t>
 DETRAY_HOST_DEVICE auto
 detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
-                   inspector_t>::state::d2qopdsdqop(const scalar_type qop) const
+                   inspector_t>::state::d2qopdsdqop(const scalar_type qop,
+                                                    const material<scalar_type>*
+                                                        vol_mat_ptr) const
     -> scalar_type {
 
-    if (!(this->volume_has_material())) {
+    if (!vol_mat_ptr) {
         return 0.f;
     }
 
-    const auto& mat = this->volume_material();
     const scalar_type q = this->particle_hypothesis().charge();
     const scalar_type p = q / qop;
     const scalar_type p2 = p * p;
@@ -511,14 +515,16 @@ detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
     // g = dE/ds = -1 * (-dE/ds) = -1 * stopping power
     const detail::relativistic_quantities<scalar_type> rq(mass, qop, q);
     const scalar_type g =
-        -1.f * I.compute_stopping_power(mat, this->particle_hypothesis(), rq);
+        -1.f *
+        I.compute_stopping_power(*vol_mat_ptr, this->particle_hypothesis(), rq);
 
     // dg/d(qop) = -1 * derivation of stopping power
     const scalar_type dgdqop =
-        -1.f * I.derive_stopping_power(mat, this->particle_hypothesis(), rq);
+        -1.f *
+        I.derive_stopping_power(*vol_mat_ptr, this->particle_hypothesis(), rq);
 
     // d(qop)/ds = - qop^3 * E * g / q^2
-    const scalar_type dqopds = this->dqopds(qop);
+    const scalar_type dqopds = this->dqopds(qop, vol_mat_ptr);
 
     // Check Eq 3.12 of
     // (https://iopscience.iop.org/article/10.1088/1748-0221/4/04/P04016/meta)
@@ -532,7 +538,8 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
     step(const scalar_type dist_to_next,
          detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
                             inspector_t>::state& stepping,
-         const detray::stepping::config& cfg, const bool do_reset) const {
+         const detray::stepping::config& cfg, const bool do_reset,
+         const material<scalar_type>* vol_mat_ptr) const {
 
     // Get stepper and navigator states
     auto& magnetic_field = stepping.m_magnetic_field;
@@ -540,16 +547,16 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
     if (do_reset) {
         stepping.set_step_size(dist_to_next);
     } else if (stepping.step_size() > 0) {
-        stepping.set_step_size(math::min(stepping.step_size(), dist_to_next));
+        stepping.set_step_size(
+            math::min(stepping.next_step_size(), dist_to_next));
     } else {
-        stepping.set_step_size(math::max(stepping.step_size(), dist_to_next));
+        stepping.set_step_size(
+            math::max(stepping.next_step_size(), dist_to_next));
     }
 
     const point3_type pos = stepping().pos();
 
     intermediate_state sd{};
-
-    scalar_type error_estimate{0.f};
 
     // First Runge-Kutta point
     const auto bvec = magnetic_field.at(pos[0], pos[1], pos[2]);
@@ -560,7 +567,7 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
     // qop should be recalcuated at every point
     // Reference: Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
     detray::tie(sd.dqopds[0u], sd.qop[0u]) =
-        stepping.evaluate_dqopds(0u, 0.f, 0.f, cfg);
+        stepping.evaluate_dqopds(0u, 0.f, 0.f, vol_mat_ptr, cfg);
     detray::tie(sd.dtds[0u], sd.t[0u]) = stepping.evaluate_dtds(
         sd.b_first, 0u, 0.f, vector3_type{0.f, 0.f, 0.f}, sd.qop[0u]);
 
@@ -580,16 +587,16 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
         sd.b_middle[1] = bvec1[1];
         sd.b_middle[2] = bvec1[2];
 
-        detray::tie(sd.dqopds[1u], sd.qop[1u]) =
-            stepping.evaluate_dqopds(1u, half_h, sd.dqopds[0u], cfg);
+        detray::tie(sd.dqopds[1u], sd.qop[1u]) = stepping.evaluate_dqopds(
+            1u, half_h, sd.dqopds[0u], vol_mat_ptr, cfg);
         detray::tie(sd.dtds[1u], sd.t[1u]) = stepping.evaluate_dtds(
             sd.b_middle, 1u, half_h, sd.dtds[0u], sd.qop[1u]);
 
         // Third Runge-Kutta point
         // qop should be recalcuated at every point
         // Reference: Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
-        detray::tie(sd.dqopds[2u], sd.qop[2u]) =
-            stepping.evaluate_dqopds(2u, half_h, sd.dqopds[1u], cfg);
+        detray::tie(sd.dqopds[2u], sd.qop[2u]) = stepping.evaluate_dqopds(
+            2u, half_h, sd.dqopds[1u], vol_mat_ptr, cfg);
         detray::tie(sd.dtds[2u], sd.t[2u]) = stepping.evaluate_dtds(
             sd.b_middle, 2u, half_h, sd.dtds[1u], sd.qop[2u]);
 
@@ -603,7 +610,7 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
         sd.b_last[2] = bvec2[2];
 
         detray::tie(sd.dqopds[3u], sd.qop[3u]) =
-            stepping.evaluate_dqopds(3u, h, sd.dqopds[2u], cfg);
+            stepping.evaluate_dqopds(3u, h, sd.dqopds[2u], vol_mat_ptr, cfg);
         detray::tie(sd.dtds[3u], sd.t[3u]) =
             stepping.evaluate_dtds(sd.b_last, 3u, h, sd.dtds[2u], sd.qop[3u]);
 
@@ -614,9 +621,8 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
         const vector3_type err_vec =
             one_sixth * h2 *
             (sd.dtds[0u] - sd.dtds[1u] - sd.dtds[2u] + sd.dtds[3u]);
-        error_estimate = getter::norm(err_vec);
 
-        return error_estimate;
+        return getter::norm(err_vec);
     };
 
     /// Calculate the scale factor for the stepsize adjustment using the error
@@ -633,7 +639,8 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
 
     // If the estimated error is larger than the tolerance with an additional
     // margin, reduce the step size and try again
-    for (unsigned int i = 0u; i < cfg.max_rk_updates; i++) {
+    const auto n_trials{cfg.max_rk_updates};
+    for (unsigned int i = 0u; i < n_trials; i++) {
         stepping.count_trials();
 
         error = math::max(estimate_error(stepping.step_size()),
@@ -659,12 +666,6 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
     stepping.m_dtds_3 = sd.dtds[3u];
     stepping.m_dqopds_3 = sd.dqopds[3u];
 
-    // Update navigation direction
-    const step::direction step_dir = stepping.step_size() >= 0.f
-                                         ? step::direction::e_forward
-                                         : step::direction::e_backward;
-    stepping.set_direction(step_dir);
-
     // Check constraints
     if (const scalar_type max_step =
             stepping.constraints().template size<>(stepping.direction());
@@ -677,22 +678,20 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
     }
 
     // Advance track state
-    stepping.advance_track(sd);
+    stepping.advance_track(sd, vol_mat_ptr);
 
     // Advance jacobian transport
     if (cfg.do_covariance_transport) {
-        stepping.advance_jacobian(cfg, sd);
+        stepping.advance_jacobian(cfg, sd, vol_mat_ptr);
     }
 
-    // Save the current step size
-    stepping.set_prev_step_size(stepping.step_size());
-
-    // Update the step size for the next step
-    stepping.set_step_size(stepping.step_size() * step_size_scaling(error));
+    // The step size estimation fot the next step
+    stepping.set_next_step_size(stepping.step_size() *
+                                step_size_scaling(error));
 
     // Don't allow a too small step size (unless requested by the navigator)
-    if (stepping.step_size() < cfg.min_stepsize) {
-        stepping.set_step_size(cfg.min_stepsize);
+    if (stepping.next_step_size() < cfg.min_stepsize) {
+        stepping.set_next_step_size(cfg.min_stepsize);
     }
 
     // Run final inspection

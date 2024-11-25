@@ -406,9 +406,9 @@ struct bound_getter : actor {
 
         const scalar N = static_cast<scalar>(actor_state.step_count);
 
-        actor_state.m_avg_step_size = ((N - 1.f) * actor_state.m_avg_step_size +
-                                       stepping.prev_step_size()) /
-                                      N;
+        actor_state.m_avg_step_size =
+            ((N - 1.f) * actor_state.m_avg_step_size + stepping.step_size()) /
+            N;
 
         // Warning for too many step counts
         if (actor_state.step_count > 1000000) {

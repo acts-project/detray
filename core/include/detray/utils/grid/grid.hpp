@@ -273,10 +273,11 @@ class grid_impl {
     template <typename detector_t, typename track_t, typename config_t>
     DETRAY_HOST_DEVICE auto search(
         const detector_t &det, const typename detector_t::volume_type &volume,
-        const track_t &track, const config_t &cfg) const {
+        const track_t &track, const config_t &cfg,
+        const typename detector_t::geometry_context &ctx) const {
 
         // Track position in grid coordinates
-        const auto &trf = det.transform_store().at(volume.transform());
+        const auto &trf = det.transform_store().at(volume.transform(), ctx);
         const auto loc_pos = project(trf, track.pos(), track.dir());
 
         // Grid lookup
@@ -358,6 +359,29 @@ class grid_impl {
     requires owning DETRAY_HOST auto get_data() const -> const_view_type {
         return const_view_type{detray::get_data(m_bins),
                                detray::get_data(m_axes)};
+    }
+
+    /// Equality comparison
+    ///
+    /// @param rhs the right-hand side of the comparison
+    ///
+    /// @note grids could have different bin storage ranges, but could still be
+    /// identical, hence compare the actual grid content
+    ///
+    /// @returns whether the two grids are equal
+    DETRAY_HOST_DEVICE constexpr auto operator==(const grid_impl &rhs) const
+        -> bool {
+        // Check axes: they need to be identical
+        if (m_axes != rhs.m_axes) {
+            return false;
+        }
+        // Loop over global bin index and compare the two
+        for (glob_bin_index i = 0; i < nbins(); ++i) {
+            if (bin(i) != rhs.bin(i)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private:

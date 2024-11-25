@@ -46,14 +46,17 @@ using algebra_t = test::algebra;
 // dummy propagator state
 template <typename stepping_t, typename navigation_t>
 struct prop_state {
+    using context_t = typename navigation_t::detector_type::geometry_context;
 
     stepping_t _stepping;
     navigation_t _navigation;
+    context_t _context;
 
     template <typename track_t, typename field_type>
     prop_state(const track_t &t_in, const field_type &field,
-               const typename navigation_t::detector_type &det)
-        : _stepping(t_in, field), _navigation(det) {}
+               const typename navigation_t::detector_type &det,
+               const context_t &ctx = {})
+        : _stepping(t_in, field), _navigation(det), _context(ctx) {}
 };
 
 inline constexpr bool verbose_check = true;
@@ -193,9 +196,12 @@ GTEST_TEST(detray_detectors, telescope_detector) {
     navigation_state_t &navigation_x = propgation_x._navigation;
 
     // propagate all telescopes
-    navigator_z1.init(stepping_z1(), navigation_z1, prop_cfg.navigation);
-    navigator_z2.init(stepping_z2(), navigation_z2, prop_cfg.navigation);
-    navigator_x.init(stepping_x(), navigation_x, prop_cfg.navigation);
+    navigator_z1.init(stepping_z1(), navigation_z1, prop_cfg.navigation,
+                      prop_cfg.context);
+    navigator_z2.init(stepping_z2(), navigation_z2, prop_cfg.navigation,
+                      prop_cfg.context);
+    navigator_x.init(stepping_x(), navigation_x, prop_cfg.navigation,
+                     prop_cfg.context);
 
     bool heartbeat_z1 = navigation_z1.is_alive();
     bool heartbeat_z2 = navigation_z2.is_alive();
@@ -292,7 +298,8 @@ GTEST_TEST(detray_detectors, telescope_detector) {
     stepping_state_t &tel_stepping = tel_propagation._stepping;
 
     // run propagation
-    tel_navigator.init(tel_stepping(), tel_navigation, prop_cfg.navigation);
+    tel_navigator.init(tel_stepping(), tel_navigation, prop_cfg.navigation,
+                       prop_cfg.context);
     bool heartbeat_tel = tel_navigation.is_alive();
 
     bool do_reset_tel{true};

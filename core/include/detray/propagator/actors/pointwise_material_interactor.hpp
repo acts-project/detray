@@ -35,7 +35,6 @@ struct pointwise_material_interactor : actor {
 
     struct state {
 
-        /// @TODO: Consider using the particle information in stepping::config
         /// Evaluated energy loss
         scalar_type e_loss{0.f};
         /// Evaluated projected scattering angle
@@ -130,10 +129,6 @@ struct pointwise_material_interactor : actor {
     DETRAY_HOST_DEVICE inline void operator()(
         state &interactor_state, propagator_state_t &prop_state) const {
 
-        // @Todo: Make context part of propagation state
-        using detector_type = typename propagator_state_t::detector_type;
-        using geo_context_type = typename detector_type::geometry_context;
-
         interactor_state.reset();
 
         const auto &navigation = prop_state._navigation;
@@ -143,7 +138,7 @@ struct pointwise_material_interactor : actor {
 
             auto &stepping = prop_state._stepping;
 
-            this->update(geo_context_type{}, stepping.particle_hypothesis(),
+            this->update(prop_state._context, stepping.particle_hypothesis(),
                          stepping.bound_params(), interactor_state,
                          static_cast<int>(navigation.direction()),
                          navigation.get_surface());

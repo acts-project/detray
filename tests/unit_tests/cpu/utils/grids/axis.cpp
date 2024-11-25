@@ -342,6 +342,62 @@ GTEST_TEST(detray_grid, closed_irregular_axis) {
     EXPECT_EQ(cir_axis.range(3.f, nhood11s), expected_range);
 }
 
+template <typename axis_type>
+void test_axis(const axis_type& /*unused*/) {
+
+    // Lower bin edges: min and max bin edge for the regular axis
+    vecmem::vector<scalar> bin_edges = {-10.f, -5.f, -3.f,  7.f,   7.f,  14.f,
+                                        20.f,  50.f, 100.f, 120.f, 150.f};
+
+    vecmem::vector<scalar> different_bin_edges = {
+        -10.f, -5.f, -4.f, 7.f, 7.f, 14.f, 20.f, 50.f, 100.f, 120.f, 150.f};
+
+    // Regular axis: first entry is the offset in the bin edges vector (2),
+    // the second entry is the number of bins (10): Lower and upper bin
+    // edges of the max and min bin are -3 and 7 => stepsize is (7 - (-3)) /
+    // 10 = 1
+    // ... -3, -2, -1,  0,  1,  2,  3,  4,  5,  6,  7 ...
+    //   [0] [1] [2] [3] [4] [5] [6] [7] [8] [9] [10] [11]
+    const dindex_range edge_range = {2u, 10u};
+
+    const dindex_range different_edge_range = {2u, 8u};
+
+    axis_type t_axis{edge_range, &bin_edges};
+
+    axis_type another_t_axis{edge_range, &bin_edges};
+
+    axis_type differnt_t_axis{edge_range, &different_bin_edges};
+
+    axis_type differnt_edges_range_t_axis{different_edge_range, &bin_edges};
+
+    // Test if the axes are equal
+    EXPECT_EQ(t_axis, another_t_axis);
+
+    // Confirm that the axes are not equal
+    EXPECT_NE(t_axis, differnt_t_axis);
+
+    // Confirm that the axes are not equal
+    EXPECT_NE(t_axis, differnt_edges_range_t_axis);
+};
+
+GTEST_TEST(detray_grid, axis_comparison) {
+
+    // Should be sufficient to test the comparison operators
+    using x_axis_op_r_t = single_axis<open<label::e_x>, regular<>>;
+    using x_axis_cl_r_t = single_axis<closed<label::e_x>, regular<>>;
+    using x_axis_ci_r_t = single_axis<circular<label::e_x>, regular<>>;
+    using x_axis_op_ir_t = single_axis<open<label::e_x>, irregular<>>;
+    using x_axis_cl_ir_t = single_axis<closed<label::e_x>, irregular<>>;
+    using x_axis_ci_orr_t = single_axis<circular<label::e_x>, irregular<>>;
+
+    std::tuple<x_axis_op_r_t, x_axis_cl_r_t, x_axis_ci_r_t, x_axis_op_ir_t,
+               x_axis_cl_ir_t, x_axis_ci_orr_t>
+        axes = {};
+
+    // Test them all
+    std::apply([&](auto&... axis) { (test_axis(axis), ...); }, axes);
+}
+
 GTEST_TEST(detray_grid, multi_axis) {
 
     // readable axis ownership definition
@@ -449,4 +505,102 @@ GTEST_TEST(detray_grid, multi_axis) {
     EXPECT_EQ(y_axis_device.nbins(), 40u);
     auto z_axis_device = axes_device.get_axis<label::e_z>();
     EXPECT_EQ(z_axis_device.nbins(), 50u);
+}
+
+GTEST_TEST(detray_grid, multi_axis_comparison) {
+
+    // Non-ownging test
+    bool constexpr is_not_owning = false;
+
+    // Lower bin edges for all axes
+    vecmem::vector<scalar> bin_edges = {-10.f, 10.f, -20.f, 20.f, 0.f, 100.f};
+
+    vecmem::vector<scalar> diff_bin_edges = {-10.f, 11.f, -20.f,
+                                             20.f,  0.f,  100.f};
+
+    // Offsets into edges container and #bins for all axes
+    vecmem::vector<dindex_range> edge_ranges = {
+        {0u, 20u}, {2u, 40u}, {4u, 50u}};
+
+    // Offsets into edges container and #bins for all axes
+    vecmem::vector<dindex_range> diff_edge_ranges = {
+        {0u, 20u}, {3u, 40u}, {4u, 50u}};
+
+    // Non-owning multi axis test : reference
+    cartesian_3D<is_not_owning, host_container_types> ref_no_axes(edge_ranges,
+                                                                  bin_edges);
+
+    // Non-owning multi axis test : test
+    cartesian_3D<is_not_owning, host_container_types> test_no_axes(edge_ranges,
+                                                                   bin_edges);
+
+    // Owning multi axis test : reference
+    EXPECT_EQ(ref_no_axes, test_no_axes);
+
+    // Non-owning multi axis test : different bins
+    cartesian_3D<is_not_owning, host_container_types> diff_edges_no_axes(
+        edge_ranges, diff_bin_edges);
+    // Confirm that the axes are not equal
+    EXPECT_NE(ref_no_axes, diff_edges_no_axes);
+
+    // Non-owning multi axis test : different bin ranges
+    cartesian_3D<is_not_owning, host_container_types> diff_edge_ranges_no_axes(
+        diff_edge_ranges, bin_edges);
+    // Confirm that the axes are not equal
+    EXPECT_NE(ref_no_axes, diff_edge_ranges_no_axes);
+
+    // Owning test
+    bool constexpr is_owning = true;
+
+    vecmem::vector<scalar> bin_ref_o_edges = {-10.f, 10.f, -20.f,
+                                              20.f,  0.f,  100.f};
+
+    vecmem::vector<scalar> bin_same_o_edges = {-10.f, 10.f, -20.f,
+                                               20.f,  0.f,  100.f};
+
+    vecmem::vector<dindex_range> edge_ref_o_ranges = {
+        {0u, 20u}, {2u, 40u}, {4u, 50u}};
+
+    vecmem::vector<dindex_range> edge_diff_o_ranges = {
+        {0u, 20u}, {2u, 39u}, {4u, 50u}};
+
+    vecmem::vector<dindex_range> edge_same_o_ranges = {
+        {0u, 20u}, {2u, 40u}, {4u, 50u}};
+
+    vecmem::vector<scalar> bin_test_o_edges = {-10.f, 10.f, -20.f,
+                                               20.f,  0.f,  100.f};
+
+    vecmem::vector<scalar> same_test_o_edges = {-10.f, 10.f, -20.f,
+                                                20.f,  0.f,  100.f};
+
+    vecmem::vector<scalar> diff_test_o_edges = {-10.f, 11.f, -20.f,
+                                                20.f,  0.f,  100.f};
+
+    vecmem::vector<dindex_range> edge_test_o_ranges = {
+        {0u, 20u}, {2u, 40u}, {4u, 50u}};
+
+    // Non-owning multi axis test : reference
+    cartesian_3D<is_owning, host_container_types> ref_o_axes(
+        std::move(edge_ref_o_ranges), std::move(bin_ref_o_edges));
+
+    // Non-owning multi axis test : test
+    cartesian_3D<is_owning, host_container_types> test_o_axes(
+        std::move(edge_test_o_ranges), std::move(bin_test_o_edges));
+
+    // Owning multi axis test : reference
+    EXPECT_EQ(ref_o_axes, test_o_axes);
+
+    // Non-owning multi axis test : diff endes
+    cartesian_3D<is_owning, host_container_types> diff_edges_o_axes(
+        std::move(edge_same_o_ranges), std::move(diff_test_o_edges));
+
+    // Confirm that the axes are not equal
+    EXPECT_NE(ref_o_axes, diff_edges_o_axes);
+
+    // Non-owning multi axis test : diff ranges
+    cartesian_3D<is_owning, host_container_types> diff_edge_ranges_o_axes(
+        std::move(edge_diff_o_ranges), std::move(bin_same_o_edges));
+
+    // Confirm that the axes are not equal
+    EXPECT_NE(ref_o_axes, diff_edge_ranges_o_axes);
 }
