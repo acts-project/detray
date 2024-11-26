@@ -8,14 +8,19 @@
 message(STATUS "Building 'detray::svgtools' component")
 
 # Set up the library.
-file( GLOB _detray_svgtools_public_headers
-   RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
-   "include/detray/plugins/svgtools/*.hpp" )
+file(
+    GLOB _detray_svgtools_public_headers
+    RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
+    "include/detray/plugins/svgtools/*.hpp"
+)
 
 detray_add_library( detray_svgtools svgtools
-   ${_detray_svg_public_headers} )
-target_link_libraries( detray_svgtools
-   INTERFACE detray::core actsvg::core actsvg::meta )
+   ${_detray_svg_public_headers}
+)
+target_link_libraries(
+    detray_svgtools
+    INTERFACE detray::core actsvg::core actsvg::meta
+)
 
 # Clean up.
-unset( _detray_svgtools_public_headers )
+unset(_detray_svgtools_public_headers)

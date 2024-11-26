@@ -5,14 +5,14 @@
 # Mozilla Public License Version 2.0
 
 # Set up all of the "host" tests.
-if( DETRAY_BUILD_HOST )
-   message(STATUS "Building detray host integration tests")
+if(DETRAY_BUILD_HOST)
+    message(STATUS "Building detray host integration tests")
 
-   add_subdirectory( cpu )
-   add_subdirectory( io )
+    add_subdirectory(cpu)
+    add_subdirectory(io)
 endif()
 
 # Set up all of the "device" tests.
-if( DETRAY_BUILD_CUDA OR DETRAY_BUILD_SYCL )
-   add_subdirectory( device )
+if(DETRAY_BUILD_CUDA OR DETRAY_BUILD_SYCL)
+    add_subdirectory(device)
 endif()

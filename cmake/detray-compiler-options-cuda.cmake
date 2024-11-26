@@ -5,30 +5,33 @@
 # Mozilla Public License Version 2.0
 
 # FindCUDAToolkit needs at least CMake 3.17.
-cmake_minimum_required( VERSION 3.17 )
+cmake_minimum_required(VERSION 3.17)
 
 # Include the helper function(s).
-include( detray-functions )
+include(detray-functions)
 
 # Figure out the properties of CUDA being used.
-find_package( CUDAToolkit REQUIRED )
+find_package(CUDAToolkit REQUIRED)
 
 # Turn on the correct setting for the __cplusplus macro with MSVC.
-if( "${CMAKE_CXX_COMPILER_ID}" MATCHES "MSVC" )
-   detray_add_flag( CMAKE_CUDA_FLAGS "-Xcompiler /Zc:__cplusplus" )
+if("${CMAKE_CXX_COMPILER_ID}" MATCHES "MSVC")
+    detray_add_flag( CMAKE_CUDA_FLAGS "-Xcompiler /Zc:__cplusplus" )
 endif()
 
 # Set the CUDA architecture to build code for.
-set( CMAKE_CUDA_ARCHITECTURES "52" CACHE STRING
-   "CUDA architectures to build device code for" )
+set(CMAKE_CUDA_ARCHITECTURES
+    "52"
+    CACHE STRING
+    "CUDA architectures to build device code for"
+)
 
-if( "${CMAKE_CUDA_COMPILER_ID}" MATCHES "NVIDIA" )
-# Allow to use functions in device code that are constexpr, even if they are
-# not marked with __device__.
-detray_add_flag( CMAKE_CUDA_FLAGS "--expt-relaxed-constexpr" )
+if("${CMAKE_CUDA_COMPILER_ID}" MATCHES "NVIDIA")
+    # Allow to use functions in device code that are constexpr, even if they are
+    # not marked with __device__.
+    detray_add_flag( CMAKE_CUDA_FLAGS "--expt-relaxed-constexpr" )
 
-# Turn off fast math for the device code.
-detray_add_flag( CMAKE_CUDA_FLAGS "-fmad=false" )
+    # Turn off fast math for the device code.
+    detray_add_flag( CMAKE_CUDA_FLAGS "-fmad=false" )
 endif()
 
 # Make CUDA generate debug symbols for the device code as well in a debug
@@ -36,11 +39,13 @@ endif()
 detray_add_flag( CMAKE_CUDA_FLAGS_DEBUG "-G -src-in-ptx" )
 
 # Fail on warnings, if asked for that behaviour.
-if( DETRAY_FAIL_ON_WARNINGS )
-   if( ( "${CUDAToolkit_VERSION}" VERSION_GREATER_EQUAL "10.2" ) AND
-       ( "${CMAKE_CUDA_COMPILER_ID}" MATCHES "NVIDIA" ) )
-      detray_add_flag( CMAKE_CUDA_FLAGS "-Werror all-warnings" )
-   elseif( "${CMAKE_CUDA_COMPILER_ID}" MATCHES "Clang" )
-      detray_add_flag( CMAKE_CUDA_FLAGS "-Werror" )
-   endif()
+if(DETRAY_FAIL_ON_WARNINGS)
+    if(
+        ("${CUDAToolkit_VERSION}" VERSION_GREATER_EQUAL "10.2")
+        AND ("${CMAKE_CUDA_COMPILER_ID}" MATCHES "NVIDIA")
+    )
+        detray_add_flag( CMAKE_CUDA_FLAGS "-Werror all-warnings" )
+    elseif("${CMAKE_CUDA_COMPILER_ID}" MATCHES "Clang")
+        detray_add_flag( CMAKE_CUDA_FLAGS "-Werror" )
+    endif()
 endif()

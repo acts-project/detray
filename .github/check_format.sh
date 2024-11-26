@@ -29,9 +29,9 @@ if ! [ -z $CI ] || ! [ -z $GITHUB_ACTIONS ]; then
     cp --parents $f changed
   done
 fi
-    
+
 echo "clang-format done"
-    
+
 set +e
 git diff --exit-code --stat -- ${INCLUDE_DIRS[@]/#/:/}
 result=$?

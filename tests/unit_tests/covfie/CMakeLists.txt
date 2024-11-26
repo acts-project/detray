@@ -7,4 +7,5 @@
 # Set up the covfie tests.
 detray_add_unit_test( covfie
    "constant_field.cpp"
-   LINK_LIBRARIES GTest::gtest_main covfie::core )
+   LINK_LIBRARIES GTest::gtest_main covfie::core
+)
