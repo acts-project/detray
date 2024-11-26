@@ -124,7 +124,7 @@ struct bound_parameters_vector {
     /// Set the global phi angle
     DETRAY_HOST_DEVICE
     void set_phi(const scalar_type phi) {
-        assert(math::abs(phi) <= constant<scalar_type>::pi);
+        assert(math::fabs(phi) <= constant<scalar_type>::pi);
         matrix_operator().element(m_vector, e_bound_phi, 0u) = phi;
     }
 
