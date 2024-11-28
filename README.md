@@ -74,4 +74,4 @@ The following cmake options are available and can also be specified explicitly f
 
 Monitoring the propagation speed with the toy geometry
 
-<img src="https://gitlab.cern.ch/acts/detray-benchmark/-/raw/master/plots/array_data.png?ref_type=heads" /> 
+<img src="https://gitlab.cern.ch/acts/detray-benchmark/-/raw/master/plots/array_data.png?ref_type=heads" />

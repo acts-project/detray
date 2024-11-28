@@ -133,20 +133,20 @@ fi
 ##########################
 
 if [ "$skip_first_phase" = false ] ; then
-    
+
     echo "Starting rk toleracne iteration..."
-    
+
     # Remove the old directories
     for (( i=0; i < ${n_threads}; ++i ))
     do
         rm -rf ${PWD}/thread_${i}
     done
     rm -rf ${PWD}/merged
-    
+
     for (( i=0; i < ${n_threads}; ++i ))
     do
         n_skips=`expr ${i} \* ${n_tracks_per_thread}`
-        
+
         command_rk_tolerance="${dir}/detray_integration_test_jacobian_validation \
         --output-directory=thread_${i} \
         --rk-tolerance-iterate-mode=true \
@@ -162,9 +162,9 @@ if [ "$skip_first_phase" = false ] ; then
         ${command_rk_tolerance} &
     done
     wait
-    
+
     echo "Finished rk toleracne iteration"
-    
+
 fi
 
 #####################################
@@ -172,13 +172,13 @@ fi
 #####################################
 
 if [ "$skip_second_phase" = false ] ; then
-    
+
     echo "Starting Jacobi validation & Cov transport..."
-    
+
     for (( i=0; i < ${n_threads}; ++i ))
     do
         n_skips=`expr ${i} \* ${n_tracks_per_thread}`
-        
+
         command_jacobi_validation="${dir}/detray_integration_test_jacobian_validation \
         --output-directory=thread_${i} \
         --rk-tolerance-iterate-mode=false \
@@ -194,7 +194,7 @@ if [ "$skip_second_phase" = false ] ; then
         ${command_jacobi_validation} &
     done
     wait
-    
+
     echo "Finished Jacobi validation & Cov transport"
 fi
 
@@ -241,30 +241,30 @@ echo "Finished merging Csv files"
 cd ${output_dir}
 
 if [ "$skip_first_phase" = false ] && [ "$skip_second_phase" = false ]; then
-    
+
     # Run rk_tolerance_comparision.C
     root -q "$root_dir"'/tests/tools/root/rk_tolerance_comparison.C+O('${log10_min_rk_tol}','${log10_max_rk_tol}')'
-    
+
     # Run jacobian_histogram.C
     root -q -l "$root_dir"'/tests/tools/root/jacobian_histogram.C+O('${log10_min_rk_tol}')'
-        
+
     # Run jacobian_comparison.C
     root -q -l "$root_dir"/tests/tools/root/jacobian_comparison.C+O
-    
+
     # Run covariance_validation.C
     root -q -l "$root_dir"/tests/tools/root/covariance_validation.C+O
-    
+
     elif [ "$skip_first_phase" = true ] && [ "$skip_second_phase" = false ]; then
-    
+
     # Run covariance_validation.C
     root "$root_dir"/tests/tools/root/covariance_validation.C+O
-    
+
     elif [ "$skip_first_phase" = false ] && [ "$skip_second_phase" = true ]; then
-    
+
     # Run rk_tolerance_comparision.C
     root "$root_dir"'/tests/tools/root/rk_tolerance_comparison.C+O('${log10_min_rk_tol}','${log10_max_rk_tol}')'
-    
+
     # Run jacobian_histogram.C
     root "$root_dir"'/tests/tools/root/jacobian_histogram.C+O('${log10_min_rk_tol}')'
-    
+
 fi

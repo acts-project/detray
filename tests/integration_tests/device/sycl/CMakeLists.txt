@@ -17,13 +17,16 @@ enable_language(SYCL)
 set(algebras "array")
 
 foreach(algebra ${algebras})
-   # Unit tests for the selected algebra.
-   detray_add_integration_test(sycl_${algebra}
-      "propagator_sycl_kernel.hpp"
-      "propagator.sycl"
-      "propagator_kernel.sycl"
-      LINK_LIBRARIES GTest::gtest_main vecmem::sycl detray::test_device
-      detray::core detray::algebra_${algebra} detray::test_utils )
-   target_compile_definitions(detray_integration_test_sycl_${algebra}
-      PRIVATE ${algebra}=${algebra})
+    # Unit tests for the selected algebra.
+    detray_add_integration_test(sycl_${algebra}
+       "propagator_sycl_kernel.hpp"
+       "propagator.sycl"
+       "propagator_kernel.sycl"
+       LINK_LIBRARIES GTest::gtest_main vecmem::sycl detray::test_device
+       detray::core detray::algebra_${algebra} detray::test_utils
+    )
+    target_compile_definitions(
+        detray_integration_test_sycl_${algebra}
+        PRIVATE ${algebra}=${algebra}
+    )
 endforeach()

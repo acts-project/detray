@@ -5,8 +5,8 @@
 # Mozilla Public License Version 2.0
 
 # Add all subdirectories.
-add_subdirectory( algebra )
+add_subdirectory(algebra)
 
-if ( DETRAY_SVG_DISPLAY )
-  add_subdirectory( svgtools )
+if(DETRAY_SVG_DISPLAY)
+    add_subdirectory(svgtools)
 endif()

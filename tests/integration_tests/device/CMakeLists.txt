@@ -4,10 +4,10 @@
 #
 # Mozilla Public License Version 2.0
 
-if( DETRAY_BUILD_CUDA )
-    add_subdirectory( cuda )
- endif()
+if(DETRAY_BUILD_CUDA)
+    add_subdirectory(cuda)
+endif()
 
-if( DETRAY_BUILD_SYCL )
-    add_subdirectory( sycl )
+if(DETRAY_BUILD_SYCL)
+    add_subdirectory(sycl)
 endif()
