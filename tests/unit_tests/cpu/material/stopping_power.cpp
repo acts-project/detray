@@ -28,7 +28,7 @@ class StoppingPowerValidation
 TEST_P(StoppingPowerValidation, stopping_power) {
 
     // Interaction object
-    interaction<scalar> I;
+    interaction<test::scalar> I;
 
     // Material
     material<scalar> mat = std::get<0>(GetParam());
