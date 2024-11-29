@@ -103,20 +103,20 @@ inline auto run_navigation_validation(
         navigation::detail::candidate_record<intersection_t>>
         recorded_intersections_buffer(capacities, *dev_mr, host_mr,
                                       vecmem::data::buffer_type::resizable);
-    cuda_cpy.setup(recorded_intersections_buffer);
+    cuda_cpy.setup(recorded_intersections_buffer)->wait();
     auto recorded_intersections_view =
         vecmem::get_data(recorded_intersections_buffer);
 
     vecmem::data::vector_buffer<material_record_t> mat_records_buffer(
         static_cast<unsigned int>(truth_intersection_traces_view.size()),
         *dev_mr, vecmem::data::buffer_type::fixed_size);
-    cuda_cpy.setup(mat_records_buffer);
+    cuda_cpy.setup(mat_records_buffer)->wait();
     auto mat_records_view = vecmem::get_data(mat_records_buffer);
 
     // Buffer for the material parameters at every step per track
     vecmem::data::jagged_vector_buffer<material_params_t> mat_steps_buffer(
         capacities, *dev_mr, host_mr, vecmem::data::buffer_type::resizable);
-    cuda_cpy.setup(mat_steps_buffer);
+    cuda_cpy.setup(mat_steps_buffer)->wait();
     auto mat_steps_view = vecmem::get_data(mat_steps_buffer);
 
     // Run the navigation validation test on device
@@ -127,13 +127,13 @@ inline auto run_navigation_validation(
     // Get the results back to the host and pass them on to the checking
     vecmem::jagged_vector<navigation::detail::candidate_record<intersection_t>>
         recorded_intersections(host_mr);
-    cuda_cpy(recorded_intersections_buffer, recorded_intersections);
+    cuda_cpy(recorded_intersections_buffer, recorded_intersections)->wait();
 
     vecmem::vector<material_record_t> mat_records(host_mr);
-    cuda_cpy(mat_records_buffer, mat_records);
+    cuda_cpy(mat_records_buffer, mat_records)->wait();
 
     vecmem::jagged_vector<material_params_t> mat_steps(host_mr);
-    cuda_cpy(mat_steps_buffer, mat_steps);
+    cuda_cpy(mat_steps_buffer, mat_steps)->wait();
 
     return std::make_tuple(std::move(recorded_intersections),
                            std::move(mat_records), std::move(mat_steps));

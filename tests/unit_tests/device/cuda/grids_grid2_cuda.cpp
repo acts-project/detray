@@ -227,7 +227,7 @@ TEST(grids_cuda, grid2_buffer_attach_populator) {
     grid2_buffer<host_grid2_attach> g2_buffer(
         xaxis, yaxis, {100, 200, 300, 400}, mng_mr, nullptr,
         vecmem::data::buffer_type::resizable);
-    copy.setup(g2_buffer._buffer);
+    copy.setup(g2_buffer._buffer)->wait();
 
     // Check if the initialization work well
     // Non-zero starting size not working yet so initial argument for sizes is
@@ -246,7 +246,7 @@ TEST(grids_cuda, grid2_buffer_attach_populator) {
     grid_attach_fill_test(g2_buffer);
 
     host_grid2_attach g2(xaxis, yaxis, mng_mr, test::point3{0.f, 0.f, 0.f});
-    copy(g2_buffer._buffer, g2.data());
+    copy(g2_buffer._buffer, g2.data())->wait();
 
     // Check if each bin has 100 points
     EXPECT_EQ(g2.data()[0].size(), 100u);
@@ -272,7 +272,7 @@ TEST(grids_cuda, grid2_buffer_attach_populator2) {
 
     grid2_buffer<host_grid2_attach> g2_buffer(xaxis, yaxis, {1, 2, 3, 4},
                                               mng_mr);
-    copy.setup(g2_buffer._buffer);
+    copy.setup(g2_buffer._buffer)->wait();
 
     // Check if the initialization works well
     const auto& ptr = g2_buffer._buffer.host_ptr();
@@ -289,7 +289,7 @@ TEST(grids_cuda, grid2_buffer_attach_populator2) {
     grid_attach_assign_test(g2_buffer);
 
     host_grid2_attach g2(xaxis, yaxis, mng_mr, test::point3{0.f, 0.f, 0.f});
-    copy(g2_buffer._buffer, g2.data());
+    copy(g2_buffer._buffer, g2.data())->wait();
 
     // Check the outputs
     auto bin0 = g2.bin(0u);

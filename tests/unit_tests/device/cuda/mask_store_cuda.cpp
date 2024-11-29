@@ -92,7 +92,7 @@ TEST(mask_store_cuda, mask_store) {
         {n_points, n_points, n_points, n_points, n_points}, mng_mr, nullptr,
         vecmem::data::buffer_type::resizable);
 
-    copy.setup(output_buffer);
+    copy.setup(output_buffer)->wait();
 
     auto input_point3_data = vecmem::get_data(input_point3);
     auto store_data = get_data(store);
@@ -101,7 +101,7 @@ TEST(mask_store_cuda, mask_store) {
     mask_test(store_data, input_point3_data, output_buffer);
 
     vecmem::jagged_vector<int> output_device(&mng_mr);
-    copy(output_buffer, output_device);
+    copy(output_buffer, output_device)->wait();
 
     // Compare the values
     for (unsigned int i = 0u; i < n_points; i++) {

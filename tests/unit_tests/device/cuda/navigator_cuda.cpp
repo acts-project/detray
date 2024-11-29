@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -110,11 +110,11 @@ TEST(navigator_cuda, navigator) {
 
     vecmem::data::jagged_vector_buffer<dindex> volume_records_buffer(
         capacities, dev_mr, &mng_mr, vecmem::data::buffer_type::resizable);
-    copy.setup(volume_records_buffer);
+    copy.setup(volume_records_buffer)->wait();
 
     vecmem::data::jagged_vector_buffer<point3> position_records_buffer(
         capacities, dev_mr, &mng_mr, vecmem::data::buffer_type::resizable);
-    copy.setup(position_records_buffer);
+    copy.setup(position_records_buffer)->wait();
 
     // Get detector data
     auto det_data = detray::get_data(det);
@@ -127,8 +127,8 @@ TEST(navigator_cuda, navigator) {
                    volume_records_buffer, position_records_buffer);
 
     // Copy volume record buffer into volume & position records device
-    copy(volume_records_buffer, volume_records_device);
-    copy(position_records_buffer, position_records_device);
+    copy(volume_records_buffer, volume_records_device)->wait();
+    copy(position_records_buffer, position_records_device)->wait();
 
     for (unsigned int i = 0u; i < volume_records_host.size(); i++) {
 
