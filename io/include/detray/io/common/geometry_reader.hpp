@@ -117,7 +117,7 @@ class geometry_reader {
         }
 
         // @TODO: Implement voume finder IO
-        det_builder.template set_volume_finder();
+        det_builder.set_volume_finder();
     }
 
     /// @returns a surface transform from its io payload @param trf_data
