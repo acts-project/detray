@@ -106,9 +106,9 @@ struct jacobian<polar2D<algebra_t>> {
         matrix_operator().template set_block<3, 1>(
             bound_pos_to_free_pos_derivative, col1, e_free_pos0, e_bound_loc1);
 
-        matrix_operator().template set_block(bound_to_free_jacobian,
-                                             bound_pos_to_free_pos_derivative,
-                                             e_free_pos0, e_bound_loc0);
+        matrix_operator().set_block(bound_to_free_jacobian,
+                                    bound_pos_to_free_pos_derivative,
+                                    e_free_pos0, e_bound_loc0);
     }
 
     DETRAY_HOST_DEVICE
@@ -149,9 +149,9 @@ struct jacobian<polar2D<algebra_t>> {
         matrix_operator().template set_block<1, 3>(
             free_pos_to_bound_pos_derivative, row1, e_bound_loc1, e_free_pos0);
 
-        matrix_operator().template set_block(free_to_bound_jacobian,
-                                             free_pos_to_bound_pos_derivative,
-                                             e_bound_loc0, e_free_pos0);
+        matrix_operator().set_block(free_to_bound_jacobian,
+                                    free_pos_to_bound_pos_derivative,
+                                    e_bound_loc0, e_free_pos0);
     }
 
     DETRAY_HOST_DEVICE

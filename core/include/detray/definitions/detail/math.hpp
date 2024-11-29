@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -9,7 +9,7 @@
 
 // SYCL include(s).
 #if defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 #endif
 
 // System include(s).
@@ -19,7 +19,7 @@ namespace detray {
 
 /// Namespace to pick up math functions from
 #if defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)
-namespace math = cl::sycl;
+namespace math = ::sycl;
 #elif IS_SOA
 
 namespace math {
