@@ -20,6 +20,21 @@
 // System include(s)
 #include <iostream>
 
+template <typename host_detector_type, typename host_trfstore_type>
+typename host_detector_type::view_type misalign_detector(
+    typename host_detector_type::buffer_type& det_buffer,
+    typename host_trfstore_type::buffer_type& trf_buffer) {
+    typename host_detector_type::view_type detview{
+        detray::get_data(detray::detail::get<0>(det_buffer.m_buffer)),
+        detray::get_data(detray::detail::get<1>(det_buffer.m_buffer)),
+        detray::get_data(trf_buffer),
+        detray::get_data(detray::detail::get<3>(det_buffer.m_buffer)),
+        detray::get_data(detray::detail::get<4>(det_buffer.m_buffer)),
+        detray::get_data(detray::detail::get<5>(det_buffer.m_buffer)),
+        detray::get_data(detray::detail::get<6>(det_buffer.m_buffer))};
+    return detview;
+}
+
 /// Prepare the data and move it to device
 int main() {
     // memory resource(s)
@@ -102,4 +117,30 @@ int main() {
 
     std::cout << "\nCustom buffer setup:" << std::endl;
     detray::tutorial::print(detray::get_data(det_custom_buff));
+
+    // Construct an "aligned" transform store
+    typename decltype(det_host)::transform_container tfStore;
+    using tf_type = decltype(det_host)::transform_container::value_type;
+
+    detray::tutorial::point3 shift{.1f * detray::unit<detray::scalar>::mm,
+                                   .2f * detray::unit<detray::scalar>::mm,
+                                   .3f * detray::unit<detray::scalar>::mm};
+
+    for (const auto& tf : det_host.transform_store()) {
+        tfStore.push_back(
+            tf_type{tf.translation() + shift, tf.x(), tf.y(), tf.z()});
+    }
+
+    auto trf_buff_shifted =
+        detray::get_buffer(tfStore, dev_mr, cuda_cpy, detray::copy::async,
+                           vecmem::data::buffer_type::resizable);
+
+    using host_detector_type = decltype(det_host);
+    using host_tf_container_type = decltype(det_host)::transform_container;
+    typename decltype(det_host)::view_type detector_view =
+        misalign_detector<host_detector_type, host_tf_container_type>(
+            det_custom_buff, trf_buff_shifted);
+
+    std::cout << "\nCustom buffer setup (shifted):" << std::endl;
+    detray::tutorial::print(detector_view);
 }
