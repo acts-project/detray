@@ -8,6 +8,7 @@
 // Project include(s)
 #include "detector_construction.hpp"
 
+#include "detray/core/detail/alignment.hpp"
 #include "detray/test/utils/detectors/build_toy_detector.hpp"
 
 // Vecmem include(s)
@@ -77,10 +78,9 @@ int main() {
     auto sf_buff = detray::get_buffer(det_host.surfaces(), dev_mr, cuda_cpy,
                                       detray::copy::sync,
                                       vecmem::data::buffer_type::fixed_size);
-    // Use resizable buffer and asynchronous copy for alignment
     auto trf_buff = detray::get_buffer(det_host.transform_store(), dev_mr,
-                                       cuda_cpy, detray::copy::async,
-                                       vecmem::data::buffer_type::resizable);
+                                       cuda_cpy, detray::copy::sync,
+                                       vecmem::data::buffer_type::fixed_size);
     auto msk_buff = detray::get_buffer(det_host.mask_store(), dev_mr, cuda_cpy,
                                        detray::copy::sync,
                                        vecmem::data::buffer_type::fixed_size);
@@ -102,4 +102,33 @@ int main() {
 
     std::cout << "\nCustom buffer setup:" << std::endl;
     detray::tutorial::print(detray::get_data(det_custom_buff));
+
+    // Construct an "aligned" transform store
+    typename decltype(det_host)::transform_container tfStore;
+    using tf_type = decltype(det_host)::transform_container::value_type;
+
+    detray::tutorial::point3 shift{.1f * detray::unit<detray::scalar>::mm,
+                                   .2f * detray::unit<detray::scalar>::mm,
+                                   .3f * detray::unit<detray::scalar>::mm};
+
+    for (const auto& tf : det_host.transform_store()) {
+        detray::tutorial::point3 shifted{tf.translation()[0] + shift[0],
+                                         tf.translation()[1] + shift[1],
+                                         tf.translation()[2] + shift[2]};
+        tfStore.push_back(tf_type{shifted, tf.x(), tf.y(), tf.z()});
+    }
+
+    auto trf_buff_shifted =
+        detray::get_buffer(tfStore, dev_mr, cuda_cpy, detray::copy::sync,
+                           vecmem::data::buffer_type::fixed_size);
+
+    using host_detector_type = decltype(det_host);
+    using host_tf_container_type = decltype(det_host)::transform_container;
+    typename decltype(det_host)::view_type detector_view =
+        detray::detail::misaligned_detector_view<host_detector_type,
+                                                 host_tf_container_type>(
+            det_custom_buff, trf_buff_shifted);
+
+    std::cout << "\nCustom buffer setup (shifted):" << std::endl;
+    detray::tutorial::print(detector_view);
 }
