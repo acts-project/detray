@@ -6,6 +6,7 @@
  */
 
 #include "detray/definitions/detail/cuda_definitions.hpp"
+#include "detray/geometry/tracking_surface.hpp"
 
 // Detray test include(s)
 #include "detector_cuda_kernel.hpp"
@@ -101,6 +102,59 @@ void detector_test(typename detector_host_t::view_type det_data,
     detector_test_kernel<<<block_dim, thread_dim>>>(
         det_data, volumes_data, surfaces_data, transforms_data, rectangles_data,
         discs_data, cylinders_data);
+
+    // cuda error check
+    DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
+    DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
+}
+
+// cuda kernel to extract surface transforms from two detector views - static
+// and misaligned - and to copy them into vectors
+__global__ void detector_alignment_test_kernel(
+    typename detector_host_t::view_type det_data_static,
+    typename detector_host_t::view_type det_data_aligned,
+    vecmem::data::vector_view<transform_t> surfacexf_data_static,
+    vecmem::data::vector_view<transform_t> surfacexf_data_aligned) {
+
+    auto ctx = typename detector_host_t::geometry_context{};
+
+    // two instances of device detectors
+    detector_device_t det_device_static(det_data_static);
+    detector_device_t det_device_aligned(det_data_aligned);
+
+    // device vectors of surface transforms
+    vecmem::device_vector<transform_t> surfacexf_device_static(
+        surfacexf_data_static);
+    vecmem::device_vector<transform_t> surfacexf_device_aligned(
+        surfacexf_data_aligned);
+
+    // copy surface transforms into relevant vectors
+    for (unsigned int i = 0u; i < det_device_static.surfaces().size(); i++) {
+        const auto sf = tracking_surface{det_device_static,
+                                         det_device_static.surfaces()[i]};
+        surfacexf_device_static[i] = sf.transform(ctx);
+    }
+
+    for (unsigned int i = 0u; i < det_device_aligned.surfaces().size(); i++) {
+        const auto sf = tracking_surface{det_device_aligned,
+                                         det_device_aligned.surfaces()[i]};
+        surfacexf_device_aligned[i] = sf.transform(ctx);
+    }
+}
+
+/// implementation of the alignment test function for detector
+void detector_alignment_test(
+    typename detector_host_t::view_type det_data_static,
+    typename detector_host_t::view_type det_data_aligned,
+    vecmem::data::vector_view<transform_t> surfacexf_data_static,
+    vecmem::data::vector_view<transform_t> surfacexf_data_aligned) {
+    constexpr int block_dim = 1u;
+    constexpr int thread_dim = 1u;
+
+    // run the test kernel
+    detector_alignment_test_kernel<<<block_dim, thread_dim>>>(
+        det_data_static, det_data_aligned, surfacexf_data_static,
+        surfacexf_data_aligned);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());

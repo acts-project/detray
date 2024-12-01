@@ -44,4 +44,11 @@ void detector_test(typename detector_host_t::view_type det_data,
                    vecmem::data::vector_view<disc_t> discs_data,
                    vecmem::data::vector_view<cylinder_t> cylinders_data);
 
+/// declaration of an alignment test function for detector
+void detector_alignment_test(
+    typename detector_host_t::view_type det_data_static,
+    typename detector_host_t::view_type det_data_aligned,
+    vecmem::data::vector_view<transform_t> surfacexf_data_static,
+    vecmem::data::vector_view<transform_t> surfacexf_data_aligned);
+
 }  // namespace detray

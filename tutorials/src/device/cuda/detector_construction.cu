@@ -25,6 +25,10 @@ __global__ void print_kernel(
 
     printf("Number of volumes: %d\n", det.volumes().size());
     printf("Number of transforms: %d\n", det.transform_store().size());
+    printf("First translation: {%f,%f,%f}\n",
+           det.transform_store().at(0).translation()[0],
+           det.transform_store().at(0).translation()[1],
+           det.transform_store().at(0).translation()[2]);
     printf("Number of rectangles: %d\n",
            det.mask_store().get<mask_id::e_rectangle2>().size());
     printf("Number of trapezoids: %d\n",
