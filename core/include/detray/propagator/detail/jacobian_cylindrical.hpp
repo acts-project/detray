@@ -102,9 +102,9 @@ struct jacobian<cylindrical2D<algebra_t>> {
         const auto bound_pos_to_free_pos_derivative =
             matrix_operator().template block<3, 2>(frame, 0u, 0u);
 
-        matrix_operator().template set_block(bound_to_free_jacobian,
-                                             bound_pos_to_free_pos_derivative,
-                                             e_free_pos0, e_bound_loc0);
+        matrix_operator().set_block(bound_to_free_jacobian,
+                                    bound_pos_to_free_pos_derivative,
+                                    e_free_pos0, e_bound_loc0);
     }
 
     DETRAY_HOST_DEVICE
@@ -120,9 +120,9 @@ struct jacobian<cylindrical2D<algebra_t>> {
         const auto free_pos_to_bound_pos_derivative =
             matrix_operator().template block<2, 3>(frameT, 0u, 0u);
 
-        matrix_operator().template set_block(free_to_bound_jacobian,
-                                             free_pos_to_bound_pos_derivative,
-                                             e_bound_loc0, e_free_pos0);
+        matrix_operator().set_block(free_to_bound_jacobian,
+                                    free_pos_to_bound_pos_derivative,
+                                    e_bound_loc0, e_free_pos0);
     }
 
     DETRAY_HOST_DEVICE

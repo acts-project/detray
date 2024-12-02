@@ -81,13 +81,13 @@ struct run_material_validation {
         vecmem::data::vector_buffer<material_record_t> mat_records_buffer(
             static_cast<unsigned int>(tracks.size()), *dev_mr,
             vecmem::data::buffer_type::fixed_size);
-        cuda_cpy.setup(mat_records_buffer);
+        cuda_cpy.setup(mat_records_buffer)->wait();
         auto mat_records_view = vecmem::get_data(mat_records_buffer);
 
         // Buffer for the material parameters at every surface per track
         vecmem::data::jagged_vector_buffer<material_params_t> mat_steps_buffer(
             capacities, *dev_mr, host_mr, vecmem::data::buffer_type::resizable);
-        cuda_cpy.setup(mat_steps_buffer);
+        cuda_cpy.setup(mat_steps_buffer)->wait();
         auto mat_steps_view = vecmem::get_data(mat_steps_buffer);
 
         // Run the material tracing on device
@@ -96,10 +96,10 @@ struct run_material_validation {
 
         // Get the results back to the host and pass them on to be checked
         vecmem::vector<material_record_t> mat_records(host_mr);
-        cuda_cpy(mat_records_buffer, mat_records);
+        cuda_cpy(mat_records_buffer, mat_records)->wait();
 
         vecmem::jagged_vector<material_params_t> mat_steps(host_mr);
-        cuda_cpy(mat_steps_buffer, mat_steps);
+        cuda_cpy(mat_steps_buffer, mat_steps)->wait();
 
         return std::make_tuple(mat_records, mat_steps);
     }

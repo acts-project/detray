@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -63,14 +63,14 @@ TEST(utils_ranges_cuda, iota) {
         static_cast<vecmem::data::vector_buffer<dindex>::size_type>(range[1] -
                                                                     range[0]),
         managed_resource, vecmem::data::buffer_type::resizable);
-    copy.setup(check_buffer);
+    copy.setup(check_buffer)->wait();
 
     // Run test function
     test_iota(range, check_buffer);
 
     // Copy vector buffer to output vector
     vecmem::vector<dindex> check{&managed_resource};
-    copy(check_buffer, check);
+    copy(check_buffer, check)->wait();
 
     // Check the result
     ASSERT_EQ(check, reference);
@@ -112,14 +112,14 @@ TEST(utils_ranges_cuda, cartesian_product) {
     buffer_t check_buffer(static_cast<buffer_t::size_type>(size),
                           managed_resource,
                           vecmem::data::buffer_type::resizable);
-    copy.setup(check_buffer);
+    copy.setup(check_buffer)->wait();
 
     // Run test function
     test_cartesian_product(range1, range2, range3, check_buffer);
 
     // Copy vector buffer to output vector
     vecmem::vector<std::tuple<dindex, dindex, dindex>> check{&managed_resource};
-    copy(check_buffer, check);
+    copy(check_buffer, check)->wait();
 
     // Check the result
     ASSERT_EQ(result.size(), check.size());
@@ -154,22 +154,22 @@ TEST(utils_ranges_cuda, enumerate) {
     vecmem::data::vector_buffer<dindex> idx_buffer(
         static_cast<vecmem::data::vector_buffer<dindex>::size_type>(seq.size()),
         managed_resource, vecmem::data::buffer_type::resizable);
-    copy.setup(idx_buffer);
+    copy.setup(idx_buffer)->wait();
 
     vecmem::data::vector_buffer<dindex> value_buffer(
         static_cast<vecmem::data::vector_buffer<dindex>::size_type>(seq.size()),
         managed_resource, vecmem::data::buffer_type::resizable);
-    copy.setup(value_buffer);
+    copy.setup(value_buffer)->wait();
 
     // Run test function
     test_enumerate(seq_data, idx_buffer, value_buffer);
 
     // Copy vector buffer to output vector
     vecmem::vector<dindex> idx_vec{&managed_resource};
-    copy(idx_buffer, idx_vec);
+    copy(idx_buffer, idx_vec)->wait();
 
     vecmem::vector<dindex> value_vec{&managed_resource};
-    copy(value_buffer, value_vec);
+    copy(value_buffer, value_vec)->wait();
 
     // Check the result
     for (std::size_t i = 0u; i < idx_vec.size(); i++) {
@@ -200,22 +200,22 @@ TEST(utils_ranges_cuda, pick) {
     vecmem::data::vector_buffer<dindex> idx_buffer(
         static_cast<vecmem::data::vector_buffer<dindex>::size_type>(seq.size()),
         managed_resource, vecmem::data::buffer_type::resizable);
-    copy.setup(idx_buffer);
+    copy.setup(idx_buffer)->wait();
 
     vecmem::data::vector_buffer<dindex> value_buffer(
         static_cast<vecmem::data::vector_buffer<dindex>::size_type>(seq.size()),
         managed_resource, vecmem::data::buffer_type::resizable);
-    copy.setup(value_buffer);
+    copy.setup(value_buffer)->wait();
 
     // Run test function
     test_pick(seq_data, idx_data, idx_buffer, value_buffer);
 
     // Copy vector buffer to output vector
     vecmem::vector<dindex> idx_vec{&managed_resource};
-    copy(idx_buffer, idx_vec);
+    copy(idx_buffer, idx_vec)->wait();
 
     vecmem::vector<dindex> value_vec{&managed_resource};
-    copy(value_buffer, value_vec);
+    copy(value_buffer, value_vec)->wait();
 
     // Check the result
     for (std::size_t i = 0u; i < idx_vec.size(); i++) {
@@ -247,14 +247,14 @@ TEST(utils_ranges_cuda, join) {
         static_cast<vecmem::data::vector_buffer<dindex>::size_type>(
             seq_1.size() + seq_2.size()),
         managed_resource, vecmem::data::buffer_type::resizable);
-    copy.setup(value_buffer);
+    copy.setup(value_buffer)->wait();
 
     // Run test function
     test_join(seq_data_1, seq_data_2, value_buffer);
 
     // Copy vector buffer to output vector
     vecmem::vector<dindex> value_vec{&managed_resource};
-    copy(value_buffer, value_vec);
+    copy(value_buffer, value_vec)->wait();
 
     // First sequence
     for (std::size_t i = 0u; i < seq_1.size(); i++) {
@@ -289,14 +289,14 @@ TEST(utils_ranges_cuda, static_join) {
         static_cast<vecmem::data::vector_buffer<dindex>::size_type>(
             seq_1.size() + seq_2.size()),
         managed_resource, vecmem::data::buffer_type::resizable);
-    copy.setup(value_buffer);
+    copy.setup(value_buffer)->wait();
 
     // Run test function
     test_static_join(seq_data_1, seq_data_2, value_buffer);
 
     // Copy vector buffer to output vector
     vecmem::vector<dindex> value_vec{&managed_resource};
-    copy(value_buffer, value_vec);
+    copy(value_buffer, value_vec)->wait();
 
     // First sequence
     for (std::size_t i = 0u; i < seq_1.size(); i++) {
@@ -330,14 +330,14 @@ TEST(utils_ranges_cuda, subrange) {
     vecmem::data::vector_buffer<int> check_buffer(
         static_cast<vecmem::data::vector_buffer<int>::size_type>(end - begin),
         managed_resource, vecmem::data::buffer_type::resizable);
-    copy.setup(check_buffer);
+    copy.setup(check_buffer)->wait();
 
     // Run test function
     test_subrange(seq_data, check_buffer, begin, end);
 
     // Copy vector buffer to output vector
     vecmem::vector<int> check{&managed_resource};
-    copy(check_buffer, check);
+    copy(check_buffer, check)->wait();
 
     // Check the result
     ASSERT_EQ(check[0], 1);

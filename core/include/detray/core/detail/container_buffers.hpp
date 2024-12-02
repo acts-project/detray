@@ -157,11 +157,10 @@ struct dmulti_buffer : public detail::dbase_buffer {
 
 /// @brief Get the buffer representation of a vecmem vector - non-const
 template <class T>
-auto get_buffer(
-    const dvector_view<T>& vec_view, vecmem::memory_resource& mr,
-    vecmem::copy& cpy, detray::copy cpy_type = detray::copy::sync,
-    vecmem::data::buffer_type buff_type = vecmem::data::buffer_type::fixed_size
-    /*, stream*/) {
+auto get_buffer(const dvector_view<T>& vec_view, vecmem::memory_resource& mr,
+                vecmem::copy& cpy, detray::copy cpy_type = detray::copy::sync,
+                vecmem::data::buffer_type buff_type =
+                    vecmem::data::buffer_type::fixed_size) {
 
     // In case the view references a const object, return a non-const buffer
     using ret_buffer_t = dvector_buffer<std::remove_cv_t<T>>;
@@ -171,7 +170,7 @@ auto get_buffer(
     // TODO: Move this to detray copy util, which bundles vecmem copy object and
     // stream handle and gets this switch case right automatically
     if (cpy_type == detray::copy::async) {
-        cpy(vec_view, buff /*, stream*/);
+        cpy(vec_view, buff)->ignore();
     } else {
         cpy(vec_view, buff)->wait();
     }

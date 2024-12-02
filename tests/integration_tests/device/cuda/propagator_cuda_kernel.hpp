@@ -68,7 +68,7 @@ inline auto run_propagation_device(
         steps_buffer(capacities, *mr, nullptr,
                      vecmem::data::buffer_type::resizable);
 
-    copy.setup(steps_buffer);
+    copy.setup(steps_buffer)->wait();
 
     // Run the propagator test for GPU device
     propagator_test<bfield_bknd_t, detector_t>(det_view, cfg, field_data,
@@ -76,7 +76,7 @@ inline auto run_propagation_device(
 
     vecmem::jagged_vector<detail::step_data<algebra_t>> steps(mr);
 
-    copy(steps_buffer, steps);
+    copy(steps_buffer, steps)->wait();
 
     return steps;
 }
