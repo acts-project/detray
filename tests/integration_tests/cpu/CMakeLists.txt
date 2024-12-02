@@ -13,6 +13,7 @@ macro(detray_add_cpu_test algebra)
        "builders/material_map_builder.cpp"
        "builders/volume_builder.cpp"
        "material/material_interaction.cpp"
+       "propagator/backward_propagation.cpp"
        "propagator/covariance_transport.cpp"
        "propagator/guided_navigator.cpp"
        "propagator/propagator.cpp"

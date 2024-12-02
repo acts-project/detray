@@ -7,6 +7,7 @@
 
 // Project include(s).
 #include "detray/definitions/units.hpp"
+#include "detray/detectors/bfield.hpp"
 #include "detray/geometry/detail/surface_descriptor.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes.hpp"
@@ -16,8 +17,8 @@
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/parameter_resetter.hpp"
 #include "detray/propagator/actors/parameter_transporter.hpp"
-#include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/propagator.hpp"
+#include "detray/propagator/rk_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/axis_rotation.hpp"
 
@@ -39,25 +40,19 @@ using point2 = test::point2;
 using vector3 = test::vector3;
 using matrix_operator = test::matrix_operator;
 
-// Mask types to be tested
-// @TODO: Remove unbounded tag
-using annulus_type = detray::mask<detray::unbounded<detray::annulus2D>>;
-using rectangle_type = detray::mask<detray::rectangle2D>;
-using trapezoid_type = detray::mask<detray::trapezoid2D>;
-using ring_type = detray::mask<detray::ring2D>;
-using cylinder_type = detray::mask<detray::cylinder2D>;
-using straw_tube_type = detray::mask<detray::line_circular>;
-using drift_cell_type = detray::mask<detray::line_square>;
+constexpr scalar tol{1e-3f};
 
-constexpr scalar tol{1e-6f};
-
-GTEST_TEST(detray_propagator, covariance_transport) {
+GTEST_TEST(detray_propagator, backward_propagation) {
 
     vecmem::host_memory_resource host_mr;
 
     // Build in x-direction from given module positions
     detail::ray<algebra_t> traj{{0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
     std::vector<scalar> positions = {0.f, 10.f, 20.f, 30.f, 40.f, 50.f, 60.f};
+    /*
+    std::vector<scalar> positions = {0.f,   100.f, 200.f, 300.f,
+                                     400.f, 500.f, 600.f};
+    */
 
     tel_det_config<rectangle2D> tel_cfg{200.f * unit<scalar>::mm,
                                         200.f * unit<scalar>::mm};
@@ -66,25 +61,26 @@ GTEST_TEST(detray_propagator, covariance_transport) {
     // Build telescope detector with unbounded planes
     const auto [det, names] = build_telescope_detector(host_mr, tel_cfg);
 
+    // Create b field
+    using bfield_t = bfield::const_field_t;
+    vector3 B{1.f * unit<scalar>::T, 1.f * unit<scalar>::T,
+              1.f * unit<scalar>::T};
+    const bfield_t hom_bfield = bfield::create_const_field(B);
+
     using navigator_t = navigator<decltype(det)>;
-    using cline_stepper_t = line_stepper<algebra_t>;
+    using rk_stepper_t = rk_stepper<bfield_t::view_t, algebra_t>;
     using actor_chain_t = actor_chain<dtuple, parameter_transporter<algebra_t>,
                                       parameter_resetter<algebra_t>>;
-    using propagator_t =
-        propagator<cline_stepper_t, navigator_t, actor_chain_t>;
+    using propagator_t = propagator<rk_stepper_t, navigator_t, actor_chain_t>;
 
     // Bound vector
     bound_parameters_vector<algebra_t> bound_vector{};
-    bound_vector.set_theta(constant<scalar>::pi_4);
-    bound_vector.set_qop(-0.1f);
+    bound_vector.set_theta(constant<scalar>::pi_2);
+    bound_vector.set_qop(-1.f);
 
     // Bound covariance
     typename bound_track_parameters<algebra_t>::covariance_type bound_cov =
         matrix_operator().template identity<e_bound_size, e_bound_size>();
-
-    // Note: Set angle error as ZERO, to constrain the loc0 and loc1 divergence
-    getter::element(bound_cov, e_bound_phi, e_bound_phi) = 0.f;
-    getter::element(bound_cov, e_bound_theta, e_bound_theta) = 0.f;
 
     // Bound track parameter
     const bound_track_parameters<algebra_t> bound_param0(
@@ -95,15 +91,23 @@ GTEST_TEST(detray_propagator, covariance_transport) {
     parameter_resetter<algebra_t>::state rst{};
 
     propagation::config prop_cfg{};
+    prop_cfg.stepping.rk_error_tol = 1e-12f * unit<float>::mm;
     prop_cfg.navigation.overstep_tolerance = -100.f * unit<float>::um;
     propagator_t p{prop_cfg};
-    propagator_t::state propagation(bound_param0, det, prop_cfg.context);
+
+    // Forward state
+    propagator_t::state fw_state(bound_param0, hom_bfield, det,
+                                 prop_cfg.context);
+    fw_state.do_debug = true;
 
     // Run propagator
-    p.propagate(propagation, detray::tie(bound_updater, rst));
+    p.propagate(fw_state, detray::tie(bound_updater, rst));
 
-    // Bound state after one turn propagation
-    const auto& bound_param1 = propagation._stepping.bound_params();
+    // Print the debug stream
+    //std::cout << fw_state.debug_stream.str() << std::endl;
+
+    // Bound state after propagation
+    const auto& bound_param1 = fw_state._stepping.bound_params();
 
     // Check if the track reaches the final surface
     EXPECT_EQ(bound_param0.surface_link().volume(), 4095u);
@@ -112,14 +116,33 @@ GTEST_TEST(detray_propagator, covariance_transport) {
     EXPECT_EQ(bound_param1.surface_link().id(), surface_id::e_sensitive);
     EXPECT_EQ(bound_param1.surface_link().index(), 6u);
 
-    const auto bound_cov0 = bound_param0.covariance();
-    const auto bound_cov1 = bound_param1.covariance();
+    // Backward state
+    propagator_t::state bw_state(bound_param1, hom_bfield, det,
+                                 prop_cfg.context);
+    bw_state.do_debug = true;
+    bw_state._navigation.set_direction(navigation::direction::e_backward);
 
+    // Run propagator
+    p.propagate(bw_state, detray::tie(bound_updater, rst));
+
+    // Print the debug stream
+    //std::cout << bw_state.debug_stream.str() << std::endl;
+
+    // Bound state after propagation
+    const auto& bound_param2 = bw_state._stepping.bound_params();
+
+    // Check if the track reaches the initial surface
+    EXPECT_EQ(bound_param2.surface_link().volume(), 0u);
+    EXPECT_EQ(bound_param2.surface_link().id(), surface_id::e_sensitive);
+    EXPECT_EQ(bound_param2.surface_link().index(), 0u);
+
+    const auto bound_cov0 = bound_param0.covariance();
+    const auto bound_cov2 = bound_param2.covariance();
     // Check covaraince
     for (unsigned int i = 0u; i < e_bound_size; i++) {
         for (unsigned int j = 0u; j < e_bound_size; j++) {
             EXPECT_NEAR(matrix_operator().element(bound_cov0, i, j),
-                        matrix_operator().element(bound_cov1, i, j), tol);
+                        matrix_operator().element(bound_cov2, i, j), tol);
         }
     }
 }
