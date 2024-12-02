@@ -130,8 +130,18 @@ GTEST_TEST(detray_propagator, backward_propagation) {
     EXPECT_EQ(bound_param2.surface_link().id(), surface_id::e_sensitive);
     EXPECT_EQ(bound_param2.surface_link().index(), 0u);
 
+    const auto bound_vec0 = bound_param0.vector();
+    const auto bound_vec2 = bound_param2.vector();
+
+    // Check vector
+    for (unsigned int i = 0u; i < e_bound_size; i++) {
+        EXPECT_NEAR(matrix_operator().element(bound_vec0, i, 0),
+                    matrix_operator().element(bound_vec2, i, 0), tol);
+    }
+
     const auto bound_cov0 = bound_param0.covariance();
     const auto bound_cov2 = bound_param2.covariance();
+
     // Check covaraince
     for (unsigned int i = 0u; i < e_bound_size; i++) {
         for (unsigned int j = 0u; j < e_bound_size; j++) {
