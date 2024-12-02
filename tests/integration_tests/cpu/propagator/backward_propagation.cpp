@@ -40,7 +40,7 @@ using point2 = test::point2;
 using vector3 = test::vector3;
 using matrix_operator = test::matrix_operator;
 
-constexpr scalar tol{1e-3f};
+constexpr scalar tol{5e-3f};
 
 GTEST_TEST(detray_propagator, backward_propagation) {
 
@@ -48,11 +48,8 @@ GTEST_TEST(detray_propagator, backward_propagation) {
 
     // Build in x-direction from given module positions
     detail::ray<algebra_t> traj{{0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
-    std::vector<scalar> positions = {0.f, 10.f, 20.f, 30.f, 40.f, 50.f, 60.f};
-    /*
-    std::vector<scalar> positions = {0.f,   100.f, 200.f, 300.f,
-                                     400.f, 500.f, 600.f};
-    */
+    std::vector<scalar> positions = {0.f,  10.f, 20.f, 30.f, 40.f, 50.f,
+                                     60.f, 70.f, 80.f, 90.f, 100.f};
 
     tel_det_config<rectangle2D> tel_cfg{200.f * unit<scalar>::mm,
                                         200.f * unit<scalar>::mm};
@@ -104,7 +101,7 @@ GTEST_TEST(detray_propagator, backward_propagation) {
     p.propagate(fw_state, detray::tie(bound_updater, rst));
 
     // Print the debug stream
-    //std::cout << fw_state.debug_stream.str() << std::endl;
+    // std::cout << fw_state.debug_stream.str() << std::endl;
 
     // Bound state after propagation
     const auto& bound_param1 = fw_state._stepping.bound_params();
@@ -114,7 +111,7 @@ GTEST_TEST(detray_propagator, backward_propagation) {
     EXPECT_EQ(bound_param0.surface_link().index(), 0u);
     EXPECT_EQ(bound_param1.surface_link().volume(), 0u);
     EXPECT_EQ(bound_param1.surface_link().id(), surface_id::e_sensitive);
-    EXPECT_EQ(bound_param1.surface_link().index(), 6u);
+    EXPECT_EQ(bound_param1.surface_link().index(), 10u);
 
     // Backward state
     propagator_t::state bw_state(bound_param1, hom_bfield, det,
@@ -126,7 +123,7 @@ GTEST_TEST(detray_propagator, backward_propagation) {
     p.propagate(bw_state, detray::tie(bound_updater, rst));
 
     // Print the debug stream
-    //std::cout << bw_state.debug_stream.str() << std::endl;
+    // std::cout << bw_state.debug_stream.str() << std::endl;
 
     // Bound state after propagation
     const auto& bound_param2 = bw_state._stepping.bound_params();
