@@ -232,11 +232,7 @@ class navigator {
         /// @returns distance to next
         DETRAY_HOST_DEVICE
         scalar_type operator()() const {
-            if (direction() == navigation::direction::e_forward) {
-                return target().path;
-            } else {
-                return -1.f * target().path;
-            }
+            return static_cast<scalar_type>(direction()) * target().path;
         }
 
         /// @returns current volume (index) - const
@@ -617,14 +613,13 @@ class navigator {
 
             const auto sf = tracking_surface{det, sf_descr};
 
-            auto track_cpy = track;
-            if (nav_state.direction() == navigation::direction::e_backward) {
-                track_cpy.set_dir(-1.f * track_cpy.dir());
-            }
-
             sf.template visit_mask<intersection_initialize<ray_intersector>>(
-                nav_state, detail::ray(track_cpy), sf_descr,
-                det.transform_store(), ctx,
+                nav_state,
+                detail::ray<algebra_type>(
+                    track.pos(),
+                    static_cast<scalar_type>(nav_state.direction()) *
+                        track.dir()),
+                sf_descr, det.transform_store(), ctx,
                 sf.is_portal() ? std::array<scalar_type, 2>{0.f, 0.f}
                                : mask_tol,
                 mask_tol_scalor, overstep_tol);
@@ -911,7 +906,7 @@ class navigator {
     /// @returns whether the track can reach this candidate.
     template <typename track_t>
     DETRAY_HOST_DEVICE inline bool update_candidate(
-        const navigation::direction &nav_dir, intersection_type &candidate,
+        const navigation::direction nav_dir, intersection_type &candidate,
         const track_t &track, const detector_type &det,
         const navigation::config &cfg, const context_type &ctx) const {
 
@@ -921,14 +916,11 @@ class navigator {
 
         const auto sf = tracking_surface{det, candidate.sf_desc};
 
-        auto track_cpy = track;
-        if (nav_dir == navigation::direction::e_backward) {
-            track_cpy.set_dir(-1.f * track_cpy.dir());
-        }
-
         // Check whether this candidate is reachable by the track
         return sf.template visit_mask<intersection_update<ray_intersector>>(
-            detail::ray(track_cpy), candidate, det.transform_store(), ctx,
+            detail::ray<algebra_type>(
+                track.pos(), static_cast<scalar_type>(nav_dir) * track.dir()),
+            candidate, det.transform_store(), ctx,
             sf.is_portal() ? std::array<scalar_type, 2>{0.f, 0.f}
                            : std::array<scalar_type, 2>{cfg.min_mask_tolerance,
                                                         cfg.max_mask_tolerance},

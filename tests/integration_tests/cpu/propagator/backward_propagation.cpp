@@ -8,10 +8,8 @@
 // Project include(s).
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/bfield.hpp"
-#include "detray/geometry/detail/surface_descriptor.hpp"
-#include "detray/geometry/mask.hpp"
-#include "detray/geometry/shapes.hpp"
-#include "detray/geometry/shapes/unbounded.hpp"
+#include "detray/geometry/barcode.hpp"
+#include "detray/geometry/shapes/rectangle2D.hpp"
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actor_chain.hpp"
@@ -20,7 +18,6 @@
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
-#include "detray/utils/axis_rotation.hpp"
 
 // Detray test include(s)
 #include "detray/test/utils/detectors/build_telescope_detector.hpp"
@@ -40,7 +37,7 @@ using point2 = test::point2;
 using vector3 = test::vector3;
 using matrix_operator = test::matrix_operator;
 
-constexpr scalar tol{5e-3f};
+constexpr test::scalar tol{5e-3f};
 
 GTEST_TEST(detray_propagator, backward_propagation) {
 
@@ -48,20 +45,20 @@ GTEST_TEST(detray_propagator, backward_propagation) {
 
     // Build in x-direction from given module positions
     detail::ray<algebra_t> traj{{0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
-    std::vector<scalar> positions = {0.f,  10.f, 20.f, 30.f, 40.f, 50.f,
-                                     60.f, 70.f, 80.f, 90.f, 100.f};
+    std::vector<test::scalar> positions = {0.f,  10.f, 20.f, 30.f, 40.f, 50.f,
+                                           60.f, 70.f, 80.f, 90.f, 100.f};
 
-    tel_det_config<rectangle2D> tel_cfg{200.f * unit<scalar>::mm,
-                                        200.f * unit<scalar>::mm};
+    tel_det_config<rectangle2D> tel_cfg{200.f * unit<test::scalar>::mm,
+                                        200.f * unit<test::scalar>::mm};
     tel_cfg.positions(positions).pilot_track(traj);
 
-    // Build telescope detector with unbounded planes
+    // Build telescope detector with rectangular planes
     const auto [det, names] = build_telescope_detector(host_mr, tel_cfg);
 
     // Create b field
     using bfield_t = bfield::const_field_t;
-    vector3 B{1.f * unit<scalar>::T, 1.f * unit<scalar>::T,
-              1.f * unit<scalar>::T};
+    vector3 B{1.f * unit<test::scalar>::T, 1.f * unit<test::scalar>::T,
+              1.f * unit<test::scalar>::T};
     const bfield_t hom_bfield = bfield::create_const_field(B);
 
     using navigator_t = navigator<decltype(det)>;
@@ -72,7 +69,7 @@ GTEST_TEST(detray_propagator, backward_propagation) {
 
     // Bound vector
     bound_parameters_vector<algebra_t> bound_vector{};
-    bound_vector.set_theta(constant<scalar>::pi_2);
+    bound_vector.set_theta(constant<test::scalar>::pi_2);
     bound_vector.set_qop(-1.f);
 
     // Bound covariance
