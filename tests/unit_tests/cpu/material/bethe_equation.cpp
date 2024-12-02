@@ -95,7 +95,7 @@ INSTANTIATE_TEST_SUITE_P(
                                       0.1003f * unit<scalar>::GeV, 3.082f)));
 
 /*
-//@fixme: Test fails with He Gas and 10 GeV muons (18 % difference)
+//@fixme: Test fails with He Gas and 1 GeV muons (18 % difference)
 INSTANTIATE_TEST_SUITE_P(
     detray_material_Bethe_1GeV_HeGas, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(helium_gas<scalar>(), muon<scalar>(),
