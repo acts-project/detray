@@ -122,12 +122,4 @@ GTEST_TEST(detray_propagator, covariance_transport) {
                         matrix_operator().element(bound_cov1, i, j), tol);
         }
     }
-
-    // Check covaraince
-    for (unsigned int i = 0u; i < e_bound_size; i++) {
-        for (unsigned int j = 0u; j < e_bound_size; j++) {
-            EXPECT_NEAR(matrix_operator().element(bound_cov0, i, j),
-                        matrix_operator().element(bound_cov1, i, j), tol);
-        }
-    }
 }
