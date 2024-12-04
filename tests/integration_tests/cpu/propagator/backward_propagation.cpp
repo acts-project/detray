@@ -57,7 +57,8 @@ TEST_P(BackwardPropagation, backward_propagation) {
 
     tel_det_config<rectangle2D> tel_cfg{200.f * unit<test::scalar>::mm,
                                         200.f * unit<test::scalar>::mm};
-    tel_cfg.positions(positions).pilot_track(traj);
+    tel_cfg.positions(positions).pilot_track(traj).mat_thickness(
+        10.f * unit<test::scalar>::mm);
 
     // Build telescope detector with rectangular planes
     const auto [det, names] = build_telescope_detector(host_mr, tel_cfg);
@@ -169,14 +170,14 @@ TEST_P(BackwardPropagation, backward_propagation) {
     EXPECT_TRUE(bound_param0.p(ptc.charge()) > bound_param1.p(ptc.charge()));
     EXPECT_TRUE(bound_param2.p(ptc.charge()) > bound_param1.p(ptc.charge()));
 
-    EXPECT_TRUE(getter::element(bound_cov1, e_bound_qoverp, e_bound_qoverp) >=
+    EXPECT_TRUE(getter::element(bound_cov1, e_bound_qoverp, e_bound_qoverp) >
                 getter::element(bound_cov0, e_bound_qoverp, e_bound_qoverp));
     EXPECT_TRUE(getter::element(bound_cov1, e_bound_theta, e_bound_theta) >
                 getter::element(bound_cov0, e_bound_theta, e_bound_theta));
     EXPECT_TRUE(getter::element(bound_cov1, e_bound_phi, e_bound_phi) >
                 getter::element(bound_cov0, e_bound_phi, e_bound_phi));
 
-    EXPECT_TRUE(getter::element(bound_cov1, e_bound_qoverp, e_bound_qoverp) >=
+    EXPECT_TRUE(getter::element(bound_cov1, e_bound_qoverp, e_bound_qoverp) >
                 getter::element(bound_cov2, e_bound_qoverp, e_bound_qoverp));
     EXPECT_TRUE(getter::element(bound_cov1, e_bound_theta, e_bound_theta) >
                 getter::element(bound_cov2, e_bound_theta, e_bound_theta));
@@ -187,9 +188,9 @@ TEST_P(BackwardPropagation, backward_propagation) {
 INSTANTIATE_TEST_SUITE_P(
     telescope, BackwardPropagation,
     ::testing::Values(
-        std::make_tuple(std::vector<test::scalar>{0.f}, 1e-6f),
-        std::make_tuple(std::vector<test::scalar>{0.f, 10.f}, 1e-4f),
+        std::make_tuple(std::vector<test::scalar>{0.f}, 1e-5f),
+        std::make_tuple(std::vector<test::scalar>{0.f, 10.f}, 1e-3f),
         std::make_tuple(std::vector<test::scalar>{0.f, 10.f, 20.f, 30.f, 40.f,
                                                   50.f, 60.f, 70.f, 80.f, 90.f,
                                                   100.f},
-                        3e-3f)));
+                        1e-2f)));
