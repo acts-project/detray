@@ -52,7 +52,6 @@ TEST_P(BackwardPropagation, backward_propagation) {
 
     // Build in x-direction from given module positions
     detail::ray<algebra_t> traj{{0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
-    // std::vector<test::scalar> positions = {0.f,  10.f};
     std::vector<test::scalar> positions = std::get<0>(GetParam());
 
     tel_det_config<rectangle2D> tel_cfg{200.f * unit<test::scalar>::mm,
