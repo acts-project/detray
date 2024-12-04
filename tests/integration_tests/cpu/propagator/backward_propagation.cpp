@@ -37,7 +37,7 @@ using point2 = test::point2;
 using vector3 = test::vector3;
 using matrix_operator = test::matrix_operator;
 
-constexpr test::scalar tol{5e-3f};
+constexpr test::scalar tol{2e-3f};
 
 GTEST_TEST(detray_propagator, backward_propagation) {
 
@@ -57,7 +57,7 @@ GTEST_TEST(detray_propagator, backward_propagation) {
 
     // Create b field
     using bfield_t = bfield::const_field_t;
-    vector3 B{1.f * unit<test::scalar>::T, 1.f * unit<test::scalar>::T,
+    vector3 B{0.f * unit<test::scalar>::T, 0.f * unit<test::scalar>::T,
               1.f * unit<test::scalar>::T};
     const bfield_t hom_bfield = bfield::create_const_field(B);
 
