@@ -15,8 +15,7 @@
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
-#include "detray/propagator/actors/parameter_resetter.hpp"
-#include "detray/propagator/actors/parameter_transporter.hpp"
+#include "detray/propagator/actors/parameter_updater.hpp"
 #include "detray/propagator/actors/pointwise_material_interactor.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/propagator.hpp"
@@ -34,10 +33,10 @@ using navigator_host_type = detray::navigator<detector_host_type>;
 using navigator_device_type = detray::navigator<detector_device_type>;
 using field_type = detray::bfield::const_field_t;
 using rk_stepper_type = detray::rk_stepper<field_type::view_t, algebra_t>;
-using actor_chain_t =
-    detray::actor_chain<detray::tuple, detray::parameter_transporter<algebra_t>,
-                        detray::pointwise_material_interactor<algebra_t>,
-                        detray::parameter_resetter<algebra_t>>;
+using parameter_updater_t =
+    detray::parameter_updater<algebra_t,
+                              detray::pointwise_material_interactor<algebra_t>>;
+using actor_chain_t = detray::actor_chain<detray::tuple, parameter_updater_t>;
 using propagator_host_type =
     detray::propagator<rk_stepper_type, navigator_host_type, actor_chain_t>;
 using propagator_device_type =

@@ -47,11 +47,9 @@ __global__ void propagation_kernel(
         transporter_state{};
     detray::pointwise_material_interactor<detray::tutorial::algebra_t>::state
         interactor_state{};
-    detray::parameter_resetter<detray::tutorial::algebra_t>::state
-        resetter_state{};
 
-    auto actor_states = detray::tie(aborter_state, transporter_state,
-                                    interactor_state, resetter_state);
+    auto actor_states =
+        detray::tie(aborter_state, transporter_state, interactor_state);
 
     // Create the propagator state for the track
     detray::tutorial::propagator_t::state state(tracks[gid], field_data, det);
