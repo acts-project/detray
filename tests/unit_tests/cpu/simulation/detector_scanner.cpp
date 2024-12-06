@@ -35,15 +35,17 @@ constexpr const scalar tol{1e-7f};
 GTEST_TEST(detray_simulation, detector_scanner) {
 
     // Simulate straight line track
+    const vector3 no_B{0.f * unit<scalar>::T, 0.f * unit<scalar>::T,
+                       tol * unit<scalar>::T};
     const vector3 B{0.f * unit<scalar>::T, 0.f * unit<scalar>::T,
-                    tol * unit<scalar>::T};
+                    2.f * unit<scalar>::T};
 
     // Build the geometry
     vecmem::host_memory_resource host_mr;
     auto [toy_det, names] = build_toy_detector(host_mr);
 
-    unsigned int theta_steps{50u};
-    unsigned int phi_steps{50u};
+    unsigned int theta_steps{5u};
+    unsigned int phi_steps{5u};
 
     // Record ray tracing
     using detector_t = decltype(toy_det);
@@ -67,19 +69,24 @@ GTEST_TEST(detray_simulation, detector_scanner) {
 
     // Iterate through uniformly distributed momentum directions with helix
     std::size_t n_tracks{0u};
+    std::size_t n_intersections{0u};
     for (const auto track :
          uniform_track_generator<free_track_parameters<algebra_t>>(
              phi_steps, theta_steps)) {
-        const detail::helix test_helix(track, &B);
+        const detail::helix test_helix(track, &no_B);
+        const detail::helix test_helix_2T(track, &B);
 
         // Record all intersections and objects along the ray
         const auto intersection_trace =
             detector_scanner::run<helix_scan>(gctx, toy_det, test_helix);
+        const auto intersection_trace_2T =
+            detector_scanner::run<helix_scan>(gctx, toy_det, test_helix_2T);
 
         // Should have encountered the same number of tracks (vulnerable to
         // floating point errors)
         EXPECT_EQ(expected[n_tracks].size(), intersection_trace.size())
             << test_helix;
+        n_intersections += intersection_trace_2T.size();
 
         // Check every single recorded intersection
         for (std::size_t i = 0u;
@@ -104,4 +111,7 @@ GTEST_TEST(detray_simulation, detector_scanner) {
 
         ++n_tracks;
     }
+    // Monitor the number of intersections found for track with strong curvature
+    ASSERT_TRUE(n_intersections == 431u)
+        << "Found " << n_intersections << " intersections" << std::endl;
 }

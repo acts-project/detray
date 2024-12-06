@@ -21,6 +21,7 @@
 
 // System include(s)
 #include <algorithm>
+#include <sstream>
 #include <type_traits>
 
 namespace detray {
@@ -108,6 +109,13 @@ struct brute_force_scan {
             intersections.clear();
         }
 
+        // Should not happen, unless intersector fails
+        if (intersection_trace.empty()) {
+            std::stringstream err_stream;
+            err_stream << traj;
+            throw std::runtime_error("No intersection found for track: " +
+                                     err_stream.str());
+        }
         // Save initial track position as dummy intersection record
         const auto &first_record = intersection_trace.front();
         intersection_t start_intersection{};
