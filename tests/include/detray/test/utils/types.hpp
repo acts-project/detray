@@ -19,7 +19,6 @@ using point2 = dpoint2D<algebra>;
 using point3 = dpoint3D<algebra>;
 using vector3 = dvector3D<algebra>;
 using transform3 = dtransform3D<algebra>;
-using matrix_operator = dmatrix_operator<algebra>;
 template <std::size_t ROWS, std::size_t COLS>
 using matrix = dmatrix<algebra, ROWS, COLS>;
 
@@ -30,7 +29,7 @@ static constexpr char filenames[] = "eigen-";
 #elif DETRAY_ALGEBRA_SMATRIX
 static constexpr char filenames[] = "smatrix-";
 #elif DETRAY_ALGEBRA_VC_AOS
-static constexpr char filenames[] = "vc-";
+static constexpr char filenames[] = "vc_aos-";
 #endif
 
 }  // namespace detray::test

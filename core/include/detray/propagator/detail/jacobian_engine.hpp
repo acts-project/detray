@@ -36,9 +36,6 @@ requires std::is_object_v<typename frame_t::loc_point> struct jacobian_engine {
     using point3_type = dpoint3D<algebra_type>;
     using vector3_type = dvector3D<algebra_type>;
 
-    // Matrix operator
-    using matrix_operator = dmatrix_operator<algebra_type>;
-
     using bound_to_free_matrix_type = bound_to_free_matrix<algebra_type>;
     using free_to_bound_matrix_type = free_to_bound_matrix<algebra_type>;
     using free_to_path_matrix_type = free_to_path_matrix<algebra_type>;
@@ -53,7 +50,7 @@ requires std::is_object_v<typename frame_t::loc_point> struct jacobian_engine {
 
         // Declare jacobian for bound to free coordinate transform
         bound_to_free_matrix_type jac_to_global =
-            matrix_operator().template zero<e_free_size, e_bound_size>();
+            matrix::zero<bound_to_free_matrix_type>();
 
         // Get trigonometric values
         const scalar_type theta{bound_vec.theta()};
@@ -76,22 +73,19 @@ requires std::is_object_v<typename frame_t::loc_point> struct jacobian_engine {
                                                          pos, dir);
 
         // Set d(bound time)/d(free time)
-        matrix_operator().element(jac_to_global, e_free_time, e_bound_time) =
-            1.f;
+        getter::element(jac_to_global, e_free_time, e_bound_time) = 1.f;
 
         // Set d(n_x,n_y,n_z)/d(phi, theta)
-        matrix_operator().element(jac_to_global, e_free_dir0, e_bound_phi) =
+        getter::element(jac_to_global, e_free_dir0, e_bound_phi) =
             -sin_theta * sin_phi;
-        matrix_operator().element(jac_to_global, e_free_dir0, e_bound_theta) =
+        getter::element(jac_to_global, e_free_dir0, e_bound_theta) =
             cos_theta * cos_phi;
-        matrix_operator().element(jac_to_global, e_free_dir1, e_bound_phi) =
+        getter::element(jac_to_global, e_free_dir1, e_bound_phi) =
             sin_theta * cos_phi;
-        matrix_operator().element(jac_to_global, e_free_dir1, e_bound_theta) =
+        getter::element(jac_to_global, e_free_dir1, e_bound_theta) =
             cos_theta * sin_phi;
-        matrix_operator().element(jac_to_global, e_free_dir2, e_bound_theta) =
-            -sin_theta;
-        matrix_operator().element(jac_to_global, e_free_qoverp,
-                                  e_bound_qoverp) = 1.f;
+        getter::element(jac_to_global, e_free_dir2, e_bound_theta) = -sin_theta;
+        getter::element(jac_to_global, e_free_qoverp, e_bound_qoverp) = 1.f;
 
         // Set d(x,y,z)/d(phi, theta)
         jacobian_t::set_bound_angle_to_free_pos_derivative(jac_to_global, trf3,
@@ -107,14 +101,14 @@ requires std::is_object_v<typename frame_t::loc_point> struct jacobian_engine {
 
         // Declare jacobian for bound to free coordinate transform
         free_to_bound_matrix_type jac_to_local =
-            matrix_operator().template zero<e_bound_size, e_free_size>();
+            matrix::zero<free_to_bound_matrix_type>();
 
         // Global position and direction
         const vector3_type pos = free_params.pos();
         const vector3_type dir = free_params.dir();
 
-        const scalar_type theta{getter::theta(dir)};
-        const scalar_type phi{getter::phi(dir)};
+        const scalar_type theta{vector::theta(dir)};
+        const scalar_type phi{vector::phi(dir)};
 
         const scalar_type cos_theta{math::cos(theta)};
         const scalar_type sin_theta{math::sin(theta)};
@@ -126,25 +120,22 @@ requires std::is_object_v<typename frame_t::loc_point> struct jacobian_engine {
                                                          pos, dir);
 
         // Set d(free time)/d(bound time)
-        matrix_operator().element(jac_to_local, e_bound_time, e_free_time) =
-            1.f;
+        getter::element(jac_to_local, e_bound_time, e_free_time) = 1.f;
 
         // Set d(phi, theta)/d(n_x, n_y, n_z)
         // @note This codes have a serious bug when theta is equal to zero...
-        matrix_operator().element(jac_to_local, e_bound_phi, e_free_dir0) =
+        getter::element(jac_to_local, e_bound_phi, e_free_dir0) =
             -sin_phi / sin_theta;
-        matrix_operator().element(jac_to_local, e_bound_phi, e_free_dir1) =
+        getter::element(jac_to_local, e_bound_phi, e_free_dir1) =
             cos_phi / sin_theta;
-        matrix_operator().element(jac_to_local, e_bound_theta, e_free_dir0) =
+        getter::element(jac_to_local, e_bound_theta, e_free_dir0) =
             cos_phi * cos_theta;
-        matrix_operator().element(jac_to_local, e_bound_theta, e_free_dir1) =
+        getter::element(jac_to_local, e_bound_theta, e_free_dir1) =
             sin_phi * cos_theta;
-        matrix_operator().element(jac_to_local, e_bound_theta, e_free_dir2) =
-            -sin_theta;
+        getter::element(jac_to_local, e_bound_theta, e_free_dir2) = -sin_theta;
 
         // Set d(Free Qop)/d(Bound Qop)
-        matrix_operator().element(jac_to_local, e_bound_qoverp, e_free_qoverp) =
-            1.f;
+        getter::element(jac_to_local, e_bound_qoverp, e_free_qoverp) = 1.f;
 
         return jac_to_local;
     }
@@ -158,14 +149,14 @@ requires std::is_object_v<typename frame_t::loc_point> struct jacobian_engine {
             jacobian_t::path_derivative(trf3, pos, dir, dtds);
 
         path_to_free_matrix_type derivative =
-            matrix_operator().template zero<e_free_size, 1u>();
-        matrix_operator().element(derivative, e_free_pos0, 0u) = dir[0];
-        matrix_operator().element(derivative, e_free_pos1, 0u) = dir[1];
-        matrix_operator().element(derivative, e_free_pos2, 0u) = dir[2];
-        matrix_operator().element(derivative, e_free_dir0, 0u) = dtds[0];
-        matrix_operator().element(derivative, e_free_dir1, 0u) = dtds[1];
-        matrix_operator().element(derivative, e_free_dir2, 0u) = dtds[2];
-        matrix_operator().element(derivative, e_free_qoverp, 0u) = dqopds;
+            matrix::zero<path_to_free_matrix_type>();
+        getter::element(derivative, e_free_pos0, 0u) = dir[0];
+        getter::element(derivative, e_free_pos1, 0u) = dir[1];
+        getter::element(derivative, e_free_pos2, 0u) = dir[2];
+        getter::element(derivative, e_free_dir0, 0u) = dtds[0];
+        getter::element(derivative, e_free_dir1, 0u) = dtds[1];
+        getter::element(derivative, e_free_dir2, 0u) = dtds[2];
+        getter::element(derivative, e_free_qoverp, 0u) = dqopds;
 
         return derivative * path_derivative;
     }

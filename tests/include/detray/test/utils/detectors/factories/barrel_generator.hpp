@@ -221,7 +221,7 @@ class barrel_generator final : public surface_factory_interface<detector_t> {
 
             // Build the transform
             // The local phi
-            const scalar_t mod_phi{algebra::getter::phi(mod_center)};
+            const scalar_t mod_phi{algebra::vector::phi(mod_center)};
             // Local z axis is the normal vector
             const scalar_t tilt_phi{m_cfg.tilt_phi()};
             const vector3_t mod_local_z{math::cos(mod_phi + tilt_phi),

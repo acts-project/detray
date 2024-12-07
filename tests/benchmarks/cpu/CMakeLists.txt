@@ -28,6 +28,11 @@ macro(detray_add_cpu_benchmark algebra)
                       detray::core_${algebra} detray::test_utils
     )
 
+    target_compile_options(
+        detray_benchmark_cpu_${algebra}
+        PRIVATE "-march=native"
+    )
+
     # Set the benchmark specific compilation options.
     if(DETRAY_BENCHMARKS_MULTITHREAD)
         target_compile_definitions(
@@ -35,17 +40,13 @@ macro(detray_add_cpu_benchmark algebra)
             PRIVATE DETRAY_BENCHMARKS_MULTITHREAD
         )
     endif()
+
     if(DETRAY_BENCHMARK_PRINTOUTS)
         target_compile_definitions(
             detray_benchmark_cpu_${algebra}
             PRIVATE DETRAY_BENCHMARK_PRINTOUTS
         )
     endif()
-
-    target_compile_options(
-        detray_benchmark_cpu_${algebra}
-        PRIVATE "-march=native" "-ftree-vectorize"
-    )
 
     if(OpenMP_CXX_FOUND)
         target_link_libraries(
@@ -78,20 +79,27 @@ if(DETRAY_VC_SOA_PLUGIN)
         # Build the benchmark executable.
         detray_add_executable(benchmark_cpu_vc_soa_vs_${algebra}
          "intersectors.cpp"
-           LINK_LIBRARIES benchmark::benchmark benchmark::benchmark_main vecmem::core detray::core_vc_soa detray::core_${algebra}
+           LINK_LIBRARIES benchmark::benchmark benchmark::benchmark_main vecmem::core detray::core_vc_soa detray::core_vc_aos detray::core_${algebra}
            detray::test_utils
+        )
+
+        # Add Vc specific flags
+        target_compile_options(
+            detray_benchmark_cpu_vc_soa_vs_${algebra}
+            INTERFACE ${Vc_COMPILE_FLAGS} ${Vc_ARCHITECTURE_FLAGS}
         )
 
         # Set the benchmark specific compilation options.
         if(DETRAY_BENCHMARKS_MULTITHREAD)
             target_compile_definitions(
-                detray_benchmark_soa_${algebra}
+                detray_benchmark_cpu_vc_soa_vs_${algebra}
                 PRIVATE DETRAY_BENCHMARKS_MULTITHREAD
             )
         endif()
+
         if(DETRAY_BENCHMARK_PRINTOUTS)
             target_compile_definitions(
-                detray_benchmark_soa_${algebra}
+                detray_benchmark_cpu_vc_soa_vs_${algebra}
                 PRIVATE DETRAY_BENCHMARK_PRINTOUTS
             )
         endif()

@@ -8,7 +8,6 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/detail/boolean.hpp"
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/geometry/coordinates/line2D.hpp"
@@ -24,7 +23,7 @@ template <typename frame_t, typename algebra_t, bool do_debug>
 struct ray_intersector_impl;
 
 /// A functor to find intersections between straight line and planar surface
-template <concepts::soa_algebra algebra_t, bool do_debug>
+template <algebra::concepts::soa algebra_t, bool do_debug>
 struct ray_intersector_impl<line2D<algebra_t>, algebra_t, do_debug> {
 
     /// Linear algebra types
@@ -63,10 +62,10 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t, do_debug> {
         intersection_type<surface_descr_t> is;
 
         // line direction
-        const vector3_type sz = getter::vector<3>(trf.matrix(), 0u, 2u);
+        const vector3_type &sz = trf.z();
 
         // line center
-        const point3_type st = trf.translation();
+        const point3_type &st = trf.translation();
 
         // Broadcast ray data
         const auto &pos = ray.pos();

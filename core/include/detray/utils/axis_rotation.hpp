@@ -23,10 +23,9 @@ struct axis_rotation {
     using algebra_type = algebra_t;
     using scalar_type = dscalar<algebra_t>;
     using vector3_type = dvector3D<algebra_t>;
-    using matrix_operator = dmatrix_operator<algebra_t>;
     template <std::size_t ROWS, std::size_t COLS>
     using matrix_type = dmatrix<algebra_t, ROWS, COLS>;
-    using mat_helper = matrix_helper<matrix_operator>;
+    using mat_helper = matrix_helper<algebra_t>;
 
     /// @brief Constructor for axis rotation
     ///
@@ -39,7 +38,7 @@ struct axis_rotation {
 
         scalar_type cos_theta{math::cos(theta)};
 
-        matrix_type<3, 3> I = matrix_operator().template identity<3, 3>();
+        auto I = matrix::identity<matrix_type<3, 3>>();
         matrix_type<3, 3> axis_cross = mat_helper().cross_matrix(U);
         matrix_type<3, 3> axis_outer = mat_helper().outer_product(U, U);
 
@@ -56,7 +55,7 @@ struct axis_rotation {
 
     private:
     /// Rotation matrix
-    matrix_type<3, 3> R = matrix_operator().template identity<3, 3>();
+    matrix_type<3, 3> R{matrix::identity<matrix_type<3, 3>>()};
 };
 
 /// @brief Helper struct to perform an euler rotation for a given vector
@@ -68,10 +67,9 @@ struct euler_rotation {
     using algebra_type = algebra_t;
     using scalar_type = dscalar<algebra_t>;
     using vector3_type = dvector3D<algebra_t>;
-    using matrix_operator = dmatrix_operator<algebra_t>;
     template <std::size_t ROWS, std::size_t COLS>
     using matrix_type = dmatrix<algebra_t, ROWS, COLS>;
-    using mat_helper = matrix_helper<matrix_operator>;
+    using mat_helper = matrix_helper<algebra_t>;
 
     // Following the z-x-z convention
     vector3_type x{1.0f, 0.f, 0.f};

@@ -119,8 +119,8 @@ GTEST_TEST(detray_intersection, cylinder_portal) {
         cylinder.to_global_frame(identity, hits_cylinrical[1].local);
     const auto global1 =
         cylinder.to_global_frame(identity, hit_cocylindrical.local);
-    EXPECT_NEAR(getter::perp(global0), r, tol);
-    EXPECT_NEAR(getter::perp(global1), r, tol);
+    EXPECT_NEAR(vector::perp(global0), r, tol);
+    EXPECT_NEAR(vector::perp(global1), r, tol);
 
     EXPECT_NEAR(global0[0], global1[0], tol);
     EXPECT_NEAR(global0[1], global1[1], tol);
@@ -163,8 +163,8 @@ GTEST_TEST(detray_intersection, concentric_cylinders) {
         cylinder.to_global_frame(identity, hits_cylinrical[1].local);
     const auto global1 =
         cylinder.to_global_frame(identity, hit_cocylindrical.local);
-    EXPECT_NEAR(getter::perp(global0), r, tol);
-    EXPECT_NEAR(getter::perp(global1), r, tol);
+    EXPECT_NEAR(vector::perp(global0), r, tol);
+    EXPECT_NEAR(vector::perp(global1), r, tol);
 
     EXPECT_NEAR(global0[0], global1[0], tol);
     EXPECT_NEAR(global0[1], global1[1], tol);

@@ -21,103 +21,48 @@
 #error "No algebra plugin selected! Please link to one of the algebra plugins."
 #endif
 
-// Project include(s)
-#include "detray/utils/concepts.hpp"
-
-// System include(s)
-#include <type_traits>
+// Algebra-plugins include(s)
+#include "algebra/utils/print.hpp"
 
 namespace detray {
 
-namespace detail {
-/// The detray scalar types (can be SIMD)
-/// @{
-template <typename T>
-struct get_scalar {};
-
-// TODO replace by scalar concept from algebra-plugins
-template <concepts::arithmetic T>
-struct get_scalar<T> {
-    using scalar = T;
-};
-
-template <typename T>
-requires(!std::same_as<typename T::scalar, void>) struct get_scalar<T> {
-    using scalar = typename T::scalar;
-};
-/// @}
-
-/// The detray algebra types (can be SIMD)
-/// @{
-template <typename T>
-struct get_algebra {};
-
-template <typename T>
-requires(!std::same_as<typename T::point3D, void>) struct get_algebra<T> {
-    using point2D = typename T::point2D;
-    using point3D = typename T::point3D;
-    using vector3D = typename T::vector3D;
-    using transform3D = typename T::transform3D;
-};
-/// @}
-
-/// The detray matrix types
-/// @{
-template <typename T>
-struct get_matrix {};
-
-template <typename T>
-requires(
-    !std::same_as<typename T::matrix_operator, void>) struct get_matrix<T> {
-    using matrix_operator = typename T::matrix_operator;
-    using size_type = typename matrix_operator::size_ty;
-
-    template <std::size_t ROWS, std::size_t COLS>
-    using matrix = typename matrix_operator::template matrix_type<
-        static_cast<size_type>(ROWS), static_cast<size_type>(COLS)>;
-};
-/// @}
-
-}  // namespace detail
-
-template <template <typename> class A, typename T>
-using dsimd = typename A<float>::template simd<T>;
-
-template <typename A = detray::scalar>
-using dscalar = typename detail::get_scalar<A>::scalar;
+// Pull in the print operator definitions for the algebra types
+using algebra::operator<<;
 
 template <typename A>
-using dpoint2D = typename detail::get_algebra<A>::point2D;
+using dvalue = typename algebra::get_value_t<A>;
 
 template <typename A>
-using dpoint3D = typename detail::get_algebra<A>::point3D;
+using dbool = typename algebra::get_boolean_t<A>;
+
+template <typename A, typename T>
+using dsimd = algebra::get_simd_t<A, T>;
 
 template <typename A>
-using dvector3D = typename detail::get_algebra<A>::vector3D;
+using dsize_type = algebra::get_size_t<A>;
 
 template <typename A>
-using dtransform3D = typename detail::get_algebra<A>::transform3D;
+using dscalar = algebra::get_scalar_t<A>;
 
 template <typename A>
-using dmatrix_operator = typename detail::get_matrix<A>::matrix_operator;
+using dpoint2D = algebra::get_point2D_t<A>;
 
 template <typename A>
-using dsize_type = typename detail::get_matrix<A>::size_type;
+using dpoint3D = algebra::get_point3D_t<A>;
+
+template <typename A>
+using dvector3D = algebra::get_vector3D_t<A>;
+
+template <typename A>
+using dtransform3D = algebra::get_transform3D_t<A>;
 
 template <typename A, std::size_t R, std::size_t C>
-using dmatrix = typename detail::get_matrix<A>::template matrix<R, C>;
+using dmatrix = algebra::get_matrix_t<A, R, C>;
 
-namespace concepts {
+namespace detail {
 
-/// Check if an algebra has soa layout
-/// @{
-template <typename A>
-concept soa_algebra = (!concepts::arithmetic<dscalar<A>>);
+using namespace ::algebra::boolean;
 
-template <typename A>
-concept aos_algebra = (!concepts::soa_algebra<A>);
-/// @}
-
-}  // namespace concepts
+}  // namespace detail
 
 }  // namespace detray

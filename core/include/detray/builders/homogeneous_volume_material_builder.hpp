@@ -12,6 +12,7 @@
 #include "detray/builders/volume_builder_interface.hpp"
 #include "detray/materials/material.hpp"
 #include "detray/materials/predefined_materials.hpp"
+#include "detray/utils/ranges.hpp"
 
 // System include(s)
 #include <iostream>

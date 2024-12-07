@@ -8,7 +8,6 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/detail/boolean.hpp"
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/geometry/coordinates/concentric_cylindrical2D.hpp"
@@ -26,7 +25,7 @@ namespace detray {
 ///
 /// With the way the navigation works, only the closest one of the two possible
 /// intersection points is needed in the case of a cylinderical portal surface.
-template <concepts::soa_algebra algebra_t, bool do_debug>
+template <algebra::concepts::soa algebra_t, bool do_debug>
 struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
                             do_debug>
     : public ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t,

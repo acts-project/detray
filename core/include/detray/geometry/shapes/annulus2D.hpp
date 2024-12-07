@@ -8,7 +8,6 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/detail/boolean.hpp"
 #include "detray/definitions/detail/containers.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/math.hpp"
@@ -96,8 +95,8 @@ class annulus2D {
         // shift in polar coordinates for that
         // TODO: Put shift in r-phi into the bounds?
         const point_t shift_xy = {-bounds[e_shift_x], -bounds[e_shift_y], 0.f};
-        const scalar_t shift_r = getter::perp(shift_xy);
-        const scalar_t shift_phi = getter::phi(shift_xy);
+        const scalar_t shift_r = vector::perp(shift_xy);
+        const scalar_t shift_phi = vector::phi(shift_xy);
 
         return shift_r * shift_r + loc_p[0] * loc_p[0] +
                2.f * shift_r * loc_p[0] *
@@ -398,11 +397,11 @@ class annulus2D {
         point2_t lr_xy = circIx(origin_x, origin_y, min_r, min_phi);
 
         auto inner_phi =
-            detail::phi_values(getter::phi(lr_xy - origin_m),
-                               getter::phi(ll_xy - origin_m), n_seg);
+            detail::phi_values(vector::phi(lr_xy - origin_m),
+                               vector::phi(ll_xy - origin_m), n_seg);
         auto outer_phi =
-            detail::phi_values(getter::phi(ul_xy - origin_m),
-                               getter::phi(ur_xy - origin_m), n_seg);
+            detail::phi_values(vector::phi(ul_xy - origin_m),
+                               vector::phi(ur_xy - origin_m), n_seg);
 
         dvector<point3_t> annulus_vertices;
         annulus_vertices.reserve(inner_phi.size() + outer_phi.size());

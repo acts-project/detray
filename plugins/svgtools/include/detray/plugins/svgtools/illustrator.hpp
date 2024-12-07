@@ -529,7 +529,7 @@ class illustrator {
                 _detector, intersections.back().sf_desc}};
             const auto final_pos = sf.local_to_global(
                 gctx, intersections.back().local, trajectory.dir(0.f));
-            max_path = getter::norm(final_pos - trajectory.pos(0.f));
+            max_path = vector::norm(final_pos - trajectory.pos(0.f));
         }
 
         ret.add_object(draw_trajectory(prefix + "_trajectory", trajectory,

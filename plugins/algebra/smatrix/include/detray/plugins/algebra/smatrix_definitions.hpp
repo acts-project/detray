@@ -22,61 +22,41 @@ namespace detray {
 // Define scalar type
 using scalar = DETRAY_CUSTOM_SCALARTYPE;
 
-/// Define affine transformation types
-/// @{
-template <typename V = DETRAY_CUSTOM_SCALARTYPE>
-struct smatrix {
-    /// Define scalar type
-    using value_type = V;
+/// The plugin definition
+template <typename scalar_t = DETRAY_CUSTOM_SCALARTYPE>
+using smatrix = algebra::plugin::smatrix<scalar_t>;
 
-    template <typename T>
-    using simd = T;
+namespace getter {
 
-    using boolean = bool;
-    using scalar = value_type;
-    using transform3D = algebra::smatrix::transform3<value_type>;
-    using point2D = algebra::smatrix::point2<value_type>;
-    using point3D = algebra::smatrix::point3<value_type>;
-    using vector3D = algebra::smatrix::vector3<value_type>;
-
-    // Define matrix/vector operator
-    using matrix_operator = algebra::matrix::actor<value_type>;
-};
-/// @}
-
-// Define namespace(s)
-namespace matrix = algebra::matrix;
+using algebra::smatrix::storage::block;
+using algebra::smatrix::storage::element;
+using algebra::smatrix::storage::set_block;
+using algebra::smatrix::storage::vector;
+}  // namespace getter
 
 namespace vector {
 
 using algebra::smatrix::math::cross;
 using algebra::smatrix::math::dot;
-using algebra::smatrix::math::normalize;
-
-}  // namespace vector
-
-namespace getter {
-
 using algebra::smatrix::math::eta;
 using algebra::smatrix::math::norm;
+using algebra::smatrix::math::normalize;
 using algebra::smatrix::math::perp;
 using algebra::smatrix::math::phi;
 using algebra::smatrix::math::theta;
 
-using algebra::smatrix::math::element;
+}  // namespace vector
 
-/// Function extracting a slice from the matrix used by
-/// @c algebra::smatrix::transform3
-template <unsigned int SIZE, unsigned int ROWS, unsigned int COLS,
-          typename scalar_t>
-ALGEBRA_HOST_DEVICE inline auto vector(
-    const ROOT::Math::SMatrix<scalar_t, ROWS, COLS>& m, unsigned int row,
-    unsigned int col) {
+namespace matrix {
 
-    return m.template SubCol<algebra::smatrix::storage_type<scalar_t, SIZE>>(
-        col, row);
-}
+using algebra::smatrix::math::determinant;
+using algebra::smatrix::math::identity;
+using algebra::smatrix::math::inverse;
+using algebra::smatrix::math::set_identity;
+using algebra::smatrix::math::set_zero;
+using algebra::smatrix::math::transpose;
+using algebra::smatrix::math::zero;
 
-}  // namespace getter
+}  // namespace matrix
 
 }  // namespace detray

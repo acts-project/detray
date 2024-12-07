@@ -131,8 +131,8 @@ class material_scan : public test::fixture_base<> {
 
             // New material record
             material_record_t mat_record{};
-            mat_record.eta = getter::eta(ray.dir());
-            mat_record.phi = getter::phi(ray.dir());
+            mat_record.eta = vector::eta(ray.dir());
+            mat_record.phi = vector::phi(ray.dir());
 
             // Record material for this ray
             for (const auto &[i, record] :

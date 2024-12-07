@@ -24,7 +24,7 @@ namespace detray {
 
 /// A functor to find intersections between trajectory and concentric cylinder
 /// mask
-template <concepts::aos_algebra algebra_t, bool do_debug = false>
+template <algebra::concepts::aos algebra_t, bool do_debug = false>
 struct ray_concentric_cylinder_intersector {
 
     /// linear algebra types
@@ -109,7 +109,7 @@ struct ray_concentric_cylinder_intersector {
             if (t01[0] > overstep_tolerance || t01[1] > overstep_tolerance) {
 
                 const point3_type p3 = candidates[cindex];
-                const scalar_type phi{getter::phi(p3)};
+                const scalar_type phi{vector::phi(p3)};
                 const point3_type loc{r * phi, p3[2], r};
                 if constexpr (intersection_type<surface_descr_t>::is_debug()) {
                     is.local = loc;

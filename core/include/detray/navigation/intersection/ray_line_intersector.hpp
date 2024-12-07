@@ -24,7 +24,7 @@ template <typename frame_t, typename algebra_t, bool do_debug>
 struct ray_intersector_impl;
 
 /// A functor to find intersections between trajectory and line mask
-template <concepts::aos_algebra algebra_t, bool do_debug>
+template <algebra::concepts::aos algebra_t, bool do_debug>
 struct ray_intersector_impl<line2D<algebra_t>, algebra_t, do_debug> {
 
     using scalar_type = dscalar<algebra_t>;
@@ -62,16 +62,16 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t, do_debug> {
         intersection_type<surface_descr_t> is;
 
         // line direction
-        const vector3_type _z = getter::vector<3>(trf.matrix(), 0u, 2u);
+        const vector3_type &_z = trf.z();
 
         // line center
-        const point3_type _t = trf.translation();
+        const point3_type &_t = trf.translation();
 
         // track direction
-        const vector3_type _d = ray.dir();
+        const vector3_type &_d = ray.dir();
 
         // track position
-        const point3_type _p = ray.pos();
+        const point3_type &_p = ray.pos();
 
         // Projection of line to track direction
         const scalar_type zd{vector::dot(_z, _d)};

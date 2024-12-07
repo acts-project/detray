@@ -32,9 +32,9 @@ struct curvilinear_frame {
     DETRAY_HOST_DEVICE
     explicit curvilinear_frame(const free_track_parameters_type& free_params) {
 
-        const auto t = free_params.pos();
-        const auto z = free_params.dir();
-        const auto x = unit_vectors_type().make_curvilinear_unit_u(z);
+        const vector3 t = free_params.pos();
+        const vector3 z = free_params.dir();
+        const vector3 x = unit_vectors_type().make_curvilinear_unit_u(z);
 
         m_trf = transform3_type(t, z, x);
         m_bound_vec = detail::free_to_bound_vector<cartesian2D<algebra_t>>(

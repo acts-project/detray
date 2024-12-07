@@ -26,7 +26,7 @@ detray_add_library( detray_algebra_vc_soa algebra_vc_soa
 )
 target_link_libraries(
     detray_algebra_vc_soa
-    INTERFACE algebra::vc_soa algebra::vc_soa_storage vecmem::core
+    INTERFACE algebra::utils algebra::vc_soa vecmem::core
 )
 target_compile_definitions(
     detray_algebra_vc_soa

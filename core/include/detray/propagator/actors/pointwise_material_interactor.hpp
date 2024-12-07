@@ -28,7 +28,6 @@ struct pointwise_material_interactor : actor {
     using scalar_type = dscalar<algebra_t>;
     using vector3_type = dvector3D<algebra_t>;
     using transform3_type = dtransform3D<algebra_t>;
-    using matrix_operator = dmatrix_operator<algebra_t>;
     using interaction_type = interaction<scalar_type>;
     using bound_param_vector_type = bound_parameters_vector<algebra_t>;
     using bound_matrix_type = bound_matrix<algebra_t>;
@@ -232,7 +231,7 @@ struct pointwise_material_interactor : actor {
 
         const scalar_type variance_qop{sigma_qop * sigma_qop};
 
-        matrix_operator().element(covariance, e_bound_qoverp, e_bound_qoverp) +=
+        getter::element(covariance, e_bound_qoverp, e_bound_qoverp) +=
             math::copysign(variance_qop, static_cast<scalar_type>(sign));
     }
 
@@ -252,11 +251,11 @@ struct pointwise_material_interactor : actor {
             static_cast<scalar_type>(sign))};
 
         constexpr auto inv{detail::invalid_value<scalar_type>()};
-        matrix_operator().element(covariance, e_bound_phi, e_bound_phi) +=
+        getter::element(covariance, e_bound_phi, e_bound_phi) +=
             (dir[2] == 1.f) ? inv
                             : var_scattering_angle / (1.f - dir[2] * dir[2]);
 
-        matrix_operator().element(covariance, e_bound_theta, e_bound_theta) +=
+        getter::element(covariance, e_bound_theta, e_bound_theta) +=
             var_scattering_angle;
     }
 };

@@ -25,7 +25,7 @@ template <typename frame_t, typename algebra_t, bool do_debug>
 struct ray_intersector_impl;
 
 /// A functor to find intersections between straight line and planar surface
-template <concepts::aos_algebra algebra_t, bool do_debug>
+template <algebra::concepts::aos algebra_t, bool do_debug>
 struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, do_debug> {
 
     /// linear algebra types
@@ -66,9 +66,8 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, do_debug> {
         intersection_type<surface_descr_t> is;
 
         // Retrieve the surface normal & translation (context resolved)
-        const auto &sm = trf.matrix();
-        const vector3_type sn = getter::vector<3>(sm, 0u, 2u);
-        const vector3_type st = getter::vector<3>(sm, 0u, 3u);
+        const vector3_type &sn = trf.z();
+        const vector3_type &st = trf.translation();
 
         // Intersection code
         const point3_type &ro = ray.pos();
@@ -82,7 +81,7 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, do_debug> {
             if (is.path >= overstep_tol) {
 
                 const point3_type p3 = ro + is.path * rd;
-                const auto loc{mask_t::to_local_frame(trf, p3, ray.dir())};
+                const auto loc{mask_t::to_local_frame(trf, p3, rd)};
                 if constexpr (intersection_type<surface_descr_t>::is_debug()) {
                     is.local = loc;
                 }
@@ -137,7 +136,7 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, do_debug> {
     }
 };
 
-template <concepts::aos_algebra algebra_t, bool do_debug>
+template <algebra::concepts::aos algebra_t, bool do_debug>
 struct ray_intersector_impl<polar2D<algebra_t>, algebra_t, do_debug>
     : public ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, do_debug> {
 };

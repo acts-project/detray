@@ -24,8 +24,6 @@ struct parameter_transporter : actor {
     using scalar_type = dscalar<algebra_t>;
     // Transformation matching this struct
     using transform3_type = dtransform3D<algebra_t>;
-    // Matrix actor
-    using matrix_operator = dmatrix_operator<algebra_t>;
     // bound matrix type
     using bound_matrix_t = bound_matrix<algebra_t>;
     // Matrix type for bound to free jacobian
@@ -63,9 +61,7 @@ struct parameter_transporter : actor {
                     stepping.dqopds(vol_mat_ptr), trf3);
 
             const free_matrix_t correction_term =
-                matrix_operator()
-                    .template identity<e_free_size, e_free_size>() +
-                path_correction;
+                matrix::identity<free_matrix_t>() + path_correction;
 
             return free_to_bound_jacobian * correction_term *
                    stepping.transport_jacobian() * bound_to_free_jacobian;
@@ -116,7 +112,7 @@ struct parameter_transporter : actor {
             // Calculate surface-to-surface covariance transport
             const bound_matrix_t new_cov =
                 stepping.full_jacobian() * bound_params.covariance() *
-                matrix_operator().transpose(stepping.full_jacobian());
+                matrix::transpose(stepping.full_jacobian());
 
             stepping.bound_params().set_covariance(new_cov);
         }

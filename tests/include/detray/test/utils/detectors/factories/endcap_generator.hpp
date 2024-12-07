@@ -274,7 +274,7 @@ class endcap_generator final : public surface_factory_interface<detector_t> {
                 point3_t mod_center{mod_position};
                 mod_center[2] *= static_cast<scalar_t>(m_cfg.side());
                 // The rotation matrix of the module
-                const scalar_t mod_phi{getter::phi(mod_position)};
+                const scalar_t mod_phi{vector::phi(mod_position)};
                 const vector3_t mod_loc_y{math::cos(mod_phi),
                                           math::sin(mod_phi), 0.f};
                 // Take different axis to have the same readout direction

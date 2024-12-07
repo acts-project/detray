@@ -8,7 +8,6 @@
 #pragma once
 
 // Project include(s).
-#include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 
 // System include(s)
@@ -36,11 +35,8 @@ template <typename T>
 requires std::is_fundamental_v<T> DETRAY_HOST_DEVICE constexpr bool
 is_invalid_value(const T value) noexcept {
     if constexpr (std::is_signed_v<T>) {
-        if constexpr (std::is_floating_point_v<T>) {
-            return (math::fabs(value) == detail::invalid_value<T>());
-        } else {
-            return (math::abs(value) == detail::invalid_value<T>());
-        }
+        return (value == detail::invalid_value<T>() ||
+                value == -detail::invalid_value<T>());
     } else {
         return (value == detail::invalid_value<T>());
     }

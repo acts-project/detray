@@ -15,8 +15,10 @@
 #include "detray/geometry/shapes/cylinder2D.hpp"
 #include "detray/geometry/shapes/ring2D.hpp"
 #include "detray/materials/material.hpp"
+#include "detray/materials/material_rod.hpp"
 #include "detray/materials/material_slab.hpp"
 #include "detray/materials/predefined_materials.hpp"
+#include "detray/utils/grid/detail/axis.hpp"
 #include "detray/utils/ranges.hpp"
 
 // System include(s)

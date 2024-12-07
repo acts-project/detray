@@ -44,7 +44,7 @@ struct cylindrical3D {
                                             const point3_type &p,
                                             const vector3_type & /*dir*/) {
         const auto local3 = trf.point_to_local(p);
-        return {getter::perp(local3), getter::phi(local3), local3[2]};
+        return {vector::perp(local3), vector::phi(local3), local3[2]};
     }
 
     /// This method transforms from a local 3D cylindrical point to a point in

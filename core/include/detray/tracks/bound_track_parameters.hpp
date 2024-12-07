@@ -10,6 +10,7 @@
 // Project include(s).
 #include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/indexing.hpp"
+#include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
 #include "detray/definitions/units.hpp"
@@ -26,7 +27,6 @@ struct bound_parameters_vector {
     using scalar_type = dscalar<algebra_t>;
     using point2_type = dpoint2D<algebra_t>;
     using vector3_type = dvector3D<algebra_t>;
-    using matrix_operator = dmatrix_operator<algebra_t>;
 
     // Underlying vector type related to bound track vector.
     using vector_type = bound_vector<algebra_t>;
@@ -52,11 +52,11 @@ struct bound_parameters_vector {
                             const scalar_type theta, const scalar_type qop,
                             const scalar_type t) {
 
-        matrix_operator().set_block(m_vector, loc_p, e_bound_loc0, 0u);
-        matrix_operator().element(m_vector, e_bound_phi, 0u) = phi;
-        matrix_operator().element(m_vector, e_bound_theta, 0u) = theta;
-        matrix_operator().element(m_vector, e_bound_qoverp, 0u) = qop;
-        matrix_operator().element(m_vector, e_bound_time, 0u) = t;
+        getter::set_block(m_vector, loc_p, e_bound_loc0, 0u);
+        getter::element(m_vector, e_bound_phi, 0u) = phi;
+        getter::element(m_vector, e_bound_theta, 0u) = theta;
+        getter::element(m_vector, e_bound_qoverp, 0u) = qop;
+        getter::element(m_vector, e_bound_time, 0u) = t;
     }
 
     /// @param rhs is the left hand side params for comparison
@@ -64,8 +64,8 @@ struct bound_parameters_vector {
     bool operator==(const bound_parameters_vector& rhs) const {
 
         for (unsigned int i = 0u; i < e_bound_size; i++) {
-            const auto lhs_val = matrix_operator().element(m_vector, i, 0u);
-            const auto rhs_val = matrix_operator().element(rhs.vector(), i, 0u);
+            const auto lhs_val = getter::element(m_vector, i, 0u);
+            const auto rhs_val = getter::element(rhs.vector(), i, 0u);
 
             if (math::fabs(lhs_val - rhs_val) >
                 std::numeric_limits<scalar_type>::epsilon()) {
@@ -79,15 +79,13 @@ struct bound_parameters_vector {
     /// Convenience access to the track parameters - const
     DETRAY_HOST_DEVICE
     scalar_type operator[](const std::size_t i) const {
-        return matrix_operator().element(m_vector, static_cast<unsigned int>(i),
-                                         0u);
+        return getter::element(m_vector, static_cast<unsigned int>(i), 0u);
     }
 
     /// Convenience access to the track parameters - non-const
     DETRAY_HOST_DEVICE
-    scalar_type& operator[](const std::size_t i) {
-        return matrix_operator().element(m_vector, static_cast<unsigned int>(i),
-                                         0u);
+    decltype(auto) operator[](const std::size_t i) {
+        return getter::element(m_vector, static_cast<unsigned int>(i), 0u);
     }
 
     /// Access the track parameters as a 6-dim vector - const
@@ -105,33 +103,33 @@ struct bound_parameters_vector {
     /// @returns the bound local position
     DETRAY_HOST_DEVICE
     point2_type bound_local() const {
-        return {matrix_operator().element(m_vector, e_bound_loc0, 0u),
-                matrix_operator().element(m_vector, e_bound_loc1, 0u)};
+        return {getter::element(m_vector, e_bound_loc0, 0u),
+                getter::element(m_vector, e_bound_loc1, 0u)};
     }
 
     /// Set the bound local position
     DETRAY_HOST_DEVICE
     void set_bound_local(const point2_type& pos) {
-        matrix_operator().set_block(m_vector, pos, e_bound_loc0, 0u);
+        getter::set_block(m_vector, pos, e_bound_loc0, 0u);
     }
 
     /// @returns the global phi angle
     DETRAY_HOST_DEVICE
     scalar_type phi() const {
-        return matrix_operator().element(m_vector, e_bound_phi, 0u);
+        return getter::element(m_vector, e_bound_phi, 0u);
     }
 
     /// Set the global phi angle
     DETRAY_HOST_DEVICE
     void set_phi(const scalar_type phi) {
         assert(math::fabs(phi) <= constant<scalar_type>::pi);
-        matrix_operator().element(m_vector, e_bound_phi, 0u) = phi;
+        getter::element(m_vector, e_bound_phi, 0u) = phi;
     }
 
     /// @returns the global theta angle
     DETRAY_HOST_DEVICE
     scalar_type theta() const {
-        return matrix_operator().element(m_vector, e_bound_theta, 0u);
+        return getter::element(m_vector, e_bound_theta, 0u);
     }
 
     /// Set the global theta angle
@@ -139,16 +137,14 @@ struct bound_parameters_vector {
     void set_theta(const scalar_type theta) {
         assert(0.f < theta);
         assert(theta <= constant<scalar_type>::pi);
-        matrix_operator().element(m_vector, e_bound_theta, 0u) = theta;
+        getter::element(m_vector, e_bound_theta, 0u) = theta;
     }
 
     /// @returns the global track direction
     DETRAY_HOST_DEVICE
     vector3_type dir() const {
-        const scalar_type phi{
-            matrix_operator().element(m_vector, e_bound_phi, 0u)};
-        const scalar_type theta{
-            matrix_operator().element(m_vector, e_bound_theta, 0u)};
+        const scalar_type phi{getter::element(m_vector, e_bound_phi, 0u)};
+        const scalar_type theta{getter::element(m_vector, e_bound_theta, 0u)};
         const scalar_type sinTheta{math::sin(theta)};
 
         return {math::cos(phi) * sinTheta, math::sin(phi) * sinTheta,
@@ -158,47 +154,43 @@ struct bound_parameters_vector {
     /// @returns the time
     DETRAY_HOST_DEVICE
     scalar_type time() const {
-        return matrix_operator().element(m_vector, e_bound_time, 0u);
+        return getter::element(m_vector, e_bound_time, 0u);
     }
 
     /// Set the time
     DETRAY_HOST_DEVICE
     void set_time(const scalar_type t) {
-        matrix_operator().element(m_vector, e_bound_time, 0u) = t;
+        getter::element(m_vector, e_bound_time, 0u) = t;
     }
 
     /// @returns the q/p value
     DETRAY_HOST_DEVICE
     scalar_type qop() const {
-        return matrix_operator().element(m_vector, e_bound_qoverp, 0u);
+        return getter::element(m_vector, e_bound_qoverp, 0u);
     }
 
     /// Set the q/p value
     DETRAY_HOST_DEVICE
     void set_qop(const scalar_type qop) {
-        matrix_operator().element(m_vector, e_bound_qoverp, 0u) = qop;
+        getter::element(m_vector, e_bound_qoverp, 0u) = qop;
     }
 
     /// @returns the q/p_T value
     DETRAY_HOST_DEVICE
     scalar_type qopT() const {
-        const scalar_type theta{
-            matrix_operator().element(m_vector, e_bound_theta, 0u)};
+        const scalar_type theta{getter::element(m_vector, e_bound_theta, 0u)};
         const scalar_type sinTheta{math::sin(theta)};
         assert(sinTheta != 0.f);
-        return matrix_operator().element(m_vector, e_bound_qoverp, 0u) /
-               sinTheta;
+        return getter::element(m_vector, e_bound_qoverp, 0u) / sinTheta;
     }
 
     /// @returns the q/p_z value
     DETRAY_HOST_DEVICE
     scalar_type qopz() const {
-        const scalar_type theta{
-            matrix_operator().element(m_vector, e_bound_theta, 0u)};
+        const scalar_type theta{getter::element(m_vector, e_bound_theta, 0u)};
         const scalar_type cosTheta{math::cos(theta)};
         assert(cosTheta != 0.f);
-        return matrix_operator().element(m_vector, e_bound_qoverp, 0u) /
-               cosTheta;
+        return getter::element(m_vector, e_bound_qoverp, 0u) / cosTheta;
     }
 
     /// @returns the absolute momentum
@@ -218,7 +210,7 @@ struct bound_parameters_vector {
     scalar_type pT(const scalar_type q) const {
         assert(qop() != 0.f);
         assert(q * qop() > 0.f);
-        return math::fabs(q / qop() * getter::perp(dir()));
+        return math::fabs(q / qop() * vector::perp(dir()));
     }
 
     /// @returns the absolute momentum z-component
@@ -230,7 +222,15 @@ struct bound_parameters_vector {
     }
 
     private:
-    vector_type m_vector = matrix_operator().template zero<e_bound_size, 1>();
+    /// Transform to a string for debugging output
+    DETRAY_HOST
+    friend std::ostream& operator<<(std::ostream& out_stream,
+                                    const bound_parameters_vector& bparam) {
+        out_stream << bparam.m_vector;
+        return out_stream;
+    }
+
+    vector_type m_vector = matrix::zero<vector_type>();
 };
 
 /// Combine the bound track parameter vector with the covariance and associated
@@ -246,7 +246,6 @@ struct bound_track_parameters : public bound_parameters_vector<algebra_t> {
     using scalar_type = dscalar<algebra_t>;
     using point2_type = dpoint2D<algebra_t>;
     using vector3_type = dvector3D<algebra_t>;
-    using matrix_operator = dmatrix_operator<algebra_t>;
 
     // Shorthand vector/matrix types related to bound track parameters.
     using parameter_vector_type = bound_parameters_vector<algebra_t>;
@@ -276,10 +275,8 @@ struct bound_track_parameters : public bound_parameters_vector<algebra_t> {
 
         for (unsigned int i = 0u; i < e_bound_size; i++) {
             for (unsigned int j = 0u; j < e_bound_size; j++) {
-                const auto lhs_val =
-                    matrix_operator().element(m_covariance, i, j);
-                const auto rhs_val =
-                    matrix_operator().element(rhs.covariance(), i, j);
+                const auto lhs_val = getter::element(m_covariance, i, j);
+                const auto rhs_val = getter::element(rhs.covariance(), i, j);
 
                 if (math::fabs(lhs_val - rhs_val) >
                     std::numeric_limits<scalar_type>::epsilon()) {
@@ -318,8 +315,19 @@ struct bound_track_parameters : public bound_parameters_vector<algebra_t> {
     void set_covariance(const covariance_type& c) { m_covariance = c; }
 
     private:
-    covariance_type m_covariance =
-        matrix_operator().template zero<e_bound_size, e_bound_size>();
+    /// Transform to a string for debugging output
+    DETRAY_HOST
+    friend std::ostream& operator<<(std::ostream& out_stream,
+                                    const bound_track_parameters& bparam) {
+        out_stream << "Surface: " << bparam.m_barcode << std::endl;
+        out_stream << "Param.:  " << static_cast<parameter_vector_type>(bparam)
+                   << std::endl;
+        out_stream << "Cov.:    " << bparam.m_covariance;
+
+        return out_stream;
+    }
+
+    covariance_type m_covariance = matrix::zero<covariance_type>();
     geometry::barcode m_barcode{};
 };
 

@@ -129,7 +129,7 @@ class volume_builder : public volume_builder_interface<detector_t> {
         const typename detector_t::point3_type& t,
         const typename detector_t::vector3_type& x,
         const typename detector_t::vector3_type& z) override {
-        m_trf = typename detector_t::transform3_type{t, z, x, true};
+        m_trf = typename detector_t::transform3_type{t, z, x};
     }
 
     /// Add data for (a) new surface(s) to the builder

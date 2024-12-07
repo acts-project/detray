@@ -167,8 +167,8 @@ struct material_tracer : detray::actor {
         vector3_t glob_dir = prop_state._stepping().dir();
         if (detray::detail::is_invalid_value(tracer.m_mat_record.eta) &&
             detray::detail::is_invalid_value(tracer.m_mat_record.phi)) {
-            tracer.m_mat_record.eta = getter::eta(glob_dir);
-            tracer.m_mat_record.phi = getter::phi(glob_dir);
+            tracer.m_mat_record.eta = vector::eta(glob_dir);
+            tracer.m_mat_record.phi = vector::phi(glob_dir);
         }
 
         // Only count material if navigator encountered it

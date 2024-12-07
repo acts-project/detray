@@ -64,46 +64,34 @@ enum free_indices : unsigned int {
 
 /// Vector type for free track parametrization
 template <typename algebra_t>
-using free_vector =
-    typename dmatrix_operator<algebra_t>::template matrix_type<e_free_size, 1>;
+using free_vector = dmatrix<algebra_t, e_free_size, 1>;
 
 /// Covariance matrix type for free track parametrization
 template <typename algebra_t>
-using free_matrix =
-    typename dmatrix_operator<algebra_t>::template matrix_type<e_free_size,
-                                                               e_free_size>;
+using free_matrix = dmatrix<algebra_t, e_free_size, e_free_size>;
 
 /// Vector type for bound track parametrization
 template <typename algebra_t>
-using bound_vector =
-    typename dmatrix_operator<algebra_t>::template matrix_type<e_bound_size, 1>;
+using bound_vector = dmatrix<algebra_t, e_bound_size, 1>;
 
 /// Covariance matrix type for bound track parametrization
 template <typename algebra_t>
-using bound_matrix =
-    typename dmatrix_operator<algebra_t>::template matrix_type<e_bound_size,
-                                                               e_bound_size>;
+using bound_matrix = dmatrix<algebra_t, e_bound_size, e_bound_size>;
 
 /// Mapping from bound to free track parameters.
 template <typename algebra_t>
-using bound_to_free_matrix =
-    typename dmatrix_operator<algebra_t>::template matrix_type<e_free_size,
-                                                               e_bound_size>;
+using bound_to_free_matrix = dmatrix<algebra_t, e_free_size, e_bound_size>;
 
 /// Mapping from free to bound track parameters.
 template <typename algebra_t>
-using free_to_bound_matrix =
-    typename dmatrix_operator<algebra_t>::template matrix_type<e_bound_size,
-                                                               e_free_size>;
+using free_to_bound_matrix = dmatrix<algebra_t, e_bound_size, e_free_size>;
 
 /// Mapping from free to path
 template <typename algebra_t>
-using free_to_path_matrix =
-    typename dmatrix_operator<algebra_t>::template matrix_type<1, e_free_size>;
+using free_to_path_matrix = dmatrix<algebra_t, 1, e_free_size>;
 
 /// Mapping from path to free
 template <typename algebra_t>
-using path_to_free_matrix =
-    typename dmatrix_operator<algebra_t>::template matrix_type<e_free_size, 1>;
+using path_to_free_matrix = dmatrix<algebra_t, e_free_size, 1>;
 
 }  // namespace detray

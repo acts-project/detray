@@ -28,9 +28,6 @@ using algebra_t = test::algebra;
 using point3 = test::point3;
 using vector3 = test::vector3;
 using transform3 = test::transform3;
-using matrix_operator = test::matrix_operator;
-template <std::size_t ROWS, std::size_t COLS>
-using matrix_type = test::matrix<ROWS, COLS>;
 
 constexpr scalar isclose{1e-5f};
 
@@ -82,14 +79,12 @@ GTEST_TEST(detray_propagator, jacobian_cylindrical2D) {
         jac_engine::free_to_bound_jacobian(trf, free_params) *
         jac_engine::bound_to_free_jacobian(trf, cyl, bound_vec);
 
-    const matrix_operator m;
-
     for (unsigned int i = 0u; i < 6u; i++) {
         for (unsigned int j = 0u; j < 6u; j++) {
             if (i == j) {
-                EXPECT_NEAR(m.element(J, i, j), 1.f, isclose);
+                EXPECT_NEAR(getter::element(J, i, j), 1.f, isclose);
             } else {
-                EXPECT_NEAR(m.element(J, i, j), 0.f, isclose);
+                EXPECT_NEAR(getter::element(J, i, j), 0.f, isclose);
             }
         }
     }

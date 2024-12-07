@@ -27,7 +27,6 @@ using namespace detray;
 
 using algebra_t = test::algebra;
 using scalar_t = test::scalar;
-using matrix_operator = test::matrix_operator;
 using vector3 = test::vector3;
 
 namespace {
@@ -64,7 +63,7 @@ GTEST_TEST(detray_simulation, scattering_helper) {
 
         // the cosine of angle between original direction and new one
         scalar_t cos_theta = vector::dot(dir, new_dir) /
-                             (getter::norm(dir) * getter::norm(new_dir));
+                             (vector::norm(dir) * vector::norm(new_dir));
 
         // To prevent rounding error where cos_theta is out of [-1, 1]
         cos_theta = std::clamp(cos_theta, scalar_t{-1.f}, scalar_t{1.f});
@@ -91,8 +90,8 @@ GTEST_TEST(detray_simulation, angle_update) {
     vector3 dir{1.f, 2.f, 3.f};
     dir = vector::normalize(dir);
 
-    const scalar_t phi0 = getter::phi(dir);
-    const scalar_t theta0 = getter::theta(dir);
+    const scalar_t phi0 = vector::phi(dir);
+    const scalar_t theta0 = vector::theta(dir);
 
     // Projected scattering angle (Tests will fail with relatively large angles)
     const scalar_t projected_scattering_angle{0.01f};
@@ -101,8 +100,8 @@ GTEST_TEST(detray_simulation, angle_update) {
     const int direction_sign = 1;
 
     // Initial bound covariance
-    typename bound_track_parameters<algebra_t>::covariance_type bound_cov =
-        matrix_operator().template zero<e_bound_size, e_bound_size>();
+    auto bound_cov = matrix::zero<
+        typename bound_track_parameters<algebra_t>::covariance_type>();
 
     // We are comparing the bound covariances (var[phi] and var[theta]) to the
     // variance of samples taken by random scattering
@@ -118,8 +117,8 @@ GTEST_TEST(detray_simulation, angle_update) {
     for (std::size_t i = 0u; i < n_samples; i++) {
         const auto new_dir = random_scatterer<algebra_t>().scatter(
             dir, projected_scattering_angle, generator);
-        phis.push_back(getter::phi(new_dir));
-        thetas.push_back(getter::theta(new_dir));
+        phis.push_back(vector::phi(new_dir));
+        thetas.push_back(vector::theta(new_dir));
     }
 
     // Tolerate upto 1% difference

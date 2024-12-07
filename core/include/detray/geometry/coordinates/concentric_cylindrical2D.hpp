@@ -35,7 +35,7 @@ struct concentric_cylindrical2D {
     static inline point3_type global_to_local_3D(
         const transform3_type & /*trf*/, const point3_type &p,
         const vector3_type & /*dir*/) {
-        return {getter::phi(p), p[2], getter::perp(p)};
+        return {vector::phi(p), p[2], vector::perp(p)};
     }
 
     /// This method transforms a point from a global cartesian 3D frame to a
@@ -44,7 +44,7 @@ struct concentric_cylindrical2D {
     static inline loc_point global_to_local(const transform3_type & /*trf*/,
                                             const point3_type &p,
                                             const vector3_type & /*dir*/) {
-        return {getter::phi(p), p[2]};
+        return {vector::phi(p), p[2]};
     }
 
     /// This method transforms from a local 3D cylindrical point to a point in

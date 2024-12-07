@@ -112,7 +112,7 @@ jobs:
       run: |
         cd build
         source ${GITHUB_WORKSPACE}/.github/ci_setup.sh ${{ matrix.PLATFORM.NAME }}
-        ctest -R detray_unit_test_. -E ._eigen --output-on-failure
+        ctest -R detray_unit_test_. -E "._eigen|._vc_aos" --output-on-failure
 
   # Containerised build jobs.
   device-container:

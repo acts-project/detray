@@ -20,7 +20,6 @@ using namespace detray;
 
 using algebra_t = test::algebra;
 using scalar_t = test::scalar;
-using matrix_operator = test::matrix_operator;
 template <std::size_t ROWS, std::size_t COLS>
 using matrix_type = test::matrix<ROWS, COLS>;
 
@@ -40,16 +39,16 @@ GTEST_TEST(detray_utils, axis_rotation) {
     EXPECT_NEAR(u1[2], 0.f, isclose);
 
     matrix_type<3, 1> v2;
-    matrix_operator().element(v2, 0, 0) = constant<scalar_t>::inv_sqrt2;
-    matrix_operator().element(v2, 1, 0) = constant<scalar_t>::inv_sqrt2;
-    matrix_operator().element(v2, 2, 0) = 0.f;
+    getter::element(v2, 0, 0) = constant<scalar_t>::inv_sqrt2;
+    getter::element(v2, 1, 0) = constant<scalar_t>::inv_sqrt2;
+    getter::element(v2, 2, 0) = 0.f;
 
     const auto u2 =
         axis_rotation<algebra_t>(axis, constant<scalar_t>::pi_4)(v2);
 
-    EXPECT_NEAR(matrix_operator().element(u2, 0, 0), 0.f, isclose);
-    EXPECT_NEAR(matrix_operator().element(u2, 1, 0), 1.f, isclose);
-    EXPECT_NEAR(matrix_operator().element(u2, 2, 0), 0.f, isclose);
+    EXPECT_NEAR(getter::element(u2, 0, 0), 0.f, isclose);
+    EXPECT_NEAR(getter::element(u2, 1, 0), 1.f, isclose);
+    EXPECT_NEAR(getter::element(u2, 2, 0), 0.f, isclose);
 
     // Counter clockswise pi/4-Rotation of (1,0,0) around (0,0,1) ->
     // (inv_sqrt2,inv_sqrt2,0)
@@ -111,7 +110,7 @@ GTEST_TEST(detray_utils, euler_rotation2) {
     const test::vector3 v1{5.f, 7.f, 8.f};
     const test::vector3 v2 = euler_rot(v1);
 
-    matrix_type<3u, 3u> R = matrix_operator().template zero<3u, 3u>();
+    auto R = matrix::zero<matrix_type<3u, 3u>>();
 
     const scalar_t s1 = static_cast<scalar_t>(math::sin(euler_rot.alpha));
     const scalar_t c1 = static_cast<scalar_t>(math::cos(euler_rot.alpha));

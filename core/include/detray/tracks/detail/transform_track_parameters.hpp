@@ -34,8 +34,8 @@ DETRAY_HOST_DEVICE inline auto free_to_bound_vector(
 
     const auto bound_local = local_frame_t::global_to_local(trf3, pos, dir);
 
-    return bound_parameters_vector<algebra_t>{bound_local, getter::phi(dir),
-                                              getter::theta(dir),
+    return bound_parameters_vector<algebra_t>{bound_local, vector::phi(dir),
+                                              vector::theta(dir),
                                               free_vec.qop(), free_vec.time()};
 }
 

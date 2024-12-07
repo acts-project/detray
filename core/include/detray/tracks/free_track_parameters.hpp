@@ -24,7 +24,6 @@ struct free_parameters_vector {
     using scalar_type = dscalar<algebra_t>;
     using point3_type = dpoint3D<algebra_t>;
     using vector3_type = dvector3D<algebra_t>;
-    using matrix_operator = dmatrix_operator<algebra_t>;
 
     // Shorthand vector type related to free track parameters.
     using vector_type = free_vector<algebra_t>;
@@ -48,13 +47,13 @@ struct free_parameters_vector {
     free_parameters_vector(const point3_type& pos, const scalar_type time,
                            const vector3_type& mom, const scalar_type q) {
 
-        matrix_operator().set_block(m_vector, pos, e_free_pos0, 0u);
-        matrix_operator().element(m_vector, e_free_time, 0u) = time;
+        getter::set_block(m_vector, pos, e_free_pos0, 0u);
+        getter::element(m_vector, e_free_time, 0u) = time;
 
-        scalar_type p = getter::norm(mom);
-        auto mom_norm = vector::normalize(mom);
-        matrix_operator().set_block(m_vector, mom_norm, e_free_dir0, 0u);
-        matrix_operator().element(m_vector, e_free_qoverp, 0u) = q / p;
+        scalar_type p = vector::norm(mom);
+        vector3_type mom_norm = vector::normalize(mom);
+        getter::set_block(m_vector, mom_norm, e_free_dir0, 0u);
+        getter::element(m_vector, e_free_qoverp, 0u) = q / p;
     }
 
     /// @param rhs is the left hand side params for comparison
@@ -73,84 +72,81 @@ struct free_parameters_vector {
     /// Convenience access to the track parameters - const
     DETRAY_HOST_DEVICE
     scalar_type operator[](std::size_t i) const {
-        return matrix_operator().element(m_vector, static_cast<unsigned int>(i),
-                                         0u);
+        return getter::element(m_vector, static_cast<unsigned int>(i), 0u);
     }
 
     /// Convenience access to the track parameters - non-const
     DETRAY_HOST_DEVICE
-    scalar_type& operator[](std::size_t i) {
-        return matrix_operator().element(m_vector, static_cast<unsigned int>(i),
-                                         0u);
+    decltype(auto) operator[](std::size_t i) {
+        return getter::element(m_vector, static_cast<unsigned int>(i), 0u);
     }
 
     /// @returns the global track position
     DETRAY_HOST_DEVICE
     point3_type pos() const {
-        return {matrix_operator().element(m_vector, e_free_pos0, 0u),
-                matrix_operator().element(m_vector, e_free_pos1, 0u),
-                matrix_operator().element(m_vector, e_free_pos2, 0u)};
+        return {getter::element(m_vector, e_free_pos0, 0u),
+                getter::element(m_vector, e_free_pos1, 0u),
+                getter::element(m_vector, e_free_pos2, 0u)};
     }
 
     /// Set the global track position
     DETRAY_HOST_DEVICE
     void set_pos(const vector3_type& pos) {
-        matrix_operator().set_block(m_vector, pos, e_free_pos0, 0u);
+        getter::set_block(m_vector, pos, e_free_pos0, 0u);
     }
 
     /// @returns the normalized, global track direction
     DETRAY_HOST_DEVICE
     vector3_type dir() const {
-        return {matrix_operator().element(m_vector, e_free_dir0, 0u),
-                matrix_operator().element(m_vector, e_free_dir1, 0u),
-                matrix_operator().element(m_vector, e_free_dir2, 0u)};
+        return {getter::element(m_vector, e_free_dir0, 0u),
+                getter::element(m_vector, e_free_dir1, 0u),
+                getter::element(m_vector, e_free_dir2, 0u)};
     }
 
     /// Set the global track direction
     /// @note Must be normalized!
     DETRAY_HOST_DEVICE
     void set_dir(const vector3_type& dir) {
-        matrix_operator().set_block(m_vector, dir, e_free_dir0, 0u);
+        getter::set_block(m_vector, dir, e_free_dir0, 0u);
     }
 
     /// @returns the time
     DETRAY_HOST_DEVICE
     scalar_type time() const {
-        return matrix_operator().element(m_vector, e_free_time, 0u);
+        return getter::element(m_vector, e_free_time, 0u);
     }
 
     /// Set the time
     DETRAY_HOST_DEVICE
     void set_time(const scalar_type t) {
-        matrix_operator().element(m_vector, e_free_time, 0u) = t;
+        getter::element(m_vector, e_free_time, 0u) = t;
     }
 
     /// @returns the q/p value
     DETRAY_HOST_DEVICE
     scalar_type qop() const {
-        return matrix_operator().element(m_vector, e_free_qoverp, 0u);
+        return getter::element(m_vector, e_free_qoverp, 0u);
     }
 
     /// Set the q/p value
     DETRAY_HOST_DEVICE
     void set_qop(const scalar_type qop) {
-        matrix_operator().element(m_vector, e_free_qoverp, 0u) = qop;
+        getter::element(m_vector, e_free_qoverp, 0u) = qop;
     }
 
     /// @returns the q/p_T value
     DETRAY_HOST_DEVICE
     scalar_type qopT() const {
-        const auto dir = this->dir();
-        assert(getter::perp(dir) != 0.f);
-        return matrix_operator().element(m_vector, e_free_qoverp, 0u) /
-               getter::perp(dir);
+        const vector3_type dir = this->dir();
+        assert(vector::perp(dir) != 0.f);
+        return getter::element(m_vector, e_free_qoverp, 0u) / vector::perp(dir);
     }
 
     /// @returns the q/p_z value
     DETRAY_HOST_DEVICE
     scalar_type qopz() const {
-        const auto dir = this->dir();
-        return matrix_operator().element(m_vector, e_free_qoverp, 0u) / dir[2];
+        const vector3_type dir = this->dir();
+        return getter::element(m_vector, e_free_qoverp, 0u) / dir[2];
     }
 
     /// @returns the absolute momentum
@@ -170,7 +166,7 @@ struct free_parameters_vector {
     scalar_type pT(const scalar_type q) const {
         assert(this->qop() != 0.f);
         assert(q * qop() > 0.f);
-        return math::fabs(q / this->qop() * getter::perp(this->dir()));
+        return math::fabs(q / this->qop() * vector::perp(this->dir()));
     }
 
     /// @returns the absolute momentum z-component
@@ -182,7 +178,15 @@ struct free_parameters_vector {
     }
 
     private:
-    vector_type m_vector = matrix_operator().template zero<e_free_size, 1>();
+    /// Transform to a string for debugging output
+    DETRAY_HOST
+    friend std::ostream& operator<<(std::ostream& out_stream,
+                                    const free_parameters_vector& fparam) {
+        out_stream << fparam.m_vector;
+        return out_stream;
+    }
+
+    vector_type m_vector = matrix::zero<vector_type>();
 };
 
 /// The free track parameters consist only of the parameter vector
