@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/builders/surface_factory_interface.hpp"
 #include "detray/core/detail/data_context.hpp"
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/geometry.hpp"
@@ -26,7 +27,7 @@ namespace detray {
 /// @brief configuration for the barrel module generator
 ///
 /// The default values correspond to the toy detector inner pixel layer
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 struct barrel_generator_config {
     /// Half length of the barrel (z)
     scalar_t m_half_z{500.f * unit<scalar_t>::mm};

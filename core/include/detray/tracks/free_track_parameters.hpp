@@ -15,7 +15,7 @@
 
 namespace detray {
 
-template <typename algebra_t>
+template <concepts::algebra algebra_t>
 struct free_parameters_vector {
 
     /// @name Type definitions for the struct
@@ -190,7 +190,7 @@ struct free_parameters_vector {
 };
 
 /// The free track parameters consist only of the parameter vector
-template <typename algebra_t>
+template <concepts::algebra algebra_t>
 using free_track_parameters = free_parameters_vector<algebra_t>;
 
 }  // namespace detray

@@ -13,6 +13,7 @@
 #endif
 
 // Project include(s)
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/math.hpp"
 #include "detray/geometry/tracking_surface.hpp"
 #include "detray/navigation/detail/ray.hpp"
@@ -56,7 +57,7 @@ struct aggregate_inspector {
 
     /// Inspector interface
     template <unsigned int current_id = 0, typename state_type,
-              typename point3_t, typename vector3_t>
+              concepts::point3D point3_t, concepts::vector3D vector3_t>
     DETRAY_HOST_DEVICE auto operator()(state_type &state,
                                        const navigation::config &cfg,
                                        const point3_t &pos,
@@ -177,7 +178,8 @@ struct object_tracer {
     typename candidate_record_t::vector3_type last_dir = {0.f, 0.f, 0.f};
 
     /// Inspector interface
-    template <typename state_type, typename point3_t, typename vector3_t>
+    template <typename state_type, concepts::point3D point3_t,
+              concepts::vector3D vector3_t>
     DETRAY_HOST_DEVICE auto operator()(const state_type &state,
                                        const navigation::config &,
                                        const point3_t &pos,
@@ -255,7 +257,8 @@ struct print_inspector {
     std::stringstream debug_stream{};
 
     /// Inspector interface. Gathers detailed information during navigation
-    template <typename state_type, typename point3_t, typename vector3_t>
+    template <typename state_type, concepts::point3D point3_t,
+              concepts::vector3D vector3_t>
     auto operator()(const state_type &state, const navigation::config &cfg,
                     const point3_t &track_pos, const vector3_t &track_dir,
                     const char *message) {
@@ -440,7 +443,7 @@ struct print_inspector {
     }
 
     /// Inspector interface. Gathers detailed information during stepping
-    template <typename state_type, typename scalar_t>
+    template <typename state_type, concepts::scalar scalar_t>
     void operator()(const state_type &state, const stepping::config &,
                     const char *message, const std::size_t n_trials,
                     const scalar_t step_scalor) {

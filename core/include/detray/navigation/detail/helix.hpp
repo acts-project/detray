@@ -13,6 +13,7 @@
 #endif
 
 // Project include(s).
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/math.hpp"
 #include "detray/tracks/free_track_parameters.hpp"
 #include "detray/utils/invalid_values.hpp"
@@ -28,7 +29,7 @@ namespace detray::detail {
 /// Helix class for the analytical solution of track propagation in
 /// homogeneous B field. This Follows the notation of Eq (4.7) in
 /// DOI:10.1007/978-3-030-65771-0
-template <typename algebra_t>
+template <concepts::algebra algebra_t>
 class helix {
     public:
     using algebra_type = algebra_t;

@@ -263,8 +263,9 @@ class grid_impl {
     ///
     /// @returns a point in the coordinate system that is spanned by the grid's
     /// axes.
-    template <typename transform_t, typename point3_t, typename vector3_t>
-    DETRAY_HOST_DEVICE point_type project(const transform_t &trf,
+    template <concepts::transform3D transform3_t, concepts::point3D point3_t,
+              concepts::vector3D vector3_t>
+    DETRAY_HOST_DEVICE point_type project(const transform3_t &trf,
                                           const point3_t &p,
                                           const vector3_t &d) const {
         return get_local_frame().global_to_local(trf, p, d);
@@ -393,7 +394,7 @@ class grid_impl {
 };
 
 /// Type alias for easier construction
-template <typename algebra_t, typename axes_t, typename bin_t,
+template <concepts::algebra algebra_t, typename axes_t, typename bin_t,
           template <std::size_t> class serializer_t = simple_serializer,
           typename containers = host_container_types, bool ownership = true>
 using grid =

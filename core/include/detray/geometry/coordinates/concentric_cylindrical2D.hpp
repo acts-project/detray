@@ -16,7 +16,7 @@ namespace detray {
 
 /// Projection into a 2D concentric cylindrical frame
 /// (No rotation in coordinate transformation)
-template <typename algebra_t>
+template <concepts::algebra algebra_t>
 struct concentric_cylindrical2D {
 
     using algebra_type = algebra_t;

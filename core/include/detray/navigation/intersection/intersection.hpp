@@ -21,13 +21,14 @@
 
 namespace detray {
 
-template <typename surface_descr_t, typename algebra_t, bool debug = false>
+template <typename surface_descr_t, concepts::algebra algebra_t,
+          bool debug = false>
 struct intersection2D {};
 
 /// @brief This class holds the intersection information.
 ///
 /// @tparam surface_descr_t is the type of surface descriptor
-template <typename surface_descr_t, typename algebra_t>
+template <typename surface_descr_t, concepts::algebra algebra_t>
 struct intersection2D<surface_descr_t, algebra_t, false> {
 
     using algebra_type = algebra_t;
@@ -129,11 +130,11 @@ struct intersection2D<surface_descr_t, algebra_t, false> {
 ///        information.
 ///
 /// @tparam surface_descr_t is the type of surface descriptor
-template <typename surface_descr_t, typename algebra_t>
+template <typename surface_descr_t, concepts::algebra algebra_t>
 struct intersection2D<surface_descr_t, algebra_t, true>
     : public intersection2D<surface_descr_t, algebra_t, false> {
 
-    using T = typename algebra_t::value_type;
+    using T = dvalue<algebra_t>;
     using algebra_type = algebra_t;
     using point3_type = dpoint3D<algebra_t>;
 

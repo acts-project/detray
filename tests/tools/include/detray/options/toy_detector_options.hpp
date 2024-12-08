@@ -7,6 +7,9 @@
 
 #pragma once
 
+// Project include(s)
+#include "detray/definitions/detail/algebra.hpp"
+
 // Detray test include(s)
 #include "detray/options/options_handling.hpp"
 #include "detray/test/utils/detectors/build_toy_detector.hpp"
@@ -23,7 +26,7 @@ namespace detray::options {
 namespace detail {
 
 /// Add options for the detray toy detector
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 void add_toy_det_options(boost::program_options::options_description &desc,
                          const toy_det_config<scalar_t> &cfg) {
 
@@ -42,7 +45,7 @@ void add_toy_det_options(boost::program_options::options_description &desc,
 }
 
 /// Configure the detray toy detector
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 void configure_toy_det_options(const boost::program_options::variables_map &vm,
                                toy_det_config<scalar_t> &cfg) {
 

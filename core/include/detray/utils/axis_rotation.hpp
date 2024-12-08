@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/utils/matrix_helper.hpp"
@@ -16,7 +17,7 @@ namespace detray {
 
 /// @brief Helper struct to rotate a vector around a given axis and angle
 /// counterclockwisely
-template <typename algebra_t>
+template <concepts::algebra algebra_t>
 struct axis_rotation {
 
     public:
@@ -49,7 +50,9 @@ struct axis_rotation {
     /// @param v vector to be rotated
     /// @returns Get the counterclockwisely-rotated vector
     template <typename vector3_t>
-    DETRAY_HOST_DEVICE vector3_t operator()(const vector3_t& v) const {
+    requires(concepts::vector3D<vector3_t> ||
+             concepts::column_matrix3D<vector3_t>) DETRAY_HOST_DEVICE vector3_t
+    operator()(const vector3_t& v) const {
         return R * v;
     }
 
@@ -60,16 +63,13 @@ struct axis_rotation {
 
 /// @brief Helper struct to perform an euler rotation for a given vector
 /// All rotation operations are counterclockwise
-template <typename algebra_t>
+template <concepts::algebra algebra_t>
 struct euler_rotation {
 
     public:
     using algebra_type = algebra_t;
     using scalar_type = dscalar<algebra_t>;
     using vector3_type = dvector3D<algebra_t>;
-    template <std::size_t ROWS, std::size_t COLS>
-    using matrix_type = dmatrix<algebra_t, ROWS, COLS>;
-    using mat_helper = matrix_helper<algebra_t>;
 
     // Following the z-x-z convention
     vector3_type x{1.0f, 0.f, 0.f};

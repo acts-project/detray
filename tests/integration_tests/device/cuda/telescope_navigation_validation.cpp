@@ -67,7 +67,7 @@ int main(int argc, char **argv) {
     cfg_ray_scan.whiteboard(white_board);
     cfg_ray_scan.track_generator().n_tracks(1000u);
     // The first surface is at z=0, so shift the track origin back
-    cfg_ray_scan.track_generator().origin({0.f, 0.f, -0.05f});
+    cfg_ray_scan.track_generator().origin(0.f, 0.f, -0.05f * unit<scalar>::mm);
     cfg_ray_scan.track_generator().theta_range(0.f,
                                                0.25f * constant<scalar>::pi_4);
 
@@ -96,7 +96,7 @@ int main(int argc, char **argv) {
                                  detray::detail::invalid_value<scalar>()});
     cfg_hel_scan.track_generator().n_tracks(1000u);
     cfg_hel_scan.track_generator().p_tot(10.f * unit<scalar>::GeV);
-    cfg_hel_scan.track_generator().origin({0.f, 0.f, -0.05f});
+    cfg_hel_scan.track_generator().origin(0.f, 0.f, -0.05f * unit<scalar>::mm);
     cfg_hel_scan.track_generator().theta_range(0.f,
                                                0.25f * constant<scalar>::pi_4);
 
@@ -117,7 +117,7 @@ int main(int argc, char **argv) {
     mat_scan_cfg.name("telescope_detector_material_scan_for_cuda");
     mat_scan_cfg.whiteboard(white_board);
     mat_scan_cfg.track_generator().uniform_eta(true).eta_range(1.f, 6.f);
-    mat_scan_cfg.track_generator().origin({0.f, 0.f, -0.05f});
+    mat_scan_cfg.track_generator().origin(0.f, 0.f, -0.05f * unit<scalar>::mm);
     mat_scan_cfg.track_generator().phi_steps(10).eta_steps(100);
 
     // Record the material using a ray scan

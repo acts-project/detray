@@ -8,6 +8,7 @@
 #pragma once
 
 // Detray include(s)
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/pdg_particle.hpp"
@@ -19,7 +20,7 @@
 
 namespace detray::detail {
 
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 struct relativistic_quantities {
 
     using scalar_type = scalar_t;

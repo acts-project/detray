@@ -141,7 +141,7 @@ class grid2 {
      * @param fvalue is a single fill value to be filled
      *
      **/
-    template <typename point2_t>
+    template <concepts::point2D point2_t>
     DETRAY_HOST_DEVICE void populate(
         const point2_t &p2, typename populator_type::bare_value &&fvalue) {
         auto sbin = _serializer.template serialize<axis_p0_type, axis_p1_type>(
@@ -211,7 +211,7 @@ class grid2 {
      *
      * @return the const reference to the value in this bin
      **/
-    template <typename point2_t>
+    template <concepts::point2D point2_t>
     requires(!std::is_scalar_v<point2_t>) DETRAY_HOST_DEVICE
         typename serialized_storage::const_reference
         bin(const point2_t &p2) const {
@@ -226,7 +226,7 @@ class grid2 {
      *
      * @return the const reference to the value in this bin
      **/
-    template <typename point2_t>
+    template <concepts::point2D point2_t>
     requires(!std::is_scalar_v<point2_t>) DETRAY_HOST_DEVICE
         typename serialized_storage::reference bin(const point2_t &p2) {
         return _data_serialized[_serializer.template serialize<axis_p0_type,
@@ -246,7 +246,7 @@ class grid2 {
      *
      * @return the sequence of values
      **/
-    template <typename neighbor_t, typename point2_t>
+    template <typename neighbor_t, concepts::point2D point2_t>
     DETRAY_HOST_DEVICE vector_t<typename populator_type::bare_value> zone_t(
         const point2_t &p2, const neighborhood<neighbor_t> &nhood,
         bool sort) const {
@@ -303,7 +303,7 @@ class grid2 {
      *
      * @return the sequence of values
      **/
-    template <typename point2_t>
+    template <concepts::point2D point2_t>
     DETRAY_HOST_DEVICE vector_t<typename populator_type::bare_value> zone(
         const point2_t &p2, const neighborhood<dindex> &nhood = hermit2,
         bool sort = false) const {
@@ -321,7 +321,7 @@ class grid2 {
      *
      * @return the sequence of values
      **/
-    template <typename point2_t>
+    template <concepts::point2D point2_t>
     DETRAY_HOST_DEVICE vector_t<typename populator_type::bare_value> zone(
         const point2_t &p2, const neighborhood<scalar> &nhood,
         bool sort = false) const {

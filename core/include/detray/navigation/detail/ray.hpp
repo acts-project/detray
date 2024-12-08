@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/tracks/free_track_parameters.hpp"
 
 // System include(s).
@@ -16,7 +17,7 @@
 namespace detray::detail {
 
 /// @brief describes a straight-line trajectory
-template <typename algebra_t>
+template <concepts::algebra algebra_t>
 class ray {
     public:
     using algebra_type = algebra_t;

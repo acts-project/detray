@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/core/detail/multi_store.hpp"
 #include "detray/core/detail/single_store.hpp"
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/containers.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/geometry/detail/surface_descriptor.hpp"
@@ -23,7 +24,7 @@ namespace detray {
 
 /// Defines a telescope detector type with only rectangle portals and one
 /// additional kind of contained module surfaces (@tparam mask_shape_t)
-template <typename algebra_t, typename mask_shape_t = rectangle2D>
+template <concepts::algebra algebra_t, typename mask_shape_t = rectangle2D>
 struct telescope_metadata {
 
     /// Define the algebra type for the geometry and navigation

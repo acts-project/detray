@@ -44,7 +44,7 @@ using mat_id = typename detector_t::materials::id;
 using bin_index_t = axis::multi_bin<2u>;
 
 /// Add generate input material for material maps
-template <typename material_factory_t, typename scalar_t>
+template <typename material_factory_t, concepts::scalar scalar_t>
 auto add_material_data(const material_factory_t& mat_factory, mat_id id,
                        std::size_t sf_index, scalar_t t,
                        material<scalar_t> mat = silicon<scalar_t>()) {

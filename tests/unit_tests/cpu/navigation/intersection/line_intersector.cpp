@@ -29,11 +29,12 @@ using namespace detray;
 // Three-dimensional definitions
 using test_algebra = test::algebra;
 using transform3 = test::transform3;
-using cartesian = cartesian2D<transform3>;
 using vector3 = test::vector3;
 using point3 = test::point3;
 using point2 = test::point2;
 using scalar = test::scalar;
+
+using cartesian = cartesian2D<test_algebra>;
 using intersection_t = intersection2D<surface_descriptor<>, test_algebra, true>;
 using line_intersector_type =
     ray_intersector<line_circular, test_algebra, true>;

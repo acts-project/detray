@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/materials/detail/concepts.hpp"
@@ -18,7 +19,7 @@ namespace detray::detail {
 
 /// A functor to retrieve the material parameters
 struct get_material_params {
-    template <typename mat_group_t, typename index_t, typename point_t>
+    template <typename mat_group_t, typename index_t, concepts::point point_t>
     DETRAY_HOST_DEVICE inline auto operator()(const mat_group_t &mat_group,
                                               const index_t &idx,
                                               const point_t &loc_p) const {

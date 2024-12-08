@@ -42,10 +42,10 @@ GTEST_TEST(svgtools, masks) {
 
     using toy_detector_t = detray::detector<detray::test::toy_metadata>;
     using algebra_t = typename toy_detector_t::algebra_type;
-    using transform_t = detray::dtransform3D<algebra_t>;
+    using transform3_t = detray::dtransform3D<algebra_t>;
 
-    const typename transform_t::vector3 tr{50.f, 100.f, 0.f};
-    const typename toy_detector_t::transform3_type transform(tr);
+    const detray::dvector3D<algebra_t> tr{50.f, 100.f, 0.f};
+    const transform3_t transform(tr);
     const actsvg::views::x_y view{};
 
     // Visualize a 2D annulus.

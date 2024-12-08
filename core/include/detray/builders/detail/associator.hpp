@@ -11,6 +11,7 @@
 #include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/utils/concepts.hpp"
 
 // System include(s).
 #include <limits>
@@ -19,7 +20,7 @@
 namespace detray::detail {
 
 /// Struct that assigns the center of gravity to a rectangular bin
-template <typename algebra_t>
+template <detray::concepts::algebra algebra_t>
 struct center_of_gravity_rectangle {
     /// Call operator to the struct, allows to chain several chain operators
     /// together
@@ -63,7 +64,7 @@ struct center_of_gravity_rectangle {
 };
 
 /// Check if center of mass is inside a generic polygon bin
-template <typename algebra_t>
+template <detray::concepts::algebra algebra_t>
 struct center_of_gravity_generic {
     /// Call operator to the struct, allows to chain several chain operators
     /// together
@@ -104,7 +105,7 @@ struct center_of_gravity_generic {
 };
 
 /// Check if the egdes of the bin and surface contour overlap
-template <typename algebra_t>
+template <detray::concepts::algebra algebra_t>
 struct edges_intersect_generic {
 
     /// Call operator to the struct, allows to chain several chain operators
