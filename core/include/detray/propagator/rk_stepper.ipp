@@ -11,8 +11,8 @@
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/utils/matrix_helper.hpp"
 
-template <typename magnetic_field_t, typename algebra_t, typename constraint_t,
-          typename policy_t, typename inspector_t>
+template <typename magnetic_field_t, detray::concepts::algebra algebra_t,
+          typename constraint_t, typename policy_t, typename inspector_t>
 DETRAY_HOST_DEVICE inline void detray::rk_stepper<
     magnetic_field_t, algebra_t, constraint_t, policy_t, inspector_t>::state::
     advance_track(
@@ -50,8 +50,8 @@ DETRAY_HOST_DEVICE inline void detray::rk_stepper<
     this->update_path_lengths(h);
 }
 
-template <typename magnetic_field_t, typename algebra_t, typename constraint_t,
-          typename policy_t, typename inspector_t>
+template <typename magnetic_field_t, detray::concepts::algebra algebra_t,
+          typename constraint_t, typename policy_t, typename inspector_t>
 DETRAY_HOST_DEVICE inline void detray::rk_stepper<
     magnetic_field_t, algebra_t, constraint_t, policy_t,
     inspector_t>::state::advance_jacobian(const detray::stepping::config& cfg,
@@ -334,8 +334,8 @@ DETRAY_HOST_DEVICE inline void detray::rk_stepper<
     this->set_transport_jacobian(D * this->transport_jacobian());
 }
 
-template <typename magnetic_field_t, typename algebra_t, typename constraint_t,
-          typename policy_t, typename inspector_t>
+template <typename magnetic_field_t, detray::concepts::algebra algebra_t,
+          typename constraint_t, typename policy_t, typename inspector_t>
 DETRAY_HOST_DEVICE inline auto detray::rk_stepper<
     magnetic_field_t, algebra_t, constraint_t, policy_t, inspector_t>::state::
     evaluate_dqopds(const std::size_t i, const scalar_type h,
@@ -364,8 +364,8 @@ DETRAY_HOST_DEVICE inline auto detray::rk_stepper<
     }
 }
 
-template <typename magnetic_field_t, typename algebra_t, typename constraint_t,
-          typename policy_t, typename inspector_t>
+template <typename magnetic_field_t, detray::concepts::algebra algebra_t,
+          typename constraint_t, typename policy_t, typename inspector_t>
 DETRAY_HOST_DEVICE inline auto detray::rk_stepper<
     magnetic_field_t, algebra_t, constraint_t, policy_t,
     inspector_t>::state::evaluate_dtds(const vector3_type& b_field,
@@ -384,8 +384,8 @@ DETRAY_HOST_DEVICE inline auto detray::rk_stepper<
     return detray::make_pair(vector3_type{qop * vector::cross(t, b_field)}, t);
 }
 
-template <typename magnetic_field_t, typename algebra_t, typename constraint_t,
-          typename policy_t, typename inspector_t>
+template <typename magnetic_field_t, detray::concepts::algebra algebra_t,
+          typename constraint_t, typename policy_t, typename inspector_t>
 DETRAY_HOST_DEVICE inline auto detray::rk_stepper<
     magnetic_field_t, algebra_t, constraint_t, policy_t,
     inspector_t>::state::evaluate_field_gradient(const point3_type& pos)
@@ -425,8 +425,8 @@ DETRAY_HOST_DEVICE inline auto detray::rk_stepper<
     return dBdr;
 }
 
-template <typename magnetic_field_t, typename algebra_t, typename constraint_t,
-          typename policy_t, typename inspector_t>
+template <typename magnetic_field_t, detray::concepts::algebra algebra_t,
+          typename constraint_t, typename policy_t, typename inspector_t>
 DETRAY_HOST_DEVICE inline auto
 detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
                    inspector_t>::state::dtds() const -> vector3_type {
@@ -447,8 +447,8 @@ detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
     return m_dtds_3;
 }
 
-template <typename magnetic_field_t, typename algebra_t, typename constraint_t,
-          typename policy_t, typename inspector_t>
+template <typename magnetic_field_t, detray::concepts::algebra algebra_t,
+          typename constraint_t, typename policy_t, typename inspector_t>
 DETRAY_HOST_DEVICE inline auto detray::rk_stepper<
     magnetic_field_t, algebra_t, constraint_t, policy_t,
     inspector_t>::state::dqopds(const material<scalar_type>* vol_mat_ptr) const
@@ -462,8 +462,8 @@ DETRAY_HOST_DEVICE inline auto detray::rk_stepper<
     return m_dqopds_3;
 }
 
-template <typename magnetic_field_t, typename algebra_t, typename constraint_t,
-          typename policy_t, typename inspector_t>
+template <typename magnetic_field_t, detray::concepts::algebra algebra_t,
+          typename constraint_t, typename policy_t, typename inspector_t>
 DETRAY_HOST_DEVICE auto detray::rk_stepper<
     magnetic_field_t, algebra_t, constraint_t, policy_t,
     inspector_t>::state::dqopds(const scalar_type qop,
@@ -493,8 +493,8 @@ DETRAY_HOST_DEVICE auto detray::rk_stepper<
     return qop * qop * qop * E * stopping_power / (q * q);
 }
 
-template <typename magnetic_field_t, typename algebra_t, typename constraint_t,
-          typename policy_t, typename inspector_t>
+template <typename magnetic_field_t, detray::concepts::algebra algebra_t,
+          typename constraint_t, typename policy_t, typename inspector_t>
 DETRAY_HOST_DEVICE auto
 detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
                    inspector_t>::state::d2qopdsdqop(const scalar_type qop,
@@ -535,8 +535,8 @@ detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
     return dqopds * (1.f / qop * (3.f - p2 / E2) + 1.f / g * dgdqop);
 }
 
-template <typename magnetic_field_t, typename algebra_t, typename constraint_t,
-          typename policy_t, typename inspector_t>
+template <typename magnetic_field_t, detray::concepts::algebra algebra_t,
+          typename constraint_t, typename policy_t, typename inspector_t>
 DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
     magnetic_field_t, algebra_t, constraint_t, policy_t, inspector_t>::
     step(const scalar_type dist_to_next,

@@ -8,7 +8,10 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/navigation/detail/ray.hpp"
+
+// Detray plugins include(s)
 #include "detray/plugins/svgtools/meta/proto/trajectory.hpp"
 #include "detray/plugins/svgtools/styling/styling.hpp"
 
@@ -18,7 +21,7 @@
 namespace detray::svgtools::conversion {
 
 /// @returns The proto trajectory of a vector of points.
-template <typename point3_t>
+template <concepts::point3D point3_t>
 inline auto trajectory(const std::vector<point3_t>& points,
                        const styling::trajectory_style& style =
                            styling::svg_default::trajectory_style) {
@@ -39,7 +42,7 @@ inline auto trajectory(const std::vector<point3_t>& points,
 /// @param style the style settings
 ///
 /// @returns The proto trajectory of a parametrized trajectory
-template <template <typename> class trajectory_t, typename algebra_t>
+template <template <typename> class trajectory_t, concepts::algebra algebra_t>
 inline auto trajectory(const trajectory_t<algebra_t>& traj,
                        const styling::trajectory_style& style =
                            styling::svg_default::trajectory_style,
@@ -60,7 +63,7 @@ inline auto trajectory(const trajectory_t<algebra_t>& traj,
 /// @param style the style settings
 ///
 /// @returns The proto trajectory of a ray.
-template <typename algebra_t>
+template <concepts::algebra algebra_t>
 inline auto trajectory(const detray::detail::ray<algebra_t>& traj,
                        const styling::trajectory_style& style =
                            styling::svg_default::trajectory_style,

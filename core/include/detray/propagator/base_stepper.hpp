@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/pdg_particle.hpp"
 #include "detray/definitions/units.hpp"
@@ -37,7 +38,7 @@ struct void_inspector {
 }  // namespace stepping
 
 /// Base stepper implementation
-template <typename algebra_t, typename constraint_t, typename policy_t,
+template <concepts::algebra algebra_t, typename constraint_t, typename policy_t,
           typename inspector_t = stepping::void_inspector>
 class base_stepper {
 

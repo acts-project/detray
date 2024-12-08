@@ -15,7 +15,7 @@
 namespace detray {
 
 /// Projection into a line coordinate frame
-template <typename algebra_t>
+template <concepts::algebra algebra_t>
 struct line2D {
 
     using algebra_type = algebra_t;

@@ -7,6 +7,9 @@
 
 #pragma once
 
+// Project include(s)
+#include "detray/definitions/detail/algebra.hpp"
+
 // Detray test include(s)
 #include "detray/options/options_handling.hpp"
 #include "detray/test/utils/simulation/event_generator/random_track_generator_config.hpp"
@@ -24,7 +27,7 @@ namespace detray::options {
 namespace detail {
 
 /// Add options for detray event generation
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 void add_uniform_track_gen_options(
     boost::program_options::options_description &desc,
     const uniform_track_generator_config<scalar_t> &cfg) {
@@ -56,7 +59,7 @@ void add_uniform_track_gen_options(
 }
 
 /// Add options for detray event generation
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 void configure_uniform_track_gen_options(
     const boost::program_options::variables_map &vm,
     uniform_track_generator_config<scalar_t> &cfg) {
@@ -76,9 +79,9 @@ void configure_uniform_track_gen_options(
     if (vm.count("origin")) {
         const auto origin = vm["origin"].as<std::vector<scalar_t>>();
         if (origin.size() == 3u) {
-            cfg.origin({origin[0] * unit<scalar_t>::mm,
-                        origin[1] * unit<scalar_t>::mm,
-                        origin[2] * unit<scalar_t>::mm});
+            cfg.origin(origin[0] * unit<scalar_t>::mm,
+                       origin[1] * unit<scalar_t>::mm,
+                       origin[2] * unit<scalar_t>::mm);
         } else {
             throw std::invalid_argument(
                 "Particle gun origin needs three arguments");
@@ -97,7 +100,7 @@ void configure_uniform_track_gen_options(
 }
 
 /// Add options for detray event generation
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 void add_rnd_track_gen_options(
     boost::program_options::options_description &desc,
     const random_track_generator_config<scalar_t> &cfg) {
@@ -128,7 +131,7 @@ void add_rnd_track_gen_options(
 }
 
 /// Add options for detray event generation
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 void configure_rnd_track_gen_options(
     const boost::program_options::variables_map &vm,
     random_track_generator_config<scalar_t> &cfg) {
@@ -167,10 +170,12 @@ void configure_rnd_track_gen_options(
     if (vm.count("origin")) {
         const auto origin = vm["origin"].as<std::vector<scalar_t>>();
         if (origin.size() == 3u) {
-            cfg.origin({origin[0], origin[1], origin[2]});
+            cfg.origin(origin[0] * unit<scalar_t>::mm,
+                       origin[1] * unit<scalar_t>::mm,
+                       origin[2] * unit<scalar_t>::mm);
         } else {
             throw std::invalid_argument(
-                "Particle gun origin needs three arguments");
+                "Particle gun origin needs three coordinates");
         }
     }
     if (!vm["p_T"].defaulted() && !vm["p_tot"].defaulted()) {

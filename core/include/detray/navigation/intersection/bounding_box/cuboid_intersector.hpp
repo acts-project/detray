@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/utils/invalid_values.hpp"
@@ -33,7 +34,7 @@ struct cuboid_intersector {
     /// @param mask_tolerance is the tolerance for mask edges
     ///
     /// @return true if the cuboid aabb was intersected
-    template <typename algebra_t, typename mask_t>
+    template <concepts::algebra algebra_t, typename mask_t>
     DETRAY_HOST_DEVICE bool operator()(
         const detail::ray<algebra_t> &ray, const mask_t &box,
         const dscalar<algebra_t> /*mask_tolerance*/ = 0.f) const {

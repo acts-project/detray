@@ -17,7 +17,7 @@ namespace detray {
 
 namespace detail {
 /// Data for a single step
-template <typename algebra_t>
+template <concepts::algebra algebra_t>
 struct step_data {
     using scalar_type = dscalar<algebra_t>;
     using vector3_type = dvector3D<algebra_t>;
@@ -35,7 +35,7 @@ struct step_data {
 }  // namespace detail
 
 /// Collect information at every step
-template <typename algebra_t, template <typename...> class vector_t>
+template <concepts::algebra algebra_t, template <typename...> class vector_t>
 struct step_tracer : actor {
 
     using step_data_t = detail::step_data<algebra_t>;

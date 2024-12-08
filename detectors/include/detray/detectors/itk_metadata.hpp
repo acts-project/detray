@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/core/detail/multi_store.hpp"
 #include "detray/core/detail/single_store.hpp"
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/containers.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/geometry/detail/surface_descriptor.hpp"
@@ -34,7 +35,7 @@ namespace detray {
 
 /// Defines a detector that contains squares, trapezoids and a bounding portal
 /// box.
-template <typename algebra_t>
+template <concepts::algebra algebra_t>
 struct itk_metadata {
 
     /// Define the algebra type for the geometry and navigation

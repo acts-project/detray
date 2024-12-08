@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/builders/surface_factory_interface.hpp"
 #include "detray/core/detail/data_context.hpp"
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/geometry.hpp"
@@ -27,7 +28,7 @@ namespace detray {
 /// @brief configuration for the barrel module generator
 ///
 /// The default values correspond to the toy detector inner pixel layer
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 struct endcap_generator_config {
     /// Construct positive or negative endcap
     int m_side{-1};

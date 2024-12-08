@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
 #include "detray/geometry/tracking_surface.hpp"
@@ -21,7 +22,7 @@
 
 namespace detray {
 
-template <typename algebra_t>
+template <concepts::algebra algebra_t>
 struct pointwise_material_interactor : actor {
 
     using algebra_type = algebra_t;

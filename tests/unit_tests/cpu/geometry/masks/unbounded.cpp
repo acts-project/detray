@@ -47,8 +47,8 @@ GTEST_TEST(detray_masks, unbounded) {
     static_assert(std::is_same_v<unbounded_t::boundaries, shape_t::boundaries>,
                   "incorrect boundaries");
     static_assert(
-        std::is_same_v<unbounded_t::template local_frame_type<transform3>,
-                       shape_t::template local_frame_type<transform3>>,
+        std::is_same_v<unbounded_t::template local_frame_type<test_algebra>,
+                       shape_t::template local_frame_type<test_algebra>>,
         "incorrect local frame");
 
     // Test static members

@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/materials/detail/concepts.hpp"
@@ -24,7 +25,7 @@
 namespace detray::detail {
 
 /// Functors to be used in the @c surface class
-template <typename algebra_t>
+template <concepts::algebra algebra_t>
 struct surface_kernels {
 
     using algebra_type = algebra_t;
@@ -277,7 +278,8 @@ struct surface_kernels {
     /// A functor to get the path correction
     struct path_correction {
 
-        template <typename mask_group_t, typename index_t, typename scalar_t>
+        template <typename mask_group_t, typename index_t,
+                  concepts::scalar scalar_t>
         DETRAY_HOST_DEVICE inline free_matrix_type operator()(
             const mask_group_t& /*mask_group*/, const index_t& /*index*/,
             const transform3_type& trf3, const vector3_type& pos,
@@ -294,7 +296,8 @@ struct surface_kernels {
     /// A functor to get the local min bounds.
     struct local_min_bounds {
 
-        template <typename mask_group_t, typename index_t, typename scalar_t>
+        template <typename mask_group_t, typename index_t,
+                  concepts::scalar scalar_t>
         DETRAY_HOST_DEVICE inline auto operator()(
             const mask_group_t& mask_group, const index_t& index,
             const scalar_t env =
@@ -307,7 +310,8 @@ struct surface_kernels {
     /// A functor to get the minimum distance to any surface boundary.
     struct min_dist_to_boundary {
 
-        template <typename mask_group_t, typename index_t, typename point_t>
+        template <typename mask_group_t, typename index_t,
+                  concepts::point point_t>
         DETRAY_HOST_DEVICE inline auto operator()(
             const mask_group_t& mask_group, const index_t& index,
             const point_t& loc_p) const {
@@ -319,7 +323,8 @@ struct surface_kernels {
     /// A functor to get the vertices in local coordinates.
     struct local_vertices {
 
-        template <typename mask_group_t, typename index_t, typename scalar_t>
+        template <typename mask_group_t, typename index_t,
+                  concepts::scalar scalar_t>
         DETRAY_HOST_DEVICE inline auto operator()(
             const mask_group_t& mask_group, const index_t& index,
             const dindex n_seg) const {

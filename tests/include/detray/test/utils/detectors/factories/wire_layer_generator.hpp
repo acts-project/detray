@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/builders/surface_factory_interface.hpp"
 #include "detray/core/detail/data_context.hpp"
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/geometry.hpp"
@@ -25,7 +26,7 @@
 namespace detray {
 
 /// @brief configuration for the wire layer generator
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 struct wire_layer_generator_config {
     /// Half length of the layer (z)
     scalar_t m_half_z{1000.f * unit<scalar_t>::mm};

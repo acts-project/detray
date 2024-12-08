@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/containers.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/math.hpp"
@@ -60,18 +61,18 @@ class annulus2D {
     };
 
     /// Container definition for the shape boundary values
-    template <typename scalar_t>
+    template <concepts::scalar scalar_t>
     using bounds_type = darray<scalar_t, boundaries::e_size>;
 
     /// Local coordinate frame ( focal system )
-    template <typename algebra_t>
+    template <concepts::algebra algebra_t>
     using local_frame_type = polar2D<algebra_t>;
 
     /// Dimension of the local coordinate system
     static constexpr std::size_t dim{2u};
 
     /// @returns the stereo angle calculated from the mask @param bounds .
-    template <typename scalar_t>
+    template <concepts::scalar scalar_t>
     DETRAY_HOST_DEVICE darray<scalar_t, 8> stereo_angle(
         const bounds_type<scalar_t> &bounds) const {
         // Half stereo angle (phi_s / 2) (y points in the long strip direction)
@@ -79,7 +80,7 @@ class annulus2D {
     }
 
     /// @returns The phi position in relative to the average phi of the annulus.
-    template <typename scalar_t, typename point_t>
+    template <concepts::scalar scalar_t, concepts::point point_t>
     DETRAY_HOST_DEVICE inline scalar_t get_phi_rel(
         const bounds_type<scalar_t> &bounds, const point_t &loc_p) const {
         // Rotate by avr phi in the focal system (this is usually zero)
@@ -87,7 +88,7 @@ class annulus2D {
     }
 
     /// @returns The squared radial position in the beam frame.
-    template <typename scalar_t, typename point_t>
+    template <concepts::scalar scalar_t, concepts::point point_t>
     DETRAY_HOST_DEVICE inline scalar_t get_r2_beam_frame(
         const bounds_type<scalar_t> &bounds, const point_t &loc_p) const {
 
@@ -113,7 +114,7 @@ class annulus2D {
     /// @param loc_p the point to be checked in the local coordinate system
     ///
     /// @return the minimum distance.
-    template <typename scalar_t, typename point_t>
+    template <concepts::scalar scalar_t, concepts::point point_t>
     DETRAY_HOST_DEVICE inline scalar_t min_dist_to_boundary(
         const bounds_type<scalar_t> &bounds, const point_t &loc_p) const {
         // The two quantities to check: r^2 in beam system, phi in focal system:
@@ -148,7 +149,7 @@ class annulus2D {
     /// @param tol dynamic tolerance determined by caller
     ///
     /// @return true if the local point lies within the given boundaries.
-    template <typename scalar_t, typename point_t>
+    template <concepts::scalar scalar_t, concepts::point point_t>
     DETRAY_HOST_DEVICE inline auto check_boundaries(
         const bounds_type<scalar_t> &bounds, const point_t &loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
@@ -183,7 +184,7 @@ class annulus2D {
     /// @param bounds the boundary values for this shape
     ///
     /// @returns the stereo annulus area on the plane.
-    template <typename scalar_t>
+    template <concepts::scalar scalar_t>
     DETRAY_HOST_DEVICE constexpr scalar_t measure(
         const bounds_type<scalar_t> &bounds) const {
         return area(bounds);
@@ -196,7 +197,7 @@ class annulus2D {
     /// @param bounds the boundary values for this shape
     ///
     /// @returns the stereo annulus area.
-    template <typename scalar_t>
+    template <concepts::scalar scalar_t>
     DETRAY_HOST_DEVICE constexpr scalar_t area(
         const bounds_type<scalar_t> &) const {
         return detail::invalid_value<scalar_t>();
@@ -212,7 +213,7 @@ class annulus2D {
     /// @returns and array of coordinates that contains the lower point (first
     /// three values) and the upper point (latter three values).
     // @TODO: this is a terrible approximation: restrict to annulus corners
-    template <typename algebra_t>
+    template <concepts::algebra algebra_t>
     DETRAY_HOST_DEVICE darray<dscalar<algebra_t>, 6> local_min_bounds(
         const bounds_type<dscalar<algebra_t>> &bounds,
         const dscalar<algebra_t> env =
@@ -270,7 +271,7 @@ class annulus2D {
     ///
     /// @returns an array of coordinates that contains the lower point (first
     /// four values) and the upper point (latter four values).
-    template <typename scalar_t>
+    template <concepts::scalar scalar_t>
     DETRAY_HOST_DEVICE darray<scalar_t, 8> corners(
         const bounds_type<scalar_t> &bounds) const {
 
@@ -315,7 +316,7 @@ class annulus2D {
     /// @returns the shapes centroid in local cartesian coordinates
     /// @note the caluculated centroid position is only an approximation
     /// (centroid of the four corner points)!
-    template <typename algebra_t>
+    template <concepts::algebra algebra_t>
     DETRAY_HOST_DEVICE dpoint3D<algebra_t> centroid(
         const bounds_type<dscalar<algebra_t>> &bounds) const {
 
@@ -337,7 +338,7 @@ class annulus2D {
     /// @param n_seg is the number of line segments
     ///
     /// @return a generated list of vertices
-    template <typename algebra_t>
+    template <concepts::algebra algebra_t>
     DETRAY_HOST dvector<dpoint3D<algebra_t>> vertices(
         const bounds_type<dscalar<algebra_t>> &bounds, dindex n_seg) const {
 
@@ -426,7 +427,7 @@ class annulus2D {
     /// @param os output stream for error messages
     ///
     /// @return true if the bounds are consistent.
-    template <typename scalar_t>
+    template <concepts::scalar scalar_t>
     DETRAY_HOST constexpr bool check_consistency(
         const bounds_type<scalar_t> &bounds, std::ostream &os) const {
 

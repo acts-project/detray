@@ -244,8 +244,8 @@ GTEST_TEST(detray_simulation, random_track_generator_uniform) {
                           0.8f * constant<scalar>::pi);
     trk_gen_cfg.eta_range(-4.f, 4.f);
     trk_gen_cfg.mom_range(1.f * unit<scalar>::GeV, 2.f * unit<scalar>::GeV);
-    trk_gen_cfg.origin_stddev({0.1f * unit<scalar>::mm, 0.f * unit<scalar>::mm,
-                               0.2f * unit<scalar>::mm});
+    trk_gen_cfg.origin_stddev(0.1f * unit<scalar>::mm, 0.f * unit<scalar>::mm,
+                              0.2f * unit<scalar>::mm);
 
     // Catch the results
     std::array<scalar, n_gen_tracks> x{};
@@ -327,9 +327,9 @@ GTEST_TEST(detray_simulation, random_track_generator_normal) {
                           0.8f * constant<scalar>::pi);
     trk_gen_cfg.eta_range(-4.f, 4.f);
     trk_gen_cfg.mom_range(1.f * unit<scalar>::GeV, 2.f * unit<scalar>::GeV);
-    trk_gen_cfg.origin({0.f, 0.f, 0.f});
-    trk_gen_cfg.origin_stddev({0.1f * unit<scalar>::mm, 0.5f * unit<scalar>::mm,
-                               0.3f * unit<scalar>::mm});
+    trk_gen_cfg.origin(0.f, 0.f, 0.f);
+    trk_gen_cfg.origin_stddev(0.1f * unit<scalar>::mm, 0.5f * unit<scalar>::mm,
+                              0.3f * unit<scalar>::mm);
 
     // Catch the results
     std::array<scalar, n_gen_tracks> x{};

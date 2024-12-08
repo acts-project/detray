@@ -18,7 +18,7 @@
 namespace detray {
 
 /// The plugin definition
-template <typename scalar_t>
+template <algebra::concepts::scalar scalar_t>
 using smatrix = algebra::plugin::smatrix<scalar_t>;
 
 namespace getter {

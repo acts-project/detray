@@ -10,6 +10,7 @@
 
 // Project include(s)
 #include "detray/builders/detail/associator.hpp"
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/coordinates/concentric_cylindrical2D.hpp"
 #include "detray/geometry/coordinates/cylindrical2D.hpp"
@@ -37,7 +38,7 @@ namespace detray::detail {
 ///        taken absolute or relative
 template <typename context_t, typename surface_container_t,
           typename transform_container_t, typename mask_container_t,
-          concepts::surface_grid grid_t, typename scalar_t>
+          concepts::surface_grid grid_t, concepts::scalar scalar_t>
 static inline void bin_association(const context_t & /*context*/,
                                    const surface_container_t &surfaces,
                                    const transform_container_t &transforms,

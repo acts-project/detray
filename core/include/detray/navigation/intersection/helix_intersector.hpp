@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/navigation/intersection/helix_cylinder_intersector.hpp"
 #include "detray/navigation/intersection/helix_line_intersector.hpp"
 #include "detray/navigation/intersection/helix_plane_intersector.hpp"
@@ -22,10 +23,10 @@ namespace detray {
 ///
 /// @note specialized into @c helix_plane_intersector, @c helix_line_intersector
 /// and @c helix_cylinder_intersector
-template <typename frame_t, typename algebra_t>
+template <typename frame_t, concepts::algebra algebra_t>
 struct helix_intersector_impl {};
 
-template <typename shape_t, typename algebra_t, bool = true>
+template <typename shape_t, concepts::algebra algebra_t, bool = true>
 using helix_intersector = helix_intersector_impl<
     typename shape_t::template local_frame_type<algebra_t>, algebra_t>;
 

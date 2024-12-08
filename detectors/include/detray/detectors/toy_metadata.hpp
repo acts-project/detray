@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/core/detail/multi_store.hpp"
 #include "detray/core/detail/single_store.hpp"
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/containers.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/geometry/detail/surface_descriptor.hpp"
@@ -26,7 +27,7 @@
 namespace detray {
 
 /// Defines the data types needed for the toy detector
-template <typename algebra_t>
+template <concepts::algebra algebra_t>
 struct toy_metadata {
 
     /// Define the algebra type for the geometry and navigation

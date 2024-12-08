@@ -6,6 +6,7 @@
  */
 
 // Project include(s)
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/bfield.hpp"
 #include "detray/navigation/intersection/helix_intersector.hpp"
@@ -374,7 +375,7 @@ std::pair<euler_rotation<test_algebra>, std::array<scalar, 3u>> tilt_surface(
     return {euler, {x_shift, y_shift, z_shift}};
 }
 
-template <typename algebra_t>
+template <concepts::algebra algebra_t>
 struct bound_getter : actor {
 
     // Track types
@@ -1586,9 +1587,8 @@ int main(int argc, char** argv) {
     trk_gen_cfg.phi_range(-constant<scalar>::pi, constant<scalar>::pi);
     trk_gen_cfg.theta_range(0.f, constant<scalar>::pi);
     trk_gen_cfg.mom_range(min_mom, max_mom);
-    trk_gen_cfg.origin({0.f, 0.f, 0.f});
-    trk_gen_cfg.origin_stddev({0.f * unit<scalar>::mm, 0.f * unit<scalar>::mm,
-                               0.f * unit<scalar>::mm});
+    trk_gen_cfg.origin(0.f, 0.f, 0.f);
+    trk_gen_cfg.origin_stddev(0.f, 0.f, 0.f);
 
     // Vectors for dqopdqop relative difference
     std::vector<std::vector<scalar>> dqopdqop_rel_diffs_rect(log10_tols.size());

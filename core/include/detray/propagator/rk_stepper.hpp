@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/navigation/policies.hpp"
@@ -21,7 +22,7 @@ namespace detray {
 /// @tparam magnetic_field_t the type of magnetic field
 /// @tparam track_t the type of track that is being advanced by the stepper
 /// @tparam constraint_ the type of constraints on the stepper
-template <typename magnetic_field_t, typename algebra_t,
+template <typename magnetic_field_t, concepts::algebra algebra_t,
           typename constraint_t = unconstrained_step<dscalar<algebra_t>>,
           typename policy_t = stepper_rk_policy<dscalar<algebra_t>>,
           typename inspector_t = stepping::void_inspector>

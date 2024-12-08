@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 
@@ -16,7 +17,7 @@
 
 namespace detray {
 
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 struct pdg_particle {
     using scalar_type = scalar_t;
 
@@ -44,7 +45,7 @@ struct pdg_particle {
 
 // Macro for declaring the particle
 #define DETRAY_DECLARE_PARTICLE(PARTICLE_NAME, PDG_NUM, MASS, CHARGE)   \
-    template <typename scalar_t>                                        \
+    template <concepts::scalar scalar_t>                                \
     struct PARTICLE_NAME final : public pdg_particle<scalar_t> {        \
         using base_type = pdg_particle<scalar_t>;                       \
         DETRAY_HOST_DEVICE                                              \

@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/builders/surface_factory.hpp"
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/geometry/shapes/unmasked.hpp"
 #include "detray/materials/material.hpp"
@@ -26,7 +27,7 @@
 namespace detray {
 
 /// @brief Bind components for material together.
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 class material_data {
     public:
     /// Construct empty data for a given surface

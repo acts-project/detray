@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/builders/surface_factory_interface.hpp"
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/materials/material.hpp"
@@ -23,7 +24,7 @@
 namespace detray {
 
 /// @brief Configuration for the homogeneous material generator
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 struct hom_material_config {
     /// Type of material to put on the passive surfaces
     material<scalar_t> m_passive_material{silicon<scalar_t>{}};

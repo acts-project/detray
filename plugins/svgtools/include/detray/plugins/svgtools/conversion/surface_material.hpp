@@ -64,10 +64,11 @@ namespace {
 /// @brief A functor to fill the material proto grid with proto material slabs
 struct material_converter {
 
-    template <typename mat_coll_t, typename index_t, typename transform_t>
+    template <typename mat_coll_t, typename index_t,
+              concepts::transform3D transform3_t>
     DETRAY_HOST inline auto operator()(const mat_coll_t& mat_coll,
                                        const index_t& index,
-                                       const transform_t&) const {
+                                       const transform3_t&) const {
         using material_t = typename mat_coll_t::value_type;
 
         std::vector<std::vector<actsvg::proto::material_slab>> m_matrix;

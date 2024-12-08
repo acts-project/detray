@@ -17,7 +17,7 @@
 namespace detray::detail {
 
 /// @brief Specialization for 2D cartesian frames
-template <typename algebra_t>
+template <concepts::algebra algebra_t>
 struct jacobian<cartesian2D<algebra_t>> {
 
     /// @name Type definitions for the struct

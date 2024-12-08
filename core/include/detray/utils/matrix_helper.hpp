@@ -15,7 +15,7 @@
 namespace detray {
 
 /// @TODO: Move to algebra plugins
-template <typename algebra_t>
+template <concepts::algebra algebra_t>
 struct matrix_helper {
 
     /// Matrix index type

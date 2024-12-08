@@ -8,6 +8,7 @@
 #pragma once
 
 /// Detray include(s)
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
@@ -29,7 +30,7 @@ enum class material_state {
     e_unknown = 3
 };
 
-template <typename scalar_t, typename R = std::ratio<1, 1>>
+template <concepts::scalar scalar_t, typename R = std::ratio<1, 1>>
 struct material {
     using ratio = R;
     using scalar_type = scalar_t;
@@ -247,7 +248,7 @@ struct material {
 
 // Macro for declaring the predefined materials (w/o Density effect data)
 #define DETRAY_DECLARE_MATERIAL(MATERIAL_NAME, X0, L0, Ar, Z, Rho, State)   \
-    template <typename scalar_t, typename R = std::ratio<1, 1>>             \
+    template <concepts::scalar scalar_t, typename R = std::ratio<1, 1>>     \
     struct MATERIAL_NAME final : public material<scalar_t, R> {             \
         using base_type = material<scalar_t, R>;                            \
         using base_type::base_type;                                         \
@@ -260,7 +261,7 @@ struct material {
 #define DETRAY_DECLARE_MATERIAL_WITH_DED(                                    \
     MATERIAL_NAME, X0, L0, Ar, Z, Rho, State, Density0, Density1, Density2,  \
     Density3, Density4, Density5, Density6)                                  \
-    template <typename scalar_t, typename R = std::ratio<1, 1>>              \
+    template <concepts::scalar scalar_t, typename R = std::ratio<1, 1>>      \
     struct MATERIAL_NAME final : public material<scalar_t, R> {              \
         using base_type = material<scalar_t, R>;                             \
         using base_type::base_type;                                          \

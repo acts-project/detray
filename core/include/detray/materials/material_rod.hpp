@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/materials/material.hpp"
@@ -20,7 +21,7 @@
 namespace detray {
 
 // Rod structure to be mapped on the line mask
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 struct material_rod {
     using scalar_type = scalar_t;
     using material_type = material<scalar_t>;

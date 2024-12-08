@@ -24,7 +24,7 @@
 namespace detray {
 
 /// Configuration for the uniform track generator
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 struct uniform_track_generator_config {
 
     using seed_t = std::uint64_t;
@@ -148,10 +148,15 @@ struct uniform_track_generator_config {
         m_uniform_eta = b;
         return *this;
     }
-    template <typename point3_t = std::array<scalar_t, 3>>
-    DETRAY_HOST_DEVICE uniform_track_generator_config& origin(point3_t ori) {
-        m_origin = {ori[0], ori[1], ori[2]};
+    DETRAY_HOST_DEVICE uniform_track_generator_config& origin(
+        const scalar_t x, const scalar_t y, const scalar_t z) {
+        m_origin = {x, y, z};
         return *this;
+    }
+    template <concepts::point3D point3_t>
+    DETRAY_HOST_DEVICE uniform_track_generator_config& origin(
+        const point3_t& ori) {
+        return origin(ori[0], ori[1], ori[2]);
     }
     DETRAY_HOST_DEVICE uniform_track_generator_config& p_tot(scalar_t p) {
         assert(p > 0.f);

@@ -52,10 +52,8 @@ void fill_tracks(vecmem::vector<free_track_parameters<test_algebra>> &tracks,
     trk_gen_cfg.eta_range(-3.f, 3.f);
     trk_gen_cfg.mom_range(1.f * unit<scalar_t>::GeV,
                           100.f * unit<scalar_t>::GeV);
-    trk_gen_cfg.origin({0.f, 0.f, 0.f});
-    trk_gen_cfg.origin_stddev({0.f * unit<scalar_t>::mm,
-                               0.f * unit<scalar_t>::mm,
-                               0.f * unit<scalar_t>::mm});
+    trk_gen_cfg.origin(0.f, 0.f, 0.f);
+    trk_gen_cfg.origin_stddev(0.f, 0.f, 0.f);
 
     // Iterate through uniformly distributed momentum directions
     for (auto traj : trk_generator_t{trk_gen_cfg}) {

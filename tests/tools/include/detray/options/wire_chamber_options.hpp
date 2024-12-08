@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/geometry/shapes/line.hpp"
 
 // Detray test include(s)
@@ -25,7 +26,7 @@ namespace detray::options {
 namespace detail {
 
 /// Add options that are independent of the wire surface shape
-template <typename scalar_t, typename wire_shape_t>
+template <concepts::scalar scalar_t, typename wire_shape_t>
 void add_wire_chamber_options(
     boost::program_options::options_description &desc,
     const wire_chamber_config<scalar_t, wire_shape_t> &cfg) {
@@ -54,7 +55,7 @@ void add_wire_chamber_options(
 }
 
 /// Configure options that are independent of the wire surface shape
-template <typename scalar_t, typename wire_shape_t>
+template <concepts::scalar scalar_t, typename wire_shape_t>
 void configure_wire_chamber_options(
     const boost::program_options::variables_map &vm,
     wire_chamber_config<scalar_t, wire_shape_t> &cfg) {

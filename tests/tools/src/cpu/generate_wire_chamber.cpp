@@ -6,6 +6,7 @@
  */
 
 // Project include(s)
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/shapes/line.hpp"
 
@@ -31,7 +32,7 @@ namespace po = boost::program_options;
 namespace detray::detail {
 
 /// Build and write the wire chamber according to command line options
-template <typename scalar_t, typename wire_shape_t>
+template <concepts::scalar scalar_t, typename wire_shape_t>
 void write_wire_chamber(int argc, char **argv,
                         boost::program_options::options_description &desc,
                         vecmem::memory_resource *host_mr,

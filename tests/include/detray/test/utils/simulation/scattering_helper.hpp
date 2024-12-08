@@ -19,7 +19,7 @@
 
 namespace detray {
 
-template <typename algebra_t>
+template <concepts::algebra algebra_t>
 struct scattering_helper {
     public:
     using scalar_type = dscalar<algebra_t>;

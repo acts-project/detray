@@ -31,7 +31,7 @@ using plane_mask_link_t = dtyped_index<plane_mask_ids, dindex>;
 using plane_material_link_t = dtyped_index<plane_material_ids, dindex>;
 
 /// This method creates a number (distances.size()) planes along a direction
-template <typename algebra_t = test::algebra>
+template <concepts::algebra algebra_t = test::algebra>
 auto planes_along_direction(const dvector<dscalar<algebra_t>> &distances,
                             const dvector3D<algebra_t> &direction) {
 

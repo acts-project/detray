@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/containers.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/mask.hpp"
@@ -43,7 +44,7 @@ namespace detray {
 /// @note that if non-zero axis_spans are provided the values of the
 /// mask is overwritten
 template <typename bin_t, template <std::size_t> class serializer_t,
-          typename algebra_t>
+          concepts::algebra algebra_t>
 class grid_factory {
 
     public:

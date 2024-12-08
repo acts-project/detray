@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/navigation/intersection/helix_intersector.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
 
@@ -16,7 +17,7 @@ namespace detray {
 /// @brief Intersection interface for detector surfaces.
 ///
 /// Composes the different intersector options into a unifyed interface
-template <typename shape_t, typename algebra_t, bool do_debug = false>
+template <typename shape_t, concepts::algebra algebra_t, bool do_debug = false>
 struct intersector {
 
     using algebra_type = algebra_t;

@@ -7,6 +7,9 @@
 
 #pragma once
 
+// Project include(s)
+#include "detray/definitions/detail/algebra.hpp"
+
 // Detray plugin include(s)
 #include "detray/plugins/svgtools/illustrator.hpp"
 #include "detray/plugins/svgtools/styling/styling.hpp"
@@ -41,7 +44,7 @@ std::unordered_set<dindex> get_volume_indices(
 
 /// Find the unique volume indices that the trajectory crossed
 /// - intersection collection
-template <typename surface_t, typename algebra_t>
+template <typename surface_t, concepts::algebra algebra_t>
 std::unordered_set<dindex> get_volume_indices(
     const dvector<detray::intersection2D<surface_t, algebra_t>>
         &intersections) {

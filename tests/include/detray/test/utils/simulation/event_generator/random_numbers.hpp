@@ -19,7 +19,7 @@
 namespace detray::detail {
 
 /// Wrapper for CPU random number generatrion for the @c random_track_generator
-template <typename scalar_t,
+template <concepts::scalar scalar_t,
           typename distribution_t = std::uniform_real_distribution<scalar_t>,
           typename engine_t = std::mt19937_64>
 struct random_numbers {

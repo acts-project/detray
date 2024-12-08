@@ -45,7 +45,7 @@ enum constraint : std::size_t {
 }  // namespace step
 
 /// Struct that represents unconstrained stepping
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 struct unconstrained_step {
 
     /// Register a new @param step_size constraint
@@ -70,7 +70,7 @@ struct unconstrained_step {
 
 /// Struct that can be configured with a number of different step sizes by other
 /// actors and will then resolve the strictest one.
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 struct constrained_step {
 
     /// Register a new @param step_size constraint
