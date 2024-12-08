@@ -6,6 +6,7 @@
  */
 
 // Project include(s)
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes.hpp"
@@ -34,7 +35,7 @@ namespace {
 /// Generate and write a telescope detector, given the commandline variables
 /// and a configuration for the detector writer @param writer_cfg
 template <typename mask_shape_t, typename value_t,
-          template <typename> class trajectory_t, typename algebra_t>
+          template <typename> class trajectory_t, concepts::algebra algebra_t>
 void write_telecope(const po::variables_map &vm,
                     io::detector_writer_config &writer_cfg,
                     std::vector<value_t> &mask_params,

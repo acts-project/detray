@@ -31,11 +31,11 @@ class unmasked {
     enum boundaries : unsigned int { e_size = 1u };
 
     /// Container definition for the shape boundary values
-    template <typename scalar_t>
+    template <concepts::scalar scalar_t>
     using bounds_type = darray<scalar_t, boundaries::e_size>;
 
     /// Local coordinate frame for boundary checks
-    template <typename algebra_t>
+    template <concepts::algebra algebra_t>
     using local_frame_type = cartesian2D<algebra_t>;
 
     /// Dimension of the local coordinate system
@@ -50,7 +50,7 @@ class unmasked {
     /// @param loc_p the point to be checked in the local coordinate system
     ///
     /// @return the minimum distance.
-    template <typename scalar_t, typename point_t>
+    template <concepts::scalar scalar_t, concepts::point point_t>
     DETRAY_HOST_DEVICE inline scalar_t min_dist_to_boundary(
         const bounds_type<scalar_t>& /*bounds*/,
         const point_t& /*loc_p*/) const {
@@ -64,7 +64,7 @@ class unmasked {
     /// @note the parameters are ignored
     ///
     /// @return always true
-    template <typename scalar_t, typename point_t>
+    template <concepts::scalar scalar_t, concepts::point point_t>
     DETRAY_HOST_DEVICE inline auto check_boundaries(
         const bounds_type<scalar_t>& /*bounds*/, const point_t& /*loc_p*/,
         const scalar_t /*tol*/) const {
@@ -76,7 +76,7 @@ class unmasked {
     /// @param bounds the boundary values for this shape
     ///
     /// @returns Inf.
-    template <typename scalar_t>
+    template <concepts::scalar scalar_t>
     DETRAY_HOST_DEVICE constexpr scalar_t measure(
         const bounds_type<scalar_t>& bounds) const {
         if constexpr (dim == 2) {
@@ -91,7 +91,7 @@ class unmasked {
     /// @param bounds the boundary values for this shape
     ///
     /// @returns the stereo annulus area.
-    template <typename scalar_t>
+    template <concepts::scalar scalar_t>
     DETRAY_HOST_DEVICE constexpr scalar_t area(
         const bounds_type<scalar_t>&) const {
         return std::numeric_limits<scalar_t>::max();
@@ -102,7 +102,7 @@ class unmasked {
     /// @param bounds the boundary values for this shape
     ///
     /// @returns Inf.
-    template <typename scalar_t>
+    template <concepts::scalar scalar_t>
     DETRAY_HOST_DEVICE constexpr scalar_t volume(
         const bounds_type<scalar_t>&) const {
         return std::numeric_limits<scalar_t>::max();
@@ -117,7 +117,7 @@ class unmasked {
     ///
     /// @returns and array of coordinates that contains the lower point (first
     /// three values) and the upper point (latter three values) .
-    template <typename algebra_t>
+    template <concepts::algebra algebra_t>
     DETRAY_HOST_DEVICE inline darray<dscalar<algebra_t>, 6> local_min_bounds(
         const bounds_type<dscalar<algebra_t>>& /*bounds*/,
         const dscalar<algebra_t> /*env*/ =
@@ -130,7 +130,7 @@ class unmasked {
     }
 
     /// @returns the shapes centroid in global cartesian coordinates
-    template <typename algebra_t>
+    template <concepts::algebra algebra_t>
     DETRAY_HOST_DEVICE dpoint3D<algebra_t> centroid(
         const bounds_type<dscalar<algebra_t>>&) const {
         return {0.f, 0.f, 0.f};
@@ -142,7 +142,7 @@ class unmasked {
     /// @param n_seg is the number of line segments
     ///
     /// @return a generated list of vertices
-    template <typename algebra_t>
+    template <concepts::algebra algebra_t>
     DETRAY_HOST dvector<dpoint3D<algebra_t>> vertices(
         const bounds_type<dscalar<algebra_t>>& bounds, dindex) const {
         return local_min_bounds(bounds);
@@ -154,7 +154,7 @@ class unmasked {
     /// @param os output stream for error messages
     ///
     /// @return true if the bounds are consistent.
-    template <typename scalar_t>
+    template <concepts::scalar scalar_t>
     DETRAY_HOST constexpr bool check_consistency(
         const bounds_type<scalar_t>& /*bounds*/,
         const std::ostream& /*os*/) const {

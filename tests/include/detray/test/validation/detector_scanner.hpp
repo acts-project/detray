@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/geometry/tracking_surface.hpp"
 #include "detray/navigation/detail/trajectories.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
@@ -130,10 +131,10 @@ struct brute_force_scan {
     }
 };
 
-template <typename algebra_t>
+template <concepts::algebra algebra_t>
 using ray_scan = brute_force_scan<detail::ray<algebra_t>>;
 
-template <typename algebra_t>
+template <concepts::algebra algebra_t>
 using helix_scan = brute_force_scan<detail::helix<algebra_t>>;
 
 /// Run a scan on detector object by shooting test particles through it

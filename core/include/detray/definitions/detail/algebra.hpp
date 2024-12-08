@@ -65,4 +65,10 @@ using namespace ::algebra::boolean;
 
 }  // namespace detail
 
+namespace concepts {
+
+using namespace algebra::concepts;
+
+}  // namespace concepts
+
 }  // namespace detray

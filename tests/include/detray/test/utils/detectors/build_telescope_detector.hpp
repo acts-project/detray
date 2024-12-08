@@ -14,6 +14,7 @@
 #include "detray/builders/homogeneous_material_generator.hpp"
 #include "detray/builders/homogeneous_volume_material_builder.hpp"
 #include "detray/core/detector.hpp"
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/telescope_metadata.hpp"
 #include "detray/geometry/mask.hpp"
@@ -38,7 +39,7 @@ namespace detray {
 namespace {
 
 /// Configure the toy detector
-template <typename algebra_t, typename mask_shape_t = rectangle2D,
+template <concepts::algebra algebra_t, typename mask_shape_t = rectangle2D,
           template <typename> class trajectory_t = detail::ray>
 struct tel_det_config {
 
@@ -164,7 +165,7 @@ struct tel_det_config {
 };
 
 /// Deduce the type of telescope config
-template <typename algebra_t, typename shape_t,
+template <concepts::algebra algebra_t, typename shape_t,
           template <typename> class trajectory_t>
 DETRAY_HOST_DEVICE tel_det_config(const mask<shape_t, algebra_t> &,
                                   const trajectory_t<algebra_t> &)
@@ -184,7 +185,7 @@ DETRAY_HOST_DEVICE tel_det_config(const mask<shape_t, algebra_t> &,
 /// @param cfg configuration struct of the telescope detector
 ///
 /// @returns a complete detector object
-template <typename algebra_t, typename mask_shape_t = rectangle2D,
+template <concepts::algebra algebra_t, typename mask_shape_t = rectangle2D,
           template <typename> class trajectory_t = detail::ray>
 inline auto build_telescope_detector(
     vecmem::memory_resource &resource,

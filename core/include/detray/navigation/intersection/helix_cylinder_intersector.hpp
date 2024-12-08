@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
@@ -25,7 +26,7 @@
 
 namespace detray {
 
-template <typename frame_t, typename algebra_t>
+template <typename frame_t, concepts::algebra algebra_t>
 struct helix_intersector_impl;
 
 /// @brief Intersection implementation for cylinder surfaces using helical
@@ -291,7 +292,7 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
     bool run_rtsafe{true};
 };
 
-template <typename algebra_t>
+template <concepts::algebra algebra_t>
 struct helix_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t>
     : public helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t> {};
 

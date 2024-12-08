@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/base_stepper.hpp"
@@ -18,7 +19,7 @@
 namespace detray {
 
 /// Aborter that checks whether the track has exceeded its pathlimit
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 struct pathlimit_aborter : actor {
 
     /// Pathlimit for a single propagation workflow

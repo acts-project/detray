@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/builders/surface_factory_interface.hpp"
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/geometry/detail/surface_kernels.hpp"
@@ -33,7 +34,7 @@ namespace detray {
 namespace detail {
 
 /// Generate material along z bins for a cylinder material grid
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 inline std::vector<material_slab<scalar_t>> generate_cyl_mat(
     const std::vector<scalar_t> &bounds, const std::size_t nbins,
     material<scalar_t> mat, const scalar_t t, const scalar_t scalor) {
@@ -55,7 +56,7 @@ inline std::vector<material_slab<scalar_t>> generate_cyl_mat(
 }
 
 /// Generate material along r bins for a disc material grid
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 inline std::vector<material_slab<scalar_t>> generate_disc_mat(
     const std::vector<scalar_t> &bounds, const std::size_t nbins,
     material<scalar_t> mat, const scalar_t t, const scalar_t scalor) {
@@ -78,7 +79,7 @@ inline std::vector<material_slab<scalar_t>> generate_disc_mat(
 }  // namespace detail
 
 /// @brief Configuration for the material map generator
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 struct material_map_config {
 
     /// How to configure the generation for a specific type of material map

@@ -48,7 +48,7 @@ template <typename T>
 using inhom_field_t = covfie::field<inhom_bknd_t<T>>;
 
 /// @returns a constant covfie field constructed from the field vector @param B
-template <typename T, typename vector3_t>
+template <typename T, concepts::vector3D vector3_t>
 inline const_field_t<T> create_const_field(const vector3_t &B) {
     return const_field_t<T>{covfie::make_parameter_pack(
         typename const_bknd_t<T>::configuration_t{B[0], B[1], B[2]})};

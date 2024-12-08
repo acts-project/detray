@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/geometry/shapes/cuboid3D.hpp"
@@ -36,7 +37,7 @@ namespace detray {
 /// @tparam shape_t underlying geometrical shape of the mask, rectangle etc
 /// @tparam links_t the type of link into the volume container
 ///                 (e.g. single index vs range)
-template <typename shape_t, typename algebra_t,
+template <typename shape_t, concepts::algebra algebra_t,
           typename links_t = std::uint_least16_t>
 class mask {
     public:

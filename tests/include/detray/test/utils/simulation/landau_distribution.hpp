@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/math.hpp"
 
 // System include(s).
@@ -20,7 +21,7 @@ namespace detray {
 
 /// Landau distribution based on CERNLIB G110
 /// Computer Physics Communications 31(1984) 97—111)
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 class landau_distribution {
 
     public:

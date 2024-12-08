@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/materials/material.hpp"
 #include "detray/materials/predefined_materials.hpp"
@@ -19,7 +20,7 @@
 namespace detray {
 
 // Slab structure to be mapped on the mask (plane, cylinder)
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 struct material_slab {
     using scalar_type = scalar_t;
     using material_type = material<scalar_t>;

@@ -12,6 +12,7 @@
 #include "detray/builders/volume_builder_interface.hpp"
 #include "detray/definitions/geometry.hpp"
 #include "detray/geometry/tracking_surface.hpp"
+#include "detray/utils/concepts.hpp"
 #include "detray/utils/grid/detail/concepts.hpp"
 
 // System include(s)

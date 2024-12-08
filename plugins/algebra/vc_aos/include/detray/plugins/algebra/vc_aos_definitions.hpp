@@ -13,7 +13,7 @@
 namespace detray {
 
 /// The plugin definition
-template <typename scalar_t>
+template <algebra::concepts::scalar scalar_t>
 using vc_aos = algebra::plugin::vc_aos<scalar_t>;
 
 namespace getter {

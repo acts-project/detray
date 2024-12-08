@@ -14,6 +14,7 @@
 #include "detray/builders/homogeneous_material_builder.hpp"
 #include "detray/builders/homogeneous_material_generator.hpp"
 #include "detray/core/detector.hpp"
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/default_metadata.hpp"
@@ -30,7 +31,7 @@
 namespace detray {
 
 /// Configuration for building a wire chamber detector
-template <typename scalar_t, typename wire_shape_t = line_square>
+template <concepts::scalar scalar_t, typename wire_shape_t = line_square>
 struct wire_chamber_config {
 
     /// Number of layers
@@ -142,7 +143,7 @@ struct wire_chamber_config {
 
 };  // wire chamber config
 
-template <typename algebra_t, typename wire_shape_t>
+template <concepts::algebra algebra_t, typename wire_shape_t>
 inline auto build_wire_chamber(
     vecmem::memory_resource &resource,
     wire_chamber_config<dscalar<algebra_t>, wire_shape_t> &cfg) {

@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/pdg_particle.hpp"
@@ -16,7 +17,7 @@
 
 namespace detray {
 
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 struct interaction {
 
     using scalar_type = scalar_t;

@@ -7,6 +7,9 @@
 
 #pragma once
 
+// Project include(s)
+#include "detray/definitions/detail/algebra.hpp"
+
 // Detray test include(s)
 #include "detray/options/options_handling.hpp"
 #include "detray/test/utils/simulation/event_generator/random_track_generator_config.hpp"
@@ -24,7 +27,7 @@ namespace detray::options {
 namespace detail {
 
 /// Add options for detray event generation
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 void add_uniform_track_gen_options(
     boost::program_options::options_description &desc,
     const uniform_track_generator_config<scalar_t> &cfg) {
@@ -56,7 +59,7 @@ void add_uniform_track_gen_options(
 }
 
 /// Add options for detray event generation
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 void configure_uniform_track_gen_options(
     const boost::program_options::variables_map &vm,
     uniform_track_generator_config<scalar_t> &cfg) {
@@ -97,7 +100,7 @@ void configure_uniform_track_gen_options(
 }
 
 /// Add options for detray event generation
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 void add_rnd_track_gen_options(
     boost::program_options::options_description &desc,
     const random_track_generator_config<scalar_t> &cfg) {
@@ -128,7 +131,7 @@ void add_rnd_track_gen_options(
 }
 
 /// Add options for detray event generation
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 void configure_rnd_track_gen_options(
     const boost::program_options::variables_map &vm,
     random_track_generator_config<scalar_t> &cfg) {

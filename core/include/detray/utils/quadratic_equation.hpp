@@ -19,7 +19,7 @@
 
 namespace detray::detail {
 
-template <typename scalar_t, typename = void>
+template <concepts::scalar scalar_t, typename = void>
 class quadratic_equation {};
 
 /// Class to solve a quadratic equation of type a * x^2 + b * x + c = 0
@@ -27,7 +27,7 @@ class quadratic_equation {};
 /// @note If there are no real solutions, the result is undefined
 /// @note The solutions are sorted by default. If there is only one solution,
 /// the larger value is undefined.
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 requires std::is_arithmetic_v<scalar_t> class quadratic_equation<scalar_t> {
     public:
     quadratic_equation() = delete;
@@ -93,7 +93,7 @@ requires std::is_arithmetic_v<scalar_t> class quadratic_equation<scalar_t> {
 /// @note If there are no real solutions, the result is undefined
 /// @note The solutions are sorted by default. If there is only one
 /// solution, the larger value is undefined.
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 requires(!std::is_arithmetic_v<scalar_t>) class quadratic_equation<scalar_t> {
     public:
     quadratic_equation() = delete;
