@@ -131,7 +131,7 @@ DETRAY_HOST_DEVICE constexpr void advance_impl(
     }
 }
 
-// random access iterators specialization
+// bidirectional iterators specialization
 template <std::bidirectional_iterator iterator_t, typename dist_t>
 DETRAY_HOST_DEVICE constexpr void advance_impl(
     iterator_t& itr, dist_t d, detray::ranges::bidirectional_iterator_tag) {
@@ -152,17 +152,7 @@ template <std::random_access_iterator iterator_t, typename dist_t>
 DETRAY_HOST_DEVICE constexpr void advance_impl(
     iterator_t& itr, dist_t d, detray::ranges::random_access_iterator_tag) {
     static_assert(std::is_integral_v<dist_t>);
-    if (d == static_cast<dist_t>(1)) {
-        ++itr;
-    } else {
-        if constexpr (std::is_signed_v<dist_t>) {
-            if (d == static_cast<dist_t>(-1)) {
-                --itr;
-                return;
-            }
-        }
-        itr += d;
-    }
+    itr += d;
 }
 
 template <std::input_iterator iterator_t, typename dist_t>
