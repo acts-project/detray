@@ -23,7 +23,7 @@ template <typename T>
 void add_options(boost::program_options::options_description&, const T&);
 
 template <typename T>
-void configure_options(boost::program_options::variables_map&, T&);
+void configure_options(const boost::program_options::variables_map&, T&);
 
 /// Parse commandline options and add them to detray configuration types
 template <typename... CONFIGS>

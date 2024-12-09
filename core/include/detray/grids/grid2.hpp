@@ -21,6 +21,8 @@
 
 namespace detray {
 
+using scalar = DETRAY_CUSTOM_SCALARTYPE;
+
 /** A two-dimensional grid for object storage
  *
  * @tparam populator_t  is a prescription what to do when a bin gets

@@ -12,7 +12,6 @@
 #include "detray/builders/volume_builder.hpp"
 #include "detray/core/detector.hpp"
 #include "detray/definitions/detail/indexing.hpp"
-#include "detray/detectors/toy_metadata.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes/annulus2D.hpp"
 #include "detray/utils/type_list.hpp"
@@ -34,12 +33,13 @@ using namespace detray::axis;
 
 namespace {
 
-using point3 = test::point3;
-using vector3 = test::vector3;
-
 test::transform3 Identity{};
 
-using detector_t = detector<toy_metadata>;
+using detector_t = detector<test::toy_metadata>;
+using algebra_t = typename detector_t::algebra_type;
+using scalar = dscalar<algebra_t>;
+using point3 = dpoint3D<algebra_t>;
+using vector3 = dvector3D<algebra_t>;
 
 /// Mock volume builder for unit testing
 struct mock_volume_builder : public volume_builder_interface<detector_t> {
@@ -97,15 +97,16 @@ GTEST_TEST(detray_builders, grid_factory_static) {
 
     // Data-owning grid collection
     vecmem::host_memory_resource host_mr;
-    auto gr_factory =
-        grid_factory<bins::static_array<dindex, 3>, simple_serializer>{host_mr};
+    auto gr_factory = grid_factory<bins::static_array<dindex, 3>,
+                                   simple_serializer, algebra_t>{host_mr};
 
     // Build from existing mask of a surface
     const scalar minR{0.f};
     const scalar maxR{10.f};
     const scalar minPhi{0.f};
     const scalar maxPhi{constant<scalar>::pi};
-    mask<annulus2D> ann2{0u, minR, maxR, minPhi, maxPhi, 0.f, 0.f, 0.f};
+    mask<annulus2D, algebra_t> ann2{0u,     minR, maxR, minPhi,
+                                    maxPhi, 0.f,  0.f,  0.f};
 
     // Grid with correctly initialized axes, but empty bin content
     auto ann_gr = gr_factory.new_grid(ann2, {5, 10});
@@ -144,7 +145,7 @@ GTEST_TEST(detray_builders, grid_factory_static) {
                             bin_edges_z.front(), bin_edges_z.back()},
         {10u, bin_edges_z.size() - 1}, {}, {bin_edges_phi, bin_edges_z},
         types::list<circular<label::e_rphi>, closed<label::e_cyl_z>>{},
-        types::list<regular<>, irregular<>>{});
+        types::list<regular<scalar>, irregular<scalar>>{});
 
     // Test axis
     const auto& cyl_axis_rphi = cyl_gr.template get_axis<label::e_rphi>();
@@ -179,12 +180,14 @@ GTEST_TEST(detray_builders, grid_factory_static) {
     const scalar r{5.f};
     const scalar n_half_z{-10.f};
     const scalar p_half_z{9.f};
-    mask<cylinder2D> cyl2{0u, r, n_half_z, p_half_z};
+    mask<cylinder2D, algebra_t> cyl2{0u, r, n_half_z, p_half_z};
 
-    auto cyl_gr2 = gr_factory.template new_grid<circular<label::e_rphi>,
-                                                closed<label::e_cyl_z>,
-                                                regular<>, irregular<>>(
-        cyl2, {bin_edges_z.size() - 1, 10u}, {}, {bin_edges_phi, bin_edges_z});
+    auto cyl_gr2 =
+        gr_factory
+            .template new_grid<circular<label::e_rphi>, closed<label::e_cyl_z>,
+                               regular<scalar>, irregular<scalar>>(
+                cyl2, {bin_edges_z.size() - 1, 10u}, {},
+                {bin_edges_phi, bin_edges_z});
 }
 
 /// Unittest: Test the construction of a collection of grids
@@ -193,14 +196,16 @@ GTEST_TEST(detray_builders, grid_factory_dynamic) {
     // Data-owning grid collection
     vecmem::host_memory_resource host_mr;
     auto gr_factory =
-        grid_factory<bins::dynamic_array<dindex>, simple_serializer>{host_mr};
+        grid_factory<bins::dynamic_array<dindex>, simple_serializer, algebra_t>{
+            host_mr};
 
     // Build from existing mask of a surface
     const scalar minR{0.f};
     const scalar maxR{10.f};
     const scalar minPhi{0.f};
     const scalar maxPhi{constant<scalar>::pi};
-    mask<annulus2D> ann2{0u, minR, maxR, minPhi, maxPhi, 0.f, 0.f, 0.f};
+    mask<annulus2D, algebra_t> ann2{0u,     minR, maxR, minPhi,
+                                    maxPhi, 0.f,  0.f,  0.f};
 
     // Grid with correctly initialized axes and bins, but empty bin content
     using ann_grid_t =
@@ -278,7 +283,7 @@ GTEST_TEST(detray_builders, grid_factory_dynamic) {
                             bin_edges_z.front(), bin_edges_z.back()},
         {10u, bin_edges_z.size() - 1}, capacities, {bin_edges_phi, bin_edges_z},
         types::list<circular<label::e_rphi>, closed<label::e_cyl_z>>{},
-        types::list<regular<>, irregular<>>{});
+        types::list<regular<scalar>, irregular<scalar>>{});
 
     // Test axis
     const auto& cyl_axis_rphi = cyl_gr.template get_axis<label::e_rphi>();
@@ -337,12 +342,12 @@ GTEST_TEST(detray_builders, grid_factory_dynamic) {
     const scalar r{5.f};
     const scalar n_half_z{-10.f};
     const scalar p_half_z{9.f};
-    mask<cylinder2D> cyl2{0u, r, n_half_z, p_half_z};
+    mask<cylinder2D, algebra_t> cyl2{0u, r, n_half_z, p_half_z};
 
     auto cyl_gr2 =
         gr_factory
             .template new_grid<circular<label::e_rphi>, closed<label::e_cyl_z>,
-                               regular<>, irregular<>>(
+                               regular<scalar>, irregular<scalar>>(
                 cyl2, {10u, bin_edges_z.size() - 1}, capacities,
                 {bin_edges_phi, bin_edges_z});
 }
@@ -351,7 +356,7 @@ GTEST_TEST(detray_builders, grid_factory_dynamic) {
 GTEST_TEST(detray_builders, grid_builder) {
 
     // cylinder grid type of the toy detector
-    using cyl_grid_t = grid<axes<concentric_cylinder2D>,
+    using cyl_grid_t = grid<algebra_t, axes<concentric_cylinder2D>,
                             bins::static_array<detector_t::surface_type, 1>,
                             simple_serializer, host_container_types, false>;
 
@@ -360,7 +365,8 @@ GTEST_TEST(detray_builders, grid_builder) {
             std::make_unique<mock_volume_builder>()};
 
     // The cylinder portals are at the end of the surface range by construction
-    const auto cyl_mask = mask<concentric_cylinder2D>{0u, 10.f, -500.f, 500.f};
+    const auto cyl_mask =
+        mask<concentric_cylinder2D, algebra_t>{0u, 10.f, -500.f, 500.f};
     std::size_t n_phi_bins{5u};
     std::size_t n_z_bins{4u};
 

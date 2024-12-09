@@ -27,9 +27,10 @@
 
 namespace {
 
+using scalar = detray::test::scalar;
 using point3 = detray::test::point3;
 
-constexpr detray::scalar tol{1e-7f};
+constexpr scalar tol{1e-7f};
 
 }  // anonymous namespace
 
@@ -38,15 +39,16 @@ GTEST_TEST(detray_builders, surface_factory) {
 
     using namespace detray;
 
-    using detector_t = detector<>;
-    using transform3 = typename detector_t::transform3_type;
+    using metadata_t = test::default_metadata;
+    using detector_t = detector<metadata_t>;
+    using transform3 = dtransform3D<typename detector_t::algebra_type>;
 
     //
     // check portal cylinder
     //
     using portal_cylinder_factory =
         surface_factory<detector_t,
-                        typename default_metadata::cylinder_portal::shape>;
+                        typename metadata_t::cylinder_portal::shape>;
 
     auto pt_cyl_factory = std::make_shared<portal_cylinder_factory>();
 
@@ -206,7 +208,8 @@ GTEST_TEST(detray_builders, volume_builder) {
 
     vecmem::host_memory_resource host_mr;
 
-    using detector_t = detector<>;
+    using metadata_t = test::default_metadata;
+    using detector_t = detector<metadata_t>;
 
     detector_t d(host_mr);
 

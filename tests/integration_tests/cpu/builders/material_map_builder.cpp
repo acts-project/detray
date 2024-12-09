@@ -37,7 +37,8 @@ namespace {
 
 using point3 = test::point3;
 
-using detector_t = detector<>;
+using metadata_t = test::default_metadata;
+using detector_t = detector<metadata_t>;
 using mat_id = typename detector_t::materials::id;
 using bin_index_t = axis::multi_bin<2u>;
 
@@ -69,8 +70,9 @@ auto add_material_data(const material_factory_t& mat_factory, mat_id id,
 /// Integration test: material builder as volume builder decorator
 GTEST_TEST(detray_builders, decorator_material_map_builder) {
 
-    using transform3 = typename detector_t::transform3_type;
-    using scalar_t = typename detector_t::scalar_type;
+    using test_algebra = typename detector_t::algebra_type;
+    using scalar = dscalar<test_algebra>;
+    using transform3 = dtransform3D<test_algebra>;
     using mask_id = typename detector_t::masks::id;
 
     using pt_cylinder_factory_t =
@@ -131,33 +133,33 @@ GTEST_TEST(detray_builders, decorator_material_map_builder) {
     // Now add the material for each surface
     auto mat_pt_cyl_factory =
         std::make_shared<mat_factory_t>(std::move(pt_cyl_factory));
-    scalar_t t{1.f * unit<scalar_t>::mm};
+    scalar t{1.f * unit<scalar>::mm};
     add_material_data(mat_pt_cyl_factory, mat_id::e_concentric_cylinder2_map,
-                      0u, t, silicon<scalar_t>());
+                      0u, t, silicon<scalar>());
     add_material_data(mat_pt_cyl_factory, mat_id::e_concentric_cylinder2_map,
-                      1u, t, silicon<scalar_t>());
+                      1u, t, silicon<scalar>());
 
     auto mat_rect_factory =
         std::make_shared<mat_factory_t>(std::move(rect_factory));
-    t = 1.f * unit<scalar_t>::mm;
+    t = 1.f * unit<scalar>::mm;
     add_material_data(mat_rect_factory, mat_id::e_rectangle2_map, 2u, t,
-                      tungsten<scalar_t>());
+                      tungsten<scalar>());
     // No material for surface with index 3
-    t = 3.f * unit<scalar_t>::mm;
+    t = 3.f * unit<scalar>::mm;
     add_material_data(mat_rect_factory, mat_id::e_rectangle2_map, 4u, t,
-                      tungsten<scalar_t>());
+                      tungsten<scalar>());
 
     auto mat_trpz_factory =
         std::make_shared<mat_factory_t>(std::move(trpz_factory));
-    t = 1.f * unit<scalar_t>::mm;
+    t = 1.f * unit<scalar>::mm;
     add_material_data(mat_trpz_factory, mat_id::e_trapezoid2_map, 5u, t,
-                      tungsten<scalar_t>());
+                      tungsten<scalar>());
 
     auto mat_cyl_factory =
         std::make_shared<mat_factory_t>(std::move(cyl_factory));
-    t = 1.5f * unit<scalar_t>::mm;
+    t = 1.5f * unit<scalar>::mm;
     add_material_data(mat_cyl_factory, mat_id::e_cylinder2_map, 6u, t,
-                      gold<scalar_t>());
+                      gold<scalar>());
 
     // Add surfaces and material to detector
     mat_builder.add_surfaces(mat_pt_cyl_factory, geo_ctx);

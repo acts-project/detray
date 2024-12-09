@@ -35,6 +35,8 @@ using namespace detray::axis;
 namespace {
 
 // Algebra definitions
+using test_algebra = test::algebra;
+using scalar = test::scalar;
 using point3 = test::point3;
 
 constexpr scalar inf{std::numeric_limits<scalar>::max()};
@@ -42,7 +44,8 @@ constexpr scalar tol{1e-7f};
 
 // Either a data owning or non-owning 3D cartesian multi-axis
 template <bool ownership = true, typename containers = host_container_types>
-using cartesian_3D = coordinate_axes<axes<cuboid3D>, ownership, containers>;
+using cartesian_3D =
+    coordinate_axes<axes<cuboid3D>, test_algebra, ownership, containers>;
 
 // non-owning multi-axis: Takes external containers
 bool constexpr is_owning = true;
@@ -86,14 +89,16 @@ void test_content(const grid_t& g, const point3& p, const content_t& expected) {
 GTEST_TEST(detray_grid, single_grid) {
 
     // Owning and non-owning, cartesian, 3-dimensional grids
-    using grid_owning_t = grid<axes<cuboid3D>, bins::single<scalar>>;
+    using grid_owning_t =
+        grid<test_algebra, axes<cuboid3D>, bins::single<scalar>>;
 
     using grid_n_owning_t =
-        grid<axes<cuboid3D>, bins::single<scalar>, simple_serializer,
-             host_container_types, false>;
+        grid<test_algebra, axes<cuboid3D>, bins::single<scalar>,
+             simple_serializer, host_container_types, false>;
 
-    using grid_device_t = grid<axes<cuboid3D>, bins::single<scalar>,
-                               simple_serializer, device_container_types>;
+    using grid_device_t =
+        grid<test_algebra, axes<cuboid3D>, bins::single<scalar>,
+             simple_serializer, device_container_types>;
 
     static_assert(concepts::grid<grid_owning_t>);
     static_assert(concepts::grid<grid_n_owning_t>);
@@ -136,7 +141,7 @@ GTEST_TEST(detray_grid, single_grid) {
     auto y_axis = grid_own.get_axis<label::e_y>();
     EXPECT_EQ(y_axis.nbins(), 40u);
     auto z_axis =
-        grid_own.get_axis<single_axis<closed<label::e_z>, regular<>>>();
+        grid_own.get_axis<single_axis<closed<label::e_z>, regular<scalar>>>();
     EXPECT_EQ(z_axis.nbins(), 50u);
 
     // Create non-owning grid
@@ -190,11 +195,12 @@ GTEST_TEST(detray_grid, single_grid) {
 
     static_assert(
         std::is_same_v<decltype(const_grid_view),
-                       typename grid<cartesian_3D<>, bins::single<const
-    scalar>>::view_type>, "Const grid view was not correctly constructed!");
+                       typename grid<test_algebra,cartesian_3D<>,
+    bins::single<const scalar>>::view_type>, "Const grid view was not correctly
+    constructed!");
 
-    grid<cartesian_3D<is_owning, device_container_types>, bins::single<const
-    scalar>> const_device_grid(const_grid_view);
+    grid<test_algebra,cartesian_3D<is_owning, device_container_types>,
+    bins::single<const scalar>> const_device_grid(const_grid_view);
 
     static_assert(
         std::is_same_v<typename decltype(const_device_grid)::bin_type,
@@ -206,14 +212,16 @@ GTEST_TEST(detray_grid, single_grid) {
 GTEST_TEST(detray_grid, dynamic_array) {
 
     // Owning and non-owning, cartesian, 3-dimensional grids
-    using grid_owning_t = grid<axes<cuboid3D>, bins::dynamic_array<scalar>>;
+    using grid_owning_t =
+        grid<test_algebra, axes<cuboid3D>, bins::dynamic_array<scalar>>;
 
     using grid_n_owning_t =
-        grid<axes<cuboid3D>, bins::dynamic_array<scalar>, simple_serializer,
-             host_container_types, false>;
+        grid<test_algebra, axes<cuboid3D>, bins::dynamic_array<scalar>,
+             simple_serializer, host_container_types, false>;
 
-    using grid_device_t = grid<axes<cuboid3D>, bins::dynamic_array<scalar>,
-                               simple_serializer, device_container_types>;
+    using grid_device_t =
+        grid<test_algebra, axes<cuboid3D>, bins::dynamic_array<scalar>,
+             simple_serializer, device_container_types>;
 
     static_assert(concepts::grid<grid_owning_t>);
     static_assert(concepts::grid<grid_n_owning_t>);
@@ -275,7 +283,7 @@ GTEST_TEST(detray_grid, dynamic_array) {
     auto y_axis = grid_own.get_axis<label::e_y>();
     EXPECT_EQ(y_axis.nbins(), 40u);
     auto z_axis =
-        grid_own.get_axis<single_axis<closed<label::e_z>, regular<>>>();
+        grid_own.get_axis<single_axis<closed<label::e_z>, regular<scalar>>>();
     EXPECT_EQ(z_axis.nbins(), 50u);
 
     // Check equality operator:
@@ -343,7 +351,7 @@ GTEST_TEST(detray_grid, dynamic_array) {
 GTEST_TEST(detray_grid, bin_view) {
 
     // Non-owning, 3D cartesian, replacing grid
-    using grid_t = grid<axes<cuboid3D>, bins::single<scalar>>;
+    using grid_t = grid<test_algebra, axes<cuboid3D>, bins::single<scalar>>;
 
     static_assert(concepts::grid<grid_t>);
 
@@ -478,7 +486,7 @@ GTEST_TEST(detray_grid, bin_view) {
 GTEST_TEST(detray_grid, replace_population) {
 
     // Non-owning, 3D cartesian  grid
-    using grid_t = grid<decltype(ax_n_own), bins::single<scalar>,
+    using grid_t = grid<test_algebra, decltype(ax_n_own), bins::single<scalar>,
                         simple_serializer, host_container_types, false>;
 
     static_assert(concepts::grid<grid_t>);
@@ -532,8 +540,9 @@ GTEST_TEST(detray_grid, replace_population) {
 GTEST_TEST(detray_grid, complete_population) {
 
     // Non-owning, 3D cartesian, completing grid (4 dims and sort)
-    using grid_t = grid<decltype(ax_n_own), bins::static_array<scalar, 4>,
-                        simple_serializer, host_container_types, false>;
+    using grid_t =
+        grid<test_algebra, decltype(ax_n_own), bins::static_array<scalar, 4>,
+             simple_serializer, host_container_types, false>;
     using bin_t = grid_t::bin_type;
     using bin_content_t = std::array<scalar, 4>;
 
@@ -618,8 +627,9 @@ GTEST_TEST(detray_grid, complete_population) {
 GTEST_TEST(detray_grid, regular_attach_population) {
 
     // Non-owning, 3D cartesian, completing grid (4 dims and sort)
-    using grid_t = grid<decltype(ax_n_own), bins::static_array<scalar, 4>,
-                        simple_serializer, host_container_types, false>;
+    using grid_t =
+        grid<test_algebra, decltype(ax_n_own), bins::static_array<scalar, 4>,
+             simple_serializer, host_container_types, false>;
     using bin_t = grid_t::bin_type;
     using bin_content_t = std::array<scalar, 4>;
 

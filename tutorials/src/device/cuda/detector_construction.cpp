@@ -22,6 +22,9 @@
 
 /// Prepare the data and move it to device
 int main() {
+
+    using algebra_t = detray::tutorial::algebra_t;
+
     // memory resource(s)
     vecmem::host_memory_resource host_mr;
     vecmem::cuda::managed_memory_resource mng_mr;
@@ -35,7 +38,7 @@ int main() {
     //
 
     // create toy geometry with vecmem managed memory resouce
-    auto [det_mng, names_mng] = detray::build_toy_detector(mng_mr);
+    auto [det_mng, names_mng] = detray::build_toy_detector<algebra_t>(mng_mr);
 
     // Get the view onto the detector data directly
     auto det_mng_data = detray::get_data(det_mng);
@@ -49,7 +52,8 @@ int main() {
     //
 
     // create toy geometry in host memory
-    auto [det_host, names_host] = detray::build_toy_detector(host_mr);
+    auto [det_host, names_host] =
+        detray::build_toy_detector<algebra_t>(host_mr);
 
     // Copy the detector data to device (synchronous copy, fixed size buffers)
     auto det_fixed_buff = detray::get_buffer(det_host, dev_mr, cuda_cpy);

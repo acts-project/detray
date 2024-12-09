@@ -43,7 +43,7 @@ namespace detray {
 /// @note that if non-zero axis_spans are provided the values of the
 /// mask is overwritten
 template <typename bin_t, template <std::size_t> class serializer_t,
-          typename algebra_t = ALGEBRA_PLUGIN<detray::scalar>>
+          typename algebra_t>
 class grid_factory {
 
     public:
@@ -52,7 +52,8 @@ class grid_factory {
 
     using bin_type = bin_t;
     template <typename grid_shape_t>
-    using grid_type = grid<axes<grid_shape_t>, bin_type, serializer_t>;
+    using grid_type =
+        grid<algebra_t, axes<grid_shape_t>, bin_type, serializer_t>;
     template <typename grid_shape_t>
     using loc_bin_index = typename grid_type<grid_shape_t>::loc_bin_index;
 
@@ -73,10 +74,10 @@ class grid_factory {
     template <
         typename r_bounds = axis::closed<axis::label::e_r>,
         typename phi_bounds = axis::circular<>,
-        typename r_binning = axis::regular<host_container_types, scalar_type>,
-        typename phi_binning = axis::regular<host_container_types, scalar_type>>
+        typename r_binning = axis::regular<scalar_type, host_container_types>,
+        typename phi_binning = axis::regular<scalar_type, host_container_types>>
     requires std::is_enum_v<decltype(r_bounds::label)> auto new_grid(
-        const mask<annulus2D> &grid_bounds,
+        const mask<annulus2D, algebra_type> &grid_bounds,
         const std::array<std::size_t, 2UL> n_bins,
         const std::vector<std::pair<loc_bin_index<annulus2D>, dindex>>
             &bin_capacities = {},
@@ -130,11 +131,11 @@ class grid_factory {
         typename x_bounds = axis::closed<axis::label::e_x>,
         typename y_bounds = axis::closed<axis::label::e_y>,
         typename z_bounds = axis::closed<axis::label::e_z>,
-        typename x_binning = axis::regular<host_container_types, scalar_type>,
-        typename y_binning = axis::regular<host_container_types, scalar_type>,
-        typename z_binning = axis::regular<host_container_types, scalar_type>>
+        typename x_binning = axis::regular<scalar_type, host_container_types>,
+        typename y_binning = axis::regular<scalar_type, host_container_types>,
+        typename z_binning = axis::regular<scalar_type, host_container_types>>
     requires std::is_enum_v<decltype(x_bounds::label)> auto new_grid(
-        const mask<cuboid3D> &grid_bounds,
+        const mask<cuboid3D, algebra_type> &grid_bounds,
         const std::array<std::size_t, 3UL> n_bins,
         const std::vector<std::pair<loc_bin_index<cuboid3D>, dindex>>
             &bin_capacities = {},
@@ -187,10 +188,10 @@ class grid_factory {
         typename rphi_bounds = axis::circular<axis::label::e_rphi>,
         typename z_bounds = axis::closed<axis::label::e_cyl_z>,
         typename rphi_binning =
-            axis::regular<host_container_types, scalar_type>,
-        typename z_binning = axis::regular<host_container_types, scalar_type>>
+            axis::regular<scalar_type, host_container_types>,
+        typename z_binning = axis::regular<scalar_type, host_container_types>>
     requires std::is_enum_v<decltype(rphi_bounds::label)> auto new_grid(
-        const mask<cylinder2D> &grid_bounds,
+        const mask<cylinder2D, algebra_type> &grid_bounds,
         const std::array<std::size_t, 2UL> n_bins,
         const std::vector<std::pair<loc_bin_index<cylinder2D>, dindex>>
             &bin_capacities = {},
@@ -233,10 +234,10 @@ class grid_factory {
         typename rphi_bounds = axis::circular<axis::label::e_rphi>,
         typename z_bounds = axis::closed<axis::label::e_cyl_z>,
         typename rphi_binning =
-            axis::regular<host_container_types, scalar_type>,
-        typename z_binning = axis::regular<host_container_types, scalar_type>>
+            axis::regular<scalar_type, host_container_types>,
+        typename z_binning = axis::regular<scalar_type, host_container_types>>
     requires std::is_enum_v<decltype(rphi_bounds::label)> auto new_grid(
-        const mask<concentric_cylinder2D> &grid_bounds,
+        const mask<concentric_cylinder2D, algebra_type> &grid_bounds,
         const std::array<std::size_t, 2UL> n_bins,
         const std::vector<std::pair<loc_bin_index<concentric_cylinder2D>,
                                     dindex>> &bin_capacities = {},
@@ -280,11 +281,11 @@ class grid_factory {
         typename r_bounds = axis::closed<axis::label::e_r>,
         typename phi_bounds = axis::circular<>,
         typename z_bounds = axis::closed<axis::label::e_z>,
-        typename r_binning = axis::regular<host_container_types, scalar_type>,
-        typename phi_binning = axis::regular<host_container_types, scalar_type>,
-        typename z_binning = axis::regular<host_container_types, scalar_type>>
+        typename r_binning = axis::regular<scalar_type, host_container_types>,
+        typename phi_binning = axis::regular<scalar_type, host_container_types>,
+        typename z_binning = axis::regular<scalar_type, host_container_types>>
     requires std::is_enum_v<decltype(r_bounds::label)> auto new_grid(
-        const mask<cylinder3D> &grid_bounds,
+        const mask<cylinder3D, algebra_type> &grid_bounds,
         const std::array<std::size_t, 3UL> n_bins,
         const std::vector<std::pair<loc_bin_index<cylinder3D>, dindex>>
             &bin_capacities = {},
@@ -344,10 +345,10 @@ class grid_factory {
     template <
         typename r_bounds = axis::closed<axis::label::e_r>,
         typename phi_bounds = axis::circular<>,
-        typename r_binning = axis::regular<host_container_types, scalar_type>,
-        typename phi_binning = axis::regular<host_container_types, scalar_type>>
+        typename r_binning = axis::regular<scalar_type, host_container_types>,
+        typename phi_binning = axis::regular<scalar_type, host_container_types>>
     requires std::is_enum_v<decltype(r_bounds::label)> auto new_grid(
-        const mask<ring2D> &grid_bounds,
+        const mask<ring2D, algebra_type> &grid_bounds,
         const std::array<std::size_t, 2UL> n_bins,
         const std::vector<std::pair<loc_bin_index<ring2D>, dindex>>
             &bin_capacities = {},
@@ -390,10 +391,10 @@ class grid_factory {
     template <
         typename x_bounds = axis::closed<axis::label::e_x>,
         typename y_bounds = axis::closed<axis::label::e_y>,
-        typename x_binning = axis::regular<host_container_types, scalar_type>,
-        typename y_binning = axis::regular<host_container_types, scalar_type>>
+        typename x_binning = axis::regular<scalar_type, host_container_types>,
+        typename y_binning = axis::regular<scalar_type, host_container_types>>
     requires std::is_enum_v<decltype(x_bounds::label)> auto new_grid(
-        const mask<rectangle2D> &grid_bounds,
+        const mask<rectangle2D, algebra_type> &grid_bounds,
         const std::array<std::size_t, 2UL> n_bins,
         const std::vector<std::pair<loc_bin_index<rectangle2D>, dindex>>
             &bin_capacities = {},
@@ -435,10 +436,10 @@ class grid_factory {
     template <
         typename x_bounds = axis::closed<axis::label::e_x>,
         typename y_bounds = axis::closed<axis::label::e_y>,
-        typename x_binning = axis::regular<host_container_types, scalar_type>,
-        typename y_binning = axis::regular<host_container_types, scalar_type>>
+        typename x_binning = axis::regular<scalar_type, host_container_types>,
+        typename y_binning = axis::regular<scalar_type, host_container_types>>
     requires std::is_enum_v<decltype(x_bounds::label)> auto new_grid(
-        const mask<trapezoid2D> &grid_bounds,
+        const mask<trapezoid2D, algebra_type> &grid_bounds,
         const std::array<std::size_t, 2UL> n_bins,
         const std::vector<std::pair<loc_bin_index<trapezoid2D>, dindex>>
             &bin_capacities = {},
@@ -509,7 +510,7 @@ class grid_factory {
         using axes_t =
             axis::multi_axis<is_owning, grid_frame_t,
                              axis::single_axis<bound_ts, binning_ts>...>;
-        using grid_t = grid<axes_t, bin_t, serializer_t>;
+        using grid_t = grid<algebra_t, axes_t, bin_t, serializer_t>;
 
         return new_grid<grid_t>(spans, n_bins, bin_capacities, ax_bin_edges);
     }
@@ -535,7 +536,7 @@ class grid_factory {
     /// and binnings from concrete grid type
     template <concepts::grid grid_t, typename grid_shape_t>
     auto new_grid(
-        const mask<grid_shape_t> &m,
+        const mask<grid_shape_t, algebra_type> &m,
         const std::array<std::size_t, grid_t::dim> &n_bins,
         const std::vector<std::pair<typename grid_t::loc_bin_index, dindex>>
             &bin_capacities = {},
@@ -555,7 +556,7 @@ class grid_factory {
         typename grid_shape_t, typename... bound_ts, typename... binning_ts,
         std::enable_if_t<std::is_enum_v<typename grid_shape_t::boundaries>,
                          bool> = true>
-    auto new_grid(const mask<grid_shape_t> &m,
+    auto new_grid(const mask<grid_shape_t, algebra_type> &m,
                   const std::array<std::size_t, grid_shape_t::dim> &n_bins,
                   const std::vector<
                       std::pair<axis::multi_bin<sizeof...(bound_ts)>, dindex>>
@@ -652,7 +653,7 @@ class grid_factory {
                    vector_type<scalar_type> &bin_edges) const {
         if constexpr (std::is_same_v<
                           types::at<binnings, I>,
-                          axis::regular<host_container_types, scalar_type>>) {
+                          axis::regular<scalar_type, host_container_types>>) {
             axes_data.push_back({static_cast<dindex>(bin_edges.size()),
                                  static_cast<dindex>(n_bins.at(I))});
             bin_edges.push_back(spans.at(I * 2u));
@@ -685,11 +686,10 @@ class grid_factory {
 };
 
 // Infer a grid factory type from an already completely assembled grid type
-template <concepts::grid grid_t,
-          typename algebra_t = ALGEBRA_PLUGIN<detray::scalar>>
+template <concepts::grid grid_t>
 using grid_factory_type =
     grid_factory<typename grid_t::bin_type,
                  simple_serializer /*grid_t::template serializer_type*/,
-                 algebra_t>;
+                 typename grid_t::algebra_type>;
 
 }  // namespace detray

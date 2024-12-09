@@ -12,11 +12,8 @@
 
 namespace detray {
 
-// Define scalar type
-using scalar = DETRAY_CUSTOM_SCALARTYPE;
-
 /// The plugin definition
-template <typename scalar_t = DETRAY_CUSTOM_SCALARTYPE>
+template <typename scalar_t>
 using vc_soa = algebra::plugin::vc_soa<scalar_t>;
 
 // Pull in additional arithmetic operators for the algebra types

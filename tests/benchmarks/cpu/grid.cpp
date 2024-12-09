@@ -32,6 +32,9 @@
 // Use the detray:: namespace implicitly.
 using namespace detray;
 
+using test_algebra = test::algebra;
+using scalar = test::scalar;
+
 namespace {
 
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
@@ -60,7 +63,7 @@ template <typename bin_t>
 auto make_regular_grid(vecmem::memory_resource &mr) {
 
     // Data-owning grids with bin capacity 1
-    auto gr_factory = grid_factory<bin_t, simple_serializer>{mr};
+    auto gr_factory = grid_factory<bin_t, simple_serializer, test_algebra>{mr};
 
     // Spans of the axes
     std::vector<scalar> spans = {0.f, 25.f, 0.f, 60.f};
@@ -72,7 +75,7 @@ auto make_regular_grid(vecmem::memory_resource &mr) {
         spans, nbins, {}, {},
         types::list<axis::closed<axis::label::e_x>,
                     axis::closed<axis::label::e_y>>{},
-        types::list<axis::regular<>, axis::regular<>>{});
+        types::list<axis::regular<scalar>, axis::regular<scalar>>{});
 }
 
 /// Make an irregular grid for the tests.
@@ -91,14 +94,14 @@ auto make_irregular_grid(vecmem::memory_resource &mr) {
     }
 
     // Data-owning grids with bin capacity 1
-    auto gr_factory = grid_factory<bin_t, simple_serializer>{mr};
+    auto gr_factory = grid_factory<bin_t, simple_serializer, test_algebra>{mr};
 
     // Rectangular grid with closed bin bounds and irregular binning on all axes
     return gr_factory.template new_grid<rectangle2D>(
         {}, {}, {}, boundaries,
         types::list<axis::closed<axis::label::e_x>,
                     axis::closed<axis::label::e_y>>{},
-        types::list<axis::irregular<>, axis::irregular<>>{});
+        types::list<axis::irregular<scalar>, axis::irregular<scalar>>{});
 }
 
 /// Fill a grid with some values.
