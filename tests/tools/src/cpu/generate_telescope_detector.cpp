@@ -17,6 +17,7 @@
 #include "detray/options/detector_io_options.hpp"
 #include "detray/options/parse_options.hpp"
 #include "detray/test/utils/detectors/build_telescope_detector.hpp"
+#include "detray/test/utils/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -32,17 +33,17 @@ namespace {
 
 /// Generate and write a telescope detector, given the commandline variables
 /// and a configuration for the detector writer @param writer_cfg
-template <typename mask_shape_t, typename value_t, typename trajectory_t>
+template <typename mask_shape_t, typename value_t,
+          template <typename> class trajectory_t, typename algebra_t>
 void write_telecope(const po::variables_map &vm,
                     io::detector_writer_config &writer_cfg,
                     std::vector<value_t> &mask_params,
-                    const trajectory_t &traj) {
+                    const trajectory_t<algebra_t> &traj) {
 
-    using detector_t = detector<telescope_metadata<mask_shape_t>>;
-    using scalar_t = typename detector_t::scalar_type;
+    using scalar_t = dscalar<algebra_t>;
 
-    detray::tel_det_config<mask_shape_t, trajectory_t> tel_cfg{mask_params,
-                                                               traj};
+    detray::tel_det_config<algebra_t, mask_shape_t, trajectory_t> tel_cfg{
+        mask_params, traj};
 
     tel_cfg.n_surfaces(vm["modules"].as<unsigned int>());
     tel_cfg.length(vm["length"].as<scalar_t>());
@@ -51,7 +52,8 @@ void write_telecope(const po::variables_map &vm,
 
     // Build the detector
     vecmem::host_memory_resource host_mr;
-    auto [tel_det, tel_names] = build_telescope_detector(host_mr, tel_cfg);
+    auto [tel_det, tel_names] =
+        build_telescope_detector<algebra_t>(host_mr, tel_cfg);
 
     // Write to file
     detray::io::write_detector(tel_det, tel_names, writer_cfg);
@@ -64,9 +66,10 @@ void write_telecope(const po::variables_map &vm,
                     io::detector_writer_config &writer_cfg,
                     std::vector<value_t> &mask_params) {
 
-    using detector_t = detector<telescope_metadata<mask_shape_t>>;
-    using scalar_t = typename detector_t::scalar_type;
+    using detector_t =
+        detector<telescope_metadata<test::algebra, mask_shape_t>>;
     using algebra_t = typename detector_t::algebra_type;
+    using scalar_t = dscalar<algebra_t>;
     using vector3_t = dvector3D<algebra_t>;
 
     // Construct the pilot track
@@ -108,36 +111,34 @@ void write_telecope(const po::variables_map &vm,
 
 int main(int argc, char **argv) {
 
-    using scalar_t = detray::scalar;
+    using scalar = test::scalar;
 
     // Options parsing
     po::options_description desc("\nTelescope detector generation options");
 
-    std::vector<scalar_t> mask_params{
-        20.f * unit<scalar_t>::mm,
-        20.f * unit<scalar_t>::mm};  // < default values for rectangles
+    std::vector<scalar> mask_params{
+        20.f * unit<scalar>::mm,
+        20.f * unit<scalar>::mm};  // < default values for rectangles
     desc.add_options()("modules", po::value<unsigned int>()->default_value(10u),
                        "number of modules in telescope [1-20]")(
         "type", po::value<std::string>()->default_value("rectangle"),
         "type of the telescope modules [rectangle, trapezoid, annulus, ring, "
-        "cylinder]")(
-        "params", po::value<std::vector<scalar_t>>(&mask_params)->multitoken(),
-        "Mask values for the shape given in 'type'")(
-        "length",
-        po::value<scalar_t>()->default_value(500.f * unit<scalar_t>::mm),
+        "cylinder]")("params",
+                     po::value<std::vector<scalar>>(&mask_params)->multitoken(),
+                     "Mask values for the shape given in 'type'")(
+        "length", po::value<scalar>()->default_value(500.f * unit<scalar>::mm),
         "length of the telescope [mm]")(
-        "thickness",
-        po::value<scalar_t>()->default_value(1.f * unit<scalar_t>::mm),
+        "thickness", po::value<scalar>()->default_value(1.f * unit<scalar>::mm),
         "thickness of the module silicon material")(
         "envelope",
-        po::value<scalar_t>()->default_value(100.f * unit<scalar_t>::um),
+        po::value<scalar>()->default_value(100.f * unit<scalar>::um),
         "minimal distance between sensitive surfaces and portals")(
         "direction", po::value<std::string>()->default_value("z"),
         "direction of the telescope in global frame [x, y, z]")(
         "b_field",
-        boost::program_options::value<std::vector<scalar_t>>()->multitoken(),
+        boost::program_options::value<std::vector<scalar>>()->multitoken(),
         "B field vector for a pilot helix [T]")(
-        "p", po::value<scalar_t>()->default_value(10.f * unit<scalar_t>::GeV),
+        "p", po::value<scalar>()->default_value(10.f * unit<scalar>::GeV),
         "Total momentum of the pilot track [GeV]");
 
     // Configuration

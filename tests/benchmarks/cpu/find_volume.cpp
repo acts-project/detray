@@ -21,6 +21,9 @@
 // Use the detray:: namespace implicitly.
 using namespace detray;
 
+using test_algebra = test::algebra;
+using scalar = test::scalar;
+
 // Benchmarks the cost of searching a volume by position
 void BM_FIND_VOLUMES(benchmark::State &state) {
 
@@ -30,9 +33,9 @@ void BM_FIND_VOLUMES(benchmark::State &state) {
 
     // Detector configuration
     vecmem::host_memory_resource host_mr;
-    toy_det_config toy_cfg{};
+    toy_det_config<scalar> toy_cfg{};
     toy_cfg.n_edc_layers(7u);
-    auto [d, names] = build_toy_detector(host_mr, toy_cfg);
+    auto [d, names] = build_toy_detector<test_algebra>(host_mr, toy_cfg);
 
     static const unsigned int itest = 10000u;
 

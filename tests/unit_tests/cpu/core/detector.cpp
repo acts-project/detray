@@ -13,6 +13,7 @@
 
 // Detray test include(s)
 #include "detray/test/utils/prefill_detector.hpp"
+#include "detray/test/utils/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -25,7 +26,8 @@ GTEST_TEST(detray_core, detector) {
 
     using namespace detray;
 
-    using detector_t = detector<>;
+    using metadata_t = test::default_metadata;
+    using detector_t = detector<metadata_t>;
     using mask_id = typename detector_t::masks::id;
     using material_id = typename detector_t::materials::id;
     using finder_id = typename detector_t::accel::id;

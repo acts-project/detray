@@ -26,12 +26,14 @@
 GTEST_TEST(detray_navigation, volume_graph) {
     using namespace detray;
 
+    using test_algebra = test::algebra;
+
     vecmem::host_memory_resource host_mr;
 
-    toy_det_config toy_cfg{};
+    toy_det_config<test::scalar> toy_cfg{};
     toy_cfg.n_edc_layers(1u);
 
-    auto [det, names] = build_toy_detector(host_mr, toy_cfg);
+    auto [det, names] = build_toy_detector<test_algebra>(host_mr, toy_cfg);
 
     using detector_t = decltype(det);
 

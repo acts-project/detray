@@ -10,14 +10,17 @@
 // Projetc include(s)
 #include "detray/core/detector.hpp"
 #include "detray/definitions/detail/algebra.hpp"
-#include "detray/detectors/toy_metadata.hpp"
 #include "detray/utils/ranges.hpp"
+
+// Detray test include(s)
+#include "detray/test/utils/types.hpp"
 
 namespace detray {
 
 // some useful type declarations
-using detector_host_t = detector<toy_metadata, host_container_types>;
-using detector_device_t = detector<toy_metadata, device_container_types>;
+using metadata_t = test::toy_metadata;
+using detector_host_t = detector<metadata_t, host_container_types>;
+using detector_device_t = detector<metadata_t, device_container_types>;
 
 using det_volume_t = typename detector_host_t::volume_type;
 using det_surface_t = typename detector_host_t::surface_type;

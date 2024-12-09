@@ -24,7 +24,8 @@
 
 using namespace detray;
 
-using algebra_t = test::algebra;
+using test_algebra = test::algebra;
+using scalar = test::scalar;
 using point3 = test::point3;
 using vector3 = test::vector3;
 using transform3 = test::transform3;
@@ -34,7 +35,7 @@ constexpr scalar isclose{1e-5f};
 // This test cylindrical2D coordinate
 GTEST_TEST(detray_propagator, jacobian_cylindrical2D) {
 
-    using jac_engine = detail::jacobian_engine<cylindrical2D<algebra_t>>;
+    using jac_engine = detail::jacobian_engine<cylindrical2D<test_algebra>>;
 
     // Preparation work
     const vector3 z = {0.f, 0.f, 1.f};
@@ -49,15 +50,15 @@ GTEST_TEST(detray_propagator, jacobian_cylindrical2D) {
 
     const scalar r{2.f};
     const scalar hz{detail::invalid_value<scalar>()};
-    mask<cylinder2D> cyl{0u, r, -hz, hz};
+    mask<cylinder2D, test_algebra> cyl{0u, r, -hz, hz};
 
     // Free track parameter
-    const free_track_parameters<algebra_t> free_params(global1, time, mom,
-                                                       charge);
+    const free_track_parameters<test_algebra> free_params(global1, time, mom,
+                                                          charge);
 
     const auto bound_vec =
-        detail::free_to_bound_vector<cylindrical2D<algebra_t>>(trf,
-                                                               free_params);
+        detail::free_to_bound_vector<cylindrical2D<test_algebra>>(trf,
+                                                                  free_params);
     const auto free_params2 = detail::bound_to_free_vector(trf, cyl, bound_vec);
 
     // Check if the bound vector is correct
@@ -75,7 +76,7 @@ GTEST_TEST(detray_propagator, jacobian_cylindrical2D) {
     }
 
     // Test Jacobian transformation
-    const bound_matrix<algebra_t> J =
+    const bound_matrix<test_algebra> J =
         jac_engine::free_to_bound_jacobian(trf, free_params) *
         jac_engine::bound_to_free_jacobian(trf, cyl, bound_vec);
 

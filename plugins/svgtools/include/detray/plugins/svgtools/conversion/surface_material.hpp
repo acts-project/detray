@@ -39,7 +39,7 @@ auto material_grid(const detector_t& detector, const dindex index,
                    const styling::grid_style& style =
                        styling::tableau_colorblind::grid_style) {
 
-    using scalar_t = typename detector_t::scalar_type;
+    using scalar_t = dscalar<typename detector_t::algebra_type>;
 
     const auto& sf_desc = detector.surface(index);
     const auto& link = sf_desc.material();

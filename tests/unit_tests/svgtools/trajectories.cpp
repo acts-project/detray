@@ -17,6 +17,7 @@
 
 // Detray test include(s)
 #include "detray/test/utils/detectors/build_toy_detector.hpp"
+#include "detray/test/utils/types.hpp"
 #include "detray/test/validation/detector_scanner.hpp"
 #include "detray/test/validation/svg_display.hpp"
 
@@ -51,7 +52,8 @@ GTEST_TEST(svgtools, trajectories) {
 
     // Creating the detector and geomentry context.
     vecmem::host_memory_resource host_mr;
-    const auto [det, names] = detray::build_toy_detector(host_mr);
+    const auto [det, names] =
+        detray::build_toy_detector<detray::test::algebra>(host_mr);
     using detector_t = decltype(det);
 
     detector_t::geometry_context gctx{};
@@ -64,13 +66,14 @@ GTEST_TEST(svgtools, trajectories) {
         il.draw_volumes(std::vector{7u, 9u, 11u, 13u}, view);
 
     // Creating a ray.
-    using algebra_t = typename detector_t::algebra_type;
-    using vector3 = typename detector_t::vector3_type;
+    using test_algebra = typename detector_t::algebra_type;
+    using scalar = detray::dscalar<test_algebra>;
+    using vector3 = detray::dvector3D<test_algebra>;
 
     const typename detector_t::point3_type ori{0.f, 0.f, 80.f};
     const typename detector_t::point3_type dir{0, 1.f, 1.f};
 
-    const detray::detail::ray<algebra_t> ray(ori, 0.f, dir, 0.f);
+    const detray::detail::ray<test_algebra> ray(ori, 0.f, dir, 0.f);
     const auto ray_ir =
         detray::detector_scanner::run<detray::ray_scan>(gctx, det, ray);
 
@@ -88,11 +91,10 @@ GTEST_TEST(svgtools, trajectories) {
     // Creating a helix trajectory.
 
     // Constant magnetic field
-    vector3 B{0.f * detray::unit<detray::scalar>::T,
-              0.f * detray::unit<detray::scalar>::T,
-              1.f * detray::unit<detray::scalar>::T};
+    vector3 B{0.f * detray::unit<scalar>::T, 0.f * detray::unit<scalar>::T,
+              1.f * detray::unit<scalar>::T};
 
-    const detray::detail::helix<algebra_t> helix(
+    const detray::detail::helix<test_algebra> helix(
         ori, 0.f, detray::vector::normalize(dir), -8.f, &B);
     const auto helix_ir =
         detray::detector_scanner::run<detray::helix_scan>(gctx, det, helix);

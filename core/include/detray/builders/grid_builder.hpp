@@ -37,9 +37,10 @@ class grid_builder : public volume_decorator<detector_t> {
     using link_id_t = typename detector_t::volume_type::object_id;
 
     public:
-    using scalar_type = typename detector_t::scalar_type;
     using detector_type = detector_t;
+    using algebra_type = typename detector_t::algebra_type;
     using value_type = typename detector_type::surface_type;
+    using scalar_type = dscalar<algebra_type>;
 
     /// Decorate a volume with a grid
     DETRAY_HOST
@@ -78,7 +79,7 @@ class grid_builder : public volume_decorator<detector_t> {
     /// Delegate init call depending on @param span type
     template <typename grid_shape_t>
     DETRAY_HOST void init_grid(
-        const mask<grid_shape_t> &m,
+        const mask<grid_shape_t, algebra_type> &m,
         const std::array<std::size_t, grid_t::dim> &n_bins,
         const std::vector<std::pair<typename grid_t::loc_bin_index, dindex>>
             &bin_capacities = {},
@@ -210,12 +211,12 @@ template <typename detector_t,
           typename grid_shape_t, typename bin_t,
           template <std::size_t> class serializer_t,
           axis::bounds e_bounds = axis::bounds::e_closed,
-          typename algebra_t = typename detector_t::transform3,
           template <typename, typename> class... binning_ts>
 using grid_builder_type = grid_builder<
     detector_t,
-    typename grid_factory_t<bin_t, serializer_t, algebra_t>::template grid_type<
-        axes<grid_shape_t, e_bounds, binning_ts...>>,
-    grid_factory_t<bin_t, serializer_t, algebra_t>>;
+    typename grid_factory_t<bin_t, serializer_t,
+                            typename detector_t::algebra_type>::
+        template grid_type<axes<grid_shape_t, e_bounds, binning_ts...>>,
+    grid_factory_t<bin_t, serializer_t, typename detector_t::algebra_type>>;
 
 }  // namespace detray

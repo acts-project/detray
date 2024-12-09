@@ -22,6 +22,8 @@
 
 using namespace detray;
 
+using test_algebra = test::algebra;
+using scalar = test::scalar;
 using point3 = test::point3;
 using point2 = test::point2;
 using vector3 = test::vector3;
@@ -43,7 +45,7 @@ GTEST_TEST(detray_coordinates, cylindrical2D) {
     const vector3 d = vector::normalize(mom);
     const scalar r{2.f};
 
-    const cylindrical2D<test::algebra> c2;
+    const cylindrical2D<test_algebra> c2;
 
     // Global to local transformation
     const point3 local = c2.global_to_local_3D(trf, global1, d);
@@ -76,7 +78,7 @@ GTEST_TEST(detray_coordinates, concentric_cylindrical2D) {
                             9.f};
     const scalar r{2.f};
 
-    const concentric_cylindrical2D<test::algebra> c2;
+    const concentric_cylindrical2D<test_algebra> c2;
 
     // Global to local transformation
     const point3 local3 = c2.global_to_local_3D(trf, global1, {});

@@ -68,7 +68,7 @@ inline void check_on_surface(state_t &state, dindex vol_id,
     ASSERT_TRUE(state.status() == navigation::status::e_on_module ||
                 state.status() == navigation::status::e_on_portal);
     // Points towards next candidate
-    ASSERT_TRUE(std::abs(state()) >= 1.f * unit<scalar>::um);
+    ASSERT_TRUE(std::abs(state()) >= 1.f * unit<test::scalar>::um);
     ASSERT_EQ(state.volume(), vol_id);
     ASSERT_EQ(state.n_candidates(), std::min(n_candidates, cache_size - 1));
     ASSERT_EQ(state.barcode().volume(), vol_id);
@@ -124,7 +124,8 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
     using namespace detray;
     using namespace detray::navigation;
 
-    using algebra_t = test::algebra;
+    using test_algebra = test::algebra;
+    using scalar = test::scalar;
     using point3 = test::point3;
     using vector3 = test::vector3;
 
@@ -133,13 +134,13 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
     /// Tolerance for tests
     constexpr double tol{0.01};
 
-    auto [toy_det, names] = build_toy_detector(host_mr);
+    auto [toy_det, names] = build_toy_detector<test_algebra>(host_mr);
 
     using detector_t = decltype(toy_det);
     using inspector_t = navigation::print_inspector;
     using navigator_t = navigator<detector_t, cache_size, inspector_t>;
-    using constraint_t = constrained_step<>;
-    using stepper_t = line_stepper<algebra_t, constraint_t>;
+    using constraint_t = constrained_step<scalar>;
+    using stepper_t = line_stepper<test_algebra, constraint_t>;
 
     // State type in the nominal navigation (no inspectors)
     using nav_stat_t = navigator<detector_t, cache_size>::state;
@@ -152,7 +153,7 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
     // test track
     point3 pos{0.f, 0.f, 0.f};
     vector3 mom{1.f, 1.f, 0.f};
-    free_track_parameters<algebra_t> traj(pos, 0.f, mom, -1.f);
+    free_track_parameters<test_algebra> traj(pos, 0.f, mom, -1.f);
 
     stepper_t stepper;
     navigator_t nav;
@@ -324,7 +325,8 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
     using namespace detray;
     using namespace detray::navigation;
 
-    using algebra_t = test::algebra;
+    using test_algebra = test::algebra;
+    using scalar = test::scalar;
     using point3 = test::point3;
     using vector3 = test::vector3;
 
@@ -334,19 +336,20 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
     constexpr double tol{0.01};
 
     constexpr std::size_t n_layers{10};
-    wire_chamber_config<> wire_cfg{};
-    auto [wire_det, names] = build_wire_chamber(host_mr, wire_cfg);
+    wire_chamber_config<scalar> wire_cfg{};
+    auto [wire_det, names] =
+        build_wire_chamber<test_algebra>(host_mr, wire_cfg);
 
     using detector_t = decltype(wire_det);
     using inspector_t = navigation::print_inspector;
     using navigator_t = navigator<detector_t, cache_size, inspector_t>;
-    using constraint_t = constrained_step<>;
-    using stepper_t = line_stepper<algebra_t, constraint_t>;
+    using constraint_t = constrained_step<scalar>;
+    using stepper_t = line_stepper<test_algebra, constraint_t>;
 
     // test track
     point3 pos{0.f, 0.f, 0.f};
     vector3 mom{0.f, 1.f, 0.f};
-    free_track_parameters<algebra_t> traj(pos, 0.f, mom, -1.f);
+    free_track_parameters<test_algebra> traj(pos, 0.f, mom, -1.f);
 
     stepper_t stepper;
     navigator_t nav;

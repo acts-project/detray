@@ -20,7 +20,8 @@ int main() {
 
     // First, create an example detector in in host memory to be written to disk
     vecmem::host_memory_resource host_mr;
-    const auto [det, names] = detray::build_toy_detector(host_mr);
+    const auto [det, names] =
+        detray::build_toy_detector<detray::tutorial::algebra_t>(host_mr);
 
     // Configuration for the writer:
     //     - use json format

@@ -106,7 +106,7 @@ class ring2D {
         const bounds_type<scalar_t> &bounds) const {
         return (bounds[e_outer_r] * bounds[e_outer_r] -
                 bounds[e_inner_r] * bounds[e_inner_r]) *
-               constant<scalar>::pi;
+               constant<scalar_t>::pi;
     }
 
     /// @brief Lower and upper point for minimal axis aligned bounding box.

@@ -44,7 +44,7 @@ struct curvilinear_frame {
     DETRAY_HOST_DEVICE
     bound_to_free_matrix_type bound_to_free_jacobian() const {
         return jacobian_engine_type().bound_to_free_jacobian(
-            m_trf, mask<rectangle2D>{}, m_bound_vec);
+            m_trf, mask<rectangle2D, algebra_t>{}, m_bound_vec);
     }
 
     transform3_type m_trf{};

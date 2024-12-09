@@ -6,7 +6,9 @@
  */
 
 // Algebra include(s).
-#include "detray/plugins/algebra/vc_aos_definitions.hpp"
+#include "detray/plugins/algebra/array_definitions.hpp"
+//#include "detray/plugins/algebra/eigen_definitions.hpp"
+//#include "detray/plugins/algebra/vc_aos_definitions.hpp"
 #include "detray/plugins/algebra/vc_soa_definitions.hpp"
 
 // Detray core include(s).
@@ -39,8 +41,11 @@ static constexpr unsigned int n_surfaces{16u};
 using algebra_v = detray::vc_soa<test::scalar>;
 
 /// Linear algebra implementation using AoS memory layout
-using algebra_s = detray::vc_aos<test::scalar>;
-// using algebra_s = detray::array<test::scalar>;
+using algebra_array = detray::array<test::scalar>;
+// using algebra_vc_aos = detray::vc_aos<test::scalar>;
+// using algebra_eigen = detray::eigen<test::scalar>;
+
+using algebra_s = algebra_array;
 
 // Size of an SoA batch
 constexpr std::size_t simd_size{dscalar<algebra_v>::size()};
@@ -118,7 +123,7 @@ dvector<dscalar<algebra_v>> get_dists<algebra_v>(std::size_t n) {
 /// This benchmark runs intersection with the planar intersector
 void BM_INTERSECT_PLANES_AOS(benchmark::State& state) {
 
-    using mask_t = mask<rectangle2D, std::uint_least16_t, algebra_s>;
+    using mask_t = mask<rectangle2D, algebra_s, std::uint_least16_t>;
 
     auto dists = get_dists<algebra_s>(n_surfaces);
     auto [plane_descs, tranforms] = test::planes_along_direction<algebra_s>(
@@ -175,7 +180,7 @@ BENCHMARK(BM_INTERSECT_PLANES_AOS)
 /// This benchmark runs intersection with the planar intersector
 void BM_INTERSECT_PLANES_SOA(benchmark::State& state) {
 
-    using mask_t = mask<rectangle2D, std::uint_least16_t, algebra_v>;
+    using mask_t = mask<rectangle2D, algebra_v, std::uint_least16_t>;
     using vector3_t = dvector3D<algebra_v>;
 
     auto dists = get_dists<algebra_v>(n_surfaces);
@@ -237,7 +242,7 @@ void BM_INTERSECT_CYLINDERS_AOS(benchmark::State& state) {
     using transform3_t = dtransform3D<algebra_s>;
     using scalar_t = dscalar<algebra_s>;
 
-    using mask_t = mask<cylinder2D, std::uint_least16_t, algebra_s>;
+    using mask_t = mask<cylinder2D, algebra_s, std::uint_least16_t>;
 
     std::vector<mask_t> masks;
     for (const scalar_t r : get_dists<algebra_s>(n_surfaces)) {
@@ -303,7 +308,7 @@ void BM_INTERSECT_CYLINDERS_SOA(benchmark::State& state) {
     using transform3_t = dtransform3D<algebra_v>;
     using scalar_t = dscalar<algebra_v>;
 
-    using mask_t = mask<cylinder2D, std::uint_least16_t, algebra_v>;
+    using mask_t = mask<cylinder2D, algebra_v, std::uint_least16_t>;
 
     std::vector<mask_t> masks;
     for (const scalar_t r : get_dists<algebra_v>(n_surfaces)) {
@@ -366,7 +371,7 @@ void BM_INTERSECT_CONCETRIC_CYLINDERS_AOS(benchmark::State& state) {
     using transform3_t = dtransform3D<algebra_s>;
     using scalar_t = dscalar<algebra_s>;
 
-    using mask_t = mask<concentric_cylinder2D, std::uint_least16_t, algebra_s>;
+    using mask_t = mask<concentric_cylinder2D, algebra_s, std::uint_least16_t>;
 
     std::vector<mask_t> masks;
     for (const scalar_t r : get_dists<algebra_s>(n_surfaces)) {
@@ -428,7 +433,7 @@ void BM_INTERSECT_CONCETRIC_CYLINDERS_SOA(benchmark::State& state) {
     using transform3_t = dtransform3D<algebra_v>;
     using scalar_t = dscalar<algebra_v>;
 
-    using mask_t = mask<concentric_cylinder2D, std::uint_least16_t, algebra_v>;
+    using mask_t = mask<concentric_cylinder2D, algebra_v, std::uint_least16_t>;
 
     std::vector<mask_t> masks;
     for (const scalar_t r : get_dists<algebra_v>(n_surfaces)) {
