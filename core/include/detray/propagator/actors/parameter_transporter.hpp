@@ -30,16 +30,16 @@ struct parameter_transporter : actor {
     using bound_to_free_matrix_t = bound_to_free_matrix<algebra_t>;
     /// @}
 
-    struct get_full_jacobian_kernel {
+    struct update_full_jacobian_kernel {
 
         template <typename mask_group_t, typename index_t,
                   typename stepper_state_t>
-        DETRAY_HOST_DEVICE inline bound_matrix_t operator()(
+        DETRAY_HOST_DEVICE inline void operator()(
             const mask_group_t& /*mask_group*/, const index_t& /*index*/,
             const transform3_type& trf3,
             const bound_to_free_matrix_t& bound_to_free_jacobian,
             const material<scalar_type>* vol_mat_ptr,
-            const stepper_state_t& stepping) const {
+            stepper_state_t& stepping) const {
 
             using frame_t = typename mask_group_t::value_type::shape::
                 template local_frame_type<algebra_t>;
@@ -51,7 +51,7 @@ struct parameter_transporter : actor {
                 typename jacobian_engine_t::free_to_bound_matrix_type;
 
             // Free to bound jacobian at the destination surface
-            const free_to_bound_matrix_t free_to_bound_jacobian =
+            free_to_bound_matrix_t free_to_bound_jacobian =
                 jacobian_engine_t::free_to_bound_jacobian(trf3, stepping());
 
             // Path correction factor
@@ -63,8 +63,12 @@ struct parameter_transporter : actor {
             const free_matrix_t correction_term =
                 matrix::identity<free_matrix_t>() + path_correction;
 
-            return free_to_bound_jacobian * correction_term *
-                   stepping.transport_jacobian() * bound_to_free_jacobian;
+            algebra::generic::math::set_inplace_product_right(
+                free_to_bound_jacobian, correction_term);
+
+            algebra::generic::math::set_product(
+                stepping.full_jacobian(), free_to_bound_jacobian,
+                (stepping.transport_jacobian() * bound_to_free_jacobian));
         }
     };
 
@@ -104,17 +108,14 @@ struct parameter_transporter : actor {
             const auto vol_mat_ptr =
                 vol.has_material() ? vol.material_parameters(stepping().pos())
                                    : nullptr;
-            stepping.set_full_jacobian(
-                sf.template visit_mask<get_full_jacobian_kernel>(
-                    sf.transform(gctx), bound_to_free_jacobian, vol_mat_ptr,
-                    propagation._stepping));
+            sf.template visit_mask<update_full_jacobian_kernel>(
+                sf.transform(gctx), bound_to_free_jacobian, vol_mat_ptr,
+                propagation._stepping);
 
-            // Calculate surface-to-surface covariance transport
-            const bound_matrix_t new_cov =
-                stepping.full_jacobian() * bound_params.covariance() *
-                matrix::transpose(stepping.full_jacobian());
-
-            stepping.bound_params().set_covariance(new_cov);
+            algebra::generic::math::set_inplace_product_left(
+                bound_params.covariance(), stepping.full_jacobian());
+            algebra::generic::math::set_inplace_product_right_transpose(
+                bound_params.covariance(), stepping.full_jacobian());
         }
 
         // Convert free to bound vector

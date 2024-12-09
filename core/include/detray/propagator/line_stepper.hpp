@@ -68,8 +68,8 @@ class line_stepper final
 
             /// NOTE: Let's skip the element for d(time)/d(qoverp) for the
             /// moment..
-
-            this->set_transport_jacobian(D * this->transport_jacobian());
+            algebra::generic::math::set_inplace_product_left(
+                this->transport_jacobian(), D);
         }
 
         DETRAY_HOST_DEVICE
