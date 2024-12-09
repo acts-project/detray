@@ -17,15 +17,18 @@
 #include <gtest/gtest.h>
 
 using namespace detray;
-using point3_t = test::point3;
+
+using test_algebra = test::algebra;
+using scalar = test::scalar;
+using point3 = test::point3;
 
 constexpr scalar tol{1e-7f};
 
 /// This tests the basic functionality of an unmasked plane
 GTEST_TEST(detray_masks, unmasked) {
-    point3_t p2 = {0.5f, -9.f, 0.f};
+    point3 p2 = {0.5f, -9.f, 0.f};
 
-    mask<unmasked<>> u{};
+    mask<unmasked<>, test_algebra> u{};
 
     ASSERT_TRUE(u.is_inside(p2, 0.f));
 

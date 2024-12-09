@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/geometry/tracking_surface.hpp"
 #include "detray/navigation/detail/trajectories.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
@@ -130,10 +131,10 @@ struct brute_force_scan {
     }
 };
 
-template <typename algebra_t>
+template <concepts::algebra algebra_t>
 using ray_scan = brute_force_scan<detail::ray<algebra_t>>;
 
-template <typename algebra_t>
+template <concepts::algebra algebra_t>
 using helix_scan = brute_force_scan<detail::helix<algebra_t>>;
 
 /// Run a scan on detector object by shooting test particles through it
@@ -209,7 +210,7 @@ inline auto write_tracks(
     const std::vector<std::vector<intersection_record<detector_t>>>
         &intersection_traces) {
 
-    using scalar_t = typename detector_t::scalar_type;
+    using scalar_t = dscalar<typename detector_t::algebra_type>;
     using record_t = intersection_record<detector_t>;
     using track_param_t = typename record_t::track_parameter_type;
 

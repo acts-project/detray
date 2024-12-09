@@ -16,11 +16,11 @@
 #include "detray/core/detail/container_buffers.hpp"
 #include "detray/core/detail/container_views.hpp"
 #include "detray/core/detail/surface_lookup.hpp"
-#include "detray/core/detector_metadata.hpp"
 #include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/containers.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/geometry/detail/volume_descriptor.hpp"
+#include "detray/utils/concepts.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>
@@ -35,7 +35,7 @@ namespace detray {
 namespace detail {
 /// Temporary way to manipulate transforms in the transform store
 /// @todo Remove as soon as contices can be registered!
-template <typename detector_t, typename transform3_t>
+template <typename detector_t, concepts::transform3D transform3_t>
 void set_transform(detector_t &det, const transform3_t &trf, unsigned int i) {
     std::cout
         << "WARNING: Modifying transforms in the detector will be deprecated! "
@@ -53,8 +53,7 @@ void set_transform(detector_t &det, const transform3_t &trf, unsigned int i) {
 ///
 /// @tparam metadata helper that defines collection and link types centrally
 /// @tparam container_t type collection of the underlying containers
-template <typename metadata_t = default_metadata,
-          typename container_t = host_container_types>
+template <typename metadata_t, typename container_t = host_container_types>
 class detector {
 
     // Allow the building of the detector containers

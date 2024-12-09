@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/builders/surface_factory.hpp"
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/geometry/shapes/unmasked.hpp"
 #include "detray/materials/material.hpp"
@@ -26,7 +27,7 @@
 namespace detray {
 
 /// @brief Bind components for material together.
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 class material_data {
     public:
     /// Construct empty data for a given surface
@@ -150,7 +151,7 @@ class homogeneous_material_factory final
     using placeholder_factory_t = surface_factory<detector_t, unmasked<>>;
 
     public:
-    using scalar_type = typename detector_t::scalar_type;
+    using scalar_type = dscalar<typename detector_t::algebra_type>;
 
     using base_factory::operator();
 

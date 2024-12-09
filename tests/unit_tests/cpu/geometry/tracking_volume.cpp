@@ -81,10 +81,13 @@ GTEST_TEST(detray_geometry, tracking_volume) {
 
     using namespace detray;
 
-    constexpr detray::scalar tol{5e-5f};
+    using test_algebra = test::algebra;
+    using scalar = test::scalar;
+
+    constexpr scalar tol{5e-5f};
 
     vecmem::host_memory_resource host_mr;
-    const auto [toy_det, names] = build_toy_detector(host_mr);
+    const auto [toy_det, names] = build_toy_detector<test_algebra>(host_mr);
 
     //
     // Volume 7 is a barrrel layer with sensitive surfaces

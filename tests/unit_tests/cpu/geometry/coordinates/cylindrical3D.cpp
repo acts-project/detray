@@ -18,6 +18,8 @@
 
 using namespace detray;
 
+using test_algebra = test::algebra;
+using scalar = test::scalar;
 using point3 = test::point3;
 using vector3 = test::vector3;
 using transform3 = test::transform3;
@@ -36,7 +38,7 @@ GTEST_TEST(detray_coordinates, cylindrical3D) {
     const vector3 mom = {1.f, 2.f, 3.f};
     const vector3 d = vector::normalize(mom);
 
-    const cylindrical3D<test::algebra> c3;
+    const cylindrical3D<test_algebra> c3;
 
     // Global to local transformation
     const point3 local = c3.global_to_local_3D(trf, global1, d);

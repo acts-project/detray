@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/geometry/tracking_surface.hpp"
 #include "detray/plugins/svgtools/conversion/detector.hpp"
 #include "detray/plugins/svgtools/conversion/grid.hpp"
@@ -415,7 +416,7 @@ class illustrator {
     /// @param view the display view.
     ///
     /// @return actsvg::svg::object of the point.
-    template <typename view_t, typename point_t>
+    template <typename view_t, concepts::point3D point_t>
     inline auto draw_landmark(const std::string& prefix, const point_t& point,
                               const view_t& view) const {
         auto p_landmark =
@@ -458,7 +459,7 @@ class illustrator {
     ///
     /// @return @c actsvg::svg::object of the trajectory.
     template <typename view_t, template <typename> class trajectory_t,
-              typename algebra_t>
+              concepts::algebra algebra_t>
     inline auto draw_trajectory(const std::string& prefix,
                                 const trajectory_t<algebra_t>& trajectory,
                                 const dscalar<algebra_t> path,

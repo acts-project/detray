@@ -9,6 +9,7 @@
 
 // Detray include(s)
 #include "detray/builders/grid_factory.hpp"
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/containers.hpp"
 #include "detray/materials/material_slab.hpp"
 #include "detray/utils/grid/detail/axis_helpers.hpp"
@@ -23,15 +24,17 @@
 namespace detray {
 
 /// Definition of binned material
-template <typename shape, typename scalar_t,
+template <concepts::algebra algebra_t, typename shape,
           typename container_t = host_container_types, bool owning = false>
-using material_map = grid<axes<shape>, bins::single<material_slab<scalar_t>>,
+using material_map = grid<algebra_t, axes<shape>,
+                          bins::single<material_slab<dscalar<algebra_t>>>,
                           simple_serializer, container_t, owning>;
 
 /// How to build material maps of various shapes
 // TODO: Move to material_map_builder once available
-template <typename scalar_t = detray::scalar>
+template <concepts::algebra algebra_t>
 using material_grid_factory =
-    grid_factory<bins::single<material_slab<scalar_t>>, simple_serializer>;
+    grid_factory<bins::single<material_slab<dscalar<algebra_t>>>,
+                 simple_serializer, algebra_t>;
 
 }  // namespace detray

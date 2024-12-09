@@ -156,9 +156,9 @@ class grid_reader {
 
         using namespace axis;
 
-        using scalar_t = typename detector_t::scalar_type;
-        using regular_binning_t = regular<host_container_types, scalar_t>;
-        using irregular_binning_t = irregular<host_container_types, scalar_t>;
+        using scalar_t = dscalar<typename detector_t::algebra_type>;
+        using regular_binning_t = regular<scalar_t, host_container_types>;
+        using irregular_binning_t = irregular<scalar_t, host_container_types>;
 
         // Base case: If the binning types are filled, continue with the frame
         if constexpr (types::size<binning_ts> == dim) {
@@ -290,7 +290,8 @@ class grid_reader {
                 &det_builder,
             types::list<bounds_ts...>, types::list<binning_ts...>) {
 
-        using scalar_t = typename detector_t::scalar_type;
+        using algebra_t = typename detector_t::algebra_type;
+        using scalar_t = dscalar<algebra_t>;
 
         // Assemble the grid type
         using axes_t =
@@ -299,7 +300,7 @@ class grid_reader {
         using bin_t =
             std::conditional_t<bin_capacity == 0, bins::dynamic_array<value_t>,
                                bins::static_array<value_t, bin_capacity>>;
-        using grid_t = grid<axes_t, bin_t, serializer_t>;
+        using grid_t = grid<algebra_t, axes_t, bin_t, serializer_t>;
 
         static_assert(grid_t::dim == dim,
                       "Grid dimension does not meet dimension of grid reader");

@@ -6,8 +6,6 @@
  */
 
 #include "detray/definitions/detail/cuda_definitions.hpp"
-#include "detray/detectors/telescope_metadata.hpp"
-#include "detray/detectors/toy_metadata.hpp"
 #include "navigation_validation.hpp"
 
 namespace detray::cuda {
@@ -38,7 +36,7 @@ __global__ void navigation_validation_kernel(
                                  typename detector_device_t::view_type>,
                   "Host and device detector view types do not match");
 
-    using hom_bfield_view_t = bfield::const_field_t::view_t;
+    using hom_bfield_view_t = typename bfield::const_field_t<scalar_t>::view_t;
     using rk_stepper_t = rk_stepper<hom_bfield_view_t, algebra_t>;
     using line_stepper_t = line_stepper<algebra_t>;
     // Use RK-stepper when a non-empty b-field was passed
@@ -61,8 +59,9 @@ __global__ void navigation_validation_kernel(
     // Propagator with pathlimit aborter
     using material_tracer_t =
         material_validator::material_tracer<scalar_t, vecmem::device_vector>;
+    using pathlimit_aborter_t = pathlimit_aborter<scalar_t>;
     using actor_chain_t =
-        actor_chain<tuple, pathlimit_aborter, material_tracer_t>;
+        actor_chain<tuple, pathlimit_aborter_t, material_tracer_t>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     detector_device_t det(det_data);
@@ -90,7 +89,7 @@ __global__ void navigation_validation_kernel(
     propagator_t p{cfg};
 
     // Create the actor states
-    pathlimit_aborter::state aborter_state{cfg.stepping.path_limit};
+    typename pathlimit_aborter_t::state aborter_state{cfg.stepping.path_limit};
     typename material_tracer_t::state mat_tracer_state{mat_steps.at(trk_id)};
     auto actor_states = ::detray::tie(aborter_state, mat_tracer_state);
 
@@ -162,10 +161,12 @@ void navigation_validation_device(
 #define DECLARE_NAVIGATION_VALIDATION(METADATA)                                \
                                                                                \
     template void navigation_validation_device<                                \
-        covfie::field_view<bfield::const_bknd_t>, detector<METADATA>,          \
-        detray::intersection_record<detector<METADATA>>>(                      \
+        covfie::field_view<                                                    \
+            bfield::const_bknd_t<dscalar<typename METADATA::algebra_type>>>,   \
+        detector<METADATA>, detray::intersection_record<detector<METADATA>>>(  \
         typename detector<METADATA>::view_type, const propagation::config &,   \
-        covfie::field_view<bfield::const_bknd_t>,                              \
+        covfie::field_view<                                                    \
+            bfield::const_bknd_t<dscalar<typename METADATA::algebra_type>>>,   \
         vecmem::data::jagged_vector_view<                                      \
             const detray::intersection_record<detector<METADATA>>> &,          \
         vecmem::data::jagged_vector_view<navigation::detail::candidate_record< \
@@ -191,8 +192,8 @@ void navigation_validation_device(
         vecmem::data::jagged_vector_view<material_validator::material_params<  \
             typename detector<METADATA>::scalar_type>> &);
 
-DECLARE_NAVIGATION_VALIDATION(default_metadata)
-DECLARE_NAVIGATION_VALIDATION(toy_metadata)
-DECLARE_NAVIGATION_VALIDATION(telescope_metadata<rectangle2D>)
+DECLARE_NAVIGATION_VALIDATION(test::default_metadata)
+DECLARE_NAVIGATION_VALIDATION(test::toy_metadata)
+DECLARE_NAVIGATION_VALIDATION(test::default_telescope_metadata)
 
 }  // namespace detray::cuda

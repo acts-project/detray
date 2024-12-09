@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/containers.hpp"
 #include "detray/definitions/detail/math.hpp"
 #include "detray/utils/ranges.hpp"
@@ -21,7 +22,7 @@ namespace detray::detail {
 /// @param n_seg is the number of segments used to gnerate the arc
 ///
 /// @return a vector of phi values for the arc
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 static inline dvector<scalar_t> phi_values(scalar_t start_phi, scalar_t end_phi,
                                            dindex n_seg) {
     dvector<scalar_t> values;
@@ -41,7 +42,7 @@ static inline dvector<scalar_t> phi_values(scalar_t start_phi, scalar_t end_phi,
 /// @param phimax maximum phi parameters
 ///
 /// @return a polygon representation of the bin
-template <typename scalar_t, typename point2_t>
+template <concepts::scalar scalar_t, concepts::point2D point2_t>
 inline std::vector<point2_t> r_phi_polygon(scalar_t rmin, scalar_t rmax,
                                            scalar_t phimin, scalar_t phimax,
                                            unsigned int n_segments = 1u) {
@@ -64,7 +65,7 @@ inline std::vector<point2_t> r_phi_polygon(scalar_t rmin, scalar_t rmax,
 }
 
 /// Functor to produce vertices on a mask collection in a mask tuple container.
-template <typename point2_t, typename point3_t>
+template <concepts::point2D point2_t, concepts::point3D point3_t>
 struct vertexer {
 
     /// Specialized method to generate vertices per maks group

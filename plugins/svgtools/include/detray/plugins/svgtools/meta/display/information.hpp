@@ -18,7 +18,8 @@
 
 namespace detray::svgtools::meta::display {
 
-template <typename point3_t, typename point2_t, typename view_t>
+template <concepts::point3D point3_t, concepts::point2D point2_t,
+          typename view_t>
 inline auto information_section(
     const std::string& id,
     const svgtools::meta::proto::information_section<point3_t>& is,

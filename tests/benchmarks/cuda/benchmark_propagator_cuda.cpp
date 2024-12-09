@@ -32,16 +32,17 @@ vecmem::binary_page_memory_resource bp_mng_mr(mng_mr);
 
 // detector configuration
 auto toy_cfg =
-    toy_det_config{}.n_brl_layers(4u).n_edc_layers(7u).do_check(false);
+    toy_det_config<scalar>{}.n_brl_layers(4u).n_edc_layers(7u).do_check(false);
 
-void fill_tracks(vecmem::vector<free_track_parameters<algebra_t>> &tracks,
+void fill_tracks(vecmem::vector<free_track_parameters<test_algebra>> &tracks,
                  const std::size_t n_tracks, bool do_sort = true) {
-    using scalar_t = dscalar<algebra_t>;
+    using scalar_t = dscalar<test_algebra>;
     using uniform_gen_t =
         detail::random_numbers<scalar_t,
                                std::uniform_real_distribution<scalar_t>>;
     using trk_generator_t =
-        random_track_generator<free_track_parameters<algebra_t>, uniform_gen_t>;
+        random_track_generator<free_track_parameters<test_algebra>,
+                               uniform_gen_t>;
 
     trk_generator_t::configuration trk_gen_cfg{};
     trk_gen_cfg.seed(42u);
@@ -51,10 +52,8 @@ void fill_tracks(vecmem::vector<free_track_parameters<algebra_t>> &tracks,
     trk_gen_cfg.eta_range(-3.f, 3.f);
     trk_gen_cfg.mom_range(1.f * unit<scalar_t>::GeV,
                           100.f * unit<scalar_t>::GeV);
-    trk_gen_cfg.origin({0.f, 0.f, 0.f});
-    trk_gen_cfg.origin_stddev({0.f * unit<scalar_t>::mm,
-                               0.f * unit<scalar_t>::mm,
-                               0.f * unit<scalar_t>::mm});
+    trk_gen_cfg.origin(0.f, 0.f, 0.f);
+    trk_gen_cfg.origin_stddev(0.f, 0.f, 0.f);
 
     // Iterate through uniformly distributed momentum directions
     for (auto traj : trk_generator_t{trk_gen_cfg}) {
@@ -80,9 +79,9 @@ static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
                          static_cast<std::size_t>(state.range(0))};
 
     // Create the toy geometry
-    auto [det, names] = build_toy_detector(host_mr, toy_cfg);
+    auto [det, names] = build_toy_detector<test_algebra>(host_mr, toy_cfg);
     test::vector3 B{0.f, 0.f, 2.f * unit<scalar>::T};
-    auto bfield = bfield::create_const_field(B);
+    auto bfield = bfield::create_const_field<scalar>(B);
 
     // vecmem copy helper object
     vecmem::cuda::copy cuda_cpy;
@@ -98,7 +97,7 @@ static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
         state.PauseTiming();
 
         // Get tracks
-        vecmem::vector<free_track_parameters<algebra_t>> tracks(&bp_mng_mr);
+        vecmem::vector<free_track_parameters<test_algebra>> tracks(&bp_mng_mr);
         fill_tracks(tracks, n_tracks);
 
         total_tracks += tracks.size();

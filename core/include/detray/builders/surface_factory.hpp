@@ -37,8 +37,10 @@ namespace detray {
 template <typename detector_t, typename mask_shape_t>
 class surface_factory : public surface_factory_interface<detector_t> {
 
-    using scalar_t = typename detector_t::scalar_type;
+    using algebra_t = typename detector_t::algebra_type;
     using volume_link_t = typename detector_t::surface_type::navigation_link;
+    using scalar_t = dscalar<algebra_t>;
+
     // Set individual volume link for portals, but only the mothervolume index
     // for other surfaces.
     using volume_link_collection = std::vector<volume_link_t>;
@@ -149,6 +151,7 @@ class surface_factory : public surface_factory_interface<detector_t> {
                     [[maybe_unused]]
                     typename detector_t::geometry_context ctx = {})
         -> dindex_range override {
+
         // In case the surfaces container is prefilled with other surfaces
         const auto surfaces_offset{static_cast<dindex>(surfaces.size())};
 
@@ -157,10 +160,10 @@ class surface_factory : public surface_factory_interface<detector_t> {
             return {surfaces_offset, surfaces_offset};
         }
 
-        constexpr auto mask_id{detector_t::masks::template get_id<
-            mask<mask_shape_t, volume_link_t>>()};
-
-        if constexpr (static_cast<std::size_t>(mask_id) >=
+        if constexpr (constexpr auto mask_id =
+                          detector_t::masks::template get_id<
+                              mask<mask_shape_t, algebra_t, volume_link_t>>();
+                      static_cast<std::size_t>(mask_id) >=
                       detector_t::masks::n_types) {
 
             throw std::invalid_argument(

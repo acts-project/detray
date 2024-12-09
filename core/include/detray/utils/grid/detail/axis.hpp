@@ -208,6 +208,7 @@ class multi_axis {
 
     /// Projection onto local coordinate system that is spanned by the axes
     using local_frame_type = local_frame_t;
+    using algebra_type = typename local_frame_type::algebra_type;
     using point_type = typename local_frame_type::loc_point;
 
     using scalar_type =

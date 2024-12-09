@@ -142,7 +142,7 @@ requires std::is_object_v<typename frame_t::loc_point> struct jacobian_engine {
 
     DETRAY_HOST_DEVICE static inline free_matrix<algebra_type> path_correction(
         const vector3_type& pos, const vector3_type& dir,
-        const vector3_type& dtds, const scalar dqopds,
+        const vector3_type& dtds, const scalar_type dqopds,
         const transform3_type& trf3) {
 
         free_to_path_matrix_type path_derivative =

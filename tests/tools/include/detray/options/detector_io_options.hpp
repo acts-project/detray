@@ -41,7 +41,7 @@ void add_options<detray::io::detector_reader_config>(
 /// Configure the detray detector reader
 template <>
 void configure_options<detray::io::detector_reader_config>(
-    boost::program_options::variables_map &vm,
+    const boost::program_options::variables_map &vm,
     detray::io::detector_reader_config &cfg) {
 
     // Input files
@@ -77,7 +77,7 @@ void add_options<detray::io::detector_writer_config>(
 /// Configure the detray detector writer
 template <>
 void configure_options<detray::io::detector_writer_config>(
-    boost::program_options::variables_map &vm,
+    const boost::program_options::variables_map &vm,
     detray::io::detector_writer_config &cfg) {
 
     if (!vm["outdir"].defaulted()) {

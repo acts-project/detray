@@ -29,15 +29,17 @@ using namespace detray::axis;
 
 namespace {
 
+using test_algebra = test::algebra;
+using scalar = test::scalar;
 using point3 = test::point3;
 
 // Alias for testing
 template <bool ownership, typename containers>
 using cartesian_3D =
-    multi_axis<ownership, cartesian3D<test::algebra>,
-               single_axis<closed<label::e_x>, regular<containers, scalar>>,
-               single_axis<closed<label::e_y>, regular<containers, scalar>>,
-               single_axis<closed<label::e_z>, regular<containers, scalar>>>;
+    multi_axis<ownership, cartesian3D<test_algebra>,
+               single_axis<closed<label::e_x>, regular<scalar, containers>>,
+               single_axis<closed<label::e_y>, regular<scalar, containers>>,
+               single_axis<closed<label::e_z>, regular<scalar, containers>>>;
 
 // Floating point comparison
 constexpr scalar tol{1e-5f};
@@ -57,7 +59,7 @@ GTEST_TEST(detray_grid, open_regular_axis) {
     const dindex_range edge_range = {2u, 10u};
 
     // An open regular x-axis
-    using x_axis_t = single_axis<open<label::e_x>, regular<>>;
+    using x_axis_t = single_axis<open<label::e_x>, regular<scalar>>;
     x_axis_t or_axis{edge_range, &bin_edges};
 
     static_assert(concepts::axis<x_axis_t>);
@@ -133,7 +135,7 @@ GTEST_TEST(detray_grid, closed_regular_axis) {
     const dindex_range edge_range = {2u, 10u};
 
     // A closed regular r-axis
-    using r_axis_t = single_axis<closed<label::e_r>, regular<>>;
+    using r_axis_t = single_axis<closed<label::e_r>, regular<scalar>>;
     r_axis_t cr_axis{edge_range, &bin_edges};
 
     static_assert(concepts::axis<r_axis_t>);
@@ -211,7 +213,7 @@ GTEST_TEST(detray_grid, circular_regular_axis) {
     const dindex_range edge_range = {1u, 36u};
 
     // A closed regular x-axis
-    using axis_t = single_axis<circular<>, regular<>>;
+    using axis_t = single_axis<circular<>, regular<scalar>>;
     axis_t cr_axis(edge_range, &bin_edges);
 
     static_assert(concepts::axis<axis_t>);
@@ -232,7 +234,8 @@ GTEST_TEST(detray_grid, circular_regular_axis) {
     EXPECT_EQ(cr_axis.bin(0), 18u);
 
     // Bin wrapping test
-    typename single_axis<circular<>, regular<>>::bounds_type circ_bounds{};
+    typename single_axis<circular<>, regular<scalar>>::bounds_type
+        circ_bounds{};
     EXPECT_EQ(circ_bounds.wrap(4, 36u), 4u);
     EXPECT_EQ(circ_bounds.wrap(0, 36u), 0u);
     EXPECT_EQ(circ_bounds.wrap(-1, 36u), 35u);
@@ -291,8 +294,8 @@ GTEST_TEST(detray_grid, closed_irregular_axis) {
     dindex_range edge_range = {1u, 6u};
 
     // A closed irregular z-axis
-    single_axis<closed<label::e_z>, irregular<>> cir_axis(edge_range,
-                                                          &bin_edges);
+    single_axis<closed<label::e_z>, irregular<scalar>> cir_axis(edge_range,
+                                                                &bin_edges);
 
     // Test axis bounds
     EXPECT_EQ(cir_axis.label(), axis::label::e_z);
@@ -383,12 +386,13 @@ void test_axis(const axis_type& /*unused*/) {
 GTEST_TEST(detray_grid, axis_comparison) {
 
     // Should be sufficient to test the comparison operators
-    using x_axis_op_r_t = single_axis<open<label::e_x>, regular<>>;
-    using x_axis_cl_r_t = single_axis<closed<label::e_x>, regular<>>;
-    using x_axis_ci_r_t = single_axis<circular<label::e_x>, regular<>>;
-    using x_axis_op_ir_t = single_axis<open<label::e_x>, irregular<>>;
-    using x_axis_cl_ir_t = single_axis<closed<label::e_x>, irregular<>>;
-    using x_axis_ci_orr_t = single_axis<circular<label::e_x>, irregular<>>;
+    using x_axis_op_r_t = single_axis<open<label::e_x>, regular<scalar>>;
+    using x_axis_cl_r_t = single_axis<closed<label::e_x>, regular<scalar>>;
+    using x_axis_ci_r_t = single_axis<circular<label::e_x>, regular<scalar>>;
+    using x_axis_op_ir_t = single_axis<open<label::e_x>, irregular<scalar>>;
+    using x_axis_cl_ir_t = single_axis<closed<label::e_x>, irregular<scalar>>;
+    using x_axis_ci_orr_t =
+        single_axis<circular<label::e_x>, irregular<scalar>>;
 
     std::tuple<x_axis_op_r_t, x_axis_cl_r_t, x_axis_ci_r_t, x_axis_op_ir_t,
                x_axis_cl_ir_t, x_axis_ci_orr_t>

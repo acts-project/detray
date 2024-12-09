@@ -18,7 +18,7 @@ namespace detray::svgtools::meta::proto {
 
 /// @brief A proto intersection record class as a simple translation layer from
 /// a intersection record description.
-template <typename point3_t>
+template <concepts::point3D point3_t>
 struct information_section {
     std::vector<std::string> _info;
     std::string _title;

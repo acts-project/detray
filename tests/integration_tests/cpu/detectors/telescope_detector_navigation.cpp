@@ -34,19 +34,21 @@ int main(int argc, char **argv) {
     //
     // Telescope detector configuration
     //
-    using tel_detector_t = detector<telescope_metadata<rectangle2D>>;
-    using scalar_t = typename tel_detector_t::scalar_type;
+    using metadata_t = test::default_telescope_metadata;
+    using tel_detector_t = detector<metadata_t>;
+    using test_algebra = metadata_t::algebra_type;
+    using scalar = dscalar<test_algebra>;
 
-    tel_det_config<rectangle2D> tel_cfg{20.f * unit<scalar_t>::mm,
-                                        20.f * unit<scalar_t>::mm};
+    tel_det_config<test_algebra, rectangle2D> tel_cfg{20.f * unit<scalar>::mm,
+                                                      20.f * unit<scalar>::mm};
     tel_cfg.n_surfaces(10u)
-        .length(500.f * unit<scalar_t>::mm)
-        .envelope(500.f * unit<scalar_t>::um);
+        .length(500.f * unit<scalar>::mm)
+        .envelope(500.f * unit<scalar>::um);
 
     vecmem::host_memory_resource host_mr;
 
     const auto [tel_det, tel_names] =
-        build_telescope_detector(host_mr, tel_cfg);
+        build_telescope_detector<test_algebra>(host_mr, tel_cfg);
 
     auto white_board = std::make_shared<test::whiteboard>();
 
@@ -61,9 +63,9 @@ int main(int argc, char **argv) {
     cfg_ray_scan.whiteboard(white_board);
     cfg_ray_scan.track_generator().n_tracks(10000u);
     // The first surface is at z=0, so shift the track origin back
-    cfg_ray_scan.track_generator().origin({0.f, 0.f, -0.05f});
-    cfg_ray_scan.track_generator().theta_range(
-        0.f, 0.25f * constant<scalar_t>::pi_4);
+    cfg_ray_scan.track_generator().origin(0.f, 0.f, -0.05f * unit<scalar>::mm);
+    cfg_ray_scan.track_generator().theta_range(0.f,
+                                               0.25f * constant<scalar>::pi_4);
 
     detail::register_checks<test::ray_scan>(tel_det, tel_names, cfg_ray_scan);
 
@@ -85,13 +87,13 @@ int main(int argc, char **argv) {
     cfg_hel_scan.name("telescope_detector_helix_scan");
     cfg_hel_scan.whiteboard(white_board);
     // Let the Newton algorithm dynamically choose tol. based on approx. error
-    cfg_hel_scan.mask_tolerance({detray::detail::invalid_value<scalar_t>(),
-                                 detray::detail::invalid_value<scalar_t>()});
+    cfg_hel_scan.mask_tolerance({detray::detail::invalid_value<scalar>(),
+                                 detray::detail::invalid_value<scalar>()});
     cfg_hel_scan.track_generator().n_tracks(10000u);
-    cfg_hel_scan.track_generator().p_tot(10.f * unit<scalar_t>::GeV);
-    cfg_hel_scan.track_generator().origin({0.f, 0.f, -0.05f});
-    cfg_hel_scan.track_generator().theta_range(
-        0.f, 0.25f * constant<scalar_t>::pi_4);
+    cfg_hel_scan.track_generator().p_tot(10.f * unit<scalar>::GeV);
+    cfg_hel_scan.track_generator().origin(0.f, 0.f, -0.05f * unit<scalar>::mm);
+    cfg_hel_scan.track_generator().theta_range(0.f,
+                                               0.25f * constant<scalar>::pi_4);
 
     detail::register_checks<test::helix_scan>(tel_det, tel_names, cfg_hel_scan);
 
@@ -110,7 +112,7 @@ int main(int argc, char **argv) {
     mat_scan_cfg.name("telescope_detector_material_scan");
     mat_scan_cfg.whiteboard(white_board);
     mat_scan_cfg.track_generator().uniform_eta(true).eta_range(1.f, 6.f);
-    mat_scan_cfg.track_generator().origin({0.f, 0.f, -0.05f});
+    mat_scan_cfg.track_generator().origin(0.f, 0.f, -0.05f * unit<scalar>::mm);
     mat_scan_cfg.track_generator().phi_steps(100).eta_steps(100);
 
     // Record the material using a ray scan

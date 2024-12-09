@@ -21,7 +21,7 @@ namespace detray::svgtools::meta::proto {
 
 /// @brief A proto intersection class as a simple translation layer from
 /// an intersection description.
-template <typename point3_t>
+template <concepts::point3D point3_t>
 struct intersection {
     using landmark_type = svgtools::meta::proto::landmark<point3_t>;
     std::vector<landmark_type> _landmarks;

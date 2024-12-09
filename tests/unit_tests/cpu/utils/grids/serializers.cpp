@@ -29,21 +29,24 @@
 using namespace detray;
 using namespace detray::axis;
 
+using test_algebra = test::algebra;
+using scalar = test::scalar;
+
 namespace {
 
 // Axes types to be serialized
 
 // polar coordinate system with regular binning on both axes
 using polar_axes = multi_axis<
-    true, polar2D<test::algebra>,
-    single_axis<closed<label::e_r>, regular<host_container_types, scalar>>,
-    single_axis<circular<label::e_phi>, regular<host_container_types, scalar>>>;
+    true, polar2D<test_algebra>,
+    single_axis<closed<label::e_r>, regular<scalar, host_container_types>>,
+    single_axis<circular<label::e_phi>, regular<scalar, host_container_types>>>;
 // 3-dim cylindrical coordinate system with regular binning
 using cylinder_axes = multi_axis<
-    true, cylindrical3D<test::algebra>,
-    single_axis<closed<label::e_r>, regular<host_container_types, scalar>>,
-    single_axis<circular<label::e_phi>, regular<host_container_types, scalar>>,
-    single_axis<closed<label::e_z>, regular<host_container_types, scalar>>>;
+    true, cylindrical3D<test_algebra>,
+    single_axis<closed<label::e_r>, regular<scalar, host_container_types>>,
+    single_axis<circular<label::e_phi>, regular<scalar, host_container_types>>,
+    single_axis<closed<label::e_z>, regular<scalar, host_container_types>>>;
 
 }  // anonymous namespace
 

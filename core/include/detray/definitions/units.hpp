@@ -7,12 +7,16 @@
 
 #pragma once
 
+// Project include(s)
+#include "detray/definitions/detail/algebra.hpp"
+
+// System include(s)
 #include <cmath>
 
 namespace detray {
 
 /// Unit conversion factors
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 struct unit {
 
     /// Length, native unit mm
@@ -96,7 +100,7 @@ struct unit {
 };
 
 /// Physical and mathematical constants
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 struct constant {
 
     /// Euler's number

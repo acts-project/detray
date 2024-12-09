@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/base_stepper.hpp"
@@ -18,20 +19,21 @@
 namespace detray {
 
 /// Aborter that checks whether the track has exceeded its pathlimit
+template <concepts::scalar scalar_t>
 struct pathlimit_aborter : actor {
 
     /// Pathlimit for a single propagation workflow
     struct state {
         /// Absolute path limit
-        scalar _path_limit = std::numeric_limits<scalar>::max();
+        scalar_t _path_limit = std::numeric_limits<scalar_t>::max();
 
         /// Set the path limit to a scalar @param pl
         DETRAY_HOST_DEVICE
-        inline void set_path_limit(const scalar pl) { _path_limit = pl; }
+        inline void set_path_limit(const scalar_t pl) { _path_limit = pl; }
 
         /// @returns this states remaining path length.
         DETRAY_HOST_DEVICE
-        inline scalar path_limit() const { return _path_limit; }
+        inline scalar_t path_limit() const { return _path_limit; }
     };
 
     /// Enforces the path limit on a stepper state
@@ -49,7 +51,7 @@ struct pathlimit_aborter : actor {
             return;
         }
 
-        const scalar step_limit =
+        const scalar_t step_limit =
             abrt_state.path_limit() -
             math::fabs(prop_state._stepping.abs_path_length());
 

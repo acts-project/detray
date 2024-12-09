@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/geometry/tracking_surface.hpp"
 #include "detray/geometry/tracking_volume.hpp"
 #include "detray/io/common/detail/basic_converter.hpp"
@@ -143,7 +144,7 @@ class homogeneous_material_writer {
     }
 
     /// Convert a surface material slab @param mat_slab into its io payload
-    template <template <typename> class material_t, typename scalar_t>
+    template <template <typename> class material_t, concepts::scalar scalar_t>
     static material_slab_payload convert(const material_t<scalar_t>& mat,
                                          std::size_t sf_idx) {
         material_slab_payload mat_data;

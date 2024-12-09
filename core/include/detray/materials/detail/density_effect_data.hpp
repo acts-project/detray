@@ -8,13 +8,14 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 
 namespace detray::detail {
 
 /// @note Ported from Geant4 and simplified
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 struct density_effect_data {
 
     using scalar_type = scalar_t;

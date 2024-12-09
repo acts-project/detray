@@ -19,6 +19,8 @@
 
 namespace detray {
 
+using scalar = test::scalar;
+
 static constexpr int n_points = 3;
 
 using host_grid2_replace =
