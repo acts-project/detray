@@ -250,7 +250,7 @@ GTEST_TEST(detray_material, telescope_geometry_scattering_angle) {
         if (i == 0u) {
             pointwise_material_interactor<algebra_t>{}.update_angle_variance(
                 bound_cov, traj.dir(),
-                simulator_state.projected_scattering_angle, 1);
+                simulator_state.projected_scattering_angle);
         }
 
         phis.push_back(final_param.phi());
