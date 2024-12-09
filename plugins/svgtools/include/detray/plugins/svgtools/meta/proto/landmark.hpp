@@ -17,7 +17,7 @@ namespace detray::svgtools::meta::proto {
 
 /// @brief A proto landmark class as a simple translation layer from a
 /// description of a point.
-template <typename point3_t>
+template <concepts::point3D point3_t>
 struct landmark {
     point3_t _position{0.f, 0.f, 0.f};
     std::string _name{"unknown landmark"};

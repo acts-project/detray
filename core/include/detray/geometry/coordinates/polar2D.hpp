@@ -15,7 +15,7 @@
 namespace detray {
 
 /// Projection into a polar coordinate frame
-template <typename algebra_t>
+template <concepts::algebra algebra_t>
 struct polar2D {
 
     using algebra_type = algebra_t;

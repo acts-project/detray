@@ -12,17 +12,24 @@
 #include "detray/materials/detail/concepts.hpp"
 #include "detray/materials/material_map.hpp"
 
+// Detray test include(s)
+#include "detray/test/utils/types.hpp"
+
 // GTest include(s)
 #include <gtest/gtest.h>
 
 using namespace detray;
 using namespace detray::axis;
 
-using material_t = typename material_grid_factory<scalar>::bin_type::entry_type;
+using test_algebra = test::algebra;
+using scalar = test::scalar;
+
+using material_t =
+    typename material_grid_factory<test_algebra>::bin_type::entry_type;
 
 namespace {
 
-material_grid_factory<scalar> mat_map_factory{};
+material_grid_factory<test_algebra> mat_map_factory{};
 
 }  // anonymous namespace
 
@@ -34,7 +41,8 @@ GTEST_TEST(detray_material, annulus_map) {
     constexpr scalar minPhi{0.74195f};
     constexpr scalar maxPhi{1.33970f};
 
-    mask<annulus2D> ann2{0u, minR, maxR, minPhi, maxPhi, 0.f, -2.f, 2.f};
+    mask<annulus2D, test_algebra> ann2{0u,     minR, maxR, minPhi,
+                                       maxPhi, 0.f,  -2.f, 2.f};
 
     auto annulus_map = mat_map_factory.new_grid(ann2, {10u, 20u});
 
@@ -82,7 +90,7 @@ GTEST_TEST(detray_material, cylinder_map) {
     constexpr scalar r{3.f * unit<scalar>::mm};
     constexpr scalar hz{4.f * unit<scalar>::mm};
 
-    mask<cylinder2D> cyl{0u, r, -hz, hz};
+    mask<cylinder2D, test_algebra> cyl{0u, r, -hz, hz};
 
     auto cylinder_map = mat_map_factory.new_grid(cyl, {10u, 20u});
 
@@ -129,7 +137,7 @@ GTEST_TEST(detray_material, rectangle_map) {
     constexpr scalar hx{1.f * unit<scalar>::mm};
     constexpr scalar hy{9.3f * unit<scalar>::mm};
 
-    mask<rectangle2D> r2{0u, hx, hy};
+    mask<rectangle2D, test_algebra> r2{0u, hx, hy};
 
     auto rectangle_map = mat_map_factory.new_grid(r2, {10u, 20u});
 
@@ -176,7 +184,7 @@ GTEST_TEST(detray_material, disc_map) {
     constexpr scalar inner_r{0.f * unit<scalar>::mm};
     constexpr scalar outer_r{3.5f * unit<scalar>::mm};
 
-    mask<ring2D> r2{0u, inner_r, outer_r};
+    mask<ring2D, test_algebra> r2{0u, inner_r, outer_r};
 
     auto disc_map = mat_map_factory.new_grid(r2, {10u, 20u});
 
@@ -225,7 +233,7 @@ GTEST_TEST(detray_material, trapezoid_map) {
     constexpr scalar hy{2.f * unit<scalar>::mm};
     constexpr scalar divisor{1.f / (2.f * hy)};
 
-    mask<trapezoid2D> t2{0u, hx_miny, hx_maxy, hy, divisor};
+    mask<trapezoid2D, test_algebra> t2{0u, hx_miny, hx_maxy, hy, divisor};
 
     auto trapezoid_map = mat_map_factory.new_grid(t2, {10u, 20u});
 
@@ -277,7 +285,7 @@ GTEST_TEST(detray_material, material_grid_comparison) {
      */
     auto createGrid = [](const scalar hx, const scalar hy, unsigned int bx,
                          unsigned int by, bool distort_entries) {
-        mask<rectangle2D> r2{0u, hx, hy};
+        mask<rectangle2D, test_algebra> r2{0u, hx, hy};
         auto material_grid = mat_map_factory.new_grid(r2, {bx, by});
 
         // Fill the material grid with some data

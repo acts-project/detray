@@ -30,13 +30,14 @@ template <typename detector_t>
 class cuboid_portal_generator final
     : public surface_factory_interface<detector_t> {
 
-    using scalar_type = typename detector_t::scalar_type;
-    using transform3_type = typename detector_t::transform3_type;
+    using algebra_type = typename detector_t::algebra_type;
+    using scalar_type = dscalar<algebra_type>;
+    using transform3_type = dtransform3D<algebra_type>;
 
     /// A functor to construct global bounding boxes around masks
     struct bounding_box_creator {
 
-        using aabb_t = axis_aligned_bounding_volume<cuboid3D>;
+        using aabb_t = axis_aligned_bounding_volume<cuboid3D, algebra_type>;
 
         template <typename mask_group_t, typename index_t>
         DETRAY_HOST_DEVICE inline void operator()(
@@ -86,15 +87,15 @@ class cuboid_portal_generator final
                     typename detector_t::geometry_context ctx = {})
         -> dindex_range override {
 
-        using point3_t = typename detector_t::point3_type;
-        using vector3_t = typename detector_t::vector3_type;
+        using point3_t = dpoint3D<algebra_type>;
+        using vector3_t = dvector3D<algebra_type>;
 
         using surface_t = typename detector_t::surface_type;
         using nav_link_t = typename surface_t::navigation_link;
         using mask_link_t = typename surface_t::mask_link;
         using material_link_t = typename surface_t::material_link;
 
-        using aabb_t = axis_aligned_bounding_volume<cuboid3D>;
+        using aabb_t = axis_aligned_bounding_volume<cuboid3D, algebra_type>;
 
         constexpr auto invalid_src_link{detail::invalid_value<std::uint64_t>()};
 

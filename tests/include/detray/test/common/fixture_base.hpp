@@ -31,8 +31,8 @@ class fixture_base : public scope {
     public:
     /// Linear algebra typedefs
     /// @{
-    using algebra_t = ALGEBRA_PLUGIN<test::scalar>;
-    using scalar = detray::scalar;
+    using algebra_t = test::algebra;
+    using scalar = test::scalar;
     using point2 = test::point2;
     using point3 = test::point3;
     using vector3 = test::vector3;
@@ -44,11 +44,11 @@ class fixture_base : public scope {
         /// General testing
         /// @{
         /// Tolerance to compare two floating point values
-        float m_tolerance{std::numeric_limits<float>::epsilon()};
+        scalar m_tolerance{std::numeric_limits<scalar>::epsilon()};
         /// Shorthand for infinity
-        float inf{std::numeric_limits<float>::infinity()};
+        scalar inf{std::numeric_limits<scalar>::infinity()};
         /// Shorthand for the floating point epsilon
-        float epsilon{std::numeric_limits<float>::epsilon()};
+        scalar epsilon{std::numeric_limits<scalar>::epsilon()};
         /// @}
 
         /// Propagation
@@ -58,7 +58,7 @@ class fixture_base : public scope {
 
         /// Setters
         /// @{
-        configuration& tol(float t) {
+        configuration& tol(scalar t) {
             m_tolerance = t;
             return *this;
         }
@@ -66,7 +66,7 @@ class fixture_base : public scope {
 
         /// Getters
         /// @{
-        float tol() const { return m_tolerance; }
+        scalar tol() const { return m_tolerance; }
         propagation::config& propagation() { return m_prop_cfg; }
         const propagation::config& propagation() const { return m_prop_cfg; }
         /// @}
@@ -109,12 +109,12 @@ class fixture_base : public scope {
     }
 
     private:
-    float tolerance{};
-    float inf{};
-    float epsilon{};
-    float path_limit{};
-    float overstep_tolerance{};
-    float step_constraint{};
+    scalar tolerance{};
+    scalar inf{};
+    scalar epsilon{};
+    scalar path_limit{};
+    scalar overstep_tolerance{};
+    scalar step_constraint{};
 };
 
 }  // namespace detray::test

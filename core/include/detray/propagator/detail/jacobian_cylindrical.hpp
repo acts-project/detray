@@ -18,7 +18,7 @@
 namespace detray::detail {
 
 /// @brief Specialization for 2D cylindrical frames
-template <typename algebra_t>
+template <concepts::algebra algebra_t>
 struct jacobian<cylindrical2D<algebra_t>> {
 
     /// @name Type definitions for the struct
@@ -133,7 +133,7 @@ struct jacobian<cylindrical2D<algebra_t>> {
     }
 };
 
-template <typename algebra_t>
+template <concepts::algebra algebra_t>
 struct jacobian<concentric_cylindrical2D<algebra_t>>
     : public jacobian<cylindrical2D<algebra_t>> {};
 

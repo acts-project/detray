@@ -55,8 +55,9 @@ class grid_impl {
     using glob_bin_index = dindex;
     using loc_bin_index = typename axes_type::loc_bin_index;
     using local_frame_type = typename axes_type::local_frame_type;
+    using algebra_type = typename axes_type::algebra_type;
+    using scalar_type = dscalar<algebra_type>;
     using point_type = typename axes_type::point_type;
-    using scalar_type = typename axes_type::scalar_type;
 
     static constexpr bool is_owning{axes_type::is_owning};
 
@@ -262,8 +263,9 @@ class grid_impl {
     ///
     /// @returns a point in the coordinate system that is spanned by the grid's
     /// axes.
-    template <typename transform_t, typename point3_t, typename vector3_t>
-    DETRAY_HOST_DEVICE point_type project(const transform_t &trf,
+    template <concepts::transform3D transform3_t, concepts::point3D point3_t,
+              concepts::vector3D vector3_t>
+    DETRAY_HOST_DEVICE point_type project(const transform3_t &trf,
                                           const point3_t &p,
                                           const vector3_t &d) const {
         return get_local_frame().global_to_local(trf, p, d);
@@ -392,12 +394,11 @@ class grid_impl {
 };
 
 /// Type alias for easier construction
-template <typename axes_t, typename bin_t,
+template <concepts::algebra algebra_t, typename axes_t, typename bin_t,
           template <std::size_t> class serializer_t = simple_serializer,
-          typename containers = host_container_types, bool ownership = true,
-          typename algebra_t = ALGEBRA_PLUGIN<detray::scalar>>
+          typename containers = host_container_types, bool ownership = true>
 using grid =
-    grid_impl<coordinate_axes<axes_t, ownership, containers, algebra_t>, bin_t,
+    grid_impl<coordinate_axes<axes_t, algebra_t, ownership, containers>, bin_t,
               simple_serializer>;
 
 }  // namespace detray

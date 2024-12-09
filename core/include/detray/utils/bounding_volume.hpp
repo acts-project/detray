@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/mask.hpp"
@@ -26,15 +27,16 @@
 namespace detray {
 
 /// An axis aligned bounding box of a given @tparam shape_t
-template <typename shape_t, typename scalar_t = scalar>
+template <typename shape_t, concepts::algebra algebra_t>
 class axis_aligned_bounding_volume {
     public:
     /// Define geometric properties
     /// @{
+    using scalar_t = dscalar<algebra_t>;
     using shape = shape_t;
     using boundaries = typename shape_t::boundaries;
-    template <typename algebra_t>
-    using local_frame = typename shape_t::template local_frame_type<algebra_t>;
+    template <typename A>
+    using local_frame = typename shape_t::template local_frame_type<A>;
 
     static constexpr std::size_t dim{shape_t::dim};
     /// @}
@@ -69,13 +71,13 @@ class axis_aligned_bounding_volume {
     /// Construct a bounding box around a set of boxes
     /// @note the given bounding volumes need to be defnined in the same
     /// local coordinate system!
-    template <typename other_shape_t, typename other_scalar_t>
+    template <typename other_shape_t>
     requires std::is_same_v<
-        typename shape::template local_frame_type<void>,
-        typename other_shape_t::template local_frame_type<void>>
+        typename shape::template local_frame_type<algebra_t>,
+        typename other_shape_t::template local_frame_type<algebra_t>>
         DETRAY_HOST constexpr axis_aligned_bounding_volume(
-            const std::vector<axis_aligned_bounding_volume<
-                other_shape_t, other_scalar_t>>& aabbs,
+            const std::vector<
+                axis_aligned_bounding_volume<other_shape_t, algebra_t>>& aabbs,
             std::size_t box_id, const scalar_t env) {
 
         using loc_point_t = std::array<scalar_t, other_shape_t::dim>;
@@ -104,9 +106,9 @@ class axis_aligned_bounding_volume {
                 max_z = max_point[2] > max_z ? max_point[2] : max_z;
             }
         }
-        m_mask = mask<shape, std::size_t>{box_id,      min_x - env, min_y - env,
-                                          min_z - env, max_x + env, max_y + env,
-                                          max_z + env};
+        m_mask = mask<shape, algebra_t, std::size_t>{
+            box_id,      min_x - env, min_y - env, min_z - env,
+            max_x + env, max_y + env, max_z + env};
     }
 
     /// Subscript operator @returns a single box boundary.
@@ -121,7 +123,8 @@ class axis_aligned_bounding_volume {
 
     /// @returns the bounds of the box, depending on its shape
     DETRAY_HOST_DEVICE
-    constexpr auto bounds() const -> const mask<shape, std::size_t>& {
+    constexpr auto bounds() const
+        -> const mask<shape, algebra_t, std::size_t>& {
         return m_mask;
     }
 
@@ -163,7 +166,7 @@ class axis_aligned_bounding_volume {
     }
     /// @returns the minimum bounds of the volume in global cartesian
     /// coordinates
-    template <typename transform3_t>
+    template <concepts::transform3D transform3_t>
     DETRAY_HOST_DEVICE constexpr auto glob_min(const transform3_t& trf) const ->
         typename transform3_t::point3 {
 
@@ -185,7 +188,7 @@ class axis_aligned_bounding_volume {
 
     /// @returns the maximum bounds of the volume in global cartesian
     /// coordinates
-    template <typename transform3_t>
+    template <concepts::transform3D transform3_t>
     DETRAY_HOST_DEVICE constexpr auto glob_max(const transform3_t& trf) const ->
         typename transform3_t::point3 {
 
@@ -205,7 +208,7 @@ class axis_aligned_bounding_volume {
     }
 
     /// @returns the geometric center position in global cartesian system
-    template <typename point3_t>
+    template <concepts::point3D point3_t>
     DETRAY_HOST_DEVICE constexpr auto center() const -> point3_t {
 
         const scalar_t center_x{
@@ -229,7 +232,7 @@ class axis_aligned_bounding_volume {
     /// @param trf affine transformation
     ///
     /// @returns a new, transformed aabb.
-    template <typename transform3_t, typename S = shape_t>
+    template <concepts::transform3D transform3_t, typename S = shape_t>
     requires std::is_same_v<S, cuboid3D> DETRAY_HOST_DEVICE auto transform(
         const transform3_t& trf) const -> axis_aligned_bounding_volume {
 
@@ -298,7 +301,7 @@ class axis_aligned_bounding_volume {
     /// Checks whether a point lies inside the box. The point has to be defined
     /// in the coordinate frame that is spanned by the box axes.
     DETRAY_HOST_DEVICE
-    template <typename point_t>
+    template <concepts::point point_t>
     constexpr bool is_inside(
         const point_t& loc_p,
         const scalar_t t = std::numeric_limits<scalar_t>::epsilon()) const {
@@ -307,7 +310,6 @@ class axis_aligned_bounding_volume {
 
     /// Intersect the box with a ray
     DETRAY_HOST_DEVICE
-    template <typename algebra_t>
     constexpr bool intersect(
         const detail::ray<algebra_t>& ray,
         const scalar_t t = std::numeric_limits<scalar_t>::epsilon()) const {
@@ -323,7 +325,7 @@ class axis_aligned_bounding_volume {
         return os << aabb.bounds().to_string();
     }
     /// Keeps the box boundary values and id
-    mask<shape, std::size_t> m_mask;
+    mask<shape, algebra_t, std::size_t> m_mask;
 };
 
 }  // namespace detray

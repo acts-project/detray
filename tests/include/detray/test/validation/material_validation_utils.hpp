@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/materials/detail/concepts.hpp"
 #include "detray/materials/detail/material_accessor.hpp"
 #include "detray/navigation/navigator.hpp"
@@ -31,7 +32,7 @@
 namespace detray::material_validator {
 
 /// @brief Record the material budget per thickness or pathlength
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 struct material_record {
     /// Phi and eta values of the track for which the material was recorded
     /// @{
@@ -49,7 +50,7 @@ struct material_record {
 };
 
 /// @brief Return type that contains the material parameters and the pathlength
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 struct material_params {
     /// Pathlength of the track through the material
     scalar_t path{detail::invalid_value<scalar_t>()};
@@ -65,8 +66,8 @@ struct material_params {
 /// position
 struct get_material_params {
 
-    template <typename mat_group_t, typename index_t, typename point2_t,
-              typename scalar_t>
+    template <typename mat_group_t, typename index_t,
+              concepts::point2D point2_t, typename scalar_t>
     DETRAY_HOST_DEVICE auto operator()(
         [[maybe_unused]] const mat_group_t &mat_group,
         [[maybe_unused]] const index_t &index,
@@ -108,7 +109,7 @@ struct get_material_params {
 ///
 /// The material is scaled with either the slab thickness or pathlength through
 /// the material.
-template <typename scalar_t, template <typename...> class vector_t>
+template <concepts::scalar scalar_t, template <typename...> class vector_t>
 struct material_tracer : detray::actor {
 
     using material_record_type = material_record<scalar_t>;
@@ -241,18 +242,19 @@ inline auto record_material(
     // Propagator with pathlimit aborter
     using material_tracer_t =
         material_validator::material_tracer<scalar_t, vecmem::vector>;
-    using actor_chain_t =
-        actor_chain<dtuple, pathlimit_aborter, parameter_transporter<algebra_t>,
-                    parameter_resetter<algebra_t>,
-                    pointwise_material_interactor<algebra_t>,
-                    material_tracer_t>;
+    using pathlimit_aborter_t = pathlimit_aborter<scalar_t>;
+    using actor_chain_t = actor_chain<
+        dtuple, pathlimit_aborter_t, parameter_transporter<algebra_t>,
+        parameter_resetter<algebra_t>, pointwise_material_interactor<algebra_t>,
+        material_tracer_t>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Propagator
     propagator_t prop{cfg};
 
     // Build actor and propagator states
-    pathlimit_aborter::state pathlimit_aborter_state{cfg.stepping.path_limit};
+    typename pathlimit_aborter_t::state pathlimit_aborter_state{
+        cfg.stepping.path_limit};
     typename parameter_transporter<algebra_t>::state transporter_state{};
     typename parameter_resetter<algebra_t>::state resetter_state{};
     typename pointwise_material_interactor<algebra_t>::state interactor_state{};
@@ -274,7 +276,7 @@ inline auto record_material(
 
 /// Write the accumulated material of a track from @param mat_records to a csv
 /// file to the path @param mat_file_name
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 auto write_material(const std::string &mat_file_name,
                     const dvector<material_record<scalar_t>> &mat_records) {
 

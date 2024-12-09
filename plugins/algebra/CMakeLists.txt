@@ -4,7 +4,7 @@
 #
 # Mozilla Public License Version 2.0
 
-# Temporary setting for the detray::scalar type, until it can be removed.
+# Temporary setting for the scalar type, until it can be removed.
 set(DETRAY_CUSTOM_SCALARTYPE
     "double"
     CACHE STRING

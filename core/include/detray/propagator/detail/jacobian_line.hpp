@@ -17,7 +17,7 @@
 namespace detray::detail {
 
 /// @brief Specialization for 2D cartesian frames
-template <typename algebra_t>
+template <concepts::algebra algebra_t>
 struct jacobian<line2D<algebra_t>> {
 
     /// @name Type definitions for the struct
@@ -87,7 +87,7 @@ struct jacobian<line2D<algebra_t>> {
         // Cosine of angle between momentum direction and local frame z axis
         const scalar_type dz = vector::dot(local_zaxis, dir);
 
-        // local x axis component of pc:
+        // Local x axis component of pc:
         const vector3_type pc_x = pc - pz * local_zaxis;
 
         const scalar_type norm =

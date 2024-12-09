@@ -7,6 +7,9 @@
 
 #pragma once
 
+// Project include(s)
+#include "detray/definitions/detail/algebra.hpp"
+
 namespace detray::detail {
 
 /// Generate phi tolerance from distance tolerance
@@ -16,7 +19,7 @@ namespace detray::detail {
 ///
 /// @return the opening angle of a chord the size of tol (= 2*arcsin(c/(2r)))
 /// using a small angle approximation
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 constexpr scalar_t phi_tolerance(scalar_t tol, scalar_t radius) {
     return radius > 0.f ? tol / radius : tol;
 }

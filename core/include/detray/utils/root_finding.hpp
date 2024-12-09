@@ -36,7 +36,7 @@ namespace detray {
 /// @see Numerical Recepies pp. 445
 ///
 /// @return whether a bracket was found
-template <typename scalar_t, typename function_t>
+template <concepts::scalar scalar_t, typename function_t>
 DETRAY_HOST_DEVICE inline bool expand_bracket(const scalar_t a,
                                               const scalar_t b, function_t &f,
                                               std::array<scalar_t, 2> &bracket,
@@ -93,7 +93,7 @@ DETRAY_HOST_DEVICE inline bool expand_bracket(const scalar_t a,
 /// @see Numerical Recepies pp. 445
 ///
 /// @return pathlength to root and the last step size
-template <typename scalar_t, typename function_t>
+template <concepts::scalar scalar_t, typename function_t>
 DETRAY_HOST_DEVICE inline std::pair<scalar_t, scalar_t> newton_raphson_safe(
     function_t &evaluate_func, scalar_t s,
     const scalar_t convergence_tolerance = 1.f * unit<scalar_t>::um,
@@ -264,8 +264,9 @@ DETRAY_HOST_DEVICE inline std::pair<scalar_t, scalar_t> newton_raphson_safe(
 /// @param [in] mask the mask of the surface
 /// @param [in] trf the transform of the surface
 /// @param [in] mask_tolerance minimal and maximal mask tolerance
-template <typename scalar_t, typename intersection_t, typename surface_descr_t,
-          typename mask_t, typename trajectory_t, typename transform3_t>
+template <concepts::scalar scalar_t, typename intersection_t,
+          typename surface_descr_t, typename mask_t, typename trajectory_t,
+          concepts::transform3D transform3_t>
 DETRAY_HOST_DEVICE inline void build_intersection(
     const trajectory_t &traj, intersection_t &sfi, const scalar_t s,
     const scalar_t ds, const surface_descr_t sf_desc, const mask_t &mask,

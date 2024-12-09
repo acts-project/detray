@@ -29,7 +29,7 @@ class homogeneous_material_builder final : public volume_decorator<detector_t> {
 
     public:
     using material_id = typename detector_t::materials::id;
-    using scalar_type = typename detector_t::scalar_type;
+    using scalar_type = dscalar<typename detector_t::algebra_type>;
 
     /// @param vol_builder volume builder that should be decorated with material
     DETRAY_HOST

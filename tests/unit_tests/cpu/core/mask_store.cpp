@@ -26,6 +26,8 @@ GTEST_TEST(detray_core, static_mask_store) {
 
     using namespace detray;
 
+    using test_algebra = test::algebra;
+
     enum class mask_ids : unsigned int {
         e_rectangle2 = 0u,
         e_trapezoid2 = 1u,
@@ -35,12 +37,12 @@ GTEST_TEST(detray_core, static_mask_store) {
         e_single3 = 5u,
     };
 
-    using rectangle = mask<rectangle2D>;
-    using trapezoid = mask<trapezoid2D>;
-    using annulus = mask<annulus2D>;
-    using cylinder = mask<cylinder2D>;
-    using ring = mask<ring2D>;
-    using single = mask<single3D<>>;
+    using rectangle = mask<rectangle2D, test_algebra>;
+    using trapezoid = mask<trapezoid2D, test_algebra>;
+    using annulus = mask<annulus2D, test_algebra>;
+    using cylinder = mask<cylinder2D, test_algebra>;
+    using ring = mask<ring2D, test_algebra>;
+    using single = mask<single3D<>, test_algebra>;
 
     // Types must be sorted according to their id (here: masks/mask_identifier)
     using mask_container_t =

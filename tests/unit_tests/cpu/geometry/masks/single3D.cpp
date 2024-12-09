@@ -18,20 +18,22 @@
 #include <gtest/gtest.h>
 
 using namespace detray;
-using point3_t = test::point3;
+
+using test_algebra = test::algebra;
+using scalar = test::scalar;
+using point3 = test::point3;
 
 constexpr scalar tol{1e-7f};
 
 /// This tests the basic functionality of a single value mask (index 0)
 GTEST_TEST(detray_masks, single3_0) {
-    using point_t = point3_t;
 
-    point_t p3_in = {0.5f, -9.f, 0.f};
-    point_t p3_edge = {1.f, 9.3f, 2.f};
-    point_t p3_out = {1.5f, -9.8f, 8.f};
+    point3 p3_in = {0.5f, -9.f, 0.f};
+    point3 p3_edge = {1.f, 9.3f, 2.f};
+    point3 p3_out = {1.5f, -9.8f, 8.f};
 
     constexpr scalar h0{1.f * unit<scalar>::mm};
-    mask<single3D<>> m1_0{0u, -h0, h0};
+    mask<single3D<>, test_algebra> m1_0{0u, -h0, h0};
 
     ASSERT_NEAR(m1_0[single3D<>::e_lower], -h0, tol);
     ASSERT_NEAR(m1_0[single3D<>::e_upper], h0, tol);
@@ -63,14 +65,13 @@ GTEST_TEST(detray_masks, single3_0) {
 
 /// This tests the basic functionality of a single value mask (index 1)
 GTEST_TEST(detray_masks, single3_1) {
-    using point_t = point3_t;
 
-    point_t p3_in = {0.5f, -9.f, 0.f};
-    point_t p3_edge = {1.f, 9.3f, 2.f};
-    point_t p3_out = {1.5f, -9.8f, 8.f};
+    point3 p3_in = {0.5f, -9.f, 0.f};
+    point3 p3_edge = {1.f, 9.3f, 2.f};
+    point3 p3_out = {1.5f, -9.8f, 8.f};
 
     constexpr scalar h1{9.3f * unit<scalar>::mm};
-    mask<single3D<1>> m1_1{0u, -h1, h1};
+    mask<single3D<1>, test_algebra> m1_1{0u, -h1, h1};
 
     ASSERT_NEAR(m1_1[single3D<>::e_lower], -h1, tol);
     ASSERT_NEAR(m1_1[single3D<>::e_upper], h1, tol);
@@ -102,14 +103,13 @@ GTEST_TEST(detray_masks, single3_1) {
 
 /// This tests the basic functionality of a single value mask (index 2)
 GTEST_TEST(detray_masks, single3_2) {
-    using point_t = point3_t;
 
-    point_t p3_in = {0.5f, -9.f, 0.f};
-    point_t p3_edge = {1.f, 9.3f, 2.f};
-    point_t p3_out = {1.5f, -9.8f, 8.f};
+    point3 p3_in = {0.5f, -9.f, 0.f};
+    point3 p3_edge = {1.f, 9.3f, 2.f};
+    point3 p3_out = {1.5f, -9.8f, 8.f};
 
     constexpr scalar h2{2.f * unit<scalar>::mm};
-    mask<single3D<2>> m1_2{0u, -h2, h2};
+    mask<single3D<2>, test_algebra> m1_2{0u, -h2, h2};
 
     ASSERT_NEAR(m1_2[single3D<>::e_lower], -h2, tol);
     ASSERT_NEAR(m1_2[single3D<>::e_upper], h2, tol);

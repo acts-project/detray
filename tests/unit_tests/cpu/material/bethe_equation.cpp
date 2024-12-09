@@ -25,7 +25,9 @@
 #include <random>
 
 using namespace detray;
-using algebra_t = test::algebra;
+
+using test_algebra = test::algebra;
+using scalar = test::scalar;
 
 // Test class for energy loss with Bethe function
 // Input tuple: < material, particle type, momentum, expected output >
@@ -483,7 +485,7 @@ TEST_P(LandauDistributionValidation, landau_distribution) {
     const scalar mass = ptc.mass();
 
     for (std::size_t i = 0u; i < n_samples; i++) {
-        const scalar new_p = random_scatterer<algebra_t>().attenuate(
+        const scalar new_p = random_scatterer<test_algebra>().attenuate(
             mpv, sigma, mass, p, generator);
         ASSERT_TRUE(new_p < p);
 

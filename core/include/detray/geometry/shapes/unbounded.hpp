@@ -31,7 +31,7 @@ class unbounded {
     using boundaries = typename shape::boundaries;
 
     /// Container definition for the shape boundary values
-    template <typename scalar_t>
+    template <concepts::scalar scalar_t>
     using bounds_type = darray<scalar_t, boundaries::e_size>;
 
     /// Convenience member to construct the name
@@ -41,7 +41,7 @@ class unbounded {
     static constexpr string_view_concat2 name{name_prefix, shape::name};
 
     /// Local coordinate frame for boundary checks
-    template <typename algebra_t>
+    template <concepts::algebra algebra_t>
     using local_frame_type =
         typename shape::template local_frame_type<algebra_t>;
 
@@ -57,7 +57,7 @@ class unbounded {
     /// @param loc_p the point to be checked in the local coordinate system
     ///
     /// @return the minimum distance.
-    template <typename scalar_t, typename point_t>
+    template <concepts::scalar scalar_t, concepts::point point_t>
     DETRAY_HOST_DEVICE constexpr scalar_t min_dist_to_boundary(
         const bounds_type<scalar_t>& /*bounds*/,
         const point_t& /*loc_p*/) const {
@@ -71,7 +71,8 @@ class unbounded {
     /// @note the parameters are ignored
     ///
     /// @return always true
-    template <typename bounds_t, typename point_t, typename scalar_t>
+    template <typename bounds_t, concepts::point point_t,
+              concepts::scalar scalar_t>
     DETRAY_HOST_DEVICE constexpr auto check_boundaries(
         const bounds_t& /*bounds*/, const point_t& /*loc_p*/,
         const scalar_t /*tol*/) const {
@@ -83,7 +84,7 @@ class unbounded {
     /// @param bounds the boundary values for this shape
     ///
     /// @returns Inf.
-    template <typename scalar_t>
+    template <concepts::scalar scalar_t>
     DETRAY_HOST_DEVICE constexpr scalar_t measure(
         const bounds_type<scalar_t>& bounds) const {
         if constexpr (dim == 2) {
@@ -98,7 +99,7 @@ class unbounded {
     /// @param bounds the boundary values for this shape
     ///
     /// @returns Inf.
-    template <typename scalar_t>
+    template <concepts::scalar scalar_t>
     DETRAY_HOST_DEVICE constexpr scalar_t area(
         const bounds_type<scalar_t>&) const {
         return std::numeric_limits<scalar_t>::max();
@@ -109,7 +110,7 @@ class unbounded {
     /// @param bounds the boundary values for this shape
     ///
     /// @returns Inf.
-    template <typename scalar_t>
+    template <concepts::scalar scalar_t>
     DETRAY_HOST_DEVICE constexpr scalar_t volume(
         const bounds_type<scalar_t>&) const {
         return std::numeric_limits<scalar_t>::max();
@@ -130,7 +131,7 @@ class unbounded {
     ///
     /// @returns and array of coordinates that contains the lower point (first
     /// three values) and the upper point (latter three values).
-    template <typename algebra_t>
+    template <concepts::algebra algebra_t>
     DETRAY_HOST_DEVICE inline darray<dscalar<algebra_t>, 6> local_min_bounds(
         const bounds_type<dscalar<algebra_t>>& bounds,
         const dscalar<algebra_t> env =
@@ -139,7 +140,7 @@ class unbounded {
     }
 
     /// @returns the shapes centroid in local cartesian coordinates
-    template <typename algebra_t>
+    template <concepts::algebra algebra_t>
     DETRAY_HOST_DEVICE auto centroid(
         const bounds_type<dscalar<algebra_t>>& bounds) const {
         return shape{}.template centroid<algebra_t>(bounds);
@@ -151,7 +152,7 @@ class unbounded {
     /// @param ls is the number of line segments
     ///
     /// @return a generated list of vertices
-    template <typename algebra_t>
+    template <concepts::algebra algebra_t>
     DETRAY_HOST dvector<dpoint3D<algebra_t>> vertices(
         const bounds_type<dscalar<algebra_t>>& bounds, dindex n_seg) const {
         return shape{}.template vertices<algebra_t>(bounds, n_seg);
@@ -163,7 +164,7 @@ class unbounded {
     /// @param os output stream for error messages
     ///
     /// @return true if the bounds are consistent.
-    template <typename scalar_t>
+    template <concepts::scalar scalar_t>
     DETRAY_HOST constexpr bool check_consistency(
         const bounds_type<scalar_t>& /*bounds*/,
         const std::ostream& /*os*/) const {

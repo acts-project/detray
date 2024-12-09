@@ -24,6 +24,7 @@
 
 namespace {
 
+using scalar = detray::test::scalar;
 using point3 = detray::test::point3;
 using vector3 = detray::test::vector3;
 using point2 = detray::test::point2;
@@ -34,8 +35,10 @@ using point2 = detray::test::point2;
 GTEST_TEST(detray_builders, detector_builder) {
     using namespace detray;
 
-    using detector_t = detector<>;
-    using transform3 = typename detector_t::transform3_type;
+    using metadata_t = test::default_metadata;
+    using detector_builder_t = detector_builder<metadata_t>;
+    using detector_t = typename detector_builder_t::detector_type;
+    using transform3 = dtransform3D<typename detector_t::algebra_type>;
     using mask_id = typename detector_t::masks::id;
 
     // Surface factories
@@ -44,7 +47,7 @@ GTEST_TEST(detray_builders, detector_builder) {
     // detector builder
     auto geo_ctx = typename detector_t::geometry_context{};
 
-    detector_builder<default_metadata> det_builder{};
+    detector_builder_t det_builder{};
 
     //
     // first volume builder
@@ -86,7 +89,7 @@ GTEST_TEST(detray_builders, detector_builder) {
     vbuilder2->add_volume_placement(t);
 
     // Add a portal box around the cuboid volume with a min distance of 'env'
-    constexpr auto env{0.1f * unit<detray::scalar>::mm};
+    constexpr auto env{0.1f * unit<scalar>::mm};
     auto portal_generator =
         std::make_shared<cuboid_portal_generator<detector_t>>(env);
 

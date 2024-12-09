@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/materials/material_slab.hpp"
 #include "detray/utils/consistency_checker.hpp"
 
@@ -57,7 +58,7 @@ inline void test_finder(const acc_t& finder, const dindex volume_index,
 }
 
 /// Call for material grid types
-template <typename scalar_t, typename mat_map_t>
+template <concepts::scalar scalar_t, typename mat_map_t>
 requires std::is_same_v<typename mat_map_t::value_type,
                         material_slab<scalar_t>> inline void
 test_mat_map(const mat_map_t& mat_map, const bool is_cyl) {
@@ -78,7 +79,7 @@ test_mat_map(const mat_map_t& mat_map, const bool is_cyl) {
 
         for (const auto& mat_slab : mat_map.all()) {
             EXPECT_TRUE(mat_slab.get_material() ==
-                            toy_det_config{}.mapped_material() ||
+                            toy_det_config<scalar_t>{}.mapped_material() ||
                         mat_slab.get_material() == beryllium_tml<scalar_t>{});
         }
     } else {
@@ -96,18 +97,19 @@ test_mat_map(const mat_map_t& mat_map, const bool is_cyl) {
 
         for (const auto& mat_slab : mat_map.all()) {
             EXPECT_TRUE(mat_slab.get_material() ==
-                        toy_det_config{}.mapped_material());
+                        toy_det_config<scalar_t>{}.mapped_material());
         }
     }
 }
 
-template <typename bfield_t>
+template <concepts::algebra algebra_t, typename bfield_t>
 inline bool toy_detector_test(
-    const detector<toy_metadata, bfield_t>& toy_det,
-    const typename detector<toy_metadata, bfield_t>::name_map& names) {
+    const detector<toy_metadata<algebra_t>, bfield_t>& toy_det,
+    const typename detector<toy_metadata<algebra_t>, bfield_t>::name_map&
+        names) {
 
-    using detector_t = detector<toy_metadata, bfield_t>;
-    using scalar_t = typename detector_t::scalar_type;
+    using detector_t = detector<toy_metadata<algebra_t>, bfield_t>;
+    using scalar_t = dscalar<typename detector_t::algebra_type>;
     using geo_obj_ids = typename detector_t::geo_obj_ids;
     using volume_t = typename detector_t::volume_type;
     using nav_link_t = typename detector_t::surface_type::navigation_link;
@@ -133,8 +135,9 @@ inline bool toy_detector_test(
     auto& materials = toy_det.material_store();
 
     // Materials
-    auto portal_mat = material_slab<scalar_t>(
-        toy_det_config{}.mapped_material(), 1.5f * unit<scalar_t>::mm);
+    auto portal_mat =
+        material_slab<scalar_t>(toy_det_config<scalar_t>{}.mapped_material(),
+                                1.5f * unit<scalar_t>::mm);
     auto beampipe_mat = material_slab<scalar_t>(beryllium_tml<scalar_t>(),
                                                 0.8f * unit<scalar_t>::mm);
     auto pixel_mat = material_slab<scalar_t>(silicon_tml<scalar_t>(),
