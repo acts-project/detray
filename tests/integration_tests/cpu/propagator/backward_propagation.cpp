@@ -154,17 +154,6 @@ TEST_P(BackwardPropagation, backward_propagation) {
 
     const auto bound_cov0 = bound_param0.covariance();
     const auto bound_cov1 = bound_param1.covariance();
-    const auto bound_cov2 = bound_param2.covariance();
-
-    // Check covaraince
-    for (unsigned int i = 0u; i < e_bound_size; i++) {
-        for (unsigned int j = 0u; j < e_bound_size; j++) {
-            EXPECT_NEAR(getter::element(bound_cov0, i, j),
-                        getter::element(bound_cov2, i, j), tol)
-                << "i: " << i << "\nj: " << j << "\n"
-                << bound_param2;
-        }
-    }
 
     // Some sanity checks
     EXPECT_TRUE(bound_param0.p(ptc.charge()) > bound_param1.p(ptc.charge()));
@@ -176,13 +165,6 @@ TEST_P(BackwardPropagation, backward_propagation) {
                 getter::element(bound_cov0, e_bound_theta, e_bound_theta));
     EXPECT_TRUE(getter::element(bound_cov1, e_bound_phi, e_bound_phi) >
                 getter::element(bound_cov0, e_bound_phi, e_bound_phi));
-
-    EXPECT_TRUE(getter::element(bound_cov1, e_bound_qoverp, e_bound_qoverp) >
-                getter::element(bound_cov2, e_bound_qoverp, e_bound_qoverp));
-    EXPECT_TRUE(getter::element(bound_cov1, e_bound_theta, e_bound_theta) >
-                getter::element(bound_cov2, e_bound_theta, e_bound_theta));
-    EXPECT_TRUE(getter::element(bound_cov1, e_bound_phi, e_bound_phi) >
-                getter::element(bound_cov2, e_bound_phi, e_bound_phi));
 }
 
 INSTANTIATE_TEST_SUITE_P(

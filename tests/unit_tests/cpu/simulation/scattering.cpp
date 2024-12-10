@@ -96,9 +96,6 @@ GTEST_TEST(detray_simulation, angle_update) {
     // Projected scattering angle (Tests will fail with relatively large angles)
     const scalar_t projected_scattering_angle{0.01f};
 
-    // Navigation in forward direction
-    const int direction_sign = 1;
-
     // Initial bound covariance
     auto bound_cov = matrix::zero<
         typename bound_track_parameters<algebra_t>::covariance_type>();
@@ -108,7 +105,7 @@ GTEST_TEST(detray_simulation, angle_update) {
 
     // Update the bound covariance with projected scattering angle
     pointwise_material_interactor<algebra_t>().update_angle_variance(
-        bound_cov, dir, projected_scattering_angle, direction_sign);
+        bound_cov, dir, projected_scattering_angle);
 
     // Get the samples of phi and theta after the random scattering
     std::vector<scalar_t> phis;
