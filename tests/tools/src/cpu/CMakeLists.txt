@@ -51,3 +51,46 @@ detray_add_executable(material_validation
                       Boost::program_options detray::tools detray::test_utils
                       detray::svgtools
 )
+
+if(DETRAY_BUILD_BENCHMARKS)
+    # Look for openMP, which is used for the CPU propagation benchmark
+    find_package(OpenMP)
+
+    # Build the propagation benchmark executable.
+    macro(detray_add_propagation_benchmark algebra)
+        detray_add_executable(propagation_benchmark_${algebra}
+                            "propagation_benchmark.cpp"
+                            LINK_LIBRARIES Boost::program_options benchmark::benchmark benchmark::benchmark_main vecmem::core detray::core_${algebra} detray::benchmarks detray::benchmark_cpu detray::tools detray::detectors
+        )
+
+        target_compile_options(
+            detray_propagation_benchmark_${algebra}
+            PRIVATE "-march=native" "-ftree-vectorize"
+        )
+
+        if(OpenMP_CXX_FOUND)
+            target_link_libraries(
+                detray_propagation_benchmark_${algebra}
+                PRIVATE OpenMP::OpenMP_CXX
+            )
+        endif()
+    endmacro()
+
+    # Build the array benchmark.
+    detray_add_propagation_benchmark( array )
+
+    # Build the Eigen benchmark executable.
+    if(DETRAY_EIGEN_PLUGIN)
+        detray_add_propagation_benchmark( eigen )
+    endif()
+
+    # Build the SMatrix benchmark executable.
+    if(DETRAY_SMATRIX_PLUGIN)
+        detray_add_propagation_benchmark( smatrix )
+    endif()
+
+    # Build the Vc benchmark executable.
+    if(DETRAY_VC_AOS_PLUGIN)
+        detray_add_propagation_benchmark( vc_aos )
+    endif()
+endif()
