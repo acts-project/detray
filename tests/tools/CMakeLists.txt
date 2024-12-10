@@ -21,7 +21,6 @@ target_link_libraries(
     INTERFACE
         Boost::program_options
         vecmem::core
-        detray::core_array
         detray::test_common
         detray::io
         detray::csv_io

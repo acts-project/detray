@@ -92,7 +92,7 @@ int main(int argc, char** argv) {
             n_tracks);
 
     // Specific configuration for the random track generation
-    trk_cfg.seed(42u);
+    trk_cfg.seed(detail::random_numbers<scalar>::default_seed());
 
     // Add additional tracks for warmup
     bench_cfg.n_warmup(static_cast<int>(
