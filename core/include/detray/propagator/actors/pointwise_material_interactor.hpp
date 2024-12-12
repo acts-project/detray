@@ -175,8 +175,7 @@ struct pointwise_material_interactor : actor {
 
                 if (interactor_state.do_covariance_transport) {
 
-                    update_qop_variance(covariance, interactor_state.sigma_qop,
-                                        nav_dir);
+                    update_qop_variance(covariance, interactor_state.sigma_qop);
                 }
             }
 
@@ -184,7 +183,7 @@ struct pointwise_material_interactor : actor {
 
                 update_angle_variance(
                     covariance, bound_params.dir(),
-                    interactor_state.projected_scattering_angle, nav_dir);
+                    interactor_state.projected_scattering_angle);
             }
         }
     }
@@ -226,13 +225,12 @@ struct pointwise_material_interactor : actor {
     /// @param[in]  sigma_qop variance of q over p
     /// @param[in]  sign navigation direction
     DETRAY_HOST_DEVICE inline void update_qop_variance(
-        bound_matrix_type &covariance, const scalar_type sigma_qop,
-        const int sign) const {
+        bound_matrix_type &covariance, const scalar_type sigma_qop) const {
 
         const scalar_type variance_qop{sigma_qop * sigma_qop};
 
         getter::element(covariance, e_bound_qoverp, e_bound_qoverp) +=
-            math::copysign(variance_qop, static_cast<scalar_type>(sign));
+            variance_qop;
     }
 
     /// @brief Update the variance of phi and theta of bound track parameter
@@ -243,14 +241,13 @@ struct pointwise_material_interactor : actor {
     /// @param[in]  sign navigation direction
     DETRAY_HOST_DEVICE inline void update_angle_variance(
         bound_matrix_type &covariance, const vector3_type &dir,
-        const scalar_type projected_scattering_angle, const int sign) const {
+        const scalar_type projected_scattering_angle) const {
 
-        // variance of projected scattering angle
-        const scalar_type var_scattering_angle{math::copysign(
-            projected_scattering_angle * projected_scattering_angle,
-            static_cast<scalar_type>(sign))};
+        const scalar_type var_scattering_angle{projected_scattering_angle *
+                                               projected_scattering_angle};
 
         constexpr auto inv{detail::invalid_value<scalar_type>()};
+
         getter::element(covariance, e_bound_phi, e_bound_phi) +=
             (dir[2] == 1.f) ? inv
                             : var_scattering_angle / (1.f - dir[2] * dir[2]);
