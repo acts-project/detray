@@ -268,21 +268,26 @@ struct add_sf_material_map {
             // The detector only knows the non-owning grid types
             using non_owning_t =
                 typename decltype(mat_grid)::template type<false>;
-            static_assert(materials_t::template is_defined<non_owning_t>());
 
-            // Add the material slabs to the grid
-            for (const auto& bin : bin_data) {
-                mat_grid.template populate<replace<>>(bin.local_bin_idx,
-                                                      bin.single_element);
+            // Not every mask shape might be used for material maps
+            if constexpr (materials_t::template is_defined<non_owning_t>()) {
+                // Add the material slabs to the grid
+                for (const auto& bin : bin_data) {
+                    mat_grid.template populate<replace<>>(bin.local_bin_idx,
+                                                          bin.single_element);
+                }
+
+                // Add the material grid to the detector
+                constexpr auto gid{
+                    materials_t::template get_id<non_owning_t>()};
+                mat_store.template push_back<gid>(mat_grid);
+
+                // Return the index of the new material map
+                return {gid, static_cast<dindex>(
+                                 mat_store.template size<gid>() - 1u)};
+            } else {
+                return {materials_t::id::e_none, dindex_invalid};
             }
-
-            // Add the material grid to the detector
-            constexpr auto gid{materials_t::template get_id<non_owning_t>()};
-            mat_store.template push_back<gid>(mat_grid);
-
-            // Return the index of the new material map
-            return {gid,
-                    static_cast<dindex>(mat_store.template size<gid>() - 1u)};
         } else {
             return {materials_t::id::e_none, dindex_invalid};
         }

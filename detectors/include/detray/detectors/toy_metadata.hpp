@@ -37,14 +37,43 @@ struct toy_metadata {
     /// Mask to (next) volume link: next volume(s)
     using nav_link = std::uint_least16_t;
 
+    /// How to store coordinate transform matrices
+    template <template <typename...> class vector_t = dvector>
+    using transform_store =
+        single_store<dtransform3D<algebra_type>, vector_t, geometry_context>;
+
+    //
+    // Surface Primitives
+    //
+
     /// Mask types
     using rectangle = mask<rectangle2D, algebra_type, nav_link>;
     using trapezoid = mask<trapezoid2D, algebra_type, nav_link>;
+
     // using cylinder = mask<cylinder2D, algebra_type, nav_link>;  // beampipe
     using cylinder_portal = mask<concentric_cylinder2D, algebra_type, nav_link>;
     using disc_portal = mask<ring2D, algebra_type, nav_link>;
 
-    /// Material types
+    /// Mask type ids
+    enum class mask_ids : std::uint_least8_t {
+        e_rectangle2 = 0,
+        e_trapezoid2 = 1,
+        e_portal_cylinder2 = 2,
+        e_portal_ring2 = 3,
+        e_cylinder2 = 2,
+    };
+
+    /// How to store masks
+    template <template <typename...> class vector_t = dvector>
+    using mask_store =
+        regular_multi_store<mask_ids, empty_context, dtuple, vector_t,
+                            rectangle, trapezoid, cylinder_portal, disc_portal>;
+
+    //
+    // Material Description
+    //
+
+    // Homogeneous material description
     using slab = material_slab<scalar_t>;
 
     // Cylindrical material grid
@@ -56,10 +85,25 @@ struct toy_metadata {
     template <typename container_t>
     using disc_map_t = material_map<algebra_type, ring2D, container_t>;
 
-    // Rectangular material grid
-    template <typename container_t>
-    using rectangular_map_t =
-        material_map<algebra_type, rectangle2D, container_t>;
+    /// Material type ids
+    enum class material_ids : std::uint_least8_t {
+        e_concentric_cylinder2_map = 0u,
+        e_disc2_map = 1u,
+        e_slab = 2u,
+        e_none = 3u,
+    };
+
+    /// How to store materials
+    template <typename container_t = host_container_types>
+    using material_store =
+        multi_store<material_ids, empty_context, dtuple,
+                    grid_collection<cylinder_map_t<container_t>>,
+                    grid_collection<disc_map_t<container_t>>,
+                    typename container_t::template vector_type<slab>>;
+
+    //
+    // Acceleration structures
+    //
 
     /// Surface grid types (regular, open binning)
     /// @{
@@ -81,43 +125,13 @@ struct toy_metadata {
 
     /// @}
 
-    /// How to store coordinate transform matrices
-    template <template <typename...> class vector_t = dvector>
-    using transform_store =
-        single_store<dtransform3D<algebra_type>, vector_t, geometry_context>;
-
-    /// Mask type ids
-    enum class mask_ids : std::uint_least8_t {
-        e_rectangle2 = 0,
-        e_trapezoid2 = 1,
-        e_portal_cylinder2 = 2,
-        e_portal_ring2 = 3,
-        e_cylinder2 = 2,
+    /// Acceleration data structures
+    enum class accel_ids : std::uint_least8_t {
+        e_brute_force = 0,     // test all surfaces in a volume (brute force)
+        e_cylinder2_grid = 1,  // barrel
+        e_disc_grid = 2,       // endcap
+        e_default = e_brute_force,
     };
-
-    /// How to store masks
-    template <template <typename...> class vector_t = dvector>
-    using mask_store =
-        regular_multi_store<mask_ids, empty_context, dtuple, vector_t,
-                            rectangle, trapezoid, cylinder_portal, disc_portal>;
-
-    /// Material type ids
-    enum class material_ids : std::uint_least8_t {
-        e_disc2_map = 0u,
-        e_concentric_cylinder2_map = 1u,
-        e_rectangle2_map = 2u,
-        e_slab = 3u,
-        e_none = 4u,
-    };
-
-    /// How to store materials
-    template <typename container_t = host_container_types>
-    using material_store =
-        multi_store<material_ids, empty_context, dtuple,
-                    grid_collection<disc_map_t<container_t>>,
-                    grid_collection<cylinder_map_t<container_t>>,
-                    grid_collection<rectangular_map_t<container_t>>,
-                    typename container_t::template vector_type<slab>>;
 
     /// How to link to the entries in the data stores
     using transform_link = typename transform_store<>::link_type;
@@ -126,6 +140,18 @@ struct toy_metadata {
     /// Surface type used for sensitives, passives and portals
     using surface_type =
         surface_descriptor<mask_link, material_link, transform_link, nav_link>;
+
+    /// How to store the acceleration data structures
+    template <typename container_t = host_container_types>
+    using accelerator_store = multi_store<
+        accel_ids, empty_context, dtuple,
+        brute_force_collection<surface_type, container_t>,
+        grid_collection<cylinder_sf_grid<surface_type, container_t>>,
+        grid_collection<disc_sf_grid<surface_type, container_t>>>;
+
+    //
+    // Volume descriptors
+    //
 
     /// Portals and passives in the brute froce search, sensitives in the grids
     enum geo_objects : std::uint_least8_t {
@@ -136,25 +162,13 @@ struct toy_metadata {
         e_all = e_size,
     };
 
-    /// Acceleration data structures
-    enum class accel_ids : std::uint_least8_t {
-        e_brute_force = 0,     // test all surfaces in a volume (brute force)
-        e_disc_grid = 1,       // endcap
-        e_cylinder2_grid = 2,  // barrel
-        e_default = e_brute_force,
-    };
-
     /// One link for portals/passives and one sensitive surfaces
     using object_link_type =
         dmulti_index<dtyped_index<accel_ids, dindex>, geo_objects::e_size>;
 
-    /// How to store the acceleration data structures
-    template <typename container_t = host_container_types>
-    using accelerator_store = multi_store<
-        accel_ids, empty_context, dtuple,
-        brute_force_collection<surface_type, container_t>,
-        grid_collection<disc_sf_grid<surface_type, container_t>>,
-        grid_collection<cylinder_sf_grid<surface_type, container_t>>>;
+    //
+    // Volume acceleration structure
+    //
 
     /// Volume search grid
     template <typename container_t = host_container_types>
