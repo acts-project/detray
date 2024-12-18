@@ -180,11 +180,21 @@ class base_stepper {
             return m_jac_transport;
         }
 
+        /// @returns the current transport Jacbian.
+        DETRAY_HOST_DEVICE
+        inline free_matrix_type &transport_jacobian() {
+            return m_jac_transport;
+        }
+
         /// @returns the current full Jacbian.
         DETRAY_HOST_DEVICE
         inline const bound_matrix_type &full_jacobian() const {
             return m_full_jacobian;
         }
+
+        /// @returns the current full Jacbian.
+        DETRAY_HOST_DEVICE
+        inline bound_matrix_type &full_jacobian() { return m_full_jacobian; }
 
         /// Set new full Jacbian.
         DETRAY_HOST_DEVICE
