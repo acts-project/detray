@@ -55,12 +55,6 @@ struct propagator {
     explicit constexpr propagator(const propagation::config &cfg)
         : m_cfg{cfg} {}
 
-    /// @returns the actor chain
-    DETRAY_HOST_DEVICE
-    constexpr const actor_chain_t &get_actor_chain() const {
-        return run_actors;
-    }
-
     /// Propagation that state aggregates a stepping and a navigation state. It
     /// also keeps references to the actor states.
     struct state {

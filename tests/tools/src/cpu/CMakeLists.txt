@@ -58,19 +58,14 @@ if(DETRAY_BUILD_BENCHMARKS)
 
     # Build the propagation benchmark executable.
     macro(detray_add_propagation_benchmark algebra)
-        detray_add_executable(propagation_benchmark_${algebra}
+        detray_add_executable(propagation_benchmark_cpu_${algebra}
                             "propagation_benchmark.cpp"
-                            LINK_LIBRARIES Boost::program_options benchmark::benchmark benchmark::benchmark_main vecmem::core detray::core_${algebra} detray::benchmarks detray::benchmark_cpu detray::tools detray::detectors
-        )
-
-        target_compile_options(
-            detray_propagation_benchmark_${algebra}
-            PRIVATE "-march=native" "-ftree-vectorize"
+                            LINK_LIBRARIES Boost::program_options benchmark::benchmark benchmark::benchmark_main vecmem::core detray::benchmark_cpu detray::core_${algebra} detray::tools detray::detectors
         )
 
         if(OpenMP_CXX_FOUND)
             target_link_libraries(
-                detray_propagation_benchmark_${algebra}
+                detray_propagation_benchmark_cpu_${algebra}
                 PRIVATE OpenMP::OpenMP_CXX
             )
         endif()

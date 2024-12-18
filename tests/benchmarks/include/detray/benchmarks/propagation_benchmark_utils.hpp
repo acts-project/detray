@@ -171,19 +171,19 @@ inline void register_benchmark(
 
         std::cout << bench_name << "\n" << bench_cfg;
 
-        // Cpu benchmark
         if constexpr (std::is_invocable_v<
                           decltype(prop_benchmark), ::benchmark::State &,
                           dvector<free_track_parameters<algebra_t>> *,
                           const detector_t *, const bfield_bknd_t *,
                           typename propagator_t::actor_chain_type::state_tuple
                               *>) {
+            // Cpu benchmark
             ::benchmark::RegisterBenchmark(bench_name.c_str(), prop_benchmark,
                                            &tracks, &det, &bfield,
                                            actor_states);
             //->MeasureProcessCPUTime();
         } else {
-
+            // Device benchmark
             ::benchmark::RegisterBenchmark(bench_name.c_str(), prop_benchmark,
                                            dev_mr, &tracks, &det, &bfield,
                                            actor_states);

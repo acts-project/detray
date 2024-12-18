@@ -53,10 +53,10 @@ void add_uniform_track_gen_options(
         "Coordintates for particle gun origin position [mm]")(
         "p_range",
         boost::program_options::value<std::vector<scalar_t>>()->multitoken(),
-        "Total momentum [range] of the test particle [GeV]")(
+        "Total momentum [range] of the test particles [GeV]")(
         "pT_range",
         boost::program_options::value<std::vector<scalar_t>>()->multitoken(),
-        "Transverse momentum [range] of the test particle [GeV]");
+        "Transverse momentum [range] of the test particles [GeV]");
 }
 
 /// Add options for detray event generation
@@ -99,13 +99,14 @@ void configure_uniform_track_gen_options(
 
         // Default
         if (pt_range.empty()) {
-            cfg.p_T(static_cast<scalar_t>(cfg.m_p_mag) * unit<scalar_t>::GeV);
-        } else if (pt_range.size() == 1u) {
-            cfg.p_T(pt_range[0] * unit<scalar_t>::GeV);
-        } else if (pt_range.size() == 2u) {
-            std::cout << "WARNING: Momentum range not possible with uniform "
-                         "track generator: Using first value."
-                      << std::endl;
+            cfg.p_T(static_cast<scalar_t>(cfg.m_p_mag));
+        } else if (pt_range.size() <= 2u) {
+            if (pt_range.size() == 2u) {
+                std::cout
+                    << "WARNING: Momentum range not possible with uniform "
+                       "track generator: Using first value."
+                    << std::endl;
+            }
             cfg.p_T(pt_range[0] * unit<scalar_t>::GeV);
         } else {
             throw std::invalid_argument(
@@ -113,17 +114,21 @@ void configure_uniform_track_gen_options(
                 "range");
         }
     } else {
-        const auto p_range = vm["p_range"].as<std::vector<scalar_t>>();
+        auto p_range = std::vector<scalar_t>{};
+        if (vm.count("pT_range")) {
+            p_range = vm["p_range"].as<std::vector<scalar_t>>();
+        }
 
         // Default
         if (p_range.empty()) {
-            cfg.p_tot(static_cast<scalar_t>(cfg.m_p_mag) * unit<scalar_t>::GeV);
-        } else if (p_range.size() == 1u) {
-            cfg.p_tot(p_range[0] * unit<scalar_t>::GeV);
-        } else if (p_range.size() == 2u) {
-            std::cout << "WARNING: Momentum range not possible with uniform "
-                         "track generator: Using first value."
-                      << std::endl;
+            cfg.p_tot(static_cast<scalar_t>(cfg.m_p_mag));
+        } else if (p_range.size() <= 2u) {
+            if (p_range.size() == 2u) {
+                std::cout
+                    << "WARNING: Momentum range not possible with uniform "
+                       "track generator: Using first value."
+                    << std::endl;
+            }
             cfg.p_tot(p_range[0] * unit<scalar_t>::GeV);
         } else {
             throw std::invalid_argument(
@@ -149,20 +154,20 @@ void add_rnd_track_gen_options(
         "Seed for the random number generator")(
         "theta_range",
         boost::program_options::value<std::vector<scalar_t>>()->multitoken(),
-        "Min, Max range of theta values for particle gun")(
+        "Min, Max range of theta values for particle gun. Interval in [0, pi)")(
         "eta_range",
         boost::program_options::value<std::vector<scalar_t>>()->multitoken(),
         "Min, Max range of eta values for particle gun")(
         "randomize_charge", "Randomly flip charge sign per track")(
         "origin",
         boost::program_options::value<std::vector<scalar_t>>()->multitoken(),
-        "Coordintates for particle gun origin position")(
+        "Coordintates for particle gun origin position [mm]")(
         "p_range",
         boost::program_options::value<std::vector<scalar_t>>()->multitoken(),
-        "Total momentum [range] of the test particle [GeV]")(
+        "Total momentum [range] of the test particles [GeV]")(
         "pT_range",
         boost::program_options::value<std::vector<scalar_t>>()->multitoken(),
-        "Transverse momentum [range] of the test particle [GeV]");
+        "Transverse momentum [range] of the test particles [GeV]");
 }
 
 /// Add options for detray event generation
@@ -224,7 +229,7 @@ void configure_rnd_track_gen_options(
 
         // Default
         if (pt_range.empty()) {
-            cfg.p_T(cfg.mom_range()[0] * unit<scalar_t>::GeV);
+            cfg.p_T(cfg.mom_range()[0]);
         } else if (pt_range.size() == 1u) {
             cfg.p_T(pt_range[0] * unit<scalar_t>::GeV);
         } else if (pt_range.size() == 2u) {
@@ -236,11 +241,15 @@ void configure_rnd_track_gen_options(
                 "range");
         }
     } else {
-        const auto p_range = vm["p_range"].as<std::vector<scalar_t>>();
+
+        auto p_range = std::vector<scalar_t>();
+        if (vm.count("pT_range")) {
+            p_range = vm["p_range"].as<std::vector<scalar_t>>();
+        }
 
         // Default
         if (p_range.empty()) {
-            cfg.p_tot(cfg.mom_range()[0] * unit<scalar_t>::GeV);
+            cfg.p_tot(cfg.mom_range()[0]);
         } else if (p_range.size() == 1u) {
             cfg.p_tot(p_range[0] * unit<scalar_t>::GeV);
         } else if (p_range.size() == 2u) {

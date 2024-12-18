@@ -13,17 +13,34 @@ enable_language(CUDA)
 # Set the CUDA build flags.
 include(detray-compiler-options-cuda)
 
+# Build benchmark library for multiple algebra plugins to create correct
+# template instantiations
+# Currently vc and smatrix is not supported on device
+set(algebra_plugins "array")
+if(DETRAY_EIGEN_PLUGIN)
+    list(APPEND algebra_plugins "eigen")
+endif()
+
 # Set up a benchamrk library for CUDA
-add_library(
-    detray_benchmark_cuda
-    STATIC
-    "propagation_benchmark.hpp"
-    "propagation_benchmark.cu"
-)
+foreach(algebra ${algebra_plugins})
+    add_library(
+        detray_benchmark_cuda_${algebra}
+        STATIC
+        "propagation_benchmark.hpp"
+        "propagation_benchmark.cu"
+    )
 
-add_library(detray::benchmark_cuda ALIAS detray_benchmark_cuda)
+    add_library(
+        detray::benchmark_cuda_${algebra}
+        ALIAS detray_benchmark_cuda_${algebra}
+    )
 
-target_link_libraries(
-    detray_benchmark_cuda
-    PUBLIC vecmem::cuda detray::benchmarks detray::test_utils detray::core_array
-)
+    target_link_libraries(
+        detray_benchmark_cuda_${algebra}
+        PUBLIC
+            vecmem::cuda
+            detray::benchmarks
+            detray::test_utils
+            detray::core_${algebra}
+    )
+endforeach()

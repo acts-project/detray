@@ -41,6 +41,7 @@ int main(int argc, char** argv) {
     using test_algebra = typename toy_detector_t::algebra_type;
     using scalar = dscalar<test_algebra>;
     using vector3 = dvector3D<test_algebra>;
+
     using free_track_parameters_t = free_track_parameters<test_algebra>;
     using uniform_gen_t =
         detail::random_numbers<scalar, std::uniform_real_distribution<scalar>>;
@@ -87,11 +88,12 @@ int main(int argc, char** argv) {
             n_tracks);
 
     // Specific configuration for the random track generation
-    trk_cfg.seed(42u);
+    trk_cfg.seed(detail::random_numbers<scalar>::default_seed());
 
     // Add additional tracks for warmup
     bench_cfg.n_warmup(static_cast<int>(
         std::ceil(0.1f * static_cast<float>(trk_cfg.n_tracks()))));
+    bench_cfg.do_warmup(true);
 
     //
     // Prepare data

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023-2024 CERN for the benefit of the ACTS project
+ * (c) 2023-2025 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -52,12 +52,12 @@ struct host_propagation_bm : public benchmark_base {
     configuration &config() { return m_cfg; }
 
     /// Prepare data and run benchmark loop
-    inline void operator()(::benchmark::State &state,
-                           dvector<free_track_parameters<algebra_t>> *tracks,
-                           const typename propagator_t::detector_type *det,
-                           const bfield_t *bfield,
-                           typename propagator_t::actor_chain_type::state_tuple
-                               *input_actor_states) const {
+    inline void operator()(
+        ::benchmark::State &state,
+        const dvector<free_track_parameters<algebra_t>> *tracks,
+        const typename propagator_t::detector_type *det, const bfield_t *bfield,
+        const typename propagator_t::actor_chain_type::state_tuple
+            *input_actor_states) const {
         using actor_chain_t = typename propagator_t::actor_chain_type;
         using actor_states_t = typename actor_chain_t::state_tuple;
 
@@ -76,7 +76,8 @@ struct host_propagation_bm : public benchmark_base {
 
         // Call the host propagation
         auto run_propagation = [&p, det, bfield, input_actor_states](
-                                   free_track_parameters<algebra_t> &track) {
+                                   const free_track_parameters<algebra_t>
+                                       &track) {
             // Fresh copy of actor states
             actor_states_t actor_states(*input_actor_states);
             // Tuple of references to pass to the propagator
@@ -103,17 +104,26 @@ struct host_propagation_bm : public benchmark_base {
         // Warm-up
         if (m_cfg.benchmark().do_warmup()) {
             assert(n_warmup > 0);
-            auto stride{n_samples / n_warmup};
+            int stride{n_samples / n_warmup};
             stride = (stride == 0) ? 10 : stride;
             assert(stride > 0);
 
 #pragma omp parallel for schedule(dynamic)
             for (int i = 0; i < n_samples; i += stride) {
+                // The track gets copied into the stepper state, so that the
+                // original track sample vector remains unchanged
                 run_propagation((*tracks)[static_cast<std::size_t>(i)]);
             }
+        } else {
+            std::cout << "WARNING: Running host benchmarks without warmup"
+                      << std::endl;
         }
 
         // Run the benchmark
+
+        // Calculate the propagation rate
+        // @see
+        // https://github.com/google/benchmark/blob/main/docs/user_guide.md#custom-counters
         std::size_t total_tracks = 0u;
         for (auto _ : state) {
 #pragma omp parallel for schedule(dynamic)

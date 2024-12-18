@@ -20,7 +20,7 @@
 #include "detray/io/frontend/detector_reader.hpp"
 
 // Detray benchmark include(s)
-#include "detray/benchmarks/cpu/propagation_benchmark.hpp"
+#include "detray/benchmarks/device/cuda/propagation_benchmark.hpp"
 
 // Detray test include(s).
 #include "detray/test/utils/simulation/event_generator/track_generators.hpp"
@@ -57,16 +57,11 @@ int main(int argc, char** argv) {
     using track_generator_t =
         random_track_generator<free_track_parameters_t, uniform_gen_t>;
 
-    using field_t = bfield::const_field_t<scalar>;
-    using stepper_t = rk_stepper<typename field_t::view_t, test_algebra>;
-    using empty_chain_t = actor_chain<>;
-    using default_chain =
-        actor_chain<parameter_transporter<test_algebra>,
-                    pointwise_material_interactor<test_algebra>,
-                    parameter_resetter<test_algebra>>;
+    using field_bknd_t = bfield::const_bknd_t<scalar>;
 
-    // Host memory resource
+    // Host and device memory resources
     vecmem::host_memory_resource host_mr;
+    vecmem::cuda::device_memory_resource dev_mr;
 
     // Constant magnetic field
     vector3 B{0.f, 0.f, 2.f * unit<scalar>::T};
@@ -145,14 +140,20 @@ int main(int argc, char** argv) {
 
     if (prop_cfg.stepping.do_covariance_transport) {
         detray::benchmarks::register_benchmark<
-            detray::benchmarks::host_propagation_bm, stepper_t, default_chain>(
+            detray::benchmarks::cuda_propagation_bm,
+            detray::benchmarks::cuda_propagator_type<
+                test::default_metadata, field_bknd_t,
+                detray::benchmarks::default_chain>>(
             det_name + "_W_COV_TRANSPORT", bench_cfg, prop_cfg, det, bfield,
-            &actor_states, track_samples, n_tracks);
+            &actor_states, track_samples, n_tracks, &dev_mr);
     } else {
         detray::benchmarks::register_benchmark<
-            detray::benchmarks::host_propagation_bm, stepper_t, empty_chain_t>(
+            detray::benchmarks::cuda_propagation_bm,
+            detray::benchmarks::cuda_propagator_type<
+                test::default_metadata, field_bknd_t,
+                detray::benchmarks::empty_chain>>(
             det_name, bench_cfg, prop_cfg, det, bfield, &empty_state,
-            track_samples, n_tracks);
+            track_samples, n_tracks, &dev_mr);
     }
 
     // Run benchmarks
