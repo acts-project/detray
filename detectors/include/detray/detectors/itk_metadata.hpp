@@ -138,16 +138,19 @@ struct itk_metadata {
     /// If they share the same index value here, they will be added into the
     /// same acceleration data structure in every respective volume
     enum geo_objects : std::uint_least8_t {
-        e_surface = 0u,  //< This detector keeps all surfaces in the same
-        e_portal = 0u,   //  acceleration data structure (id 0)
-        e_passive = 0u,
-        e_size = 1u
+        e_portal = 0,
+        e_passive = 0,
+        e_sensitive = 1,
+        e_size = 2,
+        e_all = e_size,
     };
 
     /// The acceleration data structures live in another tuple that needs to be
     /// indexed correctly:
     enum class accel_ids : std::uint_least8_t {
-        e_brute_force = 0u,  //< test all surfaces in a volume (brute force)
+        e_brute_force = 0,     // test all surfaces in a volume (brute force)
+        e_disc_grid = 1,       // endcap
+        e_cylinder2_grid = 2,  // barrel
         e_default = e_brute_force,
     };
 
