@@ -25,10 +25,6 @@ using namespace detray;
 
 TEST(transform_store_cuda, transform_store) {
 
-    using algebra_t = ALGEBRA_PLUGIN<detray::scalar>;
-    using point3 = detray::dpoint3D<algebra_t>;
-    using transform3 = detray::dtransform3D<algebra_t>;
-
     // memory resource
     vecmem::cuda::managed_memory_resource mng_mr;
 

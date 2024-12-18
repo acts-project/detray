@@ -18,6 +18,8 @@
 
 using namespace detray;
 
+using scalar = test::scalar;
+
 GTEST_TEST(detray_material, derivative_test_beta2) {
 
     const pdg_particle<scalar> ptc = muon<scalar>();

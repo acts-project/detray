@@ -11,7 +11,6 @@
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/bfield.hpp"
-#include "detray/detectors/toy_metadata.hpp"
 #include "detray/geometry/shapes/rectangle2D.hpp"
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actor_chain.hpp"
@@ -43,17 +42,19 @@
 // Use the detray:: namespace implicitly.
 using namespace detray;
 
-using algebra_t = ALGEBRA_PLUGIN<detray::scalar>;
+using matadata_t = test::toy_metadata;
+using detector_host_type = detector<matadata_t, host_container_types>;
+using detector_device_type = detector<matadata_t, device_container_types>;
 
-using detector_host_type = detector<toy_metadata, host_container_types>;
-using detector_device_type = detector<toy_metadata, device_container_types>;
+using algebra_t = typename detector_host_type::algebra_type;
+using scalar = dscalar<algebra_t>;
 
 using intersection_t =
     intersection2D<typename detector_device_type::surface_type, algebra_t>;
 
 using navigator_host_type = navigator<detector_host_type>;
 using navigator_device_type = navigator<detector_device_type>;
-using field_type = bfield::const_field_t;
+using field_type = bfield::const_field_t<scalar>;
 using rk_stepper_type = rk_stepper<field_type::view_t, algebra_t>;
 using actor_chain_t = actor_chain<tuple, parameter_transporter<algebra_t>,
                                   pointwise_material_interactor<algebra_t>,
@@ -73,7 +74,7 @@ vecmem::host_memory_resource host_mr;
 
 // detector configuration
 auto toy_cfg =
-    toy_det_config{}.n_brl_layers(4u).n_edc_layers(7u).do_check(false);
+    toy_det_config<scalar>{}.n_brl_layers(4u).n_edc_layers(7u).do_check(false);
 
 void fill_tracks(vecmem::vector<free_track_parameters<algebra_t>> &tracks,
                  const std::size_t n_tracks, bool do_sort = true) {
@@ -121,9 +122,9 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
                          static_cast<std::size_t>(state.range(0))};
 
     // Create the toy geometry and bfield
-    auto [det, names] = build_toy_detector(host_mr, toy_cfg);
+    auto [det, names] = build_toy_detector<algebra_t>(host_mr, toy_cfg);
     test::vector3 B{0.f, 0.f, 2.f * unit<scalar>::T};
-    auto bfield = bfield::create_const_field(B);
+    auto bfield = bfield::create_const_field<scalar>(B);
 
     // Create propagator
     propagation::config cfg{};

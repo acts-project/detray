@@ -19,7 +19,12 @@
 #include <gtest/gtest.h>
 
 using namespace detray;
-using point_t = test::point3;
+
+using test_algebra = test::algebra;
+using scalar = test::scalar;
+using point3 = test::point3;
+using vector3 = test::vector3;
+using transform3 = test::transform3;
 
 namespace {
 
@@ -39,13 +44,13 @@ GTEST_TEST(detray_tools, bounding_cuboid3D) {
     constexpr scalar hy{9.3f * unit<scalar>::mm};
     constexpr scalar hz{0.5f * unit<scalar>::mm};
 
-    point_t p2_in = {0.5f, 8.0f, -0.4f};
-    point_t p2_edge = {1.f, 9.3f, 0.5f};
-    point_t p2_out = {1.5f, -9.f, 0.55f};
+    point3 p2_in = {0.5f, 8.0f, -0.4f};
+    point3 p2_edge = {1.f, 9.3f, 0.5f};
+    point3 p2_out = {1.5f, -9.f, 0.55f};
 
-    mask<cuboid3D> c3{0u, -hx, -hy, -hz, hx, hy, hz};
+    mask<cuboid3D, test_algebra> c3{0u, -hx, -hy, -hz, hx, hy, hz};
 
-    axis_aligned_bounding_volume<cuboid3D> aabb{c3, 0u, envelope};
+    axis_aligned_bounding_volume<cuboid3D, test_algebra> aabb{c3, 0u, envelope};
 
     // Id of this instance
     ASSERT_EQ(aabb.id(), 0u);
@@ -73,13 +78,13 @@ GTEST_TEST(detray_tools, bounding_cylinder3D) {
     constexpr scalar r{3.f * unit<scalar>::mm};
     constexpr scalar hz{4.f * unit<scalar>::mm};
 
-    point_t p3_in = {r, 0.f, -1.f};
-    point_t p3_edge = {0.f, r, hz};
-    point_t p3_out = {r * constant<scalar>::inv_sqrt2,
-                      r * constant<scalar>::inv_sqrt2, 4.5f};
-    point_t p3_off = {1.f, 1.f, -9.f};
+    point3 p3_in = {r, 0.f, -1.f};
+    point3 p3_edge = {0.f, r, hz};
+    point3 p3_out = {r * constant<scalar>::inv_sqrt2,
+                     r * constant<scalar>::inv_sqrt2, 4.5f};
+    point3 p3_off = {1.f, 1.f, -9.f};
 
-    axis_aligned_bounding_volume<cylinder3D> aabc{
+    axis_aligned_bounding_volume<cylinder3D, test_algebra> aabc{
         0u, 0.f, -constant<scalar>::pi, -hz, r, constant<scalar>::pi, hz};
 
     // Id of this instance
@@ -105,26 +110,24 @@ GTEST_TEST(detray_tools, bounding_cylinder3D) {
 /// This tests the basic functionality of an aabb around a stereo annulus
 GTEST_TEST(detray_tools, annulus2D_aabb) {
 
-    using transform3_t = test::transform3;
-    using vector3_t = typename transform3_t::vector3;
-
     constexpr scalar minR{7.2f * unit<scalar>::mm};
     constexpr scalar maxR{12.0f * unit<scalar>::mm};
     constexpr scalar minPhi{0.74195f};
     constexpr scalar maxPhi{1.33970f};
-    typename transform3_t::point2 offset = {-2.f, 2.f};
+    typename transform3::point2 offset = {-2.f, 2.f};
 
-    mask<annulus2D> ann2{0u,     minR, maxR,      minPhi,
-                         maxPhi, 0.f,  offset[0], offset[1]};
+    mask<annulus2D, test_algebra> ann2{0u,     minR, maxR,      minPhi,
+                                       maxPhi, 0.f,  offset[0], offset[1]};
 
     // Construct local aabb around mask
-    axis_aligned_bounding_volume<cuboid3D> aabb{ann2, 0u, envelope};
+    axis_aligned_bounding_volume<cuboid3D, test_algebra> aabb{ann2, 0u,
+                                                              envelope};
 
     // rotate around z-axis by 90deg and then translate by 1mm in each direction
-    const vector3_t new_x{0.f, -1.f, 0.f};
-    const vector3_t new_z{0.f, 0.f, 1.f};
-    const vector3_t t{1.f, 2.f, 3.f};
-    const transform3_t trf{t, new_z, new_x};
+    const vector3 new_x{0.f, -1.f, 0.f};
+    const vector3 new_z{0.f, 0.f, 1.f};
+    const vector3 t{1.f, 2.f, 3.f};
+    const transform3 trf{t, new_z, new_x};
 
     const auto glob_aabb = aabb.transform(trf);
     ASSERT_NEAR(glob_aabb[cuboid3D::e_min_x], 2.39186f - envelope + t[0], tol);
@@ -139,22 +142,19 @@ GTEST_TEST(detray_tools, annulus2D_aabb) {
 /// This tests the basic functionality of an aabb around a cylinder
 GTEST_TEST(detray_tools, cylinder2D_aabb) {
 
-    using transform3_t = test::transform3;
-    using vector3_t = typename transform3_t::vector3;
-
     constexpr scalar r{3.f * unit<scalar>::mm};
     constexpr scalar hz{4.f * unit<scalar>::mm};
 
-    mask<cylinder2D> c{0u, r, -hz, hz};
+    mask<cylinder2D, test_algebra> c{0u, r, -hz, hz};
 
     // Construct local aabb around mask
-    axis_aligned_bounding_volume<cuboid3D> aabb{c, 0u, envelope};
+    axis_aligned_bounding_volume<cuboid3D, test_algebra> aabb{c, 0u, envelope};
 
     // rotate around z-axis by 90deg and then translate by 1mm in each direction
-    const vector3_t new_x{0.f, -1.f, 0.f};
-    const vector3_t new_z{0.f, 0.f, 1.f};
-    const vector3_t t{1.f, 2.f, 3.f};
-    const transform3_t trf{t, new_z, new_x};
+    const vector3 new_x{0.f, -1.f, 0.f};
+    const vector3 new_z{0.f, 0.f, 1.f};
+    const vector3 t{1.f, 2.f, 3.f};
+    const transform3 trf{t, new_z, new_x};
 
     const auto glob_aabb = aabb.transform(trf);
     ASSERT_NEAR(glob_aabb[cuboid3D::e_min_x], -(r + envelope) + t[0], tol);
@@ -168,24 +168,23 @@ GTEST_TEST(detray_tools, cylinder2D_aabb) {
 /// This tests the basic functionality of an aabb around a line
 GTEST_TEST(detray_tools, line2D_aabb) {
 
-    using transform3_t = test::transform3;
-    using vector3_t = typename transform3_t::vector3;
-
     constexpr scalar cell_size{1.f * unit<scalar>::mm};
     constexpr scalar hz{50.f * unit<scalar>::mm};
 
-    const mask<line_circular> ln_r{0u, cell_size, hz};
-    const mask<line_square> ln_sq{0u, cell_size, hz};
+    const mask<line_circular, test_algebra> ln_r{0u, cell_size, hz};
+    const mask<line_square, test_algebra> ln_sq{0u, cell_size, hz};
 
     // Construct local aabb around mask
-    axis_aligned_bounding_volume<cuboid3D> aabb_r{ln_r, 0u, envelope};
-    axis_aligned_bounding_volume<cuboid3D> aabb_sq{ln_sq, 0u, envelope};
+    axis_aligned_bounding_volume<cuboid3D, test_algebra> aabb_r{ln_r, 0u,
+                                                                envelope};
+    axis_aligned_bounding_volume<cuboid3D, test_algebra> aabb_sq{ln_sq, 0u,
+                                                                 envelope};
 
     // rotate around z-axis by 90deg and then translate by 1mm in each direction
-    const vector3_t new_x{0.f, -1.f, 0.f};
-    const vector3_t new_z{0.f, 0.f, 1.f};
-    const vector3_t t{1.f, 2.f, 3.f};
-    const transform3_t trf{t, new_z, new_x};
+    const vector3 new_x{0.f, -1.f, 0.f};
+    const vector3 new_z{0.f, 0.f, 1.f};
+    const vector3 t{1.f, 2.f, 3.f};
+    const transform3 trf{t, new_z, new_x};
 
     // Radial crossection
     const auto glob_aabb_r = aabb_r.transform(trf);
@@ -217,22 +216,19 @@ GTEST_TEST(detray_tools, line2D_aabb) {
 /// This tests the basic functionality of an aabb around a rectangle
 GTEST_TEST(detray_tools, rectangle2D_aabb) {
 
-    using transform3_t = test::transform3;
-    using vector3_t = typename transform3_t::vector3;
-
     constexpr scalar hx{1.f * unit<scalar>::mm};
     constexpr scalar hy{9.3f * unit<scalar>::mm};
 
-    mask<rectangle2D> r2{0u, hx, hy};
+    mask<rectangle2D, test_algebra> r2{0u, hx, hy};
 
     // Construct local aabb around mask
-    axis_aligned_bounding_volume<cuboid3D> aabb{r2, 0u, envelope};
+    axis_aligned_bounding_volume<cuboid3D, test_algebra> aabb{r2, 0u, envelope};
 
     // rotate around z-axis by 90deg and then translate by 1mm in each direction
-    const vector3_t new_x{0.f, -1.f, 0.f};
-    const vector3_t new_z{0.f, 0.f, 1.f};
-    const vector3_t t{1.f, 2.f, 3.f};
-    const transform3_t trf{t, new_z, new_x};
+    const vector3 new_x{0.f, -1.f, 0.f};
+    const vector3 new_z{0.f, 0.f, 1.f};
+    const vector3 t{1.f, 2.f, 3.f};
+    const transform3 trf{t, new_z, new_x};
 
     const auto glob_aabb = aabb.transform(trf);
     ASSERT_NEAR(glob_aabb[cuboid3D::e_min_x], -(hy + envelope) + t[0], tol);
@@ -246,22 +242,19 @@ GTEST_TEST(detray_tools, rectangle2D_aabb) {
 /// This tests the basic functionality of an aabb around a rectangle
 GTEST_TEST(detray_tools, ring2D_aabb) {
 
-    using transform3_t = test::transform3;
-    using vector3_t = typename transform3_t::vector3;
-
     constexpr scalar inner_r{0.f * unit<scalar>::mm};
     constexpr scalar outer_r{3.5f * unit<scalar>::mm};
 
-    mask<ring2D> r2{0u, inner_r, outer_r};
+    mask<ring2D, test_algebra> r2{0u, inner_r, outer_r};
 
     // Construct local aabb around mask
-    axis_aligned_bounding_volume<cuboid3D> aabb{r2, 0u, envelope};
+    axis_aligned_bounding_volume<cuboid3D, test_algebra> aabb{r2, 0u, envelope};
 
     // rotate around z-axis by 90deg and then translate by 1mm in each direction
-    const vector3_t new_x{0.f, -1.f, 0.f};
-    const vector3_t new_z{0.f, 0.f, 1.f};
-    const vector3_t t{1.f, 2.f, 3.f};
-    const transform3_t trf{t, new_z, new_x};
+    const vector3 new_x{0.f, -1.f, 0.f};
+    const vector3 new_z{0.f, 0.f, 1.f};
+    const vector3 t{1.f, 2.f, 3.f};
+    const transform3 trf{t, new_z, new_x};
 
     const auto glob_aabb = aabb.transform(trf);
     ASSERT_NEAR(glob_aabb[cuboid3D::e_min_x], -(outer_r + envelope) + t[0],
@@ -277,24 +270,21 @@ GTEST_TEST(detray_tools, ring2D_aabb) {
 /// This tests the basic functionality of an aabb around a rectangle
 GTEST_TEST(detray_tools, trapezoid2D_aabb) {
 
-    using transform3_t = test::transform3;
-    using vector3_t = typename transform3_t::vector3;
-
     constexpr scalar hx_miny{1.f * unit<scalar>::mm};
     constexpr scalar hx_maxy{3.f * unit<scalar>::mm};
     constexpr scalar hy{2.f * unit<scalar>::mm};
     constexpr scalar divisor{1.f / (2.f * hy)};
 
-    mask<trapezoid2D> t2{0u, hx_miny, hx_maxy, hy, divisor};
+    mask<trapezoid2D, test_algebra> t2{0u, hx_miny, hx_maxy, hy, divisor};
 
     // Construct local aabb around mask
-    axis_aligned_bounding_volume<cuboid3D> aabb{t2, 0u, envelope};
+    axis_aligned_bounding_volume<cuboid3D, test_algebra> aabb{t2, 0u, envelope};
 
     // rotate around z-axis by 90deg and then translate by 1mm in each direction
-    const vector3_t new_x{0.f, -1.f, 0.f};
-    const vector3_t new_z{0.f, 0.f, 1.f};
-    const vector3_t t{1.f, 2.f, 3.f};
-    const transform3_t trf{t, new_z, new_x};
+    const vector3 new_x{0.f, -1.f, 0.f};
+    const vector3 new_z{0.f, 0.f, 1.f};
+    const vector3 t{1.f, 2.f, 3.f};
+    const transform3 trf{t, new_z, new_x};
 
     const auto glob_aabb = aabb.transform(trf);
     ASSERT_NEAR(glob_aabb[cuboid3D::e_min_x], -(hy + envelope) + t[0], tol);
@@ -308,7 +298,8 @@ GTEST_TEST(detray_tools, trapezoid2D_aabb) {
 
 /// This tests wrapping a collection of cuboid bounding volumes
 GTEST_TEST(detray_tools, wrap_bounding_cuboid3D) {
-    using box_t = axis_aligned_bounding_volume<cuboid3D>;
+
+    using box_t = axis_aligned_bounding_volume<cuboid3D, test_algebra>;
 
     box_t b1{0u, -1.f, 0.f, -10.f, -0.5f, 1.f, 0.f};
     box_t b2{0u, -2.f, 3.f, 2.f, 2.f, 4.5f, 3.5f};

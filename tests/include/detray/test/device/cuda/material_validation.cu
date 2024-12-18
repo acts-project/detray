@@ -6,8 +6,6 @@
  */
 
 #include "detray/definitions/detail/cuda_definitions.hpp"
-#include "detray/detectors/telescope_metadata.hpp"
-#include "detray/detectors/toy_metadata.hpp"
 #include "detray/propagator/actors/aborters.hpp"
 #include "detray/propagator/actors/parameter_resetter.hpp"
 #include "detray/propagator/actors/parameter_transporter.hpp"
@@ -41,11 +39,11 @@ __global__ void material_validation_kernel(
     // material tracer
     using material_tracer_t =
         material_validator::material_tracer<scalar_t, vecmem::device_vector>;
-    using actor_chain_t =
-        actor_chain<tuple, pathlimit_aborter, parameter_transporter<algebra_t>,
-                    parameter_resetter<algebra_t>,
-                    pointwise_material_interactor<algebra_t>,
-                    material_tracer_t>;
+    using pathlimit_aborter_t = pathlimit_aborter<scalar_t>;
+    using actor_chain_t = actor_chain<
+        tuple, pathlimit_aborter_t, parameter_transporter<algebra_t>,
+        parameter_resetter<algebra_t>, pointwise_material_interactor<algebra_t>,
+        material_tracer_t>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     detector_device_t det(det_data);
@@ -65,7 +63,7 @@ __global__ void material_validation_kernel(
     propagator_t p{cfg};
 
     // Create the actor states
-    pathlimit_aborter::state aborter_state{cfg.stepping.path_limit};
+    typename pathlimit_aborter_t::state aborter_state{cfg.stepping.path_limit};
     typename parameter_transporter<algebra_t>::state transporter_state{};
     typename parameter_resetter<algebra_t>::state resetter_state{};
     typename pointwise_material_interactor<algebra_t>::state interactor_state{};
@@ -124,8 +122,8 @@ void material_validation_device(
         vecmem::data::jagged_vector_view<material_validator::material_params< \
             typename detector<METADATA>::scalar_type>> &);
 
-DECLARE_MATERIAL_VALIDATION(default_metadata)
-DECLARE_MATERIAL_VALIDATION(toy_metadata)
-DECLARE_MATERIAL_VALIDATION(telescope_metadata<rectangle2D>)
+DECLARE_MATERIAL_VALIDATION(test::default_metadata)
+DECLARE_MATERIAL_VALIDATION(test::toy_metadata)
+DECLARE_MATERIAL_VALIDATION(test::default_telescope_metadata)
 
 }  // namespace detray::cuda

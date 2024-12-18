@@ -11,23 +11,20 @@
 namespace detray::tutorial {
 
 // Propagation configurations
-inline constexpr detray::scalar path_limit{2.f *
-                                           detray::unit<detray::scalar>::m};
+inline constexpr scalar path_limit{2.f * detray::unit<scalar>::m};
 
 /// Kernel that runs the entire propagation loop
 __global__ void propagation_kernel(
     typename detray::tutorial::detector_host_t::view_type det_data,
     typename detray::tutorial::device_field_t::view_t field_data,
-    const vecmem::data::vector_view<
-        detray::free_track_parameters<detray::tutorial::algebra_t>>
+    const vecmem::data::vector_view<detray::free_track_parameters<algebra_t>>
         tracks_data) {
 
     int gid = threadIdx.x + blockIdx.x * blockDim.x;
 
     // Setup device-side track collection
-    vecmem::device_vector<
-        detray::free_track_parameters<detray::tutorial::algebra_t>>
-        tracks(tracks_data);
+    vecmem::device_vector<detray::free_track_parameters<algebra_t>> tracks(
+        tracks_data);
 
     if (gid >= tracks.size()) {
         return;
@@ -42,13 +39,10 @@ __global__ void propagation_kernel(
     detray::tutorial::propagator_t p{cfg};
 
     // Create actor states
-    detray::pathlimit_aborter::state aborter_state{path_limit};
-    detray::parameter_transporter<detray::tutorial::algebra_t>::state
-        transporter_state{};
-    detray::pointwise_material_interactor<detray::tutorial::algebra_t>::state
-        interactor_state{};
-    detray::parameter_resetter<detray::tutorial::algebra_t>::state
-        resetter_state{};
+    detray::pathlimit_aborter<scalar>::state aborter_state{path_limit};
+    detray::parameter_transporter<algebra_t>::state transporter_state{};
+    detray::pointwise_material_interactor<algebra_t>::state interactor_state{};
+    detray::parameter_resetter<algebra_t>::state resetter_state{};
 
     auto actor_states = detray::tie(aborter_state, transporter_state,
                                     interactor_state, resetter_state);
@@ -60,11 +54,11 @@ __global__ void propagation_kernel(
     p.propagate(state, actor_states);
 }
 
-void propagation(typename detray::tutorial::detector_host_t::view_type det_data,
-                 typename detray::tutorial::device_field_t::view_t field_data,
-                 const vecmem::data::vector_view<
-                     detray::free_track_parameters<detray::tutorial::algebra_t>>
-                     tracks_data) {
+void propagation(
+    typename detray::tutorial::detector_host_t::view_type det_data,
+    typename detray::tutorial::device_field_t::view_t field_data,
+    const vecmem::data::vector_view<detray::free_track_parameters<algebra_t>>
+        tracks_data) {
 
     int thread_dim = 2 * WARP_SIZE;
     int block_dim = tracks_data.size() / thread_dim + 1;

@@ -69,17 +69,19 @@ inline auto record_propagation(
 
     // Propagator with pathlimit aborter and validation actors
     using step_tracer_t = step_tracer<algebra_t, dvector>;
+    using pathlimit_aborter_t = pathlimit_aborter<scalar_t>;
     using material_tracer_t =
         material_validator::material_tracer<scalar_t, dvector>;
-    using actor_chain_t = actor_chain<dtuple, pathlimit_aborter, step_tracer_t,
-                                      material_tracer_t>;
+    using actor_chain_t = actor_chain<dtuple, pathlimit_aborter_t,
+                                      step_tracer_t, material_tracer_t>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Propagator
     propagator_t prop{cfg};
 
     // Build actor and propagator states
-    pathlimit_aborter::state pathlimit_aborter_state{cfg.stepping.path_limit};
+    typename pathlimit_aborter_t::state pathlimit_aborter_state{
+        cfg.stepping.path_limit};
     typename step_tracer_t::state step_tracer_state{*host_mr};
     typename material_tracer_t::state mat_tracer_state{*host_mr};
     auto actor_states = detray::tie(pathlimit_aborter_state, step_tracer_state,

@@ -42,7 +42,7 @@ struct run_material_validation {
             &tracks,
         const std::vector<std::size_t> & = {}) {
 
-        using scalar_t = typename detector_t::scalar_type;
+        using scalar_t = dscalar<typename detector_t::algebra_type>;
 
         typename detector_t::geometry_context gctx{};
 
@@ -80,8 +80,8 @@ struct run_material_validation {
 template <typename detector_t, typename material_validator_t>
 class material_validation_impl : public test::fixture_base<> {
 
-    using scalar_t = typename detector_t::scalar_type;
     using algebra_t = typename detector_t::algebra_type;
+    using scalar_t = dscalar<algebra_t>;
     using free_track_parameters_t = free_track_parameters<algebra_t>;
     using material_record_t = material_validator::material_record<scalar_t>;
 

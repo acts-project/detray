@@ -15,10 +15,12 @@
 #include <gtest/gtest.h>
 
 using namespace detray;
+
+using test_algebra = test::algebra;
 using transform3 = test::transform3;
 using vector3 = typename transform3::vector3;
-using algebra_t = test::algebra;
 using point3 = test::point3;
+using scalar = test::scalar;
 
 GTEST_TEST(detray_utils, curvilinear_frame) {
 
@@ -29,9 +31,9 @@ GTEST_TEST(detray_utils, curvilinear_frame) {
     vector3 mom = {10.f, 20.f, 30.f};
     constexpr scalar charge = -1.f;
 
-    free_track_parameters<algebra_t> free_params(pos, time, mom, charge);
+    free_track_parameters<test_algebra> free_params(pos, time, mom, charge);
 
-    curvilinear_frame<algebra_t> cf(free_params);
+    curvilinear_frame<test_algebra> cf(free_params);
 
     const auto bound_vec = cf.m_bound_vec;
 

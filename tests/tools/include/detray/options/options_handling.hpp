@@ -23,7 +23,7 @@ void add_options(boost::program_options::options_description &,
 
 /// Fill the configuration type T from the boost variable map
 template <typename T>
-void configure_options(boost::program_options::variables_map &,
+void configure_options(const boost::program_options::variables_map &,
                        T &) { /* Do nothing */
 }
 

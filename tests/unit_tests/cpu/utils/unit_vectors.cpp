@@ -15,8 +15,10 @@
 #include <gtest/gtest.h>
 
 using namespace detray;
+
 using transform3 = test::transform3;
 using vector3 = typename transform3::vector3;
+using scalar = test::scalar;
 
 GTEST_TEST(detray_utils, curvilinear_unit_vectors) {
 

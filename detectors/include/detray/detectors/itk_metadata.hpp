@@ -34,10 +34,12 @@ namespace detray {
 
 /// Defines a detector that contains squares, trapezoids and a bounding portal
 /// box.
+template <typename algebra_t>
 struct itk_metadata {
 
     /// Define the algebra type for the geometry and navigation
-    using algebra_type = ALGEBRA_PLUGIN<detray::scalar>;
+    using algebra_type = algebra_t;
+    using scalar_t = dscalar<algebra_type>;
 
     /// Portal link type between volumes
     using nav_link = std::uint_least16_t;
@@ -47,11 +49,11 @@ struct itk_metadata {
     //
 
     /// The mask types for the detector sensitive surfaces
-    using annulus = mask<annulus2D, nav_link>;
-    using rectangle = mask<rectangle2D, nav_link>;
+    using annulus = mask<annulus2D, algebra_type, nav_link>;
+    using rectangle = mask<rectangle2D, algebra_type, nav_link>;
     // Types for portals
-    using cylinder_portal = mask<concentric_cylinder2D, nav_link>;
-    using disc_portal = mask<ring2D, nav_link>;
+    using cylinder_portal = mask<concentric_cylinder2D, algebra_type, nav_link>;
+    using disc_portal = mask<ring2D, algebra_type, nav_link>;
 
     //
     // Material Description
@@ -59,20 +61,21 @@ struct itk_metadata {
 
     /// The material types to be mapped onto the surfaces: Here homogeneous
     /// material
-    using slab = material_slab<detray::scalar>;
+    using slab = material_slab<scalar_t>;
 
     // Cylindrical material map
     template <typename container_t>
     using cylinder_map_t =
-        material_map<concentric_cylinder2D, scalar, container_t>;
+        material_map<algebra_type, concentric_cylinder2D, container_t>;
 
     // Disc material map
     template <typename container_t>
-    using disc_map_t = material_map<ring2D, scalar, container_t>;
+    using disc_map_t = material_map<algebra_type, ring2D, container_t>;
 
     // Rectangular material map
     template <typename container_t>
-    using rectangular_map_t = material_map<rectangle2D, scalar, container_t>;
+    using rectangular_map_t =
+        material_map<algebra_type, rectangle2D, container_t>;
 
     /// How to store and link transforms. The geometry context allows to resolve
     /// the conditions data for e.g. module alignment
@@ -167,7 +170,8 @@ struct itk_metadata {
     /// given position. Here: Uniform grid with a 3D cylindrical shape
     template <typename container_t = host_container_types>
     using volume_finder =
-        grid<axes<cylinder3D, axis::bounds::e_open, axis::irregular,
+        grid<algebra_type,
+             axes<cylinder3D, axis::bounds::e_open, axis::irregular,
                   axis::regular, axis::irregular>,
              bins::single<dindex>, simple_serializer, container_t>;
 };

@@ -33,9 +33,9 @@ namespace detray::test {
 template <typename detector_t, template <typename> class scan_type>
 class navigation_validation : public test::fixture_base<> {
 
-    using scalar_t = typename detector_t::scalar_type;
     using algebra_t = typename detector_t::algebra_type;
-    using vector3_t = typename detector_t::vector3_type;
+    using scalar_t = dscalar<algebra_t>;
+    using vector3_t = dvector3D<algebra_t>;
     using free_track_parameters_t = free_track_parameters<algebra_t>;
     using trajectory_type = typename scan_type<algebra_t>::trajectory_type;
     using truth_trace_t = typename scan_type<
@@ -70,23 +70,24 @@ class navigation_validation : public test::fixture_base<> {
             typename truth_trace_t::value_type::intersection_type;
 
         // Runge-Kutta stepper
-        using hom_bfield_t = bfield::const_field_t;
+        using hom_bfield_t = bfield::const_field_t<scalar_t>;
         using bfield_t =
             std::conditional_t<k_use_rays, navigation_validator::empty_bfield,
                                hom_bfield_t>;
         using rk_stepper_t =
             rk_stepper<typename hom_bfield_t::view_t, algebra_t,
-                       unconstrained_step, stepper_rk_policy,
-                       stepping::print_inspector>;
+                       unconstrained_step<scalar_t>,
+                       stepper_rk_policy<scalar_t>, stepping::print_inspector>;
         using line_stepper_t =
-            line_stepper<algebra_t, unconstrained_step, stepper_default_policy,
+            line_stepper<algebra_t, unconstrained_step<scalar_t>,
+                         stepper_default_policy<scalar_t>,
                          stepping::print_inspector>;
         using stepper_t =
             std::conditional_t<k_use_rays, line_stepper_t, rk_stepper_t>;
 
         bfield_t b_field{};
         if constexpr (!k_use_rays) {
-            b_field = bfield::create_const_field(m_cfg.B_vector());
+            b_field = bfield::create_const_field<scalar_t>(m_cfg.B_vector());
         }
 
         // Use ray or helix

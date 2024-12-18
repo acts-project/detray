@@ -146,7 +146,7 @@ class line {
             return 8.f * bounds[e_half_z] * bounds[e_cross_section] *
                    bounds[e_cross_section];
         } else {
-            return constant<scalar>::pi * 2.f * bounds[e_half_z] *
+            return constant<scalar_t>::pi * 2.f * bounds[e_half_z] *
                    bounds[e_cross_section] * bounds[e_cross_section];
         }
     }

@@ -38,9 +38,10 @@ namespace detray {
 template <typename detector_t>  // @TODO: This needs a concept
 class tracking_volume {
 
-    /// Scalar type
-    using scalar_type = typename detector_t::scalar_type;
-    using point3_type = typename detector_t::point3_type;
+    /// Linear algebra types
+    using algebra_type = typename detector_t::algebra_type;
+    using scalar_type = dscalar<algebra_type>;
+    using point3_type = dpoint3D<algebra_type>;
 
     /// Volume descriptor type
     using descr_t = typename detector_t::volume_type;

@@ -37,13 +37,13 @@ namespace detray::detail {
 ///        taken absolute or relative
 template <typename context_t, typename surface_container_t,
           typename transform_container_t, typename mask_container_t,
-          concepts::surface_grid grid_t>
+          concepts::surface_grid grid_t, typename scalar_t>
 static inline void bin_association(const context_t & /*context*/,
                                    const surface_container_t &surfaces,
                                    const transform_container_t &transforms,
                                    const mask_container_t &surface_masks,
                                    grid_t &grid,
-                                   const std::array<scalar, 2> &bin_tolerance,
+                                   const std::array<scalar_t, 2> &bin_tolerance,
                                    bool absolute_tolerance = true) {
 
     using algebra_t = typename grid_t::local_frame_type::algebra_type;
@@ -58,8 +58,8 @@ static inline void bin_association(const context_t & /*context*/,
                                  polar2D<algebra_t>>) {
         // Run with two different associators: center of gravity and edge
         // intersection
-        center_of_gravity_generic cgs_assoc;
-        edges_intersect_generic edges_assoc;
+        center_of_gravity_generic<algebra_t> cgs_assoc;
+        edges_intersect_generic<algebra_t> edges_assoc;
 
         // Loop over all bins and associate the surfaces
         for (unsigned int bin_0 = 0; bin_0 < axis_0.nbins(); ++bin_0) {
@@ -68,18 +68,18 @@ static inline void bin_association(const context_t & /*context*/,
                 auto r_borders = axis_0.bin_edges(bin_0);
                 auto phi_borders = axis_1.bin_edges(bin_1);
 
-                scalar r_add =
+                scalar_t r_add =
                     absolute_tolerance
                         ? bin_tolerance[0]
                         : bin_tolerance[0] * (r_borders[1] - r_borders[0]);
-                scalar phi_add =
+                scalar_t phi_add =
                     absolute_tolerance
                         ? bin_tolerance[1]
                         : bin_tolerance[1] * (phi_borders[1] - phi_borders[0]);
 
                 // Create a contour for the bin
                 std::vector<point2_t> bin_contour =
-                    detail::r_phi_polygon<scalar, point2_t>(
+                    detail::r_phi_polygon<scalar_t, point2_t>(
                         r_borders[0] - r_add, r_borders[1] + r_add,
                         phi_borders[0] - phi_add, phi_borders[1] + phi_add);
 
@@ -125,8 +125,8 @@ static inline void bin_association(const context_t & /*context*/,
                          std::is_same_v<typename grid_t::local_frame_type,
                                         concentric_cylindrical2D<algebra_t>>) {
 
-        center_of_gravity_rectangle cgs_assoc;
-        edges_intersect_generic edges_assoc;
+        center_of_gravity_rectangle<algebra_t> cgs_assoc;
+        edges_intersect_generic<algebra_t> edges_assoc;
 
         // Loop over all bins and associate the surfaces
         for (unsigned int bin_0 = 0; bin_0 < axis_0.nbins(); ++bin_0) {
@@ -135,19 +135,19 @@ static inline void bin_association(const context_t & /*context*/,
                 auto z_borders = axis_0.bin_edges(bin_0);
                 auto phi_borders = axis_1.bin_edges(bin_1);
 
-                scalar z_add =
+                scalar_t z_add =
                     absolute_tolerance
                         ? bin_tolerance[0]
                         : bin_tolerance[0] * (z_borders[1] - z_borders[0]);
-                scalar phi_add =
+                scalar_t phi_add =
                     absolute_tolerance
                         ? bin_tolerance[1]
                         : bin_tolerance[1] * (phi_borders[1] - phi_borders[0]);
 
-                scalar z_min = z_borders[0];
-                scalar z_max = z_borders[1];
-                scalar phi_min_rep = phi_borders[0];
-                scalar phi_max_rep = phi_borders[1];
+                scalar_t z_min = z_borders[0];
+                scalar_t z_max = z_borders[1];
+                scalar_t phi_min_rep = phi_borders[0];
+                scalar_t phi_max_rep = phi_borders[1];
 
                 point2_t p0_bin = {z_min - z_add, phi_min_rep - phi_add};
                 point2_t p1_bin = {z_min - z_add, phi_max_rep + phi_add};
@@ -177,25 +177,26 @@ static inline void bin_association(const context_t & /*context*/,
                             // Create a surface contour
                             std::vector<point2_t> surface_contour;
                             surface_contour.reserve(vertices.size());
-                            scalar phi_min = std::numeric_limits<scalar>::max();
-                            scalar phi_max =
-                                -std::numeric_limits<scalar>::max();
+                            scalar_t phi_min =
+                                std::numeric_limits<scalar_t>::max();
+                            scalar_t phi_max =
+                                -std::numeric_limits<scalar_t>::max();
                             // We poentially need the split vertices
                             std::vector<point2_t> s_c_neg;
                             std::vector<point2_t> s_c_pos;
-                            scalar z_min_neg =
-                                std::numeric_limits<scalar>::max();
-                            scalar z_max_neg =
-                                -std::numeric_limits<scalar>::max();
-                            scalar z_min_pos =
-                                std::numeric_limits<scalar>::max();
-                            scalar z_max_pos =
-                                -std::numeric_limits<scalar>::max();
+                            scalar_t z_min_neg =
+                                std::numeric_limits<scalar_t>::max();
+                            scalar_t z_max_neg =
+                                -std::numeric_limits<scalar_t>::max();
+                            scalar_t z_min_pos =
+                                std::numeric_limits<scalar_t>::max();
+                            scalar_t z_max_pos =
+                                -std::numeric_limits<scalar_t>::max();
 
                             for (const auto &v : vertices) {
                                 const point3_t vg =
                                     transform.point_to_global(v);
-                                scalar phi = math::atan2(vg[1], vg[0]);
+                                scalar_t phi = math::atan2(vg[1], vg[0]);
                                 phi_min = math::min(phi, phi_min);
                                 phi_max = math::max(phi, phi_max);
                                 surface_contour.push_back({vg[2], phi});
@@ -211,16 +212,16 @@ static inline void bin_association(const context_t & /*context*/,
                             }
                             // Check for phi wrapping
                             std::vector<std::vector<point2_t>> surface_contours;
-                            if (phi_max - phi_min > constant<scalar>::pi &&
+                            if (phi_max - phi_min > constant<scalar_t>::pi &&
                                 phi_max * phi_min < 0.) {
                                 s_c_neg.push_back(
-                                    {z_max_neg, -constant<scalar>::pi});
+                                    {z_max_neg, -constant<scalar_t>::pi});
                                 s_c_neg.push_back(
-                                    {z_min_neg, -constant<scalar>::pi});
+                                    {z_min_neg, -constant<scalar_t>::pi});
                                 s_c_pos.push_back(
-                                    {z_max_pos, constant<scalar>::pi});
+                                    {z_max_pos, constant<scalar_t>::pi});
                                 s_c_pos.push_back(
-                                    {z_min_pos, constant<scalar>::pi});
+                                    {z_min_pos, constant<scalar_t>::pi});
                                 surface_contours = {s_c_neg, s_c_pos};
                             } else {
                                 surface_contours = {surface_contour};

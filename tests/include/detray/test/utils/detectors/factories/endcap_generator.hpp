@@ -46,13 +46,13 @@ struct endcap_generator_config {
     /// Stagger between the two rings
     scalar_t m_ring_stagger{2.f * unit<scalar_t>::mm};
     /// Stagger in phi (per ring)
-    std::vector<scalar> m_phi_stagger = {4.f * unit<scalar_t>::mm,
-                                         4.f * unit<scalar_t>::mm};
+    std::vector<scalar_t> m_phi_stagger = {4.f * unit<scalar_t>::mm,
+                                           4.f * unit<scalar_t>::mm};
     /// Substagger in phi (per ring)
-    std::vector<scalar> m_phi_sub_stagger = {0.5f * unit<scalar_t>::mm,
-                                             0.5f * unit<scalar_t>::mm};
+    std::vector<scalar_t> m_phi_sub_stagger = {0.5f * unit<scalar_t>::mm,
+                                               0.5f * unit<scalar_t>::mm};
     /// Module tilt (per ring)
-    std::vector<scalar> m_tilt = {0.f, 0.f};
+    std::vector<scalar_t> m_tilt = {0.f, 0.f};
     /// Number of modules in phi (per ring)
     std::vector<unsigned int> m_binning = {40u, 68u};
 
@@ -128,10 +128,11 @@ struct endcap_generator_config {
 template <typename detector_t, typename mask_shape_t = trapezoid2D>
 class endcap_generator final : public surface_factory_interface<detector_t> {
 
-    using scalar_t = typename detector_t::scalar_type;
-    using transform3_t = typename detector_t::transform3_type;
-    using point3_t = typename detector_t::point3_type;
-    using vector3_t = typename detector_t::vector3_type;
+    using algebra_t = typename detector_t::algebra_type;
+    using scalar_t = dscalar<algebra_t>;
+    using transform3_t = dtransform3D<algebra_t>;
+    using point3_t = dpoint3D<algebra_t>;
+    using vector3_t = dvector3D<algebra_t>;
 
     public:
     /// Build an endcap layer according to the parameters given in @param cfg
@@ -188,7 +189,7 @@ class endcap_generator final : public surface_factory_interface<detector_t> {
 
         // The type id of the surface mask shape
         constexpr auto mask_id{detector_t::mask_container::template get_id<
-            mask<mask_shape_t>>::value};
+            mask<mask_shape_t, algebra_t>>::value};
         // The material will be added in a later step
         constexpr auto no_material{surface_t::material_id::e_none};
         // Modules link back to mother volume in navigation

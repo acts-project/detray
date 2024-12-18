@@ -20,6 +20,7 @@
 // Detray test include(s)
 #include "detray/options/detector_io_options.hpp"
 #include "detray/options/parse_options.hpp"
+#include "detray/test/utils/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -43,7 +44,8 @@ using namespace detray;
 int main(int argc, char** argv) {
 
     // Use the most general type to be able to read in all detector files
-    using detector_t = detray::detector<>;
+    using metadata_t = detray::test::default_metadata;
+    using detector_t = detray::detector<metadata_t>;
 
     // Visualization style to be applied to the svgs
     auto style = detray::svgtools::styling::tableau_colorblind::style;

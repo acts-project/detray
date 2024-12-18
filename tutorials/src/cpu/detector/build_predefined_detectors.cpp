@@ -34,13 +34,16 @@
 ///                     box.
 int main(int argc, char** argv) {
 
+    using algebra_t = detray::tutorial::algebra_t;
+    using scalar = detray::tutorial::scalar;
+
     // Memory resource to allocate the detector data stores
     vecmem::host_memory_resource host_mr;
 
     //
     // Toy detector
     //
-    detray::toy_det_config toy_cfg{};
+    detray::toy_det_config<scalar> toy_cfg{};
     // Number of barrel layers (0 - 4)
     toy_cfg.n_brl_layers(4u);
     // Number of endcap layers on either side (0 - 7)
@@ -57,7 +60,8 @@ int main(int argc, char** argv) {
     }
 
     // Fill the detector
-    const auto [toy_det, names] = detray::build_toy_detector(host_mr, toy_cfg);
+    const auto [toy_det, names] =
+        detray::build_toy_detector<algebra_t>(host_mr, toy_cfg);
 
     // Print the volume graph of the toy detector
     std::cout << "\nToy detector:\n"
@@ -75,39 +79,34 @@ int main(int argc, char** argv) {
 
     // Mask with a rectangular shape (20x20 mm)
 
-    detray::mask<detray::rectangle2D> rectangle{
-        0u, 20.f * detray::unit<detray::scalar>::mm,
-        20.f * detray::unit<detray::scalar>::mm};
+    detray::mask<detray::rectangle2D, algebra_t> rectangle{
+        0u, 20.f * detray::unit<scalar>::mm, 20.f * detray::unit<scalar>::mm};
 
     // Mask with a trapezoid shape
-    using trapezoid_t = detray::mask<detray::trapezoid2D>;
+    using trapezoid_t = detray::mask<detray::trapezoid2D, algebra_t>;
 
-    constexpr detray::scalar hx_min_y{10.f * detray::unit<detray::scalar>::mm};
-    constexpr detray::scalar hx_max_y{30.f * detray::unit<detray::scalar>::mm};
-    constexpr detray::scalar hy{20.f * detray::unit<detray::scalar>::mm};
-    constexpr detray::scalar divisor{10.f / (20.f * hy)};
+    constexpr scalar hx_min_y{10.f * detray::unit<scalar>::mm};
+    constexpr scalar hx_max_y{30.f * detray::unit<scalar>::mm};
+    constexpr scalar hy{20.f * detray::unit<scalar>::mm};
+    constexpr scalar divisor{10.f / (20.f * hy)};
     trapezoid_t trapezoid{0u, hx_min_y, hx_max_y, hy, divisor};
 
     // Build from given module positions (places 11 surfaces)
-    std::vector<detray::scalar> positions = {
-        0.f * detray::unit<detray::scalar>::mm,
-        50.f * detray::unit<detray::scalar>::mm,
-        100.f * detray::unit<detray::scalar>::mm,
-        150.f * detray::unit<detray::scalar>::mm,
-        200.f * detray::unit<detray::scalar>::mm,
-        250.f * detray::unit<detray::scalar>::mm,
-        300.f * detray::unit<detray::scalar>::mm,
-        350.f * detray::unit<detray::scalar>::mm,
-        400.f * detray::unit<detray::scalar>::mm,
-        450.f * detray::unit<detray::scalar>::mm,
-        500.f * detray::unit<detray::scalar>::mm};
+    std::vector<scalar> positions = {
+        0.f * detray::unit<scalar>::mm,   50.f * detray::unit<scalar>::mm,
+        100.f * detray::unit<scalar>::mm, 150.f * detray::unit<scalar>::mm,
+        200.f * detray::unit<scalar>::mm, 250.f * detray::unit<scalar>::mm,
+        300.f * detray::unit<scalar>::mm, 350.f * detray::unit<scalar>::mm,
+        400.f * detray::unit<scalar>::mm, 450.f * detray::unit<scalar>::mm,
+        500.f * detray::unit<scalar>::mm};
 
     //
     // Case 1: Defaults: Straight telescope in z-direction,
     //         10 rectangle surfaces, 500mm in length, modules evenly spaced,
     //         silicon material (80mm)
     const auto [tel_det1, tel_names1] =
-        detray::build_telescope_detector<detray::rectangle2D>(host_mr);
+        detray::build_telescope_detector<algebra_t, detray::rectangle2D>(
+            host_mr);
 
     std::cout << "\nTelescope detector - case 1:\n"
               << "----------------------------\n"
@@ -117,10 +116,10 @@ int main(int argc, char** argv) {
     // Case 2: Straight telescope in z-direction, 15 trapezoid surfaces, 2000mm
     //         in length, modules evenly spaced, silicon material (80mm)
     detray::tel_det_config trp_cfg{trapezoid};
-    trp_cfg.n_surfaces(15).length(2000.f * detray::unit<detray::scalar>::mm);
+    trp_cfg.n_surfaces(15).length(2000.f * detray::unit<scalar>::mm);
 
     const auto [tel_det2, tel_names2] =
-        detray::build_telescope_detector(host_mr, trp_cfg);
+        detray::build_telescope_detector<algebra_t>(host_mr, trp_cfg);
 
     std::cout << "\nTelescope detector - case 2:\n"
               << "----------------------------\n"
@@ -132,14 +131,14 @@ int main(int argc, char** argv) {
     //         silicon material (80mm)
 
     // Pilot trajectory in x-direction
-    detray::detail::ray<detray::tutorial::algebra_t> x_track{
+    detray::detail::ray<algebra_t> x_track{
         {0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
 
     detray::tel_det_config rct_cfg{rectangle};
     rct_cfg.positions(positions).pilot_track(x_track);
 
     const auto [tel_det3, tel_names3] =
-        build_telescope_detector(host_mr, rct_cfg);
+        build_telescope_detector<algebra_t>(host_mr, rct_cfg);
 
     std::cout << "\nTelescope detector - case 3:\n"
               << "----------------------------\n"
@@ -151,20 +150,19 @@ int main(int argc, char** argv) {
     //         silicon material (80mm)
 
     // Pilot track in x-direction
-    detray::free_track_parameters<detray::tutorial::algebra_t> y_track{
+    detray::free_track_parameters<algebra_t> y_track{
         {0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
 
     // Helix in a constant B-field 1T in z-direction
-    using helix_t = detray::detail::helix<detray::tutorial::algebra_t>;
-    detray::tutorial::vector3 B_z{0.f, 0.f,
-                                  1.f * detray::unit<detray::scalar>::T};
+    using helix_t = detray::detail::helix<algebra_t>;
+    detray::tutorial::vector3 B_z{0.f, 0.f, 1.f * detray::unit<scalar>::T};
     helix_t helix(y_track, &B_z);
 
     detray::tel_det_config htrp_cfg{trapezoid, helix};
     htrp_cfg.positions(positions);
 
     const auto [tel_det4, tel_names4] =
-        detray::build_telescope_detector(host_mr, htrp_cfg);
+        detray::build_telescope_detector<algebra_t>(host_mr, htrp_cfg);
 
     std::cout << "\nTelescope detector - case 4:\n"
               << "----------------------------\n"

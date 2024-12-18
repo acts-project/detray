@@ -23,8 +23,6 @@ using namespace detray;
 
 TEST(navigator_cuda, navigator) {
 
-    using scalar_t = dscalar<algebra_t>;
-
     // Helper object for performing memory copies.
     vecmem::cuda::copy copy;
 
@@ -33,7 +31,7 @@ TEST(navigator_cuda, navigator) {
     vecmem::cuda::device_memory_resource dev_mr;
 
     // Create detector
-    auto [det, names] = build_toy_detector(mng_mr);
+    auto [det, names] = build_toy_detector<test_algebra>(mng_mr);
 
     // Create navigator
     navigator_host_t nav;
@@ -43,14 +41,15 @@ TEST(navigator_cuda, navigator) {
     stepping::config step_cfg{};
 
     // Create the vector of initial track parameters
-    vecmem::vector<free_track_parameters<algebra_t>> tracks_host(&mng_mr);
-    vecmem::vector<free_track_parameters<algebra_t>> tracks_device(&mng_mr);
+    vecmem::vector<free_track_parameters<test_algebra>> tracks_host(&mng_mr);
+    vecmem::vector<free_track_parameters<test_algebra>> tracks_device(&mng_mr);
 
     // Magnitude of total momentum of tracks
-    const scalar_t p_mag{10.f * unit<scalar_t>::GeV};
+    const scalar p_mag{10.f * unit<scalar>::GeV};
 
     // Iterate through uniformly distributed momentum directions
-    for (auto track : uniform_track_generator<free_track_parameters<algebra_t>>(
+    for (auto track :
+         uniform_track_generator<free_track_parameters<test_algebra>>(
              phi_steps, theta_steps, p_mag)) {
         tracks_host.push_back(track);
         tracks_device.push_back(track);

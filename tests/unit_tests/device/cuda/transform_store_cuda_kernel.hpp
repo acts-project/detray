@@ -11,14 +11,18 @@
 #include "detray/core/detail/single_store.hpp"
 #include "detray/definitions/detail/algebra.hpp"
 
+// Detray test inclue(s)
+#include "detray/test/utils/types.hpp"
+
 // Vecmem include(s)
 #include <vecmem/containers/device_vector.hpp>
 
 namespace detray {
 
-using algebra_t = ALGEBRA_PLUGIN<detray::scalar>;
-using point3 = dpoint3D<algebra_t>;
-using transform3 = dtransform3D<algebra_t>;
+using test_algebra = test::algebra;
+using scalar = dscalar<test_algebra>;
+using point3 = dpoint3D<test_algebra>;
+using transform3 = dtransform3D<test_algebra>;
 
 using host_transform_store_t = single_store<transform3, vecmem::vector>;
 

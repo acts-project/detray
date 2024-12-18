@@ -14,6 +14,7 @@
 
 // Detray test include(s)
 #include "detray/test/utils/detectors/build_toy_detector.hpp"
+#include "detray/test/utils/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -43,9 +44,10 @@ GTEST_TEST(svgtools, material) {
 
     // Creating the detector and geomentry context.
     vecmem::host_memory_resource host_mr;
-    detray::toy_det_config toy_cfg{};
+    detray::toy_det_config<detray::test::scalar> toy_cfg{};
     toy_cfg.use_material_maps(true).cyl_map_bins(20, 20).disc_map_bins(5, 20);
-    const auto [det, names] = detray::build_toy_detector(host_mr, toy_cfg);
+    const auto [det, names] =
+        detray::build_toy_detector<detray::test::algebra>(host_mr, toy_cfg);
 
     // Creating the svg generator for the detector.
     detray::svgtools::illustrator il{det, names};

@@ -16,6 +16,11 @@
 #include "detray/definitions/detail/algebra.hpp"
 #include "detray/plugins/algebra/array_definitions.hpp"
 
+// Detray detector include(s)
+#include "detray/detectors/default_metadata.hpp"
+#include "detray/detectors/telescope_metadata.hpp"
+#include "detray/detectors/toy_metadata.hpp"
+
 namespace detray::tutorial {
 
 using algebra_t = detray::array<DETRAY_CUSTOM_SCALARTYPE>;
@@ -24,5 +29,11 @@ using point2 = detray::dpoint2D<algebra_t>;
 using point3 = detray::dpoint3D<algebra_t>;
 using vector3 = detray::dvector3D<algebra_t>;
 using transform3 = detray::dtransform3D<algebra_t>;
+
+// Test detector types
+using default_metadata = detray::default_metadata<algebra_t>;
+using toy_metadata = detray::toy_metadata<algebra_t>;
+using default_telescope_metadata =
+    detray::telescope_metadata<algebra_t, rectangle2D>;
 
 }  // namespace detray::tutorial

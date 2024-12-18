@@ -94,7 +94,7 @@ void add_options<detray::propagation::config>(
 /// Configure the navigator
 template <>
 void configure_options<detray::navigation::config>(
-    boost::program_options::variables_map &vm,
+    const boost::program_options::variables_map &vm,
     detray::navigation::config &cfg) {
 
     // Local navigation search window
@@ -144,7 +144,8 @@ void configure_options<detray::navigation::config>(
 /// Configure the stepper
 template <>
 void configure_options<detray::stepping::config>(
-    boost::program_options::variables_map &vm, detray::stepping::config &cfg) {
+    const boost::program_options::variables_map &vm,
+    detray::stepping::config &cfg) {
 
     // Overstepping tolerance
     if (!vm["minimum_stepsize"].defaulted()) {
@@ -188,7 +189,7 @@ void configure_options<detray::stepping::config>(
 /// Configure the propagation
 template <>
 void configure_options<detray::propagation::config>(
-    boost::program_options::variables_map &vm,
+    const boost::program_options::variables_map &vm,
     detray::propagation::config &cfg) {
 
     configure_options(vm, cfg.navigation);

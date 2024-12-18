@@ -16,6 +16,7 @@
 #include "detray/options/parse_options.hpp"
 #include "detray/options/toy_detector_options.hpp"
 #include "detray/test/utils/detectors/build_toy_detector.hpp"
+#include "detray/test/utils/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -30,7 +31,7 @@ using namespace detray;
 int main(int argc, char **argv) {
 
     // Configuration
-    detray::toy_det_config toy_cfg{};
+    detray::toy_det_config<test::scalar> toy_cfg{};
     detray::io::detector_writer_config writer_cfg{};
     writer_cfg.format(detray::io::format::json).replace_files(false);
     // Default output path
@@ -51,7 +52,8 @@ int main(int argc, char **argv) {
 
     // Build the geometry
     vecmem::host_memory_resource host_mr;
-    auto [toy_det, toy_names] = build_toy_detector(host_mr, toy_cfg);
+    auto [toy_det, toy_names] =
+        build_toy_detector<test::algebra>(host_mr, toy_cfg);
 
     // Write to file
     detray::io::write_detector(toy_det, toy_names, writer_cfg);

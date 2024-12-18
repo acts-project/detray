@@ -30,7 +30,7 @@ template <typename detector_t,
 void connect_cylindrical_volumes(
     detector_t &d, const typename detector_t::volume_finder &volume_grid) {
 
-    using scalar_t = typename detector_t::scalar_type;
+    using scalar_t = dscalar<typename detector_t::algebra_type>;
     typename detector_t::context default_context = {};
 
     // The grid is populated, now create portal surfaces

@@ -36,8 +36,8 @@ namespace detray {
 /// @tparam shape_t underlying geometrical shape of the mask, rectangle etc
 /// @tparam links_t the type of link into the volume container
 ///                 (e.g. single index vs range)
-template <typename shape_t, typename links_t = std::uint_least16_t,
-          typename algebra_t = ALGEBRA_PLUGIN<detray::scalar>>
+template <typename shape_t, typename algebra_t,
+          typename links_t = std::uint_least16_t>
 class mask {
     public:
     // Linear algebra types
@@ -85,7 +85,7 @@ class mask {
     /// @param rhs is the right hand side object
     DETRAY_HOST
     auto operator=(const mask_values& rhs)
-        -> mask<shape_t, links_t, algebra_t>& {
+        -> mask<shape_t, algebra_t, links_t>& {
         _values = rhs;
         return (*this);
     }
@@ -217,7 +217,7 @@ class mask {
     DETRAY_HOST_DEVICE
     auto local_min_bounds(const scalar_type env =
                               std::numeric_limits<scalar_type>::epsilon()) const
-        -> mask<cuboid3D, unsigned int> {
+        -> mask<cuboid3D, algebra_t, unsigned int> {
         const auto bounds =
             get_shape().template local_min_bounds<algebra_t>(_values, env);
         static_assert(bounds.size() == cuboid3D::e_size,

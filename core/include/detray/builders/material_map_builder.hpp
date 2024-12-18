@@ -41,12 +41,12 @@ struct add_sf_material_map;
 /// surfaces or volumes
 template <typename detector_t, std::size_t DIM = 2u,
           typename mat_map_factory_t =
-              material_grid_factory<typename detector_t::scalar_type>>
+              material_grid_factory<typename detector_t::algebra_type>>
 class material_map_builder final : public volume_decorator<detector_t> {
     using materials_t = typename detector_t::materials;
 
     public:
-    using scalar_type = typename detector_t::scalar_type;
+    using scalar_type = dscalar<typename detector_t::algebra_type>;
     using detector_type = detector_t;
     using value_type = material_slab<scalar_type>;
     using bin_data_type =

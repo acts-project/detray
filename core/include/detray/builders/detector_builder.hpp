@@ -12,7 +12,6 @@
 #include "detray/builders/volume_builder.hpp"
 #include "detray/builders/volume_builder_interface.hpp"
 #include "detray/core/detector.hpp"
-#include "detray/core/detector_metadata.hpp"
 #include "detray/definitions/geometry.hpp"
 #include "detray/utils/grid/detail/concepts.hpp"
 #include "detray/utils/type_traits.hpp"
@@ -33,12 +32,14 @@ namespace detray {
 /// @tparam volume_builder_t the basic volume builder to be used for the
 ///                          geometry data
 /// @tparam volume_data_t the data structure that holds the volume builders
-template <typename metadata = default_metadata,
+template <typename metadata,
           template <typename> class volume_builder_t = volume_builder,
           template <typename...> class volume_data_t = std::vector>
 class detector_builder {
     public:
     using detector_type = detector<metadata, host_container_types>;
+    using algebra_type = typename detector_type::algebra_type;
+    using scalar_type = dscalar<algebra_type>;
 
     /// Add a new volume builder that will build a volume of the shape given by
     /// @param id
@@ -121,24 +122,25 @@ class detector_builder {
         if constexpr (concepts::grid<vol_finder_t>) {
 
             // TODO: Construct it correctly with the grid builder
-            mask<cylinder3D> vgrid_dims{0u,      0.f,   -constant<scalar>::pi,
-                                        -2000.f, 180.f, constant<scalar>::pi,
-                                        2000.f};
+            mask<cylinder3D, algebra_type> vgrid_dims{
+                0u,      0.f,   -constant<scalar_type>::pi,
+                -2000.f, 180.f, constant<scalar_type>::pi,
+                2000.f};
             std::array<std::size_t, 3> n_vgrid_bins{1u, 1u, 1u};
 
-            std::array<std::vector<scalar>, 3UL> bin_edges{
-                std::vector<scalar>{0.f, 180.f},
-                std::vector<scalar>{-constant<scalar>::pi,
-                                    constant<scalar>::pi},
-                std::vector<scalar>{-2000.f, 2000.f}};
+            std::array<std::vector<scalar_type>, 3UL> bin_edges{
+                std::vector<scalar_type>{0.f, 180.f},
+                std::vector<scalar_type>{-constant<scalar_type>::pi,
+                                         constant<scalar_type>::pi},
+                std::vector<scalar_type>{-2000.f, 2000.f}};
 
             grid_factory_type<vol_finder_t> vgrid_factory{};
             m_vol_finder = vgrid_factory.template new_grid<
                 axis::open<axis::label::e_r>,
                 axis::circular<axis::label::e_phi>,
-                axis::open<axis::label::e_z>, axis::irregular<>,
-                axis::regular<>, axis::irregular<>>(vgrid_dims, n_vgrid_bins,
-                                                    {}, bin_edges);
+                axis::open<axis::label::e_z>, axis::irregular<scalar_type>,
+                axis::regular<scalar_type>, axis::irregular<scalar_type>>(
+                vgrid_dims, n_vgrid_bins, {}, bin_edges);
         } else {
             m_vol_finder = vol_finder_t{args...};
         }

@@ -45,7 +45,7 @@ class homogeneous_material_reader {
         typename detector_t::name_map& /*name_map*/,
         const detector_homogeneous_material_payload& det_mat_data) {
 
-        using scalar_t = typename detector_t::scalar_type;
+        using scalar_t = dscalar<typename detector_t::algebra_type>;
         using mat_id = typename detector_t::materials::id;
 
         // Convert the material volume by volume

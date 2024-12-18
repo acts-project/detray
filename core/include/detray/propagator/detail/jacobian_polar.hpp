@@ -78,6 +78,7 @@ struct jacobian<polar2D<algebra_t>> {
 
         const point2_type local =
             coordinate_frame::global_to_local(trf3, pos, dir);
+
         const scalar_type lrad{local[0]};
         const scalar_type lphi{local[1]};
 
@@ -88,13 +89,12 @@ struct jacobian<polar2D<algebra_t>> {
         const rotation_matrix frame = reference_frame(trf3, pos, dir);
 
         // dxdu = d(x,y,z)/du
-        const matrix_type<3, 1> dxdL = getter::block<3, 1>(frame, 0u, 0u);
+        const vector3_type dxdL = getter::vector<3>(frame, 0u, 0u);
         // dxdv = d(x,y,z)/dv
-        const matrix_type<3, 1> dydL = getter::block<3, 1>(frame, 0u, 1u);
+        const vector3_type dydL = getter::vector<3>(frame, 0u, 1u);
 
-        const matrix_type<3, 1> col0 = dxdL * lcos_phi + dydL * lsin_phi;
-        const matrix_type<3, 1> col1 =
-            (dydL * lcos_phi - dxdL * lsin_phi) * lrad;
+        const vector3_type col0 = dxdL * lcos_phi + dydL * lsin_phi;
+        const vector3_type col1 = (dydL * lcos_phi - dxdL * lsin_phi) * lrad;
 
         getter::set_block(bound_pos_to_free_pos_derivative, col0, e_free_pos0,
                           e_bound_loc0);
@@ -135,7 +135,7 @@ struct jacobian<polar2D<algebra_t>> {
 
         const matrix_type<1, 3> row0 = dudG * lcos_phi + dvdG * lsin_phi;
         const matrix_type<1, 3> row1 =
-            1.f / lrad * (lcos_phi * dvdG - lsin_phi * dudG);
+            (1.f / lrad) * (lcos_phi * dvdG - lsin_phi * dudG);
 
         getter::set_block(free_pos_to_bound_pos_derivative, row0, e_bound_loc0,
                           e_free_pos0);

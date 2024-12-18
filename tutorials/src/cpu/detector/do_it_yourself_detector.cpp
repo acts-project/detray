@@ -18,7 +18,6 @@
 #include "detray/definitions/geometry.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/io/frontend/detector_writer.hpp"
-#include "detray/test/utils/detectors/build_toy_detector.hpp"
 
 // Example include(s)
 #include "detray/tutorial/detector_metadata.hpp"
@@ -34,6 +33,8 @@
 
 /// Write a dector using the json IO
 int main() {
+
+    using scalar = detray::tutorial::scalar;
 
     // The new detector type
     using detector_t = detray::detector<detray::tutorial::my_metadata>;
@@ -54,22 +55,21 @@ int main() {
 
     // Add a square that is 20x20mm large, links back to its mother volume (0)
     // and is placed with a translation of (x = 1mm, y = 2mm, z = 3mm)
-    detray::tutorial::vector3 translation{
-        1.f * detray::unit<detray::scalar>::mm,
-        2.f * detray::unit<detray::scalar>::mm,
-        3.f * detray::unit<detray::scalar>::mm};
+    detray::tutorial::vector3 translation{1.f * detray::unit<scalar>::mm,
+                                          2.f * detray::unit<scalar>::mm,
+                                          3.f * detray::unit<scalar>::mm};
     sq_factory->push_back({detray::surface_id::e_sensitive,
                            detray::tutorial::transform3{translation},
                            0u,
-                           {20.f * detray::unit<detray::scalar>::mm}});
+                           {20.f * detray::unit<scalar>::mm}});
 
     // Add some programmatically generated square surfaces
     auto sq_generator =
         std::make_shared<detray::tutorial::square_surface_generator>(
-            10, 10.f * detray::unit<detray::scalar>::mm);
+            10, 10.f * detray::unit<scalar>::mm);
 
     // Add a portal box around the cuboid volume with a min distance of 'env'
-    constexpr auto env{0.1f * detray::unit<detray::scalar>::mm};
+    constexpr auto env{0.1f * detray::unit<scalar>::mm};
     auto portal_generator =
         std::make_shared<detray::cuboid_portal_generator<detector_t>>(env);
 

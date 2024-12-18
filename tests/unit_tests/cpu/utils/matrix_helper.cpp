@@ -15,9 +15,11 @@
 #include <gtest/gtest.h>
 
 using namespace detray;
-using algebra_t = test::algebra;
+
+using test_algebra = test::algebra;
 using transform3 = test::transform3;
 using vector3 = typename transform3::vector3;
+using scalar = test::scalar;
 using matrix3_type = test::matrix<3, 3>;
 
 constexpr scalar tolerance = 1e-6f;
@@ -37,7 +39,7 @@ GTEST_TEST(detray_utils, column_wise_cross) {
 
     const vector3 u{1.f, 2.f, 3.f};
 
-    const auto Q = matrix_helper<algebra_t>().column_wise_cross(P, u);
+    const auto Q = matrix_helper<test_algebra>().column_wise_cross(P, u);
 
     EXPECT_NEAR(getter::element(Q, 0u, 0u), -3.f, tolerance);
     EXPECT_NEAR(getter::element(Q, 1u, 0u), 6.f, tolerance);
@@ -66,7 +68,7 @@ GTEST_TEST(detray_utils, column_wise_multiply) {
 
     const vector3 u{1.f, 2.f, 3.f};
 
-    const auto Q = matrix_helper<algebra_t>().column_wise_multiply(P, u);
+    const auto Q = matrix_helper<test_algebra>().column_wise_multiply(P, u);
 
     EXPECT_NEAR(getter::element(Q, 0u, 0u), 0.f, tolerance);
     EXPECT_NEAR(getter::element(Q, 0u, 1u), 1.f, tolerance);
@@ -84,8 +86,8 @@ GTEST_TEST(detray_utils, cross_matrix) {
     const vector3 u{1.f, 2.f, 3.f};
     const vector3 v{3.f, 4.f, 5.f};
 
-    const auto u_cross = matrix_helper<algebra_t>().cross_matrix(u);
-    const auto v_cross = matrix_helper<algebra_t>().cross_matrix(v);
+    const auto u_cross = matrix_helper<test_algebra>().cross_matrix(u);
+    const auto v_cross = matrix_helper<test_algebra>().cross_matrix(v);
 
     EXPECT_NEAR(getter::element(u_cross, 0u, 0u), 0.f, tolerance);
     EXPECT_NEAR(getter::element(u_cross, 0u, 1u), -3.f, tolerance);
@@ -114,7 +116,7 @@ GTEST_TEST(detray_utils, outer_product) {
     const vector3 u{1.f, 2.f, 3.f};
     const vector3 v{3.f, 4.f, 5.f};
 
-    const auto m33 = matrix_helper<algebra_t>().outer_product(u, v);
+    const auto m33 = matrix_helper<test_algebra>().outer_product(u, v);
 
     EXPECT_NEAR(getter::element(m33, 0u, 0u), 3.f, tolerance);
     EXPECT_NEAR(getter::element(m33, 0u, 1u), 4.f, tolerance);
@@ -142,7 +144,7 @@ GTEST_TEST(detray_utils, cholesky_decomposition) {
     getter::element(A, 2u, 2u) = 98.f;
 
     // Get L that satisfies A = L * L^T and check if it is the expected value
-    const matrix3_type L = matrix_helper<algebra_t>().cholesky_decompose(A);
+    const matrix3_type L = matrix_helper<test_algebra>().cholesky_decompose(A);
 
     EXPECT_FLOAT_EQ(static_cast<float>(getter::element(L, 0u, 0u)), 2.f);
     EXPECT_FLOAT_EQ(static_cast<float>(getter::element(L, 0u, 1u)), 0.f);
