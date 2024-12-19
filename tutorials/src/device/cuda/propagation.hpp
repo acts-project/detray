@@ -56,9 +56,10 @@ using device_field_t =
 using stepper_t = rk_stepper<device_field_t::view_t, algebra_t>;
 
 // Actors
-using actor_chain_t = actor_chain<
-    tuple, pathlimit_aborter<scalar>, parameter_transporter<algebra_t>,
-    pointwise_material_interactor<algebra_t>, parameter_resetter<algebra_t>>;
+using actor_chain_t =
+    actor_chain<pathlimit_aborter<scalar>, parameter_transporter<algebra_t>,
+                pointwise_material_interactor<algebra_t>,
+                parameter_resetter<algebra_t>>;
 
 // Propagator
 using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;

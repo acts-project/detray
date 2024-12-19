@@ -67,7 +67,7 @@ GTEST_TEST(detray_navigation, guided_navigator) {
     using guided_navigator =
         navigator<detector_t, navigation::default_cache_size, inspector_t>;
     using pathlimit_aborter_t = pathlimit_aborter<scalar>;
-    using actor_chain_t = actor_chain<dtuple, pathlimit_aborter_t>;
+    using actor_chain_t = actor_chain<pathlimit_aborter_t>;
     using propagator_t =
         propagator<runge_kutta_stepper, guided_navigator, actor_chain_t>;
 

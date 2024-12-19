@@ -35,8 +35,7 @@ struct simple_serializer<1> {
     }
 
     /// @returns the global bin, which is also the axis local bin
-    template <typename multi_axis_t,
-              template <typename, std::size_t> class array_t = darray>
+    template <typename multi_axis_t>
     DETRAY_HOST_DEVICE auto operator()(multi_axis_t & /*axes*/,
                                        dindex gbin) const ->
         typename multi_axis_t::loc_bin_index {

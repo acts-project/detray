@@ -75,6 +75,10 @@ class detector {
         detector<metadata_t, container_t> &,
         const dtransform3D<typename metadata_t::algebra_type> &, unsigned int);
 
+    /// Raw container types
+    template <typename T>
+    using vector_type = typename container_t::template vector_type<T>;
+
     public:
     /// Main definition of geometry types
     using metadata = metadata_t;
@@ -86,17 +90,6 @@ class detector {
     using point3_type = dpoint3D<algebra_type>;
     using vector3_type = dvector3D<algebra_type>;
     using transform3_type = dtransform3D<algebra_type>;
-
-    /// Raw container types
-    template <typename T, std::size_t N>
-    using array_type = typename container_t::template array_type<T, N>;
-    template <typename T>
-    using vector_type = typename container_t::template vector_type<T>;
-    template <typename... T>
-    using tuple_type = typename container_t::template tuple_type<T...>;
-    template <typename T>
-    using jagged_vector_type =
-        typename container_t::template jagged_vector_type<T>;
 
     /// In case the detector needs to be printed
     using name_map = std::map<dindex, std::string>;
@@ -115,19 +108,18 @@ class detector {
     using geometry_context = typename transform_container::context_type;
 
     /// Forward mask types that are present in this detector
-    using mask_container =
-        typename metadata::template mask_store<tuple_type, vector_type>;
+    using mask_container = typename metadata::template mask_store<vector_type>;
     using masks = typename mask_container::value_types;
 
-    /// Forward mask types that are present in this detector
+    /// Forward material types that are present in this detector
     using material_container =
-        typename metadata::template material_store<tuple_type, container_t>;
+        typename metadata::template material_store<container_t>;
     using materials = typename material_container::value_types;
 
     /// Surface Finders: structures that enable neigborhood searches in the
     /// detector geometry during navigation. Can be different in each volume
     using accelerator_container =
-        typename metadata::template accelerator_store<tuple_type, container_t>;
+        typename metadata::template accelerator_store<container_t>;
     using accel = typename accelerator_container::value_types;
 
     /// Volume type

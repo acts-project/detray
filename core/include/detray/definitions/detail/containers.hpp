@@ -40,8 +40,6 @@ using dtuple = detray::tuple<types...>;
 
 /// @brief Bundle container type definitions
 template <template <typename...> class vector_t = dvector,
-          template <typename...> class tuple_t = dtuple,
-          template <typename, std::size_t> class array_t = darray,
           template <typename...> class jagged_vector_t = djagged_vector,
           template <typename, typename> class map_t = dmap>
 struct container_types {
@@ -49,10 +47,10 @@ struct container_types {
     using vector_type = vector_t<T>;
 
     template <class... T>
-    using tuple_type = tuple_t<T...>;
+    using tuple_type = dtuple<T...>;
 
     template <typename T, std::size_t kDIM>
-    using array_type = array_t<T, kDIM>;
+    using array_type = darray<T, kDIM>;
 
     template <typename T>
     using jagged_vector_type = jagged_vector_t<T>;

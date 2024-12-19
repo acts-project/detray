@@ -87,8 +87,8 @@ int main() {
 
     using example_actor_t = example_actor<std::vector>;
     // Implements example_actor with two print observers
-    using composite = detray::composite_actor<detray::dtuple, example_actor_t,
-                                              print_actor, print_actor>;
+    using composite =
+        detray::composite_actor<example_actor_t, print_actor, print_actor>;
 
     example_actor_t::state example_state{};
     print_actor::state printer_state{};
@@ -97,8 +97,7 @@ int main() {
     auto actor_states = detray::tie(example_state, printer_state);
 
     // Chain of actors
-    using actor_chain_t =
-        detray::actor_chain<detray::dtuple, example_actor_t, composite>;
+    using actor_chain_t = detray::actor_chain<example_actor_t, composite>;
     // Run
     actor_chain_t run_actors{};
     run_actors(actor_states, prop_state);
@@ -121,15 +120,12 @@ int main() {
      *               4.|
      *               print
      */
-    using observer_lvl3 =
-        detray::composite_actor<detray::dtuple, example_actor_t, print_actor>;
+    using observer_lvl3 = detray::composite_actor<example_actor_t, print_actor>;
     using observer_lvl2 =
-        detray::composite_actor<detray::dtuple, example_actor_t, observer_lvl3,
-                                example_actor_t, print_actor>;
-    using observer_lvl1 =
-        detray::composite_actor<detray::dtuple, print_actor, observer_lvl2>;
-    using chain =
-        detray::composite_actor<detray::dtuple, example_actor_t, observer_lvl1>;
+        detray::composite_actor<example_actor_t, observer_lvl3, example_actor_t,
+                                print_actor>;
+    using observer_lvl1 = detray::composite_actor<print_actor, observer_lvl2>;
+    using chain = detray::composite_actor<example_actor_t, observer_lvl1>;
 
     // Reset example actor state
     example_state.buffer.clear();
@@ -137,7 +133,7 @@ int main() {
     printer_state.stream.clear();
 
     // Run the chain
-    detray::actor_chain<detray::dtuple, chain> run_chain{};
+    detray::actor_chain<chain> run_chain{};
     run_chain(actor_states, prop_state);
 
     std::cout << "actor chain: " << printer_state.to_string() << std::endl;

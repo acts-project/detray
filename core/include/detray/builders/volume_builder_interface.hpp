@@ -31,8 +31,6 @@ class volume_builder_interface {
     public:
     using algebra_type = typename detector_t::algebra_type;
     using scalar_type = dscalar<algebra_type>;
-    template <typename T, std::size_t N>
-    using array_type = typename detector_t::template array_type<T, N>;
 
     virtual ~volume_builder_interface() = default;
 
@@ -105,8 +103,6 @@ class volume_decorator : public volume_builder_interface<detector_t> {
 
     public:
     using scalar_t = dscalar<typename detector_t::algebra_type>;
-    template <typename T, std::size_t N>
-    using array_type = typename detector_t::template array_type<T, N>;
 
     DETRAY_HOST
     explicit volume_decorator(

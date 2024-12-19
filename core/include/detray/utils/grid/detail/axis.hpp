@@ -64,8 +64,6 @@ struct single_axis {
     using container_types = typename binning_type::container_types;
     template <typename T>
     using vector_type = typename binning_type::template vector_type<T>;
-    template <typename T, std::size_t N>
-    using array_type = typename binning_type::template array_type<T, N>;
     /// @}
 
     /// Defines the geometrical bounds of the axis as a service:
@@ -151,13 +149,13 @@ struct single_axis {
     /// @returns a dindex_range around the bin index.
     template <typename neighbor_t>
     DETRAY_HOST_DEVICE bin_range
-    range(const scalar_type v, const array_type<neighbor_t, 2> &nhood) const {
+    range(const scalar_type v, const darray<neighbor_t, 2> &nhood) const {
         return m_bounds.map(m_binning.range(v, nhood), m_binning.nbins());
     }
 
     /// @returns the bin edges for a given @param ibin .
     DETRAY_HOST_DEVICE
-    array_type<scalar_type, 2> bin_edges(const dindex ibin) const {
+    darray<scalar_type, 2> bin_edges(const dindex ibin) const {
         return m_binning.bin_edges(ibin);
     }
 
@@ -167,7 +165,7 @@ struct single_axis {
 
     /// @returns the axis span [min, max).
     DETRAY_HOST_DEVICE
-    array_type<scalar_type, 2> span() const { return m_binning.span(); }
+    darray<scalar_type, 2> span() const { return m_binning.span(); }
 
     /// @returns the axis span [min, max).
     DETRAY_HOST_DEVICE

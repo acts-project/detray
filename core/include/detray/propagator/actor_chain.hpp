@@ -26,16 +26,15 @@ namespace detray {
 /// It can hold both simple actors, as well as an actor with its observers.
 /// The states of the actors need to be passed to the chain in an external tuple
 ///
-/// @tparam tuple_t tuple type used to resolve the actor types
 /// @tparam actors_t the types of the actors in the chain.
-template <template <typename...> class tuple_t = dtuple, typename... actors_t>
+template <typename... actors_t>
 class actor_chain {
 
     public:
     /// Types of the actors that are registered in the chain
-    using actor_list_type = tuple_t<actors_t...>;
+    using actor_list_type = dtuple<actors_t...>;
     // Type of states tuple that is used in the propagator
-    using state = tuple_t<typename actors_t::state &...>;
+    using state = dtuple<typename actors_t::state &...>;
 
     /// Call all actors in the chain.
     ///
@@ -60,7 +59,7 @@ class actor_chain {
         // Only possible if each state is default initializable
         if constexpr ((std::default_initializable<typename actors_t::state> &&
                        ...)) {
-            return tuple_t<typename actors_t::state...>{};
+            return dtuple<typename actors_t::state...>{};
         } else {
             return std::nullopt;
         }
@@ -68,7 +67,7 @@ class actor_chain {
 
     /// @returns a tuple of reference for every state in the tuple @param t
     DETRAY_HOST_DEVICE static constexpr state make_ref_tuple(
-        tuple_t<typename actors_t::state...> &t) {
+        dtuple<typename actors_t::state...> &t) {
         return make_ref_tuple(t,
                               std::make_index_sequence<sizeof...(actors_t)>{});
     }
@@ -112,7 +111,7 @@ class actor_chain {
     /// @returns a tuple of reference for every state in the tuple @param t
     template <std::size_t... indices>
     DETRAY_HOST_DEVICE static constexpr state make_ref_tuple(
-        tuple_t<typename actors_t::state...> &t,
+        dtuple<typename actors_t::state...> &t,
         std::index_sequence<indices...> /*ids*/) {
         return detray::tie(detail::get<indices>(t)...);
     }

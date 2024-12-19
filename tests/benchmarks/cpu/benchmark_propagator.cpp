@@ -56,7 +56,7 @@ using navigator_host_type = navigator<detector_host_type>;
 using navigator_device_type = navigator<detector_device_type>;
 using field_type = bfield::const_field_t<scalar>;
 using rk_stepper_type = rk_stepper<field_type::view_t, algebra_t>;
-using actor_chain_t = actor_chain<tuple, parameter_transporter<algebra_t>,
+using actor_chain_t = actor_chain<parameter_transporter<algebra_t>,
                                   pointwise_material_interactor<algebra_t>,
                                   parameter_resetter<algebra_t>>;
 using propagator_host_type =

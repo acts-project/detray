@@ -22,7 +22,7 @@ namespace detray::axis {
 
 /// @brief Helper to tie two bin indices to a range.
 /// @note Cannot use dindex_range for signed integer bin indices.
-using bin_range = std::array<int, 2>;
+using bin_range = darray<int, 2>;
 
 /// @brief A regular binning scheme.
 ///
@@ -36,8 +36,6 @@ struct regular {
     using container_types = dcontainers;
     template <typename T>
     using vector_type = typename dcontainers::template vector_type<T>;
-    template <typename T, std::size_t N>
-    using array_type = typename dcontainers::template array_type<T, N>;
 
     static constexpr binning type = binning::e_regular;
 
@@ -91,8 +89,7 @@ struct regular {
     ///
     /// @returns the corresponding range of bin indices
     DETRAY_HOST_DEVICE
-    bin_range range(const scalar_type v,
-                    const array_type<dindex, 2> &nhood) const {
+    bin_range range(const scalar_type v, const darray<dindex, 2> &nhood) const {
         const int ibin{bin(v)};
         const int ibinmin{ibin - static_cast<int>(nhood[0])};
         const int ibinmax{ibin + static_cast<int>(nhood[1])};
@@ -110,13 +107,13 @@ struct regular {
     /// @returns the corresponding range of bin indices
     DETRAY_HOST_DEVICE
     bin_range range(const scalar_type v,
-                    const array_type<scalar_type, 2> &nhood) const {
+                    const darray<scalar_type, 2> &nhood) const {
         return {bin(v - nhood[0]), bin(v + nhood[1])};
     }
 
     /// @return the bin edges for a given @param ibin
     DETRAY_HOST_DEVICE
-    array_type<scalar_type, 2> bin_edges(const dindex ibin) const {
+    darray<scalar_type, 2> bin_edges(const dindex ibin) const {
         const scalar_type width{bin_width()};
         const scalar_type lower_edge{span()[0] +
                                      static_cast<scalar_type>(ibin) * width};
@@ -133,7 +130,7 @@ struct regular {
         detray::detail::call_reserve(edges, nbins());
 
         // Calculate bin edges from number of bins and axis span
-        const array_type<scalar_type, 2> sp = span();
+        const darray<scalar_type, 2> sp = span();
         const scalar_type step{bin_width()};
 
         for (dindex ib = 0; ib <= nbins(); ++ib) {
@@ -159,7 +156,7 @@ struct regular {
     /// @return the span of the binning (equivalent to the span of the axis:
     /// [min, max) )
     DETRAY_HOST_DEVICE
-    array_type<scalar_type, 2> span() const {
+    darray<scalar_type, 2> span() const {
         // Get the binning information
         const scalar_type min{(*m_bin_edges)[m_offset]};
         const scalar_type max{(*m_bin_edges)[m_offset + 1]};
@@ -196,8 +193,6 @@ struct irregular {
     using container_types = dcontainers;
     template <typename T>
     using vector_type = typename dcontainers::template vector_type<T>;
-    template <typename T, std::size_t N>
-    using array_type = typename dcontainers::template array_type<T, N>;
     using index_type = typename std::iterator_traits<
         typename vector_type<scalar_type>::iterator>::difference_type;
 
@@ -253,8 +248,7 @@ struct irregular {
     ///
     /// @returns the corresponding range of bin indices
     DETRAY_HOST_DEVICE
-    bin_range range(const scalar_type v,
-                    const array_type<dindex, 2> &nhood) const {
+    bin_range range(const scalar_type v, const darray<dindex, 2> &nhood) const {
         const int ibin{bin(v)};
         const int ibinmin{ibin - static_cast<int>(nhood[0])};
         const int ibinmax{ibin + static_cast<int>(nhood[1])};
@@ -270,13 +264,13 @@ struct irregular {
     /// @returns the corresponding range of bin indices
     DETRAY_HOST_DEVICE
     bin_range range(const scalar_type v,
-                    const array_type<scalar_type, 2> &nhood) const {
+                    const darray<scalar_type, 2> &nhood) const {
         return {bin(v - nhood[0]), bin(v + nhood[1])};
     }
 
     /// @return the bin edges for a given @param ibin
     DETRAY_HOST_DEVICE
-    array_type<scalar_type, 2> bin_edges(const dindex ibin) const {
+    darray<scalar_type, 2> bin_edges(const dindex ibin) const {
         return {(*m_bin_edges)[m_offset + ibin],
                 (*m_bin_edges)[m_offset + ibin + 1u]};
     }
@@ -302,7 +296,7 @@ struct irregular {
     scalar_type bin_width(const dindex ibin) const {
 
         // Get the binning information
-        const array_type<scalar_type, 2> edges = bin_edges(ibin);
+        const darray<scalar_type, 2> edges = bin_edges(ibin);
 
         return edges[1] - edges[0];
     }
@@ -310,7 +304,7 @@ struct irregular {
     /// @return the span of the binning (equivalent to the span of the axis:
     /// [min, max) )
     DETRAY_HOST_DEVICE
-    array_type<scalar_type, 2> span() const {
+    darray<scalar_type, 2> span() const {
         // Get the binning information
         const scalar_type min{(*m_bin_edges)[m_offset]};
         const scalar_type max{(*m_bin_edges)[m_offset + m_n_bins]};
