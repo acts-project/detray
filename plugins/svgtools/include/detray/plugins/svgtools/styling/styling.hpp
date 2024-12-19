@@ -353,7 +353,7 @@ inline void apply_style(meta::proto::eta_lines& p_eta_lines,
 }
 
 /// @brief Sets the style of the proto landmark.
-template <typename point3_t>
+template <concepts::point3D point3_t>
 inline void apply_style(meta::proto::landmark<point3_t>& p_landmark,
                         const landmark_style& styling) {
 
@@ -367,7 +367,7 @@ inline void apply_style(meta::proto::landmark<point3_t>& p_landmark,
 }
 
 /// @brief Sets the style of the proto intersection record.
-template <typename point3_t>
+template <concepts::point3D point3_t>
 inline void apply_style(meta::proto::intersection<point3_t>& p_intersection,
                         const landmark_style& styling) {
 
@@ -387,7 +387,7 @@ inline void apply_style(meta::proto::intersection<point3_t>& p_intersection,
 }
 
 /// @brief Sets the style of the proto trajectory.
-template <typename point3_t>
+template <concepts::point3D point3_t>
 inline void apply_style(meta::proto::trajectory<point3_t>& p_trajectory,
                         const trajectory_style& styling) {
     p_trajectory._stroke =

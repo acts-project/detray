@@ -18,6 +18,7 @@
 #include "detray/builders/surface_factory.hpp"
 #include "detray/builders/volume_builder.hpp"
 #include "detray/core/detector.hpp"
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/toy_metadata.hpp"
@@ -45,7 +46,7 @@
 namespace detray {
 
 /// Configure the toy detector
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 struct toy_det_config {
 
     /// Default toy detector configuration
@@ -313,7 +314,7 @@ struct toy_det_config {
 namespace detail {
 
 // Helper type, used to define the r- or z-extent of detector volumes
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 struct extent2D {
     scalar_t lower;
     scalar_t upper;
@@ -1220,7 +1221,7 @@ inline void add_beampipe_portals(
 /// @param cfg toy detector configuration
 ///
 /// @returns a complete detector object
-template <typename algebra_t>
+template <concepts::algebra algebra_t>
 inline auto build_toy_detector(vecmem::memory_resource &resource,
                                toy_det_config<dscalar<algebra_t>> cfg = {}) {
 

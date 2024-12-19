@@ -23,7 +23,7 @@
 namespace detray::svgtools::meta::display {
 
 /// @brief Converts a proto landmark to a SVG object.
-template <typename point3_t, typename view_t>
+template <concepts::point3D point3_t, typename view_t>
 inline auto landmark(const std::string& id,
                      const svgtools::meta::proto::landmark<point3_t>& lm,
                      const view_t& view) {
@@ -32,7 +32,7 @@ inline auto landmark(const std::string& id,
 }
 
 /// @brief Converts a proto intersection to a SVG object.
-template <typename point3_t, typename view_t>
+template <concepts::point3D point3_t, typename view_t>
 inline auto intersection(
     const std::string& id,
     const svgtools::meta::proto::intersection<point3_t>& intr,
@@ -50,7 +50,7 @@ inline auto intersection(
 }
 
 /// @brief Converts a proto trajectory to a SVG object.
-template <typename point3_t, typename view_t>
+template <concepts::point3D point3_t, typename view_t>
 inline auto trajectory(
     const std::string& id,
     const svgtools::meta::proto::trajectory<point3_t>& p_trajectory,

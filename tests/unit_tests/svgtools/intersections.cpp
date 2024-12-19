@@ -70,7 +70,7 @@ GTEST_TEST(svgtools, intersections) {
     using generator_t =
         detray::uniform_track_generator<detray::detail::ray<test_algebra>>;
     auto trk_gen_cfg = generator_t::configuration{};
-    trk_gen_cfg.origin({0.f, 0.f, 100.f}).phi_steps(10u).theta_steps(10u);
+    trk_gen_cfg.origin(0.f, 0.f, 100.f).phi_steps(10u).theta_steps(10u);
 
     std::size_t index = 0;
     // Iterate through uniformly distributed momentum directions with ray

@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
@@ -23,7 +24,7 @@
 
 namespace detray {
 
-template <typename frame_t, typename algebra_t, bool do_debug>
+template <typename frame_t, concepts::algebra algebra_t, bool do_debug>
 struct ray_intersector_impl;
 
 /// @brief A functor to find intersections between a straight line and a

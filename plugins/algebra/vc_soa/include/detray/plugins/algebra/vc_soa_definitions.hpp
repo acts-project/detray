@@ -13,7 +13,7 @@
 namespace detray {
 
 /// The plugin definition
-template <typename scalar_t>
+template <algebra::concepts::scalar scalar_t>
 using vc_soa = algebra::plugin::vc_soa<scalar_t>;
 
 // Pull in additional arithmetic operators for the algebra types

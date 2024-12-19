@@ -11,6 +11,7 @@
 #include "detray/builders/surface_factory_interface.hpp"
 #include "detray/builders/volume_builder.hpp"
 #include "detray/core/detail/data_context.hpp"
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/geometry.hpp"
@@ -24,7 +25,7 @@
 namespace detray {
 
 /// @brief configuration for the cylinder portal generator
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 struct cylinder_portal_config {
     /// Build inner cylinder portal (will use the same distance to the layer
     /// that was found for the outer cylinder portal)

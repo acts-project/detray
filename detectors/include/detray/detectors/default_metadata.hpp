@@ -27,7 +27,7 @@
 namespace detray {
 
 /// Assembles the detector type. This metatdata contains all available types
-template <typename algebra_t>
+template <concepts::algebra algebra_t>
 struct default_metadata {
 
     /// Define the algebra type for the geometry and navigation

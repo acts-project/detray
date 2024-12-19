@@ -18,7 +18,7 @@
 
 namespace detray {
 
-template <typename algebra_t>
+template <concepts::algebra algebra_t>
 struct bound_parameters_vector {
 
     /// @name Type definitions for the struct
@@ -235,7 +235,7 @@ struct bound_parameters_vector {
 
 /// Combine the bound track parameter vector with the covariance and associated
 /// surface
-template <typename algebra_t>
+template <concepts::algebra algebra_t>
 struct bound_track_parameters : public bound_parameters_vector<algebra_t> {
 
     using base_type = bound_parameters_vector<algebra_t>;

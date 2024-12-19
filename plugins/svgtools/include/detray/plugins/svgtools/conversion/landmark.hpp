@@ -14,7 +14,7 @@
 namespace detray::svgtools::conversion {
 
 /// @returns The proto landmark of a detray point.
-template <typename point3_t>
+template <concepts::point3D point3_t>
 inline auto landmark(const point3_t& position,
                      const styling::landmark_style& style =
                          styling::svg_default::landmark_style) {

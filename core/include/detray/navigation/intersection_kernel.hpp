@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/algorithms.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
@@ -40,7 +41,7 @@ struct intersection_initialize {
     /// @return the number of valid intersections
     template <typename mask_group_t, typename mask_range_t,
               typename is_container_t, typename traj_t, typename surface_t,
-              typename transform_container_t, typename scalar_t>
+              typename transform_container_t, concepts::scalar scalar_t>
     DETRAY_HOST_DEVICE inline void operator()(
         const mask_group_t &mask_group, const mask_range_t &mask_range,
         is_container_t &is_container, const traj_t &traj,

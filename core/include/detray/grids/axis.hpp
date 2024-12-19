@@ -610,10 +610,10 @@ struct irregular {
 /**
  * static implementation of axis data for device
  */
-template <typename axis_t, typename scalar_t, typename Enable = void>
+template <typename axis_t, concepts::scalar scalar_t, typename Enable = void>
 struct axis_data;
 
-template <typename axis_t, typename scalar_t>
+template <typename axis_t, concepts::scalar scalar_t>
     requires(axis_t::axis_identifier == 0u) ||
     (axis_t::axis_identifier == 1u) struct axis_data<axis_t, scalar_t> {
 
@@ -636,7 +636,7 @@ template <typename axis_t, typename scalar_t>
     std::remove_cv_t<scalar_t> max;
 };
 
-template <typename axis_t, typename scalar_t>
+template <typename axis_t, concepts::scalar scalar_t>
 requires(axis_t::axis_identifier == 2) struct axis_data<axis_t, scalar_t> {
 
     /// Declare that a default constructor can/should be generated

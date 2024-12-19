@@ -11,6 +11,7 @@
 #include "detray/builders/detector_builder.hpp"
 #include "detray/builders/homogeneous_material_builder.hpp"
 #include "detray/builders/homogeneous_material_factory.hpp"
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/io/common/detail/basic_converter.hpp"
 #include "detray/io/common/detail/type_info.hpp"
@@ -105,7 +106,7 @@ class homogeneous_material_reader {
 
     /// @returns material data for a material factory from a slab io payload
     /// @param slab_data
-    template <typename scalar_t>
+    template <concepts::scalar scalar_t>
     static material_data<scalar_t> convert(
         const material_slab_payload& slab_data) {
 
@@ -115,7 +116,7 @@ class homogeneous_material_reader {
     }
 
     /// @returns the material from its IO payload @param mat_data
-    template <typename scalar_t>
+    template <concepts::scalar scalar_t>
     static auto convert(const material_payload& mat_data) {
 
         return material<scalar_t>{

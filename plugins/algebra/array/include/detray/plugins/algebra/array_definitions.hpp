@@ -13,7 +13,7 @@
 namespace detray {
 
 /// The plugin definition
-template <typename scalar_t>
+template <algebra::concepts::scalar scalar_t>
 using array = algebra::plugin::array<scalar_t>;
 
 using algebra::cmath::operator*;

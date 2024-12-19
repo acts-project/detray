@@ -26,7 +26,7 @@
 namespace detray {
 
 /// Configuration for the random track generator
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 struct random_track_generator_config {
 
     using seed_t = std::uint64_t;
@@ -171,17 +171,27 @@ struct random_track_generator_config {
         pT_range(p, p);
         return *this;
     }
-    template <typename point3_t = std::array<scalar_t, 3>>
-    DETRAY_HOST_DEVICE random_track_generator_config& origin(point3_t ori) {
-        m_origin = {ori[0], ori[1], ori[2]};
+    DETRAY_HOST_DEVICE random_track_generator_config& origin(const scalar_t x,
+                                                             const scalar_t y,
+                                                             const scalar_t z) {
+        m_origin = {x, y, z};
         return *this;
     }
-    template <typename point3_t = std::array<scalar_t, 3>>
+    template <concepts::point3D point3_t>
+    DETRAY_HOST_DEVICE random_track_generator_config& origin(
+        const point3_t& ori) {
+        return origin(ori[0], ori[1], ori[2]);
+    }
+    DETRAY_HOST_DEVICE random_track_generator_config& origin_stddev(
+        const scalar_t x, const scalar_t y, const scalar_t z) {
+        m_do_vtx_smearing = true;
+        m_origin_stddev = {x, y, z};
+        return *this;
+    }
+    template <concepts::point3D point3_t>
     DETRAY_HOST_DEVICE random_track_generator_config& origin_stddev(
         point3_t stddev) {
-        m_do_vtx_smearing = true;
-        m_origin_stddev = {stddev[0], stddev[1], stddev[2]};
-        return *this;
+        return origin_stddev(stddev[0], stddev[1], stddev[2]);
     }
     DETRAY_HOST_DEVICE
     random_track_generator_config& randomize_charge(bool rc) {

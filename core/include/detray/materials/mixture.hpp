@@ -8,6 +8,7 @@
 #pragma once
 
 // Detray include(s)
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/materials/material.hpp"
 #include "detray/utils/ratio.hpp"
 
@@ -18,7 +19,7 @@ namespace detray {
 
 /// Compile-time material mixture type. The summation of ratios should be equal
 /// to one
-template <typename scalar_t, typename... material_types>
+template <concepts::scalar scalar_t, typename... material_types>
 struct mixture
     : public material<scalar_t, typename ratio_sum<
                                     typename material_types::ratio...>::ratio> {

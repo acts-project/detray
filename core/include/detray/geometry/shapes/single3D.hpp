@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/containers.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/math.hpp"
@@ -38,11 +39,11 @@ class single3D {
     };
 
     /// Container definition for the shape boundary values
-    template <typename scalar_t>
+    template <concepts::scalar scalar_t>
     using bounds_type = darray<scalar_t, boundaries::e_size>;
 
     /// Local coordinate frame for boundary checks
-    template <typename algebra_t>
+    template <concepts::algebra algebra_t>
     using local_frame_type = cartesian2D<algebra_t>;
 
     /// Dimension of the local coordinate system
@@ -57,7 +58,7 @@ class single3D {
     /// @param loc_p the point to be checked in the local coordinate system
     ///
     /// @return the minimum distance.
-    template <typename scalar_t, typename point_t>
+    template <concepts::scalar scalar_t, concepts::point point_t>
     DETRAY_HOST_DEVICE inline scalar_t min_dist_to_boundary(
         const bounds_type<scalar_t> &bounds, const point_t &loc_p) const {
 
@@ -76,7 +77,7 @@ class single3D {
     /// @param tol dynamic tolerance determined by caller
     ///
     /// @return true if the local point lies within the given boundaries.
-    template <typename scalar_t, typename point_t>
+    template <concepts::scalar scalar_t, concepts::point point_t>
     DETRAY_HOST_DEVICE inline auto check_boundaries(
         const bounds_type<scalar_t> &bounds, const point_t &loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
@@ -89,7 +90,7 @@ class single3D {
     /// @param bounds the boundary values for this shape
     ///
     /// @returns the range.
-    template <typename scalar_t>
+    template <concepts::scalar scalar_t>
     DETRAY_HOST_DEVICE constexpr scalar_t measure(
         const bounds_type<scalar_t> &bounds) const {
         return area(bounds);
@@ -100,7 +101,7 @@ class single3D {
     /// @param bounds the boundary values for this shape
     ///
     /// @returns the range.
-    template <typename scalar_t>
+    template <concepts::scalar scalar_t>
     DETRAY_HOST_DEVICE constexpr scalar_t area(
         const bounds_type<scalar_t> &bounds) const {
         return math::fabs(bounds[e_upper] - bounds[e_lower]);
@@ -115,7 +116,7 @@ class single3D {
     ///
     /// @returns and array of coordinates that contains the lower point (first
     /// three values) and the upper point (latter three values) .
-    template <typename algebra_t>
+    template <concepts::algebra algebra_t>
     DETRAY_HOST_DEVICE inline darray<dscalar<algebra_t>, 6> local_min_bounds(
         const bounds_type<dscalar<algebra_t>> &bounds,
         const dscalar<algebra_t> env =
@@ -129,7 +130,7 @@ class single3D {
     }
 
     /// @returns the shapes centroid in local cartesian coordinates
-    template <typename algebra_t>
+    template <concepts::algebra algebra_t>
     DETRAY_HOST_DEVICE auto centroid(
         const bounds_type<dscalar<algebra_t>> &bounds) const {
 
@@ -147,7 +148,7 @@ class single3D {
     /// @param n_seg is the number of line segments
     ///
     /// @return a generated list of vertices
-    template <typename algebra_t>
+    template <concepts::algebra algebra_t>
     DETRAY_HOST dvector<dpoint3D<algebra_t>> vertices(
         const bounds_type<dscalar<algebra_t>> &, dindex) const {
         throw std::runtime_error(
@@ -161,7 +162,7 @@ class single3D {
     /// @param os output stream for error messages
     ///
     /// @return true if the bounds are consistent.
-    template <typename scalar_t>
+    template <concepts::scalar scalar_t>
     DETRAY_HOST constexpr bool check_consistency(
         const bounds_type<scalar_t> &bounds, std::ostream &os) const {
 

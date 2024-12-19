@@ -15,7 +15,7 @@
 namespace detray {
 
 /// Projection into a 3D cylindrical coordinate frame
-template <typename algebra_t>
+template <concepts::algebra algebra_t>
 struct cylindrical3D {
 
     using algebra_type = algebra_t;

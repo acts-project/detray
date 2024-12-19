@@ -56,7 +56,7 @@ struct guided_navigation : actor {
 /// hit, lower the trustlevel to 'fair trust', otherwise stay in 'high trust'.
 /// The reasoning is, that the track state might have changed much when a
 /// constraint was triggered.
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 struct stepper_default_policy : actor {
 
     struct state {
@@ -94,7 +94,7 @@ struct stepper_default_policy : actor {
 /// Specific navigation policy for the Runge-Kutta stepper: Use the relative
 /// amount of step size correction as a measure for the change in direction of
 /// the track state.
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 struct stepper_rk_policy : actor {
 
     struct state {

@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/geometry/coordinates/cartesian2D.hpp"
 
@@ -32,11 +33,11 @@ class square2D {
     };
 
     /// Container definition for the shape boundary values
-    template <typename scalar_t>
+    template <concepts::scalar scalar_t>
     using bounds_type = darray<scalar_t, boundaries::e_size>;
 
     /// Local coordinate frame for boundary checks: cartesian
-    template <typename algebra_t>
+    template <concepts::algebra algebra_t>
     using local_frame_type = cartesian2D<algebra_t>;
 
     /// Dimension of the local coordinate system
@@ -53,7 +54,7 @@ class square2D {
     /// @param tol dynamic tolerance determined by caller
     ///
     /// @return true if the local point lies within the given boundaries.
-    template <typename scalar_t, typename point_t>
+    template <concepts::scalar scalar_t, concepts::point point_t>
     DETRAY_HOST_DEVICE inline auto check_boundaries(
         const bounds_type<scalar_t> &bounds, const point_t &loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
@@ -70,7 +71,7 @@ class square2D {
     ///
     /// @returns and array of coordinates that contains the lower point (first
     /// three values) and the upper point (latter three values) .
-    template <typename algebra_t>
+    template <concepts::algebra algebra_t>
     DETRAY_HOST_DEVICE inline std::array<dscalar<algebra_t>, 6>
     local_min_bounds(
         const bounds_type<dscalar<algebra_t>> &bounds,

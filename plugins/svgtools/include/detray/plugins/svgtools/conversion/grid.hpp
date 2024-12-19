@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/core/detector.hpp"
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/grid_axis.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/utils/grid/detail/concepts.hpp"
@@ -122,7 +123,7 @@ grid_type_and_edges(const grid_t& grid, const view_t&) {
 }
 
 /// A functor to access the type and bin edges of a grid.
-template <typename scalar_t>
+template <concepts::scalar scalar_t>
 struct type_and_edge_getter {
 
     template <typename group_t, typename index_t, typename view_t>
@@ -156,7 +157,8 @@ struct type_and_edge_getter {
 /// @param style the style settings
 ///
 /// @returns a proto grid
-template <typename store_t, typename link_t, typename view_t, typename scalar_t>
+template <typename store_t, typename link_t, typename view_t,
+          concepts::scalar scalar_t>
 auto grid(const store_t& store, const link_t& link, const view_t& view,
           const scalar_t ref_radius,
           const styling::grid_style& style =

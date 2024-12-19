@@ -14,7 +14,7 @@
 namespace detray {
 
 /// Projection into a 2D cartesian coordinate frame
-template <typename algebra_t>
+template <concepts::algebra algebra_t>
 struct cartesian2D {
 
     using algebra_type = algebra_t;

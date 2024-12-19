@@ -8,9 +8,12 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes.hpp"
 #include "detray/geometry/tracking_surface.hpp"
+
+// Detray plugins include(s)
 #include "detray/plugins/svgtools/conversion/surface_material.hpp"
 #include "detray/plugins/svgtools/styling/styling.hpp"
 
@@ -38,11 +41,11 @@ inline void set_measures(
 }
 
 /// @brief Sets the vertices of the proto surface to be the same as the mask.
-template <typename transform_t, typename mask_t>
+template <concepts::transform3D transform3_t, typename mask_t>
 inline void set_vertices(
-    actsvg::proto::surface<std::vector<typename transform_t::point3>>&
+    actsvg::proto::surface<std::vector<typename transform3_t::point3>>&
         p_surface,
-    const transform_t& trf, const mask_t& m) {
+    const transform3_t& trf, const mask_t& m) {
 
     // Approximate any arcs in the mask shape with ten line segments
     auto vertices = m.vertices(10u);
@@ -54,8 +57,8 @@ inline void set_vertices(
 /// @brief Returns the proto surface for a shape.
 /// @note For lines, the thickness is fixed and not determined by the cross
 /// section.
-template <typename transform_t, typename mask_t>
-auto inline surface(const transform_t& transform, const mask_t& m) {
+template <concepts::transform3D transform3_t, typename mask_t>
+auto inline surface(const transform3_t& transform, const mask_t& m) {
 
     using point3_t = typename mask_t::point3_type;
     using p_surface_t = actsvg::proto::surface<std::vector<point3_t>>;
@@ -69,10 +72,11 @@ auto inline surface(const transform_t& transform, const mask_t& m) {
 }
 
 /// @brief Returns the proto surface for 2D cylinders.
-template <typename transform_t, typename shape_t, typename algebra_t>
+template <concepts::transform3D transform3_t, typename shape_t,
+          concepts::algebra algebra_t>
     requires std::is_same_v<shape_t, cylinder2D> ||
     std::is_same_v<shape_t, concentric_cylinder2D> auto inline surface(
-        const transform_t& transform, const mask<shape_t, algebra_t>& m) {
+        const transform3_t& transform, const mask<shape_t, algebra_t>& m) {
 
     using point3_t = typename mask<shape_t, algebra_t>::point3_type;
     using p_surface_t = actsvg::proto::surface<std::vector<point3_t>>;
@@ -106,8 +110,8 @@ template <typename transform_t, typename shape_t, typename algebra_t>
 }
 
 /// @brief Returns the proto surface for 2D rings.
-template <typename transform_t, typename algebra_t>
-auto surface(const transform_t& transform, const mask<ring2D, algebra_t>& m) {
+template <concepts::transform3D transform3_t, concepts::algebra algebra_t>
+auto surface(const transform3_t& transform, const mask<ring2D, algebra_t>& m) {
 
     using shape_t = ring2D;
     using point3_t = typename mask<ring2D, algebra_t>::point3_type;
@@ -131,8 +135,8 @@ auto surface(const transform_t& transform, const mask<ring2D, algebra_t>& m) {
 }
 
 /// @brief Returns the proto surface for 2D annuli.
-template <typename transform_t, typename algebra_t>
-auto inline surface(const transform_t& transform,
+template <concepts::transform3D transform3_t, concepts::algebra algebra_t>
+auto inline surface(const transform3_t& transform,
                     const mask<annulus2D, algebra_t>& m) {
 
     using point3_t = typename mask<annulus2D, algebra_t>::point3_type;
@@ -148,8 +152,9 @@ auto inline surface(const transform_t& transform,
 }
 
 /// @brief Returns the proto surface for 2D rings.
-template <typename transform_t, bool kSquareCrossSect, typename algebra_t>
-auto surface(const transform_t& transform,
+template <concepts::transform3D transform3_t, bool kSquareCrossSect,
+          concepts::algebra algebra_t>
+auto surface(const transform3_t& transform,
              const mask<line<kSquareCrossSect>, algebra_t>& m) {
 
     using shape_t = line<kSquareCrossSect>;
@@ -178,18 +183,19 @@ auto surface(const transform_t& transform,
 /// section.
 template <typename mask_t>
 auto inline surface(const mask_t& m) {
-    using transform_t = dtransform3D<typename mask_t::algebra_type>;
-    return detray::svgtools::conversion::surface(transform_t{}, m);
+    using transform3_t = dtransform3D<typename mask_t::algebra_type>;
+    return detray::svgtools::conversion::surface(transform3_t{}, m);
 }
 
 namespace {
 /// @brief A functor to set the proto surfaces type and bounds to be equivalent
 /// to the mask.
 struct surface_converter {
-    template <typename mask_group_t, typename index_t, typename transform_t>
+    template <typename mask_group_t, typename index_t,
+              concepts::transform3D transform3_t>
     DETRAY_HOST inline auto operator()(const mask_group_t& mask_group,
                                        const index_t& index,
-                                       const transform_t& transform) const {
+                                       const transform3_t& transform) const {
 
         return svgtools::conversion::surface(transform, mask_group[index]);
     }

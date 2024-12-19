@@ -6,9 +6,9 @@
  */
 
 // Algebra include(s).
-#include "detray/plugins/algebra/array_definitions.hpp"
+//#include "detray/plugins/algebra/array_definitions.hpp"
 //#include "detray/plugins/algebra/eigen_definitions.hpp"
-//#include "detray/plugins/algebra/vc_aos_definitions.hpp"
+#include "detray/plugins/algebra/vc_aos_definitions.hpp"
 #include "detray/plugins/algebra/vc_soa_definitions.hpp"
 
 // Detray core include(s).
@@ -41,11 +41,11 @@ static constexpr unsigned int n_surfaces{16u};
 using algebra_v = detray::vc_soa<test::scalar>;
 
 /// Linear algebra implementation using AoS memory layout
-using algebra_array = detray::array<test::scalar>;
-// using algebra_vc_aos = detray::vc_aos<test::scalar>;
+// using algebra_array = detray::array<test::scalar>;
+using algebra_vc_aos = detray::vc_aos<test::scalar>;
 // using algebra_eigen = detray::eigen<test::scalar>;
 
-using algebra_s = algebra_array;
+using algebra_s = algebra_vc_aos;
 
 // Size of an SoA batch
 constexpr std::size_t simd_size{dscalar<algebra_v>::size()};
@@ -86,7 +86,7 @@ std::vector<ray_t> generate_rays() {
 }
 
 /// Generate the translation distances to place the surfaces
-template <typename algebra_t>
+template <concepts::algebra algebra_t>
 dvector<dscalar<algebra_t>> get_dists(std::size_t n) {
 
     using scalar_t = dscalar<algebra_t>;
