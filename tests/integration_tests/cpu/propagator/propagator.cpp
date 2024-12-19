@@ -267,19 +267,19 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
 
         // Propagate the entire detector
         ASSERT_TRUE(
-            p.propagate(state, actor_chain_t::make_ref_tuple(actor_states)))
+            p.propagate(state, actor_chain_t::setup_actor_states(actor_states)))
             //<< state.debug_stream.str() << std::endl;
             << state._navigation.inspector().to_string() << std::endl;
 
         // Test propagate sync method
         ASSERT_TRUE(p.propagate_sync(
-            sync_state, actor_chain_t::make_ref_tuple(actor_states_sync)))
+            sync_state, actor_chain_t::setup_actor_states(actor_states_sync)))
             //<< state.debug_stream.str() << std::endl;
             << sync_state._navigation.inspector().to_string() << std::endl;
 
         // Propagate with path limit
         ASSERT_FALSE(p.propagate(
-            lim_state, actor_chain_t::make_ref_tuple(actor_states_lim)))
+            lim_state, actor_chain_t::setup_actor_states(actor_states_lim)))
             //<< lim_state.debug_stream.str() << std::endl;
             << lim_state._navigation.inspector().to_string() << std::endl;
 
