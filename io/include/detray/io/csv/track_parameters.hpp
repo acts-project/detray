@@ -58,11 +58,11 @@ struct bound_track_parameters {
 template <typename detector_t>
 inline auto read_free_track_params(const std::string &file_name) {
 
-    using scalar_t = typename detector_t::scalar_type;
-    using point3_t = typename detector_t::point3_type;
-    using vector3_t = typename detector_t::vector3_type;
-    using track_t =
-        detray::free_track_parameters<typename detector_t::algebra_type>;
+    using algebra_t = typename detector_t::algebra_type;
+    using scalar_t = dscalar<algebra_t>;
+    using point3_t = dpoint3D<algebra_t>;
+    using vector3_t = dvector3D<algebra_t>;
+    using track_t = detray::free_track_parameters<algebra_t>;
 
     dfe::NamedTupleCsvReader<io::csv::free_track_parameters> track_param_reader(
         file_name);

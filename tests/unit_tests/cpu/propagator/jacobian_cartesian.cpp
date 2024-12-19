@@ -21,7 +21,8 @@
 
 using namespace detray;
 
-using algebra_t = test::algebra;
+using test_algebra = test::algebra;
+using scalar = test::scalar;
 using point3 = test::point3;
 using vector3 = test::vector3;
 using transform3 = test::transform3;
@@ -31,7 +32,7 @@ const scalar isclose{1e-5f};
 // This test cartesian2D coordinate
 GTEST_TEST(detray_propagator, jacobian_cartesian2D) {
 
-    using jac_engine = detail::jacobian_engine<cartesian2D<algebra_t>>;
+    using jac_engine = detail::jacobian_engine<cartesian2D<test_algebra>>;
 
     // Preparation work
     const vector3 z = {0.f, 0.f, 1.f};
@@ -44,14 +45,15 @@ GTEST_TEST(detray_propagator, jacobian_cartesian2D) {
     const scalar charge{-1.f};
 
     const scalar h{2.f};
-    mask<rectangle2D> rect{0u, h, h};
+    mask<rectangle2D, test_algebra> rect{0u, h, h};
 
     // Free track parameter
-    const free_track_parameters<algebra_t> free_params(global1, time, mom,
-                                                       charge);
+    const free_track_parameters<test_algebra> free_params(global1, time, mom,
+                                                          charge);
 
     const auto bound_vec =
-        detail::free_to_bound_vector<cartesian2D<algebra_t>>(trf, free_params);
+        detail::free_to_bound_vector<cartesian2D<test_algebra>>(trf,
+                                                                free_params);
     const auto free_params2 =
         detail::bound_to_free_vector(trf, rect, bound_vec);
 
@@ -69,7 +71,7 @@ GTEST_TEST(detray_propagator, jacobian_cartesian2D) {
     }
 
     // Test Jacobian transformation
-    const bound_matrix<algebra_t> J =
+    const bound_matrix<test_algebra> J =
         jac_engine::free_to_bound_jacobian(trf, free_params) *
         jac_engine::bound_to_free_jacobian(trf, rect, bound_vec);
 

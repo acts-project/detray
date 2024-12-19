@@ -18,8 +18,8 @@
 
 using namespace detray;
 
-using algebra_t = test::algebra;
-using scalar_t = test::scalar;
+using test_algebra = test::algebra;
+using scalar = test::scalar;
 template <std::size_t ROWS, std::size_t COLS>
 using matrix_type = test::matrix<ROWS, COLS>;
 
@@ -32,19 +32,19 @@ GTEST_TEST(detray_utils, axis_rotation) {
     const test::vector3 v1{1.f, 0.f, 0.f};
 
     const auto u1 =
-        axis_rotation<algebra_t>(axis, constant<scalar_t>::pi_2)(v1);
+        axis_rotation<test_algebra>(axis, constant<scalar>::pi_2)(v1);
 
     EXPECT_NEAR(u1[0], 0.f, isclose);
     EXPECT_NEAR(u1[1], 1.f, isclose);
     EXPECT_NEAR(u1[2], 0.f, isclose);
 
     matrix_type<3, 1> v2;
-    getter::element(v2, 0, 0) = constant<scalar_t>::inv_sqrt2;
-    getter::element(v2, 1, 0) = constant<scalar_t>::inv_sqrt2;
+    getter::element(v2, 0, 0) = constant<scalar>::inv_sqrt2;
+    getter::element(v2, 1, 0) = constant<scalar>::inv_sqrt2;
     getter::element(v2, 2, 0) = 0.f;
 
     const auto u2 =
-        axis_rotation<algebra_t>(axis, constant<scalar_t>::pi_4)(v2);
+        axis_rotation<test_algebra>(axis, constant<scalar>::pi_4)(v2);
 
     EXPECT_NEAR(getter::element(u2, 0, 0), 0.f, isclose);
     EXPECT_NEAR(getter::element(u2, 1, 0), 1.f, isclose);
@@ -55,17 +55,17 @@ GTEST_TEST(detray_utils, axis_rotation) {
     const test::vector3 v3{1.f, 0.f, 0.f};
 
     const auto u3 =
-        axis_rotation<algebra_t>(axis, constant<scalar_t>::pi_4)(v3);
+        axis_rotation<test_algebra>(axis, constant<scalar>::pi_4)(v3);
 
-    EXPECT_NEAR(u3[0u], constant<scalar_t>::inv_sqrt2, isclose);
-    EXPECT_NEAR(u3[1u], constant<scalar_t>::inv_sqrt2, isclose);
+    EXPECT_NEAR(u3[0u], constant<scalar>::inv_sqrt2, isclose);
+    EXPECT_NEAR(u3[1u], constant<scalar>::inv_sqrt2, isclose);
     EXPECT_NEAR(u3[2u], 0.f, isclose);
 }
 
 GTEST_TEST(detray_utils, euler_rotation1) {
 
-    euler_rotation<algebra_t> euler_rot;
-    euler_rot.alpha = constant<scalar_t>::pi_2;
+    euler_rotation<test_algebra> euler_rot;
+    euler_rot.alpha = constant<scalar>::pi_2;
 
     auto [x1, z1] = euler_rot();
 
@@ -77,7 +77,7 @@ GTEST_TEST(detray_utils, euler_rotation1) {
     EXPECT_NEAR(z1[1], 0.f, isclose);
     EXPECT_NEAR(z1[2], 1.f, isclose);
 
-    euler_rot.beta = constant<scalar_t>::pi_2;
+    euler_rot.beta = constant<scalar>::pi_2;
 
     auto [x2, z2] = euler_rot();
     EXPECT_NEAR(x2[0], 0.f, isclose);
@@ -88,7 +88,7 @@ GTEST_TEST(detray_utils, euler_rotation1) {
     EXPECT_NEAR(z2[1], 0.f, isclose);
     EXPECT_NEAR(z2[2], 0.f, isclose);
 
-    euler_rot.gamma = constant<scalar_t>::pi_2;
+    euler_rot.gamma = constant<scalar>::pi_2;
 
     auto [x3, z3] = euler_rot();
     EXPECT_NEAR(x3[0], 0.f, isclose);
@@ -102,22 +102,22 @@ GTEST_TEST(detray_utils, euler_rotation1) {
 
 GTEST_TEST(detray_utils, euler_rotation2) {
 
-    euler_rotation<algebra_t> euler_rot;
-    euler_rot.alpha = constant<scalar_t>::pi / 6.f;
-    euler_rot.beta = constant<scalar_t>::pi_4;
-    euler_rot.gamma = constant<scalar_t>::pi_2;
+    euler_rotation<test_algebra> euler_rot;
+    euler_rot.alpha = constant<scalar>::pi / 6.f;
+    euler_rot.beta = constant<scalar>::pi_4;
+    euler_rot.gamma = constant<scalar>::pi_2;
 
     const test::vector3 v1{5.f, 7.f, 8.f};
     const test::vector3 v2 = euler_rot(v1);
 
     auto R = matrix::zero<matrix_type<3u, 3u>>();
 
-    const scalar_t s1 = static_cast<scalar_t>(math::sin(euler_rot.alpha));
-    const scalar_t c1 = static_cast<scalar_t>(math::cos(euler_rot.alpha));
-    const scalar_t s2 = static_cast<scalar_t>(math::sin(euler_rot.beta));
-    const scalar_t c2 = static_cast<scalar_t>(math::cos(euler_rot.beta));
-    const scalar_t s3 = static_cast<scalar_t>(math::sin(euler_rot.gamma));
-    const scalar_t c3 = static_cast<scalar_t>(math::cos(euler_rot.gamma));
+    const scalar s1 = static_cast<scalar>(math::sin(euler_rot.alpha));
+    const scalar c1 = static_cast<scalar>(math::cos(euler_rot.alpha));
+    const scalar s2 = static_cast<scalar>(math::sin(euler_rot.beta));
+    const scalar c2 = static_cast<scalar>(math::cos(euler_rot.beta));
+    const scalar s3 = static_cast<scalar>(math::sin(euler_rot.gamma));
+    const scalar c3 = static_cast<scalar>(math::cos(euler_rot.gamma));
 
     // From table of https://en.wikipedia.org/wiki/Euler_angles
     getter::element(R, 0u, 0u) = c1 * c3 - c2 * s1 * s3;

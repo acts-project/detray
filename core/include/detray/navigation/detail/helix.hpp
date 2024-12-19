@@ -70,7 +70,7 @@ class helix {
 
         // Momentum
         const vector3_type mom =
-            1.f / static_cast<scalar_type>(math::fabs(qop)) * _t0;
+            (1.f / static_cast<scalar_type>(math::fabs(qop))) * _t0;
 
         // Normalized _h0 X _t0
         _n0 = vector::normalize(vector::cross(_h0, _t0));
@@ -194,8 +194,8 @@ class helix {
         // Get drdt
         auto drdt = Z33;
 
-        const scalar sin_ks = math::sin(_K * s);
-        const scalar cos_ks = math::cos(_K * s);
+        const scalar_type sin_ks = math::sin(_K * s);
+        const scalar_type cos_ks = math::cos(_K * s);
         drdt = drdt + sin_ks / _K * I33;
 
         matrix_type<3, 1> H0 = matrix::zero<matrix_type<3, 1>>();
@@ -265,7 +265,7 @@ class helix {
     vector3_type const *_mag_field;
 
     /// B field strength
-    scalar _B;
+    scalar_type _B;
 
     /// Normalized b field
     vector3_type _h0;

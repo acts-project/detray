@@ -20,7 +20,8 @@
 
 using namespace detray;
 
-using algebra_t = test::algebra;
+using test_algebra = test::algebra;
+using scalar = test::scalar;
 using vector3 = test::vector3;
 using point3 = test::point3;
 using transform3 = test::transform3;
@@ -38,13 +39,14 @@ GTEST_TEST(detray_propagator, line_stepper) {
     using namespace step;
 
     // Line stepper with and without constrained stepping
-    using line_stepper_t = line_stepper<algebra_t>;
-    using cline_stepper_t = line_stepper<algebra_t, constrained_step<>>;
+    using line_stepper_t = line_stepper<test_algebra>;
+    using cline_stepper_t =
+        line_stepper<test_algebra, constrained_step<scalar>>;
 
     point3 pos{0.f, 0.f, 0.f};
     vector3 mom{1.f, 1.f, 0.f};
-    free_track_parameters<algebra_t> track(pos, 0.f, mom, -1.f);
-    free_track_parameters<algebra_t> c_track(pos, 0.f, mom, -1.f);
+    free_track_parameters<test_algebra> track(pos, 0.f, mom, -1.f);
+    free_track_parameters<test_algebra> c_track(pos, 0.f, mom, -1.f);
 
     line_stepper_t l_stepper;
     cline_stepper_t cl_stepper;

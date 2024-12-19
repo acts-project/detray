@@ -56,10 +56,11 @@ struct guided_navigation : actor {
 /// hit, lower the trustlevel to 'fair trust', otherwise stay in 'high trust'.
 /// The reasoning is, that the track state might have changed much when a
 /// constraint was triggered.
+template <typename scalar_t>
 struct stepper_default_policy : actor {
 
     struct state {
-        scalar tol{std::numeric_limits<scalar>::epsilon()};
+        scalar_t tol{std::numeric_limits<scalar_t>::epsilon()};
     };
 
     /// Sets the navigation trust level depending on the step size limit
@@ -93,11 +94,12 @@ struct stepper_default_policy : actor {
 /// Specific navigation policy for the Runge-Kutta stepper: Use the relative
 /// amount of step size correction as a measure for the change in direction of
 /// the track state.
+template <typename scalar_t>
 struct stepper_rk_policy : actor {
 
     struct state {
-        scalar m_threshold_fair_trust{0.05f};
-        scalar m_threshold_no_trust{0.1f};
+        scalar_t m_threshold_fair_trust{0.05f};
+        scalar_t m_threshold_no_trust{0.1f};
     };
 
     /// Sets the navigation trust level depending on the step size correction
@@ -112,8 +114,8 @@ struct stepper_rk_policy : actor {
         auto &navigation = propagation._navigation;
 
         // How strongly did the RKN algorithm reduce the step size?
-        const scalar rel_correction{(stepping.step_size() - navigation()) /
-                                    navigation()};
+        const scalar_t rel_correction{(stepping.step_size() - navigation()) /
+                                      navigation()};
 
         // Large correction to the stepsize - re-initialize the volume
         if (rel_correction > pol_state.m_threshold_no_trust) {

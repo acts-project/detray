@@ -21,16 +21,20 @@ using namespace detray;
 // This test check the building of the tml based toy geometry
 GTEST_TEST(detray_detectors, toy_detector) {
 
+    using test_algebra = test::algebra;
+
     vecmem::host_memory_resource host_mr;
 
-    toy_det_config toy_cfg{};
+    toy_det_config<test::scalar> toy_cfg{};
     toy_cfg.use_material_maps(false).do_check(true);
-    const auto [toy_det, names] = build_toy_detector(host_mr, toy_cfg);
+    const auto [toy_det, names] =
+        build_toy_detector<test_algebra>(host_mr, toy_cfg);
 
     EXPECT_TRUE(toy_detector_test(toy_det, names));
 
     toy_cfg.use_material_maps(true);
-    const auto [toy_det2, names2] = build_toy_detector(host_mr, toy_cfg);
+    const auto [toy_det2, names2] =
+        build_toy_detector<test_algebra>(host_mr, toy_cfg);
 
     EXPECT_TRUE(toy_detector_test(toy_det2, names2));
 }

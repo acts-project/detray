@@ -20,11 +20,12 @@
 
 namespace detray::options {
 
+namespace detail {
+
 /// Add options for the detray toy detector
-template <>
-void add_options<toy_det_config>(
-    boost::program_options::options_description &desc,
-    const toy_det_config &cfg) {
+template <typename scalar_t>
+void add_toy_det_options(boost::program_options::options_description &desc,
+                         const toy_det_config<scalar_t> &cfg) {
 
     desc.add_options()(
         "barrel_layers",
@@ -41,9 +42,9 @@ void add_options<toy_det_config>(
 }
 
 /// Configure the detray toy detector
-template <>
-void configure_options<toy_det_config>(
-    boost::program_options::variables_map &vm, toy_det_config &cfg) {
+template <typename scalar_t>
+void configure_toy_det_options(const boost::program_options::variables_map &vm,
+                               toy_det_config<scalar_t> &cfg) {
 
     cfg.n_brl_layers(vm["barrel_layers"].as<unsigned int>());
     cfg.n_edc_layers(vm["endcap_layers"].as<unsigned int>());
@@ -59,5 +60,41 @@ void configure_options<toy_det_config>(
         cfg.use_material_maps(true);
     }
 }
+
+}  // namespace detail
+
+/// Add options for the toy detector
+/// @{
+template <>
+void add_options<toy_det_config<float>>(
+    boost::program_options::options_description &desc,
+    const toy_det_config<float> &cfg) {
+    detail::add_toy_det_options(desc, cfg);
+}
+
+template <>
+void add_options<toy_det_config<double>>(
+    boost::program_options::options_description &desc,
+    const toy_det_config<double> &cfg) {
+    detail::add_toy_det_options(desc, cfg);
+}
+/// @}
+
+/// Configure the detray toy detector
+/// @{
+template <>
+void configure_options<toy_det_config<float>>(
+    const boost::program_options::variables_map &vm,
+    toy_det_config<float> &cfg) {
+    detail::configure_toy_det_options(vm, cfg);
+}
+
+template <>
+void configure_options<toy_det_config<double>>(
+    const boost::program_options::variables_map &vm,
+    toy_det_config<double> &cfg) {
+    detail::configure_toy_det_options(vm, cfg);
+}
+/// @}
 
 }  // namespace detray::options

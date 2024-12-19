@@ -27,7 +27,7 @@ namespace detray::detail {
 template <typename detector_t>
 auto get_cylinder_portals(const tracking_volume<detector_t> &vol) {
 
-    using scalar_t = typename detector_t::scalar_type;
+    using scalar_t = dscalar<typename detector_t::algebra_type>;
 
     std::vector<const typename detector_t::volume_type &> inner_pt{},
         outer_pt{}, lower_pt{}, upper_pr{};

@@ -15,15 +15,10 @@
 // Algebra-Plugins include
 #include "algebra/smatrix_smatrix.hpp"
 
-#define ALGEBRA_PLUGIN detray::smatrix
-
 namespace detray {
 
-// Define scalar type
-using scalar = DETRAY_CUSTOM_SCALARTYPE;
-
 /// The plugin definition
-template <typename scalar_t = DETRAY_CUSTOM_SCALARTYPE>
+template <typename scalar_t>
 using smatrix = algebra::plugin::smatrix<scalar_t>;
 
 namespace getter {

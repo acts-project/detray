@@ -35,19 +35,22 @@ namespace detray {
 /// the number of generated tracks) are configurable.
 ///
 /// @tparam track_t the type of track parametrization that should be used.
-template <typename track_t, typename generator_t = detail::random_numbers<>>
+template <typename track_t,
+          typename generator_t =
+              detail::random_numbers<dscalar<typename track_t::algebra_type>>>
 class uniform_track_generator
     : public detray::ranges::view_interface<
           uniform_track_generator<track_t, generator_t>> {
 
-    using point3 = typename track_t::point3_type;
-    using vector3 = typename track_t::vector3_type;
+    using algebra_t = typename track_t::algebra_type;
+    using scalar_t = dscalar<algebra_t>;
+    using vector3_t = dvector3D<algebra_t>;
 
     public:
     using track_type = track_t;
 
     /// Configure how tracks are generated
-    using configuration = uniform_track_generator_config;
+    using configuration = uniform_track_generator_config<scalar_t>;
 
     private:
     /// @brief Nested iterator type that generates track states.
@@ -68,11 +71,11 @@ class uniform_track_generator
             : m_rnd_numbers{std::move(rand_gen)},
               m_cfg{cfg},
               m_phi_step_size{(cfg.phi_range()[1] - cfg.phi_range()[0]) /
-                              static_cast<scalar>(cfg.phi_steps())},
+                              static_cast<scalar_t>(cfg.phi_steps())},
               m_theta_step_size{(cfg.theta_range()[1] - cfg.theta_range()[0]) /
-                                static_cast<scalar>(cfg.theta_steps() - 1u)},
+                                static_cast<scalar_t>(cfg.theta_steps() - 1u)},
               m_eta_step_size{(cfg.eta_range()[1] - cfg.eta_range()[0]) /
-                              static_cast<scalar>(cfg.eta_steps() - 1u)},
+                              static_cast<scalar_t>(cfg.eta_steps() - 1u)},
               m_phi{cfg.phi_range()[0]},
               m_theta{cfg.uniform_eta() ? get_theta(cfg.eta_range()[0])
                                         : cfg.theta_range()[0]},
@@ -104,7 +107,7 @@ class uniform_track_generator
                 if (i_phi < m_cfg.phi_steps()) {
                     // Calculate new phi in the given range
                     m_phi = m_cfg.phi_range()[0] +
-                            static_cast<scalar>(i_phi) * m_phi_step_size;
+                            static_cast<scalar_t>(i_phi) * m_phi_step_size;
                     ++i_phi;
                     return *this;
                 }
@@ -116,13 +119,14 @@ class uniform_track_generator
                 ++i_theta;
 
                 if (m_cfg.uniform_eta()) {
-                    const scalar eta =
+                    const scalar_t eta =
                         m_cfg.eta_range()[0] +
-                        static_cast<scalar>(i_theta) * m_eta_step_size;
+                        static_cast<scalar_t>(i_theta) * m_eta_step_size;
                     m_theta = get_theta(eta);
                 } else {
-                    m_theta = m_cfg.theta_range()[0] +
-                              static_cast<scalar>(i_theta) * m_theta_step_size;
+                    m_theta =
+                        m_cfg.theta_range()[0] +
+                        static_cast<scalar_t>(i_theta) * m_theta_step_size;
                 }
             }
             return *this;
@@ -144,15 +148,15 @@ class uniform_track_generator
                 throw std::invalid_argument("Invalid random number generator");
             }
 
-            scalar sin_theta{math::sin(m_theta)};
+            scalar_t sin_theta{math::sin(m_theta)};
 
             // Momentum direction from angles
-            vector3 p{math::cos(m_phi) * sin_theta,
-                      math::sin(m_phi) * sin_theta, math::cos(m_theta)};
+            vector3_t p{math::cos(m_phi) * sin_theta,
+                        math::sin(m_phi) * sin_theta, math::cos(m_theta)};
 
             // Magnitude of momentum
-            sin_theta = (sin_theta == scalar{0.f})
-                            ? std::numeric_limits<scalar>::epsilon()
+            sin_theta = (sin_theta == scalar_t{0.f})
+                            ? std::numeric_limits<scalar_t>::epsilon()
                             : sin_theta;
             p = (m_cfg.is_pT() ? 1.f / sin_theta : 1.f) * m_cfg.m_p_mag *
                 vector::normalize(p);
@@ -161,7 +165,7 @@ class uniform_track_generator
 
             // Randomly flip the charge sign
             std::array<double, 2> signs{1., -1.};
-            const auto sign{static_cast<scalar>(
+            const auto sign{static_cast<scalar_t>(
                 signs[m_cfg.randomize_charge() ? m_rnd_numbers->coin_toss()
                                                : 0u])};
 
@@ -178,13 +182,13 @@ class uniform_track_generator
         configuration m_cfg{};
 
         /// Angular step sizes
-        scalar m_phi_step_size{0.f};
-        scalar m_theta_step_size{0.f};
-        scalar m_eta_step_size{0.f};
+        scalar_t m_phi_step_size{0.f};
+        scalar_t m_theta_step_size{0.f};
+        scalar_t m_eta_step_size{0.f};
 
         /// Phi and theta angles of momentum direction
-        scalar m_phi{-constant<scalar>::pi};
-        scalar m_theta{0.f};
+        scalar_t m_phi{-constant<scalar_t>::pi};
+        scalar_t m_theta{0.f};
 
         /// Iteration indices
         std::size_t i_phi{0u};
@@ -193,7 +197,7 @@ class uniform_track_generator
         private:
         /// @returns the theta angle for a given @param eta value
         DETRAY_HOST_DEVICE
-        scalar get_theta(const scalar eta) {
+        scalar_t get_theta(const scalar_t eta) {
             return 2.f * math::atan(math::exp(-eta));
         }
     };
@@ -224,9 +228,9 @@ class uniform_track_generator
     /// @param charge charge of particle (e)
     DETRAY_HOST_DEVICE
     uniform_track_generator(std::size_t n_phi, std::size_t n_theta,
-                            scalar p_mag = 1.f * unit<scalar>::GeV,
+                            scalar_t p_mag = 1.f * unit<scalar_t>::GeV,
                             bool uniform_eta = false,
-                            scalar charge = -1.f * unit<scalar>::e)
+                            scalar_t charge = -1.f * unit<scalar_t>::e)
         : m_gen{std::make_shared<generator_t>()}, m_cfg{} {
         m_cfg.phi_steps(n_phi).theta_steps(n_theta);
         m_cfg.uniform_eta(uniform_eta);

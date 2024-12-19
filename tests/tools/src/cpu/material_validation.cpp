@@ -21,6 +21,7 @@
 #include "detray/options/track_generator_options.hpp"
 #include "detray/test/common/detail/register_checks.hpp"
 #include "detray/test/cpu/material_scan.hpp"
+#include "detray/test/utils/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -43,7 +44,8 @@ using namespace detray;
 int main(int argc, char **argv) {
 
     // Use the most general type to be able to read in all detector files
-    using detector_t = detray::detector<>;
+    using metadata_t = test::default_metadata;
+    using detector_t = detector<metadata_t>;
 
     // Filter out the google test flags
     ::testing::InitGoogleTest(&argc, argv);

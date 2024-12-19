@@ -26,6 +26,8 @@
 
 namespace detray {
 
+using scalar = DETRAY_CUSTOM_SCALARTYPE;
+
 namespace axis2 {
 /** A regular closed axis.
  *

@@ -6,6 +6,8 @@
  */
 
 // Detray test include(s)
+#include <detray/test/common/assert.hpp>
+
 #include "sf_finders_grid_cuda_kernel.hpp"
 
 // VecMem include(s).
@@ -101,7 +103,7 @@ TEST(grids_cuda, grid3_replace_populator) {
 
                 const auto& bin = g3.bin(gbin);
 
-                const detray::scalar gbin_f{static_cast<detray::scalar>(gbin)};
+                const scalar gbin_f{static_cast<scalar>(gbin)};
                 const point3 tp{axis_x.min() + gbin_f * axis_x.bin_width(),
                                 axis_y.min() + gbin_f * axis_y.bin_width(),
                                 axis_z.min() + gbin_f * axis_z.bin_width()};
@@ -163,7 +165,7 @@ TEST(grids_cuda, grid2_replace_populator_ci) {
             const dindex gbin = g2.serialize({i_r, i_phi});
             const auto& bin = g2.bin(gbin);
 
-            const detray::scalar gbin_f{static_cast<detray::scalar>(gbin)};
+            const scalar gbin_f{static_cast<scalar>(gbin)};
             const point3 tp{axis_r.min() + gbin_f * axis_r.bin_width(i_r),
                             axis_phi.min() + gbin_f * axis_phi.bin_width(),
                             0.5f};
@@ -230,7 +232,7 @@ TEST(grids_cuda, grid2_complete_populator) {
             const auto& bin = g2.bin(gbin);
 
             // Other point with which the bin has been completed
-            const detray::scalar gbin_f{static_cast<detray::scalar>(gbin)};
+            const scalar gbin_f{static_cast<scalar>(gbin)};
             const point3 tp{axis_r.min() + gbin_f * width_r,
                             axis_phi.min() + gbin_f * width_phi, 0.5};
 
@@ -308,7 +310,7 @@ TEST(grids_cuda, grid2_attach_populator) {
             const auto& bin = g2.bin(gbin);
 
             // Other point with which the bin has been completed
-            const detray::scalar gbin_f{static_cast<detray::scalar>(gbin)};
+            const scalar gbin_f{static_cast<scalar>(gbin)};
             const point3 tp{axis_r.min() + gbin_f * width_r,
                             axis_phi.min() + gbin_f * width_phi, 0.5};
 
@@ -316,11 +318,11 @@ TEST(grids_cuda, grid2_attach_populator) {
             int pt_idx{0};
             for (const auto& pt : bin) {
                 if (pt_idx == 0) {
-                    EXPECT_EQ(pt, first_tp);
+                    EXPECT_POINT3_NEAR(pt, first_tp, 1e-6);
                 } else if (pt_idx == 1) {
-                    EXPECT_EQ(pt, tp);
+                    EXPECT_POINT3_NEAR(pt, tp, 1e-6);
                 } else {
-                    EXPECT_EQ(pt, invalid_tp);
+                    EXPECT_POINT3_NEAR(pt, invalid_tp, 1e-6);
                 }
                 pt_idx++;
             }
@@ -418,7 +420,7 @@ TEST(grids_cuda, grid2_dynamic_attach_populator) {
             const auto& bin = g2.bin(gbin);
 
             // Other point with which the bin has been completed
-            const detray::scalar gbin_f{static_cast<detray::scalar>(gbin)};
+            const scalar gbin_f{static_cast<scalar>(gbin)};
             const point3 tp{axis_r.min() + gbin_f * width_r,
                             axis_phi.min() + gbin_f * width_phi, 0.5};
 
@@ -426,11 +428,11 @@ TEST(grids_cuda, grid2_dynamic_attach_populator) {
             int pt_idx{0};
             for (const auto& e : bin) {
                 if (pt_idx == 0) {
-                    EXPECT_EQ(e, first_tp) << pt_idx;
+                    EXPECT_POINT3_NEAR(e, first_tp, 1e-6);
                 } else if (pt_idx == 1) {
-                    EXPECT_EQ(e, tp) << pt_idx;
+                    EXPECT_POINT3_NEAR(e, tp, 1e-6);
                 } else {
-                    EXPECT_EQ(e, invalid_tp) << pt_idx;
+                    EXPECT_POINT3_NEAR(e, invalid_tp, 1e-6);
                 }
                 pt_idx++;
             }

@@ -27,72 +27,78 @@
 namespace detray {
 
 /// Assembles the detector type. This metatdata contains all available types
+template <typename algebra_t>
 struct default_metadata {
 
     /// Define the algebra type for the geometry and navigation
-    using algebra_type = ALGEBRA_PLUGIN<detray::scalar>;
+    using algebra_type = algebra_t;
+    using scalar_t = dscalar<algebra_type>;
 
     /// Mask-to-(next)-volume link (potentially switchable for SoA)
     using nav_link = std::uint_least16_t;
 
     /// Mask types
     /// @TODO: Need to duplicate for pixel/strip measurement dimensions?
-    using rectangle = mask<rectangle2D, nav_link>;
-    using trapezoid = mask<trapezoid2D, nav_link>;
-    using annulus = mask<annulus2D, nav_link>;
-    using cylinder = mask<cylinder2D, nav_link>;
-    using cylinder_portal = mask<concentric_cylinder2D, nav_link>;
-    using disc = mask<ring2D, nav_link>;
-    using straw_tube = mask<line_circular, nav_link>;
-    using drift_cell = mask<line_square, nav_link>;
-    using single_1 = mask<single3D<1>, nav_link>;
-    using single_2 = mask<single3D<2>, nav_link>;
+    using rectangle = mask<rectangle2D, algebra_type, nav_link>;
+    using trapezoid = mask<trapezoid2D, algebra_type, nav_link>;
+    using annulus = mask<annulus2D, algebra_type, nav_link>;
+    using cylinder = mask<cylinder2D, algebra_type, nav_link>;
+    using cylinder_portal = mask<concentric_cylinder2D, algebra_type, nav_link>;
+    using disc = mask<ring2D, algebra_type, nav_link>;
+    using straw_tube = mask<line_circular, algebra_type, nav_link>;
+    using drift_cell = mask<line_square, algebra_type, nav_link>;
+    using single_1 = mask<single3D<1>, algebra_type, nav_link>;
+    using single_2 = mask<single3D<2>, algebra_type, nav_link>;
     // TODO: Can single3 be used instead of cylinder portal type or remove it?
-    using single_3 = mask<single3D<3>, nav_link>;
+    using single_3 = mask<single3D<3>, algebra_type, nav_link>;
     // Debug types, e.g. telescope detector
-    using unbounded_rectangle = mask<unbounded<rectangle2D>, nav_link>;
-    using unbounded_trapezoid = mask<unbounded<trapezoid2D>, nav_link>;
-    using unbounded_annulus = mask<unbounded<annulus2D>, nav_link>;
-    using unbounded_cylinder = mask<unbounded<cylinder2D>, nav_link>;
-    using unbounded_disc = mask<unbounded<ring2D>, nav_link>;
-    using unbounded_straw_tube = mask<unbounded<line_circular>, nav_link>;
-    using unbounded_drift_cell = mask<unbounded<line_square>, nav_link>;
-    using unmasked_plane = mask<unmasked<>, nav_link>;
+    using unbounded_rectangle =
+        mask<unbounded<rectangle2D>, algebra_type, nav_link>;
+    using unbounded_trapezoid =
+        mask<unbounded<trapezoid2D>, algebra_type, nav_link>;
+    using unbounded_annulus =
+        mask<unbounded<annulus2D>, algebra_type, nav_link>;
+    using unbounded_cylinder =
+        mask<unbounded<cylinder2D>, algebra_type, nav_link>;
+    using unbounded_disc = mask<unbounded<ring2D>, algebra_type, nav_link>;
+    using unbounded_straw_tube =
+        mask<unbounded<line_circular>, algebra_type, nav_link>;
+    using unbounded_drift_cell =
+        mask<unbounded<line_square>, algebra_type, nav_link>;
+    using unmasked_plane = mask<unmasked<>, algebra_type, nav_link>;
 
     /// Material types
-    using slab = material_slab<detray::scalar>;
-    using rod = material_rod<detray::scalar>;
+    using slab = material_slab<scalar_t>;
+    using rod = material_rod<scalar_t>;
 
     /// Material grid types (default: closed bounds, regular binning)
     /// @{
 
     // Disc material grid
     template <typename container_t>
-    using disc_map_t = material_map<ring2D, detray::scalar, container_t>;
+    using disc_map_t = material_map<algebra_type, ring2D, container_t>;
 
     // Cylindrical material grid
     template <typename container_t>
-    using cylinder2_map_t =
-        material_map<cylinder2D, detray::scalar, container_t>;
+    using cylinder2_map_t = material_map<algebra_type, cylinder2D, container_t>;
 
     // Concentric cylindrical material grid
     template <typename container_t>
     using concentric_cylinder2_map_t =
-        material_map<concentric_cylinder2D, detray::scalar, container_t>;
+        material_map<algebra_type, concentric_cylinder2D, container_t>;
 
     // Rectangular material grid
     template <typename container_t>
     using rectangular_map_t =
-        material_map<rectangle2D, detray::scalar, container_t>;
+        material_map<algebra_type, rectangle2D, container_t>;
 
     // Cuboid volume material grid
     template <typename container_t>
-    using cuboid_map_t = material_map<cuboid3D, detray::scalar, container_t>;
+    using cuboid_map_t = material_map<algebra_type, cuboid3D, container_t>;
 
     // Cylindrical volume material grid
     template <typename container_t>
-    using cylinder3_map_t =
-        material_map<cylinder3D, detray::scalar, container_t>;
+    using cylinder3_map_t = material_map<algebra_type, cylinder3D, container_t>;
 
     /// @}
 
@@ -103,8 +109,9 @@ struct default_metadata {
 
     // surface grid definition: bin-content: std::array<surface_type, 9>
     template <typename axes_t, typename bin_entry_t, typename container_t>
-    using surface_grid_t = grid<axes_t, bins::dynamic_array<bin_entry_t>,
-                                simple_serializer, container_t, false>;
+    using surface_grid_t =
+        grid<algebra_type, axes_t, bins::dynamic_array<bin_entry_t>,
+             simple_serializer, container_t, false>;
 
     // 2D cylindrical grid for the barrel layers
     template <typename bin_entry_t, typename container_t>
@@ -219,7 +226,7 @@ unbounded_cell, unmasked_plane*/>;
         grid_collection<rectangular_map_t<container_t>>,
         typename container_t::template vector_type<slab>,
         typename container_t::template vector_type<rod>,
-        typename container_t::template vector_type<material<detray::scalar>>,
+        typename container_t::template vector_type<material<scalar_t>>,
         grid_collection<cuboid_map_t<container_t>>,
         grid_collection<cylinder3_map_t<container_t>>>;
 
@@ -281,7 +288,8 @@ container_t>>*/>;
     /// Volume search grid
     template <typename container_t = host_container_types>
     using volume_finder =
-        grid<axes<cylinder3D, axis::bounds::e_open, axis::irregular,
+        grid<algebra_type,
+             axes<cylinder3D, axis::bounds::e_open, axis::irregular,
                   axis::regular, axis::irregular>,
              bins::single<dindex>, simple_serializer, container_t>;
 };

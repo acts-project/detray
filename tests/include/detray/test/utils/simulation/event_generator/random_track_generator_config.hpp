@@ -26,6 +26,7 @@
 namespace detray {
 
 /// Configuration for the random track generator
+template <typename scalar_t>
 struct random_track_generator_config {
 
     using seed_t = std::uint64_t;
@@ -34,32 +35,32 @@ struct random_track_generator_config {
     bool m_do_vtx_smearing = false;
 
     /// Monte-Carlo seed
-    seed_t m_seed{detail::random_numbers<>::default_seed()};
+    seed_t m_seed{detail::random_numbers<scalar_t>::default_seed()};
 
     /// How many tracks will be generated
     std::size_t m_n_tracks{10u};
 
     /// Range for phi [-pi, pi) and theta [0, pi)
-    std::array<scalar, 2> m_phi_range{-constant<scalar>::pi,
-                                      constant<scalar>::pi};
-    std::array<scalar, 2> m_theta_range{0.f, constant<scalar>::pi};
+    std::array<scalar_t, 2> m_phi_range{-constant<scalar_t>::pi,
+                                        constant<scalar_t>::pi};
+    std::array<scalar_t, 2> m_theta_range{0.f, constant<scalar_t>::pi};
 
     /// Momentum range
-    std::array<scalar, 2> m_mom_range{1.f * unit<scalar>::GeV,
-                                      1.f * unit<scalar>::GeV};
+    std::array<scalar_t, 2> m_mom_range{1.f * unit<scalar_t>::GeV,
+                                        1.f * unit<scalar_t>::GeV};
     /// Whether to interpret the momentum @c m_mom_range as p_T
     bool m_is_pT{false};
 
     /// Track origin
-    std::array<scalar, 3> m_origin{0.f, 0.f, 0.f};
-    std::array<scalar, 3> m_origin_stddev{0.f, 0.f, 0.f};
+    std::array<scalar_t, 3> m_origin{0.f, 0.f, 0.f};
+    std::array<scalar_t, 3> m_origin_stddev{0.f, 0.f, 0.f};
 
     /// Randomly flip the charge sign?
     bool m_randomize_charge{false};
 
     /// Time parameter and charge of the track
-    scalar m_time{0.f * unit<scalar>::us};
-    scalar m_charge{-1.f * unit<scalar>::e};
+    scalar_t m_time{0.f * unit<scalar_t>::us};
+    scalar_t m_charge{-1.f * unit<scalar_t>::e};
 
     /// Setters
     /// @{
@@ -78,103 +79,104 @@ struct random_track_generator_config {
         return *this;
     }
     DETRAY_HOST_DEVICE random_track_generator_config& phi_range(
-        const scalar low, const scalar high) {
+        const scalar_t low, const scalar_t high) {
         auto min_phi{
-            std::clamp(low, -constant<scalar>::pi, constant<scalar>::pi)};
+            std::clamp(low, -constant<scalar_t>::pi, constant<scalar_t>::pi)};
         auto max_phi{
-            std::clamp(high, -constant<scalar>::pi, constant<scalar>::pi)};
+            std::clamp(high, -constant<scalar_t>::pi, constant<scalar_t>::pi)};
 
         assert(min_phi <= max_phi);
 
         m_phi_range = {min_phi, max_phi};
         return *this;
     }
-    template <typename scalar_t>
+    template <typename o_scalar_t>
     DETRAY_HOST_DEVICE random_track_generator_config& phi_range(
-        std::array<scalar_t, 2> r) {
-        phi_range(static_cast<scalar>(r[0]), static_cast<scalar>(r[1]));
+        std::array<o_scalar_t, 2> r) {
+        phi_range(static_cast<o_scalar_t>(r[0]), static_cast<o_scalar_t>(r[1]));
         return *this;
     }
-    DETRAY_HOST_DEVICE random_track_generator_config& theta_range(scalar low,
-                                                                  scalar high) {
-        auto min_theta{std::clamp(low, scalar{0.f}, constant<scalar>::pi)};
-        auto max_theta{std::clamp(high, scalar{0.f}, constant<scalar>::pi)};
+    DETRAY_HOST_DEVICE random_track_generator_config& theta_range(
+        scalar_t low, scalar_t high) {
+        auto min_theta{std::clamp(low, scalar_t{0.f}, constant<scalar_t>::pi)};
+        auto max_theta{std::clamp(high, scalar_t{0.f}, constant<scalar_t>::pi)};
 
         assert(min_theta <= max_theta);
 
         m_theta_range = {min_theta, max_theta};
         return *this;
     }
-    template <typename scalar_t>
+    template <typename o_scalar_t>
     DETRAY_HOST_DEVICE random_track_generator_config& theta_range(
-        std::array<scalar_t, 2> r) {
-        theta_range(static_cast<scalar>(r[0]), static_cast<scalar>(r[1]));
+        std::array<o_scalar_t, 2> r) {
+        theta_range(static_cast<o_scalar_t>(r[0]),
+                    static_cast<o_scalar_t>(r[1]));
         return *this;
     }
-    DETRAY_HOST_DEVICE random_track_generator_config& eta_range(scalar low,
-                                                                scalar high) {
+    DETRAY_HOST_DEVICE random_track_generator_config& eta_range(scalar_t low,
+                                                                scalar_t high) {
         // This value is more or less random
-        constexpr auto num_max{0.001f * std::numeric_limits<scalar>::max()};
+        constexpr auto num_max{0.001f * std::numeric_limits<scalar_t>::max()};
         auto min_eta{low > -num_max ? low : -num_max};
         auto max_eta{high < num_max ? high : num_max};
 
         assert(min_eta <= max_eta);
 
-        auto get_theta = [](const scalar eta) {
+        auto get_theta = [](const scalar_t eta) {
             return 2.f * math::atan(math::exp(-eta));
         };
 
         theta_range(get_theta(max_eta), get_theta(min_eta));
         return *this;
     }
-    template <typename scalar_t>
+    template <typename o_scalar_t>
     DETRAY_HOST_DEVICE random_track_generator_config& eta_range(
-        std::array<scalar_t, 2> r) {
-        eta_range(static_cast<scalar>(r[0]), static_cast<scalar>(r[1]));
+        std::array<o_scalar_t, 2> r) {
+        eta_range(static_cast<o_scalar_t>(r[0]), static_cast<o_scalar_t>(r[1]));
         return *this;
     }
-    DETRAY_HOST_DEVICE random_track_generator_config& mom_range(scalar low,
-                                                                scalar high) {
+    DETRAY_HOST_DEVICE random_track_generator_config& mom_range(scalar_t low,
+                                                                scalar_t high) {
         m_is_pT = false;
         assert(low >= 0.f);
         assert(low <= high);
         m_mom_range = {low, high};
         return *this;
     }
-    template <typename scalar_t>
+    template <typename o_scalar_t>
     DETRAY_HOST_DEVICE random_track_generator_config& mom_range(
-        std::array<scalar_t, 2> r) {
-        mom_range(static_cast<scalar>(r[0]), static_cast<scalar>(r[1]));
+        std::array<o_scalar_t, 2> r) {
+        mom_range(static_cast<o_scalar_t>(r[0]), static_cast<o_scalar_t>(r[1]));
         return *this;
     }
-    DETRAY_HOST_DEVICE random_track_generator_config& pT_range(scalar low,
-                                                               scalar high) {
+    DETRAY_HOST_DEVICE random_track_generator_config& pT_range(scalar_t low,
+                                                               scalar_t high) {
         m_is_pT = true;
         assert(low >= 0.f);
         assert(low <= high);
         m_mom_range = {low, high};
         return *this;
     }
-    template <typename scalar_t>
+    template <typename o_scalar_t>
     DETRAY_HOST_DEVICE random_track_generator_config& pT_range(
-        std::array<scalar_t, 2> r) {
-        pT_range(static_cast<scalar>(r[0]), static_cast<scalar>(r[1]));
+        std::array<o_scalar_t, 2> r) {
+        pT_range(static_cast<o_scalar_t>(r[0]), static_cast<o_scalar_t>(r[1]));
         return *this;
     }
-    DETRAY_HOST_DEVICE random_track_generator_config& p_tot(scalar p) {
+    DETRAY_HOST_DEVICE random_track_generator_config& p_tot(scalar_t p) {
         mom_range(p, p);
         return *this;
     }
-    DETRAY_HOST_DEVICE random_track_generator_config& p_T(scalar p) {
+    DETRAY_HOST_DEVICE random_track_generator_config& p_T(scalar_t p) {
         pT_range(p, p);
         return *this;
     }
-    template <typename point3_t = std::array<scalar, 3>>
+    template <typename point3_t = std::array<scalar_t, 3>>
     DETRAY_HOST_DEVICE random_track_generator_config& origin(point3_t ori) {
         m_origin = {ori[0], ori[1], ori[2]};
         return *this;
     }
-    template <typename point3_t = std::array<scalar, 3>>
+    template <typename point3_t = std::array<scalar_t, 3>>
     DETRAY_HOST_DEVICE random_track_generator_config& origin_stddev(
         point3_t stddev) {
         m_do_vtx_smearing = true;
@@ -186,12 +188,12 @@ struct random_track_generator_config {
         m_randomize_charge = rc;
         return *this;
     }
-    DETRAY_HOST_DEVICE random_track_generator_config& time(scalar t) {
+    DETRAY_HOST_DEVICE random_track_generator_config& time(scalar_t t) {
         assert(t >= 0.f);
         m_time = t;
         return *this;
     }
-    DETRAY_HOST_DEVICE random_track_generator_config& charge(scalar q) {
+    DETRAY_HOST_DEVICE random_track_generator_config& charge(scalar_t q) {
         m_charge = q;
         return *this;
     }
@@ -206,15 +208,15 @@ struct random_track_generator_config {
     DETRAY_HOST_DEVICE constexpr std::size_t n_tracks() const {
         return m_n_tracks;
     }
-    DETRAY_HOST_DEVICE constexpr const std::array<scalar, 2>& phi_range()
+    DETRAY_HOST_DEVICE constexpr const std::array<scalar_t, 2>& phi_range()
         const {
         return m_phi_range;
     }
-    DETRAY_HOST_DEVICE constexpr const std::array<scalar, 2>& theta_range()
+    DETRAY_HOST_DEVICE constexpr const std::array<scalar_t, 2>& theta_range()
         const {
         return m_theta_range;
     }
-    DETRAY_HOST_DEVICE constexpr const std::array<scalar, 2>& mom_range()
+    DETRAY_HOST_DEVICE constexpr const std::array<scalar_t, 2>& mom_range()
         const {
         return m_mom_range;
     }
@@ -226,8 +228,8 @@ struct random_track_generator_config {
     DETRAY_HOST_DEVICE constexpr bool randomize_charge() const {
         return m_randomize_charge;
     }
-    DETRAY_HOST_DEVICE constexpr scalar time() const { return m_time; }
-    DETRAY_HOST_DEVICE constexpr scalar charge() const { return m_charge; }
+    DETRAY_HOST_DEVICE constexpr scalar_t time() const { return m_time; }
+    DETRAY_HOST_DEVICE constexpr scalar_t charge() const { return m_charge; }
     /// @}
 
     /// Print the random track generator configuration
@@ -244,7 +246,7 @@ struct random_track_generator_config {
             << "----------------------------\n"
             << "  No. tracks            : " << cfg.n_tracks() << "\n"
             << "  Charge                : "
-            << cfg.charge() / detray::unit<scalar>::e << " [e]\n"
+            << cfg.charge() / detray::unit<scalar_t>::e << " [e]\n"
             << "  Rand. charge          : " << std::boolalpha
             << cfg.randomize_charge() << std::noboolalpha << "\n";
 
@@ -254,18 +256,18 @@ struct random_track_generator_config {
         } else {
             out << "  Momentum              : [";
         }
-        out << mom_range[0] / detray::unit<scalar>::GeV << ", "
-            << mom_range[1] / detray::unit<scalar>::GeV << ") [GeV]\n"
+        out << mom_range[0] / detray::unit<scalar_t>::GeV << ", "
+            << mom_range[1] / detray::unit<scalar_t>::GeV << ") [GeV]\n"
             << "  Phi range             : ["
-            << phi_range[0] / detray::unit<scalar>::rad << ", "
-            << phi_range[1] / detray::unit<scalar>::rad << ") [rad]\n"
+            << phi_range[0] / detray::unit<scalar_t>::rad << ", "
+            << phi_range[1] / detray::unit<scalar_t>::rad << ") [rad]\n"
             << "  Theta range           : ["
-            << theta_range[0] / detray::unit<scalar>::rad << ", "
-            << theta_range[1] / detray::unit<scalar>::rad << ") [rad]\n"
+            << theta_range[0] / detray::unit<scalar_t>::rad << ", "
+            << theta_range[1] / detray::unit<scalar_t>::rad << ") [rad]\n"
             << "  Origin                : ["
-            << ori[0] / detray::unit<scalar>::mm << ", "
-            << ori[1] / detray::unit<scalar>::mm << ", "
-            << ori[2] / detray::unit<scalar>::mm << "] [mm]\n"
+            << ori[0] / detray::unit<scalar_t>::mm << ", "
+            << ori[1] / detray::unit<scalar_t>::mm << ", "
+            << ori[2] / detray::unit<scalar_t>::mm << "] [mm]\n"
             << "  Do vertex smearing    : " << std::boolalpha
             << cfg.do_vertex_smearing() << "\n"
             << std::noboolalpha;
@@ -273,9 +275,9 @@ struct random_track_generator_config {
         if (cfg.do_vertex_smearing()) {
             const auto& ori_stddev = cfg.origin_stddev();
             out << "  Origin stddev         : ["
-                << ori_stddev[0] / detray::unit<scalar>::mm << ", "
-                << ori_stddev[1] / detray::unit<scalar>::mm << ", "
-                << ori_stddev[2] / detray::unit<scalar>::mm << "] [mm]\n";
+                << ori_stddev[0] / detray::unit<scalar_t>::mm << ", "
+                << ori_stddev[1] / detray::unit<scalar_t>::mm << ", "
+                << ori_stddev[2] / detray::unit<scalar_t>::mm << "] [mm]\n";
         }
 
         return out;

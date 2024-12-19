@@ -27,14 +27,16 @@
 using namespace detray;
 
 // Three-dimensional definitions
-using algebra_t = test::algebra;
+using test_algebra = test::algebra;
 using transform3 = test::transform3;
 using cartesian = cartesian2D<transform3>;
 using vector3 = test::vector3;
 using point3 = test::point3;
 using point2 = test::point2;
-using intersection_t = intersection2D<surface_descriptor<>, algebra_t, true>;
-using line_intersector_type = ray_intersector<line_circular, algebra_t, true>;
+using scalar = test::scalar;
+using intersection_t = intersection2D<surface_descriptor<>, test_algebra, true>;
+using line_intersector_type =
+    ray_intersector<line_circular, test_algebra, true>;
 
 constexpr scalar tol{1e-5f};
 
@@ -44,7 +46,7 @@ GTEST_TEST(detray_intersection, line_intersector_case1) {
     const transform3 tf{};
 
     // Create a track
-    std::vector<free_track_parameters<algebra_t>> trks;
+    std::vector<free_track_parameters<test_algebra>> trks;
     trks.emplace_back(point3{1.f, -1.f, 0.f}, 0.f, vector3{0.f, 1.f, 0.f},
                       -1.f);
     trks.emplace_back(point3{-1.f, -1.f, 0.f}, 0.f, vector3{0.f, 1.f, 0.f},
@@ -53,8 +55,8 @@ GTEST_TEST(detray_intersection, line_intersector_case1) {
                       -1.f);
 
     // Infinite wire with 10 mm radial cell size
-    const mask<line_circular> ln{0u, 10.f,
-                                 std::numeric_limits<scalar>::infinity()};
+    const mask<line_circular, test_algebra> ln{
+        0u, 10.f, std::numeric_limits<scalar>::infinity()};
 
     // Test intersect
     std::vector<intersection_t> is(3u);
@@ -104,16 +106,16 @@ GTEST_TEST(detray_intersection, line_intersector_case2) {
     // Create a track
     const point3 pos{1.f, -1.f, 0.f};
     const vector3 dir{0.f, 1.f, 0.f};
-    const free_track_parameters<algebra_t> trk(pos, 0.f, dir, -1.f);
+    const free_track_parameters<test_algebra> trk(pos, 0.f, dir, -1.f);
 
     // Infinite wire with 10 mm
     // radial cell size
-    const mask<line_circular> ln{0u, 10.f,
-                                 std::numeric_limits<scalar>::infinity()};
+    const mask<line_circular, test_algebra> ln{
+        0u, 10.f, std::numeric_limits<scalar>::infinity()};
 
     // Test intersect
     const intersection_t is = line_intersector_type()(
-        detail::ray<algebra_t>(trk), surface_descriptor<>{}, ln, tf, tol);
+        detail::ray<test_algebra>(trk), surface_descriptor<>{}, ln, tf, tol);
 
     EXPECT_TRUE(is.status);
     EXPECT_NEAR(is.path, 2.f, tol);
@@ -131,7 +133,7 @@ GTEST_TEST(detray_intersection, line_intersector_square_scope) {
     const transform3 tf{};
 
     /// Create a track
-    std::vector<free_track_parameters<algebra_t>> trks;
+    std::vector<free_track_parameters<test_algebra>> trks;
     trks.emplace_back(point3{2.f, 0.f, 0.f}, 0.f, vector3{-1.f, 1.f, 0.f},
                       -1.f);
     trks.emplace_back(point3{1.9f, 0.f, 0.f}, 0.f, vector3{-1.f, 1.f, 0.f},
@@ -161,14 +163,15 @@ GTEST_TEST(detray_intersection, line_intersector_square_scope) {
                       -1.f);
 
     // Infinite wire with 1 mm square cell size
-    mask<line_square, std::uint_least16_t, algebra_t> ln{
+    mask<line_square, test_algebra, std::uint_least16_t> ln{
         0u, 1.f, std::numeric_limits<scalar>::infinity()};
 
     // Test intersect
     std::vector<intersection_t> is;
     for (const auto& trk : trks) {
-        is.push_back(line_intersector_type()(
-            detail::ray<algebra_t>(trk), surface_descriptor<>{}, ln, tf, tol));
+        is.push_back(line_intersector_type()(detail::ray<test_algebra>(trk),
+                                             surface_descriptor<>{}, ln, tf,
+                                             tol));
     }
 
     EXPECT_TRUE(is[0].status);

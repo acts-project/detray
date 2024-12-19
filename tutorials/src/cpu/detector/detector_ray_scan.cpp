@@ -34,12 +34,15 @@ constexpr std::size_t root_hash = 11359580520962287982ul;
 /// 'tests/common/tools/ray_detector_scan_utils.hpp'.
 int main() {
 
+    using algebra_t = detray::tutorial::algebra_t;
+    using scalar = detray::tutorial::scalar;
+
     // Can also be performed with helices
-    using ray_t = detray::detail::ray<detray::tutorial::algebra_t>;
+    using ray_t = detray::detail::ray<algebra_t>;
 
     // Build the geometry
     vecmem::host_memory_resource host_mr;
-    const auto [det, names] = detray::build_toy_detector(host_mr);
+    const auto [det, names] = detray::build_toy_detector<algebra_t>(host_mr);
 
     // The current geometry context
     using detector_t = decltype(det);
@@ -62,11 +65,11 @@ int main() {
     std::size_t n_rays{0u};
 
     // Generate a number of random rays
-    using generator_t = detray::detail::random_numbers<
-        detray::scalar, std::uniform_real_distribution<detray::scalar>>;
+    using generator_t =
+        detray::detail::random_numbers<scalar,
+                                       std::uniform_real_distribution<scalar>>;
     auto ray_generator = detray::random_track_generator<ray_t, generator_t>{};
-    ray_generator.config().n_tracks(10000).p_T(
-        1.f * detray::unit<detray::scalar>::GeV);
+    ray_generator.config().n_tracks(10000).p_T(1.f * detray::unit<scalar>::GeV);
 
     // Run the check
     std::cout << "\nScanning " << det.name(names) << " ("

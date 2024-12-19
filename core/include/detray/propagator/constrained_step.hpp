@@ -45,19 +45,20 @@ enum constraint : std::size_t {
 }  // namespace step
 
 /// Struct that represents unconstrained stepping
+template <typename scalar_t>
 struct unconstrained_step {
 
     /// Register a new @param step_size constraint
     template <step::constraint type>
-    DETRAY_HOST_DEVICE constexpr void set(const scalar /*step_size*/) const {
+    DETRAY_HOST_DEVICE constexpr void set(const scalar_t /*step_size*/) const {
         /*Do nothing*/
     }
 
     /// @returns the current step size constraint
     template <step::constraint type = step::constraint::e_all>
-    DETRAY_HOST_DEVICE constexpr scalar size(
+    DETRAY_HOST_DEVICE constexpr scalar_t size(
         const step::direction /*dir*/ = step::direction::e_forward) const {
-        return std::numeric_limits<scalar>::max();
+        return std::numeric_limits<scalar_t>::max();
     }
 
     /// Remove constraints
@@ -69,25 +70,25 @@ struct unconstrained_step {
 
 /// Struct that can be configured with a number of different step sizes by other
 /// actors and will then resolve the strictest one.
-template <template <typename, std::size_t> class array_t = darray>
+template <typename scalar_t>
 struct constrained_step {
 
     /// Register a new @param step_size constraint
     template <step::constraint type>
     requires(type != step::constraint::e_all) DETRAY_HOST_DEVICE
-        void set(const scalar step_size) {
+        void set(const scalar_t step_size) {
         _constraints[type] =
             math::min(_constraints[type], math::fabs(step_size));
     }
 
     /// @returns the current step size constraint for a given type or overall
     template <step::constraint type = step::constraint::e_all>
-    DETRAY_HOST_DEVICE scalar
+    DETRAY_HOST_DEVICE scalar_t
     size(const step::direction dir = step::direction::e_forward) const {
         if constexpr (type == step::constraint::e_all) {
-            return static_cast<scalar>(dir) * min();
+            return static_cast<scalar_t>(dir) * min();
         } else {
-            return static_cast<scalar>(dir) * _constraints[type];
+            return static_cast<scalar_t>(dir) * _constraints[type];
         }
     }
 
@@ -95,18 +96,18 @@ struct constrained_step {
     template <step::constraint type = step::constraint::e_actor>
     DETRAY_HOST_DEVICE void release() {
         if constexpr (type == step::constraint::e_all) {
-            _constraints = {std::numeric_limits<scalar>::max(),
-                            std::numeric_limits<scalar>::max(),
-                            std::numeric_limits<scalar>::max(),
-                            std::numeric_limits<scalar>::max()};
+            _constraints = {std::numeric_limits<scalar_t>::max(),
+                            std::numeric_limits<scalar_t>::max(),
+                            std::numeric_limits<scalar_t>::max(),
+                            std::numeric_limits<scalar_t>::max()};
         } else {
-            _constraints[type] = std::numeric_limits<scalar>::max();
+            _constraints[type] = std::numeric_limits<scalar_t>::max();
         }
     }
 
     /// @returns the strongest constraint
-    DETRAY_HOST_DEVICE scalar min() const {
-        scalar min_constr = std::numeric_limits<scalar>::max();
+    DETRAY_HOST_DEVICE scalar_t min() const {
+        scalar_t min_constr = std::numeric_limits<scalar_t>::max();
         min_constr =
             math::min(min_constr, _constraints[step::constraint::e_accuracy]);
         min_constr =
@@ -117,9 +118,10 @@ struct constrained_step {
     }
 
     /// Current step size constraints from accuracy, actors, aborters or user
-    array_t<scalar, 4> _constraints = {
-        std::numeric_limits<scalar>::max(), std::numeric_limits<scalar>::max(),
-        std::numeric_limits<scalar>::max(), std::numeric_limits<scalar>::max()};
+    darray<scalar_t, 4> _constraints = {std::numeric_limits<scalar_t>::max(),
+                                        std::numeric_limits<scalar_t>::max(),
+                                        std::numeric_limits<scalar_t>::max(),
+                                        std::numeric_limits<scalar_t>::max()};
 };
 
 }  // namespace detray

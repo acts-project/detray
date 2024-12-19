@@ -19,6 +19,8 @@
 
 using namespace detray;
 
+using scalar = test::scalar;
+
 // This tests the convenience quadratic equation class
 GTEST_TEST(detray_utils, quadratic_equation) {
 

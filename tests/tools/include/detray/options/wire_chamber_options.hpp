@@ -25,9 +25,10 @@ namespace detray::options {
 namespace detail {
 
 /// Add options that are independent of the wire surface shape
-template <typename wire_shape_t>
-void add_wire_chamber_options(boost::program_options::options_description &desc,
-                              const wire_chamber_config<wire_shape_t> &cfg) {
+template <typename scalar_t, typename wire_shape_t>
+void add_wire_chamber_options(
+    boost::program_options::options_description &desc,
+    const wire_chamber_config<scalar_t, wire_shape_t> &cfg) {
 
     desc.add_options()(
         "layers",
@@ -53,9 +54,10 @@ void add_wire_chamber_options(boost::program_options::options_description &desc,
 }
 
 /// Configure options that are independent of the wire surface shape
-template <typename wire_shape_t>
-void configure_wire_chamber_options(boost::program_options::variables_map &vm,
-                                    wire_chamber_config<wire_shape_t> &cfg) {
+template <typename scalar_t, typename wire_shape_t>
+void configure_wire_chamber_options(
+    const boost::program_options::variables_map &vm,
+    wire_chamber_config<scalar_t, wire_shape_t> &cfg) {
 
     cfg.n_layers(vm["layers"].as<unsigned int>());
     cfg.half_z(vm["half_z"].as<float>());
@@ -67,35 +69,67 @@ void configure_wire_chamber_options(boost::program_options::variables_map &vm,
 }  // namespace detail
 
 /// Add options for the wire chamber with wire cells
+/// @{
 template <>
-void add_options<wire_chamber_config<detray::line_square>>(
+void add_options<wire_chamber_config<float, detray::line_square>>(
     boost::program_options::options_description &desc,
-    const wire_chamber_config<detray::line_square> &cfg) {
+    const wire_chamber_config<float, detray::line_square> &cfg) {
     detail::add_wire_chamber_options(desc, cfg);
 }
+template <>
+void add_options<wire_chamber_config<double, detray::line_square>>(
+    boost::program_options::options_description &desc,
+    const wire_chamber_config<double, detray::line_square> &cfg) {
+    detail::add_wire_chamber_options(desc, cfg);
+}
+/// @}
 
 /// Add options for the wire chamber with straw tubes
+/// @{
 template <>
-void add_options<wire_chamber_config<detray::line_circular>>(
+void add_options<wire_chamber_config<float, detray::line_circular>>(
     boost::program_options::options_description &desc,
-    const wire_chamber_config<detray::line_circular> &cfg) {
+    const wire_chamber_config<float, detray::line_circular> &cfg) {
     detail::add_wire_chamber_options(desc, cfg);
 }
+template <>
+void add_options<wire_chamber_config<double, detray::line_circular>>(
+    boost::program_options::options_description &desc,
+    const wire_chamber_config<double, detray::line_circular> &cfg) {
+    detail::add_wire_chamber_options(desc, cfg);
+}
+/// @}
 
 /// Configure the detray wire chamber with wire cells
+/// @{
 template <>
-void configure_options<wire_chamber_config<detray::line_square>>(
-    boost::program_options::variables_map &vm,
-    wire_chamber_config<detray::line_square> &cfg) {
+void configure_options<wire_chamber_config<float, detray::line_square>>(
+    const boost::program_options::variables_map &vm,
+    wire_chamber_config<float, detray::line_square> &cfg) {
     detail::configure_wire_chamber_options(vm, cfg);
 }
+template <>
+void configure_options<wire_chamber_config<double, detray::line_square>>(
+    const boost::program_options::variables_map &vm,
+    wire_chamber_config<double, detray::line_square> &cfg) {
+    detail::configure_wire_chamber_options(vm, cfg);
+}
+/// @}
 
 /// Configure the detray wire chamber with straw tubes
+/// @{
 template <>
-void configure_options<wire_chamber_config<detray::line_circular>>(
-    boost::program_options::variables_map &vm,
-    wire_chamber_config<detray::line_circular> &cfg) {
+void configure_options<wire_chamber_config<float, detray::line_circular>>(
+    const boost::program_options::variables_map &vm,
+    wire_chamber_config<float, detray::line_circular> &cfg) {
     detail::configure_wire_chamber_options(vm, cfg);
 }
+template <>
+void configure_options<wire_chamber_config<double, detray::line_circular>>(
+    const boost::program_options::variables_map &vm,
+    wire_chamber_config<double, detray::line_circular> &cfg) {
+    detail::configure_wire_chamber_options(vm, cfg);
+}
+/// @}
 
 }  // namespace detray::options

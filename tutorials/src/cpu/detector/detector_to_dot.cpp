@@ -7,7 +7,6 @@
 
 // Project include(s)
 #include "detray/core/detector.hpp"
-#include "detray/detectors/toy_metadata.hpp"
 #include "detray/io/frontend/detector_reader.hpp"
 #include "detray/navigation/volume_graph.hpp"
 
@@ -35,7 +34,8 @@ int main(int argc, char** argv) {
     }
 
     // Read a toy detector
-    using detector_t = detray::detector<detray::toy_metadata>;
+    using metadata_t = detray::tutorial::toy_metadata;
+    using detector_t = detray::detector<metadata_t>;
 
     // Create an empty detector to be filled
     vecmem::host_memory_resource host_mr;

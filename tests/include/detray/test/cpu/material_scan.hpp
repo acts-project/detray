@@ -35,8 +35,8 @@ template <typename detector_t>
 class material_scan : public test::fixture_base<> {
 
     using algebra_t = typename detector_t::algebra_type;
-    using point2_t = typename detector_t::point2_type;
-    using scalar_t = typename detector_t::scalar_type;
+    using point2_t = dpoint2D<algebra_t>;
+    using scalar_t = dscalar<algebra_t>;
     using ray_t = detail::ray<algebra_t>;
     using track_generator_t = uniform_track_generator<ray_t>;
 

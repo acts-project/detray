@@ -29,7 +29,7 @@ TEST(detector_cuda, detector) {
     vecmem::cuda::managed_memory_resource mng_mr;
 
     // create toy geometry
-    auto [toy_det, names] = build_toy_detector(mng_mr);
+    auto [toy_det, names] = build_toy_detector<test::algebra>(mng_mr);
 
     auto ctx0 = typename detector_host_t::geometry_context();
 

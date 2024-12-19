@@ -38,52 +38,59 @@ namespace detray {
 namespace {
 
 /// Configure the toy detector
-template <typename mask_shape_t = rectangle2D,
-          typename trajectory_t = detail::ray<ALGEBRA_PLUGIN<detray::scalar>>>
+template <typename algebra_t, typename mask_shape_t = rectangle2D,
+          template <typename> class trajectory_t = detail::ray>
 struct tel_det_config {
 
+    using scalar_t = dscalar<algebra_t>;
+
     /// Construct from existing mask
-    tel_det_config(const mask<mask_shape_t> &m, const trajectory_t &t = {})
+    tel_det_config(const mask<mask_shape_t, algebra_t> &m,
+                   const trajectory_t<algebra_t> &t = {})
         : m_mask(m), m_trajectory(t) {
         // Configure the material generation
-        m_material_config.sensitive_material(silicon_tml<scalar>())
-            .passive_material(vacuum<scalar>())
-            .portal_material(vacuum<scalar>())
-            .thickness(80.f * unit<scalar>::um);
+        m_material_config.sensitive_material(silicon_tml<scalar_t>())
+            .passive_material(vacuum<scalar_t>())
+            .portal_material(vacuum<scalar_t>())
+            .thickness(80.f * unit<scalar_t>::um);
     }
 
     /// Construct from from mask parameter vector
-    tel_det_config(std::vector<scalar> params, const trajectory_t &t = {})
-        : tel_det_config(mask<mask_shape_t>{std::move(params), 0u}, t) {}
+    tel_det_config(std::vector<scalar_t> params,
+                   const trajectory_t<algebra_t> &t = {})
+        : tel_det_config(mask<mask_shape_t, algebra_t>{std::move(params), 0u},
+                         t) {}
 
     /// Construct from mask parameters (except volume link, which is not needed)
     template <typename... Args>
-    requires(std::is_same_v<Args, scalar> &&...) explicit tel_det_config(
+    requires(std::is_same_v<Args, scalar_t> &&...) explicit tel_det_config(
         Args &&... args)
-        : tel_det_config(mask<mask_shape_t>{0u, std::forward<Args>(args)...}) {}
+        : tel_det_config(
+              mask<mask_shape_t, algebra_t>{0u, std::forward<Args>(args)...}) {}
 
     /// Mask of the test surfaces
-    mask<mask_shape_t> m_mask;
+    mask<mask_shape_t, algebra_t> m_mask;
     /// No. of test surfaces in the telescope
     unsigned int m_n_surfaces{10u};
     /// Length of the telescope
-    scalar m_length{500.f * unit<scalar>::mm};
+    scalar_t m_length{500.f * unit<scalar_t>::mm};
     /// Concrete positions where to place the surfaces along the pilot track
-    std::vector<scalar> m_positions{};
+    std::vector<scalar_t> m_positions{};
     /// Configuration for the homogeneous material generator
-    hom_material_config<scalar> m_material_config{};
+    hom_material_config<scalar_t> m_material_config{};
     /// Material for volume
-    material<scalar> m_volume_material = vacuum<scalar>();
+    material<scalar_t> m_volume_material = vacuum<scalar_t>();
     /// Pilot track along which to place the surfaces
-    trajectory_t m_trajectory{};
+    trajectory_t<algebra_t> m_trajectory{};
     /// Safety envelope between the test surfaces and the portals
-    scalar m_envelope{0.1f * unit<scalar>::mm};
+    scalar_t m_envelope{0.1f * unit<scalar_t>::mm};
     /// Run detector consistency check after reading
     bool m_do_check{true};
 
     /// Setters
     /// @{
-    constexpr tel_det_config &module_mask(const mask<mask_shape_t> &m) {
+    constexpr tel_det_config &module_mask(
+        const mask<mask_shape_t, algebra_t> &m) {
         m_mask = m;
         return *this;
     }
@@ -91,36 +98,36 @@ struct tel_det_config {
         m_n_surfaces = n;
         return *this;
     }
-    constexpr tel_det_config &length(const scalar l) {
+    constexpr tel_det_config &length(const scalar_t l) {
         assert((l > 0.f) &&
                "Telescope detector length must be greater than zero");
         m_length = l;
         return *this;
     }
-    constexpr tel_det_config &positions(const std::vector<scalar> &dists) {
+    constexpr tel_det_config &positions(const std::vector<scalar_t> &dists) {
         m_positions.clear();
         std::ranges::copy_if(dists, std::back_inserter(m_positions),
-                             [](scalar d) { return (d >= 0.f); });
+                             [](scalar_t d) { return (d >= 0.f); });
         return *this;
     }
-    constexpr tel_det_config &module_material(const material<scalar> &mat) {
+    constexpr tel_det_config &module_material(const material<scalar_t> &mat) {
         m_material_config.sensitive_material(mat);
         return *this;
     }
-    constexpr tel_det_config &volume_material(const material<scalar> &mat) {
+    constexpr tel_det_config &volume_material(const material<scalar_t> &mat) {
         m_volume_material = mat;
         return *this;
     }
-    constexpr tel_det_config &mat_thickness(const scalar t) {
+    constexpr tel_det_config &mat_thickness(const scalar_t t) {
         assert(t >= 0.f && "Material thickness must be non-negative");
         m_material_config.thickness(t);
         return *this;
     }
-    constexpr tel_det_config &pilot_track(const trajectory_t &traj) {
+    constexpr tel_det_config &pilot_track(const trajectory_t<algebra_t> &traj) {
         m_trajectory = traj;
         return *this;
     }
-    constexpr tel_det_config &envelope(const scalar e) {
+    constexpr tel_det_config &envelope(const scalar_t e) {
         assert(e > 0.f && "Portal envelope must be greater than zero");
         m_envelope = e;
         return *this;
@@ -133,26 +140,35 @@ struct tel_det_config {
 
     /// Getters
     /// @{
-    constexpr const mask<mask_shape_t> &module_mask() const { return m_mask; }
+    constexpr const mask<mask_shape_t, algebra_t> &module_mask() const {
+        return m_mask;
+    }
     constexpr unsigned int n_surfaces() const { return m_n_surfaces; }
-    constexpr scalar length() const { return m_length; }
-    const std::vector<scalar> &positions() const { return m_positions; }
+    constexpr scalar_t length() const { return m_length; }
+    const std::vector<scalar_t> &positions() const { return m_positions; }
     constexpr const auto &material_config() const { return m_material_config; }
     constexpr auto &material_config() { return m_material_config; }
-    constexpr const material<scalar> &module_material() const {
+    constexpr const material<scalar_t> &module_material() const {
         return m_material_config.sensitive_material();
     }
-    constexpr const material<scalar> &volume_material() const {
+    constexpr const material<scalar_t> &volume_material() const {
         return m_volume_material;
     }
-    constexpr scalar mat_thickness() const {
+    constexpr scalar_t mat_thickness() const {
         return m_material_config.thickness();
     }
-    const trajectory_t &pilot_track() const { return m_trajectory; }
-    constexpr scalar envelope() const { return m_envelope; }
+    const trajectory_t<algebra_t> &pilot_track() const { return m_trajectory; }
+    constexpr scalar_t envelope() const { return m_envelope; }
     bool do_check() const { return m_do_check; }
     /// @}
 };
+
+/// Deduce the type of telescope config
+template <typename algebra_t, typename shape_t,
+          template <typename> class trajectory_t>
+DETRAY_HOST_DEVICE tel_det_config(const mask<shape_t, algebra_t> &,
+                                  const trajectory_t<algebra_t> &)
+    ->tel_det_config<algebra_t, shape_t, trajectory_t>;
 
 }  // namespace
 
@@ -168,16 +184,18 @@ struct tel_det_config {
 /// @param cfg configuration struct of the telescope detector
 ///
 /// @returns a complete detector object
-template <typename mask_shape_t = rectangle2D,
-          typename trajectory_t = detail::ray<ALGEBRA_PLUGIN<detray::scalar>>>
+template <typename algebra_t, typename mask_shape_t = rectangle2D,
+          template <typename> class trajectory_t = detail::ray>
 inline auto build_telescope_detector(
     vecmem::memory_resource &resource,
-    const tel_det_config<mask_shape_t, trajectory_t> &cfg =
-        tel_det_config<mask_shape_t, trajectory_t>{20.f * unit<scalar>::mm,
-                                                   20.f * unit<scalar>::mm}) {
+    const tel_det_config<algebra_t, mask_shape_t, trajectory_t> &cfg =
+        tel_det_config<algebra_t, mask_shape_t, trajectory_t>{
+            20.f * unit<dscalar<algebra_t>>::mm,
+            20.f * unit<dscalar<algebra_t>>::mm}) {
 
-    using builder_t =
-        detector_builder<telescope_metadata<mask_shape_t>, volume_builder>;
+    using scalar_t = dscalar<algebra_t>;
+    using metadata_t = telescope_metadata<algebra_t, mask_shape_t>;
+    using builder_t = detector_builder<metadata_t, volume_builder>;
     using detector_t = typename builder_t::detector_type;
 
     // Detector and volume names
@@ -194,7 +212,7 @@ inline auto build_telescope_detector(
 
     // Add module surfaces to volume
     using telescope_factory =
-        telescope_generator<detector_t, mask_shape_t, trajectory_t>;
+        telescope_generator<detector_t, mask_shape_t, trajectory_t<algebra_t>>;
     std::unique_ptr<surface_factory_interface<detector_t>> tel_generator;
 
     if (cfg.positions().empty()) {
@@ -212,7 +230,7 @@ inline auto build_telescope_detector(
     volume_builder_interface<detector_t> *vm_builder{v_builder};
     std::shared_ptr<surface_factory_interface<detector_t>> module_generator;
 
-    if (cfg.module_material() != detray::vacuum<scalar>{}) {
+    if (cfg.module_material() != detray::vacuum<scalar_t>{}) {
 
         // Decorate the builders with homogeneous material
         vm_builder =
@@ -247,7 +265,7 @@ inline auto build_telescope_detector(
         std::vector<dindex>{vm_builder->vol_index()});
 
     // If requested, add homogeneous volume material
-    if (cfg.volume_material() != detray::vacuum<scalar>{}) {
+    if (cfg.volume_material() != detray::vacuum<scalar_t>{}) {
         auto full_v_builder = det_builder.template decorate<
             homogeneous_volume_material_builder<detector_t>>(vm_builder);
 
