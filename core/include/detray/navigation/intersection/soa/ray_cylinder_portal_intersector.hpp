@@ -61,7 +61,7 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
     DETRAY_HOST_DEVICE inline intersection_type<surface_descr_t> operator()(
         const detail::ray<other_algebra_t> &ray, const surface_descr_t &sf,
         const mask_t &mask, const transform3_type &trf,
-        const std::array<scalar_type, 2u> &mask_tolerance = {0.f, 1.f},
+        const darray<scalar_type, 2u> &mask_tolerance = {0.f, 1.f},
         const scalar_type mask_tol_scalor = 0.f,
         const scalar_type overstep_tol = 0.f) const {
 
@@ -107,7 +107,7 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
         const detail::ray<other_algebra_t> &ray,
         intersection_type<surface_descr_t> &sfi, const mask_t &mask,
         const transform3_type &trf,
-        const std::array<scalar_type, 2u> &mask_tolerance = {0.f, 1.f},
+        const darray<scalar_type, 2u> &mask_tolerance = {0.f, 1.f},
         const scalar_type mask_tol_scalor = 0.f,
         const scalar_type overstep_tol = 0.f) const {
         sfi = this->operator()(ray, sfi.sf_desc, mask, trf, mask_tolerance,

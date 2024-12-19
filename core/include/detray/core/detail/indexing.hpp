@@ -45,7 +45,7 @@ template <typename index_t, std::size_t DIM>
 struct multi_index {
     using index_type = index_t;
 
-    std::array<index_t, DIM> indices{};
+    darray<index_t, DIM> indices{};
 
     /// @returns the number of conatined indices
     DETRAY_HOST_DEVICE

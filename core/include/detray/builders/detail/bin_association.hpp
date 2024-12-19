@@ -21,7 +21,6 @@
 #include "detray/utils/ranges.hpp"
 
 // System include(s)
-#include <array>
 #include <vector>
 
 namespace detray::detail {
@@ -44,7 +43,7 @@ static inline void bin_association(const context_t & /*context*/,
                                    const transform_container_t &transforms,
                                    const mask_container_t &surface_masks,
                                    grid_t &grid,
-                                   const std::array<scalar_t, 2> &bin_tolerance,
+                                   const darray<scalar_t, 2> &bin_tolerance,
                                    bool absolute_tolerance = true) {
 
     using algebra_t = typename grid_t::local_frame_type::algebra_type;

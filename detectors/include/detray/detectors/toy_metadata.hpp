@@ -64,7 +64,7 @@ struct toy_metadata {
     /// Surface grid types (regular, open binning)
     /// @{
 
-    // Surface grid definition: bin-content: std::array<sf_descriptor, 1>
+    // Surface grid definition: bin-content: darray<sf_descriptor, 1>
     template <typename axes_t, typename bin_entry_t, typename container_t>
     using surface_grid_t =
         grid<algebra_type, axes_t, bins::static_array<bin_entry_t, 1>,

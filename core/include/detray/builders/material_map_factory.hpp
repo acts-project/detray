@@ -144,8 +144,8 @@ class material_map_factory final : public factory_decorator<detector_t> {
     DETRAY_HOST auto operator()(
         typename detector_t::surface_lookup_container &surfaces,
         std::map<dindex, std::vector<bin_data_t>> &material_map,
-        std::map<dindex, std::array<std::size_t, N>> &n_bins,
-        std::map<dindex, std::array<std::vector<scalar_type>, N>> &axis_spans) {
+        std::map<dindex, darray<std::size_t, N>> &n_bins,
+        std::map<dindex, darray<std::vector<scalar_type>, N>> &axis_spans) {
 
         using link_t = typename detector_t::surface_type::material_link;
 
@@ -168,7 +168,7 @@ class material_map_factory final : public factory_decorator<detector_t> {
                                 n_bins.at(sf_idx).begin());
 
             // Copy the axis spans to the builder (if present)
-            axis_spans[sf_idx] = std::array<std::vector<scalar_type>, N>{};
+            axis_spans[sf_idx] = darray<std::vector<scalar_type>, N>{};
             for (std::size_t in = 0; in < N; ++in) {
                 if (m_axis_spans.at(sf_idx).size() > in) {
                     axis_spans.at(sf_idx).at(in) =

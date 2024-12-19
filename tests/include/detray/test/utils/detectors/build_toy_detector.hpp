@@ -231,10 +231,10 @@ struct toy_det_config {
     constexpr auto &cyl_material_map() { return m_cyl_map_cfg; }
     constexpr const auto &disc_material_map() const { return m_disc_map_cfg; }
     constexpr auto &disc_material_map() { return m_disc_map_cfg; }
-    constexpr const std::array<std::size_t, 2> &cyl_map_bins() const {
+    constexpr const darray<std::size_t, 2> &cyl_map_bins() const {
         return m_cyl_map_cfg.n_bins;
     }
-    constexpr const std::array<std::size_t, 2> &disc_map_bins() const {
+    constexpr const darray<std::size_t, 2> &disc_map_bins() const {
         return m_disc_map_cfg.n_bins;
     }
     constexpr scalar_t material_map_min_thickness() const {

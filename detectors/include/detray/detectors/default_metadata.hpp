@@ -107,7 +107,7 @@ struct default_metadata {
     /// bin boundaries, serializers)?
     /// @{
 
-    // surface grid definition: bin-content: std::array<surface_type, 9>
+    // surface grid definition: bin-content: darray<surface_type, 9>
     template <typename axes_t, typename bin_entry_t, typename container_t>
     using surface_grid_t =
         grid<algebra_type, axes_t, bins::dynamic_array<bin_entry_t>,

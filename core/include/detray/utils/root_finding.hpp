@@ -9,6 +9,7 @@
 
 // Project include(s).
 #include "detray/definitions/detail/algebra.hpp"
+#include "detray/definitions/detail/containers.hpp"
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
@@ -16,12 +17,10 @@
 
 // System include(s).
 #include <algorithm>
-#include <array>
 #include <iostream>
 #include <limits>
 #include <stdexcept>
 #include <string>
-#include <tuple>
 
 namespace detray {
 
@@ -39,7 +38,7 @@ namespace detray {
 template <concepts::scalar scalar_t, typename function_t>
 DETRAY_HOST_DEVICE inline bool expand_bracket(const scalar_t a,
                                               const scalar_t b, function_t &f,
-                                              std::array<scalar_t, 2> &bracket,
+                                              darray<scalar_t, 2> &bracket,
                                               const scalar_t k = 1.f) {
 
     if (a == b) {
@@ -113,7 +112,7 @@ DETRAY_HOST_DEVICE inline std::pair<scalar_t, scalar_t> newton_raphson_safe(
     // Initial bracket
     scalar_t a{math::fabs(s) == 0.f ? -0.1f : 0.9f * s};
     scalar_t b{math::fabs(s) == 0.f ? 0.1f : 1.1f * s};
-    std::array<scalar_t, 2> br{};
+    darray<scalar_t, 2> br{};
     bool is_bracketed = expand_bracket(a, b, f, br);
 
     // Update initial guess on the root after bracketing
@@ -270,7 +269,7 @@ template <concepts::scalar scalar_t, typename intersection_t,
 DETRAY_HOST_DEVICE inline void build_intersection(
     const trajectory_t &traj, intersection_t &sfi, const scalar_t s,
     const scalar_t ds, const surface_descr_t sf_desc, const mask_t &mask,
-    const transform3_t &trf, const std::array<scalar_t, 2> &mask_tolerance) {
+    const transform3_t &trf, const darray<scalar_t, 2> &mask_tolerance) {
 
     // Build intersection struct from test trajectory, if the distance is valid
     if (!detail::is_invalid_value(s)) {

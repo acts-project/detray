@@ -72,8 +72,7 @@ class square2D {
     /// @returns and array of coordinates that contains the lower point (first
     /// three values) and the upper point (latter three values) .
     template <concepts::algebra algebra_t>
-    DETRAY_HOST_DEVICE inline std::array<dscalar<algebra_t>, 6>
-    local_min_bounds(
+    DETRAY_HOST_DEVICE inline darray<dscalar<algebra_t>, 6> local_min_bounds(
         const bounds_type<dscalar<algebra_t>> &bounds,
         const dscalar<algebra_t> env =
             std::numeric_limits<dscalar<algebra_t>>::epsilon()) const {

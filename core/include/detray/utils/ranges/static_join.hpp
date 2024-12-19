@@ -44,7 +44,7 @@ template <std::size_t I, std::input_iterator range_itr_t>
 struct static_join_view
     : public detray::ranges::view_interface<static_join_view<I, range_itr_t>> {
 
-    using iterator_coll_t = std::array<range_itr_t, I>;
+    using iterator_coll_t = darray<range_itr_t, I>;
     using iterator_t =
         detray::ranges::detail::static_join_iterator<iterator_coll_t>;
     using value_t = typename std::iterator_traits<iterator_t>::value_type;

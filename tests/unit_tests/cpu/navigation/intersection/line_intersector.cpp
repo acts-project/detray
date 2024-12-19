@@ -21,7 +21,6 @@
 #include <gtest/gtest.h>
 
 // System include(s)
-#include <cmath>
 #include <limits>
 
 using namespace detray;

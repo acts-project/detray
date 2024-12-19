@@ -9,10 +9,8 @@
 
 // Project include(s).
 #include "detray/definitions/detail/algebra.hpp"
+#include "detray/definitions/detail/containers.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
-
-// System include(s)
-#include <array>
 
 namespace detray {
 
@@ -67,10 +65,10 @@ struct unit_vectors {
     ///
     /// with the additional condition that `U` is located in the global x-y
     /// plane.
-    DETRAY_HOST_DEVICE inline std::array<vector3_t, 2>
+    DETRAY_HOST_DEVICE inline darray<vector3_t, 2>
     make_curvilinear_unit_vectors(const vector3_t& dir) {
 
-        std::array<vector3_t, 2> uv;
+        darray<vector3_t, 2> uv;
         uv[0] = make_curvilinear_unit_u(dir);
         uv[1] = vector::normalize(vector::cross(dir, uv[0]));
 

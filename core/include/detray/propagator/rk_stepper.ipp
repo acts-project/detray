@@ -93,10 +93,10 @@ DETRAY_HOST_DEVICE inline void detray::rk_stepper<
     const auto I33 = matrix::identity<matrix_type<3, 3>>();
 
     // Initialize derivatives
-    std::array<matrix_type<3u, 3u>, 4u> dkndt{I33, I33, I33, I33};
-    std::array<vector3_type, 4u> dkndqop;
-    std::array<matrix_type<3u, 3u>, 4u> dkndr;
-    std::array<scalar_type, 4u> dqopn_dqop{1.f, 1.f, 1.f, 1.f};
+    darray<matrix_type<3u, 3u>, 4u> dkndt{I33, I33, I33, I33};
+    darray<vector3_type, 4u> dkndqop;
+    darray<matrix_type<3u, 3u>, 4u> dkndr;
+    darray<scalar_type, 4u> dqopn_dqop{1.f, 1.f, 1.f, 1.f};
 
     /*---------------------------------------------------------------------------
      *  dk_n/dt1

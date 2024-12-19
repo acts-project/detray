@@ -16,9 +16,6 @@
 // GTest include(s)
 #include <gtest/gtest.h>
 
-// System include(s)
-#include <cmath>
-
 using namespace detray;
 
 using scalar = test::scalar;

@@ -17,7 +17,6 @@
 #include "detray/materials/material_map.hpp"
 
 // System include(s)
-#include <array>
 #include <cassert>
 #include <map>
 #include <memory>
@@ -118,7 +117,7 @@ class material_map_builder final : public volume_decorator<detector_t> {
             }
 
             // Construct and append the material map for a given surface shape
-            std::array<std::vector<scalar_type>, DIM> axis_spans{};
+            darray<std::vector<scalar_type>, DIM> axis_spans{};
             auto axis_spans_itr = m_axis_spans.find(sf_idx);
             if (axis_spans_itr != m_axis_spans.end()) {
                 axis_spans = axis_spans_itr->second;
@@ -195,9 +194,9 @@ class material_map_builder final : public volume_decorator<detector_t> {
     /// The surface this material map belongs to (index is volume local)
     std::map<dindex, std::vector<bin_data_type>> m_bin_data;
     /// Number of bins for the material grid axes
-    std::map<dindex, std::array<std::size_t, DIM>> m_n_bins{};
+    std::map<dindex, darray<std::size_t, DIM>> m_n_bins{};
     /// The Axis spans for the material grid axes
-    std::map<dindex, std::array<std::vector<scalar_type>, DIM>> m_axis_spans{};
+    std::map<dindex, darray<std::vector<scalar_type>, DIM>> m_axis_spans{};
     /// Helper to generate empty grids
     mat_map_factory_t m_factory{};
 };
@@ -227,9 +226,8 @@ struct add_sf_material_map {
         [[maybe_unused]] const index_t& index,
         [[maybe_unused]] const mat_factory_t& mat_factory,
         [[maybe_unused]] std::vector<bin_data_t>& bin_data,
-        [[maybe_unused]] const std::array<std::size_t, DIM>& n_bins,
-        [[maybe_unused]] const std::array<std::vector<scalar_t>, DIM>&
-            axis_spans,
+        [[maybe_unused]] const darray<std::size_t, DIM>& n_bins,
+        [[maybe_unused]] const darray<std::vector<scalar_t>, DIM>& axis_spans,
         [[maybe_unused]] material_store_t& mat_store) const {
 
         using mask_shape_t = typename coll_t::value_type::shape;

@@ -19,7 +19,6 @@
 
 // System include(s)
 #include <algorithm>
-#include <cmath>
 #include <limits>
 #include <memory>
 
@@ -164,7 +163,7 @@ class uniform_track_generator
             const auto& ori = m_cfg.origin();
 
             // Randomly flip the charge sign
-            std::array<double, 2> signs{1., -1.};
+            darray<double, 2> signs{1., -1.};
             const auto sign{static_cast<scalar_t>(
                 signs[m_cfg.randomize_charge() ? m_rnd_numbers->coin_toss()
                                                : 0u])};

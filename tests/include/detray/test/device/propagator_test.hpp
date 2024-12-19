@@ -38,7 +38,6 @@
 
 // System include(s)
 #include <stdexcept>
-#include <tuple>
 
 namespace detray {
 

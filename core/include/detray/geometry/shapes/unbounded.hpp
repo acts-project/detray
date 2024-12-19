@@ -15,7 +15,6 @@
 #include "detray/utils/string_view_concat.hpp"
 
 // System include(s)
-#include <array>
 #include <limits>
 #include <ostream>
 #include <string>

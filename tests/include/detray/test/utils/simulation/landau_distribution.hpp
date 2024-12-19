@@ -9,11 +9,10 @@
 
 // Project include(s).
 #include "detray/definitions/detail/algebra.hpp"
+#include "detray/definitions/detail/containers.hpp"
 #include "detray/definitions/detail/math.hpp"
 
 // System include(s).
-#include <array>
-#include <cmath>
 #include <limits>
 #include <random>
 
@@ -54,7 +53,7 @@ class landau_distribution {
     private:
     scalar_type quantile(const scalar_type z) const {
 
-        static const std::array<double, 982> f{
+        static const darray<double, 982> f{
             0.,        0.,        0.,        0.,        0.,        -2.244733,
             -2.204365, -2.168163, -2.135219, -2.104898, -2.076740, -2.050397,
             -2.025605, -2.002150, -1.979866, -1.958612, -1.938275, -1.918760,

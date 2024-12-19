@@ -57,10 +57,10 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
     ///
     /// @return the intersections.
     template <typename surface_descr_t, typename mask_t>
-    DETRAY_HOST_DEVICE inline std::array<intersection_type<surface_descr_t>, 2>
+    DETRAY_HOST_DEVICE inline darray<intersection_type<surface_descr_t>, 2>
     operator()(const ray_type &ray, const surface_descr_t &sf,
                const mask_t &mask, const transform3_type &trf,
-               const std::array<scalar_type, 2u> mask_tolerance =
+               const darray<scalar_type, 2u> mask_tolerance =
                    {0.f, 100.f * unit<scalar_type>::um},
                const scalar_type mask_tol_scalor = 0.f,
                const scalar_type overstep_tol = 0.f) const {
@@ -68,7 +68,7 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
         // One or both of these solutions might be invalid
         const auto qe = solve_intersection(ray, mask, trf);
 
-        std::array<intersection_type<surface_descr_t>, 2> ret;
+        darray<intersection_type<surface_descr_t>, 2> ret;
         switch (qe.solutions()) {
             case 2:
                 ret[1] = build_candidate<surface_descr_t>(
@@ -98,7 +98,7 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
 
     /// Interface to use fixed mask tolerance
     template <typename surface_descr_t, typename mask_t>
-    DETRAY_HOST_DEVICE inline std::array<intersection_type<surface_descr_t>, 2>
+    DETRAY_HOST_DEVICE inline darray<intersection_type<surface_descr_t>, 2>
     operator()(const ray_type &ray, const surface_descr_t &sf,
                const mask_t &mask, const transform3_type &trf,
                const scalar_type mask_tolerance,
@@ -121,7 +121,7 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
     DETRAY_HOST_DEVICE inline void update(
         const ray_type &ray, intersection_type<surface_descr_t> &sfi,
         const mask_t &mask, const transform3_type &trf,
-        const std::array<scalar_type, 2u> mask_tolerance =
+        const darray<scalar_type, 2u> mask_tolerance =
             {0.f, 1.f * unit<scalar_type>::mm},
         const scalar_type mask_tol_scalor = 0.f,
         const scalar_type overstep_tol = 0.f) const {
@@ -175,7 +175,7 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
     DETRAY_HOST_DEVICE inline intersection_type<surface_descr_t>
     build_candidate(const ray_type &ray, mask_t &mask,
                     const transform3_type &trf, const scalar_type path,
-                    const std::array<scalar_type, 2u> mask_tolerance,
+                    const darray<scalar_type, 2u> mask_tolerance,
                     const scalar_type mask_tol_scalor,
                     const scalar_type overstep_tol) const {
 

@@ -18,7 +18,6 @@
 #include "detray/utils/grid/detail/concepts.hpp"
 
 // System include(s)
-#include <array>
 #include <cassert>
 #include <memory>
 #include <vector>
@@ -80,11 +79,11 @@ class grid_builder : public volume_decorator<detector_t> {
     template <typename grid_shape_t>
     DETRAY_HOST void init_grid(
         const mask<grid_shape_t, algebra_type> &m,
-        const std::array<std::size_t, grid_t::dim> &n_bins,
+        const darray<std::size_t, grid_t::dim> &n_bins,
         const std::vector<std::pair<typename grid_t::loc_bin_index, dindex>>
             &bin_capacities = {},
-        const std::array<std::vector<scalar_type>, grid_t::dim> &ax_bin_edges =
-            std::array<std::vector<scalar_type>, grid_t::dim>()) {
+        const darray<std::vector<scalar_type>, grid_t::dim> &ax_bin_edges =
+            darray<std::vector<scalar_type>, grid_t::dim>()) {
 
         static_assert(
             std::is_same_v<typename grid_shape_t::template local_frame_type<

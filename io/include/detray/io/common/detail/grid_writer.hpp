@@ -18,7 +18,6 @@
 
 // System include(s)
 #include <algorithm>
-#include <array>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -68,8 +67,7 @@ class grid_writer {
         grid_data.grid_link = detail::basic_converter::convert(type, idx);
 
         // Convert the multi-axis into single axis payloads
-        const std::array<axis_payload, grid_t::dim> axes_data =
-            convert(gr.axes());
+        const darray<axis_payload, grid_t::dim> axes_data = convert(gr.axes());
 
         grid_data.axes.resize(axes_data.size());
         std::ranges::copy(axes_data, std::begin(grid_data.axes));
@@ -91,7 +89,7 @@ class grid_writer {
         const axis::multi_axis<ownership, local_frame_t, axis_ts...>& axes) {
 
         // Convert every single axis and construct array from their payloads
-        std::array<axis_payload, sizeof...(axis_ts)> axes_data{
+        darray<axis_payload, sizeof...(axis_ts)> axes_data{
             convert(axes.template get_axis<axis_ts>())...};
 
         return axes_data;

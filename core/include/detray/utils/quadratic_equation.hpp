@@ -84,8 +84,8 @@ requires std::is_arithmetic_v<scalar_t> class quadratic_equation<scalar_t> {
     /// Number of solutions of the equation
     int m_solutions{0};
     /// The solutions
-    std::array<scalar_t, 2> m_values{detail::invalid_value<scalar_t>(),
-                                     detail::invalid_value<scalar_t>()};
+    darray<scalar_t, 2> m_values{detail::invalid_value<scalar_t>(),
+                                 detail::invalid_value<scalar_t>()};
 };
 
 /// Class to solve a quadratic equation of type a * x^2 + b * x + c = 0

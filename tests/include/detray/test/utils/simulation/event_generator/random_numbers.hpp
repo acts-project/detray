@@ -51,7 +51,7 @@ struct random_numbers {
         : m_engine(std::move(other.m_engine)) {}
 
     /// Generate random numbers in a given range
-    DETRAY_HOST auto operator()(const std::array<scalar_t, 2> range = {
+    DETRAY_HOST auto operator()(const darray<scalar_t, 2> range = {
                                     -std::numeric_limits<scalar_t>::max(),
                                     std::numeric_limits<scalar_t>::max()}) {
         const scalar_t min{range[0]};

@@ -71,9 +71,8 @@ template <typename entry_t, std::size_t N>
 class static_array
     : public detray::ranges::view_interface<static_array<entry_t, N>> {
 
-    using bin_view_t = detray::ranges::subrange<std::array<entry_t, N>>;
-    using const_bin_view_t =
-        detray::ranges::subrange<const std::array<entry_t, N>>;
+    using bin_view_t = detray::ranges::subrange<darray<entry_t, N>>;
+    using const_bin_view_t = detray::ranges::subrange<const darray<entry_t, N>>;
     using bin_iterator_t = typename detray::ranges::iterator_t<bin_view_t>;
     using const_bin_iterator_t =
         typename detray::ranges::const_iterator_t<const_bin_view_t>;
@@ -150,7 +149,7 @@ class static_array
     ///
     /// @returns Access to the initialized bin
     DETRAY_HOST_DEVICE
-    constexpr auto init(std::array<entry_t, N> content) -> static_array& {
+    constexpr auto init(darray<entry_t, N> content) -> static_array& {
 
         m_content = content;
         m_size = 0u;
@@ -187,7 +186,7 @@ class static_array
     /// Number of valid elements in the bin
     dindex m_size{0u};
     /// Bin entry container
-    std::array<entry_t, N> m_content{};
+    darray<entry_t, N> m_content{};
 };
 
 /// @brief Bin that views a collection of entries it does not own.

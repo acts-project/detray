@@ -42,7 +42,7 @@ struct config {
     float overstep_tolerance{-300.f * unit<float>::um};
     /// Search window size for grid based acceleration structures
     /// (0, 0): only look at current bin
-    std::array<dindex, 2> search_window = {0u, 0u};
+    darray<dindex, 2> search_window = {0u, 0u};
 
     /// Print the navigation configuration
     DETRAY_HOST

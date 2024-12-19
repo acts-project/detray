@@ -36,7 +36,7 @@ struct multi_bin : public dmulti_index<index_t, DIM> {};
 
 /// @brief Helper to tie two bin indices to a range.
 /// @note Cannot use dindex_range for signed integer bin indices.
-using bin_range = std::array<int, 2>;
+using bin_range = darray<int, 2>;
 
 /// @brief Multi-bin-range: contains bin index ranges from multiple axes
 template <std::size_t DIM>
@@ -383,7 +383,7 @@ class multi_axis {
     ///          every axis in the corresponding entry (e.g. rng_x in entry 0)
     template <typename neighbor_t>
     DETRAY_HOST_DEVICE multi_bin_range<dim> bin_ranges(
-        const point_type &p, const std::array<neighbor_t, 2> &nhood) const {
+        const point_type &p, const darray<neighbor_t, 2> &nhood) const {
         // Empty bin ranges to be filled
         multi_bin_range<dim> bin_ranges{};
         // Run the range resolution for every axis in this multi-axis type
@@ -473,7 +473,7 @@ class multi_axis {
     template <typename axis_t, typename neighbor_t>
     DETRAY_HOST_DEVICE void get_axis_bin_ranges(
         const axis_t &ax, const point_type &p,
-        const std::array<neighbor_t, 2> &nhood,
+        const darray<neighbor_t, 2> &nhood,
         multi_bin_range<dim> &bin_ranges) const {
         // Get the index corresponding to the axis label (e.g. bin_range_x = 0)
         constexpr auto loc_idx{axis_reg::to_index(axis_t::bounds_type::label)};

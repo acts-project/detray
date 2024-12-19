@@ -23,7 +23,6 @@
 #include "detray/utils/ranges.hpp"
 
 // System include(s)
-#include <array>
 #include <functional>
 #include <map>
 #include <memory>
@@ -87,7 +86,7 @@ struct material_map_config {
         /// Type id value of the material map in a given detector
         dindex map_id{dindex_invalid};
         /// Number of bins for material maps
-        std::array<std::size_t, 2> n_bins{20u, 20u};
+        darray<std::size_t, 2> n_bins{20u, 20u};
         /// Along which of the two axes to scale the material
         std::size_t axis_index{0u};
         /// Material to be filled into the maps
@@ -198,7 +197,7 @@ class material_map_generator final : public factory_decorator<detector_t> {
         typename detector_t::surface_lookup_container &surfaces,
         const typename detector_t::mask_container &masks,
         std::map<dindex, std::vector<bin_data_t>> &material_map,
-        std::map<dindex, std::array<std::size_t, N>> &n_bins) {
+        std::map<dindex, darray<std::size_t, N>> &n_bins) {
 
         static_assert(N == 2u, "This generator only supports 2D material maps");
 

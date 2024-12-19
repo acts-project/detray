@@ -22,7 +22,6 @@
 #include <vecmem/memory/memory_resource.hpp>
 
 // System include(s).
-#include <array>
 #include <cstddef>
 #include <type_traits>
 
@@ -63,7 +62,7 @@ class grid_impl {
 
     /// How to define a neighborhood for this grid
     template <typename neighbor_t>
-    using neighborhood_type = std::array<neighbor_t, dim>;
+    using neighborhood_type = darray<neighbor_t, dim>;
 
     /// Backend storage type for the grid
     using bin_storage =
@@ -314,7 +313,7 @@ class grid_impl {
     /// @return the sequence of values
     template <typename neighbor_t>
     DETRAY_HOST_DEVICE auto search(
-        const point_type &p, const std::array<neighbor_t, 2> &win_size) const {
+        const point_type &p, const darray<neighbor_t, 2> &win_size) const {
 
         // Return iterable over bins in the search window
         auto search_window = axes().bin_ranges(p, win_size);

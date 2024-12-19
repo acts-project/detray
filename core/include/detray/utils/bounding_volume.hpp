@@ -80,7 +80,7 @@ class axis_aligned_bounding_volume {
                 axis_aligned_bounding_volume<other_shape_t, algebra_t>>& aabbs,
             std::size_t box_id, const scalar_t env) {
 
-        using loc_point_t = std::array<scalar_t, other_shape_t::dim>;
+        using loc_point_t = darray<scalar_t, other_shape_t::dim>;
 
         // Find min/max extent of the local aabb in local coordinates
         constexpr scalar_t inv{detail::invalid_value<scalar_t>()};
@@ -265,7 +265,7 @@ class axis_aligned_bounding_volume {
 
         // Transform the old min and max points to the global frame and
         // construct all corner points of the local aabb in global coordinates
-        std::array<point3_t, 8> glob_c_points;
+        darray<point3_t, 8> glob_c_points;
         glob_c_points[0] = glob_min(trf);
         glob_c_points[1] = glob_max(trf);
         glob_c_points[2] = glob_c_points[0] + new_box_x;

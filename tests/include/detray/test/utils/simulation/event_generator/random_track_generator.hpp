@@ -19,7 +19,6 @@
 
 // System include(s)
 #include <algorithm>
-#include <array>
 #include <limits>
 #include <memory>
 #include <random>
@@ -132,7 +131,7 @@ class random_track_generator
                   vector::normalize(mom);
 
             // Randomly flip the charge sign
-            std::array<double, 2> signs{1., -1.};
+            darray<double, 2> signs{1., -1.};
             const auto sign{static_cast<scalar_t>(
                 signs[m_cfg.randomize_charge() ? m_rnd_numbers->coin_toss()
                                                : 0u])};
@@ -174,8 +173,8 @@ class random_track_generator
     DETRAY_HOST_DEVICE
     random_track_generator(
         std::size_t n_tracks,
-        std::array<scalar_t, 2> mom_range = {1.f * unit<scalar_t>::GeV,
-                                             1.f * unit<scalar_t>::GeV},
+        darray<scalar_t, 2> mom_range = {1.f * unit<scalar_t>::GeV,
+                                         1.f * unit<scalar_t>::GeV},
         scalar_t charge = -1.f * unit<scalar_t>::e)
         : m_gen{std::make_shared<generator_t>()}, m_cfg{} {
         m_cfg.n_tracks(n_tracks);
