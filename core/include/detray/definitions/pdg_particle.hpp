@@ -29,19 +29,36 @@ struct pdg_particle {
           m_charge(static_cast<scalar_t>(charge)) {}
 
     DETRAY_HOST_DEVICE
-    std::int32_t pdg_num() const { return m_pdg_num; }
+    constexpr std::int32_t pdg_num() const { return m_pdg_num; }
 
     DETRAY_HOST_DEVICE
-    scalar_type mass() const { return m_mass; }
+    constexpr scalar_type mass() const { return m_mass; }
 
     DETRAY_HOST_DEVICE
-    scalar_type charge() const { return m_charge; }
+    constexpr scalar_type charge() const { return m_charge; }
 
     private:
     std::int32_t m_pdg_num;
     scalar_type m_mass;
     scalar_type m_charge;
 };
+
+/// Apply the charge conjugation operator to a particle hypothesis @param ptc
+template <concepts::scalar scalar_t>
+DETRAY_HOST_DEVICE constexpr pdg_particle<scalar_t> charge_conjugation(
+    const pdg_particle<scalar_t>& ptc) {
+    return (ptc.charge() != 0)
+               ? detray::pdg_particle<scalar_t>{-ptc.pdg_num(), ptc.mass(),
+                                                -ptc.charge()}
+               : ptc;
+}
+
+/// @returns an updated particle hypothesis according to the track qop
+template <concepts::scalar scalar_t, typename track_t>
+DETRAY_HOST_DEVICE constexpr pdg_particle<scalar_t> update_particle_hypothesis(
+    const pdg_particle<scalar_t>& ptc, const track_t& params) {
+    return (ptc.charge() * params.qop() > 0.f) ? ptc : charge_conjugation(ptc);
+}
 
 // Macro for declaring the particle
 #define DETRAY_DECLARE_PARTICLE(PARTICLE_NAME, PDG_NUM, MASS, CHARGE)   \

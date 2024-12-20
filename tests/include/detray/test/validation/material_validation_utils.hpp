@@ -67,7 +67,7 @@ struct material_params {
 struct get_material_params {
 
     template <typename mat_group_t, typename index_t,
-              concepts::point2D point2_t, typename scalar_t>
+              concepts::point2D point2_t, concepts::scalar scalar_t>
     DETRAY_HOST_DEVICE auto operator()(
         [[maybe_unused]] const mat_group_t &mat_group,
         [[maybe_unused]] const index_t &index,
