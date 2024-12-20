@@ -41,8 +41,7 @@ using navigator_device_type = detray::navigator<detector_device_type>;
 using field_type = detray::bfield::const_field_t<scalar>;
 using rk_stepper_type = detray::rk_stepper<field_type::view_t, test_algebra>;
 using actor_chain_t =
-    detray::actor_chain<detray::tuple,
-                        detray::parameter_transporter<test_algebra>,
+    detray::actor_chain<detray::parameter_transporter<test_algebra>,
                         detray::pointwise_material_interactor<test_algebra>,
                         detray::parameter_resetter<test_algebra>>;
 using propagator_host_type =

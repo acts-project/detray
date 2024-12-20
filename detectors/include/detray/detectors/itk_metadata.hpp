@@ -98,10 +98,9 @@ struct itk_metadata {
     /// This is the mask collections tuple (in the detector called 'mask store')
     /// the @c regular_multi_store is a vecemem-ready tuple of vectors of
     /// the detector masks.
-    template <template <typename...> class tuple_t = dtuple,
-              template <typename...> class vector_t = dvector>
+    template <template <typename...> class vector_t = dvector>
     using mask_store =
-        regular_multi_store<mask_ids, empty_context, tuple_t, vector_t,
+        regular_multi_store<mask_ids, empty_context, dtuple, vector_t,
                             rectangle, annulus, cylinder_portal, disc_portal>;
 
     /// Similar to the mask store, there is a material store, which
@@ -116,10 +115,9 @@ struct itk_metadata {
 
     /// How to store and link materials. The material does not make use of
     /// conditions data ( @c empty_context )
-    template <template <typename...> class tuple_t = dtuple,
-              typename container_t = host_container_types>
+    template <typename container_t = host_container_types>
     using material_store =
-        multi_store<material_ids, empty_context, tuple_t,
+        multi_store<material_ids, empty_context, dtuple,
                     grid_collection<disc_map_t<container_t>>,
                     grid_collection<cylinder_map_t<container_t>>,
                     grid_collection<rectangular_map_t<container_t>>,
@@ -161,10 +159,9 @@ struct itk_metadata {
     /// volumes. Every collection of accelerationdata structures defines its
     /// own container and view type. Does not make use of conditions data
     /// ( @c empty_context )
-    template <template <typename...> class tuple_t = dtuple,
-              typename container_t = host_container_types>
+    template <typename container_t = host_container_types>
     using accelerator_store =
-        multi_store<accel_ids, empty_context, tuple_t,
+        multi_store<accel_ids, empty_context, dtuple,
                     brute_force_collection<surface_type, container_t>>;
 
     /// Data structure that allows to find the current detector volume from a

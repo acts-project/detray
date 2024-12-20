@@ -45,7 +45,7 @@ class telescope_generator final : public surface_factory_interface<detector_t> {
     DETRAY_HOST
     telescope_generator(
         std::vector<scalar_t> positions,
-        std::array<scalar_t, mask_shape_t::boundaries::e_size> boundaries,
+        darray<scalar_t, mask_shape_t::boundaries::e_size> boundaries,
         trajectory_t traj)
         : m_traj{traj}, m_positions{positions}, m_boundaries{boundaries} {}
 
@@ -57,7 +57,7 @@ class telescope_generator final : public surface_factory_interface<detector_t> {
     DETRAY_HOST
     telescope_generator(
         scalar_t length, std::size_t n_surfaces,
-        std::array<scalar_t, mask_shape_t::boundaries::e_size> boundaries,
+        darray<scalar_t, mask_shape_t::boundaries::e_size> boundaries,
         trajectory_t traj)
         : m_traj{traj}, m_positions{}, m_boundaries{boundaries} {
         scalar_t pos{0.f};
@@ -211,7 +211,7 @@ class telescope_generator final : public surface_factory_interface<detector_t> {
     /// Positions of the surfaces in the telescope along the pilot track
     std::vector<scalar_t> m_positions;
     /// The boundary values for the surface mask
-    std::array<scalar_t, mask_shape_t::boundaries::e_size> m_boundaries;
+    darray<scalar_t, mask_shape_t::boundaries::e_size> m_boundaries;
 };
 
 }  // namespace detray

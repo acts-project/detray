@@ -107,7 +107,7 @@ struct default_metadata {
     /// bin boundaries, serializers)?
     /// @{
 
-    // surface grid definition: bin-content: std::array<surface_type, 9>
+    // surface grid definition: bin-content: darray<surface_type, 9>
     template <typename axes_t, typename bin_entry_t, typename container_t>
     using surface_grid_t =
         grid<algebra_type, axes_t, bins::dynamic_array<bin_entry_t>,
@@ -183,9 +183,8 @@ struct default_metadata {
     };
 
     /// How to store masks
-    template <template <typename...> class tuple_t = dtuple,
-              template <typename...> class vector_t = dvector>
-    using mask_store = regular_multi_store<mask_ids, empty_context, tuple_t,
+    template <template <typename...> class vector_t = dvector>
+    using mask_store = regular_multi_store<mask_ids, empty_context, dtuple,
                                            vector_t, rectangle, trapezoid,
                                            annulus, cylinder, cylinder_portal,
                                            disc, straw_tube, drift_cell /*,
@@ -216,10 +215,9 @@ unbounded_cell, unmasked_plane*/>;
     };
 
     /// How to store materials
-    template <template <typename...> class tuple_t = dtuple,
-              typename container_t = host_container_types>
+    template <typename container_t = host_container_types>
     using material_store = multi_store<
-        material_ids, empty_context, tuple_t,
+        material_ids, empty_context, dtuple,
         grid_collection<disc_map_t<container_t>>,
         grid_collection<concentric_cylinder2_map_t<container_t>>,
         grid_collection<cylinder2_map_t<container_t>>,
@@ -268,10 +266,9 @@ unbounded_cell, unmasked_plane*/>;
         dmulti_index<dtyped_index<accel_ids, dindex>, geo_objects::e_size>;
 
     /// How to store the acceleration data structures
-    template <template <typename...> class tuple_t = dtuple,
-              typename container_t = host_container_types>
+    template <typename container_t = host_container_types>
     using accelerator_store =
-        multi_store<accel_ids, empty_context, tuple_t,
+        multi_store<accel_ids, empty_context, dtuple,
                     brute_force_collection<surface_type, container_t>,
                     grid_collection<disc_sf_grid<surface_type, container_t>>,
                     grid_collection<

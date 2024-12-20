@@ -24,7 +24,6 @@
 #include <algorithm>
 #include <optional>
 #include <string>
-#include <tuple>
 #include <vector>
 
 namespace detray::svgtools::conversion {

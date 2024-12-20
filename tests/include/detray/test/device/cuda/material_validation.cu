@@ -40,10 +40,11 @@ __global__ void material_validation_kernel(
     using material_tracer_t =
         material_validator::material_tracer<scalar_t, vecmem::device_vector>;
     using pathlimit_aborter_t = pathlimit_aborter<scalar_t>;
-    using actor_chain_t = actor_chain<
-        tuple, pathlimit_aborter_t, parameter_transporter<algebra_t>,
-        parameter_resetter<algebra_t>, pointwise_material_interactor<algebra_t>,
-        material_tracer_t>;
+    using actor_chain_t =
+        actor_chain<pathlimit_aborter_t, parameter_transporter<algebra_t>,
+                    parameter_resetter<algebra_t>,
+                    pointwise_material_interactor<algebra_t>,
+                    material_tracer_t>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     detector_device_t det(det_data);

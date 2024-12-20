@@ -8,7 +8,6 @@
 #pragma once
 
 // System include(s)
-#include <array>
 #include <ostream>
 #include <string>
 #include <vector>

@@ -71,7 +71,7 @@ TEST_P(BackwardPropagation, backward_propagation) {
     using navigator_t = navigator<decltype(det)>;
     using rk_stepper_t = rk_stepper<bfield_t::view_t, test_algebra>;
     using actor_chain_t =
-        actor_chain<dtuple, parameter_transporter<test_algebra>,
+        actor_chain<parameter_transporter<test_algebra>,
                     pointwise_material_interactor<test_algebra>,
                     parameter_resetter<test_algebra>>;
     using propagator_t = propagator<rk_stepper_t, navigator_t, actor_chain_t>;

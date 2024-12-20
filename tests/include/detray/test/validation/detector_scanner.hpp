@@ -59,7 +59,7 @@ struct brute_force_scan {
     template <typename detector_t>
     inline auto operator()(const typename detector_t::geometry_context ctx,
                            const detector_t &detector, const trajectory_t &traj,
-                           const std::array<typename detector_t::scalar_type, 2>
+                           const darray<typename detector_t::scalar_type, 2>
                                mask_tolerance = {0.f, 0.f},
                            const typename detector_t::scalar_type p =
                                1.f *
@@ -89,7 +89,7 @@ struct brute_force_scan {
             const auto sf = tracking_surface{detector, sf_desc};
             sf.template visit_mask<intersection_kernel_t>(
                 intersections, traj, sf_desc, trf_store, ctx,
-                sf.is_portal() ? std::array<scalar_t, 2>{0.f, 0.f}
+                sf.is_portal() ? darray<scalar_t, 2>{0.f, 0.f}
                                : mask_tolerance);
 
             // Candidate is invalid if it lies in the opposite direction

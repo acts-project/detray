@@ -18,7 +18,7 @@ namespace detray::axis {
 
 /// @brief Helper to tie two bin indices to a range.
 /// @note Cannot use dindex_range for signed integer bin indices.
-using bin_range = std::array<int, 2>;
+using bin_range = darray<int, 2>;
 
 /// @brief Describes the behaviour of an open axis.
 ///

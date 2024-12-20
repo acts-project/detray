@@ -17,7 +17,6 @@
 
 // System include(s)
 #include <algorithm>
-#include <array>
 #include <limits>
 #include <ostream>
 
@@ -37,9 +36,9 @@ struct uniform_track_generator_config {
         constant<scalar_t>::pi - std::numeric_limits<scalar_t>::epsilon()};
 
     /// Range for phi [-pi, pi) and theta [0, pi)
-    std::array<scalar_t, 2> m_phi_range{-constant<scalar_t>::pi, k_max_pi};
-    std::array<scalar_t, 2> m_theta_range{0.f, k_max_pi};
-    std::array<scalar_t, 2> m_eta_range{-5.f, 5.f};
+    darray<scalar_t, 2> m_phi_range{-constant<scalar_t>::pi, k_max_pi};
+    darray<scalar_t, 2> m_theta_range{0.f, k_max_pi};
+    darray<scalar_t, 2> m_eta_range{-5.f, 5.f};
 
     /// Angular step size
     std::size_t m_phi_steps{50u};
@@ -50,7 +49,7 @@ struct uniform_track_generator_config {
     bool m_uniform_eta{false};
 
     /// Track origin
-    std::array<scalar_t, 3> m_origin{0.f, 0.f, 0.f};
+    darray<scalar_t, 3> m_origin{0.f, 0.f, 0.f};
 
     /// Magnitude of momentum: Default is one to keep directions normalized
     /// if no momentum information is needed (e.g. for a ray)
@@ -83,7 +82,7 @@ struct uniform_track_generator_config {
     }
     template <typename o_scalar_t>
     DETRAY_HOST_DEVICE uniform_track_generator_config& phi_range(
-        std::array<o_scalar_t, 2> r) {
+        darray<o_scalar_t, 2> r) {
         phi_range(static_cast<o_scalar_t>(r[0]), static_cast<o_scalar_t>(r[1]));
         return *this;
     }
@@ -100,7 +99,7 @@ struct uniform_track_generator_config {
     }
     template <typename o_scalar_t>
     DETRAY_HOST_DEVICE uniform_track_generator_config& theta_range(
-        std::array<o_scalar_t, 2> r) {
+        darray<o_scalar_t, 2> r) {
         theta_range(static_cast<o_scalar_t>(r[0]),
                     static_cast<o_scalar_t>(r[1]));
         return *this;
@@ -120,7 +119,7 @@ struct uniform_track_generator_config {
     }
     template <typename o_scalar_t>
     DETRAY_HOST_DEVICE uniform_track_generator_config& eta_range(
-        std::array<o_scalar_t, 2> r) {
+        darray<o_scalar_t, 2> r) {
         eta_range(static_cast<o_scalar_t>(r[0]), static_cast<o_scalar_t>(r[1]));
         return *this;
     }
@@ -191,13 +190,13 @@ struct uniform_track_generator_config {
     DETRAY_HOST_DEVICE constexpr std::size_t n_tracks() const {
         return phi_steps() * theta_steps();
     }
-    DETRAY_HOST_DEVICE constexpr std::array<scalar_t, 2> phi_range() const {
+    DETRAY_HOST_DEVICE constexpr darray<scalar_t, 2> phi_range() const {
         return m_phi_range;
     }
-    DETRAY_HOST_DEVICE constexpr std::array<scalar_t, 2> theta_range() const {
+    DETRAY_HOST_DEVICE constexpr darray<scalar_t, 2> theta_range() const {
         return m_theta_range;
     }
-    DETRAY_HOST_DEVICE constexpr std::array<scalar_t, 2> eta_range() const {
+    DETRAY_HOST_DEVICE constexpr darray<scalar_t, 2> eta_range() const {
         return m_eta_range;
     }
     DETRAY_HOST_DEVICE constexpr std::size_t phi_steps() const {

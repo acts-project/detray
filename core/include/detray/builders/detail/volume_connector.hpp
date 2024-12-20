@@ -24,8 +24,6 @@ namespace detray {
 /// @param volume_grid [in] the indexed volume grid
 ///
 template <typename detector_t,
-          template <typename, std::size_t> class array_type = darray,
-          template <typename...> class tuple_type = dtuple,
           template <typename...> class vector_type = dvector>
 void connect_cylindrical_volumes(
     detector_t &d, const typename detector_t::volume_finder &volume_grid) {
@@ -35,7 +33,7 @@ void connect_cylindrical_volumes(
 
     // The grid is populated, now create portal surfaces
     // Start from left bottom corner (0,0)
-    vector_type<array_type<dindex, 2>> seeds = {{0, 0}};
+    vector_type<darray<dindex, 2>> seeds = {{0, 0}};
     dmap<dindex, dindex> seed_map;
 
     // The axes are used quite a bit
@@ -51,7 +49,7 @@ void connect_cylindrical_volumes(
      *
      * @note seeds are only set in bottom left corners of blocks
      **/
-    auto add_new_seed = [&](const array_type<dindex, 2> &seed,
+    auto add_new_seed = [&](const darray<dindex, 2> &seed,
                             dindex volume_index) -> void {
         if (volume_index == dindex_invalid) {
             return;
@@ -78,14 +76,10 @@ void connect_cylindrical_volumes(
         auto &volume = d.volume(ref);
 
         // Collect portals per seed
-        vector_type<tuple_type<array_type<scalar_t, 2>, dindex>>
-            left_portals_info;
-        vector_type<tuple_type<array_type<scalar_t, 2>, dindex>>
-            upper_portals_info;
-        vector_type<tuple_type<array_type<scalar_t, 2>, dindex>>
-            right_portals_info;
-        vector_type<tuple_type<array_type<scalar_t, 2>, dindex>>
-            lower_portals_info;
+        vector_type<dtuple<darray<scalar_t, 2>, dindex>> left_portals_info;
+        vector_type<dtuple<darray<scalar_t, 2>, dindex>> upper_portals_info;
+        vector_type<dtuple<darray<scalar_t, 2>, dindex>> right_portals_info;
+        vector_type<dtuple<darray<scalar_t, 2>, dindex>> lower_portals_info;
 
         /// Helper method for walking up along the bins
         ///
@@ -96,12 +90,11 @@ void connect_cylindrical_volumes(
         ///
         /// @return the end position of the the walk (inside position)
         auto walk_up =
-            [&](array_type<dindex, 2> start_bin,
-                vector_type<tuple_type<array_type<scalar_t, 2>, dindex>>
-                    &portals_info,
-                int peek, bool add_seed = false) -> array_type<dindex, 2> {
+            [&](darray<dindex, 2> start_bin,
+                vector_type<dtuple<darray<scalar_t, 2>, dindex>> &portals_info,
+                int peek, bool add_seed = false) -> darray<dindex, 2> {
             auto running_bin = start_bin;
-            array_type<dindex, 2> last_added = {dindex_invalid, dindex_invalid};
+            darray<dindex, 2> last_added = {dindex_invalid, dindex_invalid};
             // Test entry
             auto test = volume_grid.bin(running_bin[0], running_bin[1]);
             // Low/high
@@ -161,13 +154,12 @@ void connect_cylindrical_volumes(
         ///
         /// @return the end position of the the walk (inside position)
         auto walk_right =
-            [&](const array_type<dindex, 2> &start_bin,
-                vector_type<tuple_type<array_type<scalar_t, 2>, dindex>>
-                    &portals_info,
+            [&](const darray<dindex, 2> &start_bin,
+                vector_type<dtuple<darray<scalar_t, 2>, dindex>> &portals_info,
                 int peek, bool add_seed = false,
-                bool walk_only = false) -> array_type<dindex, 2> {
+                bool walk_only = false) -> darray<dindex, 2> {
             auto running_bin = start_bin;
-            array_type<dindex, 2> last_added = {dindex_invalid, dindex_invalid};
+            darray<dindex, 2> last_added = {dindex_invalid, dindex_invalid};
 
             // Test, low and high at seed position
             auto test = volume_grid.bin(running_bin[0], running_bin[1]);
@@ -245,8 +237,7 @@ void connect_cylindrical_volumes(
          *
          **/
         auto add_disc_portals =
-            [&](vector_type<tuple_type<array_type<scalar_t, 2>, dindex>>
-                    &portals_info,
+            [&](vector_type<dtuple<darray<scalar_t, 2>, dindex>> &portals_info,
                 dindex bound_index) -> void {
             using portal_t = typename detector_t::surface_type;
             using volume_link_t = typename portal_t::volume_link_type;
@@ -296,8 +287,7 @@ void connect_cylindrical_volumes(
          * @param bound_index
          **/
         auto add_cylinder_portal =
-            [&](vector_type<tuple_type<array_type<scalar_t, 2>, dindex>>
-                    &portals_info,
+            [&](vector_type<dtuple<darray<scalar_t, 2>, dindex>> &portals_info,
                 dindex bound_index) -> void {
             using portal_t = typename detector_t::surface_type;
             using volume_link_t = typename portal_t::volume_link_type;

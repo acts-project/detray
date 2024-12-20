@@ -209,7 +209,7 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
         rk_stepper<bfield_t::view_t, test_algebra, constraints_t, policy_t>;
     // Include helix actor to check track position/covariance
     using actor_chain_t =
-        actor_chain<dtuple, helix_inspector, pathlimit_aborter<scalar>,
+        actor_chain<helix_inspector, pathlimit_aborter<scalar>,
                     parameter_transporter<test_algebra>,
                     pointwise_material_interactor<test_algebra>,
                     parameter_resetter<test_algebra>>;
@@ -319,7 +319,7 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
         rk_stepper<bfield_t::view_t, test_algebra, constraints_t, policy_t>;
     // Include helix actor to check track position/covariance
     using actor_chain_t =
-        actor_chain<dtuple, pathlimit_aborter<scalar>,
+        actor_chain<pathlimit_aborter<scalar>,
                     parameter_transporter<test_algebra>,
                     pointwise_material_interactor<test_algebra>,
                     parameter_resetter<test_algebra>>;

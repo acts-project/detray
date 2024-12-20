@@ -53,13 +53,13 @@ class rk_stepper final
         vector3_type b_middle{0.f, 0.f, 0.f};
         vector3_type b_last{0.f, 0.f, 0.f};
         // t = tangential direction = dr/ds
-        std::array<vector3_type, 4u> t;
+        darray<vector3_type, 4u> t;
         // q/p
-        std::array<scalar_type, 4u> qop;
+        darray<scalar_type, 4u> qop;
         // dt/ds = d^2r/ds^2 = q/p ( t X B )
-        std::array<vector3_type, 4u> dtds;
+        darray<vector3_type, 4u> dtds;
         // d(q/p)/ds
-        std::array<scalar_type, 4u> dqopds;
+        darray<scalar_type, 4u> dqopds;
     };
 
     struct state : public base_type::state {

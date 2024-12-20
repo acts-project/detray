@@ -15,7 +15,6 @@
 #include "detray/utils/concepts.hpp"
 
 // System include(s)
-#include <array>
 #include <concepts>
 #include <utility>
 
@@ -43,23 +42,23 @@ concept axis = requires(const A ax) {
     { ax.bin(typename A::scalar_type()) }
     ->std::same_as<dindex>;
 
-    { ax.range(typename A::scalar_type(), std::array<dindex, 2>()) }
-    ->std::same_as<std::array<int, 2>>;
+    { ax.range(typename A::scalar_type(), darray<dindex, 2>()) }
+    ->std::same_as<darray<int, 2>>;
 
     {
         ax.range(typename A::scalar_type(),
-                 std::array<typename A::scalar_type, 2>())
+                 darray<typename A::scalar_type, 2>())
     }
-    ->std::same_as<std::array<int, 2>>;
+    ->std::same_as<darray<int, 2>>;
 
     { ax.bin_edges(dindex()) }
-    ->std::same_as<std::array<typename A::scalar_type, 2>>;
+    ->std::same_as<darray<typename A::scalar_type, 2>>;
 
     { ax.bin_edges() }
     ->concepts::range_of<typename A::scalar_type>;
 
     { ax.span() }
-    ->std::same_as<std::array<typename A::scalar_type, 2>>;
+    ->std::same_as<darray<typename A::scalar_type, 2>>;
 
     { ax.min() }
     ->std::same_as<typename A::scalar_type>;

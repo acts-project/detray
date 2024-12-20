@@ -36,7 +36,7 @@ struct multi_bin : public dmulti_index<index_t, DIM> {};
 
 /// @brief Helper to tie two bin indices to a range.
 /// @note Cannot use dindex_range for signed integer bin indices.
-using bin_range = std::array<int, 2>;
+using bin_range = darray<int, 2>;
 
 /// @brief Multi-bin-range: contains bin index ranges from multiple axes
 template <std::size_t DIM>
@@ -64,8 +64,6 @@ struct single_axis {
     using container_types = typename binning_type::container_types;
     template <typename T>
     using vector_type = typename binning_type::template vector_type<T>;
-    template <typename T, std::size_t N>
-    using array_type = typename binning_type::template array_type<T, N>;
     /// @}
 
     /// Defines the geometrical bounds of the axis as a service:
@@ -151,13 +149,13 @@ struct single_axis {
     /// @returns a dindex_range around the bin index.
     template <typename neighbor_t>
     DETRAY_HOST_DEVICE bin_range
-    range(const scalar_type v, const array_type<neighbor_t, 2> &nhood) const {
+    range(const scalar_type v, const darray<neighbor_t, 2> &nhood) const {
         return m_bounds.map(m_binning.range(v, nhood), m_binning.nbins());
     }
 
     /// @returns the bin edges for a given @param ibin .
     DETRAY_HOST_DEVICE
-    array_type<scalar_type, 2> bin_edges(const dindex ibin) const {
+    darray<scalar_type, 2> bin_edges(const dindex ibin) const {
         return m_binning.bin_edges(ibin);
     }
 
@@ -167,7 +165,7 @@ struct single_axis {
 
     /// @returns the axis span [min, max).
     DETRAY_HOST_DEVICE
-    array_type<scalar_type, 2> span() const { return m_binning.span(); }
+    darray<scalar_type, 2> span() const { return m_binning.span(); }
 
     /// @returns the axis span [min, max).
     DETRAY_HOST_DEVICE
@@ -385,7 +383,7 @@ class multi_axis {
     ///          every axis in the corresponding entry (e.g. rng_x in entry 0)
     template <typename neighbor_t>
     DETRAY_HOST_DEVICE multi_bin_range<dim> bin_ranges(
-        const point_type &p, const std::array<neighbor_t, 2> &nhood) const {
+        const point_type &p, const darray<neighbor_t, 2> &nhood) const {
         // Empty bin ranges to be filled
         multi_bin_range<dim> bin_ranges{};
         // Run the range resolution for every axis in this multi-axis type
@@ -475,7 +473,7 @@ class multi_axis {
     template <typename axis_t, typename neighbor_t>
     DETRAY_HOST_DEVICE void get_axis_bin_ranges(
         const axis_t &ax, const point_type &p,
-        const std::array<neighbor_t, 2> &nhood,
+        const darray<neighbor_t, 2> &nhood,
         multi_bin_range<dim> &bin_ranges) const {
         // Get the index corresponding to the axis label (e.g. bin_range_x = 0)
         constexpr auto loc_idx{axis_reg::to_index(axis_t::bounds_type::label)};

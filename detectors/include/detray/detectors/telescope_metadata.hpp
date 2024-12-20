@@ -74,13 +74,12 @@ struct telescope_metadata {
     };
 
     /// How to store masks
-    template <template <typename...> class tuple_t = dtuple,
-              template <typename...> class vector_t = dvector>
+    template <template <typename...> class vector_t = dvector>
     using mask_store = std::conditional_t<
         std::is_same_v<mask<mask_shape_t, algebra_type, nav_link>, rectangle>,
-        regular_multi_store<mask_ids, empty_context, tuple_t, vector_t,
+        regular_multi_store<mask_ids, empty_context, dtuple, vector_t,
                             rectangle>,
-        regular_multi_store<mask_ids, empty_context, tuple_t, vector_t,
+        regular_multi_store<mask_ids, empty_context, dtuple, vector_t,
                             rectangle,
                             mask<mask_shape_t, algebra_type, nav_link>>>;
 
@@ -93,16 +92,15 @@ struct telescope_metadata {
     };
 
     /// How to store materials
-    template <template <typename...> class tuple_t = dtuple,
-              typename container_t = host_container_types>
+    template <typename container_t = host_container_types>
     using material_store = std::conditional_t<
         std::is_same_v<mask<mask_shape_t, algebra_type, nav_link>, drift_cell> |
             std::is_same_v<mask<mask_shape_t, algebra_type, nav_link>,
                            straw_tube>,
-        regular_multi_store<material_ids, empty_context, tuple_t,
+        regular_multi_store<material_ids, empty_context, dtuple,
                             container_t::template vector_type, slab,
                             material<scalar_t>, rod>,
-        regular_multi_store<material_ids, empty_context, tuple_t,
+        regular_multi_store<material_ids, empty_context, dtuple,
                             container_t::template vector_type, slab,
                             material<scalar_t>>>;
 
@@ -133,10 +131,9 @@ struct telescope_metadata {
         dmulti_index<dtyped_index<accel_ids, dindex>, geo_objects::e_size>;
 
     /// How to store the brute force search data structure
-    template <template <typename...> class tuple_t = dtuple,
-              typename container_t = host_container_types>
+    template <typename container_t = host_container_types>
     using accelerator_store =
-        multi_store<accel_ids, empty_context, tuple_t,
+        multi_store<accel_ids, empty_context, dtuple,
                     brute_force_collection<surface_type, container_t>>;
 
     /// Volume search (only one volume exists)

@@ -70,9 +70,8 @@ GTEST_TEST(detray_propagator, covariance_transport) {
 
     using navigator_t = navigator<decltype(det)>;
     using cline_stepper_t = line_stepper<test_algebra>;
-    using actor_chain_t =
-        actor_chain<dtuple, parameter_transporter<test_algebra>,
-                    parameter_resetter<test_algebra>>;
+    using actor_chain_t = actor_chain<parameter_transporter<test_algebra>,
+                                      parameter_resetter<test_algebra>>;
     using propagator_t =
         propagator<cline_stepper_t, navigator_t, actor_chain_t>;
 

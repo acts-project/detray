@@ -22,7 +22,6 @@
 #include <vecmem/memory/host_memory_resource.hpp>
 
 // System include(s)
-#include <cmath>
 #include <cstdlib>
 #include <iostream>
 

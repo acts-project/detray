@@ -128,7 +128,7 @@ struct bin_associator {
         // Fill the surfaces into the grid by matching their contour onto the
         // grid bins
         bin_association(ctx, surfaces, transforms, masks, grid,
-                        std::array<scalar_t, 2>{0.1f, 0.1f}, false);
+                        darray<scalar_t, 2>{0.1f, 0.1f}, false);
     }
 };
 

@@ -126,9 +126,9 @@ class detector_builder {
                 0u,      0.f,   -constant<scalar_type>::pi,
                 -2000.f, 180.f, constant<scalar_type>::pi,
                 2000.f};
-            std::array<std::size_t, 3> n_vgrid_bins{1u, 1u, 1u};
+            darray<std::size_t, 3> n_vgrid_bins{1u, 1u, 1u};
 
-            std::array<std::vector<scalar_type>, 3UL> bin_edges{
+            darray<std::vector<scalar_type>, 3UL> bin_edges{
                 std::vector<scalar_type>{0.f, 180.f},
                 std::vector<scalar_type>{-constant<scalar_type>::pi,
                                          constant<scalar_type>::pi},

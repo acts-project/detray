@@ -61,17 +61,17 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
     ///
     /// @return the intersection
     template <typename surface_descr_t, typename mask_t>
-    DETRAY_HOST_DEVICE inline std::array<intersection_type<surface_descr_t>, 2>
+    DETRAY_HOST_DEVICE inline darray<intersection_type<surface_descr_t>, 2>
     operator()(const helix_type &h, const surface_descr_t &sf_desc,
                const mask_t &mask, const transform3_type &trf,
-               const std::array<scalar_type, 2u> mask_tolerance =
+               const darray<scalar_type, 2u> mask_tolerance =
                    {detail::invalid_value<scalar_type>(),
                     detail::invalid_value<scalar_type>()},
                const scalar_type = 0.f, const scalar_type = 0.f) const {
         assert((mask_tolerance[0] == mask_tolerance[1]) &&
                "Helix intersectors use only one mask tolerance value");
 
-        std::array<intersection_type<surface_descr_t>, 2> ret{};
+        darray<intersection_type<surface_descr_t>, 2> ret{};
 
         if (!run_rtsafe) {
             // Get the surface placement
@@ -95,7 +95,7 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
             const scalar_type default_s{r * vector::perp(h_dir)};
 
             // Initial helix path length parameter
-            std::array<scalar_type, 2> paths{default_s, default_s};
+            darray<scalar_type, 2> paths{default_s, default_s};
 
             // try to guess good starting path by calculating the intersection
             // path of the helix tangential with the cylinder. This only has a
@@ -207,7 +207,7 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
             const scalar_type default_s{r * vector::perp(h_dir)};
 
             // Initial helix path length parameter
-            std::array<scalar_type, 2> paths{default_s, default_s};
+            darray<scalar_type, 2> paths{default_s, default_s};
 
             // try to guess good starting path by calculating the intersection
             // path of the helix tangential with the cylinder. This only has a
@@ -273,7 +273,7 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
 
     /// Interface to use fixed mask tolerance
     template <typename surface_descr_t, typename mask_t>
-    DETRAY_HOST_DEVICE inline std::array<intersection_type<surface_descr_t>, 2>
+    DETRAY_HOST_DEVICE inline darray<intersection_type<surface_descr_t>, 2>
     operator()(const helix_type &h, const surface_descr_t &sf_desc,
                const mask_t &mask, const transform3_type &trf,
                const scalar_type mask_tolerance, const scalar_type = 0.f,

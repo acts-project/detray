@@ -18,7 +18,6 @@
 
 // System include(s)
 #include <algorithm>
-#include <array>
 #include <limits>
 #include <ostream>
 #include <random>
@@ -41,19 +40,19 @@ struct random_track_generator_config {
     std::size_t m_n_tracks{10u};
 
     /// Range for phi [-pi, pi) and theta [0, pi)
-    std::array<scalar_t, 2> m_phi_range{-constant<scalar_t>::pi,
-                                        constant<scalar_t>::pi};
-    std::array<scalar_t, 2> m_theta_range{0.f, constant<scalar_t>::pi};
+    darray<scalar_t, 2> m_phi_range{-constant<scalar_t>::pi,
+                                    constant<scalar_t>::pi};
+    darray<scalar_t, 2> m_theta_range{0.f, constant<scalar_t>::pi};
 
     /// Momentum range
-    std::array<scalar_t, 2> m_mom_range{1.f * unit<scalar_t>::GeV,
-                                        1.f * unit<scalar_t>::GeV};
+    darray<scalar_t, 2> m_mom_range{1.f * unit<scalar_t>::GeV,
+                                    1.f * unit<scalar_t>::GeV};
     /// Whether to interpret the momentum @c m_mom_range as p_T
     bool m_is_pT{false};
 
     /// Track origin
-    std::array<scalar_t, 3> m_origin{0.f, 0.f, 0.f};
-    std::array<scalar_t, 3> m_origin_stddev{0.f, 0.f, 0.f};
+    darray<scalar_t, 3> m_origin{0.f, 0.f, 0.f};
+    darray<scalar_t, 3> m_origin_stddev{0.f, 0.f, 0.f};
 
     /// Randomly flip the charge sign?
     bool m_randomize_charge{false};
@@ -92,7 +91,7 @@ struct random_track_generator_config {
     }
     template <typename o_scalar_t>
     DETRAY_HOST_DEVICE random_track_generator_config& phi_range(
-        std::array<o_scalar_t, 2> r) {
+        darray<o_scalar_t, 2> r) {
         phi_range(static_cast<o_scalar_t>(r[0]), static_cast<o_scalar_t>(r[1]));
         return *this;
     }
@@ -108,7 +107,7 @@ struct random_track_generator_config {
     }
     template <typename o_scalar_t>
     DETRAY_HOST_DEVICE random_track_generator_config& theta_range(
-        std::array<o_scalar_t, 2> r) {
+        darray<o_scalar_t, 2> r) {
         theta_range(static_cast<o_scalar_t>(r[0]),
                     static_cast<o_scalar_t>(r[1]));
         return *this;
@@ -131,7 +130,7 @@ struct random_track_generator_config {
     }
     template <typename o_scalar_t>
     DETRAY_HOST_DEVICE random_track_generator_config& eta_range(
-        std::array<o_scalar_t, 2> r) {
+        darray<o_scalar_t, 2> r) {
         eta_range(static_cast<o_scalar_t>(r[0]), static_cast<o_scalar_t>(r[1]));
         return *this;
     }
@@ -145,7 +144,7 @@ struct random_track_generator_config {
     }
     template <typename o_scalar_t>
     DETRAY_HOST_DEVICE random_track_generator_config& mom_range(
-        std::array<o_scalar_t, 2> r) {
+        darray<o_scalar_t, 2> r) {
         mom_range(static_cast<o_scalar_t>(r[0]), static_cast<o_scalar_t>(r[1]));
         return *this;
     }
@@ -159,7 +158,7 @@ struct random_track_generator_config {
     }
     template <typename o_scalar_t>
     DETRAY_HOST_DEVICE random_track_generator_config& pT_range(
-        std::array<o_scalar_t, 2> r) {
+        darray<o_scalar_t, 2> r) {
         pT_range(static_cast<o_scalar_t>(r[0]), static_cast<o_scalar_t>(r[1]));
         return *this;
     }
@@ -218,16 +217,14 @@ struct random_track_generator_config {
     DETRAY_HOST_DEVICE constexpr std::size_t n_tracks() const {
         return m_n_tracks;
     }
-    DETRAY_HOST_DEVICE constexpr const std::array<scalar_t, 2>& phi_range()
-        const {
+    DETRAY_HOST_DEVICE constexpr const darray<scalar_t, 2>& phi_range() const {
         return m_phi_range;
     }
-    DETRAY_HOST_DEVICE constexpr const std::array<scalar_t, 2>& theta_range()
+    DETRAY_HOST_DEVICE constexpr const darray<scalar_t, 2>& theta_range()
         const {
         return m_theta_range;
     }
-    DETRAY_HOST_DEVICE constexpr const std::array<scalar_t, 2>& mom_range()
-        const {
+    DETRAY_HOST_DEVICE constexpr const darray<scalar_t, 2>& mom_range() const {
         return m_mom_range;
     }
     DETRAY_HOST_DEVICE constexpr const auto& origin() const { return m_origin; }

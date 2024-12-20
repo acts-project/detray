@@ -24,8 +24,7 @@ namespace detray {
 
 /// Container types used in device code
 using device_container_types =
-    container_types<vecmem::device_vector, detray::tuple, darray,
-                    vecmem::jagged_device_vector>;
+    container_types<vecmem::device_vector, vecmem::jagged_device_vector>;
 
 /// Specialized view for @c vecmem::vector containers
 template <typename T>

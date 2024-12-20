@@ -64,7 +64,7 @@ struct toy_metadata {
     /// Surface grid types (regular, open binning)
     /// @{
 
-    // Surface grid definition: bin-content: std::array<sf_descriptor, 1>
+    // Surface grid definition: bin-content: darray<sf_descriptor, 1>
     template <typename axes_t, typename bin_entry_t, typename container_t>
     using surface_grid_t =
         grid<algebra_type, axes_t, bins::static_array<bin_entry_t, 1>,
@@ -96,10 +96,9 @@ struct toy_metadata {
     };
 
     /// How to store masks
-    template <template <typename...> class tuple_t = dtuple,
-              template <typename...> class vector_t = dvector>
+    template <template <typename...> class vector_t = dvector>
     using mask_store =
-        regular_multi_store<mask_ids, empty_context, tuple_t, vector_t,
+        regular_multi_store<mask_ids, empty_context, dtuple, vector_t,
                             rectangle, trapezoid, cylinder_portal, disc_portal>;
 
     /// Material type ids
@@ -112,10 +111,9 @@ struct toy_metadata {
     };
 
     /// How to store materials
-    template <template <typename...> class tuple_t = dtuple,
-              typename container_t = host_container_types>
+    template <typename container_t = host_container_types>
     using material_store =
-        multi_store<material_ids, empty_context, tuple_t,
+        multi_store<material_ids, empty_context, dtuple,
                     grid_collection<disc_map_t<container_t>>,
                     grid_collection<cylinder_map_t<container_t>>,
                     grid_collection<rectangular_map_t<container_t>>,
@@ -151,10 +149,9 @@ struct toy_metadata {
         dmulti_index<dtyped_index<accel_ids, dindex>, geo_objects::e_size>;
 
     /// How to store the acceleration data structures
-    template <template <typename...> class tuple_t = dtuple,
-              typename container_t = host_container_types>
+    template <typename container_t = host_container_types>
     using accelerator_store = multi_store<
-        accel_ids, empty_context, tuple_t,
+        accel_ids, empty_context, dtuple,
         brute_force_collection<surface_type, container_t>,
         grid_collection<disc_sf_grid<surface_type, container_t>>,
         grid_collection<cylinder_sf_grid<surface_type, container_t>>>;

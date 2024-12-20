@@ -48,8 +48,8 @@ struct intersection_initialize {
         const surface_t &surface,
         const transform_container_t &contextual_transforms,
         const typename transform_container_t::context_type &ctx,
-        const std::array<scalar_t, 2u> &mask_tolerance =
-            {0.f, 1.f * unit<scalar_t>::mm},
+        const darray<scalar_t, 2u> &mask_tolerance = {0.f,
+                                                      1.f * unit<scalar_t>::mm},
         const scalar_t mask_tol_scalor = 0.f,
         const scalar_t overstep_tol = 0.f) const {
 
@@ -87,7 +87,7 @@ struct intersection_initialize {
 
     template <typename is_container_t>
     DETRAY_HOST_DEVICE bool place_in_collection(
-        std::array<typename is_container_t::value_type, 2> &&solutions,
+        darray<typename is_container_t::value_type, 2> &&solutions,
         is_container_t &intersections) const {
         bool is_valid = false;
         for (auto &sfi : std::move(solutions)) {
@@ -140,8 +140,8 @@ struct intersection_update {
         const traj_t &traj, intersection_t &sfi,
         const transform_container_t &contextual_transforms,
         const typename transform_container_t::context_type &ctx,
-        const std::array<scalar_t, 2u> &mask_tolerance =
-            {0.f, 1.f * unit<scalar_t>::mm},
+        const darray<scalar_t, 2u> &mask_tolerance = {0.f,
+                                                      1.f * unit<scalar_t>::mm},
         const scalar_t mask_tol_scalor = 0.f,
         const scalar_t overstep_tol = 0.f) const {
 

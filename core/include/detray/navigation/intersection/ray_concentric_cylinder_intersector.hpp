@@ -59,7 +59,7 @@ struct ray_concentric_cylinder_intersector {
     DETRAY_HOST_DEVICE inline intersection_type<surface_descr_t> operator()(
         const ray_type &ray, const surface_descr_t &sf, const mask_t &mask,
         const transform3_type & /*trf*/,
-        const std::array<scalar_type, 2u> mask_tolerance =
+        const darray<scalar_type, 2u> mask_tolerance =
             {0.f, 1.f * unit<scalar_type>::mm},
         const scalar_type mask_tol_scalor = 0.f,
         const scalar_type overstep_tol = 0.f) const {
@@ -86,8 +86,8 @@ struct ray_concentric_cylinder_intersector {
 
         if (qe.solutions() > 0) {
             const scalar_type overstep_tolerance{overstep_tol};
-            std::array<point3_type, 2> candidates;
-            std::array<scalar_type, 2> t01 = {0.f, 0.f};
+            darray<point3_type, 2> candidates;
+            darray<scalar_type, 2> t01 = {0.f, 0.f};
 
             candidates[0][_x] = qe.smaller();
             candidates[0][_y] = k * qe.smaller() + d;
@@ -158,7 +158,7 @@ struct ray_concentric_cylinder_intersector {
     DETRAY_HOST_DEVICE inline void update(
         const ray_type &ray, intersection_type<surface_descr_t> &sfi,
         const mask_t &mask, const transform3_type &trf,
-        const std::array<scalar_type, 2u> &mask_tolerance =
+        const darray<scalar_type, 2u> &mask_tolerance =
             {0.f, 1.f * unit<scalar_type>::mm},
         const scalar_type mask_tol_scalor = 0.f,
         const scalar_type overstep_tol = 0.f) const {

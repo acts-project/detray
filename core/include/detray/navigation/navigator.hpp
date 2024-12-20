@@ -146,7 +146,7 @@ class navigator {
         friend struct intersection_update<ray_intersector>;
 
         using candidate_t = intersection_type;
-        using candidate_cache_t = std::array<candidate_t, k_cache_capacity>;
+        using candidate_cache_t = darray<candidate_t, k_cache_capacity>;
         using candidate_itr_t = typename candidate_cache_t::iterator;
         using candidate_const_itr_t =
             typename candidate_cache_t::const_iterator;
@@ -607,7 +607,7 @@ class navigator {
             const typename detector_type::surface_type &sf_descr,
             const detector_type &det, const context_type &ctx,
             const track_t &track, state &nav_state,
-            const std::array<scalar_type, 2> mask_tol,
+            const darray<scalar_type, 2> mask_tol,
             const scalar_type mask_tol_scalor,
             const scalar_type overstep_tol) const {
 
@@ -620,8 +620,7 @@ class navigator {
                     static_cast<scalar_type>(nav_state.direction()) *
                         track.dir()),
                 sf_descr, det.transform_store(), ctx,
-                sf.is_portal() ? std::array<scalar_type, 2>{0.f, 0.f}
-                               : mask_tol,
+                sf.is_portal() ? darray<scalar_type, 2>{0.f, 0.f} : mask_tol,
                 mask_tol_scalor, overstep_tol);
         }
     };
@@ -652,8 +651,8 @@ class navigator {
         // Search for neighboring surfaces and fill candidates into cache
         volume.template visit_neighborhood<candidate_search>(
             track, cfg, ctx, det, ctx, track, navigation,
-            std::array<scalar_type, 2u>{cfg.min_mask_tolerance,
-                                        cfg.max_mask_tolerance},
+            darray<scalar_type, 2u>{cfg.min_mask_tolerance,
+                                    cfg.max_mask_tolerance},
             static_cast<scalar_type>(cfg.mask_tolerance_scalor),
             static_cast<scalar_type>(cfg.overstep_tolerance));
 
@@ -921,9 +920,9 @@ class navigator {
             detail::ray<algebra_type>(
                 track.pos(), static_cast<scalar_type>(nav_dir) * track.dir()),
             candidate, det.transform_store(), ctx,
-            sf.is_portal() ? std::array<scalar_type, 2>{0.f, 0.f}
-                           : std::array<scalar_type, 2>{cfg.min_mask_tolerance,
-                                                        cfg.max_mask_tolerance},
+            sf.is_portal() ? darray<scalar_type, 2>{0.f, 0.f}
+                           : darray<scalar_type, 2>{cfg.min_mask_tolerance,
+                                                    cfg.max_mask_tolerance},
             static_cast<scalar_type>(cfg.mask_tolerance_scalor),
             static_cast<scalar_type>(cfg.overstep_tolerance));
     }

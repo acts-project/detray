@@ -33,12 +33,10 @@ struct actor {
 /// The composition represents an actor together with its observers. In
 /// addition to running its own implementation, it notifies its observing actors
 ///
-/// @tparam tuple_t the tuple used to unroll observer types.
 /// @tparam actor_impl_t the actor the compositions implements itself.
 /// @tparam observers a pack of observing actors that get called on the updated
 ///         actor state of the compositions actor implementation.
-template <template <typename...> class tuple_t = dtuple,
-          class actor_impl_t = actor, typename... observers>
+template <class actor_impl_t = actor, typename... observers>
 class composite_actor final : public actor_impl_t {
 
     public:
@@ -125,7 +123,7 @@ class composite_actor final : public actor_impl_t {
     template <std::size_t... indices, typename actor_states_t,
               typename actor_impl_state_t, typename propagator_state_t>
     DETRAY_HOST_DEVICE inline void notify(
-        const tuple_t<observers...> &observer_list, actor_states_t &states,
+        const dtuple<observers...> &observer_list, actor_states_t &states,
         actor_impl_state_t &actor_state, propagator_state_t &p_state,
         std::index_sequence<indices...> /*ids*/) const {
 
@@ -135,7 +133,7 @@ class composite_actor final : public actor_impl_t {
     }
 
     /// Keep the observers (might be composites again)
-    tuple_t<observers...> m_observers = {};
+    dtuple<observers...> m_observers = {};
 };
 
 }  // namespace detray

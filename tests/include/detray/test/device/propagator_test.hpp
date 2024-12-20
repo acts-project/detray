@@ -38,7 +38,6 @@
 
 // System include(s)
 #include <stdexcept>
-#include <tuple>
 
 namespace detray {
 
@@ -82,12 +81,12 @@ using step_tracer_host_t = step_tracer<test_algebra, vecmem::vector>;
 using step_tracer_device_t = step_tracer<test_algebra, vecmem::device_vector>;
 using pathlimit_aborter_t = pathlimit_aborter<scalar>;
 using actor_chain_host_t =
-    actor_chain<tuple, step_tracer_host_t, pathlimit_aborter_t,
+    actor_chain<step_tracer_host_t, pathlimit_aborter_t,
                 parameter_transporter<test_algebra>,
                 pointwise_material_interactor<test_algebra>,
                 parameter_resetter<test_algebra>>;
 using actor_chain_device_t =
-    actor_chain<tuple, step_tracer_device_t, pathlimit_aborter_t,
+    actor_chain<step_tracer_device_t, pathlimit_aborter_t,
                 parameter_transporter<test_algebra>,
                 pointwise_material_interactor<test_algebra>,
                 parameter_resetter<test_algebra>>;

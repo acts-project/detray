@@ -78,9 +78,8 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
     using interactor_t = pointwise_material_interactor<test_algebra>;
     using pathlimit_aborter_t = pathlimit_aborter<scalar>;
     using actor_chain_t =
-        actor_chain<dtuple, pathlimit_aborter_t,
-                    parameter_transporter<test_algebra>, interactor_t,
-                    parameter_resetter<test_algebra>>;
+        actor_chain<pathlimit_aborter_t, parameter_transporter<test_algebra>,
+                    interactor_t, parameter_resetter<test_algebra>>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Propagator is built from the stepper and navigator
@@ -202,9 +201,8 @@ GTEST_TEST(detray_material, telescope_geometry_scattering_angle) {
     using simulator_t = random_scatterer<test_algebra>;
     using pathlimit_aborter_t = pathlimit_aborter<scalar>;
     using actor_chain_t =
-        actor_chain<dtuple, pathlimit_aborter_t,
-                    parameter_transporter<test_algebra>, simulator_t,
-                    parameter_resetter<test_algebra>>;
+        actor_chain<pathlimit_aborter_t, parameter_transporter<test_algebra>,
+                    simulator_t, parameter_resetter<test_algebra>>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Propagator is built from the stepper and navigator
@@ -291,7 +289,7 @@ GTEST_TEST(detray_material, telescope_geometry_volume_material) {
     using bfield_t = bfield::const_field_t<scalar>;
     using stepper_t = rk_stepper<bfield_t::view_t, test_algebra>;
     using pathlimit_aborter_t = pathlimit_aborter<scalar>;
-    using actor_chain_t = actor_chain<dtuple, pathlimit_aborter_t>;
+    using actor_chain_t = actor_chain<pathlimit_aborter_t>;
     using vector3 = test::vector3;
 
     // Bfield setup

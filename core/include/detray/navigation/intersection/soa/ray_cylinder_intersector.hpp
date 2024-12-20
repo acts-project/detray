@@ -55,18 +55,18 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
     /// @return the intersections.
     template <typename surface_descr_t, typename mask_t,
               typename other_algebra_t>
-    DETRAY_HOST_DEVICE inline std::array<intersection_type<surface_descr_t>, 2>
+    DETRAY_HOST_DEVICE inline darray<intersection_type<surface_descr_t>, 2>
     operator()(const detail::ray<other_algebra_t> &ray,
                const surface_descr_t &sf, const mask_t &mask,
                const transform3_type &trf,
-               const std::array<scalar_type, 2u> &mask_tolerance = {0.f, 1.f},
+               const darray<scalar_type, 2u> &mask_tolerance = {0.f, 1.f},
                const scalar_type mask_tol_scalor = 0.f,
                const scalar_type overstep_tol = 0.f) const {
 
         // One or both of these solutions might be invalid
         const auto qe = solve_intersection(ray, mask, trf);
 
-        std::array<intersection_type<surface_descr_t>, 2> ret;
+        darray<intersection_type<surface_descr_t>, 2> ret;
         ret[1] = build_candidate<surface_descr_t>(
             ray, mask, trf, qe.larger(), mask_tolerance, mask_tol_scalor,
             overstep_tol);
@@ -98,7 +98,7 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
         const detail::ray<other_algebra_t> &ray,
         intersection_type<surface_descr_t> &sfi, const mask_t &mask,
         const transform3_type &trf,
-        const std::array<scalar_type, 2u> &mask_tolerance = {0.f, 1.f},
+        const darray<scalar_type, 2u> &mask_tolerance = {0.f, 1.f},
         const scalar_type mask_tol_scalor = 0.f,
         const scalar_type overstep_tol = 0.f) const {
 
@@ -158,7 +158,7 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
     DETRAY_HOST_DEVICE inline intersection_type<surface_descr_t>
     build_candidate(const detail::ray<other_algebra_t> &ray, const mask_t &mask,
                     const transform3_type &trf, const scalar_type path,
-                    const std::array<scalar_type, 2u> &mask_tolerance =
+                    const darray<scalar_type, 2u> &mask_tolerance =
                         {0.f, 1.f * unit<scalar_type>::mm},
                     const scalar_type mask_tol_scalor = 0.f,
                     const scalar_type overstep_tol = 0.f) const {

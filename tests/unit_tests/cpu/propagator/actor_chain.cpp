@@ -84,14 +84,13 @@ struct example_actor : detray::actor {
 
 using example_actor_t = example_actor<std::vector>;
 // Implements example_actor with two print observers
-using composite1 =
-    composite_actor<dtuple, example_actor_t, print_actor, print_actor>;
+using composite1 = composite_actor<example_actor_t, print_actor, print_actor>;
 // Implements example_actor with one print observer
-using composite2 = composite_actor<dtuple, example_actor_t, print_actor>;
+using composite2 = composite_actor<example_actor_t, print_actor>;
 // Implements example_actor through composite2 and has composite1 as observer
-using composite3 = composite_actor<dtuple, example_actor_t, composite1>;
+using composite3 = composite_actor<example_actor_t, composite1>;
 // Implements example_actor through composite2<-composite3 with composite1 obs.
-using composite4 = composite_actor<dtuple, example_actor_t, composite1>;
+using composite4 = composite_actor<example_actor_t, composite1>;
 
 /* Test chaining of multiple actors
  * The chain goes as follows (depth first):
@@ -106,11 +105,11 @@ using composite4 = composite_actor<dtuple, example_actor_t, composite1>;
  *               4.|
  *               print
  */
-using observer_lvl3 = composite_actor<dtuple, example_actor_t, print_actor>;
-using observer_lvl2 = composite_actor<dtuple, example_actor_t, observer_lvl3,
+using observer_lvl3 = composite_actor<example_actor_t, print_actor>;
+using observer_lvl2 = composite_actor<example_actor_t, observer_lvl3,
                                       example_actor_t, print_actor>;
-using observer_lvl1 = composite_actor<dtuple, print_actor, observer_lvl2>;
-using chain = composite_actor<dtuple, example_actor_t, observer_lvl1>;
+using observer_lvl1 = composite_actor<print_actor, observer_lvl2>;
+using chain = composite_actor<example_actor_t, observer_lvl1>;
 
 // Test the actor chain on some dummy actor types
 GTEST_TEST(detray_propagator, actor_chain) {
@@ -127,8 +126,8 @@ GTEST_TEST(detray_propagator, actor_chain) {
     empty_prop_state prop_state{};
 
     // Chain of actors
-    using actor_chain_t = actor_chain<dtuple, example_actor_t, composite1,
-                                      composite2, composite3, composite4>;
+    using actor_chain_t = actor_chain<example_actor_t, composite1, composite2,
+                                      composite3, composite4>;
     // Run
     actor_chain_t run_actors{};
     run_actors(actor_states, prop_state);
@@ -147,7 +146,7 @@ GTEST_TEST(detray_propagator, actor_chain) {
     printer_state.stream.clear();
 
     // Run the chain
-    actor_chain<dtuple, chain> run_chain{};
+    actor_chain<chain> run_chain{};
     run_chain(actor_states, prop_state);
 
     ASSERT_TRUE(printer_state.to_string().compare(

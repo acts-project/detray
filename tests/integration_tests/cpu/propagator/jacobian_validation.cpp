@@ -1571,10 +1571,9 @@ int main(int argc, char** argv) {
     const inhom_bfield_t inhom_bfield = bfield::create_inhom_field<scalar>();
 
     // Actor chain type
-    using actor_chain_t =
-        actor_chain<dtuple, parameter_transporter<test_algebra>,
-                    bound_getter<test_algebra>,
-                    parameter_resetter<test_algebra>>;
+    using actor_chain_t = actor_chain<parameter_transporter<test_algebra>,
+                                      bound_getter<test_algebra>,
+                                      parameter_resetter<test_algebra>>;
 
     // Iterate over reference (pilot) tracks for a rectangular telescope
     // geometry and Jacobian calculation

@@ -11,9 +11,6 @@
 // GTest include(s)
 #include <gtest/gtest.h>
 
-// System include(s)
-#include <cmath>
-
 namespace {
 
 template <typename hasher_t, typename digest_collection_t>

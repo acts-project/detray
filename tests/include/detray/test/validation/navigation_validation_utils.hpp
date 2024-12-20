@@ -72,8 +72,8 @@ inline auto record_propagation(
     using pathlimit_aborter_t = pathlimit_aborter<scalar_t>;
     using material_tracer_t =
         material_validator::material_tracer<scalar_t, dvector>;
-    using actor_chain_t = actor_chain<dtuple, pathlimit_aborter_t,
-                                      step_tracer_t, material_tracer_t>;
+    using actor_chain_t =
+        actor_chain<pathlimit_aborter_t, step_tracer_t, material_tracer_t>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Propagator

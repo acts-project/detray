@@ -38,7 +38,7 @@ struct detector_scan_config : public test::fixture_base<>::configuration {
     std::string m_intersection_file{"truth_intersections"};
     std::string m_track_param_file{"truth_trk_parameters"};
     /// Mask tolerance for the intersectors
-    std::array<scalar_type, 2> m_mask_tol{
+    darray<scalar_type, 2> m_mask_tol{
         std::numeric_limits<scalar_type>::epsilon(),
         std::numeric_limits<scalar_type>::epsilon()};
     /// B-field vector for helix
@@ -57,7 +57,7 @@ struct detector_scan_config : public test::fixture_base<>::configuration {
     const std::string &name() const { return m_name; }
     const std::string &intersection_file() const { return m_intersection_file; }
     const std::string &track_param_file() const { return m_track_param_file; }
-    std::array<scalar_type, 2> mask_tolerance() const { return m_mask_tol; }
+    darray<scalar_type, 2> mask_tolerance() const { return m_mask_tol; }
     const vector3_type &B_vector() { return m_B; }
     std::shared_ptr<test::whiteboard> whiteboard() { return m_white_board; }
     std::shared_ptr<test::whiteboard> whiteboard() const {
@@ -83,7 +83,7 @@ struct detector_scan_config : public test::fixture_base<>::configuration {
         m_track_param_file = f;
         return *this;
     }
-    detector_scan_config &mask_tolerance(const std::array<scalar_type, 2> tol) {
+    detector_scan_config &mask_tolerance(const darray<scalar_type, 2> tol) {
         m_mask_tol = tol;
         return *this;
     }
