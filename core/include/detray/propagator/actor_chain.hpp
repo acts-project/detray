@@ -33,6 +33,8 @@ class actor_chain {
     public:
     /// Types of the actors that are registered in the chain
     using actor_list_type = dtuple<actors_t...>;
+    // Tuple of actor states
+    using state_tuple = dtuple<typename actors_t::state...>;
     // Type of states tuple that is used in the propagator
     using state = dtuple<typename actors_t::state &...>;
 
@@ -52,8 +54,7 @@ class actor_chain {
         return m_actors;
     }
 
-    /// @returns a tuple of default constructible actor states and a
-    /// corresponding tuple of references
+    /// @returns a tuple of default constructible actor states
     DETRAY_HOST_DEVICE
     static constexpr auto make_actor_states() {
         // Only possible if each state is default initializable
@@ -66,10 +67,10 @@ class actor_chain {
     }
 
     /// @returns a tuple of reference for every state in the tuple @param t
-    DETRAY_HOST_DEVICE static constexpr state make_ref_tuple(
+    DETRAY_HOST_DEVICE static constexpr state setup_actor_states(
         dtuple<typename actors_t::state...> &t) {
-        return make_ref_tuple(t,
-                              std::make_index_sequence<sizeof...(actors_t)>{});
+        return setup_actor_states(
+            t, std::make_index_sequence<sizeof...(actors_t)>{});
     }
 
     private:
@@ -110,7 +111,7 @@ class actor_chain {
 
     /// @returns a tuple of reference for every state in the tuple @param t
     template <std::size_t... indices>
-    DETRAY_HOST_DEVICE static constexpr state make_ref_tuple(
+    DETRAY_HOST_DEVICE static constexpr state setup_actor_states(
         dtuple<typename actors_t::state...> &t,
         std::index_sequence<indices...> /*ids*/) {
         return detray::tie(detail::get<indices>(t)...);
@@ -125,6 +126,7 @@ template <>
 class actor_chain<> {
 
     public:
+    using state_tuple = dtuple<>;
     /// Empty states replaces a real actor states container
     struct state {};
 
@@ -136,6 +138,12 @@ class actor_chain<> {
     DETRAY_HOST_DEVICE void operator()(actor_states_t & /*states*/,
                                        propagator_state_t & /*p_state*/) const {
         /*Do nothing*/
+    }
+
+    /// @returns an empty state
+    DETRAY_HOST_DEVICE static constexpr state setup_actor_states(
+        const state_tuple &) {
+        return {};
     }
 };
 
