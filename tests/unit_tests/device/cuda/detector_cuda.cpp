@@ -7,7 +7,11 @@
 
 // Detray test include(s)
 #include "detector_cuda_kernel.hpp"
+#include "detray/core/detail/alignment.hpp"
+#include "detray/definitions/detail/algebra.hpp"
+#include "detray/test/common/assert.hpp"
 #include "detray/test/utils/detectors/build_toy_detector.hpp"
+#include "detray/test/utils/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/cuda/device_memory_resource.hpp>
@@ -94,5 +98,85 @@ TEST(detector_cuda, detector) {
 
     for (unsigned int i = 0u; i < cylinders_host.size(); i++) {
         EXPECT_EQ(cylinders_host[i] == cylinders_device[i], true);
+    }
+}
+
+TEST(detector_cuda, detector_alignment) {
+    // a few typedefs
+    using test_algebra = test::algebra;
+    using scalar = dscalar<test_algebra>;
+    using point3 = dpoint3D<test_algebra>;
+
+    // memory resources
+    vecmem::host_memory_resource host_mr;
+    vecmem::cuda::device_memory_resource dev_mr;
+    vecmem::cuda::managed_memory_resource mng_mr;
+
+    // helper object for performing memory copies to CUDA devices
+    vecmem::cuda::copy cuda_cpy;
+
+    // create toy geometry in host memory
+    auto [det_host, names_host] = build_toy_detector<test_algebra>(host_mr);
+
+    // copy static detector data (including the initial set of transforms) to
+    // the device
+    // use synchronous copy and fixed size buffers
+    auto det_buff_static = detray::get_buffer(det_host, dev_mr, cuda_cpy);
+
+    // ---------- construct an "aligned" transform store ---------
+
+    // build a vector of aligned transforms on the host
+    // for populating this vector take all transforms of the detector
+    // and shift them by the same translation
+    typename detector_host_t::transform_container tf_store_aligned_host;
+
+    point3 shift{.1f * unit<scalar>::mm, .2f * unit<scalar>::mm,
+                 .3f * unit<scalar>::mm};
+
+    tf_store_aligned_host.reserve(
+        det_host.transform_store().size(),
+        typename decltype(det_host)::transform_container::context_type{});
+
+    for (const auto& tf : det_host.transform_store()) {
+        point3 shifted = tf.translation() + shift;
+        tf_store_aligned_host.push_back(
+            transform_t{shifted, tf.x(), tf.y(), tf.z()});
+    }
+
+    // copy the vector of aligned transforms to the device
+    // again, use synchronous copy and fixed size buffers
+    auto tf_buff_aligned =
+        get_buffer(tf_store_aligned_host, dev_mr, cuda_cpy, copy::sync,
+                   vecmem::data::buffer_type::fixed_size);
+
+    // Get the view of the aligned detector using the vector of aligned
+    // transforms and the static part of the detector copied to the device
+    // earlier
+    auto detector_view_aligned =
+        detail::misaligned_detector_view<detector_host_t>(det_buff_static,
+                                                          tf_buff_aligned);
+    // Get the view of the static detector
+    auto detector_view_static = detray::get_data(det_buff_static);
+
+    // make two vectors for surface transforms copied from device side
+    vecmem::vector<transform_t> surfacexf_device_static(
+        det_host.surfaces().size(), &mng_mr);
+    vecmem::vector<transform_t> surfacexf_device_aligned(
+        det_host.surfaces().size(), &mng_mr);
+    // views of the above vectors
+    auto surfacexf_data_static = vecmem::get_data(surfacexf_device_static);
+    auto surfacexf_data_aligned = vecmem::get_data(surfacexf_device_aligned);
+
+    // run the test code to extract the surface transforms for the static
+    // and misaligned detector views and to store them into the vectors
+    detector_alignment_test(detector_view_static, detector_view_aligned,
+                            surfacexf_data_static, surfacexf_data_aligned);
+
+    // check that the relevant transforms have been properly shifted
+    for (unsigned int i = 0u; i < surfacexf_device_static.size(); i++) {
+        auto translation_static = surfacexf_device_static[i].translation();
+        auto translation_aligned = surfacexf_device_aligned[i].translation();
+        auto translation_diff = translation_aligned - translation_static;
+        EXPECT_POINT3_NEAR(translation_diff, shift, 1e-4);
     }
 }
