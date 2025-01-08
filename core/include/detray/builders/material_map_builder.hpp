@@ -220,7 +220,7 @@ struct add_sf_material_map {
 
     template <typename coll_t, typename index_t, typename mat_factory_t,
               typename bin_data_t, std::size_t DIM, typename material_store_t,
-              typename scalar_t>
+              concepts::scalar scalar_t>
     DETRAY_HOST inline std::pair<typename materials_t::id, dindex> operator()(
         [[maybe_unused]] const coll_t& coll,
         [[maybe_unused]] const index_t& index,
