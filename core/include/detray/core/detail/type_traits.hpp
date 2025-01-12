@@ -8,8 +8,6 @@
 #pragma once
 
 // Project include(s)
-#include "detray/core/detail/type_traits.hpp"
-#include "detray/definitions/detail/indexing.hpp"
 #include "detray/materials/detail/concepts.hpp"
 #include "detray/materials/material_rod.hpp"
 #include "detray/materials/material_slab.hpp"

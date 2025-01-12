@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/io/backend/concepts.hpp"
+#include "detray/core/concepts.hpp"
 #include "detray/io/backend/geometry_reader.hpp"
 #include "detray/io/backend/homogeneous_material_reader.hpp"
 #include "detray/io/backend/material_map_reader.hpp"

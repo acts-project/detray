@@ -9,7 +9,6 @@
 
 // Project include(s)
 #include "detray/builders/detector_builder.hpp"
-#include "detray/utils/type_traits.hpp"
 
 // System include(s)
 #include <concepts>

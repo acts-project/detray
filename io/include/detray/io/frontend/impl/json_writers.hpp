@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/io/backend/concepts.hpp"
+#include "detray/core/concepts.hpp"
 #include "detray/io/backend/geometry_writer.hpp"
 #include "detray/io/backend/homogeneous_material_writer.hpp"
 #include "detray/io/backend/material_map_writer.hpp"
@@ -31,8 +31,6 @@ void add_json_writers(detector_components_writer<detector_t>& writers,
     // Always needed
     using json_geometry_writer = json_converter<detector_t, geometry_writer>;
 
-    static_assert(
-        io::concepts::writer_backend<detector_t, io::geometry_writer>);
     writers.template add<json_geometry_writer>();
 
     // Find other writers, depending on the detector type
