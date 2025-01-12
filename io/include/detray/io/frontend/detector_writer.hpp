@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023-2024 CERN for the benefit of the ACTS project
+ * (c) 2023-2025 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -10,7 +10,7 @@
 // Project include(s)
 #include "detray/io/frontend/detail/detector_components_writer.hpp"
 #include "detray/io/frontend/detector_writer_config.hpp"
-#include "detray/io/frontend/implementation/json_writers.hpp"
+#include "detray/io/frontend/impl/json_writers.hpp"
 #include "detray/io/utils/create_path.hpp"
 
 // System include(s)

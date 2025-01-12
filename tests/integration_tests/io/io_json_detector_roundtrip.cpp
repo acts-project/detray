@@ -9,8 +9,8 @@
 #include "detray/definitions/detail/algebra.hpp"
 
 // Detray IO include(s)
-#include "detray/io/common/geometry_reader.hpp"
-#include "detray/io/common/geometry_writer.hpp"
+#include "detray/io/backend/geometry_reader.hpp"
+#include "detray/io/backend/geometry_writer.hpp"
 #include "detray/io/frontend/detector_reader.hpp"
 #include "detray/io/frontend/detector_writer.hpp"
 #include "detray/io/json/json_reader.hpp"

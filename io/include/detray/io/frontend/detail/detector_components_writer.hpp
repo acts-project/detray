@@ -39,7 +39,7 @@ class detector_components_writer final {
 
     /// Create a new writer of type @tparam writer_t
     template <class writer_t>
-    requires std::is_base_of_v<writer_interface<detector_t>, writer_t> void
+    /*requires std::is_base_of_v<writer_interface<detector_t>, writer_t>*/ void
     add() {
         add(std::make_unique<writer_t>());
     }

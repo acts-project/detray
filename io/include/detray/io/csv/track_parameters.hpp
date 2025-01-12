@@ -105,7 +105,7 @@ inline auto read_free_track_params(const std::string &file_name) {
 }
 
 /// Write free track parameters to csv file
-template <concepts::scalar scalar_t, typename track_t>
+template <detray::concepts::scalar scalar_t, typename track_t>
 inline void write_free_track_params(
     const std::string &file_name,
     const std::vector<std::vector<std::pair<scalar_t, track_t>>>

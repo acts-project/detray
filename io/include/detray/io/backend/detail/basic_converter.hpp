@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023-2024 CERN for the benefit of the ACTS project
+ * (c) 2023-2025 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -8,22 +8,22 @@
 #pragma once
 
 // Project include(s)
-#include "detray/io/frontend/detail/io_metadata.hpp"
 #include "detray/io/frontend/payloads.hpp"
+#include "detray/io/utils/io_metadata.hpp"
 
 // System include(s)
 #include <string_view>
 
-// Convert basic information like links and header data
+// Convert basic information like links and header data to and from payloads
 namespace detray::io::detail::basic_converter {
 
 /// @returns a link from its io payload @param link_data
-inline dindex convert(const single_link_payload& link_data) {
+inline dindex from_payload(const single_link_payload& link_data) {
     return static_cast<dindex>(link_data.link);
 }
 
 /// Convert a link @param idx into its io payload
-inline single_link_payload convert(const std::size_t idx) {
+inline single_link_payload to_payload(const std::size_t idx) {
     single_link_payload link_data;
     link_data.link = idx;
 
@@ -33,8 +33,8 @@ inline single_link_payload convert(const std::size_t idx) {
 /// Convert a typed link with a type id @param id and index @param idx into its
 /// io payload
 template <typename type_id>
-inline typed_link_payload<type_id> convert(const type_id id,
-                                           const std::size_t idx) {
+inline typed_link_payload<type_id> to_payload(const type_id id,
+                                              const std::size_t idx) {
     typed_link_payload<type_id> link_data;
 
     link_data.type = id;
@@ -46,8 +46,8 @@ inline typed_link_payload<type_id> convert(const type_id id,
 /// Convert the common header information using the detector name
 /// @param det_name and the file tag @param tag that describes the data file
 /// content
-inline common_header_payload convert(const std::string_view det_name,
-                                     const std::string_view tag) {
+inline common_header_payload to_payload(const std::string_view det_name,
+                                        const std::string_view tag) {
     common_header_payload header_data;
 
     header_data.version = io::detail::get_detray_version();

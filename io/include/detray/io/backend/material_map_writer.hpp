@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023-2024 CERN for the benefit of the ACTS project
+ * (c) 2023-2025 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -8,9 +8,9 @@
 #pragma once
 
 // Project include(s)
-#include "detray/io/common/detail/grid_writer.hpp"
-#include "detray/io/common/detail/type_info.hpp"
-#include "detray/io/common/homogeneous_material_writer.hpp"
+#include "detray/io/backend/detail/grid_writer.hpp"
+#include "detray/io/backend/detail/type_info.hpp"
+#include "detray/io/backend/homogeneous_material_writer.hpp"
 #include "detray/io/frontend/payloads.hpp"
 #include "detray/materials/material_slab.hpp"
 
@@ -20,6 +20,8 @@
 namespace detray::io {
 
 /// @brief Material maps writer backend
+///
+/// Fills a material @c detector_grids_payload from a @c detector instance
 class material_map_writer : public detail::grid_writer {
 
     using base_type = detail::grid_writer;
@@ -30,27 +32,31 @@ class material_map_writer : public detail::grid_writer {
     /// Tag the writer as "material_map"
     static constexpr std::string_view tag = "material_maps";
 
+    /// Payload type that the reader processes
+    using payload_type =
+        detector_grids_payload<material_slab_payload, io::material_id>;
+
     /// Same constructors for this class as for base_type
     using base_type::base_type;
 
     /// Convert the header information into its payload
     template <class detector_t>
-    static auto write_header(const detector_t& det,
-                             const std::string_view det_name) {
+    static auto header_to_payload(const detector_t& det,
+                                  const std::string_view det_name) {
 
-        return grid_writer_t::write_header(tag, det.material_store(), det_name);
+        return grid_writer_t::header_to_payload(tag, det.material_store(),
+                                                det_name);
     }
 
     /// Convert the material description of a detector @param det into its io
     /// payload
     template <class detector_t>
-    static detector_grids_payload<material_slab_payload, io::material_id>
-    convert(const detector_t& det, const typename detector_t::name_map&) {
+    static payload_type to_payload(const detector_t& det,
+                                   const typename detector_t::name_map&) {
 
         using material_t = material_slab<typename detector_t::scalar_type>;
 
-        detector_grids_payload<material_slab_payload, io::material_id>
-            grids_data;
+        payload_type grids_data;
 
         for (const auto& vol_desc : det.volumes()) {
 
@@ -74,11 +80,11 @@ class material_map_writer : public detail::grid_writer {
 
                 // How to convert a material slab in the grid
                 auto mat_converter = [&sf_desc](const material_t& mat) {
-                    return mat_writer_t::convert(mat, sf_desc.index());
+                    return mat_writer_t::to_payload(mat, sf_desc.index());
                 };
 
                 // Generate the payload
-                grid_writer_t::convert(
+                grid_writer_t::to_payload(
                     det.material_store(), mat_link, vol_desc.index(),
                     sf_desc.index() - offset, grids_data, mat_converter);
             }

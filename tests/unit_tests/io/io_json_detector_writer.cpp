@@ -12,10 +12,10 @@
 #include "detray/geometry/shapes/annulus2D.hpp"
 
 // Detray IO include(s)
-#include "detray/io/common/geometry_writer.hpp"
-#include "detray/io/common/homogeneous_material_writer.hpp"
-#include "detray/io/common/material_map_writer.hpp"
-#include "detray/io/common/surface_grid_writer.hpp"
+#include "detray/io/backend/geometry_writer.hpp"
+#include "detray/io/backend/homogeneous_material_writer.hpp"
+#include "detray/io/backend/material_map_writer.hpp"
+#include "detray/io/backend/surface_grid_writer.hpp"
 #include "detray/io/frontend/detector_writer.hpp"
 #include "detray/io/json/json_writer.hpp"
 
