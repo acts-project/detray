@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2024 CERN for the benefit of the ACTS project
+ * (c) 2022-2025 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -15,7 +15,7 @@
 #include "detray/materials/material.hpp"
 #include "detray/materials/material_slab.hpp"
 #include "detray/materials/predefined_materials.hpp"
-#include "detray/navigation/navigator.hpp"
+#include "detray/navigation/caching_navigator.hpp"
 #include "detray/propagator/actors.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/propagator.hpp"
@@ -69,7 +69,7 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
     const auto [det, names] =
         build_telescope_detector<test_algebra>(host_mr, tel_cfg);
 
-    using navigator_t = navigator<decltype(det)>;
+    using navigator_t = caching_navigator<decltype(det)>;
     using stepper_t = line_stepper<test_algebra>;
     using interactor_t = pointwise_material_interactor<test_algebra>;
     using pathlimit_aborter_t = pathlimit_aborter<scalar>;
@@ -192,7 +192,7 @@ GTEST_TEST(detray_material, telescope_geometry_scattering_angle) {
     const auto [det, names] =
         build_telescope_detector<test_algebra>(host_mr, tel_cfg);
 
-    using navigator_t = navigator<decltype(det)>;
+    using navigator_t = caching_navigator<decltype(det)>;
     using stepper_t = line_stepper<test_algebra>;
     using simulator_t = random_scatterer<test_algebra>;
     using pathlimit_aborter_t = pathlimit_aborter<scalar>;
@@ -330,7 +330,7 @@ GTEST_TEST(detray_material, telescope_geometry_volume_material) {
         const auto [det, names] =
             build_telescope_detector<test_algebra>(host_mr, tel_cfg);
 
-        using navigator_t = navigator<decltype(det)>;
+        using navigator_t = caching_navigator<decltype(det)>;
         using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
         // Propagator is built from the stepper and navigator

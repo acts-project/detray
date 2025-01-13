@@ -28,7 +28,7 @@ __global__ void __launch_bounds__(256, 4) propagator_benchmark_kernel(
     using actor_chain_t = typename propagator_t::actor_chain_type;
     using propagator_device_t =
         propagator<typename propagator_t::stepper_type,
-                   navigator<detector_device_t>, actor_chain_t>;
+                   caching_navigator<detector_device_t>, actor_chain_t>;
 
     const detector_device_t det(det_view);
     const vecmem::device_vector<free_track_parameters<algebra_t>> tracks(

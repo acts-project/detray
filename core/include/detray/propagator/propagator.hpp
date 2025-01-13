@@ -10,8 +10,8 @@
 // Project include(s).
 #include "detray/definitions/detail/macros.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/navigation/caching_navigator.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
-#include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/base_stepper.hpp"
 #include "detray/propagator/propagation_config.hpp"

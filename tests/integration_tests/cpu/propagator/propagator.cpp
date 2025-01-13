@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021-2024 CERN for the benefit of the ACTS project
+ * (c) 2021-2025 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -11,8 +11,9 @@
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/bfield.hpp"
 #include "detray/geometry/tracking_surface.hpp"
+#include "detray/navigation/caching_navigator.hpp"
 #include "detray/navigation/detail/trajectories.hpp"
-#include "detray/navigation/navigator.hpp"
+#include "detray/navigation/caching_navigator.hpp"
 #include "detray/propagator/actors.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/line_stepper.hpp"
@@ -132,7 +133,7 @@ GTEST_TEST(detray_propagator, propagator_line_stepper) {
     const auto [d, names] = build_toy_detector<test_algebra>(host_mr, toy_cfg);
 
     using navigator_t =
-        navigator<decltype(d), cache_size, navigation::print_inspector>;
+        caching_navigator<decltype(d), cache_size, navigation::print_inspector>;
     using stepper_t = line_stepper<test_algebra>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain<>>;
 
@@ -197,7 +198,7 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
 
     // Runge-Kutta propagation
     using navigator_t =
-        navigator<detector_t, cache_size, navigation::print_inspector>;
+        caching_navigator<detector_t, cache_size, navigation::print_inspector>;
     using track_t = free_track_parameters<test_algebra>;
     using constraints_t = constrained_step<scalar>;
     using policy_t = stepper_rk_policy<scalar>;
@@ -307,7 +308,7 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
 
     // Runge-Kutta propagation
     using navigator_t =
-        navigator<detector_t, cache_size, navigation::print_inspector>;
+        caching_navigator<detector_t, cache_size, navigation::print_inspector>;
     using track_t = free_track_parameters<test_algebra>;
     using constraints_t = constrained_step<scalar>;
     using policy_t = stepper_rk_policy<scalar>;

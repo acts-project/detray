@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2024 CERN for the benefit of the ACTS project
+ * (c) 2022-2025 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -10,8 +10,9 @@
 #include "detray/detectors/bfield.hpp"
 #include "detray/geometry/barcode.hpp"
 #include "detray/geometry/shapes/rectangle2D.hpp"
+#include "detray/navigation/caching_navigator.hpp"
 #include "detray/navigation/detail/ray.hpp"
-#include "detray/navigation/navigator.hpp"
+#include "detray/navigation/caching_navigator.hpp"
 #include "detray/propagator/actors.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
@@ -65,7 +66,7 @@ TEST_P(BackwardPropagation, backward_propagation) {
               1.f * unit<scalar>::T};
     const bfield_t hom_bfield = bfield::create_const_field<scalar>(B);
 
-    using navigator_t = navigator<decltype(det)>;
+    using navigator_t = caching_navigator<decltype(det)>;
     using rk_stepper_t = rk_stepper<bfield_t::view_t, test_algebra>;
     using actor_chain_t =
         actor_chain<parameter_transporter<test_algebra>,

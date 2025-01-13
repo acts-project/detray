@@ -11,8 +11,8 @@
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes.hpp"
 #include "detray/geometry/shapes/unbounded.hpp"
+#include "detray/navigation/caching_navigator.hpp"
 #include "detray/navigation/detail/ray.hpp"
-#include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/parameter_resetter.hpp"
 #include "detray/propagator/actors/parameter_transporter.hpp"
@@ -68,7 +68,7 @@ GTEST_TEST(detray_propagator, covariance_transport) {
     const auto [det, names] =
         build_telescope_detector<test_algebra>(host_mr, tel_cfg);
 
-    using navigator_t = navigator<decltype(det)>;
+    using navigator_t = caching_navigator<decltype(det)>;
     using cline_stepper_t = line_stepper<test_algebra>;
     using actor_chain_t = actor_chain<parameter_transporter<test_algebra>,
                                       parameter_resetter<test_algebra>>;

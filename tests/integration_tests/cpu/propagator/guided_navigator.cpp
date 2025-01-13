@@ -9,7 +9,7 @@
 #include "detray/detectors/bfield.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes/unbounded.hpp"
-#include "detray/navigation/navigator.hpp"
+#include "detray/navigation/caching_navigator.hpp"
 #include "detray/navigation/policies.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
@@ -65,7 +65,8 @@ GTEST_TEST(detray_navigation, guided_navigator) {
         rk_stepper<b_field_t::view_t, test_algebra, unconstrained_step<scalar>,
                    guided_navigation>;
     using guided_navigator =
-        navigator<detector_t, navigation::default_cache_size, inspector_t>;
+        caching_navigator<detector_t, navigation::default_cache_size,
+                          inspector_t>;
     using pathlimit_aborter_t = pathlimit_aborter<scalar>;
     using actor_chain_t = actor_chain<pathlimit_aborter_t>;
     using propagator_t =

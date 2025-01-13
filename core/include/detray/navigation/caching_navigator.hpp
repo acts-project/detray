@@ -71,7 +71,7 @@ struct void_inspector {
 
 /// @brief The geometry navigation class.
 ///
-/// The navigator is initialized around a detector object, but is itself
+/// The caching_navigator is initialized around a detector object, but is itself
 /// agnostic to the detectors's object/primitive types.
 /// Within a detector volume, the navigatior will perform a local navigation
 /// based on the geometry acceleration structure(s) that are provided by the
@@ -82,7 +82,7 @@ struct void_inspector {
 /// A module surface must link back to its mother volume, while a portal surface
 /// links to the next volume in the direction of the track.
 ///
-/// This navigator applies a trust level based update of its candidate
+/// This caching_navigator applies a trust level based update of its candidate
 /// (intersection) cache, which is kept in the naviagtor's state. The trust
 /// level, and with it the appropriate update policy, must be set by an actor,
 /// otherwise no update will be performed.
@@ -109,7 +109,7 @@ template <typename detector_t,
           typename intersection_t =
               intersection2D<typename detector_t::surface_type,
                              typename detector_t::algebra_type, false>>
-class navigator {
+class caching_navigator {
 
     static_assert(k_cache_capacity >= 2u,
                   "Navigation cache needs to have a capacity larger than 1");
@@ -139,7 +139,7 @@ class navigator {
     /// 'full trust' after changes to the track state reduced the trust level.
     class state : public detray::ranges::view_interface<state> {
 
-        friend class navigator;
+        friend class caching_navigator;
 
         // Allow the filling/updating of candidates
         friend struct intersection_initialize<ray_intersector>;
@@ -154,7 +154,7 @@ class navigator {
 
         public:
         using value_type = candidate_t;
-        using detector_type = navigator::detector_type;
+        using detector_type = caching_navigator::detector_type;
 
         using view_type = detail::get_view_t<inspector_t>;
         using const_view_type = detail::get_view_t<const inspector_t>;

@@ -1,18 +1,14 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2024 CERN for the benefit of the ACTS project
+ * (c) 2024-2025 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
 // Project include(s)
 #include "detray/detectors/bfield.hpp"
-#include "detray/navigation/navigator.hpp"
-#include "detray/propagator/actor_chain.hpp"
-#include "detray/propagator/actors/aborters.hpp"
-#include "detray/propagator/actors/parameter_resetter.hpp"
-#include "detray/propagator/actors/parameter_transporter.hpp"
-#include "detray/propagator/actors/pointwise_material_interactor.hpp"
+#include "detray/navigation/caching_navigator.hpp"
+#include "detray/propagator/actors.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/type_list.hpp"
