@@ -10,8 +10,17 @@
 // Project include(s)
 #include "detray/definitions/algebra.hpp"
 #include "detray/detectors/bfield.hpp"
+<<<<<<< HEAD
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actors.hpp"
+=======
+#include "detray/navigation/caching_navigator.hpp"
+#include "detray/propagator/actor_chain.hpp"
+#include "detray/propagator/actors/aborters.hpp"
+#include "detray/propagator/actors/parameter_resetter.hpp"
+#include "detray/propagator/actors/parameter_transporter.hpp"
+#include "detray/propagator/actors/pointwise_material_interactor.hpp"
+>>>>>>> 618a679e (Rename navigator to caching navigator)
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
@@ -58,7 +67,7 @@ template <typename metadata_t, typename bfield_t,
 using cuda_propagator_type =
     propagator<rk_stepper<covfie::field_view<bfield_t>,
                           typename detector<metadata_t>::algebra_type>,
-               navigator<detector<metadata_t>>,
+               caching_navigator<detector<metadata_t>>,
                actor_chain_t<typename detector<metadata_t>::algebra_type>>;
 
 /// Launch the propagation kernelfor benchmarking

@@ -17,7 +17,6 @@
 #include "detray/definitions/math.hpp"
 #include "detray/geometry/tracking_surface.hpp"
 #include "detray/navigation/navigation_config.hpp"
-#include "detray/navigation/navigator.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/base_stepper.hpp"
 #include "detray/propagator/stepping_config.hpp"
