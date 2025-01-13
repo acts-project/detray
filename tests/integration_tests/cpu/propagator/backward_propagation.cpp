@@ -12,7 +12,6 @@
 #include "detray/geometry/shapes/rectangle2D.hpp"
 #include "detray/navigation/caching_navigator.hpp"
 #include "detray/navigation/detail/ray.hpp"
-#include "detray/navigation/caching_navigator.hpp"
 #include "detray/propagator/actors.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"

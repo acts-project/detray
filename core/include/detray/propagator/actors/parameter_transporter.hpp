@@ -84,7 +84,7 @@ struct parameter_transporter : actor {
         const auto& gctx = propagation._context;
 
         // Current Surface
-        const auto sf = navigation.get_surface();
+        const auto sf = navigation.current_surface();
 
         // Bound track params of departure surface
         auto& bound_params = stepping.bound_params();
@@ -101,7 +101,7 @@ struct parameter_transporter : actor {
             const bound_to_free_matrix_t bound_to_free_jacobian =
                 prev_sf.bound_to_free_jacobian(gctx, bound_params);
 
-            auto vol = navigation.get_volume();
+            auto vol = navigation.current_volume();
             const auto vol_mat_ptr =
                 vol.has_material() ? vol.material_parameters(stepping().pos())
                                    : nullptr;

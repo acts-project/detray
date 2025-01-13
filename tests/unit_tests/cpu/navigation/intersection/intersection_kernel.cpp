@@ -6,7 +6,7 @@
  */
 
 // Project include(s)
-#include "detray/navigation/intersection_kernel.hpp"
+#include "detray/navigation/detail/intersection_kernel.hpp"
 
 #include "detray/core/detail/multi_store.hpp"
 #include "detray/core/detail/single_store.hpp"
@@ -16,7 +16,6 @@
 #include "detray/navigation/detail/trajectories.hpp"
 #include "detray/navigation/intersection/helix_intersector.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
-#include "detray/navigation/intersection_kernel.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/ranges.hpp"
 

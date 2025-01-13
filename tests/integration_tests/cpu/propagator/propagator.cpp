@@ -13,7 +13,6 @@
 #include "detray/geometry/tracking_surface.hpp"
 #include "detray/navigation/caching_navigator.hpp"
 #include "detray/navigation/detail/trajectories.hpp"
-#include "detray/navigation/caching_navigator.hpp"
 #include "detray/propagator/actors.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/line_stepper.hpp"

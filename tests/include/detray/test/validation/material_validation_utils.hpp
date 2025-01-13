@@ -176,7 +176,7 @@ struct material_tracer : detray::actor {
         typename propagator_state_t::detector_type::geometry_context gctx{};
 
         // Current surface
-        const auto sf = navigation.get_surface();
+        const auto sf = navigation.current_surface();
 
         // Track direction and bound position on current surface
         point2_t loc_pos{};

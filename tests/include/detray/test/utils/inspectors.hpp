@@ -284,6 +284,8 @@ struct print_inspector {
 
             debug_stream << sf_cand;
 
+            assert(!sf_cand.sf_desc.barcode().is_invalid());
+
             // Use additional debug information that was gathered on the cand.
             if constexpr (state_type::value_type::is_debug()) {
                 const auto &local = sf_cand.local;
@@ -296,7 +298,7 @@ struct print_inspector {
         }
         if (!state.candidates().empty()) {
             debug_stream << "=> next: ";
-            if (state.is_exhausted()) {
+            if (state.n_candidates() == 0u) {
                 debug_stream << "exhausted" << std::endl;
             } else {
                 debug_stream << " -> " << state.next_surface().barcode()
@@ -309,8 +311,8 @@ struct print_inspector {
             case e_abort:
                 debug_stream << "status" << tabs << "abort" << std::endl;
                 break;
-            case e_on_target:
-                debug_stream << "status" << tabs << "e_on_target" << std::endl;
+            case e_exit:
+                debug_stream << "status" << tabs << "e_exit" << std::endl;
                 break;
             case e_unknown:
                 debug_stream << "status" << tabs << "unknowm" << std::endl;
@@ -319,7 +321,7 @@ struct print_inspector {
                 debug_stream << "status" << tabs << "towards_surface"
                              << std::endl;
                 break;
-            case e_on_module:
+            case e_on_object:
                 debug_stream << "status" << tabs << "on_module" << std::endl;
                 break;
             case e_on_portal:
@@ -330,7 +332,7 @@ struct print_inspector {
         }
 
         debug_stream << "current object\t\t\t";
-        if (state.is_on_surface() || state.status() == status::e_on_target) {
+        if (state.is_on_surface() || state.status() == status::e_exit) {
             debug_stream << state.barcode() << std::endl;
         } else {
             debug_stream << "undefined" << std::endl;
