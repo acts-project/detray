@@ -54,7 +54,7 @@ inline auto record_propagation(
     /// Inspector that records all encountered surfaces
     using object_tracer_t =
         navigation::object_tracer<intersection_t, dvector,
-                                  navigation::status::e_on_module,
+                                  navigation::status::e_on_object,
                                   navigation::status::e_on_portal>;
     /// Inspector that prints the navigator state from within the
     /// navigator's method calls (cannot be done with an actor)

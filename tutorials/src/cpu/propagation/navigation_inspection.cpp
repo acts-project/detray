@@ -43,7 +43,7 @@ int main() {
     /// Inspector that records all encountered surfaces
     using object_tracer_t = detray::navigation::object_tracer<
         intersection_t, detray::dvector,
-        detray::navigation::status::e_on_module,
+        detray::navigation::status::e_on_object,
         detray::navigation::status::e_on_portal>;
 
     /// Inspector that prints the navigator state from within the navigator's
