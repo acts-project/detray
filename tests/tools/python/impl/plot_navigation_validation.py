@@ -123,7 +123,7 @@ def read_navigation_data(logging, inputdir, det_name, p_min, p_max, read_cuda):
     return ray_df, ray_truth_df, ray_cuda_df, helix_df, helix_truth_df, helix_cuda_df
 
 
-""" Plot the data gathered during the navigaiton validation """
+""" Plot the data gathered during the navigation validation """
 
 
 def plot_navigation_data(

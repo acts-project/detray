@@ -63,7 +63,6 @@ struct propagator {
         using context_type = typename detector_type::geometry_context;
         using navigator_state_type = typename navigator_t::state;
         using actor_chain_type = actor_chain_t;
-        using scalar_type = typename navigator_t::scalar_type;
 
         /// Construct the propagation state with free parameter
         DETRAY_HOST_DEVICE state(const free_track_parameters_type &free_params,
@@ -232,7 +231,7 @@ struct propagator {
     ///
     /// @return propagation success.
     DETRAY_HOST_DEVICE bool propagate_is_complete(state &propagation) const {
-        return propagation._navigation.is_complete();
+        return propagation._navigation.finished();
     }
 
     /// Propagate method: Coordinates the calls of the stepper, navigator and

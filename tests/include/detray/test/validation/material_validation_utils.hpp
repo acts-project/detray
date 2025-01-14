@@ -11,18 +11,8 @@
 #include "detray/definitions/algebra.hpp"
 #include "detray/materials/detail/concepts.hpp"
 #include "detray/materials/detail/material_accessor.hpp"
-<<<<<<< HEAD
-#include "detray/navigation/navigator.hpp"
-#include "detray/propagator/actors.hpp"
-=======
 #include "detray/navigation/caching_navigator.hpp"
-#include "detray/propagator/actor_chain.hpp"
-#include "detray/propagator/actors/aborters.hpp"
-#include "detray/propagator/actors/parameter_resetter.hpp"
-#include "detray/propagator/actors/parameter_transporter.hpp"
-#include "detray/propagator/actors/pointwise_material_interactor.hpp"
-#include "detray/propagator/base_actor.hpp"
->>>>>>> 618a679e (Rename navigator to caching navigator)
+#include "detray/propagator/actors.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/utils/type_list.hpp"

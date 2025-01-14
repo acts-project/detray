@@ -11,7 +11,6 @@
 #include "detray/definitions/algebra.hpp"
 #include "detray/geometry/tracking_surface.hpp"
 #include "detray/navigation/detail/intersection_kernel.hpp"
-#include "detray/tracks/trajectories.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 #include "detray/navigation/intersector.hpp"
 #include "detray/tracks/free_track_parameters.hpp"

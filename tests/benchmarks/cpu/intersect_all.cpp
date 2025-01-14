@@ -10,8 +10,8 @@
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/tracking_surface.hpp"
 #include "detray/navigation/detail/intersection_kernel.hpp"
-#include "detray/tracks/ray.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
+#include "detray/tracks/ray.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/ranges.hpp"
 

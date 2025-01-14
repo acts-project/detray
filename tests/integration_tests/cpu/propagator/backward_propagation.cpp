@@ -126,7 +126,7 @@ TEST_P(BackwardPropagation, backward_propagation) {
                                  prop_cfg.context);
     bw_state.set_particle(ptc);
     bw_state.do_debug = true;
-    bw_state._navigation.set_direction(navigation::direction::e_backward);
+    bw_state._navigation.direction(navigation::direction::e_backward);
 
     // Run propagator
     p.propagate(bw_state, detray::tie(bound_updater, interactor, rst));

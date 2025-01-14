@@ -10,17 +10,8 @@
 // Project include(s)
 #include "detray/definitions/algebra.hpp"
 #include "detray/detectors/bfield.hpp"
-<<<<<<< HEAD
-#include "detray/navigation/navigator.hpp"
-#include "detray/propagator/actors.hpp"
-=======
 #include "detray/navigation/caching_navigator.hpp"
-#include "detray/propagator/actor_chain.hpp"
-#include "detray/propagator/actors/aborters.hpp"
-#include "detray/propagator/actors/parameter_resetter.hpp"
-#include "detray/propagator/actors/parameter_transporter.hpp"
-#include "detray/propagator/actors/pointwise_material_interactor.hpp"
->>>>>>> 618a679e (Rename navigator to caching navigator)
+#include "detray/propagator/actors.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
@@ -91,7 +82,8 @@ void run_propagation_kernel(
     const int);
 
 /// Allocate actor state blueprint on device
-/// @note This only works if each actor state in the tuple is essentially POD
+/// @note This only works if each actor state in the tuple is essentially
+/// POD
 template <typename propagator_t>
 typename propagator_t::actor_chain_type::state_tuple *setup_actor_states(
     typename propagator_t::actor_chain_type::state_tuple *);

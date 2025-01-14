@@ -6,8 +6,8 @@
  */
 
 // Project include(s)
-#include "detray/navigation/caching_navigator.hpp"
 #include "detray/definitions/indexing.hpp"
+#include "detray/navigation/caching_navigator.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
 
@@ -315,7 +315,7 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
 
     // Leave for debugging
     // std::cout << navigation.inspector().to_string() << std::endl;
-    ASSERT_TRUE(navigation.is_complete()) << navigation.inspector().to_string();
+    ASSERT_TRUE(navigation.finished()) << navigation.inspector().to_string();
 }
 
 GTEST_TEST(detray_navigation, navigator_wire_chamber) {
@@ -496,5 +496,5 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
 
     // Leave for debugging
     // std::cout << navigation.inspector().to_string() << std::endl;
-    ASSERT_TRUE(navigation.is_complete()) << navigation.inspector().to_string();
+    ASSERT_TRUE(navigation.finished()) << navigation.inspector().to_string();
 }

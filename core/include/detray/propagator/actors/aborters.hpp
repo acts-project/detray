@@ -47,7 +47,7 @@ struct pathlimit_aborter : actor {
         auto &nav_state = prop_state._navigation;
 
         // Nothing left to do. Propagation will exit successfully
-        if (nav_state.is_complete()) {
+        if (nav_state.finished()) {
             return;
         }
 
