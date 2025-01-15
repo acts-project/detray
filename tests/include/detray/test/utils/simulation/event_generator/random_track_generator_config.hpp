@@ -251,6 +251,7 @@ struct random_track_generator_config {
         // General
         out << "\nRandom track generator\n"
             << "----------------------------\n"
+            << "  Random seed           : " << cfg.seed() << "\n"
             << "  No. tracks            : " << cfg.n_tracks() << "\n"
             << "  Charge                : "
             << cfg.charge() / detray::unit<scalar_t>::e << " [e]\n"

@@ -1,6 +1,6 @@
 # Detray library, part of the ACTS project (R&D line)
 #
-# (c) 2023-2024 CERN for the benefit of the ACTS project
+# (c) 2023-2025 CERN for the benefit of the ACTS project
 #
 # Mozilla Public License Version 2.0
 
@@ -20,6 +20,8 @@ from options import (
     parse_detector_io_options,
     parse_plotting_options,
 )
+from utils import read_detector_name
+from utils import add_track_generator_args, add_propagation_args, add_detector_io_args
 
 # python includes
 import argparse
@@ -31,7 +33,7 @@ import sys
 
 def __main__():
 
-    # ----------------------------------------------------------------arg parsing
+    # ---------------------------------------------------------------arg parsing
 
     descr = "Detray Material Validation"
 
@@ -88,42 +90,26 @@ def __main__():
         logging.error(f"Material validation binaries were not found! ({args.bindir})")
         sys.exit(1)
 
-    # ------------------------------------------------------------------------run
+    # -----------------------------------------------------------------------run
 
     # Pass on the options for the validation tools
     args_list = [
-        "--geometry_file",
-        args.geometry_file,
-        "--material_file",
-        args.material_file,
-        "--phi_steps",
-        str(args.phi_steps),
-        "--eta_steps",
-        str(args.eta_steps),
-        "--eta_range",
-        str(args.eta_range[0]),
-        str(args.eta_range[1]),
         "--tol",
         str(args.tolerance),
-        "--min_mask_tolerance",
-        str(args.min_mask_tol),
-        "--max_mask_tolerance",
-        str(args.max_mask_tol),
-        "--overstep_tolerance",
-        str(args.overstep_tol),
-        "--path_tolerance",
-        str(args.path_tol),
-        "--rk-tolerance",
-        str(args.rk_error_tol),
-        "--path_limit",
-        str(args.path_limit),
-        "--search_window",
-        str(args.search_window[0]),
-        str(args.search_window[1]),
     ]
 
-    if args.grid_file:
-        args_list = args_list + ["--grid_file", args.grid_file]
+    # Add parsed options to argument list
+    add_detector_io_args(args_list, args)
+    add_track_generator_args(args_list, args)
+    add_propagation_args(args_list, args)
+
+    logging.debug(args_list)
+
+    if "--material_file" not in args_list:
+        logging.error(
+            "Detector material is required! Please add it using the '--material_file' option"
+        )
+        sys.exit(1)
 
     # Run the host validation and produce the truth data
     logging.debug("Running CPU material validation")
@@ -140,14 +126,11 @@ def __main__():
     if args.sycl:
         logging.error("SYCL material validation is not implemented")
 
-    # ------------------------------------------------------------------------plot
+    # ----------------------------------------------------------------------plot
 
     logging.info("Generating data plots...\n")
 
-    geo_file = open(args.geometry_file)
-    json_geo = json.loads(geo_file.read())
-
-    det_name = json_geo["header"]["common"]["detector"]
+    det_name = read_detector_name(args.geometry_file, logging)
     logging.debug("Detector: " + det_name)
 
     df_scan, df_cpu, df_cuda = read_material_data(in_dir, logging, det_name, args.cuda)
@@ -204,9 +187,9 @@ def __main__():
         )
 
 
-# -------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 if __name__ == "__main__":
     __main__()
 
-# -------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------

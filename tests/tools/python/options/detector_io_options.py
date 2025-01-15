@@ -8,11 +8,11 @@ import argparse
 import os
 import sys
 
-# -------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Options parsing
-# -------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
-""" Parent detector reader that contains common options """
+""" Parent detector reader options that contain common options """
 
 
 def detector_io_options():
@@ -58,6 +58,3 @@ def parse_detector_io_options(args, logging):
     if args.material_file and not os.path.isfile(args.material_file):
         logging.error(f"Detector material file does not exist! ({args.material_file})")
         sys.exit(1)
-
-
-# -------------------------------------------------------------------------------

@@ -1,6 +1,6 @@
 # Detray library, part of the ACTS project (R&D line)
 #
-# (c) 2023-2024 CERN for the benefit of the ACTS project
+# (c) 2023-2025 CERN for the benefit of the ACTS project
 #
 # Mozilla Public License Version 2.0
 
@@ -21,6 +21,8 @@ from options import (
     parse_plotting_options,
 )
 from plotting import pyplot_factory as plt_factory
+from utils import read_detector_name, get_p_range
+from utils import add_track_generator_args, add_propagation_args, add_detector_io_args
 
 # python imports
 import argparse
@@ -32,7 +34,7 @@ import json
 
 def __main__():
 
-    # ----------------------------------------------------------------arg parsing
+    # ---------------------------------------------------------------arg parsing
 
     descr = "Detray Navigation Validation"
 
@@ -120,47 +122,17 @@ def __main__():
         logging.error(f"Navigation validation binaries were not found! ({args.bindir})")
         sys.exit(1)
 
-    # ------------------------------------------------------------------------run
+    # -----------------------------------------------------------------------run
 
     # Pass on the options for the validation tools
-    args_list = [
-        "--data_dir",
-        datadir,
-        "--geometry_file",
-        args.geometry_file,
-        "--n_tracks",
-        str(args.n_tracks),
-        "--randomize_charge",
-        str(args.randomize_charge),
-        "--p_T",
-        str(args.transverse_momentum),
-        "--eta_range",
-        str(args.eta_range[0]),
-        str(args.eta_range[1]),
-        "--min_mask_tolerance",
-        str(args.min_mask_tol),
-        "--max_mask_tolerance",
-        str(args.max_mask_tol),
-        "--mask_tolerance_scalor",
-        str(args.mask_tol_scalor),
-        "--overstep_tolerance",
-        str(args.overstep_tol),
-        "--path_tolerance",
-        str(args.path_tol),
-        "--rk-tolerance",
-        str(args.rk_error_tol),
-        "--path_limit",
-        str(args.path_limit),
-        "--search_window",
-        str(args.search_window[0]),
-        str(args.search_window[1]),
-    ]
+    args_list = ["--data_dir", datadir]
 
-    if args.grid_file:
-        args_list = args_list + ["--grid_file", args.grid_file]
+    # Add parsed options to argument list
+    add_detector_io_args(args_list, args)
+    add_track_generator_args(args_list, args)
+    add_propagation_args(args_list, args)
 
-    if args.material_file:
-        args_list = args_list + ["--material_file", args.material_file]
+    logging.debug(args_list)
 
     # Run the host validation and produce the truth data
     logging.debug("Running CPU validation")
@@ -177,14 +149,11 @@ def __main__():
     if args.sycl:
         logging.error("SYCL validation is not implemented")
 
-    # ------------------------------------------------------------------------plot
+    # ----------------------------------------------------------------------plot
 
     logging.info("Generating data plots...\n")
 
-    geo_file = open(args.geometry_file)
-    json_geo = json.loads(geo_file.read())
-
-    det_name = json_geo["header"]["common"]["detector"]
+    det_name = read_detector_name(args.geometry_file, logging)
     logging.debug("Detector: " + det_name)
 
     # Check the data path (should have been created when running the validation)
@@ -195,8 +164,9 @@ def __main__():
     plot_factory = plt_factory(out_dir, logging)
 
     # Read the truth data
+    p_min, p_max = get_p_range(args, logging)
     ray_scan_df, helix_scan_df = read_scan_data(
-        datadir, det_name, str(args.transverse_momentum), logging
+        logging, datadir, det_name, p_min, p_max
     )
 
     plot_detector_scan_data(args, det_name, plot_factory, "ray", ray_scan_df, "png")
@@ -221,9 +191,7 @@ def __main__():
         helix_nav_df,
         helix_truth_df,
         helix_nav_cuda_df,
-    ) = read_navigation_data(
-        datadir, det_name, str(args.transverse_momentum), args.cuda, logging
-    )
+    ) = read_navigation_data(logging, datadir, det_name, p_min, p_max, args.cuda)
 
     # Plot
     label_cpu = "navigation (CPU)"
@@ -305,9 +273,9 @@ def __main__():
         )
 
 
-# -------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 if __name__ == "__main__":
     __main__()
 
-# -------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------

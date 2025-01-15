@@ -170,15 +170,24 @@ class detector_scan : public test::fixture_base<> {
         const std::size_t n_helices{trk_state_generator.size()};
         intersection_traces.reserve(n_helices);
 
-        const auto pT_range = m_cfg.track_generator().mom_range();
-        std::string mometum_str{std::to_string(pT_range[0]) + "_" +
-                                std::to_string(pT_range[1])};
+        std::string momentum_str{""};
+        if constexpr (!k_use_rays) {
+            const auto pT_range = m_cfg.track_generator().mom_range();
+            // Remove floating point imprecisions
+            momentum_str =
+                std::to_string(
+                    std::floor(10. * static_cast<double>(pT_range[0])) / 10.) +
+                "_" +
+                std::to_string(
+                    std::ceil(10. * static_cast<double>(pT_range[1])) / 10.) +
+                "_GeV";
+        }
 
         std::string track_param_file_name{m_cfg.track_param_file() + "_" +
-                                          mometum_str + "GeV.csv"};
+                                          momentum_str + ".csv"};
 
         std::string intersection_file_name{m_cfg.intersection_file() + "_" +
-                                           mometum_str + "GeV.csv"};
+                                           momentum_str + ".csv"};
 
         const bool data_files_exist{io::file_exists(intersection_file_name) &&
                                     io::file_exists(track_param_file_name)};

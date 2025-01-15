@@ -38,6 +38,12 @@ struct navigation_validation_config
     std::string m_track_param_file{"truth_trk_parameters.csv"};
     /// The maximal number of test tracks to run
     std::size_t m_n_tracks{detray::detail::invalid_value<std::size_t>()};
+    /// Configured momentum range of the test sample (only needed to generate
+    /// correct file names). If none was passed, it will be determined from
+    /// the track data (imprecise!)
+    darray<scalar_type, 2> m_p_range{
+        detray::detail::invalid_value<scalar_type>(),
+        detray::detail::invalid_value<scalar_type>()};
     /// B-field vector for helix
     vector3_type m_B{0.f * unit<scalar_type>::T, 0.f * unit<scalar_type>::T,
                      2.f * unit<scalar_type>::T};
@@ -55,6 +61,7 @@ struct navigation_validation_config
     const std::string &intersection_file() const { return m_intersection_file; }
     const std::string &track_param_file() const { return m_track_param_file; }
     std::size_t n_tracks() const { return m_n_tracks; }
+    darray<scalar_type, 2> p_range() const { return m_p_range; }
     const vector3_type &B_vector() { return m_B; }
     const auto &svg_style() const { return m_style; }
     /// @}
@@ -84,6 +91,10 @@ struct navigation_validation_config
     }
     navigation_validation_config &n_tracks(std::size_t n) {
         m_n_tracks = n;
+        return *this;
+    }
+    navigation_validation_config &p_range(const darray<scalar_type, 2> pr) {
+        m_p_range = pr;
         return *this;
     }
     navigation_validation_config &B_vector(const vector3_type &B) {

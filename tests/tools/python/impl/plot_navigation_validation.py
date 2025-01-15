@@ -22,10 +22,21 @@ import pandas as pd
 import os
 
 
+""" Construct a string in the format of the output file names and compare it"""
+
+
+def __comp_filename(filename, det_name, file_stem, p_min="", p_max=""):
+    check_file_stem = f"{det_name}_{file_stem}_" in filename
+    check_p_min = f"_{p_min}" in filename
+    check_p_max = f"_{p_max}" in filename
+
+    return check_file_stem and check_p_min and check_p_max
+
+
 """ Read the detector scan data from files and prepare data frames """
 
 
-def read_scan_data(inputdir, det_name, momentum, logging):
+def read_scan_data(logging, inputdir, det_name, p_min, p_max):
 
     # Input data directory
     data_dir = os.fsencode(inputdir)
@@ -37,13 +48,17 @@ def read_scan_data(inputdir, det_name, momentum, logging):
     for file in os.listdir(data_dir):
         filename = os.fsdecode(file)
 
-        if filename.find(det_name + "_ray_scan_intersections_" + momentum) != -1:
+        if __comp_filename(filename, det_name, "ray_scan_intersections"):
             ray_scan_intersections_file = inputdir + "/" + filename
-        elif filename.find(det_name + "_ray_scan_track_parameters_" + momentum) != -1:
+        elif __comp_filename(filename, det_name, "ray_scan_track_parameters"):
             ray_scan_track_param_file = inputdir + "/" + filename
-        elif filename.find(det_name + "_helix_scan_intersections_" + momentum) != -1:
+        elif __comp_filename(
+            filename, det_name, "helix_scan_intersections", p_min, p_max
+        ):
             helix_scan_intersections_file = inputdir + "/" + filename
-        elif filename.find(det_name + "_helix_scan_track_parameters_" + momentum) != -1:
+        elif __comp_filename(
+            filename, det_name, "helix_scan_track_parameters", p_min, p_max
+        ):
             helix_scan_track_param_file = inputdir + "/" + filename
 
     # Read ray scan data
@@ -62,7 +77,7 @@ def read_scan_data(inputdir, det_name, momentum, logging):
 """ Read the recorded track positions from files and prepare data frames """
 
 
-def read_navigation_data(inputdir, det_name, momentum, read_cuda, logging):
+def read_navigation_data(logging, inputdir, det_name, p_min, p_max, read_cuda):
 
     # Input data directory
     data_dir = os.fsencode(inputdir)
@@ -74,31 +89,25 @@ def read_navigation_data(inputdir, det_name, momentum, read_cuda, logging):
     for file in os.listdir(data_dir):
         filename = os.fsdecode(file)
 
-        if (
-            read_cuda
-            and filename.find(
-                det_name + "_ray_navigation_track_params_cuda_" + momentum
-            )
-            != -1
+        if read_cuda and __comp_filename(
+            filename, det_name, "ray_navigation_track_params_cuda"
         ):
             ray_data_cuda_file = inputdir + "/" + filename
-        elif filename.find(det_name + "_ray_navigation_track_params_" + momentum) != -1:
+        elif __comp_filename(filename, det_name, "ray_navigation_track_params"):
             ray_data_file = inputdir + "/" + filename
-        elif filename.find(det_name + "_ray_truth_track_params_" + momentum) != -1:
+        elif __comp_filename(filename, det_name, "ray_truth_track_params"):
             ray_truth_file = inputdir + "/" + filename
-        elif (
-            read_cuda
-            and filename.find(
-                det_name + "_helix_navigation_track_params_cuda_" + momentum
-            )
-            != -1
+        elif read_cuda and __comp_filename(
+            filename, det_name, "helix_navigation_track_params_cuda", p_min, p_max
         ):
             helix_data_cuda_file = inputdir + "/" + filename
-        elif (
-            filename.find(det_name + "_helix_navigation_track_params_" + momentum) != -1
+        elif __comp_filename(
+            filename, det_name, "helix_navigation_track_params", p_min, p_max
         ):
             helix_data_file = inputdir + "/" + filename
-        elif filename.find(det_name + "_helix_truth_track_params_" + momentum) != -1:
+        elif __comp_filename(
+            filename, det_name, "helix_truth_track_params", p_min, p_max
+        ):
             helix_truth_file = inputdir + "/" + filename
 
     ray_df = read_track_data(ray_data_file, logging)

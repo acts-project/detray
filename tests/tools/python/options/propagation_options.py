@@ -6,9 +6,9 @@
 
 import argparse
 
-# -------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Options parsing
-# -------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 """ Parent parser that contains propagation options """
 
@@ -29,7 +29,7 @@ def propagation_options():
         "--max_mask_tol",
         "-max_mtol",
         help=("Max. mask tolerance [mm]"),
-        default=1,
+        default=3,
         type=float,
     )
     parser.add_argument(
@@ -46,7 +46,7 @@ def propagation_options():
         "--overstep_tol",
         "-otol",
         help=("Overstep tolerance [um]"),
-        default=-100,
+        default=-300,
         type=float,
     )
     parser.add_argument(
@@ -81,13 +81,6 @@ def propagation_options():
         type=float,
     )
     parser.add_argument(
-        "--max_n_steps",
-        "-n_step",
-        help=("Max. Runge-Kutta step updates"),
-        default=10000,
-        type=int,
-    )
-    parser.add_argument(
         "--path_limit",
         "-plim",
         help=("Max. path length of a track [m]"),
@@ -99,14 +92,14 @@ def propagation_options():
         "-bethe",
         help=("Use Bethe energy loss"),
         action="store_true",
-        default=True,
+        default=False,
     )
     parser.add_argument(
         "--covariance_transport",
         "-cov_trnsp",
         help=("Do covaraiance transport"),
         action="store_true",
-        default=True,
+        default=False,
     )
     parser.add_argument(
         "--energy_loss_grad",
@@ -124,6 +117,3 @@ def propagation_options():
     )
 
     return parser
-
-
-# -------------------------------------------------------------------------------

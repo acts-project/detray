@@ -8,9 +8,9 @@ import argparse
 import os
 import sys
 
-# -------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Options parsing
-# -------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 """ Parent parser that contains plotting options """
 
@@ -37,7 +37,7 @@ def plotting_options():
         "--output_format",
         "-of",
         help=("Format of the plot files (svg|png|pdf)."),
-        default="png",
+        default="pdf",
         type=str,
     )
 
@@ -63,6 +63,3 @@ def parse_plotting_options(args, logging):
         sys.exit(1)
 
     return args.inputdir, args.outdir, args.output_format
-
-
-# -------------------------------------------------------------------------------
