@@ -42,7 +42,7 @@ void add_options<detray::navigation::config>(
         "mask_tolerance_scalor",
         boost::program_options::value<float>()->default_value(
             cfg.mask_tolerance_scalor),
-        "Mask tolerance scaling")(
+        "Mask tolerance scale factor")(
         "overstep_tolerance",
         boost::program_options::value<float>()->default_value(
             cfg.overstep_tolerance / unit<float>::um),
@@ -172,6 +172,7 @@ void configure_options<detray::stepping::config>(
 
         cfg.path_limit = path_limit * unit<float>::m;
     }
+    cfg.do_covariance_transport = false;
     if (vm.count("covariance_transport")) {
         cfg.do_covariance_transport = true;
     }

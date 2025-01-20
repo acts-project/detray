@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2024 CERN for the benefit of the ACTS project
+ * (c) 2022-2025 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -15,7 +15,7 @@ __global__ void __launch_bounds__(256, 4) propagator_benchmark_kernel(
     propagation::config cfg,
     typename propagator_t::detector_type::view_type det_view,
     typename propagator_t::stepper_type::magnetic_field_type field_view,
-    typename propagator_t::actor_chain_type::state_tuple
+    const typename propagator_t::actor_chain_type::state_tuple
         *device_actor_state_ptr,
     vecmem::data::vector_view<
         free_track_parameters<typename propagator_t::algebra_type>>
@@ -30,8 +30,9 @@ __global__ void __launch_bounds__(256, 4) propagator_benchmark_kernel(
         propagator<typename propagator_t::stepper_type,
                    navigator<detector_device_t>, actor_chain_t>;
 
-    detector_device_t det(det_view);
-    vecmem::device_vector<free_track_parameters<algebra_t>> tracks(tracks_view);
+    const detector_device_t det(det_view);
+    const vecmem::device_vector<free_track_parameters<algebra_t>> tracks(
+        tracks_view);
 
     int gid = threadIdx.x + blockIdx.x * blockDim.x;
     if (gid >= tracks.size()) {
@@ -46,6 +47,9 @@ __global__ void __launch_bounds__(256, 4) propagator_benchmark_kernel(
     auto actor_state_refs = actor_chain_t::setup_actor_states(actor_states);
 
     // Create the propagator state
+
+    // The track gets copied into the stepper state, so that the
+    // original track sample vector remains unchanged
     typename propagator_device_t::state p_state(tracks.at(gid), field_view,
                                                 det);
 

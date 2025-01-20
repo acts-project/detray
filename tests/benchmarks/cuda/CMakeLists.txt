@@ -15,20 +15,17 @@ enable_language(CUDA)
 # Set the CUDA build flags.
 include(detray-compiler-options-cuda)
 
-# Look for openMP, which is used for the CPU benchmark
-find_package(OpenMP)
-
-# make unit tests for multiple algebras
-# Currently vc and smatrix is not supported
-set(algebras "array")
+# Build benchmarks for multiple algebra plugins
+# Currently vc and smatrix is not supported on device
+set(algebra_plugins "array")
 if(DETRAY_EIGEN_PLUGIN)
-    list(APPEND algebras "eigen")
+    list(APPEND algebra_plugins "eigen")
 endif()
 
-foreach(algebra ${algebras})
+foreach(algebra ${algebra_plugins})
     detray_add_executable(benchmark_cuda_propagation_${algebra}
       "propagation.cpp"
-       LINK_LIBRARIES detray::benchmark_cuda detray::core detray::algebra_${algebra} vecmem::cuda detray::test_utils
+       LINK_LIBRARIES detray::benchmark_cuda_${algebra} detray::core_${algebra} vecmem::cuda detray::test_utils
     )
 
     target_compile_definitions(
@@ -40,11 +37,4 @@ foreach(algebra ${algebras})
         detray_benchmark_cuda_propagation_${algebra}
         PRIVATE "-march=native" "-ftree-vectorize"
     )
-
-    if(OpenMP_CXX_FOUND)
-        target_link_libraries(
-            detray_benchmark_cuda_propagation_${algebra}
-            PRIVATE OpenMP::OpenMP_CXX
-        )
-    endif()
 endforeach()

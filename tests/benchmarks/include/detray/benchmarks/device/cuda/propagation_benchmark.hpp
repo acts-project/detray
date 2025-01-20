@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2024 CERN for the benefit of the ACTS project
+ * (c) 2024-2025 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -40,6 +40,7 @@
 // System include(s)
 #include <algorithm>
 #include <cassert>
+#include <iostream>
 #include <random>
 #include <string>
 
@@ -85,6 +86,7 @@ void run_propagation_kernel(
     const int);
 
 /// Allocate actor state blueprint on device
+/// @note This only works if each actor state in the tuple is essentially POD
 template <typename propagator_t>
 typename propagator_t::actor_chain_type::state_tuple *setup_actor_states(
     typename propagator_t::actor_chain_type::state_tuple *);
@@ -155,14 +157,22 @@ struct cuda_propagation_bm : public benchmark_base {
             setup_actor_states<propagator_t>(input_actor_states);
 
         // Do a small warm up run
-        {
+        if (m_cfg.benchmark().do_warmup()) {
             auto warmup_track_buffer = detray::get_buffer(
                 vecmem::get_data(*tracks), *dev_mr, cuda_cpy);
+
             run_propagation_kernel<propagator_t, kOPT>(
                 m_cfg.propagation(), det_view, *bfield, device_actor_state_ptr,
                 warmup_track_buffer, math::min(n_warmup, n_samples));
+        } else {
+            std::cout << "WARNING: Running CUDA benchmarks without warmup is "
+                         "not recommended"
+                      << std::endl;
         }
 
+        // Calculate the propagation rate
+        // @see
+        // https://github.com/google/benchmark/blob/main/docs/user_guide.md#custom-counters
         std::size_t total_tracks = 0u;
         for (auto _ : state) {
             // Launch the propagator test for GPU device
