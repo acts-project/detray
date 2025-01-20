@@ -17,7 +17,7 @@ a geometry without polymorphic inheritance structure.
 
 ## Getting started
 
-The respository is meant to be possible to build "out of the box", with standard
+The respository should build "out of the box", with standard
 CMake build procedures.
 
 ```shell
@@ -72,7 +72,7 @@ The following cmake options are available and can also be specified explicitly f
 
 ## Detector Validation
 
-Given a detector (and optionally also a grid and a material) json file, a number of validation test can be run from the command-line. For this, the library has to be built with the ```-DDETRAY_BUILD_CLI_TOOLS=ON``` flag. And example detector file can then be obtained using e.g.
+Given a detray detector (and optionally also a grid and a material) json file, a number of validation test can be run from the command-line. For this, the library has to be built with the ```-DDETRAY_BUILD_CLI_TOOLS=ON``` flag. And example detector file can then be obtained using e.g.
 ```shell
 detray-build/bin/detray_generate_toy_detector --write_material --write_grids
 ```
@@ -107,8 +107,20 @@ detray-build/bin/detray_material_validation \
 ```
 Note: The correct material file must be loaded in addition to the geometry file!
 
-## Continuous benchmark
+## Benchmarks
 
-Monitoring the propagation throughput with the toy geometry
+A number of benchmarks exist, which are based on the google benchmark library, and can be run from command-line. For this, the ```-DDETRAY_BUILD_BENCHMARKS=ON``` and ``` -DDETRAY_BUILD_CLI_TOOLS=ON``` flags need to be specified. Then pass the detray detector file(s) and additional options to the benchmark tools for the different hardware backends:
+```shell
+detray-build/bin/detray_propagation_benchmark_<backend>_<algebra> \
+    --geometry_file ./toy_detector/toy_detector_geometry.json \
+    --grid_file ./toy_detector/toy_detector_surface_grids.json \
+    --material_file ./toy_detector/toy_detector_homogeneous_material.json \
+    --sort_tracks --randomize_charge --eta_range -3 3 -pT_range 1 100
+```
+For every algebra-plugin that was built, a corresponding benchmark executable will be present. The CPU-backend benchmark is built by default and the CUDA-backend benchmark will be available if detray was built with CUDA enabled (```-DDETRAY_BUILD_CUDA=ON```).
+
+### Continuous benchmark
+
+Monitoring the propagation throughput with the toy geometry per commit:
 
 <img src="https://gitlab.cern.ch/acts/detray-benchmark/-/raw/master/plots/array_data.png?ref_type=heads" />
