@@ -70,8 +70,45 @@ The following cmake options are available and can also be specified explicitly f
 | DETRAY_VC_SOA_PLUGIN | Build Vc based SoA math plugin (currently only supports the ray-surface intersectors) | OFF |
 | DETRAY_SVG_DISPLAY | Build ActSVG display module | OFF |
 
+## Detector Validation
+
+Given a detector (and optionally also a grid and a material) json file, a number of validation test can be run from the command-line. For this, the library has to be built with the ```-DDETRAY_BUILD_CLI_TOOLS=ON``` flag. And example detector file can then be obtained using e.g.
+```shell
+detray-build/bin/detray_generate_toy_detector --write_material --write_grids
+```
+All of the validation tools presented in the following can also be run as part of a corresponding python script which takes the same arguments and will automatically create plots from the collected data. However, this requires Python 3, pandas, SciPy and NumPy, as well as Matplotlib to be available.
+
+The detector geometry can be visualized in svg format with the following command:
+```shell
+detray-build/bin/detray_detector_display \
+   --geometry_file  ./toy_detector/toy_detector_geometry.json [OPTION]...
+```
+The tool can also display single volumes or surfaces, as well as the navigation grids and material maps (the corresponding json files need to loaded in this case).
+
+### Navigation Validation
+
+In order to validate that the navigation works correctly in a given detector geometry, run the detector validation tool. It will first perform a consistency check on the detector, followed by a "ray scan" of the detector. The scan result will be compared to a full straight-line navigation run for every ray. After that, the navigation in a constant magnetic field of 2T is being tested in a similar fashion, using parameterized helix trajectories and a Newton-Raphson/Bisection algorithm to generate the truth intersections. For example:
+```shell
+detray-build/bin/detray_detector_validation \
+    --geometry_file ./toy_detector/toy_detector_geometry.json \
+    --grid_file ./toy_detector/toy_detector_surface_grids.json \
+    --search_window 3 3 --n_tracks 100 --pT_range 0.5 100
+```
+In case of failures, this command will give a detailed debug output in the form of a log file, as well as an svg representation of the failed tracks. The grid file is optional, but will trigger the use of spacial grids as acceleration structures during the navigation run.
+
+### Material Validation
+
+This tool checks whether the navigator picks up the material correctly by comparing the material found during a ray scan with the material collected during navigation by a specialized actor:
+```shell
+detray-build/bin/detray_material_validation \
+    --geometry_file toy_detector/toy_detector_geometry.json \
+    --material_file toy_detector/toy_detector_homogeneous_material.json \
+    --phi_steps 100 --eta_steps 100 --eta_range -4 4
+```
+Note: The correct material file must be loaded in addition to the geometry file!
+
 ## Continuous benchmark
 
-Monitoring the propagation speed with the toy geometry
+Monitoring the propagation throughput with the toy geometry
 
 <img src="https://gitlab.cern.ch/acts/detray-benchmark/-/raw/master/plots/array_data.png?ref_type=heads" />
