@@ -1,19 +1,20 @@
 # detray
 
-Detray is part of the ACTS project (R&D line for parallelization), the ACTS project can be found: https://github.com/acts-project/acts.
+Detray is part of the [ACTS project](https://github.com/acts-project/acts) (R&D line for parallelization).
 
-This is a C++20 header only library for detector surface intersections using different algebra plugin libraries. It follows the navigation and propagation concept of ACTS, however, with an attempt to create
-a geometry without polymorphic inheritance structure.
+This is a C++20 header-only library providing a GPU-friendly tracking detector description using different [linear algebra](https://github.com/acts-project/algebra-plugins) libraries. It follows the navigation and propagation concept of ACTS, however, implementing a geometry using a flat memory layout and no abstract interfaces (virtual functions). A detray detector can therefore be constructed on the host and copied to an accelerator device in a straight-forward way.
 
+With the geometry description comes a fully featured, GPU-ready track state propagation implementation in inhomogeneous magnetic fields, with track parameter covariance transport including material interactions.
 
-## Requirements and dependencies
-#### OS & compilers:
+## Requirements and Dependencies
+#### OS & Compilers:
 
 - The C++ compiler must support C++20
 - The CUDA Toolkit version must be greater than major version 11
 
-#### Dependency
-- CMake
+#### Dependencies:
+- CMake (version >= 3.11)
+
 
 ## Getting started
 
@@ -26,7 +27,7 @@ cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -S detray -B detray-build
 cmake --build detray-build
 ```
 
-For tests and benchmarks with the inhomogeneous magnetic field, the ODD field in covfie format should be downloaded and the environment variable should be set.
+For unit and integration tests using the *Open Data Detector* (ODD) solenoid field, a magnetic field map file in [covfie](https://github.com/acts-project/covfie) format needs to be downloaded and the corresponding environment variable should be set to:
 ```shell
 cd detray/data
 bash detray_data_get_files.sh
@@ -70,9 +71,10 @@ The following cmake options are available and can also be specified explicitly f
 | DETRAY_VC_SOA_PLUGIN | Build Vc based SoA math plugin (currently only supports the ray-surface intersectors) | OFF |
 | DETRAY_SVG_DISPLAY | Build ActSVG display module | OFF |
 
+
 ## Detector Validation
 
-Given a detray detector (and optionally also a grid and a material) json file, a number of validation test can be run from the command-line. For this, the library has to be built with the ```-DDETRAY_BUILD_CLI_TOOLS=ON``` flag. And example detector file can then be obtained using e.g.
+Given a detray detector (and optionally also a grid and a material) json file, a number of validation test can be run from the command-line. For this, the library has to be built with the  ```-DDETRAY_BUILD_CLI_TOOLS=ON``` option enabled. An example detector file can then be obtained using e.g.
 ```shell
 detray-build/bin/detray_generate_toy_detector --write_material --write_grids
 ```
@@ -81,9 +83,9 @@ All of the validation tools presented in the following can also be run as part o
 The detector geometry can be visualized in svg format with the following command:
 ```shell
 detray-build/bin/detray_detector_display \
-   --geometry_file  ./toy_detector/toy_detector_geometry.json [OPTION]...
+   --geometry_file  ./toy_detector/toy_detector_geometry.json
 ```
-The tool can also display single volumes or surfaces, as well as the navigation grids and material maps (the corresponding json files need to loaded in this case).
+The tool can also display single volumes or surfaces, as well as the navigation grids and material maps (the corresponding json files need to loaded in this case). For an overview of all available options for the command-line tools add ```--help```.
 
 ### Navigation Validation
 
@@ -106,6 +108,7 @@ detray-build/bin/detray_material_validation \
     --phi_steps 100 --eta_steps 100 --eta_range -4 4
 ```
 Note: The correct material file must be loaded in addition to the geometry file!
+
 
 ## Benchmarks
 
