@@ -142,7 +142,9 @@ def plot_benchmark_case(
         x_axis_opts = plotting.axis_options(
             label=labels.x_axis, log_scale=True, tick_positions=n_tracks
         )
-        y_axis_opts = plotting.axis_options(label=labels.y_axis, log_scale=True)
+        y_axis_opts = plotting.axis_options(
+            label=labels.y_axis, log_scale=True, label_format=yaxis_format
+        )
 
         # Plot the propagation latency against the number of tracks
         plot_data = plot_factory.graph(
@@ -215,6 +217,7 @@ def plot_benchmark_data(
                 data_type="real_time",
                 marker=marker,
                 title=title,
+                yaxis_format=None,
             )
 
             throughput_plot = plot_benchmark_case(

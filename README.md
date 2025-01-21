@@ -102,13 +102,15 @@ detray-build/bin/detray_detector_validation \
 ```
 In case of failures, this command will give a detailed debug output in the form of a log file, as well as an SVG representation of the failed tracks. The grid file is optional, but will trigger the use of spacial grids as acceleration structures during the navigation run.
 
+Note: The `search_window` option defines the size of lookup area of the grid acceleration struction and is therefore detector dependent! Use `--search_window 3 3` (or larger) for the *toy detector* and *wire chamber* example detectors and `--search_window 0 0` otherwise.
+
 ### Material Validation
 
 This tool checks whether the navigator picks up the material correctly by comparing the material found during a ray scan with the material collected during navigation by a specialized actor:
 ```shell
 detray-build/bin/detray_material_validation \
-    --geometry_file toy_detector/toy_detector_geometry.json \
-    --material_file toy_detector/toy_detector_homogeneous_material.json \
+    --geometry_file ./toy_detector/toy_detector_geometry.json \
+    --material_file ./toy_detector/toy_detector_homogeneous_material.json \
     --phi_steps 100 --eta_steps 100 --eta_range -4 4
 ```
 Note: The correct material file must be loaded in addition to the geometry file!
@@ -122,9 +124,24 @@ detray-build/bin/detray_propagation_benchmark_<backend>_<algebra> \
     --geometry_file ./toy_detector/toy_detector_geometry.json \
     --grid_file ./toy_detector/toy_detector_surface_grids.json \
     --material_file ./toy_detector/toy_detector_homogeneous_material.json \
-    --sort_tracks --randomize_charge --eta_range -3 3 -pT_range 1 100
+    --sort_tracks --randomize_charge --eta_range -3 3 --pT_range 0.5 100 \
+    --search_window 3 3 --covariance_transport
 ```
-For every algebra-plugin that was built, a corresponding benchmark executable will be present. The CPU-backend benchmark is built by default and the CUDA-backend benchmark will be available if detray was built with CUDA enabled (`-DDETRAY_BUILD_CUDA=ON`).
+For every algebra-plugin that was built, a corresponding benchmark executable will be present. The CPU-backend benchmark is built by default and the CUDA-backend benchmark will be available if detray was built with CUDA enabled (`-DDETRAY_BUILD_CUDA=ON`). This executable can additionally be configured with any arguments targeted at [google benchmark](https://github.com/google/benchmark/blob/main/docs/user_guide.md).
+
+If the data is dumped into json files using the options `--benchmark_out_format=json` and `--benchmark_out=<detector_name>_benchmark_data_<backend>_<algebra>.json`, it can afterwards be plotted with e.g.:
+```shell
+python3 detray/tests/tools/python/propagation_benchmarks.py \
+    --geometry_file ./toy_detector/toy_detector_geometry.json \
+    --algebra_plugins array eigen \
+    --cuda \
+    --data_files ./toy_detector_benchmark_data_cpu_array.json \
+    ./toy_detector_benchmark_data_cpu_eigen.json \
+    ./toy_detector_benchmark_data_cuda_array.json \
+    ./toy_detector_benchmark_data_cuda_eigen.json
+```
+
+using the *std::array* and [*Eigen3*](https://eigen.tuxfamily.org) based linear algebra plugins with CUDA backend as an example.
 
 ### Continuous benchmark
 

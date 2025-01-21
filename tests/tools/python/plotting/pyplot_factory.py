@@ -112,12 +112,15 @@ class pyplot_factory:
 
     # Set axis tick label formatting
     def __set_label_format(self, label_format, axis):
-        if label_format is not None:
+        if label_format is None:
+            return
+
+        if label_format == "default":
+            axis.set_major_formatter(self.axis_formatter)
+        else:
             tick_formatter = ticker.StrMethodFormatter(label_format)
             axis.set_major_formatter(tick_formatter)
             axis.set_minor_formatter(tick_formatter)
-        else:
-            axis.set_major_formatter(self.axis_formatter)
 
     """ Create a graph from given input data. """
 
@@ -146,15 +149,15 @@ class pyplot_factory:
         ax.set_ylabel(y_axis.label)
         ax.grid(True, alpha=0.25)
 
+        # Format of tick labels
+        # self.__set_label_format(x_axis.label_format, ax.xaxis)
+        self.__set_label_format(y_axis.label_format, ax.yaxis)
+
         # Plot log scale
         if x_axis.log_scale:
             ax.set_xscale("log")
         if y_axis.log_scale:
             ax.set_yscale("log")
-
-        # Format of tick labels
-        # self.__set_label_format(x_axis.label_format, ax.xaxis)
-        self.__set_label_format(y_axis.label_format, ax.yaxis)
 
         if x_axis.tick_positions is not None:
             ax.set_xticks(x_axis.tick_positions)

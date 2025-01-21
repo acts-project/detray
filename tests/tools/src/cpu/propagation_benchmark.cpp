@@ -15,6 +15,7 @@
 #include "detray/propagator/actors/pointwise_material_interactor.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
+#include "detray/utils/type_list.hpp"
 
 // Detray IO include(s)
 #include "detray/io/frontend/detector_reader.hpp"
@@ -157,6 +158,12 @@ int main(int argc, char** argv) {
             det_name, bench_cfg, prop_cfg, det, bfield, &empty_state,
             track_samples, n_tracks);
     }
+
+    // These fields are needed by the plotting scripts, even if undefined
+    ::benchmark::AddCustomContext("Backend", "CPU");
+    ::benchmark::AddCustomContext("Name", "unknown");
+    ::benchmark::AddCustomContext("Plugin",
+                                  detray::types::get_name<test_algebra>());
 
     // Run benchmarks
     ::benchmark::RunSpecifiedBenchmarks();
