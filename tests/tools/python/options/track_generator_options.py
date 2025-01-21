@@ -6,26 +6,34 @@
 
 import argparse
 
-# -------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Options parsing
-# -------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
-""" Parent parser that contains propagation options """
+""" Adds options that are common to all track generators """
 
 
-def random_track_generator_options():
+def common_track_generator_options(parser):
 
-    parser = argparse.ArgumentParser(add_help=False)
-
-    # Navigation options
     parser.add_argument(
-        "--n_tracks", "-n", help=("Number of test tracks"), default=100, type=int
+        "--random_seed",
+        "-seed",
+        help=("Seed for the random number generator"),
+        default=5489,
+        type=int,
     )
     parser.add_argument(
-        "--transverse-momentum",
-        "-p_T",
-        help=("Transverse momentum of the test particle [GeV]"),
-        default=10,
+        "--pT_range",
+        "-pTr",
+        nargs=2,
+        help=("Transverse momentum [range] of the test particle [GeV]"),
+        type=float,
+    )
+    parser.add_argument(
+        "--p_range",
+        "-pr",
+        nargs=2,
+        help=("Total momentum [range] of the test particle [GeV]"),
         type=float,
     )
     parser.add_argument(
@@ -41,18 +49,36 @@ def random_track_generator_options():
         "-rand_chrg",
         help=("Randomly flip charge sign per track"),
         action="store_true",
-        default=True,
+        default=False,
     )
 
     return parser
 
 
-""" Parent parser that contains propagation options """
+""" Parent parser that contains random track generator options """
+
+
+def random_track_generator_options():
+
+    parser = argparse.ArgumentParser(add_help=False)
+
+    common_track_generator_options(parser)
+
+    parser.add_argument(
+        "--n_tracks", "-n", help=("Number of test tracks"), default=100, type=int
+    )
+
+    return parser
+
+
+""" Parent parser that contains uniform track generator options """
 
 
 def uniform_track_generator_options():
 
     parser = argparse.ArgumentParser(add_help=False)
+
+    common_track_generator_options(parser)
 
     # Navigation options
     parser.add_argument(
@@ -61,23 +87,5 @@ def uniform_track_generator_options():
     parser.add_argument(
         "--eta_steps", "-n_eta", help=("Number steps in eta"), default=50, type=int
     )
-    parser.add_argument(
-        "--transverse-momentum",
-        "-p_T",
-        help=("Transverse momentum of the test particle [GeV]"),
-        default=10,
-        type=float,
-    )
-    parser.add_argument(
-        "--eta_range",
-        "-eta",
-        nargs=2,
-        help=("Eta range of generated tracks"),
-        default=[-4, 4],
-        type=float,
-    )
 
     return parser
-
-
-# -------------------------------------------------------------------------------

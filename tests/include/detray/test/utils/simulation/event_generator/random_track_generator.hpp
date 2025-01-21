@@ -12,6 +12,7 @@
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/navigation/detail/ray.hpp"
 #include "detray/utils/ranges/ranges.hpp"
 
 // Detray test include(s)
@@ -123,12 +124,15 @@ class random_track_generator
             vector3_t mom{math::cos(phi) * sin_theta,
                           math::sin(phi) * sin_theta, math::cos(theta)};
 
-            sin_theta = (sin_theta == scalar_t{0.f})
-                            ? std::numeric_limits<scalar_t>::epsilon()
-                            : sin_theta;
-
-            mom = (m_cfg.is_pT() ? 1.f / sin_theta : 1.f) * p_mag *
-                  vector::normalize(mom);
+            if constexpr (std::is_same_v<track_t, detail::ray<algebra_t>>) {
+                mom = vector::normalize(mom);
+            } else {
+                sin_theta = (sin_theta == scalar_t{0.f})
+                                ? std::numeric_limits<scalar_t>::epsilon()
+                                : sin_theta;
+                mom = (m_cfg.is_pT() ? 1.f / sin_theta : 1.f) * p_mag *
+                      vector::normalize(mom);
+            }
 
             // Randomly flip the charge sign
             darray<double, 2> signs{1., -1.};

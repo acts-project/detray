@@ -147,6 +147,7 @@ int main(int argc, char** argv) {
     hel_nav_cfg.name(det_name + "_helix_navigation");
     // Number of tracks to check
     hel_nav_cfg.n_tracks(hel_scan_cfg.track_generator().n_tracks());
+    hel_nav_cfg.p_range(hel_scan_cfg.track_generator().mom_range());
     hel_nav_cfg.intersection_file(hel_scan_cfg.intersection_file());
     hel_nav_cfg.track_param_file(hel_scan_cfg.track_param_file());
 

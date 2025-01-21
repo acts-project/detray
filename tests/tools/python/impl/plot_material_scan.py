@@ -1,6 +1,6 @@
 # Detray library, part of the ACTS project (R&D line)
 #
-# (c) 2023-2024 CERN for the benefit of the ACTS project
+# (c) 2023-2025 CERN for the benefit of the ACTS project
 #
 # Mozilla Public License Version 2.0
 
@@ -120,9 +120,9 @@ def X0_vs_eta_phi(df, label, detector, plot_factory, out_format="pdf"):
         y=df["phi"],
         z=df["mat_tX0"],
         label=detector,
-        x_label=label_eta,
-        y_label=label_phi,
-        z_label=label_thickness_x0,
+        x_axis=plotting.axis_options(label=label_eta),
+        y_axis=plotting.axis_options(label=label_phi),
+        z_axis=plotting.axis_options(label=label_thickness_x0),
         x_bins=x_binning,
         y_bins=y_binning,
         figsize=(9, 7),
@@ -137,9 +137,9 @@ def X0_vs_eta_phi(df, label, detector, plot_factory, out_format="pdf"):
         y=df["phi"],
         z=df["mat_sX0"],
         label=detector,
-        x_label=label_eta,
-        y_label=label_phi,
-        z_label=label_path_x0,
+        x_axis=plotting.axis_options(label=label_eta),
+        y_axis=plotting.axis_options(label=label_phi),
+        z_axis=plotting.axis_options(label=label_path_x0),
         x_bins=x_binning,
         y_bins=y_binning,
         figsize=(9, 7),
@@ -163,9 +163,9 @@ def L0_vs_eta_phi(df, label, detector, plot_factory, out_format="pdf"):
         y=df["phi"],
         z=df["mat_tL0"],
         label=detector,
-        x_label=label_eta,
-        y_label=label_phi,
-        z_label=label_thickness_l0,
+        x_axis=plotting.axis_options(label=label_eta),
+        y_axis=plotting.axis_options(label=label_phi),
+        z_axis=plotting.axis_options(label=label_thickness_l0),
         x_bins=x_binning,
         y_bins=y_binning,
         figsize=(9, 7),
@@ -180,9 +180,9 @@ def L0_vs_eta_phi(df, label, detector, plot_factory, out_format="pdf"):
         y=df["phi"],
         z=df["mat_sL0"],
         label=detector,
-        x_label=label_eta,
-        y_label=label_phi,
-        z_label=label_path_l0,
+        x_axis=plotting.axis_options(label=label_eta),
+        y_axis=plotting.axis_options(label=label_phi),
+        z_axis=plotting.axis_options(label=label_path_l0),
         x_bins=x_binning,
         y_bins=y_binning,
         figsize=(9, 7),
@@ -197,13 +197,12 @@ def L0_vs_eta_phi(df, label, detector, plot_factory, out_format="pdf"):
 
 def X0_vs_eta(df, label, detector, plot_factory, out_format="pdf"):
     # Where to place the legend box
-    box_anchor_x = 1.02
-    box_anchor_y = 1.145
+    lgd_ops = plotting.legend_options(
+        loc=ldg_loc, horiz_anchor=0.725, vert_anchor=1.145
+    )
 
     # Histogram bin edges
     x_binning, y_binning = get_n_bins(df)
-    lgd_ops = plotting.get_legend_options()
-    lgd_ops._replace(loc=ldg_loc)
 
     # Same number of entries in every bin as per uniform ray scan
     n_phi = len(y_binning) - 1
@@ -214,16 +213,13 @@ def X0_vs_eta(df, label, detector, plot_factory, out_format="pdf"):
         errors=get_errors(df, n_phi, "mat_tX0"),
         normalize=False,
         label=rf"{detector}",
-        x_label=label_eta,
-        y_label=label_thickness_x0,
+        x_axis=plotting.axis_options(label=label_eta),
+        y_axis=plotting.axis_options(label=label_thickness_x0),
         bins=x_binning,
         show_stats=False,
         figsize=(9, 7),
         lgd_ops=lgd_ops,
     )
-
-    # Move the legend ouside plot
-    hist_data.lgd.set_bbox_to_anchor((box_anchor_x, box_anchor_y))
 
     plot_factory.write_plot(hist_data, detector + "_" + label + "_t_X0", out_format)
 
@@ -233,16 +229,13 @@ def X0_vs_eta(df, label, detector, plot_factory, out_format="pdf"):
         errors=get_errors(df, n_phi, "mat_sX0"),
         normalize=False,
         label=rf"{detector}",
-        x_label=label_eta,
-        y_label=label_path_x0,
+        x_axis=plotting.axis_options(label=label_eta),
+        y_axis=plotting.axis_options(label=label_path_x0),
         bins=x_binning,
         show_stats=False,
         figsize=(9, 7),
         lgd_ops=lgd_ops,
     )
-
-    # Move the legend ouside plot
-    hist_data.lgd.set_bbox_to_anchor((box_anchor_x, box_anchor_y))
 
     plot_factory.write_plot(hist_data, detector + "_" + label + "_s_X0", out_format)
 
@@ -252,13 +245,12 @@ def X0_vs_eta(df, label, detector, plot_factory, out_format="pdf"):
 
 def L0_vs_eta(df, label, detector, plot_factory, out_format="pdf"):
     # Where to place the legend box
-    box_anchor_x = 1.02
-    box_anchor_y = 1.145
+    lgd_ops = plotting.legend_options(
+        loc=ldg_loc, horiz_anchor=0.725, vert_anchor=1.145
+    )
 
     # Histogram bin edges
     x_binning, y_binning = get_n_bins(df)
-    lgd_ops = plotting.get_legend_options()
-    lgd_ops._replace(loc=ldg_loc)
 
     # Same number of entries in every bin as per uniform ray scan
     n_phi = len(y_binning) - 1
@@ -269,16 +261,13 @@ def L0_vs_eta(df, label, detector, plot_factory, out_format="pdf"):
         errors=get_errors(df, n_phi, "mat_tL0"),
         normalize=False,
         label=rf"{detector}",
-        x_label=label_eta,
-        y_label=label_thickness_l0,
+        x_axis=plotting.axis_options(label=label_eta),
+        y_axis=plotting.axis_options(label=label_thickness_l0),
         bins=x_binning,
         show_stats=False,
         figsize=(9, 7),
         lgd_ops=lgd_ops,
     )
-
-    # Move the legend ouside plot
-    hist_data.lgd.set_bbox_to_anchor((box_anchor_x, box_anchor_y))
 
     plot_factory.write_plot(hist_data, detector + "_" + label + "_t_L0", out_format)
 
@@ -288,16 +277,13 @@ def L0_vs_eta(df, label, detector, plot_factory, out_format="pdf"):
         errors=get_errors(df, n_phi, "mat_sL0"),
         normalize=False,
         label=rf"{detector}",
-        x_label=label_eta,
-        y_label=label_path_l0,
+        x_axis=plotting.axis_options(label=label_eta),
+        y_axis=plotting.axis_options(label=label_path_l0),
         bins=x_binning,
         show_stats=False,
         figsize=(9, 7),
         lgd_ops=lgd_ops,
     )
-
-    # Move the legend ouside plot
-    hist_data.lgd.set_bbox_to_anchor((box_anchor_x, box_anchor_y))
 
     plot_factory.write_plot(hist_data, detector + "_" + label + "_s_L0", out_format)
 
@@ -307,13 +293,10 @@ def L0_vs_eta(df, label, detector, plot_factory, out_format="pdf"):
 
 def compare_mat(df_truth, df_rec, label, detector, plot_factory, out_format="pdf"):
     # Where to place the legend box
-    box_anchor_x = 1.02
-    box_anchor_y = 1.29
+    lgd_ops = plotting.legend_options(loc=ldg_loc, horiz_anchor=0.5, vert_anchor=1.29)
 
     # Histogram bin edges
     x_binning, y_binning = get_n_bins(df_truth)
-    lgd_ops = plotting.get_legend_options()
-    lgd_ops._replace(loc=ldg_loc)
 
     # Same number of entries in every bin as per uniform ray scan
     n_phi = len(y_binning) - 1
@@ -324,8 +307,8 @@ def compare_mat(df_truth, df_rec, label, detector, plot_factory, out_format="pdf
         errors=get_errors(df_truth, n_phi, "mat_sX0"),
         normalize=False,
         label=rf"{detector}: scan",
-        x_label=label_eta,
-        y_label=label_path_x0,
+        x_axis=plotting.axis_options(label=label_eta),
+        y_axis=plotting.axis_options(label=label_path_x0),
         bins=x_binning,
         show_stats=False,
         figsize=(10, 10),
@@ -333,11 +316,8 @@ def compare_mat(df_truth, df_rec, label, detector, plot_factory, out_format="pdf
         lgd_ops=lgd_ops,
     )
 
-    # Move the legend ouside plot
-    truth_data.lgd.set_bbox_to_anchor((box_anchor_x, box_anchor_y))
-
     # Add recorded data for comparison
-    rec_data = plot_factory.add_plot(
+    rec_data = plot_factory.add_hist(
         old_hist=truth_data,
         x=df_rec["eta"].to_numpy(dtype=np.double),
         w=df_rec["mat_sX0"] / n_phi,

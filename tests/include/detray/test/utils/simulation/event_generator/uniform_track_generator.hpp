@@ -12,6 +12,7 @@
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/navigation/detail/ray.hpp"
 #include "detray/utils/ranges/ranges.hpp"
 
 // Detray test include(s)
@@ -154,11 +155,15 @@ class uniform_track_generator
                         math::sin(m_phi) * sin_theta, math::cos(m_theta)};
 
             // Magnitude of momentum
-            sin_theta = (sin_theta == scalar_t{0.f})
-                            ? std::numeric_limits<scalar_t>::epsilon()
-                            : sin_theta;
-            p = (m_cfg.is_pT() ? 1.f / sin_theta : 1.f) * m_cfg.m_p_mag *
-                vector::normalize(p);
+            if constexpr (std::is_same_v<track_t, detail::ray<algebra_t>>) {
+                p = vector::normalize(p);
+            } else {
+                sin_theta = (sin_theta == scalar_t{0.f})
+                                ? std::numeric_limits<scalar_t>::epsilon()
+                                : sin_theta;
+                p = (m_cfg.is_pT() ? 1.f / sin_theta : 1.f) * m_cfg.m_p_mag *
+                    vector::normalize(p);
+            }
 
             const auto& ori = m_cfg.origin();
 

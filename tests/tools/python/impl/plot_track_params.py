@@ -1,6 +1,6 @@
 # Detray library, part of the ACTS project (R&D line)
 #
-# (c) 2024 CERN for the benefit of the ACTS project
+# (c) 2024-2025 CERN for the benefit of the ACTS project
 #
 # Mozilla Public License Version 2.0
 
@@ -10,8 +10,8 @@ import plotting
 # python includes
 import numpy as np
 import pandas as pd
-import os
 import math
+import sys
 
 # Common options
 lgd_loc = "upper right"
@@ -24,11 +24,11 @@ def read_track_data(file, logging):
         # Preserve floating point precision
         df = pd.read_csv(file, float_precision="round_trip")
         logging.debug(df)
-    else:
-        logging.warning("Could not find navigation data file: " + file)
-        df = pd.DataFrame({})
 
-    return df
+        return df
+    else:
+        logging.error("Could not find navigation data file: " + file)
+        sys.exit(1)
 
 
 """ Plot the distributions of track parameter data """
@@ -36,174 +36,90 @@ def read_track_data(file, logging):
 
 def plot_track_params(opts, detector, track_type, plot_factory, out_format, df):
 
-    from matplotlib.ticker import ScalarFormatter
-
     detector_name = detector.replace(" ", "_")
 
-    # Where to place the legend box
-    box_anchor_x = 1.02
-    box_anchor_y = 1.245
+    fig_size = (8.5, 8.5)
+
+    # Configure the plot legend
+    lgd_ops = plotting.legend_options(
+        loc=lgd_loc,
+        ncol=4,
+        colspacing=0.8,
+        handletextpad=0.005,
+        horiz_anchor=1.02,
+        vert_anchor=1.245,
+    )
+
+    # Configure the y axes for all hists
+    # y_axis_opts = plotting.axis_options(label="", label_format="{x:3.1f}")
+    y_axis_opts = plotting.axis_options(label="")
+
+    # Plot the track data
+    def __create_plot(x, bins, suffix, x_axis, y_axis=y_axis_opts):
+        hist_data = plot_factory.hist1D(
+            x=x,
+            bins=bins,
+            x_axis=x_axis,
+            y_axis=y_axis,
+            lgd_ops=lgd_ops,
+            figsize=fig_size,
+        )
+
+        plot_factory.write_plot(
+            hist_data, f"{detector_name}_{track_type}_{suffix}", out_format
+        )
 
     # Plot the charge
-    lgd_ops = plotting.legend_options(lgd_loc, 4, 0.8, 0.005)
-    q_hist_data = plot_factory.hist1D(
-        x=df["q"],
-        bins=4,
-        x_label=r"$q\,\mathrm{[e]}$",
-        lgd_ops=lgd_ops,
-        figsize=(8.5, 8.5),
-        ax_formatter=ScalarFormatter(),
-    )
-
-    # For this plot, move the legend ouside
-    q_hist_data.lgd.set_bbox_to_anchor((box_anchor_x, box_anchor_y))
-
-    plot_factory.write_plot(
-        q_hist_data, f"{detector_name}_{track_type}_charge_dist", out_format
-    )
+    x_axis_opts = plotting.axis_options(label=r"$q\,\mathrm{[e]}$")
+    __create_plot(x=df["q"], bins=4, x_axis=x_axis_opts, suffix="charge_dist")
 
     # Plot the total momentum
     p = np.sqrt(np.square(df["px"]) + np.square(df["py"]) + np.square(df["pz"]))
+    x_axis_opts = plotting.axis_options(label=r"$p_{tot}\,\mathrm{[GeV]}$")
 
-    lgd_ops = plotting.legend_options(lgd_loc, 4, 0.8, 0.005)
-    p_hist_data = plot_factory.hist1D(
+    __create_plot(
         x=p,
         bins=100,
-        x_label=r"$p_{tot}\,\mathrm{[GeV]}$",
-        lgd_ops=lgd_ops,
-        set_log=True,
-        figsize=(8.5, 8.5),
-        ax_formatter=ScalarFormatter(),
-    )
-
-    p_hist_data.lgd.set_bbox_to_anchor((box_anchor_x, box_anchor_y))
-
-    plot_factory.write_plot(
-        p_hist_data, f"{detector_name}_{track_type}_p_dist", out_format
+        x_axis=x_axis_opts,
+        y_axis=y_axis_opts._replace(log_scale=True),
+        suffix="p_dist",
     )
 
     # Plot the transverse momentum
     pT = np.sqrt(np.square(df["px"]) + np.square(df["py"]))
+    x_axis_opts = plotting.axis_options(label=r"$p_{T}\,\mathrm{[GeV]}$")
 
-    lgd_ops = plotting.legend_options(lgd_loc, 4, 0.8, 0.005)
-    pT_hist_data = plot_factory.hist1D(
-        x=pT,
-        bins=100,
-        x_label=r"$p_{T}\,\mathrm{[GeV]}$",
-        lgd_ops=lgd_ops,
-        figsize=(8.5, 8.5),
-        ax_formatter=ScalarFormatter(),
-    )
-
-    pT_hist_data.lgd.set_bbox_to_anchor((box_anchor_x, box_anchor_y))
-
-    plot_factory.write_plot(
-        pT_hist_data, f"{detector_name}_{track_type}_pT_dist", out_format
-    )
+    __create_plot(x=pT, bins=100, x_axis=x_axis_opts, suffix="pT_dist")
 
     # Plot the x-origin
-    lgd_ops = plotting.legend_options(lgd_loc, 4, 0.8, 0.005)
-    x_hist_data = plot_factory.hist1D(
-        x=df["x"],
-        bins=100,
-        x_label=r"$x\,\mathrm{[mm]}$",
-        lgd_ops=lgd_ops,
-        figsize=(8.5, 8.5),
-        ax_formatter=ScalarFormatter(),
-    )
-
-    x_hist_data.lgd.set_bbox_to_anchor((box_anchor_x, box_anchor_y))
-
-    plot_factory.write_plot(
-        x_hist_data, f"{detector_name}_{track_type}_x_origin", out_format
-    )
+    x_axis_opts = plotting.axis_options(label=r"$x\,\mathrm{[mm]}$")
+    __create_plot(x=df["x"], bins=100, x_axis=x_axis_opts, suffix="x_origin")
 
     # Plot the y-origin
-    lgd_ops = plotting.legend_options(lgd_loc, 4, 0.8, 0.005)
-    y_hist_data = plot_factory.hist1D(
-        x=df["y"],
-        bins=100,
-        x_label=r"$y\,\mathrm{[mm]}$",
-        lgd_ops=lgd_ops,
-        figsize=(8.5, 8.5),
-        ax_formatter=ScalarFormatter(),
-    )
+    x_axis_opts = plotting.axis_options(label=r"$y\,\mathrm{[mm]}$")
+    __create_plot(x=df["y"], bins=100, x_axis=x_axis_opts, suffix="y_origin")
 
-    y_hist_data.lgd.set_bbox_to_anchor((box_anchor_x, box_anchor_y))
-
-    plot_factory.write_plot(
-        y_hist_data, f"{detector_name}_{track_type}_y_origin", out_format
-    )
     # Plot the z-origin
-    lgd_ops = plotting.legend_options(lgd_loc, 4, 0.8, 0.005)
-    z_hist_data = plot_factory.hist1D(
-        x=df["z"],
-        bins=100,
-        x_label=r"$z\,\mathrm{[mm]}$",
-        lgd_ops=lgd_ops,
-        figsize=(8.5, 8.5),
-        ax_formatter=ScalarFormatter(),
-    )
-
-    z_hist_data.lgd.set_bbox_to_anchor((box_anchor_x, box_anchor_y))
-
-    plot_factory.write_plot(
-        z_hist_data, f"{detector_name}_{track_type}_z_origin", out_format
-    )
+    x_axis_opts = plotting.axis_options(label=r"$z\,\mathrm{[mm]}$")
+    __create_plot(x=df["z"], bins=100, x_axis=x_axis_opts, suffix="z_origin")
 
     # Plot the phi angle of the track direction
     phi = np.arctan2(df["py"], df["px"])
-    lgd_ops = plotting.legend_options(lgd_loc, 4, 0.8, 0.005)
-    dir_phi_hist_data = plot_factory.hist1D(
-        x=phi,
-        bins=100,
-        x_label=r"$\varphi\,\mathrm{[rad]}$",
-        lgd_ops=lgd_ops,
-        figsize=(8.5, 8.5),
-        ax_formatter=ScalarFormatter(),
-    )
+    x_axis_opts = plotting.axis_options(label=r"$\varphi\,\mathrm{[rad]}$")
 
-    dir_phi_hist_data.lgd.set_bbox_to_anchor((box_anchor_x, box_anchor_y))
-
-    plot_factory.write_plot(
-        dir_phi_hist_data, f"{detector_name}_{track_type}_dir_phi", out_format
-    )
+    __create_plot(x=phi, bins=100, x_axis=x_axis_opts, suffix="dir_phi")
 
     # Plot the theta value of the track direction
     theta = np.arctan2(pT, df["pz"])
-    lgd_ops = plotting.legend_options(lgd_loc, 4, 0.8, 0.005)
-    dir_theta_hist_data = plot_factory.hist1D(
-        x=theta,
-        bins=100,
-        x_label=r"$\theta\,\mathrm{[rad]}$",
-        lgd_ops=lgd_ops,
-        figsize=(8.5, 8.5),
-        ax_formatter=ScalarFormatter(),
-    )
+    x_axis_opts = plotting.axis_options(label=r"$\theta\,\mathrm{[rad]}$")
 
-    dir_theta_hist_data.lgd.set_bbox_to_anchor((box_anchor_x, box_anchor_y))
-
-    plot_factory.write_plot(
-        dir_theta_hist_data, f"{detector_name}_{track_type}_dir_theta", out_format
-    )
+    __create_plot(x=theta, bins=100, x_axis=x_axis_opts, suffix="dir_theta")
 
     # Plot the eta value of the track direction
     eta = np.arctanh(df["pz"] / p)
-    lgd_ops = plotting.legend_options(lgd_loc, 4, 0.8, 0.005)
-    dir_eta_hist_data = plot_factory.hist1D(
-        x=eta,
-        bins=100,
-        x_label=r"$\eta$",
-        lgd_ops=lgd_ops,
-        figsize=(8.5, 8.5),
-        ax_formatter=ScalarFormatter(),
-    )
+    x_axis_opts = plotting.axis_options(label=r"$\eta$")
 
-    dir_eta_hist_data.lgd.set_bbox_to_anchor((box_anchor_x, box_anchor_y))
-
-    plot_factory.write_plot(
-        dir_eta_hist_data, f"{detector_name}_{track_type}_dir_eta", out_format
-    )
+    __create_plot(x=eta, bins=100, x_axis=x_axis_opts, suffix="dir_eta")
 
 
 """ Plot the track positions of two data sources - rz view """
@@ -241,13 +157,21 @@ def compare_track_pos_xy(
     )
 
     # Plot the xy coordinates of the filtered track positions
-    lgd_ops = plotting.legend_options("upper center", 4, 0.4, 0.005)
+    lgd_ops = plotting.legend_options(
+        loc="upper center",
+        ncol=4,
+        colspacing=0.4,
+        handletextpad=0.005,
+        horiz_anchor=0.5,
+        vert_anchor=1.095,
+    )
+
     hist_data = plot_factory.scatter(
         figsize=(10, 10),
         x=first_x,
         y=first_y,
-        x_label=r"$x\,\mathrm{[mm]}$",
-        y_label=r"$y\,\mathrm{[mm]}$",
+        x_axis=plotting.axis_options(label=r"$x\,\mathrm{[mm]}$"),
+        y_axis=plotting.axis_options(label=r"$y\,\mathrm{[mm]}$"),
         label=label1,
         color=color1,
         alpha=1.0,
@@ -257,9 +181,6 @@ def compare_track_pos_xy(
 
     # Compare agaist second data set
     plot_factory.highlight_region(hist_data, second_x, second_y, color2, label2)
-
-    # For this plot, move the legend ouside
-    hist_data.lgd.set_bbox_to_anchor((0.5, 1.095))
 
     detector_name = detector.replace(" ", "_")
     l1 = label1.replace(" ", "_").replace("(", "").replace(")", "")
@@ -303,13 +224,21 @@ def compare_track_pos_rz(
     )
 
     # Plot the xy coordinates of the filtered intersections points
-    lgd_ops = plotting.legend_options("upper center", 4, 0.8, 0.005)
+    lgd_ops = plotting.legend_options(
+        loc="upper center",
+        ncol=4,
+        colspacing=0.8,
+        handletextpad=0.005,
+        horiz_anchor=0.5,
+        vert_anchor=1.168,
+    )
+
     hist_data = plot_factory.scatter(
         figsize=(12, 6),
         x=first_z,
         y=np.hypot(first_x, first_y),
-        x_label=r"$z\,\mathrm{[mm]}$",
-        y_label=r"$r\,\mathrm{[mm]}$",
+        x_axis=plotting.axis_options(label=r"$z\,\mathrm{[mm]}$"),
+        y_axis=plotting.axis_options(label=r"$r\,\mathrm{[mm]}$"),
         label=label1,
         color=color1,
         alpha=1.0,
@@ -321,9 +250,6 @@ def compare_track_pos_rz(
     plot_factory.highlight_region(
         hist_data, second_z, np.hypot(second_x, second_y), color2, label2
     )
-
-    # For this plot, move the legend ouside
-    hist_data.lgd.set_bbox_to_anchor((0.5, 1.168))
 
     detector_name = detector.replace(" ", "_")
     l1 = label1.replace(" ", "_").replace("(", "").replace(")", "")
@@ -346,9 +272,6 @@ def plot_track_pos_dist(
 ):
 
     tracks = "rays" if scan_type == "ray" else "helices"
-    # Where to place the legend box
-    box_anchor_x = 1.02
-    box_anchor_y = 1.24
 
     dist = np.sqrt(
         np.square(df1["x"] - df2["x"])
@@ -369,18 +292,25 @@ def plot_track_pos_dist(
                 track_id = (df1["track_id"].to_numpy())[i]
                 print(f"track {track_id}: {d}")
 
+    # Where to place the legend box
+    lgd_ops = plotting.legend_options(
+        loc=lgd_loc,
+        ncol=4,
+        colspacing=0.8,
+        handletextpad=0.005,
+        horiz_anchor=1.02,
+        vert_anchor=1.24,
+    )
+
     # Plot the xy coordinates of the filtered intersections points
-    lgd_ops = plotting.legend_options(lgd_loc, 4, 0.8, 0.005)
     hist_data = plot_factory.hist1D(
         x=filtered_dist,
         bins=100,
-        x_label=r"$d\,\mathrm{[mm]}$",
-        set_log=True,
+        x_axis=plotting.axis_options(label=r"$d\,\mathrm{[mm]}$"),
+        y_axis=plotting.axis_options(label="", log_scale=True),
         figsize=(8.5, 8.5),
         lgd_ops=lgd_ops,
     )
-
-    hist_data.lgd.set_bbox_to_anchor((box_anchor_x, box_anchor_y))
 
     detector_name = detector.replace(" ", "_")
     l1 = label1.replace(" ", "_").replace("(", "").replace(")", "")
@@ -398,9 +328,6 @@ def plot_track_pos_res(
 ):
 
     tracks = "rays" if scan_type == "ray" else "helices"
-    # Where to place the legend box
-    box_anchor_x = 1.02
-    box_anchor_y = 1.28
 
     res = df1[var] - df2[var]
 
@@ -421,14 +348,23 @@ def plot_track_pos_res(
                 else:
                     o_out = o_out + 1
 
+    lgd_ops = plotting.legend_options(
+        loc=lgd_loc,
+        ncol=4,
+        colspacing=0.01,
+        handletextpad=0.0005,
+        horiz_anchor=1.02,
+        vert_anchor=1.28,
+    )
+
     # Plot the xy coordinates of the filtered intersections points
-    lgd_ops = plotting.legend_options(lgd_loc, 4, 0.01, 0.0005)
     hist_data = plot_factory.hist1D(
         x=filtered_res,
         figsize=(9, 9),
         bins=100,
-        x_label=r"$\mathrm{res}" + rf"\,{var}" + r"\,\mathrm{[mm]}$",
-        set_log=False,
+        x_axis=plotting.axis_options(
+            label=r"$\mathrm{res}" + rf"\,{var}" + r"\,\mathrm{[mm]}$"
+        ),
         lgd_ops=lgd_ops,
         u_outlier=u_out,
         o_outlier=o_out,
@@ -437,9 +373,6 @@ def plot_track_pos_res(
     mu, sig = plot_factory.fit_gaussian(hist_data)
     if mu is None or sig is None:
         print(rf"WARNING: fit failed (res ({tracks}): {label1} - {label2} )")
-
-    # Move the legend ouside plo
-    hist_data.lgd.set_bbox_to_anchor((box_anchor_x, box_anchor_y))
 
     detector_name = detector.replace(" ", "_")
     l1 = label1.replace(" ", "_").replace("(", "").replace(")", "")

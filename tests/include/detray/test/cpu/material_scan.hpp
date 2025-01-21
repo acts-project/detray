@@ -127,7 +127,7 @@ class material_scan : public test::fixture_base<> {
             }
 
             // Record track parameters
-            tracks.push_back({ray.pos(), 0.f, ray.dir(), -1.f});
+            tracks.push_back({ray.pos(), 0.f, ray.dir(), 0.f});
 
             // New material record
             material_record_t mat_record{};

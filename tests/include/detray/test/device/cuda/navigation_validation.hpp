@@ -295,8 +295,14 @@ class navigation_validation : public test::fixture_base<> {
                                      : trck_param.pT(q)};
             const scalar p{q == 0.f ? 1.f * unit<scalar>::GeV
                                     : trck_param.p(q)};
-            min_pT = std::min(min_pT, pT);
-            max_pT = std::max(max_pT, pT);
+
+            if (detray::detail::is_invalid_value(m_cfg.p_range()[0])) {
+                min_pT = std::min(min_pT, pT);
+                max_pT = std::max(max_pT, pT);
+            } else {
+                min_pT = m_cfg.p_range()[0];
+                max_pT = m_cfg.p_range()[1];
+            }
 
             // Recorded only the start position, which added by default
             bool success{true};
@@ -354,22 +360,30 @@ class navigation_validation : public test::fixture_base<> {
                                                n_matching_error);
 
         // Print track positions for plotting
-        std::string mometum_str{std::to_string(min_pT) + "_" +
-                                std::to_string(max_pT)};
+        std::string momentum_str{""};
+        if constexpr (!k_use_rays) {
+            momentum_str =
+                std::to_string(std::floor(10. * static_cast<double>(min_pT)) /
+                               10.) +
+                "_" +
+                std::to_string(std::ceil(10. * static_cast<double>(max_pT)) /
+                               10.) +
+                "_GeV";
+        }
 
         const auto data_path{
             std::filesystem::path{m_cfg.track_param_file()}.parent_path()};
         const auto truth_trk_path{
             data_path /
-            (prefix + "truth_track_params_cuda_" + mometum_str + "GeV.csv")};
-        const auto trk_path{data_path /
-                            (prefix + "navigation_track_params_cuda_" +
-                             mometum_str + "GeV.csv")};
+            (prefix + "truth_track_params_cuda_" + momentum_str + ".csv")};
+        const auto trk_path{
+            data_path /
+            (prefix + "navigation_track_params_cuda_" + momentum_str + ".csv")};
         const auto mat_path{data_path / (prefix + "accumulated_material_cuda_" +
-                                         mometum_str + "GeV.csv")};
+                                         momentum_str + ".csv")};
         const auto missed_path{data_path /
                                (prefix + "missed_intersections_dists_cuda_" +
-                                mometum_str + "GeV.csv")};
+                                momentum_str + ".csv")};
 
         // Write the distance of the missed intersection local position
         // to the surface boundaries to file for plotting

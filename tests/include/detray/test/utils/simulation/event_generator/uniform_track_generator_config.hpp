@@ -199,6 +199,9 @@ struct uniform_track_generator_config {
     DETRAY_HOST_DEVICE constexpr darray<scalar_t, 2> eta_range() const {
         return m_eta_range;
     }
+    DETRAY_HOST_DEVICE constexpr darray<scalar_t, 2> mom_range() const {
+        return {m_p_mag, m_p_mag};
+    }
     DETRAY_HOST_DEVICE constexpr std::size_t phi_steps() const {
         return m_phi_steps;
     }
@@ -230,6 +233,7 @@ struct uniform_track_generator_config {
         // General
         out << "\nUnform track generator\n"
             << "----------------------------\n"
+            << "  Random seed           : " << cfg.seed() << "\n"
             << "  No. tracks            : " << cfg.n_tracks() << "\n"
             << "    -> phi steps        : " << cfg.phi_steps() << "\n"
             << "    -> theta/eta steps  : " << cfg.theta_steps() << "\n"
