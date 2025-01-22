@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2025 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -12,6 +12,7 @@
 #include "detray/utils/type_traits.hpp"
 
 // System include(s)
+#include <ranges>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -142,6 +143,44 @@ std::string demangle_type_name() {
     return std::string{function.substr(start, size)};
 }
 
+/// @returns the name of a type as string
+/// @tparam T the type
+template <typename T>
+std::string get_name(bool full = false) {
+    std::string tp_str{""};
+    try {
+        tp_str = detray::types::demangle_type_name<T>();
+    } catch (...) {
+        return "unknown";
+    }
+
+    if (tp_str.empty()) {
+        return "unknown";
+    }
+
+    if (full) {
+        return tp_str;
+    }
+
+    // Remove the template argument list
+    dvector<std::string> tokens{};
+    for (const auto t : std::views::split(tp_str, '<')) {
+        tokens.emplace_back(t.begin(), t.end());
+    }
+
+    // Split a the first ocurrence of '<'
+    tp_str = tokens.front();
+    tokens.clear();
+
+    // Strip the namespaces and qualifiers
+    for (const auto t : std::views::split(tp_str, ':')) {
+        tokens.emplace_back(t.begin(), t.end());
+    }
+
+    // Split at the last occurrence of ':'
+    return tokens.back();
+}
+
 template <typename = void>
 struct print {};
 
@@ -149,20 +188,20 @@ template <typename... Ts>
 struct print<list<Ts...>> {
 
     template <typename P = void, typename... Ps>
-    void print_typeid() {
+    void print_typeid(bool full) {
 
-        std::printf("%s", demangle_type_name<P>().c_str());
+        std::printf("%s", get_name<P>(full).c_str());
 
         // Keep unrolling the pack
         if constexpr (sizeof...(Ps) > 0) {
             std::printf(", ");
-            return print_typeid<Ps...>();
+            return print_typeid<Ps...>(full);
         }
     }
 
-    print() {
+    print(bool full = true) {
         std::printf("type_list<");
-        print_typeid<Ts...>();
+        print_typeid<Ts...>(full);
         std::printf(">\n");
     }
 };
