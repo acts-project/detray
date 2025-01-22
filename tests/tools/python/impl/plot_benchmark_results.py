@@ -37,7 +37,7 @@ ldg_loc = "upper left"
 
 def read_benchmark_data(logging, input_path, benchmark_file):
 
-    file_path = input_path + benchmark_file
+    file_path = os.path.join(input_path, benchmark_file)
     with open(file_path, "r") as file:
         logging.debug(f"Reading file '{file_path}'")
 
