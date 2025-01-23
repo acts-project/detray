@@ -102,7 +102,7 @@ detray-build/bin/detray_detector_validation \
 ```
 In case of failures, this command will give a detailed debug output in the form of a log file, as well as an SVG representation of the failed tracks. The grid file is optional, but will trigger the use of spacial grids as acceleration structures during the navigation run.
 
-Note: The `search_window` option defines the size of lookup area of the grid acceleration struction and is therefore detector dependent! Use `--search_window 3 3` (or larger) for the *toy detector* and *wire chamber* example detectors and `--search_window 0 0` otherwise.
+Note: The `search_window` option defines the size of lookup area of the grid acceleration structure and is therefore detector dependent! Use `--search_window 3 3` (or larger) for the *toy detector* and *wire chamber* example detectors and `--search_window 0 0` otherwise.
 
 ### Material Validation
 
