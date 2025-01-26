@@ -1,4 +1,4 @@
-### Development Policy 
+### Development Policy
 
 1. Please avoid making changes to the user interface (e.g., function and class names, input arguments, and output types) that could break client project builds. If such modifications are absolutely necessary, provide a clear explanation in the PR.
 
