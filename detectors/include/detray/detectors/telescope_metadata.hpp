@@ -34,43 +34,43 @@ struct telescope_metadata {
     /// Mask to (next) volume link: next volume(s)
     using nav_link = std::uint_least16_t;
 
+    /// How to store coordinate transform matrices
+    template <template <typename...> class vector_t = dvector>
+    using transform_store =
+        single_store<dtransform3D<algebra_type>, vector_t, geometry_context>;
+
+    //
+    // Surface Primitives
+    //
+
     /// Mask types (these types are needed for the portals, which are always
     /// there, and to resolve the wire surface material, i.e. slab vs. rod)
     using rectangle = mask<rectangle2D, algebra_type, nav_link>;
     using straw_tube = mask<line_circular, algebra_type, nav_link>;
     using drift_cell = mask<line_square, algebra_type, nav_link>;
 
-    /// Material types
-    using rod = material_rod<scalar_t>;
-    using slab = material_slab<scalar_t>;
-
-    /// How to store coordinate transform matrices
-    template <template <typename...> class vector_t = dvector>
-    using transform_store =
-        single_store<dtransform3D<algebra_type>, vector_t, geometry_context>;
-
     /// Rectangles are always needed as portals (but the yhave the same type as
     /// module rectangles). Only one additional mask shape is allowed
     enum class mask_ids : std::uint_least8_t {
-        e_rectangle2 = 0,
-        e_portal_rectangle2 = 0,
-        e_annulus2 = 1,
-        e_cylinder2 = 1,
-        e_ring2 = 1,
-        e_trapezoid2 = 1,
-        e_single1 = 1,
-        e_single2 = 1,
-        e_single3 = 1,
-        e_straw_tube = 1,
-        e_drift_cell = 1,
-        e_unbounded_annulus2 = 1,
-        e_unbounded_cell2 = 1,
-        e_unbounded_cylinder2 = 1,
-        e_unbounded_disc2 = 1,
-        e_unbounded_rectangle2 = 1,
-        e_unbounded_trapezoid2 = 1,
-        e_unbounded_line_circular2 = 1,
-        e_unmasked2 = 1,
+        e_rectangle2 = 0u,
+        e_portal_rectangle2 = 0u,
+        e_annulus2 = 1u,
+        e_cylinder2 = 1u,
+        e_ring2 = 1u,
+        e_trapezoid2 = 1u,
+        e_single1 = 1u,
+        e_single2 = 1u,
+        e_single3 = 1u,
+        e_straw_tube = 1u,
+        e_drift_cell = 1u,
+        e_unbounded_annulus2 = 1u,
+        e_unbounded_cell2 = 1u,
+        e_unbounded_cylinder2 = 1u,
+        e_unbounded_disc2 = 1u,
+        e_unbounded_rectangle2 = 1u,
+        e_unbounded_trapezoid2 = 1u,
+        e_unbounded_line_circular2 = 1u,
+        e_unmasked2 = 1u,
     };
 
     /// How to store masks
@@ -82,6 +82,14 @@ struct telescope_metadata {
         regular_multi_store<mask_ids, empty_context, dtuple, vector_t,
                             rectangle,
                             mask<mask_shape_t, algebra_type, nav_link>>>;
+
+    //
+    // Material Description
+    //
+
+    /// Material types
+    using rod = material_rod<scalar_t>;
+    using slab = material_slab<scalar_t>;
 
     /// Material type ids
     enum class material_ids : std::uint_least8_t {
@@ -104,6 +112,16 @@ struct telescope_metadata {
                             container_t::template vector_type, slab,
                             material<scalar_t>>>;
 
+    //
+    // Acceleration structures
+    //
+
+    /// Acceleration data structures
+    enum class accel_ids {
+        e_brute_force = 0u,  // test all surfaces in a volume (brute force)
+        e_default = e_brute_force,
+    };
+
     /// How to link to the entries in the data stores
     using transform_link = typename transform_store<>::link_type;
     using mask_link = typename mask_store<>::single_link;
@@ -112,29 +130,31 @@ struct telescope_metadata {
     using surface_type =
         surface_descriptor<mask_link, material_link, transform_link, nav_link>;
 
+    /// How to store the brute force search data structure
+    template <typename container_t = host_container_types>
+    using accelerator_store =
+        multi_store<accel_ids, empty_context, dtuple,
+                    brute_force_collection<surface_type, container_t>>;
+
+    //
+    // Volume descriptors
+    //
+
     /// No grids/other acceleration data structure, everything is brute forced
     enum geo_objects : std::uint_least8_t {
-        e_portal = 0,
-        e_sensitive = 1,
-        e_size = 2,
+        e_portal = 0u,
+        e_sensitive = 1u,
+        e_size = 2u,
         e_all = e_size,
-    };
-
-    /// Acceleration data structures
-    enum class accel_ids {
-        e_brute_force = 0,  // test all surfaces in a volume (brute force)
-        e_default = e_brute_force,
     };
 
     /// One link for all surfaces (in the brute force method)
     using object_link_type =
         dmulti_index<dtyped_index<accel_ids, dindex>, geo_objects::e_size>;
 
-    /// How to store the brute force search data structure
-    template <typename container_t = host_container_types>
-    using accelerator_store =
-        multi_store<accel_ids, empty_context, dtuple,
-                    brute_force_collection<surface_type, container_t>>;
+    //
+    // Volume acceleration structure
+    //
 
     /// Volume search (only one volume exists)
     template <typename container_t = host_container_types>
