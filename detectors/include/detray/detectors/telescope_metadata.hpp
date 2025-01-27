@@ -52,25 +52,25 @@ struct telescope_metadata {
     /// Rectangles are always needed as portals (but the yhave the same type as
     /// module rectangles). Only one additional mask shape is allowed
     enum class mask_ids : std::uint_least8_t {
-        e_rectangle2 = 0,
-        e_portal_rectangle2 = 0,
-        e_annulus2 = 1,
-        e_cylinder2 = 1,
-        e_ring2 = 1,
-        e_trapezoid2 = 1,
-        e_single1 = 1,
-        e_single2 = 1,
-        e_single3 = 1,
-        e_straw_tube = 1,
-        e_drift_cell = 1,
-        e_unbounded_annulus2 = 1,
-        e_unbounded_cell2 = 1,
-        e_unbounded_cylinder2 = 1,
-        e_unbounded_disc2 = 1,
-        e_unbounded_rectangle2 = 1,
-        e_unbounded_trapezoid2 = 1,
-        e_unbounded_line_circular2 = 1,
-        e_unmasked2 = 1,
+        e_rectangle2 = 0u,
+        e_portal_rectangle2 = 0u,
+        e_annulus2 = 1u,
+        e_cylinder2 = 1u,
+        e_ring2 = 1u,
+        e_trapezoid2 = 1u,
+        e_single1 = 1u,
+        e_single2 = 1u,
+        e_single3 = 1u,
+        e_straw_tube = 1u,
+        e_drift_cell = 1u,
+        e_unbounded_annulus2 = 1u,
+        e_unbounded_cell2 = 1u,
+        e_unbounded_cylinder2 = 1u,
+        e_unbounded_disc2 = 1u,
+        e_unbounded_rectangle2 = 1u,
+        e_unbounded_trapezoid2 = 1u,
+        e_unbounded_line_circular2 = 1u,
+        e_unmasked2 = 1u,
     };
 
     /// How to store masks
@@ -118,7 +118,7 @@ struct telescope_metadata {
 
     /// Acceleration data structures
     enum class accel_ids {
-        e_brute_force = 0,  // test all surfaces in a volume (brute force)
+        e_brute_force = 0u,  // test all surfaces in a volume (brute force)
         e_default = e_brute_force,
     };
 
@@ -142,9 +142,9 @@ struct telescope_metadata {
 
     /// No grids/other acceleration data structure, everything is brute forced
     enum geo_objects : std::uint_least8_t {
-        e_portal = 0,
-        e_sensitive = 1,
-        e_size = 2,
+        e_portal = 0u,
+        e_sensitive = 1u,
+        e_size = 2u,
         e_all = e_size,
     };
 

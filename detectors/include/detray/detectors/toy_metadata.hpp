@@ -56,11 +56,11 @@ struct toy_metadata {
 
     /// Mask type ids
     enum class mask_ids : std::uint_least8_t {
-        e_rectangle2 = 0,
-        e_trapezoid2 = 1,
-        e_portal_cylinder2 = 2,
-        e_portal_ring2 = 3,
-        e_cylinder2 = 2,
+        e_rectangle2 = 0u,
+        e_trapezoid2 = 1u,
+        e_portal_cylinder2 = 2u,
+        e_portal_ring2 = 3u,
+        e_cylinder2 = 2u,
     };
 
     /// How to store masks
@@ -127,9 +127,9 @@ struct toy_metadata {
 
     /// Acceleration data structures
     enum class accel_ids : std::uint_least8_t {
-        e_brute_force = 0,     // test all surfaces in a volume (brute force)
-        e_cylinder2_grid = 1,  // barrel
-        e_disc_grid = 2,       // endcap
+        e_brute_force = 0u,     // test all surfaces in a volume (brute force)
+        e_cylinder2_grid = 1u,  // barrel
+        e_disc_grid = 2u,       // endcap
         e_default = e_brute_force,
     };
 
@@ -155,10 +155,10 @@ struct toy_metadata {
 
     /// Portals and passives in the brute froce search, sensitives in the grids
     enum geo_objects : std::uint_least8_t {
-        e_portal = 0,
-        e_passive = 0,
-        e_sensitive = 1,
-        e_size = 2,
+        e_portal = 0u,
+        e_passive = 0u,
+        e_sensitive = 1u,
+        e_size = 2u,
         e_all = e_size,
     };
 

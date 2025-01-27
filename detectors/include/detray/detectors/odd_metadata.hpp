@@ -77,9 +77,6 @@ struct odd_metadata {
     // Material Description
     //
 
-    // Used for "ODD light"
-    using slab = material_slab<scalar_t>;
-
     // Cylindrical material map
     template <typename container_t>
     using cylinder_map_t =
@@ -89,19 +86,11 @@ struct odd_metadata {
     template <typename container_t>
     using disc_map_t = material_map<ring2D, scalar, container_t>;
 
-    // Rectangular material map (material mapped to sensitive surface)
-    template <typename container_t>
-    using rectangular_map_t =
-        material_map<algebra_type, rectangle2D, container_t>;
-
     /// Define positions of ODD material types in detector material store
     enum class material_ids : std::uint_least8_t {
         e_concentric_cylinder2_map = 0u,
         e_disc2_map = 1u,
-        e_rectangle2_map = 2u,
-        e_trapezoid2_map = 2u,
-        e_slab = 3u,
-        e_none = 4u,
+        e_none = 3u,
     };
 
     /// How to store and link materials. The material does not make use of
@@ -110,9 +99,7 @@ struct odd_metadata {
     using material_store =
         multi_store<material_ids, empty_context, dtuple,
                     grid_collection<cylinder_map_t<container_t>>,
-                    grid_collection<disc_map_t<container_t>>,
-                    grid_collection<rectangular_map_t<container_t>>,
-                    typename container_t::template vector_type<slab>>;
+                    grid_collection<disc_map_t<container_t>>>;
 
     //
     // Acceleration Structures
@@ -136,9 +123,9 @@ struct odd_metadata {
     /// The acceleration data structures live in another tuple that needs to be
     /// indexed correctly:
     enum class accel_ids : std::uint_least8_t {
-        e_brute_force = 0,     // test all surfaces in a volume (brute force)
-        e_disc_grid = 1,       // endcap
-        e_cylinder2_grid = 2,  // barrel
+        e_brute_force = 0u,     // test all surfaces in a volume (brute force)
+        e_disc_grid = 1u,       // endcap
+        e_cylinder2_grid = 2u,  // barrel
         e_default = e_brute_force,
     };
 
@@ -164,10 +151,10 @@ struct odd_metadata {
 
     /// How to index the constituent objects in a volume
     enum geo_objects : std::uint_least8_t {
-        e_portal = 0,
-        e_passive = 0,
-        e_sensitive = 1,
-        e_size = 2,
+        e_portal = 0u,
+        e_passive = 0u,
+        e_sensitive = 1u,
+        e_size = 2u,
         e_all = e_size,
     };
 

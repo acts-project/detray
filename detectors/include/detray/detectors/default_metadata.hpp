@@ -79,27 +79,27 @@ struct default_metadata {
     /// Give your mask types a name (needs to be consecutive and has to match
     /// the types position in the mask store!)
     enum class mask_ids : std::uint_least8_t {
-        e_rectangle2 = 0,
-        e_portal_rectangle2 = 0,
-        e_trapezoid2 = 1,
-        e_annulus2 = 2,
-        e_cylinder2 = 3,
-        e_portal_cylinder2 = 4,
-        e_ring2 = 5,
-        e_portal_ring2 = 5,
-        e_straw_tube = 6,
-        e_drift_cell = 7,
-        /*e_single1 = 8,
-        e_single2 = 9,
-        e_single3 = 10,
-        e_unbounded_rectangle2 = 11,
-        e_unbounded_trapezoid2 = 12,
-        e_unbounded_annulus2 = 13,
-        e_unbounded_cylinder2 = 14,
-        e_unbounded_disc2 = 15,
-        e_unbounded_line_circular2 = 16,
-        e_unbounded_cell2 = 17,
-        e_unmasked2 = 18,*/
+        e_rectangle2 = 0u,
+        e_portal_rectangle2 = 0u,
+        e_trapezoid2 = 1u,
+        e_annulus2 = 2u,
+        e_cylinder2 = 3u,
+        e_portal_cylinder2 = 4u,
+        e_ring2 = 5u,
+        e_portal_ring2 = 5u,
+        e_straw_tube = 6u,
+        e_drift_cell = 7u,
+        /*e_single1 = 8u,
+        e_single2 = 9u,
+        e_single3 = 10u,
+        e_unbounded_rectangle2 = 11u,
+        e_unbounded_trapezoid2 = 12u,
+        e_unbounded_annulus2 = 13u,
+        e_unbounded_cylinder2 = 14u,
+        e_unbounded_disc2 = 15u,
+        e_unbounded_line_circular2 = 16u,
+        e_unbounded_cell2 = 17u,
+        e_unmasked2 = 18u,*/
     };
 
     /// How to store masks
@@ -162,7 +162,7 @@ unbounded_cell, unmasked_plane*/>;
         e_cylinder2_map = 2u,
         e_rectangle2_map = 3u,
         e_trapezoid2_map = 3u,
-        e_annulus2_map = 0u,
+        e_annulus2_map = 1u,
         e_drift_cell_map = 5u,
         e_straw_tube_map = 5u,
         // Volume material
@@ -244,13 +244,13 @@ unbounded_cell, unmasked_plane*/>;
 
     /// Acceleration data structures
     enum class accel_ids : std::uint_least8_t {
-        e_brute_force = 0,     // test all surfaces in a volume (brute force)
-        e_cylinder2_grid = 1,  // e.g. barrel layers
-        e_disc_grid = 2,       // e.g. endcap layers
-        e_irr_cylinder2_grid = 3,
-        e_irr_disc_grid = 4,
-        // e_cylinder3_grid = 5,
-        // e_irr_cylinder3_grid = 6,
+        e_brute_force = 0u,     // test all surfaces in a volume (brute force)
+        e_cylinder2_grid = 1u,  // e.g. barrel layers
+        e_disc_grid = 2u,       // e.g. endcap layers
+        e_irr_cylinder2_grid = 3u,
+        e_irr_disc_grid = 4u,
+        // e_cylinder3_grid = 5u,
+        // e_irr_cylinder3_grid = 6u,
         // ... e.g. frustum navigation types
         e_default = e_brute_force,
     };
@@ -288,11 +288,11 @@ container_t>>*/>;
     /// If they share the same index value here, they will be added into the
     /// same acceleration data structure (brute force is always at 0)
     enum geo_objects : std::uint_least8_t {
-        e_portal = 0,     // Brute force search
-        e_sensitive = 1,  // Grid accelerated search (can be different types)
-        e_passive = 0,    // Brute force search
-        e_size = 2,       // Every volume holds two acceleration data structures
-        e_all = e_size,   // i.e. the brute force method and one grid type
+        e_portal = 0u,     // Brute force search
+        e_sensitive = 1u,  // Grid accelerated search (can be different types)
+        e_passive = 0u,    // Brute force search
+        e_size = 2u,     // Every volume holds two acceleration data structures
+        e_all = e_size,  // i.e. the brute force method and one grid type
     };
 
     /// How a volume links to the accelration data structures

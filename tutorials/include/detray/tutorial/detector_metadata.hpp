@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -13,6 +13,8 @@
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/geometry/mask.hpp"
+#include "detray/geometry/shapes/rectangle2D.hpp"
+#include "detray/geometry/shapes/trapezoid2D.hpp"
 #include "detray/geometry/surface_descriptor.hpp"
 #include "detray/io/backend/detail/type_info.hpp"  // mask_info
 #include "detray/materials/material_slab.hpp"
@@ -37,30 +39,6 @@ namespace detray {
 
 namespace tutorial {
 
-//
-// Surface Primitives
-//
-
-/// Portal link type between volumes
-using nav_link = std::uint_least16_t;
-
-/// The mask types for the detector sensitive/passive surfaces
-using square = mask<square2D, detray::tutorial::algebra_t, nav_link>;
-using trapezoid = mask<trapezoid2D, detray::tutorial::algebra_t, nav_link>;
-// Types for portals
-using rectangle = mask<rectangle2D, detray::tutorial::algebra_t, nav_link>;
-
-//
-// Material Description
-//
-
-/// The material types to be mapped onto the surfaces: Here homogeneous material
-using slab = material_slab<scalar>;
-
-//
-// Detector
-//
-
 /// Defines a detector that contains squares, trapezoids and a bounding portal
 /// box.
 struct my_metadata {
@@ -68,18 +46,8 @@ struct my_metadata {
     /// Define the algebra type for the geometry and navigation
     using algebra_type = detray::tutorial::algebra_t;
 
-    /// How to index the constituent objects in a volume
-    /// If they share the same index value here, they will be added into the
-    /// same acceleration data structure in every respective volume
-    enum geo_objects : std::uint_least8_t {
-        e_surface = 0u,  //< This detector keeps all surfaces in the same
-                         //  acceleration data structure (id 0)
-        e_size = 1u
-    };
-
-    /// How a volume finds its constituent objects in the detector containers
-    /// In this case: One range for sensitive/passive surfaces, oportals
-    using object_link_type = dmulti_index<dindex_range, geo_objects::e_size>;
+    /// Portal link type between volumes
+    using nav_link = std::uint_least16_t;
 
     /// How to store and link transforms. The geometry context allows to resolve
     /// the conditions data for e.g. module alignment
@@ -87,14 +55,24 @@ struct my_metadata {
     using transform_store =
         single_store<transform3, vector_t, geometry_context>;
 
+    //
+    // Surface Primitives
+    //
+
+    /// The mask types for the detector sensitive/passive surfaces
+    using square = mask<square2D, algebra_type, nav_link>;
+    using trapezoid = mask<trapezoid2D, algebra_type, nav_link>;
+    // Types for portals
+    using rectangle = mask<rectangle2D, algebra_type, nav_link>;
+
     /// Assign the mask types to the mask tuple container entries. It may be a
     /// good idea to have the most common types in the first tuple entries, in
     /// order to minimize the depth of the 'unrolling' before a mask is found
     /// in the tuple
     enum class mask_ids : std::uint_least8_t {
-        e_square2 = 0,
-        e_trapezoid2 = 1,
-        e_portal_rectangle2 = 2
+        e_square2 = 0u,
+        e_trapezoid2 = 1u,
+        e_portal_rectangle2 = 2u
     };
 
     /// This is the mask collections tuple (in the detector called 'mask store')
@@ -105,10 +83,18 @@ struct my_metadata {
         regular_multi_store<mask_ids, empty_context, dtuple, vector_t, square,
                             trapezoid, rectangle>;
 
+    //
+    // Material Description
+    //
+
+    /// The material types to be mapped onto the surfaces: Here homogeneous
+    /// material
+    using slab = material_slab<scalar>;
+
     /// Similar to the mask store, there is a material store, which
     enum class material_ids : std::uint_least8_t {
-        e_slab = 0,
-        e_none = 1,
+        e_slab = 0u,
+        e_none = 1u,
     };
 
     /// How to store and link materials. The material does not make use of
@@ -117,6 +103,17 @@ struct my_metadata {
     using material_store =
         multi_store<material_ids, empty_context, dtuple,
                     typename container_t::template vector_type<slab>>;
+
+    //
+    // Acceleration structures
+    //
+
+    /// The acceleration data structures live in another tuple that needs to
+    /// indexed correctly
+    enum class accel_ids : std::uint_least8_t {
+        e_brute_force = 0u,  //< test all surfaces in a volume (brute force)
+        e_default = e_brute_force,
+    };
 
     /// Surface descriptor type used for sensitives, passives and portals
     /// It holds the indices to the surface data in the detector data stores
@@ -127,13 +124,6 @@ struct my_metadata {
     using surface_type =
         surface_descriptor<mask_link, material_link, transform_link, nav_link>;
 
-    /// The acceleration data structures live in another tuple that needs to
-    /// indexed correctly
-    enum class accel_ids : std::uint_least8_t {
-        e_brute_force = 0,  //< test all surfaces in a volume (brute force)
-        e_default = e_brute_force,
-    };
-
     /// The tuple store that hold the acceleration data structures for all
     /// volumes. Every collection of accelerationdata structures defines its
     /// own container and view type. Does not make use of conditions data
@@ -142,6 +132,29 @@ struct my_metadata {
     using accelerator_store =
         multi_store<accel_ids, empty_context, dtuple,
                     brute_force_collection<surface_type, container_t>>;
+
+    //
+    // Volume descriptors
+    //
+
+    /// How to index the constituent objects in a volume
+    /// If they share the same index value here, they will be added into the
+    /// same acceleration data structure in every respective volume
+    enum geo_objects : std::uint_least8_t {
+        e_portal = 0u,   //< This detector keeps all surfaces in the same
+        e_passive = 0u,  //  acceleration data structure (id 0)
+        e_sensitive = 0u,
+        e_size = 1u,
+        e_all = e_size
+    };
+
+    /// How a volume finds its constituent objects in the detector containers
+    /// In this case: One range for sensitive/passive surfaces, oportals
+    using object_link_type = dmulti_index<dindex_range, geo_objects::e_size>;
+
+    //
+    // Volume acceleration structure
+    //
 
     /// Data structure that allows to find the current detector volume from a
     /// given position. Here: Uniform grid with a 3D cylindrical shape
