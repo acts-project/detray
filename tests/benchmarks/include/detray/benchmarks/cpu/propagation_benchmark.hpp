@@ -19,6 +19,11 @@
 // Benchmark include
 #include <benchmark/benchmark.h>
 
+#ifdef _OPENMP
+// openMP
+#include <omp.h>
+#endif
+
 // System include(s)
 #include <algorithm>
 #include <cassert>
@@ -57,7 +62,8 @@ struct host_propagation_bm : public benchmark_base {
         const dvector<free_track_parameters<algebra_t>> *tracks,
         const typename propagator_t::detector_type *det, const bfield_t *bfield,
         const typename propagator_t::actor_chain_type::state_tuple
-            *input_actor_states) const {
+            *input_actor_states,
+        const int n_threads, const int thread_schedule) const {
         using actor_chain_t = typename propagator_t::actor_chain_type;
         using actor_states_t = typename actor_chain_t::state_tuple;
 
@@ -65,6 +71,13 @@ struct host_propagation_bm : public benchmark_base {
         assert(det != nullptr);
         assert(bfield != nullptr);
         assert(input_actor_states != nullptr);
+
+#ifdef _OPENMP
+        // Set the number of threads fo the openMP parallel regions
+        omp_set_num_threads(n_threads);
+        const int chunk_size{static_cast<int>(tracks->size() / n_threads)};
+        omp_set_schedule(static_cast<omp_sched_t>(thread_schedule), chunk_size);
+#endif
 
         const int n_samples{m_cfg.benchmark().n_samples()};
         const int n_warmup{m_cfg.benchmark().n_warmup()};
@@ -108,7 +121,7 @@ struct host_propagation_bm : public benchmark_base {
             stride = (stride == 0) ? 10 : stride;
             assert(stride > 0);
 
-#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for if (n_threads > 1)
             for (int i = 0; i < n_samples; i += stride) {
                 // The track gets copied into the stepper state, so that the
                 // original track sample vector remains unchanged
@@ -126,12 +139,12 @@ struct host_propagation_bm : public benchmark_base {
         // https://github.com/google/benchmark/blob/main/docs/user_guide.md#custom-counters
         std::size_t total_tracks = 0u;
         for (auto _ : state) {
-#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for if (n_threads > 1)
             for (int i = 0; i < n_samples; ++i) {
                 run_propagation((*tracks)[static_cast<std::size_t>(i)]);
             }
-            total_tracks += static_cast<std::size_t>(n_samples);
         }
+        total_tracks += static_cast<std::size_t>(n_samples);
         // Report throughput
         state.counters["TracksPropagated"] = benchmark::Counter(
             static_cast<double>(total_tracks), benchmark::Counter::kIsRate);

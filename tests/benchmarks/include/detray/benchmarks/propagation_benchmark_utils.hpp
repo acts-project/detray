@@ -22,6 +22,7 @@
 #include <benchmark/benchmark.h>
 
 // System include(s)
+#include <thread>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -145,7 +146,10 @@ inline void register_benchmark(
         dvector<free_track_parameters<typename detector_t::algebra_type>>>
         &track_samples,
     const std::vector<int> &n_samples = {10000},
-    vecmem::memory_resource *dev_mr = nullptr) {
+    vecmem::memory_resource *dev_mr = nullptr,
+    const std::vector<int> &n_host_threads = {static_cast<int>(
+        std::thread::hardware_concurrency())},
+    int openmp_sched = 2) {
 
     using algebra_t = typename detector_t::algebra_type;
     using propagation_benchmark_t =
@@ -153,9 +157,15 @@ inline void register_benchmark(
 
     assert(track_samples.size() == n_samples.size());
 
-    for (const auto [i, n] : detray::views::enumerate(n_samples)) {
+    const std::size_t bench_range{
+        math::max(n_samples.size(), n_host_threads.size())};
+    for (std::size_t i = 0u; i < bench_range; ++i) {
 
-        auto &tracks = track_samples[i];
+        auto &tracks =
+            track_samples.size() == 1u ? track_samples[0] : track_samples[i];
+        int host_threads{n_host_threads.size() == 1u ? n_host_threads[0]
+                                                     : n_host_threads[i]};
+        const int n{n_samples.size() == 1u ? n_samples[0] : n_samples[i]};
         assert(static_cast<std::size_t>(n) <= tracks.size());
 
         bench_cfg.n_samples(n);
@@ -176,11 +186,12 @@ inline void register_benchmark(
                           dvector<free_track_parameters<algebra_t>> *,
                           const detector_t *, const bfield_bknd_t *,
                           typename propagator_t::actor_chain_type::state_tuple
-                              *>) {
+                              *,
+                          int, int>) {
             // Cpu benchmark
             ::benchmark::RegisterBenchmark(bench_name.c_str(), prop_benchmark,
-                                           &tracks, &det, &bfield,
-                                           actor_states);
+                                           &tracks, &det, &bfield, actor_states,
+                                           host_threads, openmp_sched);
             //->MeasureProcessCPUTime();
         } else {
             // Device benchmark
@@ -210,13 +221,17 @@ inline void register_benchmark(
     std::vector<
         dvector<free_track_parameters<typename detector_t::algebra_type>>>
         &tracks,
-    const std::vector<int> &n_samples = {10000}) {
+    const std::vector<int> &n_samples = {10000},
+    const std::vector<int> &n_host_threads = {static_cast<int>(
+        std::thread::hardware_concurrency())},
+    int openmp_sched = 2) {
 
     using propagator_t =
         propagator<stepper_t, navigator<detector_t>, actor_chain_t>;
     register_benchmark<benchmark_t, propagator_t, detector_t, bfield_bknd_t,
                        kOPT>(name, bench_cfg, prop_cfg, det, bfield,
-                             actor_states, tracks, n_samples, nullptr);
+                             actor_states, tracks, n_samples, nullptr,
+                             n_host_threads, openmp_sched);
 }
 
 }  // namespace detray::benchmarks
