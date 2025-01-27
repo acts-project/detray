@@ -337,9 +337,12 @@ struct print_inspector {
         }
 
         debug_stream << "distance to next\t\t";
-        if (math::fabs(state()) <
-            static_cast<decltype(math::fabs(state()))>(cfg.path_tolerance)) {
+        if (!state.is_exhausted() &&
+            math::fabs(state()) < static_cast<decltype(math::fabs(state()))>(
+                                      cfg.path_tolerance)) {
             debug_stream << "on obj (within tol)" << std::endl;
+        } else if (state.is_exhausted()) {
+            debug_stream << "no target" << std::endl;
         } else {
             debug_stream << state() << std::endl;
         }

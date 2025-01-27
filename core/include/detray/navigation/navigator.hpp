@@ -495,12 +495,14 @@ class navigator {
         /// @returns next object that we want to reach (current target)
         DETRAY_HOST_DEVICE
         inline auto target() -> candidate_t & {
+            assert(static_cast<std::size_t>(m_next) < m_candidates.size());
             return m_candidates[static_cast<std::size_t>(m_next)];
         }
 
         /// @returns last valid candidate (by position in the cache)
         DETRAY_HOST_DEVICE
         inline auto last() -> candidate_t & {
+            assert(static_cast<std::size_t>(m_last) < m_candidates.size());
             return m_candidates[static_cast<std::size_t>(m_last)];
         }
 
