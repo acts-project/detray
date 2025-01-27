@@ -136,9 +136,9 @@ struct odd_metadata {
     /// The acceleration data structures live in another tuple that needs to be
     /// indexed correctly:
     enum class accel_ids : std::uint_least8_t {
-        e_brute_force = 0,     // test all surfaces in a volume (brute force)
-        e_disc_grid = 1,       // endcap
-        e_cylinder2_grid = 2,  // barrel
+        e_brute_force = 0u,     // test all surfaces in a volume (brute force)
+        e_disc_grid = 1u,       // endcap
+        e_cylinder2_grid = 2u,  // barrel
         e_default = e_brute_force,
     };
 
@@ -164,10 +164,10 @@ struct odd_metadata {
 
     /// How to index the constituent objects in a volume
     enum geo_objects : std::uint_least8_t {
-        e_portal = 0,
-        e_passive = 0,
-        e_sensitive = 1,
-        e_size = 2,
+        e_portal = 0u,
+        e_passive = 0u,
+        e_sensitive = 1u,
+        e_size = 2u,
         e_all = e_size,
     };
 
