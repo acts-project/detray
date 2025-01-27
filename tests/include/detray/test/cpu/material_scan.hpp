@@ -96,7 +96,6 @@ class material_scan : public test::fixture_base<> {
     /// Run the ray scan
     void TestBody() override {
 
-        using nav_link_t = typename detector_t::surface_type::navigation_link;
         using material_record_t = material_validator::material_record<scalar_t>;
 
         std::size_t n_tracks{0u};
@@ -138,15 +137,30 @@ class material_scan : public test::fixture_base<> {
             for (const auto &[i, record] :
                  detray::views::enumerate(intersection_record)) {
 
-                // Prevent double counting of material on adjacent portals
-                if ((i < intersection_record.size() + 1) &&
-                    (((intersection_record[i + 1].intersection ==
-                       record.intersection) &&
-                      intersection_record[i + 1]
-                          .intersection.sf_desc.is_portal() &&
-                      record.intersection.sf_desc.is_portal()) ||
-                     (record.intersection.volume_link ==
-                      detail::invalid_value<nav_link_t>()))) {
+                // Check whether this record has a successor
+                if (i < intersection_record.size() - 1) {
+
+                    const auto &current_intr = record.intersection;
+                    const auto &next_intr =
+                        intersection_record[i + 1].intersection;
+
+                    const bool is_same_intrs{next_intr == current_intr};
+                    const bool current_is_pt{current_intr.sf_desc.is_portal()};
+                    const bool next_is_pt{next_intr.sf_desc.is_portal()};
+
+                    const bool is_dummy_record{i == 0};
+
+                    // Prevent double counting of material on adjacent portals
+                    // (the navigator automatically skips the exit portal)
+                    if ((is_same_intrs && next_is_pt && current_is_pt) ||
+                        is_dummy_record) {
+                        continue;
+                    }
+                }
+
+                // Don't count the last portal, because navigation terminates
+                // before the material is counted
+                if (detail::is_invalid_value(record.intersection.volume_link)) {
                     continue;
                 }
 

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2024 CERN for the benefit of the ACTS project
+ * (c) 2022-2025 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -22,6 +22,8 @@
 
 // System include(s)
 #include <algorithm>
+#include <sstream>
+#include <stdexcept>
 #include <type_traits>
 
 namespace detray {
@@ -107,6 +109,12 @@ struct brute_force_scan {
             intersections.clear();
         }
 
+        // Need to have at least an exit portal
+        if (intersection_trace.empty()) {
+            std::stringstream stream;
+            stream << "No intersections found for traj: " << traj << std::endl;
+            throw std::runtime_error(stream.str());
+        }
         // Save initial track position as dummy intersection record
         const auto &first_record = intersection_trace.front();
         intersection_t start_intersection{};

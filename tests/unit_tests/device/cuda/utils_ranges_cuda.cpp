@@ -224,7 +224,7 @@ TEST(utils_ranges_cuda, pick) {
     }
 }
 
-// This tests the convenience enumeration function
+// This tests the detray join range
 TEST(utils_ranges_cuda, join) {
 
     // Helper object for performing memory copies.
@@ -261,7 +261,7 @@ TEST(utils_ranges_cuda, join) {
         ASSERT_EQ(seq_1[i].ui, value_vec[i]);
     }
     // Second sequence
-    for (std::size_t i = 0u; i < seq_1.size(); i++) {
+    for (std::size_t i = 0u; i < seq_2.size(); i++) {
         ASSERT_EQ(seq_2[i].ui, value_vec[i + seq_1.size()]);
     }
 }
