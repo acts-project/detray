@@ -20,13 +20,14 @@
 #include <benchmark/benchmark.h>
 
 #ifdef _OPENMP
-// openMP
+// openMP include
 #include <omp.h>
 #endif
 
 // System include(s)
 #include <algorithm>
 #include <cassert>
+#include <chrono>
 #include <ranges>
 #include <string>
 
@@ -121,7 +122,7 @@ struct host_propagation_bm : public benchmark_base {
             stride = (stride == 0) ? 10 : stride;
             assert(stride > 0);
 
-#pragma omp parallel for if (n_threads > 1)
+#pragma omp parallel for
             for (int i = 0; i < n_samples; i += stride) {
                 // The track gets copied into the stepper state, so that the
                 // original track sample vector remains unchanged
@@ -137,14 +138,29 @@ struct host_propagation_bm : public benchmark_base {
         // Calculate the propagation rate
         // @see
         // https://github.com/google/benchmark/blob/main/docs/user_guide.md#custom-counters
+        // auto start = std::chrono::high_resolution_clock::now();
         std::size_t total_tracks = 0u;
+        // std::size_t iterations = 1u;
         for (auto _ : state) {
-#pragma omp parallel for if (n_threads > 1)
+            // auto loc_start = std::chrono::high_resolution_clock::now();
+#pragma omp parallel for
             for (int i = 0; i < n_samples; ++i) {
                 run_propagation((*tracks)[static_cast<std::size_t>(i)]);
             }
+            // auto loc_finish = std::chrono::high_resolution_clock::now();
+            // auto loc_scaling =
+            // std::chrono::duration_cast<std::chrono::nanoseconds>(loc_finish-loc_start);
+            // std::cout << "Iteration: " << iterations << ": " <<
+            // loc_scaling.count() << "ns\n";
+            // ++iterations;
+            total_tracks += static_cast<std::size_t>(n_samples);
         }
-        total_tracks += static_cast<std::size_t>(n_samples);
+        // auto finish = std::chrono::high_resolution_clock::now();
+
+        // auto scaling =
+        // std::chrono::duration_cast<std::chrono::nanoseconds>(finish-start);
+        // std::cout << "Full: " << scaling.count() << "ns\n";
+        //   std::cout << "Total tracks: " << total_tracks << std::endl;
         // Report throughput
         state.counters["TracksPropagated"] = benchmark::Counter(
             static_cast<double>(total_tracks), benchmark::Counter::kIsRate);

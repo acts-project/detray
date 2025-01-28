@@ -57,35 +57,39 @@ if(DETRAY_BUILD_BENCHMARKS)
     find_package(OpenMP)
 
     # Build the propagation benchmark executable.
-    macro(detray_add_propagation_benchmark algebra)
-        detray_add_executable(propagation_benchmark_cpu_${algebra}
-                            "propagation_benchmark.cpp"
+    macro(detray_add_propagation_benchmark algebra type)
+        detray_add_executable(propagation_${type}_cpu_${algebra}
+                            "propagation_${type}.cpp"
                             LINK_LIBRARIES Boost::program_options benchmark::benchmark benchmark::benchmark_main vecmem::core detray::benchmark_cpu detray::core_${algebra} detray::tools detray::detectors
         )
 
         if(OpenMP_CXX_FOUND)
             target_link_libraries(
-                detray_propagation_benchmark_cpu_${algebra}
+                detray_propagation_${type}_cpu_${algebra}
                 PRIVATE OpenMP::OpenMP_CXX
             )
         endif()
     endmacro()
 
     # Build the array benchmark.
-    detray_add_propagation_benchmark( array )
+    detray_add_propagation_benchmark( array benchmark )
+    detray_add_propagation_benchmark( array scaling )
 
     # Build the Eigen benchmark executable.
     if(DETRAY_EIGEN_PLUGIN)
-        detray_add_propagation_benchmark( eigen )
+        detray_add_propagation_benchmark( eigen benchmark )
+        detray_add_propagation_benchmark( eigen scaling )
     endif()
 
     # Build the SMatrix benchmark executable.
     if(DETRAY_SMATRIX_PLUGIN)
-        detray_add_propagation_benchmark( smatrix )
+        detray_add_propagation_benchmark( smatrix benchmark )
+        detray_add_propagation_benchmark( smatrix scaling )
     endif()
 
     # Build the Vc benchmark executable.
     if(DETRAY_VC_AOS_PLUGIN)
-        detray_add_propagation_benchmark( vc_aos )
+        detray_add_propagation_benchmark( vc_aos benchmark )
+        detray_add_propagation_benchmark( vc_aos scaling )
     endif()
 endif()

@@ -191,14 +191,14 @@ inline void register_benchmark(
             // Cpu benchmark
             ::benchmark::RegisterBenchmark(bench_name.c_str(), prop_benchmark,
                                            &tracks, &det, &bfield, actor_states,
-                                           host_threads, openmp_sched);
-            //->MeasureProcessCPUTime();
+                                           host_threads, openmp_sched)
+                ->UseRealTime();
         } else {
             // Device benchmark
             ::benchmark::RegisterBenchmark(bench_name.c_str(), prop_benchmark,
                                            dev_mr, &tracks, &det, &bfield,
-                                           actor_states);
-            //->MeasureProcessCPUTime();
+                                           actor_states)
+                ->UseRealTime();
         }
     }
 }
