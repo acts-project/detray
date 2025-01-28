@@ -77,24 +77,28 @@ int main(int argc, char** argv) {
     // schedule modifier
     // omp_sched_monotonic = 0x80000000u
     constexpr int sched_policy{1};
-    // Number of tracks per thread in weak scaling
+    /// Number of host threads
+    std::vector<int> n_threads{1, 2, 4, 8, 16, 32, 64, 128, 256};
+
+    /// Number of tracks per thread in weak scaling
     constexpr int chunk_size{1000};
+    std::vector<int> n_tracks_weak_sc;
+    // Ensure that number of tracks is divisible by number of threads
+    for (const int n : n_threads) {
+        n_tracks_weak_sc.push_back(n * chunk_size);
+    }
+
+    /// Maximum number of tracks to be assigned to thread (invlaid:
+    /// set per benchmark case as strong_sc_sample_size/#threads)
+    constexpr int max_chunk_size{detail::invalid_value<int>()};
+    /// Strong scaling sample size
+    constexpr std::size_t strong_sc_sample_size{51'200u};
 
     // Host memory resource
     vecmem::host_memory_resource host_mr;
 
     // Constant magnetic field
     vector3 B{0.f, 0.f, 2.f * unit<scalar>::T};
-
-    // Number of tracks for weak scaling
-    std::vector<int> n_threads{1,  2,  3,  4,  5,  6,  7,   8,   12,
-                               16, 24, 32, 48, 64, 96, 128, 192, 256};
-    std::vector<int> n_tracks_weak_sc;
-    // Ensure that number of tracks is divisible by nu,ber of threads
-    for (const int n : n_threads) {
-        n_tracks_weak_sc.push_back(n * chunk_size);
-    }
-    const std::size_t n_tracks_strong_sc{50'000};
 
     //
     // Configuration
@@ -107,7 +111,9 @@ int main(int argc, char** argv) {
     po::options_description desc("\ndetray propagation scaling options");
 
     desc.add_options()("context", po::value<dindex>(),
-                       "Index of the geometry context");
+                       "Index of the geometry context")(
+        "bknd_name", po::value<std::string>(), "Name of the Processor")(
+        "sort_tracks", "Does nothing in scaling test");
 
     // Configs to be filled
     detray::io::detector_reader_config reader_cfg{};
@@ -123,6 +129,10 @@ int main(int argc, char** argv) {
     detector_t::geometry_context gctx;
     if (vm.count("context")) {
         gctx = detector_t::geometry_context{vm["context"].as<dindex>()};
+    }
+    std::string proc_name{"unknown"};
+    if (vm.count("bknd_name")) {
+        proc_name = vm["bknd_name"].as<std::string>();
     }
 
     //
@@ -141,8 +151,8 @@ int main(int argc, char** argv) {
         detray::benchmarks::generate_track_samples<track_generator_t>(
             &host_mr, n_tracks_weak_sc, trk_cfg, false);
 
-    // Generate track sample size for strong scaling
-    trk_cfg.n_tracks(n_tracks_strong_sc);
+    // Generate track sample for strong scaling
+    trk_cfg.n_tracks(strong_sc_sample_size);
     auto single_sample = detray::benchmarks::generate_tracks<track_generator_t>(
         &host_mr, trk_cfg, false);
     std::vector<dvector<free_track_parameters_t>> track_samples_strong_sc{
@@ -171,39 +181,39 @@ int main(int argc, char** argv) {
         static_cast<int>(std::ceil(0.1f * static_cast<float>(n_max_tracks))));
 
     if (prop_cfg.stepping.do_covariance_transport) {
-        // Number of track to be sampled and number of threads are the same
+        // Number of tracks to be sampled and number of threads are the same
         detray::benchmarks::register_benchmark<
             detray::benchmarks::host_propagation_bm, stepper_t, default_chain>(
             det_name + "_W_COV_TRANSPORT_WEAK-SCALING", bench_cfg, prop_cfg,
             det, bfield, &actor_states, track_samples_weak_sc, n_tracks_weak_sc,
-            n_threads, sched_policy);
+            n_threads, chunk_size, sched_policy);
 
         // Number of tracks is increased on a fixed size sample
         detray::benchmarks::register_benchmark<
             detray::benchmarks::host_propagation_bm, stepper_t, default_chain>(
             det_name + "_W_COV_TRANSPORT_STRONG-SCALING", bench_cfg, prop_cfg,
             det, bfield, &actor_states, track_samples_strong_sc,
-            {n_tracks_strong_sc}, n_threads, sched_policy);
+            {strong_sc_sample_size}, n_threads, max_chunk_size, sched_policy);
     } else {
         detray::benchmarks::register_benchmark<
             detray::benchmarks::host_propagation_bm, stepper_t, empty_chain_t>(
             det_name + "_WEAK-SCALING", bench_cfg, prop_cfg, det, bfield,
             &empty_state, track_samples_weak_sc, n_tracks_weak_sc, n_threads,
-            sched_policy);
+            chunk_size, sched_policy);
 
         detray::benchmarks::register_benchmark<
             detray::benchmarks::host_propagation_bm, stepper_t, empty_chain_t>(
             det_name + "_STRONG-SCALING", bench_cfg, prop_cfg, det, bfield,
-            &empty_state, track_samples_strong_sc, {n_tracks_strong_sc},
-            n_threads, sched_policy);
+            &empty_state, track_samples_strong_sc, {strong_sc_sample_size},
+            n_threads, max_chunk_size, sched_policy);
     }
 
-    // These fields are needed by the plotting scripts, even if undefined
+    // These fields are needed by the plotting scripts
     ::benchmark::AddCustomContext("Backend", "CPU");
-    ::benchmark::AddCustomContext("Name", "unknown");
+    ::benchmark::AddCustomContext("Backend Name", proc_name);
     ::benchmark::AddCustomContext(
         "Max no. Threads", std::to_string(std::thread::hardware_concurrency()));
-    ::benchmark::AddCustomContext("Plugin",
+    ::benchmark::AddCustomContext("Algebra-plugin",
                                   detray::types::get_name<test_algebra>());
 
     // Run benchmarks

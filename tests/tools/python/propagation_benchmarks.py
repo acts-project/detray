@@ -5,7 +5,7 @@
 # Mozilla Public License Version 2.0
 
 # detray imports
-from impl import read_benchmark_data, plot_benchmark_data
+from impl import read_benchmark_data, plot_benchmark_data, plot_scaling_data
 from options import (
     common_options,
     detector_io_options,
@@ -96,7 +96,13 @@ def __parse_input_data_files(args):
 # Gather and check benchmark executables and resulting data files for every
 # hardware backend type and algebra plugin
 def __generate_benchmark_dict(
-    args, logging, bindir, det_name, input_data_files, algebra_plugins
+    args,
+    logging,
+    bindir,
+    det_name,
+    input_data_files,
+    algebra_plugins,
+    bench_type="benchmark",
 ):
     # Bundle benchmark metadata
     benchmark_metadata = namedtuple(
@@ -111,7 +117,7 @@ def __generate_benchmark_dict(
         benchmarks["CUDA"] = {}
     if args.sycl:
         # benchmarks["SYCL"] = {}
-        logging.error("SYCL propagation benchmark is not implemented")
+        logging.error(f"SYCL propagation {bench_type} is not implemented")
 
     # Register the input data files for plotting
     for f in input_data_files:
@@ -120,8 +126,10 @@ def __generate_benchmark_dict(
             sys.exit(1)
 
         # Add file to benchmark dict
+        input_dir = os.path.dirname(f)
+        file_name = os.path.basename(f)
         bknd, bknd_name, algebra = __read_context_metadata(
-            logging, os.path.dirname(f), os.path.basename(f)
+            logging, input_dir, file_name
         )
 
         if bknd not in benchmarks:
@@ -130,9 +138,11 @@ def __generate_benchmark_dict(
         if bknd_name not in benchmarks[bknd]:
             benchmarks[bknd][bknd_name] = []
 
-        benchmarks[bknd][bknd_name].append(
-            benchmark_metadata(name=bknd_name, algebra=algebra, file=f)
-        )
+        context, _ = read_benchmark_data(logging, input_dir, file_name)
+        if bench_type in context["executable"]:
+            benchmarks[bknd][bknd_name].append(
+                benchmark_metadata(name=bknd_name, algebra=algebra, file=f)
+            )
 
     # Register benchmarks to be run
     for bknd, metadata_dict in benchmarks.items():
@@ -179,11 +189,11 @@ def __generate_benchmark_dict(
             if algebra in registered_algebra:
                 continue
 
-            binary = f"{bindir}/detray_propagation_benchmark_{bknd.lower()}_{algebra}"
-            file_bknd_name = bknd_name.replace(" ", "_")
-            data_file = (
-                f"{det_name}_benchmark_{bknd.lower()}_{file_bknd_name}_{algebra}.json"
+            binary = (
+                f"{bindir}/detray_propagation_{bench_type}_{bknd.lower()}_{algebra}"
             )
+            file_bknd_name = bknd_name.replace(" ", "_")
+            data_file = f"{det_name}_{bench_type}_{bknd.lower()}_{file_bknd_name}_{algebra}.json"
 
             metadata = benchmark_metadata(
                 name=bknd_name, algebra=algebra, file=data_file
@@ -196,13 +206,30 @@ def __generate_benchmark_dict(
                     metadata = metadata._replace(bin=binary)
                 else:
                     logging.warning(
-                        f"Propagation benchmark binary not found! ({binary})"
+                        f"Propagation {bench_type} binary not found! ({binary})"
                     )
                     continue
 
             metadata_dict[bknd_name].append(metadata)
 
     return benchmarks
+
+
+# Run all benchmarks in 'benchmark_dict' that were registered with a binary file
+def __run_benchmarks(benchmark_dict, args_list, benchmark_options):
+    for bknd, metadata_dict in benchmark_dict.items():
+        for bknd_name, metadata_list in metadata_dict.items():
+            for metadata in metadata_list:
+                if metadata.bin is not None:
+                    subprocess.run(
+                        [
+                            metadata.bin,
+                            f"--bknd_name={bknd_name}",
+                            f"--benchmark_out=./{metadata.file}",
+                        ]
+                        + benchmark_options
+                        + args_list
+                    )
 
 
 def __main__():
@@ -300,7 +327,11 @@ def __main__():
 
     # Get dictionary of benchmark files per hardware backend type
     benchmarks = __generate_benchmark_dict(
-        args, logging, bindir, det_name, input_data_files, algebra_plugins
+        args, logging, bindir, det_name, input_data_files, algebra_plugins, "benchmark"
+    )
+
+    scaling = __generate_benchmark_dict(
+        args, logging, bindir, det_name, input_data_files, algebra_plugins, "scaling"
     )
 
     # -----------------------------------------------------------------------run
@@ -327,20 +358,9 @@ def __main__():
         "--benchmark_out_format=json",
     ]
 
-    # Run the benchmarks
-    for bknd, metadata_dict in benchmarks.items():
-        for bknd_name, metadata_list in metadata_dict.items():
-            for metadata in metadata_list:
-                if metadata.bin is not None:
-                    subprocess.run(
-                        [
-                            metadata.bin,
-                            f"--bknd_name={bknd_name}",
-                            f"--benchmark_out=./{metadata.file}",
-                        ]
-                        + benchmark_options
-                        + args_list
-                    )
+    # Run requested benchmark and scaling tests
+    __run_benchmarks(benchmarks, args_list, benchmark_options)
+    __run_benchmarks(scaling, args_list, benchmark_options)
 
     # ----------------------------------------------------------------------plot
 
@@ -405,6 +425,25 @@ def __main__():
             plot_factory,
             out_format,
         )
+
+    # Plot all data files per hardware backend for propagation scaling
+    for bknd, metadata_dict in scaling.items():
+        for bknd_name, metadata_list in metadata_dict.items():
+            for metadata in metadata_list:
+                # Get file list and plot labels
+                files = [metadata.file for metadata in metadata_list]
+                plot_labels = [metadata.algebra for metadata in metadata_list]
+
+                plot_scaling_data(
+                    logging,
+                    input_dir,
+                    det_name,
+                    files,
+                    plot_labels,
+                    f"hardware backend: {bknd} ({bknd_name})",
+                    plot_factory,
+                    out_format,
+                )
 
 
 # ------------------------------------------------------------------------------

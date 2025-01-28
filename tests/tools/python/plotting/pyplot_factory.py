@@ -149,23 +149,27 @@ class pyplot_factory:
         ax.set_ylabel(y_axis.label)
         ax.grid(True, alpha=0.25)
 
-        # Format of tick labels
-        # self.__set_label_format(x_axis.label_format, ax.xaxis)
-        self.__set_label_format(y_axis.label_format, ax.yaxis)
-
         # Plot log scale
-        if x_axis.log_scale:
-            ax.set_xscale("log")
-        if y_axis.log_scale:
-            ax.set_yscale("log")
+        if x_axis.log_scale is not None:
+            ax.set_xscale("log", base=x_axis.log_scale)
+        if y_axis.log_scale is not None:
+            ax.set_yscale("log", base=x_axis.log_scale)
 
         if x_axis.tick_positions is not None:
             ax.set_xticks(x_axis.tick_positions)
             ax.tick_params(axis="x", which="major", pad=7)
 
+        if y_axis.tick_positions is not None:
+            ax.set_yticks(y_axis.tick_positions)
+            ax.tick_params(axis="y", which="major", pad=7)
+
         # Restrict x and y ranges
         x = self.__apply_boundary(x, x_axis.min, x_axis.max)
         y = self.__apply_boundary(y, y_axis.min, y_axis.max)
+
+        # Format of tick labels
+        self.__set_label_format(x_axis.label_format, ax.xaxis)
+        self.__set_label_format(y_axis.label_format, ax.yaxis)
 
         # Nothing left to do
         if len(x) == 0:
@@ -261,10 +265,10 @@ class pyplot_factory:
         ax.grid(True, alpha=0.25)
 
         # Plot log scale
-        if x_axis.log_scale:
-            ax.set_xscale("log")
-        if y_axis.log_scale:
-            ax.set_yscale("log")
+        if x_axis.log_scale is not None:
+            ax.set_xscale("log", base=x_axis.log_scale)
+        if y_axis.log_scale is not None:
+            ax.set_yscale("log", base=x_axis.log_scale)
 
         # Leave x-axis with default formatter for 1D histograms
         ax.xaxis.set_major_formatter(ticker.ScalarFormatter())

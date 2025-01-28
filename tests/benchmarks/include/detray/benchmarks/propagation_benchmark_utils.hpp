@@ -149,7 +149,7 @@ inline void register_benchmark(
     vecmem::memory_resource *dev_mr = nullptr,
     const std::vector<int> &n_host_threads = {static_cast<int>(
         std::thread::hardware_concurrency())},
-    int openmp_sched = 2) {
+    int max_chunk_size = 1, int openmp_sched = 2) {
 
     using algebra_t = typename detector_t::algebra_type;
     using propagation_benchmark_t =
@@ -187,11 +187,11 @@ inline void register_benchmark(
                           const detector_t *, const bfield_bknd_t *,
                           typename propagator_t::actor_chain_type::state_tuple
                               *,
-                          int, int>) {
+                          int, int, int>) {
             // Cpu benchmark
-            ::benchmark::RegisterBenchmark(bench_name.c_str(), prop_benchmark,
-                                           &tracks, &det, &bfield, actor_states,
-                                           host_threads, openmp_sched)
+            ::benchmark::RegisterBenchmark(
+                bench_name.c_str(), prop_benchmark, &tracks, &det, &bfield,
+                actor_states, host_threads, max_chunk_size, openmp_sched)
                 ->UseRealTime();
         } else {
             // Device benchmark
@@ -224,14 +224,14 @@ inline void register_benchmark(
     const std::vector<int> &n_samples = {10000},
     const std::vector<int> &n_host_threads = {static_cast<int>(
         std::thread::hardware_concurrency())},
-    int openmp_sched = 2) {
+    int max_chunk_size = 1, int openmp_sched = 2) {
 
     using propagator_t =
         propagator<stepper_t, navigator<detector_t>, actor_chain_t>;
     register_benchmark<benchmark_t, propagator_t, detector_t, bfield_bknd_t,
                        kOPT>(name, bench_cfg, prop_cfg, det, bfield,
                              actor_states, tracks, n_samples, nullptr,
-                             n_host_threads, openmp_sched);
+                             n_host_threads, max_chunk_size, openmp_sched);
 }
 
 }  // namespace detray::benchmarks

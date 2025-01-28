@@ -27,7 +27,6 @@
 // System include(s)
 #include <algorithm>
 #include <cassert>
-#include <chrono>
 #include <ranges>
 #include <string>
 
@@ -64,7 +63,9 @@ struct host_propagation_bm : public benchmark_base {
         const typename propagator_t::detector_type *det, const bfield_t *bfield,
         const typename propagator_t::actor_chain_type::state_tuple
             *input_actor_states,
-        const int n_threads, const int thread_schedule) const {
+        [[maybe_unused]] const int n_threads,
+        [[maybe_unused]] const int max_chunk_size,
+        [[maybe_unused]] const int thread_schedule) const {
         using actor_chain_t = typename propagator_t::actor_chain_type;
         using actor_states_t = typename actor_chain_t::state_tuple;
 
@@ -73,17 +74,26 @@ struct host_propagation_bm : public benchmark_base {
         assert(bfield != nullptr);
         assert(input_actor_states != nullptr);
 
-#ifdef _OPENMP
-        // Set the number of threads fo the openMP parallel regions
-        omp_set_num_threads(n_threads);
-        const int chunk_size{static_cast<int>(tracks->size() / n_threads)};
-        omp_set_schedule(static_cast<omp_sched_t>(thread_schedule), chunk_size);
-#endif
-
         const int n_samples{m_cfg.benchmark().n_samples()};
         const int n_warmup{m_cfg.benchmark().n_warmup()};
 
         assert(static_cast<std::size_t>(n_samples) <= tracks->size());
+
+#ifdef _OPENMP
+        // Set the number of threads fo the openMP parallel regions
+        omp_set_num_threads(n_threads);
+        // Clamp chunk size to [1, max_chunk_size]
+        int chunk_size{
+            math::min(static_cast<int>(n_samples / n_threads), max_chunk_size)};
+        chunk_size = math::max(chunk_size, 1);
+        omp_set_schedule(static_cast<omp_sched_t>(thread_schedule), chunk_size);
+#ifndef NDEBUG
+        std::cout << "No. tracks " << n_samples << std::endl;
+        std::cout << "No. threads " << n_threads << std::endl;
+        std::cout << "Schedule type " << thread_schedule << std::endl;
+        std::cout << "Chunk size " << chunk_size << std::endl;
+#endif
+#endif
 
         // Create propagator
         propagator_t p{m_cfg.propagation()};
@@ -113,6 +123,7 @@ struct host_propagation_bm : public benchmark_base {
                 ::benchmark::DoNotOptimize(
                     p.propagate_sync(p_state, actor_state_refs));
             }
+            assert(p.propagate_is_complete(p_state));
         };
 
         // Warm-up
@@ -138,29 +149,15 @@ struct host_propagation_bm : public benchmark_base {
         // Calculate the propagation rate
         // @see
         // https://github.com/google/benchmark/blob/main/docs/user_guide.md#custom-counters
-        // auto start = std::chrono::high_resolution_clock::now();
         std::size_t total_tracks = 0u;
-        // std::size_t iterations = 1u;
         for (auto _ : state) {
-            // auto loc_start = std::chrono::high_resolution_clock::now();
 #pragma omp parallel for
             for (int i = 0; i < n_samples; ++i) {
                 run_propagation((*tracks)[static_cast<std::size_t>(i)]);
             }
-            // auto loc_finish = std::chrono::high_resolution_clock::now();
-            // auto loc_scaling =
-            // std::chrono::duration_cast<std::chrono::nanoseconds>(loc_finish-loc_start);
-            // std::cout << "Iteration: " << iterations << ": " <<
-            // loc_scaling.count() << "ns\n";
-            // ++iterations;
             total_tracks += static_cast<std::size_t>(n_samples);
         }
-        // auto finish = std::chrono::high_resolution_clock::now();
 
-        // auto scaling =
-        // std::chrono::duration_cast<std::chrono::nanoseconds>(finish-start);
-        // std::cout << "Full: " << scaling.count() << "ns\n";
-        //   std::cout << "Total tracks: " << total_tracks << std::endl;
         // Report throughput
         state.counters["TracksPropagated"] = benchmark::Counter(
             static_cast<double>(total_tracks), benchmark::Counter::kIsRate);
