@@ -34,7 +34,21 @@ import sys
 bknd_types = ["cpu", "cuda", "sycl"]
 
 # Patterns to be removed from processor names for simplicity
-bknd_patterns = ["CPU", "(TM)", "GHz", "@"]
+bknd_patterns = [
+    "CPU",
+    "(TM)",
+    "GHz",
+    "@",
+    "Core",
+    "Processor",
+    "with",
+    "Radeon",
+    "Graphics",
+    "GB",
+    "Laptop",
+    "GPU",
+    "GeForce",
+]
 
 
 # Simpler hardware backend tag
@@ -47,41 +61,31 @@ def __compactify_bknd_name(name, patterns=bknd_patterns):
         out = f"{out} {sub_string}"
 
     # Remove preceeding whitespace
-    return out[1:]
+    return name if len(out[1:]) == 0 else out[1:]
 
 
 # Peek into the benchmark context to get the name of the backend
-def __read_backend_name(logging, input_dir, bknd, data_file):
+def __read_context_metadata(logging, input_dir, data_file):
     context, _ = read_benchmark_data(logging, input_dir, data_file)
-    bknd_name = __compactify_bknd_name(context["CPU" if "cpu" in bknd else "GPU"])
+    bknd = context["Backend"]
+    bknd_name = __compactify_bknd_name(context["Backend Name"])
+    algebra = context["Algebra-plugin"]
 
-    return bknd_name
+    return bknd, bknd_name, algebra
 
 
 # Parse and check the user provided input data files
-def __parse_input_data_files(args, det_name, algebra_plugins):
+def __parse_input_data_files(args):
     input_data_files = []
     for file in args.data_files:
         if not os.path.isfile(file):
             logging.error(f"File not found! ({file})")
             sys.exit(1)
 
-        file_name, file_extension = os.path.splitext(file)
-        format_msg = f"Benchmark data file name needs to be of the form <detector>_benchmark_data_<cpu|cuda|sycl>_<algebra-plugin>.json: e.g. 'toy_detector_benchmark_data_cpu_eigen.json' ({file})"
+        _, file_extension = os.path.splitext(file)
 
-        if f"{det_name}_benchmark_data" not in file_name:
-            logging.error("Wrong prefix: " + format_msg)
-            sys.exit(1)
         if file_extension != ".json":
             logging.error("Wrong file extension. Should be '.json': " + format_msg)
-            sys.exit(1)
-        if not any(p in file_name for p in bknd_types):
-            logging.error(
-                "No hardware backend type found (cpu|cuda|sycl): " + format_msg
-            )
-            sys.exit(1)
-        if not any(p in file_name for p in algebra_plugins):
-            logging.error("No algebra-plugin name found: " + format_msg)
             sys.exit(1)
 
         input_data_files.append(file)
@@ -94,34 +98,110 @@ def __parse_input_data_files(args, det_name, algebra_plugins):
 def __generate_benchmark_dict(
     args, logging, bindir, det_name, input_data_files, algebra_plugins
 ):
-    benchmark_files = namedtuple("benchmark_files", "bin data_files")
-    benchmarks = {"cpu": benchmark_files([], [])}
+    # Bundle benchmark metadata
+    benchmark_metadata = namedtuple(
+        "benchmark_metadata",
+        "name algebra bin file",
+        defaults=["Unknown", "Unknown Algebra", None, None],
+    )
+
+    # Resulting dictionary
+    benchmarks = {"CPU": {}}
     if args.cuda:
-        benchmarks["cuda"] = benchmark_files([], [])
+        benchmarks["CUDA"] = {}
     if args.sycl:
-        # benchmarks["sycl"] = benchmark_files([], [])
+        # benchmarks["SYCL"] = {}
         logging.error("SYCL propagation benchmark is not implemented")
 
-    for bknd, files in benchmarks.items():
+    # Register the input data files for plotting
+    for f in input_data_files:
+        if not os.path.isfile(f):
+            logging.error(f"File does not exist: {f}")
+            sys.exit(1)
+
+        # Add file to benchmark dict
+        bknd, bknd_name, algebra = __read_context_metadata(
+            logging, os.path.dirname(f), os.path.basename(f)
+        )
+
+        if bknd not in benchmarks:
+            benchmarks[bknd] = {}
+
+        if bknd_name not in benchmarks[bknd]:
+            benchmarks[bknd][bknd_name] = []
+
+        benchmarks[bknd][bknd_name].append(
+            benchmark_metadata(name=bknd_name, algebra=algebra, file=f)
+        )
+
+    # Register benchmarks to be run
+    for bknd, metadata_dict in benchmarks.items():
+        # No benchmarks to be run
+        if len(algebra_plugins) == 0:
+            break
+
+        # Try to find the processor name
+        bknd_name = "Unknown"
+        if bknd == "CUDA" or bknd == "SYCL":
+            # Try to get the GPU name
+            try:
+                gpu_str = str(
+                    subprocess.check_output(
+                        ["nvidia-smi", "--query-gpu", "name", "--format=csv,noheader"]
+                    )
+                )
+                gpu_str = __compactify_bknd_name(gpu_str[2:])
+
+                # Strip some unwanted characters
+                if gpu_str[-1] == '"' or gpu_str[-1] == "'":
+                    gpu_str = gpu_str[:-1]
+                if gpu_str[-2:] == "\\n":
+                    gpu_str = gpu_str[:-2]
+
+                if len(gpu_str) != 0:
+                    bknd_name = gpu_str.rstrip(os.linesep)
+
+            except Exception as e:
+                # Name remains 'Unknown'
+                print(e)
+        else:
+            bknd_name = __compactify_bknd_name(platform.processor())
+
+        if bknd_name not in metadata_dict:
+            metadata_dict[bknd_name] = []
+
+        # The algebra plugins that have already been registered from input file
+        registered_algebra = [data.algebra for data in metadata_dict[bknd_name]]
+
+        # The requested algebra-plugins
         for algebra in algebra_plugins:
-            binary = f"{bindir}/detray_propagation_benchmark_{bknd}_{algebra}"
-            data_file = f"{det_name}_benchmark_data_{bknd}_{algebra}.json"
+            # Prefer reading from file if it has been provided by the user
+            if algebra in registered_algebra:
+                continue
+
+            binary = f"{bindir}/detray_propagation_benchmark_{bknd.lower()}_{algebra}"
+            file_bknd_name = bknd_name.replace(" ", "_")
+            data_file = (
+                f"{det_name}_benchmark_{bknd.lower()}_{file_bknd_name}_{algebra}.json"
+            )
+
+            metadata = benchmark_metadata(
+                name=bknd_name, algebra=algebra, file=data_file
+            )
 
             # If the results should not be read from file, run the benchmark
             if data_file not in (os.path.basename(f) for f in input_data_files):
                 # Register binary if it exists
-                if not os.path.isdir(bindir) or not os.path.isfile(binary):
+                if os.path.isdir(bindir) and os.path.isfile(binary):
+                    metadata = metadata._replace(bin=binary)
+                else:
                     logging.warning(
                         f"Propagation benchmark binary not found! ({binary})"
                     )
-                else:
-                    files.bin.append(binary)
-                    files.data_files.append(data_file)
-            else:
-                for f in input_data_files:
-                    if data_file == os.path.basename(f):
-                        # Add result file with custom path to be plotted
-                        files.data_files.append(f)
+                    continue
+
+            metadata_dict[bknd_name].append(metadata)
+
     return benchmarks
 
 
@@ -168,12 +248,6 @@ def __main__():
         default=False,
     )
     parser.add_argument(
-        "--interleave",
-        help=("Interleave the benchmark cases randomly."),
-        action="store_true",
-        default=False,
-    )
-    parser.add_argument(
         "--benchmark_repetitions",
         help=("Number of repeated benchmark runs."),
         default=2,
@@ -186,7 +260,7 @@ def __main__():
         help=(
             "Algebra plugins to be benchmarked (the plugin must be enabled at build time)."
         ),
-        default=["array"],
+        default=[],
         type=str,
     )
     parser.add_argument(
@@ -212,11 +286,17 @@ def __main__():
     det_name = read_detector_name(args.geometry_file, logging)
     logging.debug("Detector: " + det_name)
 
+    # Check user provided benchmark result files
+    input_data_files = __parse_input_data_files(args)
+
     # Unique set of algebra plugins to be included in the plots
     algebra_plugins = set(args.algebra_plugins)
 
-    # Check user provided benchmark result files
-    input_data_files = __parse_input_data_files(args, det_name, algebra_plugins)
+    if len(algebra_plugins) == 0 and len(input_data_files) == 0:
+        logging.error(
+            "No data file for plotting and no algebra plugins specified to run benchmarks for. Quitting"
+        )
+        sys.exit(1)
 
     # Get dictionary of benchmark files per hardware backend type
     benchmarks = __generate_benchmark_dict(
@@ -245,35 +325,22 @@ def __main__():
         "--benchmark_display_aggregates_only=true",
         # "--benchmark_time_unit=ms", taken from user guide, but does not work...
         "--benchmark_out_format=json",
-        f"--benchmark_context=CPU={platform.processor()}",
     ]
-    if args.interleave:
-        benchmark_options.append("--benchmark_enable_random_interleaving=true")
 
     # Run the benchmarks
-    for bknd, files in benchmarks.items():
-
-        if args.cuda or args.sycl:
-            # Try to get the GPU name
-            gpu = ""
-            try:
-                gpu = str(subprocess.check_output(["nvidia-smi", "-L"]))
-            except:
-                gpu = "Unknown"
-
-            benchmark_options.append(f"--benchmark_context=GPU={gpu}")
-
-        for binary in files.bin:
-            algebra = binary.split(f"benchmark_{bknd}_")[-1]
-            subprocess.run(
-                [
-                    binary,
-                    f"--benchmark_context=Algebra={algebra}",
-                    f"--benchmark_out=./{det_name}_benchmark_data_{bknd}_{algebra}.json",
-                ]
-                + benchmark_options
-                + args_list
-            )
+    for bknd, metadata_dict in benchmarks.items():
+        for bknd_name, metadata_list in metadata_dict.items():
+            for metadata in metadata_list:
+                if metadata.bin is not None:
+                    subprocess.run(
+                        [
+                            metadata.bin,
+                            f"--bknd_name={bknd_name}",
+                            f"--benchmark_out=./{metadata.file}",
+                        ]
+                        + benchmark_options
+                        + args_list
+                    )
 
     # ----------------------------------------------------------------------plot
 
@@ -283,46 +350,49 @@ def __main__():
 
     # Plot all data files per hardware backend
     # (comparison of different algebra-plugins)
-    for bknd, benchmark_data in benchmarks.items():
-        bknd_name = __read_backend_name(
-            logging, input_dir, bknd, benchmark_data.data_files[0]
-        )
+    for bknd, metadata_dict in benchmarks.items():
+        for bknd_name, metadata_list in metadata_dict.items():
+            for metadata in metadata_list:
+                # Get file list and plot labels
+                files = [metadata.file for metadata in metadata_list]
+                plot_labels = [metadata.algebra for metadata in metadata_list]
 
-        # Generate plot labels
-        plot_labels = []
-        for file in benchmark_data.data_files:
-            # Get algebra-plugin from file name
-            file_stem, _ = os.path.splitext(file)
-            algebra = file_stem.split(f"{det_name}_benchmark_data_{bknd}_")[-1]
-            plot_labels.append(algebra)
-
-        plot_benchmark_data(
-            logging,
-            input_dir,
-            det_name,
-            benchmark_data.data_files,
-            plot_labels,
-            f"hardware backend: {bknd.upper()} ({bknd_name})",
-            f"prop_benchmark_algebra-plugin_comparison_{bknd}",
-            plot_factory,
-            out_format,
-        )
+                file_bknd_name = bknd_name.replace(" ", "_")
+                plot_benchmark_data(
+                    logging,
+                    input_dir,
+                    det_name,
+                    files,
+                    plot_labels,
+                    f"hardware backend: {bknd} ({bknd_name})",
+                    f"prop_benchmark_algebra-plugin_comparison_{bknd}_{file_bknd_name}",
+                    plot_factory,
+                    out_format,
+                )
 
     # Plot results for different hardware backends using the same algebra plugin
     # (comparison of different hardware backends)
-    for algebra in algebra_plugins:
+    discovered_algs = []
+    for bknd, metadata_dict in benchmarks.items():
+        for bknd_name, metadata_list in metadata_dict.items():
+            for metadata in metadata_list:
+                discovered_algs.append(metadata.algebra)
+
+    discovered_algs = set(discovered_algs)
+
+    # Build up the list of data files and corresponding plot labels
+    for algebra in discovered_algs:
         data_files_per_plugin = []
         plot_labels = []
 
-        for bknd, benchmark_data in benchmarks.items():
-            bknd_name = __read_backend_name(
-                logging, input_dir, bknd, benchmark_data.data_files[0]
-            )
+        for bknd, metadata_dict in benchmarks.items():
 
-            for data_file in benchmark_data.data_files:
-                if algebra in data_file:
-                    data_files_per_plugin.append(data_file)
-                    plot_labels.append(f"{bknd}: {bknd_name}")
+            for bknd_name, metadata_list in metadata_dict.items():
+
+                for metadata in metadata_list:
+                    if algebra == metadata.algebra:
+                        data_files_per_plugin.append(metadata.file)
+                        plot_labels.append(f"{bknd}: {bknd_name}")
 
         plot_benchmark_data(
             logging,

@@ -83,6 +83,7 @@ int main(int argc, char** argv) {
 
     desc.add_options()("context", po::value<dindex>(),
                        "Index of the geometry context")(
+        "bknd_name", po::value<std::string>(), "Name of the Processor")(
         "sort_tracks", "Sort track samples by theta angle");
 
     // Configs to be filled
@@ -102,6 +103,10 @@ int main(int argc, char** argv) {
     detector_t::geometry_context gctx;
     if (vm.count("context")) {
         gctx = detector_t::geometry_context{vm["context"].as<dindex>()};
+    }
+    std::string proc_name{"unknown"};
+    if (vm.count("bknd_name")) {
+        proc_name = vm["bknd_name"].as<std::string>();
     }
 
     //
@@ -162,8 +167,8 @@ int main(int argc, char** argv) {
 
     // These fields are needed by the plotting scripts, even if undefined
     ::benchmark::AddCustomContext("Backend", "CUDA");
-    ::benchmark::AddCustomContext("Name", "unknown");
-    ::benchmark::AddCustomContext("Plugin",
+    ::benchmark::AddCustomContext("Backend Name", proc_name);
+    ::benchmark::AddCustomContext("Algebra-plugin",
                                   detray::types::get_name<test_algebra>());
 
     // Run benchmarks
