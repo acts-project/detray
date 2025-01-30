@@ -3,6 +3,7 @@ from .plot_benchmark_results import (
     prepare_benchmark_data,
     plot_benchmark_case,
     plot_benchmark_data,
+    plot_scaling_data,
 )
 from .plot_navigation_validation import (
     read_scan_data,
