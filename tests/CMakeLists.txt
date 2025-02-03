@@ -1,6 +1,6 @@
 # Detray library, part of the ACTS project (R&D line)
 #
-# (c) 2021-2024 CERN for the benefit of the ACTS project
+# (c) 2021-2025 CERN for the benefit of the ACTS project
 #
 # Mozilla Public License Version 2.0
 
@@ -96,7 +96,7 @@ if(DETRAY_BUILD_BENCHMARKS)
     add_subdirectory(benchmarks)
 endif()
 
-# Build tool executables
+# Build test executables
 if(DETRAY_BUILD_TESTING)
     # Build host and device specific test code
     add_subdirectory(include/detray/test/cpu)
@@ -111,13 +111,13 @@ if(DETRAY_BUILD_TESTING)
     if(DETRAY_BUILD_INTEGRATIONTESTS)
         add_subdirectory(integration_tests)
     endif()
+endif()
 
-    # Build the command line tools (also required for the host jacobian
-    # validation integration test)
-    if(
-        (DETRAY_BUILD_INTEGRATIONTESTS AND DETRAY_BUILD_HOST)
-        OR DETRAY_BUILD_CLI_TOOLS
-    )
-        add_subdirectory(tools)
-    endif()
+# Build the command line tools (also required for the host jacobian
+# validation integration test)
+if(
+    (DETRAY_BUILD_INTEGRATIONTESTS AND DETRAY_BUILD_HOST)
+    OR DETRAY_BUILD_CLI_TOOLS
+)
+    add_subdirectory(tools)
 endif()

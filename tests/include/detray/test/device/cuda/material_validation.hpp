@@ -12,7 +12,6 @@
 #include "detray/tracks/tracks.hpp"
 
 // Detray test include(s)
-#include "detray/test/common/fixture_base.hpp"
 #include "detray/test/common/material_validation_config.hpp"
 #include "detray/test/cpu/material_validation.hpp"
 #include "detray/test/validation/material_validation_utils.hpp"
