@@ -1,6 +1,6 @@
 #Detray library, part of the ACTS project(R& D line)
 #
-#(c) 2023-2024 CERN for the benefit of the ACTS project
+#(c) 2023-2025 CERN for the benefit of the ACTS project
 #
 #Mozilla Public License Version 2.0
 
@@ -29,28 +29,30 @@ detray_add_executable(generate_telescope_detector
                       detray::io detray::test_utils detray::core_array
 )
 
-# Build the visualization executable.
-detray_add_executable(detector_display
-                      "detector_display.cpp"
-                      LINK_LIBRARIES Boost::program_options  detray::core_array detray::tools
-                      detray::svgtools
-)
+if(DETRAY_SVG_DISPLAY)
+    # Build the visualization executable.
+    detray_add_executable(detector_display
+                        "detector_display.cpp"
+                        LINK_LIBRARIES Boost::program_options detray::core_array detray::io detray::tools
+                        detray::svgtools
+    )
+endif()
 
-# Build the detector validation executable.
-detray_add_executable(detector_validation
-                      "detector_validation.cpp"
-                      LINK_LIBRARIES GTest::gtest GTest::gtest_main
-                      Boost::program_options detray::core_array detray::tools detray::test_utils
-                      detray::svgtools
-)
+if(DETRAY_BUILD_TESTING)
+    # Build the detector validation executable.
+    detray_add_executable(detector_validation
+                        "detector_validation.cpp"
+                        LINK_LIBRARIES GTest::gtest GTest::gtest_main
+                        Boost::program_options detray::core_array detray::test_cpu detray::tools
+    )
 
-# Build the material validation executable.
-detray_add_executable(material_validation
-                      "material_validation.cpp"
-                      LINK_LIBRARIES GTest::gtest GTest::gtest_main
-                      Boost::program_options detray::core_array detray::tools detray::test_utils
-                      detray::svgtools
-)
+    # Build the material validation executable.
+    detray_add_executable(material_validation
+                        "material_validation.cpp"
+                        LINK_LIBRARIES GTest::gtest GTest::gtest_main
+                        Boost::program_options detray::core_array detray::test_cpu detray::tools
+    )
+endif()
 
 if(DETRAY_BUILD_BENCHMARKS)
     # Look for openMP, which is used for the CPU propagation benchmark
