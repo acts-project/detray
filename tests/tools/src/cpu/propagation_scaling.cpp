@@ -135,6 +135,19 @@ int main(int argc, char** argv) {
         proc_name = vm["bknd_name"].as<std::string>();
     }
 
+    // String that describes the detector setup
+    std::string setup_str{};
+    auto add_delim = [](std::string& str) { str += ", "; };
+    if (!vm.count("grid_file")) {
+        setup_str += "no grids";
+    }
+    if (!vm.count("material_file")) {
+        if (!setup_str.empty()) {
+            add_delim(setup_str);
+        }
+        setup_str += "no mat.";
+    }
+
     //
     // Prepare data
     //
@@ -206,6 +219,11 @@ int main(int argc, char** argv) {
             det_name + "_STRONG-SCALING", bench_cfg, prop_cfg, det, bfield,
             &empty_state, track_samples_strong_sc, {strong_sc_sample_size},
             n_threads, max_chunk_size, sched_policy);
+
+        if (!setup_str.empty()) {
+            add_delim(setup_str);
+        }
+        setup_str += "no cov.";
     }
 
     // These fields are needed by the plotting scripts
@@ -215,6 +233,7 @@ int main(int argc, char** argv) {
         "Max no. Threads", std::to_string(std::thread::hardware_concurrency()));
     ::benchmark::AddCustomContext("Algebra-plugin",
                                   detray::types::get_name<test_algebra>());
+    ::benchmark::AddCustomContext("Detector Setup", setup_str);
 
     // Run benchmarks
     ::benchmark::RunSpecifiedBenchmarks();

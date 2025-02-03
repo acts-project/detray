@@ -70,8 +70,9 @@ def __read_context_metadata(logging, input_dir, data_file):
     bknd = context["Backend"]
     bknd_name = __compactify_bknd_name(context["Backend Name"])
     algebra = context["Algebra-plugin"]
+    setup = context["Detector Setup"]
 
-    return bknd, bknd_name, algebra
+    return bknd, bknd_name, algebra, setup
 
 
 # Parse and check the user provided input data files
@@ -107,8 +108,8 @@ def __generate_benchmark_dict(
     # Bundle benchmark metadata
     benchmark_metadata = namedtuple(
         "benchmark_metadata",
-        "name algebra bin file",
-        defaults=["Unknown", "Unknown Algebra", None, None],
+        "name algebra setup bin file",
+        defaults=["Unknown", "Unknown Algebra", "", None, None],
     )
 
     # Resulting dictionary
@@ -128,7 +129,7 @@ def __generate_benchmark_dict(
         # Add file to benchmark dict
         input_dir = os.path.dirname(f)
         file_name = os.path.basename(f)
-        bknd, bknd_name, algebra = __read_context_metadata(
+        bknd, bknd_name, algebra, setup = __read_context_metadata(
             logging, input_dir, file_name
         )
 
@@ -141,7 +142,7 @@ def __generate_benchmark_dict(
         context, _ = read_benchmark_data(logging, input_dir, file_name)
         if bench_type in context["executable"]:
             benchmarks[bknd][bknd_name].append(
-                benchmark_metadata(name=bknd_name, algebra=algebra, file=f)
+                benchmark_metadata(name=bknd_name, algebra=algebra, setup=setup, file=f)
             )
 
     # Register benchmarks to be run
@@ -189,14 +190,31 @@ def __generate_benchmark_dict(
             if algebra in registered_algebra:
                 continue
 
+            # Parse the detector setup
+            setup = ""
+            add_delim = lambda s: s + ", "
+            if not args.grid_file:
+                setup = setup + "no grids"
+            if not args.material_file:
+                if len(setup) != 0:
+                    setup = add_delim(setup)
+                setup = setup + "no mat."
+            if not args.covariance_transport:
+                if len(setup) != 0:
+                    setup = add_delim(setup)
+                setup = setup + "no cov."
+
             binary = (
                 f"{bindir}/detray_propagation_{bench_type}_{bknd.lower()}_{algebra}"
             )
             file_bknd_name = bknd_name.replace(" ", "_")
-            data_file = f"{det_name}_{bench_type}_{bknd.lower()}_{file_bknd_name}_{algebra}.json"
+            file_setup = setup.replace(" ", "_")
+            file_setup = file_setup.replace(",", "")
+            file_setup = file_setup.replace(".", "")
+            data_file = f"{det_name}_{bench_type}_{bknd.lower()}_{file_bknd_name}_{algebra}_{file_setup}.json"
 
             metadata = benchmark_metadata(
-                name=bknd_name, algebra=algebra, file=data_file
+                name=bknd_name, algebra=algebra, setup=setup, file=data_file
             )
 
             # If the results should not be read from file, run the benchmark
@@ -368,6 +386,12 @@ def __main__():
 
     plot_factory = plt_factory(out_dir, logging)
 
+    def make_label(algebra, setup):
+        label = f"{algebra}"
+        if len(setup) != 0:
+            label = label + f" ({setup})"
+        return label
+
     # Plot all data files per hardware backend
     # (comparison of different algebra-plugins)
     for bknd, metadata_dict in benchmarks.items():
@@ -375,7 +399,10 @@ def __main__():
             for metadata in metadata_list:
                 # Get file list and plot labels
                 files = [metadata.file for metadata in metadata_list]
-                plot_labels = [metadata.algebra for metadata in metadata_list]
+                plot_labels = [
+                    make_label(metadata.algebra, metadata.setup)
+                    for metadata in metadata_list
+                ]
 
                 file_bknd_name = bknd_name.replace(" ", "_")
                 plot_benchmark_data(
@@ -412,7 +439,8 @@ def __main__():
                 for metadata in metadata_list:
                     if algebra == metadata.algebra:
                         data_files_per_plugin.append(metadata.file)
-                        plot_labels.append(f"{bknd}: {bknd_name}")
+                        label = make_label(f"{bknd}: {bknd_name}", metadata.setup)
+                        plot_labels.append(label)
 
         plot_benchmark_data(
             logging,
@@ -432,7 +460,10 @@ def __main__():
             for metadata in metadata_list:
                 # Get file list and plot labels
                 files = [metadata.file for metadata in metadata_list]
-                plot_labels = [metadata.algebra for metadata in metadata_list]
+                plot_labels = [
+                    make_label(metadata.algebra, metadata.setup)
+                    for metadata in metadata_list
+                ]
 
                 plot_scaling_data(
                     logging,
