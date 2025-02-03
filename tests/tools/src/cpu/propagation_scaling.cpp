@@ -147,14 +147,14 @@ int main(int argc, char** argv) {
     const std::string& det_name = det.name(names);
 
     // Generate the track samples for weak scaling
-    auto track_samples_weak_sc =
-        detray::benchmarks::generate_track_samples<track_generator_t>(
-            &host_mr, n_tracks_weak_sc, trk_cfg, false);
+    track_generator_t trk_gen{trk_cfg};
+    auto track_samples_weak_sc = detray::benchmarks::generate_track_samples(
+        &host_mr, n_tracks_weak_sc, trk_gen, false);
 
     // Generate track sample for strong scaling
-    trk_cfg.n_tracks(strong_sc_sample_size);
-    auto single_sample = detray::benchmarks::generate_tracks<track_generator_t>(
-        &host_mr, trk_cfg, false);
+    trk_gen.config().n_tracks(strong_sc_sample_size);
+    auto single_sample =
+        detray::benchmarks::generate_tracks(&host_mr, trk_gen, false);
     std::vector<dvector<free_track_parameters_t>> track_samples_strong_sc{
         std::move(single_sample)};
 

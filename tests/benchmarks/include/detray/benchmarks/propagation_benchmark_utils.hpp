@@ -63,10 +63,8 @@ inline typename track_generator_t::configuration get_default_trk_gen_config(
 /// @param cfg the configuration of the track generator
 /// @param do_sort sort the tracks by theta angle
 template <typename track_generator_t>
-inline auto generate_tracks(
-    vecmem::memory_resource *mr,
-    const typename track_generator_t::configuration &cfg = {},
-    bool do_sort = true) {
+inline auto generate_tracks(vecmem::memory_resource *mr, track_generator_t &gen,
+                            bool do_sort = true) {
 
     using track_t = typename track_generator_t::track_type;
     using scalar_t = dscalar<typename track_t::algebra_type>;
@@ -75,7 +73,7 @@ inline auto generate_tracks(
     dvector<track_t> tracks(mr);
 
     // Iterate through uniformly distributed momentum directions
-    for (auto track : track_generator_t{cfg}) {
+    for (auto track : gen) {
         // Put it into vector of trajectories
         tracks.push_back(track);
     }
@@ -95,25 +93,36 @@ inline auto generate_tracks(
 }
 
 /// Generate as many samples of track states as there are entries in the
-/// @param n_tracks vector.
+/// @param n_tracks vector using and externally provided track generator
+/// @param gen
 template <typename track_generator_t>
-inline auto generate_track_samples(
-    vecmem::memory_resource *mr, const std::vector<int> &n_tracks,
-    typename track_generator_t::configuration &cfg = {}, bool do_sort = true) {
+inline auto generate_track_samples(vecmem::memory_resource *mr,
+                                   const std::vector<int> &n_tracks,
+                                   track_generator_t &gen,
+                                   bool do_sort = true) {
 
     using track_t = typename track_generator_t::track_type;
 
     std::vector<dvector<track_t>> track_samples{};
     track_samples.reserve(n_tracks.size());
 
-    auto tmp_cfg{cfg};
     for (const int n : n_tracks) {
-        tmp_cfg.n_tracks(static_cast<std::size_t>(n));
-        track_samples.push_back(
-            generate_tracks<track_generator_t>(mr, tmp_cfg, do_sort));
+        gen.config().n_tracks(static_cast<std::size_t>(n));
+        track_samples.push_back(generate_tracks(mr, gen, do_sort));
     }
 
     return track_samples;
+}
+
+/// Generate as many samples of track states as there are entries in the
+/// @param n_tracks vector
+template <typename track_generator_t>
+inline auto generate_track_samples(
+    vecmem::memory_resource *mr, const std::vector<int> &n_tracks,
+    typename track_generator_t::configuration &cfg = {}, bool do_sort = true) {
+
+    track_generator_t gen{cfg};
+    return generate_track_samples(mr, n_tracks, gen, do_sort);
 }
 
 /// Register a propagation benchmark of type @tparam benchmark_t
