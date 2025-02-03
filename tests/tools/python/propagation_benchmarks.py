@@ -75,7 +75,7 @@ def __read_context_metadata(logging, input_dir, data_file):
 
 
 # Parse and check the user provided input data files
-def __parse_input_data_files(args):
+def __parse_input_data_files(args, logging):
     input_data_files = []
     for file in args.data_files:
         if not os.path.isfile(file):
@@ -314,7 +314,7 @@ def __main__():
     logging.debug("Detector: " + det_name)
 
     # Check user provided benchmark result files
-    input_data_files = __parse_input_data_files(args)
+    input_data_files = __parse_input_data_files(args, logging)
 
     # Unique set of algebra plugins to be included in the plots
     algebra_plugins = set(args.algebra_plugins)
