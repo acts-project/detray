@@ -14,7 +14,7 @@
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/geometry/detail/surface_descriptor.hpp"
 #include "detray/geometry/mask.hpp"
-#include "detray/io/common/detail/type_info.hpp"  // mask_info
+#include "detray/io/backend/detail/type_info.hpp"  // mask_info
 #include "detray/materials/material_slab.hpp"
 #include "detray/navigation/accelerators/brute_force_finder.hpp"
 

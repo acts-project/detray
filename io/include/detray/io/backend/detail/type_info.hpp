@@ -48,7 +48,7 @@ get_id() {
 }
 
 /// Infer the IO material id from the material type - homogeneous material
-template <concepts::homogeneous_material material_t>
+template <detray::concepts::homogeneous_material material_t>
 constexpr io::material_id get_id() {
     using scalar_t = typename material_t::scalar_type;
 
@@ -67,7 +67,7 @@ constexpr io::material_id get_id() {
 }
 
 /// Infer the IO material id from the material type - material maps
-template <concepts::material_map material_t>
+template <detray::concepts::material_map material_t>
 constexpr io::material_id get_id() {
 
     using map_frame_t = typename material_t::local_frame_type;
@@ -88,7 +88,7 @@ constexpr io::material_id get_id() {
 }
 
 /// Infer the grid id from its coordinate system
-template <concepts::surface_grid grid_t>
+template <detray::concepts::surface_grid grid_t>
 constexpr io::accel_id get_id() {
 
     using frame_t = typename grid_t::local_frame_type;

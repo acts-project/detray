@@ -12,12 +12,12 @@
 #include "detray/geometry/shapes/annulus2D.hpp"
 
 // Detray IO include(s)
-#include "detray/io/common/geometry_writer.hpp"
-#include "detray/io/common/homogeneous_material_writer.hpp"
-#include "detray/io/common/material_map_writer.hpp"
-#include "detray/io/common/surface_grid_writer.hpp"
+#include "detray/io/backend/geometry_writer.hpp"
+#include "detray/io/backend/homogeneous_material_writer.hpp"
+#include "detray/io/backend/material_map_writer.hpp"
+#include "detray/io/backend/surface_grid_writer.hpp"
 #include "detray/io/frontend/detector_writer.hpp"
-#include "detray/io/json/json_writer.hpp"
+#include "detray/io/json/json_converter.hpp"
 
 // Detray test include(s)
 #include "detray/test/utils/detectors/build_telescope_detector.hpp"
@@ -69,7 +69,7 @@ GTEST_TEST(io, json_telescope_geometry_writer) {
     auto [det, names] = build_telescope_detector<test_algebra>(
         host_mr, tel_cfg.positions(positions));
 
-    io::json_writer<detector_t, io::geometry_writer> geo_writer;
+    io::json_converter<detector_t, io::geometry_writer> geo_writer;
     geo_writer.write(det, names);
 }
 
@@ -84,7 +84,7 @@ GTEST_TEST(io, json_telescope_material_writer) {
     auto [det, names] = build_telescope_detector<test_algebra>(
         host_mr, tel_cfg.positions(positions));
 
-    io::json_writer<detector_t, io::homogeneous_material_writer> mat_writer;
+    io::json_converter<detector_t, io::homogeneous_material_writer> mat_writer;
     mat_writer.write(det, names);
 }
 
@@ -99,7 +99,7 @@ GTEST_TEST(io, json_toy_material_maps_writer) {
     toy_cfg.use_material_maps(true);
     auto [det, names] = build_toy_detector<test_algebra>(host_mr, toy_cfg);
 
-    io::json_writer<detector_t, io::material_map_writer> map_writer;
+    io::json_converter<detector_t, io::material_map_writer> map_writer;
     map_writer.write(det, names,
                      std::ios::out | std::ios::binary | std::ios::trunc);
 }
@@ -113,7 +113,7 @@ GTEST_TEST(io, json_toy_grid_writer) {
     vecmem::host_memory_resource host_mr;
     auto [det, names] = build_toy_detector<test_algebra>(host_mr);
 
-    io::json_writer<detector_t, io::surface_grid_writer> grid_writer;
+    io::json_converter<detector_t, io::surface_grid_writer> grid_writer;
     grid_writer.write(det, names,
                       std::ios::out | std::ios::binary | std::ios::trunc);
 }

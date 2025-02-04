@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023-2024 CERN for the benefit of the ACTS project
+ * (c) 2023-2025 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -10,9 +10,9 @@
 // Project include(s)
 #include "detray/builders/detector_builder.hpp"
 #include "detray/builders/material_map_builder.hpp"
-#include "detray/io/common/detail/basic_converter.hpp"
-#include "detray/io/common/detail/type_info.hpp"
-#include "detray/io/common/homogeneous_material_reader.hpp"
+#include "detray/io/backend/detail/basic_converter.hpp"
+#include "detray/io/backend/detail/type_info.hpp"
+#include "detray/io/backend/homogeneous_material_reader.hpp"
 #include "detray/io/frontend/payloads.hpp"
 #include "detray/materials/material_slab.hpp"
 #include "detray/utils/type_list.hpp"
@@ -26,6 +26,8 @@
 namespace detray::io {
 
 /// @brief Material map reader backend
+///
+/// Fills a @c detector_builder from a material @c detector_grids_payload
 template <typename DIM = std::integral_constant<std::size_t, 2u>>
 class material_map_reader {
 
@@ -33,6 +35,10 @@ class material_map_reader {
 
     public:
     static constexpr std::size_t dim{DIM()};
+
+    /// Payload type that the reader processes
+    using payload_type =
+        detector_grids_payload<material_slab_payload, io::material_id>;
 
     using bin_index_type = axis::multi_bin<dim>;
 
@@ -42,11 +48,10 @@ class material_map_reader {
     /// Convert the material grids @param grids_data from their IO
     /// payload
     template <typename detector_t>
-    static void convert(detector_builder<typename detector_t::metadata,
-                                         volume_builder> &det_builder,
-                        typename detector_t::name_map &,
-                        detector_grids_payload<material_slab_payload,
-                                               io::material_id> &&grids_data) {
+    static void from_payload(detector_builder<typename detector_t::metadata,
+                                              volume_builder> &det_builder,
+                             typename detector_t::name_map &,
+                             payload_type &&grids_data) {
 
         using scalar_t = dscalar<typename detector_t::algebra_type>;
         using mat_factory_t = material_map_factory<detector_t, bin_index_type>;
@@ -77,8 +82,9 @@ class material_map_reader {
             // Convert the material grid of each surface
             for (const auto &grid_data : mat_grids) {
 
-                mat_id map_id = convert<io::material_id::n_mats, detector_t>(
-                    grid_data.grid_link.type);
+                mat_id map_id =
+                    from_payload<io::material_id::n_mats, detector_t>(
+                        grid_data.grid_link.type);
 
                 // Get the number of bins per axis
                 std::vector<std::size_t> n_bins{};
@@ -96,8 +102,8 @@ class material_map_reader {
 
                 // Get the local bin indices and the material parametrization
                 std::vector<bin_index_type> loc_bins{};
-                mat_data_t mat_data{
-                    detail::basic_converter::convert(grid_data.owner_link)};
+                mat_data_t mat_data{detail::basic_converter::from_payload(
+                    grid_data.owner_link)};
                 for (const auto &bin_data : grid_data.bins) {
 
                     assert(dim == bin_data.loc_index.size() &&
@@ -115,7 +121,7 @@ class material_map_reader {
                     // For now assume surfaces ids as the only grid input
                     for (const auto &slab_data : bin_data.content) {
                         mat_data.append(
-                            material_reader_t::template convert<scalar_t>(
+                            material_reader_t::template from_payload<scalar_t>(
                                 slab_data));
                     }
                 }
@@ -133,7 +139,8 @@ class material_map_reader {
     private:
     /// Get the detector material id from the payload material type id
     template <io::material_id I, typename detector_t>
-    static typename detector_t::materials::id convert(io::material_id type_id) {
+    static typename detector_t::materials::id from_payload(
+        io::material_id type_id) {
 
         /// Gets compile-time mask information
         using map_info = detail::mat_map_info<I, detector_t>;
@@ -146,8 +153,8 @@ class material_map_reader {
         // Test next material type id
         constexpr int current_id{static_cast<int>(I)};
         if constexpr (current_id > 0) {
-            return convert<static_cast<io::material_id>(current_id - 1),
-                           detector_t>(type_id);
+            return from_payload<static_cast<io::material_id>(current_id - 1),
+                                detector_t>(type_id);
         } else {
             return detector_t::materials::id::e_none;
         }

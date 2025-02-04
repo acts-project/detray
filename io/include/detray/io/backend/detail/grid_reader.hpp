@@ -12,8 +12,8 @@
 #include "detray/builders/detector_builder.hpp"
 #include "detray/builders/grid_factory.hpp"
 #include "detray/definitions/detail/indexing.hpp"
-#include "detray/io/common/detail/basic_converter.hpp"
-#include "detray/io/common/detail/type_info.hpp"
+#include "detray/io/backend/detail/basic_converter.hpp"
+#include "detray/io/backend/detail/type_info.hpp"
 #include "detray/io/frontend/payloads.hpp"
 #include "detray/utils/ranges.hpp"
 #include "detray/utils/type_list.hpp"
@@ -28,7 +28,7 @@
 
 namespace detray::io::detail {
 
-/// @brief Grid reader backend
+/// @brief Grid reader backend utility
 ///
 /// @tparam value_t bin entry type
 /// @tparam grid_builder_t the grid builder to be used
@@ -55,7 +55,7 @@ class grid_reader {
     public:
     /// Convert the detector grids @param grids_data from their IO payload
     template <typename detector_t, typename content_t, typename grid_id_t>
-    static void convert(
+    static void from_payload(
         detector_builder<typename detector_t::metadata, volume_builder>
             &det_builder,
         const detector_grids_payload<content_t, grid_id_t> &grids_data) {
@@ -74,9 +74,9 @@ class grid_reader {
                 }
 
                 // Don't start at zero, since that is the brute force method
-                convert<detector_t>(bounds, binnings,
-                                    std::make_pair(i + 1, grid_data),
-                                    det_builder);
+                from_payload<detector_t>(bounds, binnings,
+                                         std::make_pair(i + 1, grid_data),
+                                         det_builder);
             }
         }
     }
@@ -92,15 +92,16 @@ class grid_reader {
     /// @param binning_ids runtime queue of binning type ids (read from file)
     template <typename detector_t, typename bounds_ts = types::list<>,
               typename binning_ts = types::list<>, typename... Ts>
-    static void convert(std::queue<axis::bounds> &bound_ids,
-                        std::queue<axis::binning> &binning_ids, Ts &&... data) {
+    static void from_payload(std::queue<axis::bounds> &bound_ids,
+                             std::queue<axis::binning> &binning_ids,
+                             Ts &&... data) {
         using namespace axis;
 
         constexpr std::size_t n_bounds_types{types::size<bounds_ts>};
 
         // Base case: If the bounds types are filled, continue with the binnings
         if constexpr (n_bounds_types == dim) {
-            return convert<detector_t, bounds_ts, binning_ts>(
+            return from_payload<detector_t, bounds_ts, binning_ts>(
                 binning_ids, std::forward<Ts>(data)...);
         } else if (!bound_ids.empty()) {
             // The axis label, e.g. x, y or z by number
@@ -115,18 +116,18 @@ class grid_reader {
                 case bounds::e_closed: {
                     using new_bounds_ts =
                         types::push_back<bounds_ts, closed<lb>>;
-                    return convert<detector_t, new_bounds_ts, binning_ts>(
+                    return from_payload<detector_t, new_bounds_ts, binning_ts>(
                         bound_ids, binning_ids, std::forward<Ts>(data)...);
                 }
                 case bounds::e_open: {
                     using new_bounds_ts = types::push_back<bounds_ts, open<lb>>;
-                    return convert<detector_t, new_bounds_ts, binning_ts>(
+                    return from_payload<detector_t, new_bounds_ts, binning_ts>(
                         bound_ids, binning_ids, std::forward<Ts>(data)...);
                 }
                 case bounds::e_circular: {
                     using new_bounds_ts =
                         types::push_back<bounds_ts, circular<lb>>;
-                    return convert<detector_t, new_bounds_ts, binning_ts>(
+                    return from_payload<detector_t, new_bounds_ts, binning_ts>(
                         bound_ids, binning_ids, std::forward<Ts>(data)...);
                 }
                 // Test some edge cases
@@ -150,9 +151,8 @@ class grid_reader {
     /// @param binning_ids runtime queue of binning type ids (read from file)
     template <typename detector_t, typename bounds_ts, typename binning_ts,
               typename... Ts>
-    requires(types::size<bounds_ts> ==
-             dim) static void convert(std::queue<axis::binning> &binning_ids,
-                                      Ts &&... data) {
+    requires(types::size<bounds_ts> == dim) static void from_payload(
+        std::queue<axis::binning> &binning_ids, Ts &&... data) {
 
         using namespace axis;
 
@@ -162,7 +162,7 @@ class grid_reader {
 
         // Base case: If the binning types are filled, continue with the frame
         if constexpr (types::size<binning_ts> == dim) {
-            return convert<detector_t, bounds_ts, binning_ts>(
+            return from_payload<detector_t, bounds_ts, binning_ts>(
                 std::forward<Ts>(data)...);
         } else if (!binning_ids.empty()) {
 
@@ -173,13 +173,13 @@ class grid_reader {
                 case binning::e_regular: {
                     using new_binning_ts =
                         types::push_back<binning_ts, regular_binning_t>;
-                    return convert<detector_t, bounds_ts, new_binning_ts>(
+                    return from_payload<detector_t, bounds_ts, new_binning_ts>(
                         binning_ids, std::forward<Ts>(data)...);
                 }
                 case binning::e_irregular: {
                     using new_binning_ts =
                         types::push_back<binning_ts, irregular_binning_t>;
-                    return convert<detector_t, bounds_ts, new_binning_ts>(
+                    return from_payload<detector_t, bounds_ts, new_binning_ts>(
                         binning_ids, std::forward<Ts>(data)...);
                 }
                 // Test some edge cases
@@ -204,7 +204,7 @@ class grid_reader {
     template <typename detector_t, typename bounds_ts, typename binning_ts,
               typename content_t>
         requires(types::size<bounds_ts> == dim) &&
-        (types::size<binning_ts> == dim) static void convert(
+        (types::size<binning_ts> == dim) static void from_payload(
             const std::pair<dindex, grid_payload<content_t>> &grid_data,
             detector_builder<typename detector_t::metadata, volume_builder>
                 &det_builder) {
@@ -234,23 +234,23 @@ class grid_reader {
             switch (grid_data.second.grid_link.type) {
                 // rectangle, trapezoid, (triangle) grids
                 case io::accel_id::cartesian2_grid: {
-                    return convert<detector_t, cartesian2D<algebra_t>>(
+                    return from_payload<detector_t, cartesian2D<algebra_t>>(
                         grid_data, det_builder, bounds, binnings);
                 }
                 // ring/disc, annulus grids
                 case io::accel_id::polar2_grid: {
-                    return convert<detector_t, polar2D<algebra_t>>(
+                    return from_payload<detector_t, polar2D<algebra_t>>(
                         grid_data, det_builder, bounds, binnings);
                 }
                 // 2D concentric cylinder grid
                 case io::accel_id::concentric_cylinder2_grid: {
-                    return convert<detector_t,
-                                   concentric_cylindrical2D<algebra_t>>(
+                    return from_payload<detector_t,
+                                        concentric_cylindrical2D<algebra_t>>(
                         grid_data, det_builder, bounds, binnings);
                 }
                 // 2D cylinder grid
                 case io::accel_id::cylinder2_grid: {
-                    return convert<detector_t, cylindrical2D<algebra_t>>(
+                    return from_payload<detector_t, cylindrical2D<algebra_t>>(
                         grid_data, det_builder, bounds, binnings);
                 }
                 default: {
@@ -262,12 +262,12 @@ class grid_reader {
             switch (grid_data.second.grid_link.type) {
                 // cuboid grid
                 case io::accel_id::cuboid3_grid: {
-                    return convert<detector_t, cartesian3D<algebra_t>>(
+                    return from_payload<detector_t, cartesian3D<algebra_t>>(
                         grid_data, det_builder, bounds, binnings);
                 }
                 // 3D cylinder grid
                 case io::accel_id::cylinder3_grid: {
-                    return convert<detector_t, cylindrical3D<algebra_t>>(
+                    return from_payload<detector_t, cylindrical3D<algebra_t>>(
                         grid_data, det_builder, bounds, binnings);
                 }
                 default: {
@@ -284,7 +284,7 @@ class grid_reader {
     template <typename detector_t, typename local_frame_t, typename content_t,
               typename... bounds_ts, typename... binning_ts>
         requires(sizeof...(bounds_ts) == dim) &&
-        (sizeof...(binning_ts) == dim) static void convert(
+        (sizeof...(binning_ts) == dim) static void from_payload(
             const std::pair<dindex, grid_payload<content_t>> &grid_idx_and_data,
             detector_builder<typename detector_t::metadata, volume_builder>
                 &det_builder,
@@ -307,7 +307,7 @@ class grid_reader {
 
         const auto &[sf_type, grid_data] = grid_idx_and_data;
         const auto volume_idx{
-            detail::basic_converter::convert(grid_data.owner_link)};
+            detail::basic_converter::from_payload(grid_data.owner_link)};
 
         // Error output
         std::stringstream err_stream;
