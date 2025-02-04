@@ -60,7 +60,7 @@ class bit_encoder {
     ///
     /// @note undefined behaviour for mask == 0 which we should not have.
     DETRAY_HOST_DEVICE
-    static consteval int extract_shift(value_t mask) noexcept {
+    static constexpr int extract_shift(value_t mask) noexcept {
         return __builtin_ctzll(mask);
     }
 };
