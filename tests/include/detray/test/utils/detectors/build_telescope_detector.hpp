@@ -14,12 +14,12 @@
 #include "detray/builders/homogeneous_material_generator.hpp"
 #include "detray/builders/homogeneous_volume_material_builder.hpp"
 #include "detray/core/detector.hpp"
-#include "detray/definitions/detail/algebra.hpp"
+#include "detray/definitions/algebra.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/telescope_metadata.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/materials/predefined_materials.hpp"
-#include "detray/navigation/detail/trajectories.hpp"
+#include "detray/tracks/trajectories.hpp"
 #include "detray/utils/consistency_checker.hpp"
 
 // Detray test include(s)

@@ -9,11 +9,11 @@
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/materials/predefined_materials.hpp"
-#include "detray/navigation/detail/trajectories.hpp"
 #include "detray/navigation/volume_graph.hpp"
 #include "detray/test/utils/detectors/build_telescope_detector.hpp"
 #include "detray/test/utils/detectors/build_toy_detector.hpp"
 #include "detray/tracks/tracks.hpp"
+#include "detray/tracks/trajectories.hpp"
 
 // Example linear algebra plugin: std::array
 #include "detray/tutorial/types.hpp"

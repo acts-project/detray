@@ -9,7 +9,7 @@
 #include "detray/builders/homogeneous_volume_material_builder.hpp"
 
 #include "detray/core/detector.hpp"
-#include "detray/definitions/detail/indexing.hpp"
+#include "detray/definitions/indexing.hpp"
 #include "detray/materials/predefined_materials.hpp"
 
 // Detray test include(s)

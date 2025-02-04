@@ -8,7 +8,7 @@
 #pragma once
 
 // detray core
-#include "detray/definitions/detail/indexing.hpp"
+#include "detray/definitions/indexing.hpp"
 #include "detray/utils/ranges.hpp"
 
 // vecmem core

@@ -9,7 +9,7 @@
 
 // Project include(s)
 #include "detray/core/concepts.hpp"
-#include "detray/definitions/detail/algebra.hpp"
+#include "detray/definitions/algebra.hpp"
 #include "detray/geometry/tracking_surface.hpp"
 #include "detray/geometry/tracking_volume.hpp"
 #include "detray/io/backend/detail/basic_converter.hpp"

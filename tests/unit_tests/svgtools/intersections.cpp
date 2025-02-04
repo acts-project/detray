@@ -7,7 +7,7 @@
 
 // Project include(s)
 #include "detray/core/detector.hpp"
-#include "detray/navigation/detail/ray.hpp"
+#include "detray/tracks/ray.hpp"
 
 // Detray plugin include(s)
 #include "detray/plugins/svgtools/illustrator.hpp"

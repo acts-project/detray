@@ -8,7 +8,7 @@
 // Project include(s)
 #include "detray/grids/populator.hpp"
 
-#include "detray/definitions/detail/indexing.hpp"
+#include "detray/definitions/indexing.hpp"
 
 // GTest include(s)
 #include <gtest/gtest.h>

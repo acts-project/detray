@@ -8,10 +8,10 @@
 #pragma once
 
 // Project include(s).
-#include "detray/definitions/detail/algebra.hpp"
-#include "detray/definitions/detail/containers.hpp"
-#include "detray/definitions/detail/math.hpp"
+#include "detray/definitions/algebra.hpp"
+#include "detray/definitions/containers.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/definitions/math.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/utils/invalid_values.hpp"
 

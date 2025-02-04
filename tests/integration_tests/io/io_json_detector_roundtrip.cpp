@@ -6,7 +6,7 @@
  */
 
 // Project include(s)
-#include "detray/definitions/detail/algebra.hpp"
+#include "detray/definitions/algebra.hpp"
 
 // Detray IO include(s)
 #include "detray/io/backend/geometry_reader.hpp"

@@ -6,14 +6,14 @@
  */
 
 // Detray core include(s).
-#include "detray/definitions/detail/containers.hpp"
-#include "detray/definitions/detail/indexing.hpp"
+#include "detray/definitions/containers.hpp"
+#include "detray/definitions/indexing.hpp"
 #include "detray/geometry/detail/surface_descriptor.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes.hpp"
-#include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/intersection/ray_concentric_cylinder_intersector.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
+#include "detray/tracks/ray.hpp"
 
 // Detray test include(s).
 #include "detray/test/utils/planes_along_direction.hpp"

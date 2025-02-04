@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/navigation/detail/ray.hpp"
+#include "detray/tracks/ray.hpp"
 
 // Detray IO include(s)
 #include "detray/io/utils/file_handle.hpp"

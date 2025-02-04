@@ -8,8 +8,8 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/detail/containers.hpp"
-#include "detray/definitions/detail/indexing.hpp"
+#include "detray/definitions/containers.hpp"
+#include "detray/definitions/indexing.hpp"
 #include "detray/materials/predefined_materials.hpp"
 
 // Vecmem include(s)

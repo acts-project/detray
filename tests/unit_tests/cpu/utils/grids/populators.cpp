@@ -8,7 +8,7 @@
 // detray core
 #include "detray/utils/grid/populators.hpp"
 
-#include "detray/definitions/detail/indexing.hpp"
+#include "detray/definitions/indexing.hpp"
 #include "detray/utils/grid/detail/grid_bins.hpp"
 
 // Detray test include(s)

@@ -8,7 +8,7 @@
 // Project include(s)
 #include "detray/navigation/navigator.hpp"
 
-#include "detray/definitions/detail/indexing.hpp"
+#include "detray/definitions/indexing.hpp"
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/tracks/tracks.hpp"

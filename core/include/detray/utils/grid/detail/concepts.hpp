@@ -10,8 +10,8 @@
 // Project include(s)
 #include "detray/core/detail/container_buffers.hpp"
 #include "detray/core/detail/container_views.hpp"
-#include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/grid_axis.hpp"
+#include "detray/definitions/indexing.hpp"
 #include "detray/utils/concepts.hpp"
 
 // System include(s)

@@ -9,9 +9,9 @@
 
 // Project include(s)
 #include "detray/builders/surface_factory_interface.hpp"
-#include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/geometry.hpp"
+#include "detray/definitions/indexing.hpp"
 #include "detray/definitions/units.hpp"
 
 // Example include(s)

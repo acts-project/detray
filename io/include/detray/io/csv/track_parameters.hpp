@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/detail/algebra.hpp"
+#include "detray/definitions/algebra.hpp"
 #include "detray/io/utils/create_path.hpp"
 #include "detray/tracks/free_track_parameters.hpp"
 #include "detray/utils/ranges.hpp"
