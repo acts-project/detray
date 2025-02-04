@@ -10,8 +10,8 @@
 // Project include(s).
 #include "detray/definitions/detail/macros.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/navigation/caching_navigator.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
-#include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/base_stepper.hpp"
 #include "detray/propagator/propagation_config.hpp"
@@ -188,7 +188,7 @@ struct propagator {
         const auto &track = stepping();
 
         // Set access to the volume material for the stepper
-        auto vol = navigation.get_volume();
+        auto vol = navigation.current_volume();
         const material<scalar_type> *vol_mat_ptr =
             vol.has_material() ? vol.material_parameters(track.pos()) : nullptr;
 
@@ -297,7 +297,7 @@ struct propagator {
             while (propagation.is_alive()) {
 
                 // Set access to the volume material for the stepper
-                auto vol = navigation.get_volume();
+                auto vol = navigation.current_volume();
                 const material<scalar_type> *vol_mat_ptr =
                     vol.has_material() ? vol.material_parameters(track.pos())
                                        : nullptr;
@@ -367,8 +367,8 @@ struct propagator {
             case e_abort:
                 propagation.debug_stream << "status: abort";
                 break;
-            case e_on_target:
-                propagation.debug_stream << "status: e_on_target";
+            case e_exit:
+                propagation.debug_stream << "status: e_exit";
                 break;
             case e_unknown:
                 propagation.debug_stream << "status: unknowm";
@@ -376,7 +376,7 @@ struct propagator {
             case e_towards_object:
                 propagation.debug_stream << "status: towards_surface";
                 break;
-            case e_on_module:
+            case e_on_object:
                 propagation.debug_stream << "status: on_module";
                 break;
             case e_on_portal:

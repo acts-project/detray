@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2024 CERN for the benefit of the ACTS project
+ * (c) 2024-2025 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -9,7 +9,7 @@
 
 // Project include(s)
 #include "detray/definitions/detail/algebra.hpp"
-#include "detray/navigation/navigator.hpp"
+#include "detray/navigation/caching_navigator.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/tracks/tracks.hpp"
@@ -227,7 +227,7 @@ inline void register_benchmark(
     int max_chunk_size = 1, int openmp_sched = 2) {
 
     using propagator_t =
-        propagator<stepper_t, navigator<detector_t>, actor_chain_t>;
+        propagator<stepper_t, caching_navigator<detector_t>, actor_chain_t>;
     register_benchmark<benchmark_t, propagator_t, detector_t, bfield_bknd_t,
                        kOPT>(name, bench_cfg, prop_cfg, det, bfield,
                              actor_states, tracks, n_samples, nullptr,

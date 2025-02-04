@@ -9,8 +9,8 @@
 #include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/bfield.hpp"
+#include "detray/navigation/caching_navigator.hpp"
 #include "detray/navigation/intersection/helix_intersector.hpp"
-#include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actors/parameter_resetter.hpp"
 #include "detray/propagator/actors/parameter_transporter.hpp"
 #include "detray/propagator/propagator.hpp"
@@ -1599,8 +1599,8 @@ int main(int argc, char** argv) {
     }
 
     // Navigator types
-    using rect_navigator_t = navigator<rectangle_telescope>;
-    using wire_navigator_t = navigator<wire_telescope>;
+    using rect_navigator_t = caching_navigator<rectangle_telescope>;
+    using wire_navigator_t = caching_navigator<wire_telescope>;
 
     // Stepper types
     using const_field_stepper_t =

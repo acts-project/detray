@@ -10,9 +10,9 @@
 // Project include(s)
 #include "detray/definitions/detail/algebra.hpp"
 #include "detray/geometry/tracking_surface.hpp"
+#include "detray/navigation/detail/intersection_kernel.hpp"
 #include "detray/navigation/detail/trajectories.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
-#include "detray/navigation/intersection_kernel.hpp"
 #include "detray/navigation/intersector.hpp"
 #include "detray/tracks/free_track_parameters.hpp"
 
@@ -116,6 +116,12 @@ struct brute_force_scan {
             throw std::runtime_error(stream.str());
         }
         // Save initial track position as dummy intersection record
+        if (intersection_trace.empty()) {
+            std::stringstream err_stream{};
+            err_stream << "No intersection found for track: " << traj
+                       << std::endl;
+            throw std::runtime_error(err_stream.str());
+        }
         const auto &first_record = intersection_trace.front();
         intersection_t start_intersection{};
         start_intersection.sf_desc = first_record.intersection.sf_desc;

@@ -146,7 +146,7 @@ struct random_scatterer : actor {
         auto& stepping = prop_state._stepping;
         const auto& ptc = stepping.particle_hypothesis();
         auto& bound_params = stepping.bound_params();
-        const auto sf = navigation.get_surface();
+        const auto sf = navigation.current_surface();
         const scalar_type cos_inc_angle{
             sf.cos_angle(geo_context_type{}, bound_params.dir(),
                          bound_params.bound_local())};
