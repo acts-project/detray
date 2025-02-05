@@ -165,7 +165,8 @@ std::string get_name(bool full = false) {
     // Remove the template argument list
     dvector<std::string> tokens{};
     for (const auto t : std::views::split(tp_str, '<')) {
-        tokens.emplace_back(t.begin(), t.end());
+        // The std::string constructor does not work with std::sentinel_t
+        tokens.emplace_back(std::string_view(t.begin(), t.end()));
     }
 
     // Split a the first ocurrence of '<'
@@ -174,7 +175,7 @@ std::string get_name(bool full = false) {
 
     // Strip the namespaces and qualifiers
     for (const auto t : std::views::split(tp_str, ':')) {
-        tokens.emplace_back(t.begin(), t.end());
+        tokens.emplace_back(std::string_view(t.begin(), t.end()));
     }
 
     // Split at the last occurrence of ':'
