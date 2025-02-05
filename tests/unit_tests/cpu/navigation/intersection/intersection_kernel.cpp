@@ -13,11 +13,11 @@
 #include "detray/geometry/detail/surface_descriptor.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes.hpp"
-#include "detray/navigation/detail/trajectories.hpp"
 #include "detray/navigation/intersection/helix_intersector.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
 #include "detray/navigation/intersection_kernel.hpp"
 #include "detray/tracks/tracks.hpp"
+#include "detray/tracks/trajectories.hpp"
 #include "detray/utils/ranges.hpp"
 
 // Detray test include(s)

@@ -13,9 +13,9 @@
 #endif
 
 // Project include(s).
-#include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/geometry.hpp"
+#include "detray/definitions/indexing.hpp"
 
 // System include(s)
 #include <memory>

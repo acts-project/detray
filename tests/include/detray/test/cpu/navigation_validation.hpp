@@ -9,9 +9,9 @@
 
 // Project include(s)
 #include "detray/detectors/bfield.hpp"
-#include "detray/navigation/detail/ray.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/rk_stepper.hpp"
+#include "detray/tracks/ray.hpp"
 #include "detray/tracks/tracks.hpp"
 
 // Detray test include(s)

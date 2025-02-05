@@ -9,7 +9,7 @@
 
 // detray core
 #include "detray/builders/grid_builder.hpp"
-#include "detray/definitions/detail/algebra.hpp"
+#include "detray/definitions/algebra.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/utils/grid/grid.hpp"
 #include "detray/utils/grid/grid_collection.hpp"

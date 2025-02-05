@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/detail/algebra.hpp"
+#include "detray/definitions/algebra.hpp"
 
 // Detray plugin include(s)
 #include "detray/plugins/svgtools/illustrator.hpp"

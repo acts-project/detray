@@ -8,9 +8,9 @@
 #pragma once
 
 /// Detray include(s)
-#include "detray/definitions/detail/algebra.hpp"
-#include "detray/definitions/detail/math.hpp"
+#include "detray/definitions/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/definitions/math.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/materials/detail/density_effect_data.hpp"
 #include "detray/utils/invalid_values.hpp"

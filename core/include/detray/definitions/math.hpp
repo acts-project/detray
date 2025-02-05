@@ -8,7 +8,7 @@
 #pragma once
 
 // Algebra-plugins include(s)
-#include "detray/definitions/detail/algebra.hpp"
+#include "detray/definitions/algebra.hpp"
 
 // SYCL include(s).
 #if defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)

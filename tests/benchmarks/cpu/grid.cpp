@@ -9,8 +9,8 @@
 #include "detray/utils/grid/grid.hpp"
 
 #include "detray/builders/grid_factory.hpp"
-#include "detray/definitions/detail/containers.hpp"
-#include "detray/definitions/detail/indexing.hpp"
+#include "detray/definitions/containers.hpp"
+#include "detray/definitions/indexing.hpp"
 #include "detray/geometry/shapes/rectangle2D.hpp"
 #include "detray/utils/grid/detail/concepts.hpp"
 

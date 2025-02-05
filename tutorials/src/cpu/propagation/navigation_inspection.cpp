@@ -7,7 +7,6 @@
 
 // Project include(s)
 #include "detray/definitions/units.hpp"
-#include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/line_stepper.hpp"
@@ -16,6 +15,7 @@
 #include "detray/test/utils/inspectors.hpp"
 #include "detray/test/utils/simulation/event_generator/track_generators.hpp"
 #include "detray/test/validation/detector_scanner.hpp"
+#include "detray/tracks/ray.hpp"
 #include "detray/tracks/tracks.hpp"
 
 // Example linear algebra plugin: std::array

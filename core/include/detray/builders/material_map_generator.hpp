@@ -9,9 +9,9 @@
 
 // Project include(s)
 #include "detray/builders/surface_factory_interface.hpp"
-#include "detray/definitions/detail/algebra.hpp"
-#include "detray/definitions/detail/indexing.hpp"
+#include "detray/definitions/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/definitions/indexing.hpp"
 #include "detray/geometry/detail/surface_kernels.hpp"
 #include "detray/geometry/shapes/cylinder2D.hpp"
 #include "detray/geometry/shapes/ring2D.hpp"

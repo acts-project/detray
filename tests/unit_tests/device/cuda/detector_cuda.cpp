@@ -8,7 +8,7 @@
 // Detray test include(s)
 #include "detector_cuda_kernel.hpp"
 #include "detray/core/detail/alignment.hpp"
-#include "detray/definitions/detail/algebra.hpp"
+#include "detray/definitions/algebra.hpp"
 #include "detray/test/common/assert.hpp"
 #include "detray/test/utils/detectors/build_toy_detector.hpp"
 #include "detray/test/utils/types.hpp"

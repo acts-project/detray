@@ -9,7 +9,7 @@
 #include "detray/utils/grid/grid.hpp"
 
 #include "detray/builders/grid_builder.hpp"
-#include "detray/definitions/detail/indexing.hpp"
+#include "detray/definitions/indexing.hpp"
 #include "detray/geometry/shapes/cuboid3D.hpp"
 #include "detray/utils/grid/detail/concepts.hpp"
 

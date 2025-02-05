@@ -13,8 +13,8 @@
 #endif
 
 // Project include(s).
-#include "detray/definitions/detail/algebra.hpp"
-#include "detray/definitions/detail/math.hpp"
+#include "detray/definitions/algebra.hpp"
+#include "detray/definitions/math.hpp"
 #include "detray/tracks/free_track_parameters.hpp"
 #include "detray/utils/invalid_values.hpp"
 #include "detray/utils/matrix_helper.hpp"

@@ -9,11 +9,11 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/detail/algebra.hpp"
-#include "detray/definitions/detail/indexing.hpp"
-#include "detray/definitions/detail/math.hpp"
+#include "detray/definitions/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/geometry.hpp"
+#include "detray/definitions/indexing.hpp"
+#include "detray/definitions/math.hpp"
 #include "detray/geometry/barcode.hpp"
 #include "detray/geometry/detail/surface_kernels.hpp"
 #include "detray/materials/material.hpp"

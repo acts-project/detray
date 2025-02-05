@@ -8,7 +8,7 @@
 #pragma once
 
 // Detray include(s)
-#include "detray/definitions/detail/algebra.hpp"
+#include "detray/definitions/algebra.hpp"
 #include "detray/materials/material.hpp"
 #include "detray/utils/ratio.hpp"
 

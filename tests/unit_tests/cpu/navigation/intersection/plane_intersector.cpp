@@ -10,8 +10,8 @@
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes/rectangle2D.hpp"
 #include "detray/geometry/shapes/unmasked.hpp"
-#include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
+#include "detray/tracks/ray.hpp"
 
 // Detray test include(s)
 #include "detray/test/utils/types.hpp"

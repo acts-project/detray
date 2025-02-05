@@ -8,13 +8,13 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/detail/algebra.hpp"
+#include "detray/definitions/algebra.hpp"
 #include "detray/geometry/tracking_surface.hpp"
-#include "detray/navigation/detail/trajectories.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 #include "detray/navigation/intersection_kernel.hpp"
 #include "detray/navigation/intersector.hpp"
 #include "detray/tracks/free_track_parameters.hpp"
+#include "detray/tracks/trajectories.hpp"
 
 // Detray IO include(s)
 #include "detray/io/csv/intersection2D.hpp"

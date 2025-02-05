@@ -8,7 +8,7 @@
 #pragma once
 
 // Propagate include(s)
-#include "detray/definitions/detail/containers.hpp"
+#include "detray/definitions/containers.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/utils/tuple_helpers.hpp"
 

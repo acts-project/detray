@@ -10,10 +10,10 @@
 // Project include(s)
 #include "detray/builders/surface_factory_interface.hpp"
 #include "detray/core/detail/data_context.hpp"
-#include "detray/definitions/detail/indexing.hpp"
-#include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/geometry.hpp"
+#include "detray/definitions/indexing.hpp"
+#include "detray/definitions/math.hpp"
 #include "detray/geometry/shapes/cuboid3D.hpp"
 #include "detray/utils/bounding_volume.hpp"
 

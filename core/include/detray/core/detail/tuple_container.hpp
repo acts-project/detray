@@ -10,7 +10,7 @@
 // Detray include(s)
 #include "detray/core/detail/container_buffers.hpp"
 #include "detray/core/detail/container_views.hpp"
-#include "detray/definitions/detail/containers.hpp"
+#include "detray/definitions/containers.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/utils/tuple_helpers.hpp"
 #include "detray/utils/type_traits.hpp"

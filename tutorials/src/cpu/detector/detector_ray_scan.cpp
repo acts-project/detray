@@ -6,13 +6,13 @@
  */
 
 // Project include(s)
-#include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/volume_graph.hpp"
 #include "detray/test/utils/detectors/build_toy_detector.hpp"
 #include "detray/test/utils/hash_tree.hpp"
 #include "detray/test/utils/simulation/event_generator/track_generators.hpp"
 #include "detray/test/validation/detector_scan_utils.hpp"
 #include "detray/test/validation/detector_scanner.hpp"
+#include "detray/tracks/ray.hpp"
 
 // Example linear algebra plugin: std::array
 #include "detray/tutorial/types.hpp"

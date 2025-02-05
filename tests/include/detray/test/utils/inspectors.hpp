@@ -13,15 +13,15 @@
 #endif
 
 // Project include(s)
-#include "detray/definitions/detail/algebra.hpp"
-#include "detray/definitions/detail/math.hpp"
+#include "detray/definitions/algebra.hpp"
+#include "detray/definitions/math.hpp"
 #include "detray/geometry/tracking_surface.hpp"
-#include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/navigation_config.hpp"
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/base_stepper.hpp"
 #include "detray/propagator/stepping_config.hpp"
+#include "detray/tracks/ray.hpp"
 #include "detray/utils/tuple_helpers.hpp"
 
 // System include(s)

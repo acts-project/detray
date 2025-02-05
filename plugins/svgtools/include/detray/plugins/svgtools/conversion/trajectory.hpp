@@ -8,8 +8,8 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/detail/algebra.hpp"
-#include "detray/navigation/detail/ray.hpp"
+#include "detray/definitions/algebra.hpp"
+#include "detray/tracks/ray.hpp"
 
 // Detray plugins include(s)
 #include "detray/plugins/svgtools/meta/proto/trajectory.hpp"

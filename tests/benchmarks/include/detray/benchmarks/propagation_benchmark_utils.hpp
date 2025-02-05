@@ -8,12 +8,11 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/detail/algebra.hpp"
+#include "detray/definitions/algebra.hpp"
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/tracks/tracks.hpp"
-#include "detray/utils/tuple.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>

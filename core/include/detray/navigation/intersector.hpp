@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/detail/algebra.hpp"
+#include "detray/definitions/algebra.hpp"
 #include "detray/navigation/intersection/helix_intersector.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
 

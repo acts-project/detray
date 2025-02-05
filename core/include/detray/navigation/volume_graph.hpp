@@ -8,8 +8,8 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/detail/indexing.hpp"
-#include "detray/definitions/detail/math.hpp"
+#include "detray/definitions/indexing.hpp"
+#include "detray/definitions/math.hpp"
 #include "detray/geometry/tracking_volume.hpp"
 #include "detray/utils/ranges.hpp"
 #include "detray/utils/type_traits.hpp"

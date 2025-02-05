@@ -8,7 +8,7 @@
 #pragma once
 
 // Detray core include(s).
-#include "detray/definitions/detail/algebra.hpp"
+#include "detray/definitions/algebra.hpp"
 
 // Detray detector include(s)
 #include "detray/detectors/default_metadata.hpp"

@@ -10,9 +10,9 @@
 // Project include(s)
 #include "detray/core/detail/multi_store.hpp"
 #include "detray/core/detail/single_store.hpp"
-#include "detray/definitions/detail/algebra.hpp"
-#include "detray/definitions/detail/containers.hpp"
-#include "detray/definitions/detail/indexing.hpp"
+#include "detray/definitions/algebra.hpp"
+#include "detray/definitions/containers.hpp"
+#include "detray/definitions/indexing.hpp"
 #include "detray/geometry/detail/surface_descriptor.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes/annulus2D.hpp"
@@ -25,7 +25,7 @@
 #include "detray/navigation/accelerators/surface_grid.hpp"
 
 // Linear algebra types
-#include "detray/definitions/detail/algebra.hpp"
+#include "detray/definitions/algebra.hpp"
 
 namespace detray {
 

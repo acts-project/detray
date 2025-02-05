@@ -9,8 +9,8 @@
 #include "detray/test/utils/simulation/event_generator/track_generators.hpp"
 
 #include "detray/definitions/units.hpp"
-#include "detray/navigation/detail/trajectories.hpp"
 #include "detray/tracks/tracks.hpp"
+#include "detray/tracks/trajectories.hpp"
 
 // Detray test include(s)
 #include "detray/test/utils/statistics.hpp"

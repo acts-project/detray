@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/detail/indexing.hpp"
+#include "detray/definitions/indexing.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/tracking_surface.hpp"
 #include "detray/io/backend/detail/basic_converter.hpp"
