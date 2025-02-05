@@ -1,3 +1,7 @@
+# SPDX-PackageName: "detray, a part of the ACTS project"
+# SPDX-FileCopyrightText: 2021 CERN
+# SPDX-License-Identifier: MPL-2.0
+
 from .common_options import common_options, parse_common_options
 from .plotting_options import plotting_options, parse_plotting_options
 from .detector_io_options import detector_io_options, parse_detector_io_options

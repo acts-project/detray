@@ -1,12 +1,8 @@
 #!/bin/python3
 
-
-# TRACCC library, part of the ACTS project (R&D line)
-#
-# (c) 2023 CERN for the benefit of the ACTS project
-#
-# Mozilla Public License Version 2.0
-
+# SPDX-PackageName: "detray, a part of the ACTS project"
+# SPDX-FileCopyrightText: 2021 CERN
+# SPDX-License-Identifier: MPL-2.0
 
 import argparse
 import re

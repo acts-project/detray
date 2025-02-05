@@ -1,3 +1,9 @@
+<!--
+SPDX-PackageName: "detray, a part of the ACTS project"
+SPDX-FileCopyrightText: 2021 CERN
+SPDX-License-Identifier: MPL-2.0
+-->
+
 # detray
 
 [![Test Status](https://github.com/acts-project/detray/actions/workflows/builds.yml/badge.svg?branch=main)](https://github.com/acts-project/detray/actions/workflows/builds.yml)

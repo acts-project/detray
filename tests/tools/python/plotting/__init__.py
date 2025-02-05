@@ -1,3 +1,3 @@
-from .plot_helpers import plt_data, axis_options, legend_options
-from .plot_helpers import filter_data
-from .pyplot_factory import pyplot_factory
+# SPDX-PackageName: "detray, a part of the ACTS project"
+# SPDX-FileCopyrightText: 2021 CERN
+# SPDX-License-Identifier: MPL-2.0

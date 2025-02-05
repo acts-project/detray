@@ -1,3 +1,7 @@
+# SPDX-PackageName: "detray, a part of the ACTS project"
+# SPDX-FileCopyrightText: 2021 CERN
+# SPDX-License-Identifier: MPL-2.0
+
 from .plot_benchmark_results import (
     read_benchmark_data,
     prepare_benchmark_data,
