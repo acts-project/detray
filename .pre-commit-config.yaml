@@ -1,3 +1,7 @@
+# SPDX-PackageName: "detray, a part of the ACTS project"
+# SPDX-FileCopyrightText: 2021 CERN
+# SPDX-License-Identifier: MPL-2.0
+
 repos:
   - repo: https://github.com/pre-commit/mirrors-clang-format
     rev: 'v10.0.1'
@@ -35,3 +39,8 @@ repos:
       name: Leftover conflict markers
       language: system
       entry: git --no-pager diff --staged --check
+
+  - repo: https://github.com/fsfe/reuse-tool
+    rev: v5.0.2
+    hooks:
+    - id: reuse
