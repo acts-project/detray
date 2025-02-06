@@ -11,6 +11,9 @@
 // Google Test include(s).
 #include <gtest/gtest.h>
 
+// System include(s)
+#include <iostream>
+
 // Test type list implementation
 GTEST_TEST(detray_utils, type_list) {
     using namespace detray;
@@ -37,6 +40,10 @@ GTEST_TEST(detray_utils, type_list) {
                   "Failed access type");
 
     types::print<list>();
-
     types::print<list>(false);
+
+    // Print with template params
+    std::cout << types::get_name<list>(true) << std::endl;
+    // Print without template params
+    std::cout << types::get_name<list>() << std::endl;
 }
