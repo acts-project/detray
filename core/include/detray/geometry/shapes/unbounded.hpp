@@ -12,7 +12,7 @@
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/indexing.hpp"
-#include "detray/utils/string_view_concat.hpp"
+#include "detray/utils/string_helpers.hpp"
 
 // System include(s)
 #include <limits>
@@ -37,7 +37,7 @@ class unbounded {
     static constexpr std::string_view name_prefix = "unbounded ";
 
     /// The name for this shape
-    static constexpr string_view_concat2 name{name_prefix, shape::name};
+    static constexpr utils::string_view_concat2 name{name_prefix, shape::name};
 
     /// Local coordinate frame for boundary checks
     template <concepts::algebra algebra_t>
