@@ -156,24 +156,28 @@ class surface_lookup {
     /// Elementwise access. Needs @c operator[] for storage type - non-const
     DETRAY_HOST_DEVICE
     constexpr decltype(auto) operator[](const std::size_t i) {
+        assert(i < m_container.size());
         return m_container[i];
     }
 
     /// Elementwise access. Needs @c operator[] for storage type - const
     DETRAY_HOST_DEVICE
     constexpr decltype(auto) operator[](const std::size_t i) const {
+        assert(i < m_container.size());
         return m_container[i];
     }
 
     /// @returns context based access to an element (also range checked)
     DETRAY_HOST_DEVICE
     constexpr decltype(auto) at(const dindex i) noexcept {
+        assert(i < m_container.size());
         return m_container.at(i);
     }
 
     /// @returns context based access to an element (also range checked) - const
     DETRAY_HOST_DEVICE
     constexpr decltype(auto) at(const dindex i) const noexcept {
+        assert(i < m_container.size());
         return m_container.at(i);
     }
 
@@ -181,6 +185,7 @@ class surface_lookup {
     /// @param sf_index
     DETRAY_HOST_DEVICE
     constexpr decltype(auto) search(dindex sf_index) const {
+        assert(sf_index < m_container.size());
         return m_container[sf_index];
     }
 
