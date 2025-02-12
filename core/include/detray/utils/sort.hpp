@@ -16,14 +16,15 @@
 #include <algorithm>
 #include <functional>
 
-namespace detray {
+namespace detray::detail {
 
 template <std::random_access_iterator RandomIt>
 DETRAY_HOST_DEVICE inline void insertion_sort(RandomIt first, RandomIt last) {
     for (auto it = first; it != last; it++) {
         // Searching the upper bound, i.e., first
         // element greater than *it from beginning
-        auto const insertion_point = detray::upper_bound(first, it, *it);
+        auto const insertion_point =
+            detray::detail::upper_bound(first, it, *it);
 
         // Shifting the unsorted part
         std::ranges::rotate(insertion_point, it, it + 1);
@@ -33,7 +34,7 @@ DETRAY_HOST_DEVICE inline void insertion_sort(RandomIt first, RandomIt last) {
 // Function to sort the array
 template <template <typename...> class vector_t, typename TYPE>
 DETRAY_HOST_DEVICE inline void insertion_sort(vector_t<TYPE> &vec) {
-    insertion_sort(vec.begin(), vec.end());
+    detray::detail::insertion_sort(vec.begin(), vec.end());
 }
 
 template <std::random_access_iterator RandomIt, class Comp = std::less<void>>
@@ -59,7 +60,7 @@ DETRAY_HOST_DEVICE inline void selection_sort(RandomIt first, RandomIt last,
 // Function to sort the array
 template <template <typename...> class vector_t, typename TYPE>
 DETRAY_HOST_DEVICE inline void selection_sort(vector_t<TYPE> &vec) {
-    selection_sort(vec.begin(), vec.end());
+    detray::detail::selection_sort(vec.begin(), vec.end());
 }
 
-}  // namespace detray
+}  // namespace detray::detail

@@ -81,7 +81,7 @@ def plot_track_params(opts, detector, track_type, plot_factory, out_format, df):
         x=p,
         bins=100,
         x_axis=x_axis_opts,
-        y_axis=y_axis_opts._replace(log_scale=True),
+        y_axis=y_axis_opts._replace(log_scale=10),
         suffix="p_dist",
     )
 
@@ -307,7 +307,7 @@ def plot_track_pos_dist(
         x=filtered_dist,
         bins=100,
         x_axis=plotting.axis_options(label=r"$d\,\mathrm{[mm]}$"),
-        y_axis=plotting.axis_options(label="", log_scale=True),
+        y_axis=plotting.axis_options(label="", log_scale=10),
         figsize=(8.5, 8.5),
         lgd_ops=lgd_ops,
     )

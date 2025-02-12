@@ -13,7 +13,7 @@
 #include "detray/builders/surface_factory.hpp"
 #include "detray/builders/volume_builder.hpp"
 #include "detray/core/detector.hpp"
-#include "detray/definitions/detail/indexing.hpp"
+#include "detray/definitions/indexing.hpp"
 
 // Detray test include(s)
 #include "detray/test/utils/types.hpp"

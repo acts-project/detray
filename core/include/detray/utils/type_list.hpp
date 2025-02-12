@@ -8,11 +8,11 @@
 #pragma once
 
 // Project include(s)
+#include "detray/utils/string_helpers.hpp"
 #include "detray/utils/tuple.hpp"
 #include "detray/utils/type_traits.hpp"
 
 // System include(s)
-#include <ranges>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -162,22 +162,16 @@ std::string get_name(bool full = false) {
         return tp_str;
     }
 
-    // Remove the template argument list
-    dvector<std::string> tokens{};
-    for (const auto t : std::views::split(tp_str, '<')) {
-        tokens.emplace_back(t.begin(), t.end());
-    }
-
-    // Split a the first ocurrence of '<'
+    // Remove template parameter list by removing everything behind the first
+    // occurrence of '<'
+    auto tokens = detray::utils::split_at_delim(tp_str, '<');
     tp_str = tokens.front();
+
     tokens.clear();
 
-    // Strip the namespaces and qualifiers
-    for (const auto t : std::views::split(tp_str, ':')) {
-        tokens.emplace_back(t.begin(), t.end());
-    }
-
-    // Split at the last occurrence of ':'
+    // Strip the namespaces by removing everything before the last occurrence of
+    // ':'
+    tokens = detray::utils::split_at_delim(tp_str, ':');
     return tokens.back();
 }
 

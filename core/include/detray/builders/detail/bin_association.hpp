@@ -10,7 +10,7 @@
 
 // Project include(s)
 #include "detray/builders/detail/associator.hpp"
-#include "detray/definitions/detail/algebra.hpp"
+#include "detray/definitions/algebra.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/coordinates/concentric_cylindrical2D.hpp"
 #include "detray/geometry/coordinates/cylindrical2D.hpp"

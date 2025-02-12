@@ -1,6 +1,6 @@
 #Detray library, part of the ACTS project(R& D line)
 #
-#(c) 2024 CERN for the benefit of the ACTS project
+#(c) 2024-2025 CERN for the benefit of the ACTS project
 #
 #Mozilla Public License Version 2.0
 
@@ -13,30 +13,34 @@ include(CMakeFindDependencyMacro)
 
 find_dependency(Boost COMPONENTS program_options REQUIRED)
 
-# Build the detector validation executable.
-detray_add_executable(detector_validation_cuda
-                      "detector_validation_cuda.cpp"
-                      LINK_LIBRARIES GTest::gtest GTest::gtest_main
-                      Boost::program_options detray::test_cuda detray::tools
-)
+if(DETRAY_BUILD_TESTING)
+    # Build the detector validation executable.
+    detray_add_executable(detector_validation_cuda
+                        "detector_validation_cuda.cpp"
+                        LINK_LIBRARIES GTest::gtest GTest::gtest_main
+                        Boost::program_options detray::test_cuda detray::tools
+    )
 
-# Build the material cuda validation executable.
-detray_add_executable(material_validation_cuda
-                      "material_validation_cuda.cpp"
-                      LINK_LIBRARIES GTest::gtest GTest::gtest_main
-                      Boost::program_options detray::test_cuda detray::tools
-)
-
-# Build benchmarks for multiple algebra plugins
-# Currently vc and smatrix is not supported on device
-set(algebra_plugins "array")
-if(DETRAY_EIGEN_PLUGIN)
-    list(APPEND algebra_plugins "eigen")
+    # Build the material cuda validation executable.
+    detray_add_executable(material_validation_cuda
+                        "material_validation_cuda.cpp"
+                        LINK_LIBRARIES GTest::gtest GTest::gtest_main
+                        Boost::program_options detray::test_cuda detray::tools
+    )
 endif()
 
-foreach(algebra ${algebra_plugins})
-    detray_add_executable(propagation_benchmark_cuda_${algebra}
-      "propagation_benchmark_cuda.cpp"
-       LINK_LIBRARIES detray::benchmark_cuda_${algebra} vecmem::cuda detray::tools detray::test_utils
-    )
-endforeach()
+if(DETRAY_BUILD_BENCHMARKS)
+    # Build benchmarks for multiple algebra plugins
+    # Currently vc and smatrix is not supported on device
+    set(algebra_plugins "array")
+    if(DETRAY_EIGEN_PLUGIN)
+        list(APPEND algebra_plugins "eigen")
+    endif()
+
+    foreach(algebra ${algebra_plugins})
+        detray_add_executable(propagation_benchmark_cuda_${algebra}
+        "propagation_benchmark_cuda.cpp"
+        LINK_LIBRARIES detray::benchmark_cuda_${algebra} vecmem::cuda detray::tools detray::test_utils
+        )
+    endforeach()
+endif()

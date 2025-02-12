@@ -8,8 +8,8 @@
 // Detray core include(s).
 #include "detray/grids/grid2.hpp"
 
-#include "detray/definitions/detail/containers.hpp"
-#include "detray/definitions/detail/indexing.hpp"
+#include "detray/definitions/containers.hpp"
+#include "detray/definitions/indexing.hpp"
 #include "detray/grids/axis.hpp"
 #include "detray/grids/populator.hpp"
 #include "detray/grids/serializer2.hpp"

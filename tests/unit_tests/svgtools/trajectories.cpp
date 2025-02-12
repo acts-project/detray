@@ -6,7 +6,7 @@
  */
 
 // Project include(s)
-#include "detray/navigation/detail/trajectories.hpp"
+#include "detray/tracks/trajectories.hpp"
 
 #include "detray/core/detector.hpp"
 #include "detray/definitions/units.hpp"

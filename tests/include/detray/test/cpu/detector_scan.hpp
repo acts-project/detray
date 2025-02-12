@@ -9,8 +9,8 @@
 
 // Project include(s)
 #include "detray/geometry/tracking_surface.hpp"
-#include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/volume_graph.hpp"
+#include "detray/tracks/ray.hpp"
 
 // Detray IO inlcude(s)
 #include "detray/io/utils/create_path.hpp"

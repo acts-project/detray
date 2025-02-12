@@ -16,7 +16,7 @@
 // System include(s)
 #include <algorithm>
 
-namespace detray::detail {
+namespace detray {
 
 /// @brief sequential (single thread) sort function
 template <std::random_access_iterator rand_iter_t,
@@ -25,7 +25,7 @@ DETRAY_HOST_DEVICE inline void sequential_sort(rand_iter_t first,
                                                sentinel_t last) {
 #if defined(__CUDACC__) || defined(CL_SYCL_LANGUAGE_VERSION) || \
     defined(SYCL_LANGUAGE_VERSION)
-    detray::selection_sort(first, last);
+    detray::detail::selection_sort(first, last);
 #else
     std::ranges::sort(first, last);
 #endif
@@ -52,7 +52,7 @@ DETRAY_HOST_DEVICE inline auto lower_bound(forw_iter_t first, sentinel_t last,
                                            const Value& value) {
 #if defined(__CUDACC__) || defined(CL_SYCL_LANGUAGE_VERSION) || \
     defined(SYCL_LANGUAGE_VERSION)
-    return detray::lower_bound(first, last, value);
+    return detray::detail::lower_bound(first, last, value);
 #else
     return std::ranges::lower_bound(first, last, value);
 #endif
@@ -65,10 +65,10 @@ DETRAY_HOST_DEVICE inline auto upper_bound(forw_iter_t first, sentinel_t last,
                                            const Value& value) {
 #if defined(__CUDACC__) || defined(CL_SYCL_LANGUAGE_VERSION) || \
     defined(SYCL_LANGUAGE_VERSION)
-    return detray::upper_bound(first, last, value);
+    return detray::detail::upper_bound(first, last, value);
 #else
     return std::ranges::upper_bound(first, last, value);
 #endif
 }
 
-}  // namespace detray::detail
+}  // namespace detray

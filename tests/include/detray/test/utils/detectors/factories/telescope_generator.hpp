@@ -10,12 +10,12 @@
 // Project include(s)
 #include "detray/builders/surface_factory_interface.hpp"
 #include "detray/core/detail/data_context.hpp"
-#include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/geometry.hpp"
+#include "detray/definitions/indexing.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes/rectangle2D.hpp"
-#include "detray/navigation/detail/ray.hpp"
+#include "detray/tracks/ray.hpp"
 #include "detray/utils/axis_rotation.hpp"
 #include "detray/utils/unit_vectors.hpp"
 

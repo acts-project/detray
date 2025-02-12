@@ -10,10 +10,10 @@
 // Detray include(s).
 #include "detray/core/detail/container_buffers.hpp"
 #include "detray/core/detail/container_views.hpp"
-#include "detray/definitions/detail/algorithms.hpp"
-#include "detray/definitions/detail/containers.hpp"
-#include "detray/definitions/detail/indexing.hpp"
+#include "detray/definitions/algorithms.hpp"
+#include "detray/definitions/containers.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/definitions/indexing.hpp"
 #include "detray/utils/ranges.hpp"
 
 // VecMem include(s).
@@ -173,7 +173,7 @@ class brute_force_collection {
         // Update the upper bound of the range and all following ranges
         const auto idx{static_cast<std::size_t>(pos - m_surfaces.begin())};
         auto offset =
-            detail::upper_bound(m_offsets.begin(), m_offsets.end(), idx);
+            detray::upper_bound(m_offsets.begin(), m_offsets.end(), idx);
         for (auto itr = offset; itr != m_offsets.end(); ++itr) {
             --(*itr);
         }

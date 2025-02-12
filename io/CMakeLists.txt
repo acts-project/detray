@@ -21,12 +21,14 @@ detray_add_library( detray_io_utils io_utils
 file(
     GLOB _detray_io_public_headers
     RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
-    "include/detray/io/common/*.hpp"
+    "include/detray/io/backend/*.hpp"
+    "include/detray/io/backend/detail/*.hpp"
     "include/detray/io/covfie/*.hpp"
     "include/detray/io/frontend/*.hpp"
     "include/detray/io/frontend/detail/*.hpp"
-    "include/detray/io/frontend/implementation/*.hpp"
+    "include/detray/io/frontend/impl/*.hpp"
     "include/detray/io/json/*.hpp"
+    "include/detray/io/json/detail/*.hpp"
 )
 detray_add_library( detray_io io
    ${_detray_io_public_headers}

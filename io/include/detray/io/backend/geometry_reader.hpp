@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023-2024 CERN for the benefit of the ACTS project
+ * (c) 2023-2025 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -11,9 +11,9 @@
 #include "detray/builders/detector_builder.hpp"
 #include "detray/builders/surface_factory.hpp"
 #include "detray/builders/volume_builder.hpp"
-#include "detray/definitions/detail/indexing.hpp"
-#include "detray/io/common/detail/basic_converter.hpp"
-#include "detray/io/common/detail/type_info.hpp"
+#include "detray/definitions/indexing.hpp"
+#include "detray/io/backend/detail/basic_converter.hpp"
+#include "detray/io/backend/detail/type_info.hpp"
 #include "detray/io/frontend/payloads.hpp"
 
 // System include(s)
@@ -39,6 +39,8 @@ struct hash<detray::io::shape_id> {
 namespace detray::io {
 
 /// @brief Tracking geometry reader backend
+///
+/// Fills a @c detector_builder from a @c detector_geometry_payload
 class geometry_reader {
 
     /// IO shape ids do not need to coincide with the detector mask ids,
@@ -49,13 +51,16 @@ class geometry_reader {
     /// Tag the reader as "geometry"
     static constexpr std::string_view tag = "geometry";
 
+    /// Payload type that the reader processes
+    using payload_type = detector_payload;
+
     /// Convert a detector @param det from its io payload @param det_data
     /// and add the volume names to @param name_map
     template <class detector_t>
-    static void convert(detector_builder<typename detector_t::metadata,
-                                         volume_builder>& det_builder,
-                        typename detector_t::name_map& name_map,
-                        const detector_payload& det_data) {
+    static void from_payload(detector_builder<typename detector_t::metadata,
+                                              volume_builder>& det_builder,
+                             typename detector_t::name_map& name_map,
+                             const payload_type& det_data) {
 
         // Can hold all types of surface fatory needed for the detector
         using sf_factory_ptr_t =
@@ -71,7 +76,7 @@ class geometry_reader {
 
             // Volume placement
             vbuilder->add_volume_placement(
-                convert<detector_t>(vol_data.transform));
+                from_payload<detector_t>(vol_data.transform));
 
             // Prepare the surface factories (one per shape and surface type)
             std::map<io_shape_id, sf_factory_ptr_t> pt_factories;
@@ -103,7 +108,7 @@ class geometry_reader {
                 }
 
                 // Add the data to the factory
-                factories.at(key)->push_back(convert<detector_t>(sf_data));
+                factories.at(key)->push_back(from_payload<detector_t>(sf_data));
             }
 
             // Add all portals and surfaces to the volume
@@ -122,7 +127,7 @@ class geometry_reader {
 
     /// @returns a surface transform from its io payload @param trf_data
     template <class detector_t>
-    static typename detector_t::transform3_type convert(
+    static typename detector_t::transform3_type from_payload(
         const transform_payload& trf_data) {
         using algebra_t = typename detector_t::algebra_type;
         using scalar_t = dscalar<algebra_t>;
@@ -147,7 +152,8 @@ class geometry_reader {
     /// @returns surface data for a surface factory from a surface io payload
     /// @param trf_data
     template <class detector_t>
-    static surface_data<detector_t> convert(const surface_payload& sf_data) {
+    static surface_data<detector_t> from_payload(
+        const surface_payload& sf_data) {
 
         using nav_link_t = typename detector_t::surface_type::navigation_link;
         using scalar_t = dscalar<typename detector_t::algebra_type>;
@@ -162,7 +168,7 @@ class geometry_reader {
         // will be ignored
         // @TODO: Remove this for cylinders again once 2 solution intersection
         // work
-        auto trf = convert<detector_t>(sf_data.transform);
+        auto trf = from_payload<detector_t>(sf_data.transform);
         if (sf_data.mask.shape == io_shape_id::portal_cylinder2 ||
             sf_data.mask.shape == io_shape_id::cylinder2) {
 
@@ -182,8 +188,8 @@ class geometry_reader {
 
         return {sf_data.type,
                 trf,
-                static_cast<nav_link_t>(
-                    detail::basic_converter::convert(sf_data.mask.volume_link)),
+                static_cast<nav_link_t>(detail::basic_converter::from_payload(
+                    sf_data.mask.volume_link)),
                 std::move(mask_boundaries),
                 static_cast<dindex>(sf_idx),
                 sf_data.source};

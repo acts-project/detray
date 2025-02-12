@@ -7,7 +7,7 @@
 
 // Project include(s)
 #include "detray/definitions/units.hpp"
-#include "detray/navigation/detail/helix.hpp"
+#include "detray/tracks/helix.hpp"
 #include "detray/tracks/tracks.hpp"
 
 // Detray test include(s)

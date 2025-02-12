@@ -9,17 +9,17 @@
 
 // Project include(s)
 #include "detray/core/detector.hpp"
-#include "detray/definitions/detail/algorithms.hpp"
-#include "detray/definitions/detail/containers.hpp"
-#include "detray/definitions/detail/indexing.hpp"
+#include "detray/definitions/algorithms.hpp"
+#include "detray/definitions/containers.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/definitions/indexing.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/barcode.hpp"
-#include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
 #include "detray/navigation/intersection_kernel.hpp"
 #include "detray/navigation/navigation_config.hpp"
+#include "detray/tracks/ray.hpp"
 #include "detray/utils/ranges.hpp"
 
 namespace detray {
@@ -495,12 +495,14 @@ class navigator {
         /// @returns next object that we want to reach (current target)
         DETRAY_HOST_DEVICE
         inline auto target() -> candidate_t & {
+            assert(static_cast<std::size_t>(m_next) < m_candidates.size());
             return m_candidates[static_cast<std::size_t>(m_next)];
         }
 
         /// @returns last valid candidate (by position in the cache)
         DETRAY_HOST_DEVICE
         inline auto last() -> candidate_t & {
+            assert(static_cast<std::size_t>(m_last) < m_candidates.size());
             return m_candidates[static_cast<std::size_t>(m_last)];
         }
 
@@ -828,7 +830,7 @@ class navigator {
                     candidate.path = std::numeric_limits<scalar_type>::max();
                 }
             }
-            detail::sequential_sort(navigation.begin(), navigation.end());
+            detray::sequential_sort(navigation.begin(), navigation.end());
             // Take the nearest (sorted) candidate first
             navigation.set_next(navigation.begin());
             // Ignore unreachable elements (needed to determine exhaustion)
@@ -939,7 +941,7 @@ class navigator {
             return candidate.path == std::numeric_limits<scalar_type>::max();
         };
 
-        return detail::find_if(candidates.begin(), candidates.end(),
+        return detray::find_if(candidates.begin(), candidates.end(),
                                not_reachable);
     }
 };

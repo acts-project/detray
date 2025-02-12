@@ -53,4 +53,4 @@ def filter_data(data, filter=lambda df: [], variables=[]):
         for var in variables:
             data_coll.append(filtered[var].to_numpy(dtype=np.double))
 
-    return tuple(data_coll)
+    return data_coll[0] if len(data_coll) == 1 else tuple(data_coll)

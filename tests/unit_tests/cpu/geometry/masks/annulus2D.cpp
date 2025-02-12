@@ -8,7 +8,7 @@
 // Project include(s)
 #include "detray/geometry/shapes/annulus2D.hpp"
 
-#include "detray/definitions/detail/math.hpp"
+#include "detray/definitions/math.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/mask.hpp"
 

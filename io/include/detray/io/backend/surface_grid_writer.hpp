@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023-2024 CERN for the benefit of the ACTS project
+ * (c) 2023-2025 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -8,8 +8,8 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/detail/indexing.hpp"
-#include "detray/io/common/detail/grid_writer.hpp"
+#include "detray/definitions/indexing.hpp"
+#include "detray/io/backend/detail/grid_writer.hpp"
 #include "detray/io/frontend/payloads.hpp"
 
 // System include(s)
@@ -18,6 +18,8 @@
 namespace detray::io {
 
 /// @brief Surface grid writer backend
+///
+/// Fills a surface @c detector_grids_payload from a @c detector instance
 class surface_grid_writer : public detail::grid_writer {
 
     using base_type = detail::grid_writer;
@@ -27,27 +29,30 @@ class surface_grid_writer : public detail::grid_writer {
     /// Tag the writer as "surface_grids"
     static constexpr std::string_view tag = "surface_grids";
 
+    /// Payload type that the reader processes
+    using payload_type = detector_grids_payload<std::size_t, io::accel_id>;
+
     /// Same constructors for this class as for base_type
     using base_type::base_type;
 
     /// Convert the header information into its payload
     template <typename detector_t>
-    static auto write_header(const detector_t& det,
-                             const std::string_view det_name) {
+    static auto header_to_payload(const detector_t& det,
+                                  const std::string_view det_name) {
 
-        return grid_writer_t::write_header(tag, det.accelerator_store(),
-                                           det_name);
+        return grid_writer_t::header_to_payload(tag, det.accelerator_store(),
+                                                det_name);
     }
 
     /// Convert the grid collections of a detector @param det into their io
     /// payload
     template <typename detector_t>
-    static detector_grids_payload<std::size_t, io::accel_id> convert(
-        const detector_t& det, const typename detector_t::name_map&) {
+    static payload_type to_payload(const detector_t& det,
+                                   const typename detector_t::name_map&) {
 
         using surface_desc_t = typename detector_t::surface_type;
 
-        detector_grids_payload<std::size_t, io::accel_id> grids_data;
+        payload_type grids_data;
 
         for (const auto& vol_desc : det.volumes()) {
             // Links to all acceleration data structures in the volume
@@ -69,9 +74,9 @@ class surface_grid_writer : public detail::grid_writer {
                 }
 
                 // Generate the payload
-                grid_writer_t::convert(det.accelerator_store(), acc_link,
-                                       vol_desc.index(), vol_desc.index(),
-                                       grids_data, sf_converter);
+                grid_writer_t::to_payload(det.accelerator_store(), acc_link,
+                                          vol_desc.index(), vol_desc.index(),
+                                          grids_data, sf_converter);
             }
         }
 

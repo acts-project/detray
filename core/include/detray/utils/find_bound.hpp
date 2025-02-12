@@ -14,7 +14,7 @@
 // System include(s).
 #include <iterator>
 
-namespace detray {
+namespace detray::detail {
 
 /// Implementation of @c upper_bound
 /// @see
@@ -74,4 +74,4 @@ DETRAY_HOST_DEVICE constexpr iterator_t lower_bound(iterator_t first,
     return first;
 }
 
-}  // namespace detray
+}  // namespace detray::detail

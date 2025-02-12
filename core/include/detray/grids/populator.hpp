@@ -8,9 +8,9 @@
 #pragma once
 
 // Project include(s).
-#include "detray/definitions/detail/algorithms.hpp"
-#include "detray/definitions/detail/indexing.hpp"
+#include "detray/definitions/algorithms.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/definitions/indexing.hpp"
 #include "detray/utils/invalid_values.hpp"
 
 // VecMem include(s).
@@ -146,7 +146,7 @@ struct complete_populator {
             }
         }
         if constexpr (kSORT) {
-            detray::detail::sequential_sort(stored.begin(), stored.end());
+            detray::sequential_sort(stored.begin(), stored.end());
         }
     }
 

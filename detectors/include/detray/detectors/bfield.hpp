@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/detail/algebra.hpp"
+#include "detray/definitions/algebra.hpp"
 #include "detray/io/covfie/read_bfield.hpp"
 
 // Covfie include(s)

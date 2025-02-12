@@ -9,9 +9,9 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/geometry.hpp"
+#include "detray/definitions/indexing.hpp"
 #include "detray/utils/bit_encoder.hpp"
 
 // System include(s)

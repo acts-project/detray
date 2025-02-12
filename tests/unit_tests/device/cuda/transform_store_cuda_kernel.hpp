@@ -9,7 +9,7 @@
 
 // Project includes(s)
 #include "detray/core/detail/single_store.hpp"
-#include "detray/definitions/detail/algebra.hpp"
+#include "detray/definitions/algebra.hpp"
 
 // Detray test inclue(s)
 #include "detray/test/utils/types.hpp"

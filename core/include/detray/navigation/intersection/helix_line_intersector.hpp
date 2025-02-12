@@ -8,13 +8,13 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/detail/algebra.hpp"
-#include "detray/definitions/detail/math.hpp"
+#include "detray/definitions/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/definitions/math.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/coordinates/line2D.hpp"
-#include "detray/navigation/detail/helix.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
+#include "detray/tracks/helix.hpp"
 
 // System include(s)
 #include <iostream>

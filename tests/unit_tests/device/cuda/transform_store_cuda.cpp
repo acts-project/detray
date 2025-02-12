@@ -6,7 +6,7 @@
  */
 
 // Project include(s)
-#include "detray/definitions/detail/algebra.hpp"
+#include "detray/definitions/algebra.hpp"
 #include "detray/utils/ranges.hpp"
 
 // Detray test include(s)

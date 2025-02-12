@@ -9,10 +9,10 @@
 
 // Project include(s)
 #include "detray/io/frontend/payloads.hpp"
+#include "detray/io/json/detail/json_algebra_io.hpp"
+#include "detray/io/json/detail/json_common_io.hpp"
+#include "detray/io/json/detail/json_grids_io.hpp"
 #include "detray/io/json/json.hpp"
-#include "detray/io/json/json_algebra_io.hpp"
-#include "detray/io/json/json_common_io.hpp"
-#include "detray/io/json/json_grids_io.hpp"
 
 // System include(s)
 #include <array>

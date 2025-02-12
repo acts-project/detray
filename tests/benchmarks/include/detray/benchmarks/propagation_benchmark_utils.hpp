@@ -8,12 +8,11 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/detail/algebra.hpp"
+#include "detray/definitions/algebra.hpp"
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/tracks/tracks.hpp"
-#include "detray/utils/tuple.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>
@@ -22,6 +21,7 @@
 #include <benchmark/benchmark.h>
 
 // System include(s)
+#include <thread>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -63,10 +63,8 @@ inline typename track_generator_t::configuration get_default_trk_gen_config(
 /// @param cfg the configuration of the track generator
 /// @param do_sort sort the tracks by theta angle
 template <typename track_generator_t>
-inline auto generate_tracks(
-    vecmem::memory_resource *mr,
-    const typename track_generator_t::configuration &cfg = {},
-    bool do_sort = true) {
+inline auto generate_tracks(vecmem::memory_resource *mr, track_generator_t &gen,
+                            bool do_sort = true) {
 
     using track_t = typename track_generator_t::track_type;
     using scalar_t = dscalar<typename track_t::algebra_type>;
@@ -75,7 +73,7 @@ inline auto generate_tracks(
     dvector<track_t> tracks(mr);
 
     // Iterate through uniformly distributed momentum directions
-    for (auto track : track_generator_t{cfg}) {
+    for (auto track : gen) {
         // Put it into vector of trajectories
         tracks.push_back(track);
     }
@@ -95,25 +93,36 @@ inline auto generate_tracks(
 }
 
 /// Generate as many samples of track states as there are entries in the
-/// @param n_tracks vector.
+/// @param n_tracks vector using and externally provided track generator
+/// @param gen
 template <typename track_generator_t>
-inline auto generate_track_samples(
-    vecmem::memory_resource *mr, const std::vector<int> &n_tracks,
-    typename track_generator_t::configuration &cfg = {}, bool do_sort = true) {
+inline auto generate_track_samples(vecmem::memory_resource *mr,
+                                   const std::vector<int> &n_tracks,
+                                   track_generator_t &gen,
+                                   bool do_sort = true) {
 
     using track_t = typename track_generator_t::track_type;
 
     std::vector<dvector<track_t>> track_samples{};
     track_samples.reserve(n_tracks.size());
 
-    auto tmp_cfg{cfg};
     for (const int n : n_tracks) {
-        tmp_cfg.n_tracks(static_cast<std::size_t>(n));
-        track_samples.push_back(
-            generate_tracks<track_generator_t>(mr, tmp_cfg, do_sort));
+        gen.config().n_tracks(static_cast<std::size_t>(n));
+        track_samples.push_back(generate_tracks(mr, gen, do_sort));
     }
 
     return track_samples;
+}
+
+/// Generate as many samples of track states as there are entries in the
+/// @param n_tracks vector
+template <typename track_generator_t>
+inline auto generate_track_samples(
+    vecmem::memory_resource *mr, const std::vector<int> &n_tracks,
+    typename track_generator_t::configuration &cfg = {}, bool do_sort = true) {
+
+    track_generator_t gen{cfg};
+    return generate_track_samples(mr, n_tracks, gen, do_sort);
 }
 
 /// Register a propagation benchmark of type @tparam benchmark_t
@@ -145,7 +154,10 @@ inline void register_benchmark(
         dvector<free_track_parameters<typename detector_t::algebra_type>>>
         &track_samples,
     const std::vector<int> &n_samples = {10000},
-    vecmem::memory_resource *dev_mr = nullptr) {
+    vecmem::memory_resource *dev_mr = nullptr,
+    const std::vector<int> &n_host_threads = {static_cast<int>(
+        std::thread::hardware_concurrency())},
+    int max_chunk_size = 1, int openmp_sched = 2) {
 
     using algebra_t = typename detector_t::algebra_type;
     using propagation_benchmark_t =
@@ -153,9 +165,15 @@ inline void register_benchmark(
 
     assert(track_samples.size() == n_samples.size());
 
-    for (const auto [i, n] : detray::views::enumerate(n_samples)) {
+    const std::size_t bench_range{
+        math::max(n_samples.size(), n_host_threads.size())};
+    for (std::size_t i = 0u; i < bench_range; ++i) {
 
-        auto &tracks = track_samples[i];
+        auto &tracks =
+            track_samples.size() == 1u ? track_samples[0] : track_samples[i];
+        int host_threads{n_host_threads.size() == 1u ? n_host_threads[0]
+                                                     : n_host_threads[i]};
+        const int n{n_samples.size() == 1u ? n_samples[0] : n_samples[i]};
         assert(static_cast<std::size_t>(n) <= tracks.size());
 
         bench_cfg.n_samples(n);
@@ -176,18 +194,19 @@ inline void register_benchmark(
                           dvector<free_track_parameters<algebra_t>> *,
                           const detector_t *, const bfield_bknd_t *,
                           typename propagator_t::actor_chain_type::state_tuple
-                              *>) {
+                              *,
+                          int, int, int>) {
             // Cpu benchmark
-            ::benchmark::RegisterBenchmark(bench_name.c_str(), prop_benchmark,
-                                           &tracks, &det, &bfield,
-                                           actor_states);
-            //->MeasureProcessCPUTime();
+            ::benchmark::RegisterBenchmark(
+                bench_name.c_str(), prop_benchmark, &tracks, &det, &bfield,
+                actor_states, host_threads, max_chunk_size, openmp_sched)
+                ->UseRealTime();
         } else {
             // Device benchmark
             ::benchmark::RegisterBenchmark(bench_name.c_str(), prop_benchmark,
                                            dev_mr, &tracks, &det, &bfield,
-                                           actor_states);
-            //->MeasureProcessCPUTime();
+                                           actor_states)
+                ->UseRealTime();
         }
     }
 }
@@ -210,13 +229,17 @@ inline void register_benchmark(
     std::vector<
         dvector<free_track_parameters<typename detector_t::algebra_type>>>
         &tracks,
-    const std::vector<int> &n_samples = {10000}) {
+    const std::vector<int> &n_samples = {10000},
+    const std::vector<int> &n_host_threads = {static_cast<int>(
+        std::thread::hardware_concurrency())},
+    int max_chunk_size = 1, int openmp_sched = 2) {
 
     using propagator_t =
         propagator<stepper_t, navigator<detector_t>, actor_chain_t>;
     register_benchmark<benchmark_t, propagator_t, detector_t, bfield_bknd_t,
                        kOPT>(name, bench_cfg, prop_cfg, det, bfield,
-                             actor_states, tracks, n_samples, nullptr);
+                             actor_states, tracks, n_samples, nullptr,
+                             n_host_threads, max_chunk_size, openmp_sched);
 }
 
 }  // namespace detray::benchmarks

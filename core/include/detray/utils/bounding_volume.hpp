@@ -8,15 +8,15 @@
 #pragma once
 
 // Project include(s).
-#include "detray/definitions/detail/algebra.hpp"
+#include "detray/definitions/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes/cuboid3D.hpp"
 #include "detray/geometry/shapes/cylinder3D.hpp"
-#include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/intersection/bounding_box/cuboid_intersector.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
+#include "detray/tracks/ray.hpp"
 
 // System include(s)
 #include <cassert>

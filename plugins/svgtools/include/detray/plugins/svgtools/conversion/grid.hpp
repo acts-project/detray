@@ -9,7 +9,7 @@
 
 // Project include(s)
 #include "detray/core/detector.hpp"
-#include "detray/definitions/detail/algebra.hpp"
+#include "detray/definitions/algebra.hpp"
 #include "detray/definitions/grid_axis.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/utils/grid/detail/concepts.hpp"

@@ -8,7 +8,7 @@
 // Project include(s)
 #include "detray/geometry/tracking_surface.hpp"
 
-#include "detray/definitions/detail/indexing.hpp"
+#include "detray/definitions/indexing.hpp"
 
 // Detray test include(s)
 #include "detray/test/utils/detectors/build_toy_detector.hpp"

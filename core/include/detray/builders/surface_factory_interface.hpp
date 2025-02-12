@@ -7,13 +7,19 @@
 
 #pragma once
 
+// TODO: Remove this when gcc fixes their false positives.
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic warning "-Wnull-dereference"
+#endif
+
 // Project include(s).
-#include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/geometry.hpp"
+#include "detray/definitions/indexing.hpp"
 
 // System include(s)
 #include <memory>
+#include <stdexcept>
 #include <tuple>
 #include <vector>
 
@@ -160,7 +166,11 @@ class factory_decorator : public surface_factory_interface<detector_t> {
     explicit factory_decorator(
         std::unique_ptr<surface_factory_interface<detector_t>> factory)
         : m_factory(std::move(factory)) {
-        assert(m_factory != nullptr);
+        if (m_factory == nullptr || m_factory.get() == nullptr) {
+            throw std::runtime_error(
+                "Surface factory decorator constructed with invalid base "
+                "factory");
+        }
     }
 
     /// @returns access to the underlying factory - const

@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/detail/algebra.hpp"
+#include "detray/definitions/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 
 // System include(s)
@@ -75,7 +75,9 @@ struct random_numbers {
 
     /// Explicit normal distribution around a @param mean and @param stddev
     DETRAY_HOST auto normal(const scalar_t mean, const scalar_t stddev) {
-        return std::normal_distribution<scalar_t>(mean, stddev)(m_engine);
+        return stddev == scalar_t{0}
+                   ? mean
+                   : std::normal_distribution<scalar_t>(mean, stddev)(m_engine);
     }
 
     /// 50:50 coin toss

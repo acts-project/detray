@@ -9,7 +9,7 @@
 
 // Projetc include(s)
 #include "detray/core/detector.hpp"
-#include "detray/definitions/detail/algebra.hpp"
+#include "detray/definitions/algebra.hpp"
 #include "detray/utils/ranges.hpp"
 
 // Detray test include(s)

@@ -98,10 +98,9 @@ option(
     FALSE
 )
 
-# Need test functionality and svg display for command line tools
+# Need test utils for the example detector generation
 if(DETRAY_BUILD_CLI_TOOLS)
-    set(DETRAY_BUILD_TESTING ON)
-    set(DETRAY_SVG_DISPLAY ON)
+    set(DETRAY_BUILD_TEST_UTILS ON)
 endif()
 
 # Convenience option to build tests
@@ -110,7 +109,7 @@ if(DETRAY_BUILD_ALL_TESTS)
     set(DETRAY_BUILD_INTEGRATIONTESTS ON)
 endif()
 
-# Alias flag to build the tests
+# Alias flag to enable tests in detray (pulls in google test and triggers the build of executables that depend on it)
 if(BUILD_TESTING AND (DETRAY_BUILD_UNITTESTS OR DETRAY_BUILD_INTEGRATIONTESTS))
     set(DETRAY_BUILD_TESTING ON)
 endif()
@@ -308,7 +307,16 @@ cmake_dependent_option(
     "BUILD_TESTING AND DETRAY_BUILD_TESTING"
     OFF
 )
-if(DETRAY_BUILD_TESTING OR DETRAY_BUILD_TEST_UTILS)
+
+# Test utils and validation tools can also be required standalone
+# (e.g. in ACTS detray plugin)
+if(
+    DETRAY_BUILD_TESTING
+    OR DETRAY_BUILD_TEST_UTILS
+    OR DETRAY_BUILD_VALIDATION_TOOLS
+    OR DETRAY_BUILD_BENCHMARKS
+    OR DETRAY_BUILD_CLI_TOOLS
+)
     add_subdirectory(tests)
 endif()
 

@@ -8,11 +8,11 @@
 #pragma once
 
 // Project include(s).
-#include "detray/definitions/detail/algebra.hpp"
-#include "detray/definitions/detail/algorithms.hpp"
-#include "detray/definitions/detail/indexing.hpp"
+#include "detray/definitions/algebra.hpp"
+#include "detray/definitions/algorithms.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/grid_axis.hpp"
+#include "detray/definitions/indexing.hpp"
 
 // System include(s).
 #include <cstddef>
@@ -233,9 +233,8 @@ struct irregular {
             m_bin_edges->begin() + static_cast<index_type>(m_offset);
         auto bins_end = bins_begin + static_cast<index_type>(m_n_bins);
 
-        return static_cast<int>(
-                   detray::detail::lower_bound(bins_begin, bins_end, v) -
-                   bins_begin) -
+        return static_cast<int>(detray::lower_bound(bins_begin, bins_end, v) -
+                                bins_begin) -
                1;
     }
 

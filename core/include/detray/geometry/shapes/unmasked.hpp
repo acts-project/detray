@@ -8,10 +8,10 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/detail/algebra.hpp"
-#include "detray/definitions/detail/containers.hpp"
-#include "detray/definitions/detail/indexing.hpp"
+#include "detray/definitions/algebra.hpp"
+#include "detray/definitions/containers.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/definitions/indexing.hpp"
 #include "detray/geometry/coordinates/cartesian2D.hpp"
 
 // System include(s)

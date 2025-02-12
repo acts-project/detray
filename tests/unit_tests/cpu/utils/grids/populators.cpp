@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2024 CERN for the benefit of the ACTS project
+ * (c) 2022-2025 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -8,7 +8,7 @@
 // detray core
 #include "detray/utils/grid/populators.hpp"
 
-#include "detray/definitions/detail/indexing.hpp"
+#include "detray/definitions/indexing.hpp"
 #include "detray/utils/grid/detail/grid_bins.hpp"
 
 // Detray test include(s)
@@ -56,7 +56,7 @@ GTEST_TEST(detray_grid, replace_populator) {
 
     // Create some bin data
     dvector<bins::single<dindex>> bin_data{};
-    bin_data.reserve(50);
+    bin_data.resize(50);
     std::ranges::generate_n(bin_data.begin(), 50,
                             bin_content_sequence<bins::single<dindex>>());
 
@@ -102,7 +102,7 @@ GTEST_TEST(detray_grid, complete_populator) {
 
     // Create some bin data
     dvector<bins::static_array<dindex, 4>> bin_data{};
-    bin_data.reserve(50);
+    bin_data.resize(50);
     std::ranges::generate_n(
         bin_data.begin(), 50,
         bin_content_sequence<bins::static_array<dindex, 4>>());
@@ -173,7 +173,7 @@ GTEST_TEST(detray_grid, regular_attach_populator) {
 
     // Create some bin data
     dvector<bins::static_array<dindex, 4>> bin_data{};
-    bin_data.reserve(50);
+    bin_data.resize(50);
     std::ranges::generate_n(
         bin_data.begin(), 50,
         bin_content_sequence<bins::static_array<dindex, 4>>());

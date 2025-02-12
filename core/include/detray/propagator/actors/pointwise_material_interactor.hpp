@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s).
-#include "detray/definitions/detail/algebra.hpp"
+#include "detray/definitions/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
 #include "detray/geometry/tracking_surface.hpp"
@@ -78,7 +78,7 @@ struct pointwise_material_interactor : actor {
                 const auto mat = detail::material_accessor::get(
                     material_group, mat_index, bound_params.bound_local());
 
-                // return early in case of zero thickness
+                // Return early in case of zero thickness
                 if (mat.thickness() <=
                     std::numeric_limits<scalar_type>::epsilon()) {
                     return false;

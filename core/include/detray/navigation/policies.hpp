@@ -8,9 +8,9 @@
 #pragma once
 
 // detray definitions
-#include "detray/definitions/detail/algebra.hpp"
-#include "detray/definitions/detail/math.hpp"
+#include "detray/definitions/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/definitions/math.hpp"
 #include "detray/propagator/base_actor.hpp"
 
 // system includes

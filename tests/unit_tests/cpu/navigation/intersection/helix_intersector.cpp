@@ -15,7 +15,7 @@
 #include "detray/geometry/shapes/line.hpp"
 #include "detray/geometry/shapes/rectangle2D.hpp"
 #include "detray/geometry/shapes/unmasked.hpp"
-#include "detray/navigation/detail/helix.hpp"
+#include "detray/tracks/helix.hpp"
 #include "detray/tracks/tracks.hpp"
 
 // Detray test include(s)

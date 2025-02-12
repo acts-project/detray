@@ -8,9 +8,9 @@
 #pragma once
 
 // Project include(s).
-#include "detray/definitions/detail/algorithms.hpp"
-#include "detray/definitions/detail/indexing.hpp"
+#include "detray/definitions/algorithms.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/definitions/indexing.hpp"
 #include "detray/utils/invalid_values.hpp"
 
 namespace detray {
@@ -35,8 +35,8 @@ struct replace {
 
         // Optionally sort the bin content
         if constexpr (kSORT) {
-            detray::detail::sequential_sort(std::forward<bin_t>(bin).begin(),
-                                            std::forward<bin_t>(bin).end());
+            detray::sequential_sort(std::forward<bin_t>(bin).begin(),
+                                    std::forward<bin_t>(bin).end());
         }
     }
 };
@@ -57,8 +57,8 @@ struct attach {
 
         // Optionally sort the bin content
         if constexpr (kSORT) {
-            detray::detail::sequential_sort(std::forward<bin_t>(bin).begin(),
-                                            std::forward<bin_t>(bin).end());
+            detray::sequential_sort(std::forward<bin_t>(bin).begin(),
+                                    std::forward<bin_t>(bin).end());
         }
     }
 };
@@ -83,8 +83,8 @@ struct complete {
 
         // Optionally sort the bin content
         if constexpr (kSORT) {
-            detray::detail::sequential_sort(std::forward<bin_t>(bin).begin(),
-                                            std::forward<bin_t>(bin).end());
+            detray::sequential_sort(std::forward<bin_t>(bin).begin(),
+                                    std::forward<bin_t>(bin).end());
         }
     }
 };

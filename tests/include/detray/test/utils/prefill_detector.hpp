@@ -12,7 +12,7 @@
 #include "detray/builders/homogeneous_material_factory.hpp"
 #include "detray/builders/surface_factory.hpp"
 #include "detray/builders/volume_builder.hpp"
-#include "detray/definitions/detail/indexing.hpp"
+#include "detray/definitions/indexing.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes.hpp"
 #include "detray/materials/predefined_materials.hpp"

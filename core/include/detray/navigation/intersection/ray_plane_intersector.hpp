@@ -8,14 +8,14 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/detail/algebra.hpp"
-#include "detray/definitions/detail/math.hpp"
+#include "detray/definitions/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/definitions/math.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/coordinates/cartesian2D.hpp"
 #include "detray/geometry/coordinates/polar2D.hpp"
-#include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
+#include "detray/tracks/ray.hpp"
 
 // System include(s)
 #include <type_traits>

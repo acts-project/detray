@@ -8,8 +8,8 @@
 // Project include(s)
 #include "detray/navigation/intersection/bounding_box/cuboid_intersector.hpp"
 
-#include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
+#include "detray/tracks/ray.hpp"
 #include "detray/utils/bounding_volume.hpp"
 
 // Detray test include(s)

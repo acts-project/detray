@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/detail/algebra.hpp"
+#include "detray/definitions/algebra.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes.hpp"
 #include "detray/geometry/tracking_surface.hpp"

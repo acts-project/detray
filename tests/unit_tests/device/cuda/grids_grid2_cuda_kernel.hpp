@@ -8,7 +8,7 @@
 #pragma once
 
 // detray core
-#include "detray/definitions/detail/indexing.hpp"
+#include "detray/definitions/indexing.hpp"
 #include "detray/grids/axis.hpp"
 #include "detray/grids/grid2.hpp"
 #include "detray/grids/populator.hpp"

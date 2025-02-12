@@ -14,10 +14,10 @@
 #include "detray/detectors/bfield.hpp"
 #include "detray/geometry/tracking_surface.hpp"
 #include "detray/io/utils/file_handle.hpp"
-#include "detray/navigation/detail/trajectories.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/stepping_config.hpp"
 #include "detray/tracks/tracks.hpp"
+#include "detray/tracks/trajectories.hpp"
 
 // Detray test include(s)
 #include "detray/test/utils/simulation/event_generator/track_generators.hpp"

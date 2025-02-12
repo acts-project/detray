@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2024 CERN for the benefit of the ACTS project
+ * (c) 2024-2025 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -8,15 +8,15 @@
 #pragma once
 
 // Project include(s)
-#include "detray/io/common/geometry_reader.hpp"
-#include "detray/io/common/homogeneous_material_reader.hpp"
-#include "detray/io/common/material_map_reader.hpp"
-#include "detray/io/common/surface_grid_reader.hpp"
+#include "detray/core/concepts.hpp"
+#include "detray/io/backend/geometry_reader.hpp"
+#include "detray/io/backend/homogeneous_material_reader.hpp"
+#include "detray/io/backend/material_map_reader.hpp"
+#include "detray/io/backend/surface_grid_reader.hpp"
 #include "detray/io/frontend/detail/detector_components_reader.hpp"
-#include "detray/io/frontend/detail/io_metadata.hpp"
-#include "detray/io/frontend/detail/type_traits.hpp"
 #include "detray/io/frontend/payloads.hpp"
-#include "detray/io/json/json_reader.hpp"
+#include "detray/io/json/json_converter.hpp"
+#include "detray/io/utils/io_metadata.hpp"
 
 // System include(s)
 #include <filesystem>
@@ -83,24 +83,24 @@ inline void add_json_readers(
             reader.set_detector_name(header.detector);
 
             using json_geometry_reader =
-                json_reader<detector_t, geometry_reader>;
+                json_converter<detector_t, geometry_reader>;
 
             reader.template add<json_geometry_reader>(file_name);
 
         } else if (header.tag == "homogeneous_material") {
-            if constexpr (concepts::has_homogeneous_material<detector_t>) {
+            if constexpr (detray::concepts::has_homogeneous_material<
+                              detector_t>) {
                 using json_hom_material_reader =
-                    json_reader<detector_t, homogeneous_material_reader>;
+                    json_converter<detector_t, homogeneous_material_reader>;
 
                 reader.template add<json_hom_material_reader>(file_name);
             } else {
                 print_type_warning<detector_t>(header.tag);
             }
         } else if (header.tag == "material_maps") {
-            if constexpr (concepts::has_material_maps<detector_t>) {
-                using json_material_map_reader =
-                    json_reader<detector_t,
-                                material_map_reader<
+            if constexpr (detray::concepts::has_material_maps<detector_t>) {
+                using json_material_map_reader = json_converter<
+                    detector_t, material_map_reader<
                                     std::integral_constant<std::size_t, DIM>>>;
 
                 reader.template add<json_material_map_reader>(file_name);
@@ -108,10 +108,9 @@ inline void add_json_readers(
                 print_type_warning<detector_t>(header.tag);
             }
         } else if (header.tag == "surface_grids") {
-            if constexpr (concepts::has_surface_grids<detector_t>) {
-                using json_surface_grid_reader =
-                    json_reader<detector_t,
-                                surface_grid_reader<
+            if constexpr (detray::concepts::has_surface_grids<detector_t>) {
+                using json_surface_grid_reader = json_converter<
+                    detector_t, surface_grid_reader<
                                     typename detector_t::surface_type,
                                     std::integral_constant<std::size_t, CAP>,
                                     std::integral_constant<std::size_t, DIM>>>;

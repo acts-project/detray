@@ -8,8 +8,8 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/detail/algebra.hpp"
-#include "detray/definitions/detail/algorithms.hpp"
+#include "detray/definitions/algebra.hpp"
+#include "detray/definitions/algorithms.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
@@ -103,8 +103,8 @@ struct intersection_initialize {
     DETRAY_HOST_DEVICE void insert_sorted(
         const typename is_container_t::value_type &sfi,
         is_container_t &intersections) const {
-        auto itr_pos = detray::detail::upper_bound(intersections.begin(),
-                                                   intersections.end(), sfi);
+        auto itr_pos = detray::upper_bound(intersections.begin(),
+                                           intersections.end(), sfi);
         intersections.insert(itr_pos, sfi);
     }
 };

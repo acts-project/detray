@@ -8,7 +8,7 @@
 // Detray include(s)
 #include "detray/navigation/accelerators/brute_force_finder.hpp"
 
-#include "detray/navigation/detail/ray.hpp"
+#include "detray/tracks/ray.hpp"
 
 // Detray test include(s)
 #include "detray/test/utils/detectors/build_toy_detector.hpp"

@@ -6,15 +6,14 @@
  */
 
 // Project include(s)
-#include "detray/definitions/detail/algebra.hpp"
+#include "detray/definitions/algebra.hpp"
 
 // Detray IO include(s)
-#include "detray/io/common/geometry_reader.hpp"
-#include "detray/io/common/geometry_writer.hpp"
+#include "detray/io/backend/geometry_reader.hpp"
+#include "detray/io/backend/geometry_writer.hpp"
 #include "detray/io/frontend/detector_reader.hpp"
 #include "detray/io/frontend/detector_writer.hpp"
-#include "detray/io/json/json_reader.hpp"
-#include "detray/io/json/json_writer.hpp"
+#include "detray/io/json/json_converter.hpp"
 
 // Detray test include(s)
 #include "detray/test/cpu/toy_detector_test.hpp"
@@ -195,7 +194,7 @@ GTEST_TEST(io, json_toy_geometry) {
     auto [toy_det, names] = build_toy_detector<test_algebra>(host_mr, toy_cfg);
 
     // Write the detector
-    io::json_writer<detector_t, io::geometry_writer> geo_writer;
+    io::json_converter<detector_t, io::geometry_writer> geo_writer;
     auto file_name = geo_writer.write(
         toy_det, names, std::ios::out | std::ios::binary | std::ios::trunc);
 
@@ -204,7 +203,7 @@ GTEST_TEST(io, json_toy_geometry) {
 
     // Read the detector back in
     detector_builder<metadata_t> toy_builder;
-    io::json_reader<detector_t, io::geometry_reader> geo_reader;
+    io::json_converter<detector_t, io::geometry_reader> geo_reader;
     geo_reader.read(toy_builder, volume_name_map, file_name);
     auto det = toy_builder.build(host_mr);
 
@@ -214,7 +213,7 @@ GTEST_TEST(io, json_toy_geometry) {
     // Read the toy detector into the default detector type
     using default_metadata_t = test::default_metadata;
     detector_builder<default_metadata_t> comp_builder;
-    io::json_reader<detector<default_metadata_t>, io::geometry_reader>
+    io::json_converter<detector<default_metadata_t>, io::geometry_reader>
         comp_geo_reader;
     comp_geo_reader.read(comp_builder, volume_name_map, file_name);
     auto comp_det = comp_builder.build(host_mr);
