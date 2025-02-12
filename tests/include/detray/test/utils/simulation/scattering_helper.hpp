@@ -38,7 +38,9 @@ struct scattering_helper {
 
         // Generate theta and phi for random scattering
         const scalar_type r_theta{
-            std::normal_distribution<scalar_type>(0.f, angle)(generator)};
+            angle == 0.f
+                ? 0.f
+                : std::normal_distribution<scalar_type>(0.f, angle)(generator)};
         const scalar_type r_phi{std::uniform_real_distribution<scalar_type>(
             -constant<scalar_type>::pi, constant<scalar_type>::pi)(generator)};
 
