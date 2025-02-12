@@ -33,7 +33,7 @@ struct parameter_resetter : actor {
         }
 
         // Update free params after bound params were changed by actors
-        const auto sf = navigation.get_surface();
+        const auto sf = navigation.current_surface();
         stepping() = sf.bound_to_free_vector(propagation._context,
                                              stepping.bound_params());
 

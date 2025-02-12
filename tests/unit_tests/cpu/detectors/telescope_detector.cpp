@@ -10,7 +10,7 @@
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes/unbounded.hpp"
-#include "detray/navigation/navigator.hpp"
+#include "detray/navigation/caching_navigator.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/propagation_config.hpp"
 #include "detray/propagator/rk_stepper.hpp"
@@ -177,9 +177,11 @@ GTEST_TEST(detray_detectors, telescope_detector) {
     free_track_parameters<test_algebra> test_track_x(pos, 0.f, mom, -1.f);
 
     // navigators
-    navigator<decltype(z_tel_det1), cache_size, inspector_t> navigator_z1;
-    navigator<decltype(z_tel_det2), cache_size, inspector_t> navigator_z2;
-    navigator<decltype(x_tel_det), cache_size, inspector_t> navigator_x;
+    caching_navigator<decltype(z_tel_det1), cache_size, inspector_t>
+        navigator_z1;
+    caching_navigator<decltype(z_tel_det2), cache_size, inspector_t>
+        navigator_z2;
+    caching_navigator<decltype(x_tel_det), cache_size, inspector_t> navigator_x;
     using navigation_state_t = decltype(navigator_z1)::state;
     using stepping_state_t = rk_stepper_t::state;
 
@@ -268,11 +270,11 @@ GTEST_TEST(detray_detectors, telescope_detector) {
     }
 
     // check that all propagation flows exited successfully
-    ASSERT_TRUE(navigation_z1.is_complete())
+    ASSERT_TRUE(navigation_z1.finished())
         << navigation_z1.inspector().to_string();
-    ASSERT_TRUE(navigation_z2.is_complete())
+    ASSERT_TRUE(navigation_z2.finished())
         << navigation_z2.inspector().to_string();
-    ASSERT_TRUE(navigation_x.is_complete())
+    ASSERT_TRUE(navigation_x.finished())
         << navigation_x.inspector().to_string();
 
     //
@@ -294,7 +296,8 @@ GTEST_TEST(detray_detectors, telescope_detector) {
     detail::check_consistency(tel_detector, verbose_check, tel_names);
 
     // make at least sure it is navigatable
-    navigator<decltype(tel_detector), cache_size, inspector_t> tel_navigator;
+    caching_navigator<decltype(tel_detector), cache_size, inspector_t>
+        tel_navigator;
 
     prop_state<stepping_state_t, navigation_state_t> tel_propagation(
         pilot_track, b_field_z, tel_detector);
@@ -321,6 +324,6 @@ GTEST_TEST(detray_detectors, telescope_detector) {
         heartbeat_tel &= tel_navigation.is_alive();
     }
     // check that propagation was successful
-    ASSERT_TRUE(tel_navigation.is_complete())
+    ASSERT_TRUE(tel_navigation.finished())
         << tel_navigation.inspector().to_string();
 }

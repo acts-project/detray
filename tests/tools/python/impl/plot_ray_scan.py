@@ -172,7 +172,7 @@ def plot_intersection_points_rz(
     )
 
 
-""" Plot the data gathered during the navigaiton validation """
+""" Plot the data gathered during the navigation validation """
 
 
 def plot_detector_scan_data(
