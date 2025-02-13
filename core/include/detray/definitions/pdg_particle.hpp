@@ -37,6 +37,9 @@ struct pdg_particle {
     DETRAY_HOST_DEVICE
     constexpr scalar_type charge() const { return m_charge; }
 
+    DETRAY_HOST_DEVICE
+    constexpr bool is_valid() const { return m_pdg_num != 0; }
+
     private:
     std::int32_t m_pdg_num;
     scalar_type m_mass;
@@ -69,6 +72,8 @@ DETRAY_HOST_DEVICE constexpr pdg_particle<scalar_t> update_particle_hypothesis(
         constexpr PARTICLE_NAME() : base_type(PDG_NUM, MASS, CHARGE) {} \
     }
 
+// Declare PDG number 0 to be invalid
+DETRAY_DECLARE_PARTICLE(invalid, 0, 0.f, 0.f);
 // Declare some predefined particles
 DETRAY_DECLARE_PARTICLE(electron, 11, constant<float>::m_e,
                         -1.f * unit<float>::e);
