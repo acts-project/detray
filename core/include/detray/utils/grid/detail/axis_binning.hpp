@@ -193,8 +193,8 @@ struct irregular {
     using container_types = dcontainers;
     template <typename T>
     using vector_type = typename dcontainers::template vector_type<T>;
-    using index_type = typename std::iterator_traits<
-        typename vector_type<scalar_type>::iterator>::difference_type;
+    using index_type =
+        std::iter_difference_t<typename vector_type<scalar_type>::iterator>;
 
     static constexpr binning type = binning::e_irregular;
 

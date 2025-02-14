@@ -24,8 +24,7 @@ DETRAY_HOST_DEVICE constexpr iterator_t upper_bound(iterator_t first,
                                                     iterator_t last,
                                                     const T& value) {
 
-    using difference_t =
-        typename std::iterator_traits<iterator_t>::difference_type;
+    using difference_t = std::iter_difference_t<iterator_t>;
 
     difference_t len{detray::ranges::distance(first, last)};
 
@@ -53,8 +52,7 @@ DETRAY_HOST_DEVICE constexpr iterator_t lower_bound(iterator_t first,
                                                     iterator_t last,
                                                     const T& value) {
 
-    using difference_t =
-        typename std::iterator_traits<iterator_t>::difference_type;
+    using difference_t = std::iter_difference_t<iterator_t>;
 
     difference_t len{detray::ranges::distance(first, last)};
 

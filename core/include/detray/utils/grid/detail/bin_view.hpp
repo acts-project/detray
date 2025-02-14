@@ -44,7 +44,7 @@ struct bin_view : public detray::ranges::view_interface<bin_view<grid_t>> {
 
     using iterator_t =
         bin_iterator<grid_t, detray::ranges::iterator_t<bin_indexer_t>>;
-    using value_t = typename std::iterator_traits<iterator_t>::value_type;
+    using value_t = std::iter_value_t<iterator_t>;
 
     /// Default constructor
     constexpr bin_view() = default;

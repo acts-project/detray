@@ -242,8 +242,7 @@ class bin_storage<is_owning, detray::bins::dynamic_array<entry_t>, containers>
     /// initialized bin instance
     template <typename bin_itr_t>
     struct iterator_adapter {
-        using difference_type =
-            typename std::iterator_traits<bin_itr_t>::difference_type;
+        using difference_type = std::iter_difference_t<bin_itr_t>;
         using value_type = bin_t;
         using pointer = bin_t*;
         using reference = bin_t;

@@ -35,10 +35,9 @@ class pick_view : public detray::ranges::view_interface<
                       pick_view<range_itr_t, sequence_itr_t>> {
 
     private:
-    using index_t = typename std::iterator_traits<sequence_itr_t>::value_type;
-    using value_t = typename std::iterator_traits<range_itr_t>::value_type;
-    using difference_t =
-        typename std::iterator_traits<range_itr_t>::difference_type;
+    using index_t = std::iter_value_t<sequence_itr_t>;
+    using value_t = std::iter_value_t<range_itr_t>;
+    using difference_t = std::iter_difference_t<range_itr_t>;
 
     /// @brief Nested iterator to randomly index the elements of a range.
     ///
@@ -49,16 +48,13 @@ class pick_view : public detray::ranges::view_interface<
     ///       needed.
     struct iterator {
 
-        using itr_value_t =
-            typename std::iterator_traits<range_itr_t>::value_type;
-        using itr_ref_t = typename std::iterator_traits<range_itr_t>::reference;
+        using itr_value_t = std::iter_value_t<range_itr_t>;
+        using itr_ref_t = std::iter_reference_t<range_itr_t>;
         using itr_ptr_t = typename std::iterator_traits<range_itr_t>::pointer;
 
-        using difference_type =
-            typename std::iterator_traits<range_itr_t>::difference_type;
+        using difference_type = std::iter_difference_t<range_itr_t>;
         using value_type =
-            std::pair<typename std::iterator_traits<sequence_itr_t>::value_type,
-                      itr_ref_t>;
+            std::pair<std::iter_value_t<sequence_itr_t>, itr_ref_t>;
         using pointer = value_type *;
         using reference = value_type;
         using iterator_category =

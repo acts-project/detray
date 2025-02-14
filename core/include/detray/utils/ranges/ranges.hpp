@@ -73,16 +73,16 @@ template <class R>
 using range_size_t = decltype(detray::ranges::size(std::declval<R&>()));
 
 template <class R>
-using range_difference_t = typename std::iterator_traits<
-    detray::ranges::iterator_t<std::remove_cvref_t<R>>>::difference_type;
+using range_difference_t =
+    std::iter_difference_t<detray::ranges::iterator_t<std::remove_cvref_t<R>>>;
 
 template <class R>
-using range_value_t = typename std::iterator_traits<
-    detray::ranges::iterator_t<std::remove_cvref_t<R>>>::value_type;
+using range_value_t =
+    std::iter_value_t<detray::ranges::iterator_t<std::remove_cvref_t<R>>>;
 
 template <class R>
-using range_reference_t = typename std::iterator_traits<
-    detray::ranges::iterator_t<std::remove_cvref_t<R>>>::reference;
+using range_reference_t =
+    std::iter_reference_t<detray::ranges::iterator_t<std::remove_cvref_t<R>>>;
 
 template <class R>
 using range_const_reference_t = const range_reference_t<R>;
