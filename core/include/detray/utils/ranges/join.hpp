@@ -50,7 +50,7 @@ struct join_view : public detray::ranges::view_interface<join_view<range_t>> {
     using inner_iterator_t = detray::ranges::iterator_t<outer_value_t>;
 
     using iterator_t = detray::ranges::detail::join_iterator<range_t>;
-    using value_t = typename std::iterator_traits<iterator_t>::value_type;
+    using value_t = std::iter_value_t<iterator_t>;
 
     /// Default constructor
     constexpr join_view() = default;
@@ -149,11 +149,10 @@ struct join_iterator {
         detray::ranges::iterator_t<outer_value_t>>;
 
     using iterator_t = inner_iterator_t;
-    using difference_type =
-        typename std::iterator_traits<iterator_t>::difference_type;
-    using value_type = typename std::iterator_traits<iterator_t>::value_type;
+    using difference_type = std::iter_difference_t<iterator_t>;
+    using value_type = std::iter_value_t<iterator_t>;
     using pointer = typename std::iterator_traits<iterator_t>::pointer;
-    using reference = typename std::iterator_traits<iterator_t>::reference;
+    using reference = std::iter_reference_t<iterator_t>;
     using iterator_category =
         typename std::iterator_traits<iterator_t>::iterator_category;
 
@@ -210,7 +209,7 @@ struct join_iterator {
         requires std::bidirectional_iterator<inner_iterator_t>
             &&std::bidirectional_iterator<outer_iterator_t> {
         auto tmp(*this);
-        ++(*this);
+        --(*this);
         return tmp;
     }
     /// @}
