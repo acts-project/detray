@@ -292,4 +292,16 @@ inline constexpr bool viewable_range = detray::ranges::range<R> &&
                                         view<std::remove_cvref_t<R>>);
 /// @}
 
+/// Pipe operator for range composition
+///
+/// @param r range adaptor
+/// @param c closure
+///
+/// @returns composed range c(r)
+/// @TODO: Add concept for range adaptors, closures etc.
+template <detray::ranges::range R, detray::ranges::range C>
+auto operator|(R&& r, C&& c) {
+    return std::forward<C>(c)(std::forward<R>(r));
+}
+
 }  // namespace detray::ranges

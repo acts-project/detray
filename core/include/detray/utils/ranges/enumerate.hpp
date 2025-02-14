@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/indexing.hpp"
+#include "detray/utils/ranges/empty.hpp"
 #include "detray/utils/ranges/ranges.hpp"
 #include "detray/utils/ranges/subrange.hpp"
 
@@ -237,8 +238,16 @@ requires std::convertible_to<std::iter_difference_t<range_itr_t>,
 
     using base_type = enumerate_view<range_itr_t, incr_t>;
 
+    /// Partial construction for range composition
+    /// @{
     constexpr enumerate() = default;
 
+    DETRAY_HOST_DEVICE constexpr explicit enumerate(incr_t start)
+        : m_incr{start} {}
+    /// @}
+
+    /// Direct view construction
+    /// @{
     template <detray::ranges::range range_t>
     DETRAY_HOST_DEVICE constexpr explicit enumerate(range_t &&rng)
         : base_type(std::forward<range_t>(rng)) {}
@@ -253,9 +262,30 @@ requires std::convertible_to<std::iter_difference_t<range_itr_t>,
         : enumerate(detray::ranges::subrange(
                         std::forward<deduced_range_t>(range), vol),
                     detray::detail::get<0>(vol.full_range())) {}
+    /// @}
+
+    /// Call operator for range composition
+    template <detray::ranges::range range_t>
+    DETRAY_HOST_DEVICE constexpr auto operator()(range_t &&rng) {
+        using itr_t = detray::ranges::const_iterator_t<range_t>;
+        return detray::ranges::enumerate_view<itr_t, incr_t>(
+            std::forward<range_t>(rng), m_incr);
+    }
+
+    private:
+    incr_t m_incr{0};
 };
 
 // deduction guides
+DETRAY_HOST_DEVICE enumerate()
+    ->enumerate<
+        detray::ranges::const_iterator_t<detray::ranges::views::empty<int>>,
+        dindex>;
+
+DETRAY_HOST_DEVICE enumerate(dindex start)
+    ->enumerate<
+        detray::ranges::const_iterator_t<detray::ranges::views::empty<int>>,
+        dindex>;
 
 template <detray::ranges::range range_t>
 DETRAY_HOST_DEVICE enumerate(range_t &&rng)

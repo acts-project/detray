@@ -9,6 +9,7 @@
 #include "detray/utils/ranges.hpp"
 
 #include "detray/definitions/containers.hpp"
+#include "detray/utils/type_list.hpp"
 
 // Vecmem include(s)
 #include "vecmem/containers/device_vector.hpp"
@@ -476,7 +477,19 @@ GTEST_TEST(detray_utils, ranges_join) {
     ASSERT_EQ(joined.back(), 13u);
 
     for (auto j : joined) {
-        static_assert(!std::is_const_v<decltype(j)>, "Oh no");
+        static_assert(!std::is_const_v<decltype(j)>,
+                      "Non-const element in join");
+        check.push_back(j);
+    }
+    ASSERT_EQ(check.size(), reference.size());
+    ASSERT_EQ(check, reference);
+
+    auto joined_comp = intervals | detray::views::join();
+
+    check.clear();
+    for (auto j : joined_comp) {
+        static_assert(!std::is_const_v<decltype(j)>,
+                      "Non-const element in join");
         check.push_back(j);
     }
     ASSERT_EQ(check.size(), reference.size());
@@ -595,6 +608,14 @@ GTEST_TEST(detray_utils, ranges_subrange_iota) {
     for (const auto v : iota_sr) {
         ASSERT_EQ(i++, v);
     }
+
+    // Check range composition with pipe operator
+    auto iota_sr_comp = detray::views::iota(seq) |
+                        detray::ranges::subrange(interval[0], interval[1]);
+    i = 4u;
+    for (const auto v : iota_sr_comp) {
+        ASSERT_EQ(i++, v);
+    }
 }
 
 // Integration test for enumeration of a subrange
@@ -616,13 +637,25 @@ GTEST_TEST(detray_utils, ranges_enumerated_subrange) {
     // Check iterator category
     static_assert(detray::ranges::random_access_range<decltype(enum_sr)>);
 
+    dvector<unsigned int> expected{};
     for (const auto [i, v] : enum_sr) {
         ASSERT_EQ(i, v.ui - 1u);
+        expected.push_back(v.ui);
+    }
+
+    // Check range composition with pipe operator
+    auto enum_sr_comp = seq |
+                        detray::ranges::subrange(interval[0], interval[1]) |
+                        detray::views::enumerate(2u);
+
+    for (const auto [i, v] : enum_sr_comp) {
+        // Enumeration starts at 'two'
+        ASSERT_EQ(expected[i - 2u], v.ui);
     }
 }
 
 // Integration test for the picking of indexed elements from another range
-GTEST_TEST(detray_utils, ranges_pick_joined_sequence) {
+GTEST_TEST(detray_utils, ranges_pick_static_joined_sequence) {
 
     darray<dindex, 2> interval_1 = {2u, 4u};
     darray<dindex, 2> interval_2 = {7u, 9u};
@@ -663,6 +696,17 @@ GTEST_TEST(detray_utils, ranges_pick_joined_sequence) {
     ASSERT_EQ(v_back.ui, 8u);
 
     for (auto [j, w] : selected) {
+        ASSERT_TRUE(j == w.ui);
+        check.push_back(w.ui);
+    }
+    ASSERT_EQ(check.size(), reference.size());
+    ASSERT_EQ(check, reference);
+
+    // Check range composition with pipe operator
+    auto selected_comp = seq | detray::views::pick(indices);
+
+    check.clear();
+    for (auto [j, w] : selected_comp) {
         ASSERT_TRUE(j == w.ui);
         check.push_back(w.ui);
     }
