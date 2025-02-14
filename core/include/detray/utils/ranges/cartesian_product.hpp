@@ -39,7 +39,7 @@ struct cartesian_product_view : public detray::ranges::view_interface<
     using iterator_t = detray::ranges::detail::cartesian_product_iterator<
         detray::ranges::iterator_t<range_ts>...>;
     using value_type = detray::tuple<typename std::iterator_traits<
-        detray::ranges::iterator_t<range_ts>>::value_type &...>;
+        detray::ranges::iterator_t<range_ts>>::reference...>;
 
     /// Default constructor
     constexpr cartesian_product_view() = default;
@@ -121,9 +121,10 @@ struct cartesian_product_iterator {
 
     using difference_type = std::ptrdiff_t;
     using value_type =
-        std::tuple<typename std::iterator_traits<iterator_ts>::value_type...>;
+        std::tuple<typename std::iterator_traits<iterator_ts>::reference...>;
     using pointer = value_type *;
-    using reference = value_type &;
+    using reference = value_type;
+    // TODO: Adapt to the weakest iterator category in pack
     using iterator_category = detray::ranges::bidirectional_iterator_tag;
 
     /// Default constructor required by LegacyIterator trait
@@ -219,7 +220,9 @@ struct cartesian_product_iterator {
     template <std::size_t... I>
     DETRAY_HOST_DEVICE constexpr auto unroll_values(
         std::index_sequence<I...>) const {
-        return std::tuple(*detray::get<I>(m_itrs)...);
+        return std::tuple<
+            typename std::iterator_traits<iterator_ts>::reference...>(
+            *detray::get<I>(m_itrs)...);
     }
 
     /// Global range collection of begin and end iterators

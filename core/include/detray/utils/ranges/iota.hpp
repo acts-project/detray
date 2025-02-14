@@ -38,7 +38,7 @@ class iota_view : public detray::ranges::view_interface<iota_view<incr_t>> {
         using difference_type = std::ptrdiff_t;
         using value_type = incr_t;
         using pointer = incr_t *;
-        using reference = incr_t &;
+        using reference = incr_t;
         using iterator_category = detray::ranges::bidirectional_iterator_tag;
 
         constexpr iterator() requires std::default_initializable<incr_t> =

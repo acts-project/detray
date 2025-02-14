@@ -246,7 +246,7 @@ class bin_storage<is_owning, detray::bins::dynamic_array<entry_t>, containers>
             typename std::iterator_traits<bin_itr_t>::difference_type;
         using value_type = bin_t;
         using pointer = bin_t*;
-        using reference = bin_t&;
+        using reference = bin_t;
         using iterator_category =
             typename std::iterator_traits<bin_itr_t>::iterator_category;
 
