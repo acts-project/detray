@@ -60,7 +60,7 @@ class pick_view : public detray::ranges::view_interface<
             std::pair<typename std::iterator_traits<sequence_itr_t>::value_type,
                       itr_ref_t>;
         using pointer = value_type *;
-        using reference = const value_type &;
+        using reference = value_type;
         using iterator_category =
             typename std::iterator_traits<sequence_itr_t>::iterator_category;
 

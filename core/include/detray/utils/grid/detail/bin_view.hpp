@@ -106,7 +106,7 @@ struct bin_iterator {
     using difference_type = std::ptrdiff_t;
     using value_type = typename grid_t::bin_type;
     using pointer = value_type *;
-    using reference = const value_type &;
+    using reference = value_type;
     using iterator_category = detray::ranges::bidirectional_iterator_tag;
 
     /// Default constructor required by LegacyIterator trait

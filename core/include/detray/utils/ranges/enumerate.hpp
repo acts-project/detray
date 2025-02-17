@@ -50,7 +50,7 @@ class enumerate_view : public detray::ranges::view_interface<
             typename std::iterator_traits<range_itr_t>::difference_type;
         using value_type = std::pair<incr_t, itr_ref_t>;
         using pointer = value_type *;
-        using reference = const value_type &;
+        using reference = value_type;
         using iterator_category =
             typename std::iterator_traits<range_itr_t>::iterator_category;
 
