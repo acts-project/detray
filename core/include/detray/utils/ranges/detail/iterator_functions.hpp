@@ -85,11 +85,9 @@ using std::empty;
 /// @{
 // used by every iterator up to and including bidirectional iterators
 template <std::input_iterator iterator_t>
-DETRAY_HOST_DEVICE constexpr
-    typename std::iterator_traits<iterator_t>::difference_type
-    distance_impl(iterator_t first, iterator_t last,
-                  detray::ranges::input_iterator_tag) {
-    typename std::iterator_traits<iterator_t>::difference_type d{0};
+DETRAY_HOST_DEVICE constexpr std::iter_difference_t<iterator_t> distance_impl(
+    iterator_t first, iterator_t last, detray::ranges::input_iterator_tag) {
+    std::iter_difference_t<iterator_t> d{0};
     // simply count
     while (first != last) {
         ++first;
@@ -100,18 +98,16 @@ DETRAY_HOST_DEVICE constexpr
 
 // random access iterators specialization
 template <std::random_access_iterator iterator_t>
-DETRAY_HOST_DEVICE constexpr
-    typename std::iterator_traits<iterator_t>::difference_type
-    distance_impl(iterator_t first, iterator_t last,
-                  detray::ranges::random_access_iterator_tag) {
+DETRAY_HOST_DEVICE constexpr std::iter_difference_t<iterator_t> distance_impl(
+    iterator_t first, iterator_t last,
+    detray::ranges::random_access_iterator_tag) {
     // use operator-
     return last - first;
 }
 
 template <std::input_iterator iterator_t>
-DETRAY_HOST_DEVICE constexpr
-    typename std::iterator_traits<iterator_t>::difference_type
-    distance(iterator_t first, iterator_t last) {
+DETRAY_HOST_DEVICE constexpr std::iter_difference_t<iterator_t> distance(
+    iterator_t first, iterator_t last) {
     return distance_impl(
         first, last,
         typename std::iterator_traits<iterator_t>::iterator_category{});
@@ -166,16 +162,14 @@ DETRAY_HOST_DEVICE constexpr void advance(iterator_t& itr, dist_t d) {
 /// @{
 template <std::input_iterator iterator_t>
 DETRAY_HOST_DEVICE constexpr iterator_t next(
-    iterator_t itr,
-    typename std::iterator_traits<iterator_t>::difference_type d = 1) {
+    iterator_t itr, std::iter_difference_t<iterator_t> d = 1) {
     detray::ranges::detail::advance(itr, d);
     return itr;
 }
 
 template <std::bidirectional_iterator iterator_t>
 DETRAY_HOST_DEVICE constexpr iterator_t prev(
-    iterator_t itr,
-    typename std::iterator_traits<iterator_t>::difference_type d = 1) {
+    iterator_t itr, std::iter_difference_t<iterator_t> d = 1) {
     detray::ranges::detail::advance(itr, -d);
     return itr;
 }

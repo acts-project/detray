@@ -41,13 +41,11 @@ class enumerate_view : public detray::ranges::view_interface<
     /// returned using structured binding.
     struct iterator {
 
-        using itr_value_t =
-            typename std::iterator_traits<range_itr_t>::value_type;
-        using itr_ref_t = typename std::iterator_traits<range_itr_t>::reference;
+        using itr_value_t = std::iter_value_t<range_itr_t>;
+        using itr_ref_t = std::iter_reference_t<range_itr_t>;
         using itr_ptr_t = typename std::iterator_traits<range_itr_t>::pointer;
 
-        using difference_type =
-            typename std::iterator_traits<range_itr_t>::difference_type;
+        using difference_type = std::iter_difference_t<range_itr_t>;
         using value_type = std::pair<incr_t, itr_ref_t>;
         using pointer = value_type *;
         using reference = value_type;
@@ -233,9 +231,9 @@ class enumerate_view : public detray::ranges::view_interface<
 namespace views {
 
 template <std::input_iterator range_itr_t, std::incrementable incr_t = dindex>
-requires std::convertible_to<
-    typename std::iterator_traits<range_itr_t>::difference_type,
-    incr_t> struct enumerate : public enumerate_view<range_itr_t, incr_t> {
+requires std::convertible_to<std::iter_difference_t<range_itr_t>,
+                             incr_t> struct enumerate
+    : public enumerate_view<range_itr_t, incr_t> {
 
     using base_type = enumerate_view<range_itr_t, incr_t>;
 

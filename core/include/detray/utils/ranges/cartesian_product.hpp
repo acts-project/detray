@@ -38,8 +38,8 @@ struct cartesian_product_view : public detray::ranges::view_interface<
         detray::tuple<detray::ranges::iterator_t<range_ts>...>;
     using iterator_t = detray::ranges::detail::cartesian_product_iterator<
         detray::ranges::iterator_t<range_ts>...>;
-    using value_type = detray::tuple<typename std::iterator_traits<
-        detray::ranges::iterator_t<range_ts>>::reference...>;
+    using value_type = detray::tuple<
+        std::iter_reference_t<detray::ranges::iterator_t<range_ts>>...>;
 
     /// Default constructor
     constexpr cartesian_product_view() = default;
@@ -120,8 +120,7 @@ template <std::input_iterator... iterator_ts>
 struct cartesian_product_iterator {
 
     using difference_type = std::ptrdiff_t;
-    using value_type =
-        std::tuple<typename std::iterator_traits<iterator_ts>::reference...>;
+    using value_type = std::tuple<std::iter_reference_t<iterator_ts>...>;
     using pointer = value_type *;
     using reference = value_type;
     // TODO: Adapt to the weakest iterator category in pack
@@ -220,8 +219,7 @@ struct cartesian_product_iterator {
     template <std::size_t... I>
     DETRAY_HOST_DEVICE constexpr auto unroll_values(
         std::index_sequence<I...>) const {
-        return std::tuple<
-            typename std::iterator_traits<iterator_ts>::reference...>(
+        return std::tuple<std::iter_reference_t<iterator_ts>...>(
             *detray::get<I>(m_itrs)...);
     }
 
