@@ -59,8 +59,8 @@ struct join_view : public detray::ranges::view_interface<join_view<range_t>> {
     /// Construct from a range of @param ranges.
     template <detray::ranges::range R>
     DETRAY_HOST_DEVICE constexpr explicit join_view(R &&ranges)
-        : m_begin{detray::ranges::begin(std::forward<R>(ranges))},
-          m_end{detray::ranges::end(std::forward<R>(ranges))} {}
+        : m_begin{detray::ranges::begin(ranges)},
+          m_end{detray::ranges::end(ranges)} {}
 
     /// @return start position of range - const
     DETRAY_HOST_DEVICE

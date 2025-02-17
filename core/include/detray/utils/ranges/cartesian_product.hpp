@@ -101,12 +101,13 @@ struct cartesian_product : public ranges::cartesian_product_view<range_ts...> {
 
     constexpr cartesian_product() = default;
 
-    DETRAY_HOST_DEVICE constexpr explicit cartesian_product(range_ts... ranges)
-        : base_type(ranges...) {}
+    template <detray::ranges::range... deduced_range_ts>
+    DETRAY_HOST_DEVICE constexpr explicit cartesian_product(
+        deduced_range_ts &&... ranges)
+        : base_type(std::forward<deduced_range_ts>(ranges)...) {}
 };
 
 // deduction guides
-
 template <detray::ranges::range... ranges_ts>
 DETRAY_HOST_DEVICE cartesian_product(ranges_ts &&... ranges)
     ->cartesian_product<ranges_ts...>;

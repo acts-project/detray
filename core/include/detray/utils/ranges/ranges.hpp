@@ -22,7 +22,7 @@
 
 namespace detray::ranges {
 
-/// @brief Provides c++17 detray iterators in a simplified std::ranges style,
+/// @brief Provides detray iterators in a simplified std::ranges style,
 ///        meant to be used in device code.
 ///
 /// @note Does make use of concepts and des not implement full ranges standard
@@ -66,8 +66,7 @@ template <class R>
 using sentinel_t = decltype(detray::ranges::end(std::declval<R&>()));
 
 template <class R>
-using const_iterator_t = decltype(
-    detray::ranges::begin(std::declval<const std::remove_reference_t<R>&>()));
+using const_iterator_t = decltype(detray::ranges::cbegin(std::declval<R&>()));
 
 template <class R>
 using range_size_t = decltype(detray::ranges::size(std::declval<R&>()));

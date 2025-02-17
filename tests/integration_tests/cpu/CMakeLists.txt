@@ -8,7 +8,6 @@
 detray_add_integration_test(cpu
        "utils/ranges.cpp"
        LINK_LIBRARIES GTest::gtest GTest::gtest_main detray::core
-                      covfie::core vecmem::core detray::test_utils
 )
 
 # Run integration tests only after unit tests passed

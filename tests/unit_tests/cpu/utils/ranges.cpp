@@ -9,7 +9,6 @@
 #include "detray/utils/ranges.hpp"
 
 #include "detray/definitions/containers.hpp"
-#include "detray/utils/type_list.hpp"
 
 // Vecmem include(s)
 #include "vecmem/containers/device_vector.hpp"
