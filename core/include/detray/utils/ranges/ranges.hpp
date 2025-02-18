@@ -22,7 +22,7 @@
 
 namespace detray::ranges {
 
-/// @brief Provides c++17 detray iterators in a simplified std::ranges style,
+/// @brief Provides detray iterators in a simplified std::ranges style,
 ///        meant to be used in device code.
 ///
 /// @note Does make use of concepts and des not implement full ranges standard
@@ -66,8 +66,7 @@ template <class R>
 using sentinel_t = decltype(detray::ranges::end(std::declval<R&>()));
 
 template <class R>
-using const_iterator_t = decltype(
-    detray::ranges::begin(std::declval<const std::remove_reference_t<R>&>()));
+using const_iterator_t = decltype(detray::ranges::cbegin(std::declval<R&>()));
 
 template <class R>
 using range_size_t = decltype(detray::ranges::size(std::declval<R&>()));
@@ -291,5 +290,17 @@ inline constexpr bool viewable_range = detray::ranges::range<R> &&
                                        (borrowed_range<R> ||
                                         view<std::remove_cvref_t<R>>);
 /// @}
+
+/// Pipe operator for range composition
+///
+/// @param r range adaptor
+/// @param c closure
+///
+/// @returns composed range c(r)
+/// @TODO: Add concept for range adaptors, closures etc.
+template <detray::ranges::range R, detray::ranges::range C>
+auto operator|(R&& r, C&& c) {
+    return std::forward<C>(c)(std::forward<R>(r));
+}
 
 }  // namespace detray::ranges

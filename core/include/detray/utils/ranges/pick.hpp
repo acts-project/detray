@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/indexing.hpp"
+#include "detray/utils/ranges/empty.hpp"
 #include "detray/utils/ranges/ranges.hpp"
 
 // System include(s)
@@ -298,25 +299,75 @@ class pick_view : public detray::ranges::view_interface<
 
 namespace views {
 
-template <std::input_iterator range_itr_t, std::input_iterator sequence_itr_t>
-struct pick : public pick_view<range_itr_t, sequence_itr_t> {
+template <std::input_iterator range_itr_t,
+          detray::ranges::input_range sequence_t>
+struct pick : public pick_view<range_itr_t, detray::ranges::const_iterator_t<
+                                                std::decay_t<sequence_t>>> {
 
+    using sequence_itr_t =
+        detray::ranges::const_iterator_t<std::decay_t<sequence_t>>;
     using base_type = pick_view<range_itr_t, sequence_itr_t>;
 
-    pick() = default;
+    constexpr pick() = default;
 
-    template <detray::ranges::range range_t, detray::ranges::range sequence_t>
-    DETRAY_HOST_DEVICE constexpr pick(range_t &&range, sequence_t &&seq)
-        : base_type(std::forward<range_t>(range),
-                    std::forward<sequence_t>(seq)) {}
+    template <detray::ranges::input_range deduced_sequence_t>
+    DETRAY_HOST_DEVICE constexpr explicit pick(deduced_sequence_t &&seq)
+        : m_seq(std::forward<deduced_sequence_t>(seq)) {}
+
+    template <detray::ranges::range range_t,
+              detray::ranges::input_range deduced_sequence_t>
+    DETRAY_HOST_DEVICE constexpr pick(range_t &&range, deduced_sequence_t &&seq)
+        : base_type(std::forward<range_t>(range), seq),
+          m_seq{std::forward<deduced_sequence_t>(seq)} {}
+
+    /// Call operator for range composition - move semantics
+    template <detray::ranges::range range_t>
+    requires(std::same_as<sequence_t, std::remove_cvref_t<sequence_t>> &&
+             !std::is_pointer_v<sequence_t>) DETRAY_HOST_DEVICE constexpr auto
+    operator()(range_t &&rng) && {
+        using itr_t =
+            detray::ranges::iterator_t<std::remove_reference_t<range_t>>;
+        return detray::ranges::pick_view<itr_t, sequence_itr_t>(
+            std::forward<range_t>(rng), std::move(m_seq));
+    }
+
+    /// Call operator for range composition
+    template <detray::ranges::range range_t>
+    requires(!std::same_as<sequence_t, std::remove_cvref_t<sequence_t>> ||
+             std::is_pointer_v<sequence_t>) DETRAY_HOST_DEVICE constexpr auto
+    operator()(range_t &&rng) {
+        using itr_t =
+            detray::ranges::iterator_t<std::remove_reference_t<range_t>>;
+        return detray::ranges::pick_view<itr_t, sequence_itr_t>(
+            std::forward<range_t>(rng), m_seq);
+    }
+
+    /// Copy assignment operator
+    DETRAY_HOST_DEVICE
+    pick &operator=(const pick &other) {
+        base_type::operator=(other);
+        m_seq = other.m_seq;
+        return *this;
+    }
+
+    private:
+    sequence_t m_seq{};
 };
 
-// deduction guides
+// deduction guides>
+DETRAY_HOST_DEVICE pick()
+    ->pick<detray::ranges::iterator_t<detray::ranges::views::empty<int>>,
+           dvector<int>>;
+
+template <detray::ranges::range sequence_t>
+DETRAY_HOST_DEVICE pick(sequence_t &&seq)
+    ->pick<detray::ranges::iterator_t<detray::ranges::views::empty<int>>,
+           sequence_t>;
 
 template <detray::ranges::range range_t, detray::ranges::range sequence_t>
-pick(range_t &&range, sequence_t &&seq)
-    -> pick<detray::ranges::iterator_t<range_t>,
-            detray::ranges::const_iterator_t<sequence_t>>;
+DETRAY_HOST_DEVICE pick(range_t &&range, sequence_t &&seq)
+    ->pick<detray::ranges::iterator_t<std::remove_reference_t<range_t>>,
+           sequence_t>;
 
 }  // namespace views
 

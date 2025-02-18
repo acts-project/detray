@@ -120,28 +120,16 @@ struct static_join : public ranges::static_join_view<I, range_itr_t> {
     constexpr static_join() = default;
 
     template <detray::ranges::range... ranges_t>
-    DETRAY_HOST_DEVICE constexpr explicit static_join(
-        const ranges_t &... ranges)
-        : base_type(ranges...) {}
-
-    template <detray::ranges::range... ranges_t>
     DETRAY_HOST_DEVICE constexpr explicit static_join(ranges_t &&... ranges)
         : base_type(std::forward<ranges_t>(ranges)...) {}
 };
 
 // deduction guides
-
-template <detray::ranges::range... ranges_t>
-DETRAY_HOST_DEVICE static_join(const ranges_t &... ranges)
-    ->static_join<sizeof...(ranges_t),
-                  typename detray::ranges::const_iterator_t<
-                      detray::detail::first_t<ranges_t...>>>;
-
 template <detray::ranges::range... ranges_t>
 DETRAY_HOST_DEVICE static_join(ranges_t &&... ranges)
     ->static_join<sizeof...(ranges_t),
-                  typename detray::ranges::iterator_t<
-                      detray::detail::first_t<ranges_t...>>>;
+                  typename detray::ranges::iterator_t<detray::detail::first_t<
+                      std::remove_reference_t<ranges_t>...>>>;
 
 }  // namespace views
 

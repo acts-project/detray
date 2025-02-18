@@ -476,7 +476,19 @@ GTEST_TEST(detray_utils, ranges_join) {
     ASSERT_EQ(joined.back(), 13u);
 
     for (auto j : joined) {
-        static_assert(!std::is_const_v<decltype(j)>, "Oh no");
+        static_assert(!std::is_const_v<decltype(j)>,
+                      "Non-const element in join");
+        check.push_back(j);
+    }
+    ASSERT_EQ(check.size(), reference.size());
+    ASSERT_EQ(check, reference);
+
+    auto joined_comp = intervals | detray::views::join();
+
+    check.clear();
+    for (auto j : joined_comp) {
+        static_assert(!std::is_const_v<decltype(j)>,
+                      "Non-const element in join");
         check.push_back(j);
     }
     ASSERT_EQ(check.size(), reference.size());
@@ -572,100 +584,4 @@ GTEST_TEST(detray_utils, ranges_subrange) {
         (void)v;
         ASSERT_TRUE(false);
     }
-}
-
-//
-// Integration tests
-//
-
-// Integration test for enumeration of a subrange
-GTEST_TEST(detray_utils, ranges_subrange_iota) {
-
-    std::array<std::size_t, 2> seq{1u, 10u};
-    std::array<std::size_t, 2> interval{3u, 7u};
-
-    auto iota_sr = detray::ranges::subrange(detray::views::iota(seq), interval);
-
-    // Check iterator category
-    static_assert(detray::ranges::forward_range<decltype(iota_sr)>);
-    static_assert(detray::ranges::bidirectional_range<decltype(iota_sr)>);
-    static_assert(!detray::ranges::random_access_range<decltype(iota_sr)>);
-
-    std::size_t i{4u};
-    for (const auto v : iota_sr) {
-        ASSERT_EQ(i++, v);
-    }
-}
-
-// Integration test for enumeration of a subrange
-GTEST_TEST(detray_utils, ranges_enumerated_subrange) {
-
-    struct uint_holder {
-        unsigned int ui{0u};
-    };
-
-    dvector<uint_holder> seq = {{0u}, {1u}, {2u}, {3u}, {4u}, {5u}};
-
-    std::size_t begin{1u};
-    std::size_t end{4u};
-    std::array<std::size_t, 2> interval{begin, end};
-
-    auto enum_sr =
-        detray::views::enumerate(detray::ranges::subrange(seq, interval));
-
-    // Check iterator category
-    static_assert(detray::ranges::random_access_range<decltype(enum_sr)>);
-
-    for (const auto [i, v] : enum_sr) {
-        ASSERT_EQ(i, v.ui - 1u);
-    }
-}
-
-// Integration test for the picking of indexed elements from another range
-GTEST_TEST(detray_utils, ranges_pick_joined_sequence) {
-
-    darray<dindex, 2> interval_1 = {2u, 4u};
-    darray<dindex, 2> interval_2 = {7u, 9u};
-
-    // The indices of the iota elements to be picked
-    std::vector<dindex> reference = {2u, 3u, 7u, 8u};
-    std::vector<dindex> check = {};
-
-    struct uint_holder {
-        unsigned int ui{0u};
-    };
-
-    dvector<uint_holder> seq = {{0u}, {1u}, {2u}, {3u}, {4u},
-                                {5u}, {6u}, {7u}, {8u}};
-
-    auto indices = detray::views::static_join(detray::views::iota(interval_1),
-                                              detray::views::iota(interval_2));
-    auto selected = detray::views::pick(seq, indices);
-
-    // Check iterator category
-    static_assert(detray::ranges::forward_range<decltype(indices)>);
-    static_assert(detray::ranges::bidirectional_range<decltype(indices)>);
-    static_assert(!detray::ranges::random_access_range<decltype(indices)>);
-    static_assert(detray::ranges::forward_range<decltype(selected)>);
-    static_assert(detray::ranges::bidirectional_range<decltype(selected)>);
-    static_assert(!detray::ranges::random_access_range<decltype(selected)>);
-
-    // Test inherited member functions
-    const auto [i, v] = selected[2];
-    ASSERT_EQ(i, 7u);
-    ASSERT_EQ(v.ui, 7u);
-    ASSERT_EQ(selected.size(), 4u);
-    const auto [i_front, v_front] = selected.front();
-    ASSERT_EQ(i_front, 2u);
-    ASSERT_EQ(v_front.ui, 2u);
-    const auto [i_back, v_back] = selected.back();
-    ASSERT_EQ(i_back, 8u);
-    ASSERT_EQ(v_back.ui, 8u);
-
-    for (auto [j, w] : selected) {
-        ASSERT_TRUE(j == w.ui);
-        check.push_back(w.ui);
-    }
-    ASSERT_EQ(check.size(), reference.size());
-    ASSERT_EQ(check, reference);
 }

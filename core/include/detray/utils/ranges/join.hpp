@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/utils/ranges/empty.hpp"
 #include "detray/utils/ranges/ranges.hpp"
 #include "detray/utils/type_traits.hpp"
 
@@ -58,8 +59,8 @@ struct join_view : public detray::ranges::view_interface<join_view<range_t>> {
     /// Construct from a range of @param ranges.
     template <detray::ranges::range R>
     DETRAY_HOST_DEVICE constexpr explicit join_view(R &&ranges)
-        : m_begin{detray::ranges::begin(std::forward<R>(ranges))},
-          m_end{detray::ranges::end(std::forward<R>(ranges))} {}
+        : m_begin{detray::ranges::begin(ranges)},
+          m_end{detray::ranges::end(ranges)} {}
 
     /// @return start position of range - const
     DETRAY_HOST_DEVICE
@@ -104,13 +105,20 @@ namespace views {
 template <detray::ranges::range range_t>
 struct join : public ranges::join_view<range_t> {
 
-    using base_type = ranges::join_view<range_t>;
+    using base_type = detray::ranges::join_view<range_t>;
 
     constexpr join() = default;
 
     template <detray::ranges::range deduced_range_t>
     DETRAY_HOST_DEVICE constexpr explicit join(deduced_range_t &&ranges)
         : base_type(std::forward<deduced_range_t>(ranges)) {}
+
+    /// Call operator for range composition
+    template <detray::ranges::range deduced_range_t>
+    DETRAY_HOST_DEVICE constexpr auto operator()(deduced_range_t &&ranges) {
+        return detray::ranges::join_view<deduced_range_t>(
+            std::forward<deduced_range_t>(ranges));
+    }
 
     /// Copy assignment operator
     DETRAY_HOST_DEVICE
@@ -121,6 +129,8 @@ struct join : public ranges::join_view<range_t> {
 };
 
 // deduction guides
+DETRAY_HOST_DEVICE join()->join<detray::ranges::views::empty<dvector<int>>>;
+
 template <detray::ranges::range R>
 DETRAY_HOST_DEVICE join(R &&ranges)->join<std::remove_reference_t<R>>;
 

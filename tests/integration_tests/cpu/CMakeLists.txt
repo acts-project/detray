@@ -4,11 +4,23 @@
 #
 # Mozilla Public License Version 2.0
 
+# Setup integration tests that don't depend on algebra plugins
+detray_add_integration_test(cpu
+       "utils/ranges.cpp"
+       LINK_LIBRARIES GTest::gtest GTest::gtest_main detray::core
+)
+
+# Run integration tests only after unit tests passed
+set_tests_properties(
+    detray_integration_test_cpu
+    PROPERTIES DEPENDS "detray_unit_test_cpu"
+)
+
 # Macro setting up the CPU tests for a specific algebra plugin.
 macro(detray_add_cpu_test algebra)
     # Build the test executable.
     detray_add_integration_test(cpu_${algebra}
-      "builders/grid_builder.cpp"
+       "builders/grid_builder.cpp"
        "builders/homogeneous_material_builder.cpp"
        "builders/material_map_builder.cpp"
        "builders/volume_builder.cpp"
