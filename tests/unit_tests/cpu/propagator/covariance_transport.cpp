@@ -15,6 +15,7 @@
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/parameter_resetter.hpp"
 #include "detray/propagator/actors/parameter_transporter.hpp"
+#include "detray/propagator/concepts.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/tracks/ray.hpp"
@@ -53,6 +54,9 @@ using drift_cell_type = detray::mask<detray::line_square, test_algebra>;
 constexpr scalar tol{1e-6f};
 
 GTEST_TEST(detray_propagator, covariance_transport) {
+
+    static_assert(detray::concepts::actor<parameter_transporter<test_algebra>>);
+    static_assert(detray::concepts::actor<parameter_resetter<test_algebra>>);
 
     vecmem::host_memory_resource host_mr;
 

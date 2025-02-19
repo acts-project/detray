@@ -40,6 +40,9 @@ using test_algebra = test::algebra;
 using scalar = test::scalar;
 using covariance_t =
     typename bound_track_parameters<test_algebra>::covariance_type;
+using interactor_t = pointwise_material_interactor<test_algebra>;
+
+static_assert(detray::concepts::actor<interactor_t>);
 
 // Test is done for muon
 namespace {
@@ -71,7 +74,6 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
 
     using navigator_t = navigator<decltype(det)>;
     using stepper_t = line_stepper<test_algebra>;
-    using interactor_t = pointwise_material_interactor<test_algebra>;
     using pathlimit_aborter_t = pathlimit_aborter<scalar>;
     using actor_chain_t =
         actor_chain<pathlimit_aborter_t, parameter_transporter<test_algebra>,
@@ -242,7 +244,7 @@ GTEST_TEST(detray_material, telescope_geometry_scattering_angle) {
 
         // Updated phi and theta variance
         if (i == 0u) {
-            pointwise_material_interactor<test_algebra>{}.update_angle_variance(
+            interactor_t{}.update_angle_variance(
                 bound_cov, traj.dir(),
                 simulator_state.projected_scattering_angle);
         }
