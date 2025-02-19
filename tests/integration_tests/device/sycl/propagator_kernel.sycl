@@ -66,15 +66,12 @@ void propagator_test(
                 tracer_state.collect_only_on_surface(true);
                 pathlimit_aborter_t::state aborter_state{
                     cfg.stepping.path_limit};
-                parameter_transporter<test_algebra>::state transporter_state{};
                 pointwise_material_interactor<test_algebra>::state
                     interactor_state{};
-                parameter_resetter<test_algebra>::state resetter_state{};
 
                 // Create the actor states
                 auto actor_states = ::detray::tie(
-                    tracer_state, aborter_state, transporter_state,
-                    interactor_state, resetter_state);
+                    tracer_state, aborter_state, interactor_state);
                 // Create the propagator state
                 typename propagator_device_t::state state(tracks[gid],
                                                           field_data, dev_det);
