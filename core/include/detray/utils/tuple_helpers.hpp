@@ -168,4 +168,35 @@ template <typename T, class tuple_t>
 constexpr bool has_type_v = has_type<T, tuple_t>::value;
 ///@}
 
+/// Concatenate tuple types
+/// @{
+template <typename... tuple_ts>
+struct tuple_cat_type {};
+
+template <typename... Args>
+struct tuple_cat_type<std::tuple<Args...>> {
+    using type = std::tuple<Args...>;
+};
+
+template <typename... Args1, typename... Args2, typename... tuple_ts>
+struct tuple_cat_type<std::tuple<Args1...>, std::tuple<Args2...>, tuple_ts...> {
+    using type = typename tuple_cat_type<std::tuple<Args1..., Args2...>,
+                                         tuple_ts...>::type;
+};
+
+template <typename... Args>
+struct tuple_cat_type<dtuple<Args...>> {
+    using type = dtuple<Args...>;
+};
+
+template <typename... Args1, typename... Args2, typename... tuple_ts>
+struct tuple_cat_type<dtuple<Args1...>, dtuple<Args2...>, tuple_ts...> {
+    using type =
+        typename tuple_cat_type<dtuple<Args1..., Args2...>, tuple_ts...>::type;
+};
+
+template <typename... tuple_ts>
+using tuple_cat_t = typename tuple_cat_type<tuple_ts...>::type;
+/// @}
+
 }  // namespace detray::detail
