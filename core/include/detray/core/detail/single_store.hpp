@@ -65,7 +65,9 @@ class single_store {
     template <typename allocator_t = vecmem::memory_resource>
     requires(std::derived_from<allocator_t, std::pmr::memory_resource>)
         DETRAY_HOST explicit single_store(allocator_t &resource)
-        : m_container(&resource) {}
+        : m_container(&resource) {
+        m_context_size = m_container.size();
+    }
 
     /// Copy Construct with a specific memory resource @param resource
     /// (host-side only)
@@ -74,7 +76,9 @@ class single_store {
     requires(std::is_same_v<C, std::vector<T>>
                  &&std::derived_from<allocator_t, std::pmr::memory_resource>)
         DETRAY_HOST single_store(allocator_t &resource, const T &arg)
-        : m_container(&resource, arg) {}
+        : m_container(&resource, arg) {
+        m_context_size = m_container.size();
+    }
 
     /// Construct from the container @param view . Mainly used device-side.
     template <concepts::device_view container_view_t>
@@ -95,29 +99,45 @@ class single_store {
     DETRAY_HOST_DEVICE
     constexpr auto size(const context_type & /*ctx*/ = {}) const noexcept
         -> dindex {
-        return static_cast<dindex>(m_container.size());
+        if (m_n_contexts == 0) {
+            return static_cast<dindex>(m_container.size());
+        } else {
+            return static_cast<dindex>(m_context_size);
+        }
     }
 
     /// @returns true if the underlying container is empty
     DETRAY_HOST_DEVICE
-    constexpr auto empty(const context_type & /*ctx*/ = {}) const noexcept
-        -> bool {
-        return m_container.empty();
+    constexpr auto empty(const context_type &ctx = {}) const noexcept -> bool {
+        if (m_n_contexts == 0) {
+            return m_container.empty();
+        } else {
+            return ctx.get() > m_n_contexts;
+        }
     }
 
     /// @returns the collections iterator at the start position
     DETRAY_HOST_DEVICE
-    constexpr auto begin(const context_type & /*ctx*/ = {}) const {
-        return m_container.begin();
+    constexpr auto begin(const context_type &ctx = {}) const {
+        if (m_n_contexts == 0) {
+            return m_container.begin();
+        } else {
+            return m_container.begin() + ctx.get() * m_context_size;
+        }
     }
 
     /// @returns the collections iterator sentinel
     DETRAY_HOST_DEVICE
-    constexpr auto end(const context_type & /*ctx*/ = {}) const {
-        return m_container.end();
+    constexpr auto end(const context_type &ctx = {}) const {
+        if (m_n_contexts == 0) {
+            return m_container.end();
+        } else {
+            return m_container.begin() + (ctx.get() + 1) * m_context_size;
+        }
     }
 
     /// @returns access to the underlying container - const
+    /// ? Remove the ctx argument ?
     DETRAY_HOST_DEVICE
     constexpr auto get(const context_type & /*ctx*/) const noexcept
         -> const base_type & {
@@ -125,6 +145,7 @@ class single_store {
     }
 
     /// @returns access to the underlying container - non-const
+    /// ? Remove the ctx argument ?
     DETRAY_HOST_DEVICE
     constexpr auto get(const context_type & /*ctx*/) noexcept -> base_type & {
         return m_container;
@@ -135,33 +156,42 @@ class single_store {
     constexpr auto at(const dindex i,
                       const context_type &ctx = {}) const noexcept
         -> const T & {
-        [[maybe_unused]] context_type tmp_ctx{
-            ctx};  // Temporary measure to avoid warnings
-        return m_container.at(i);
+        if (m_n_contexts == 0) {
+            return m_container.at(i);
+        } else {
+            return m_container.at(ctx.get() * m_context_size + i);
+        }
     }
 
     /// @returns context based access to an element (also range checked)
     DETRAY_HOST_DEVICE
     constexpr auto at(const dindex i, const context_type &ctx = {}) noexcept
         -> T & {
-        [[maybe_unused]] context_type tmp_ctx{
-            ctx};  // Temporary measure to avoid warnings
-        return m_container.at(i);
+        if (m_n_contexts == 0) {
+            return m_container.at(i);
+        } else {
+            return m_container.at(ctx.get() * m_context_size + i);
+        }
     }
 
     /// Removes and destructs all elements in the container.
+    /// ? Remove the ctx argument ?
     DETRAY_HOST void clear(const context_type & /*ctx*/) {
         m_container.clear();
+        m_context_size = 0;
     }
 
     /// Reserve memory of size @param n for a given geometry context
+    /// ? Remove the ctx argument ?
     DETRAY_HOST void reserve(std::size_t n, const context_type & /*ctx*/) {
         m_container.reserve(n);
     }
 
     /// Resize the underlying container to @param n for a given geometry context
+    /// ? Remove the ctx argument ?
     DETRAY_HOST void resize(std::size_t n, const context_type & /*ctx*/) {
         m_container.resize(n);
+        m_context_size = m_container.size();
     }
 
     /// Add a new element to the collection - copy
@@ -171,11 +201,13 @@ class single_store {
     /// @param arg the constructor argument
     ///
     /// @note in general can throw an exception
+    /// ? Remove the ctx argument ?
     template <typename U>
     DETRAY_HOST constexpr auto push_back(
         const U &arg, const context_type & /*ctx*/ = {}) noexcept(false)
         -> void {
         m_container.push_back(arg);
+        m_context_size = m_container.size();
     }
 
     /// Add a new element to the collection - move
@@ -185,10 +217,12 @@ class single_store {
     /// @param arg the constructor argument
     ///
     /// @note in general can throw an exception
+    /// ? Remove the ctx argument ?
     template <typename U>
     DETRAY_HOST constexpr auto push_back(
         U &&arg, const context_type & /*ctx*/ = {}) noexcept(false) -> void {
         m_container.push_back(std::forward<U>(arg));
+        m_context_size = m_container.size();
     }
 
     /// Add a new element to the collection in place
@@ -198,9 +232,11 @@ class single_store {
     /// @param args is the list of constructor arguments
     ///
     /// @note in general can throw an exception
+    /// ? Remove the ctx argument ?
     template <typename... Args>
     DETRAY_HOST constexpr decltype(auto) emplace_back(
         const context_type & /*ctx*/ = {}, Args &&... args) noexcept(false) {
+        m_context_size++;
         return m_container.emplace_back(std::forward<Args>(args)...);
     }
 
@@ -211,12 +247,14 @@ class single_store {
     /// @param new_data is the new collection to be added
     ///
     /// @note in general can throw an exception
+    /// ? Remove the ctx argument ?
     template <typename U>
     DETRAY_HOST auto insert(container_t<U> &new_data,
                             const context_type & /*ctx*/ = {}) noexcept(false)
         -> void {
         m_container.reserve(m_container.size() + new_data.size());
         m_container.insert(m_container.end(), new_data.begin(), new_data.end());
+        m_context_size = m_container.size();
     }
 
     /// Insert another collection - move
@@ -226,6 +264,7 @@ class single_store {
     /// @param new_data is the new collection to be added
     ///
     /// @note in general can throw an exception
+    /// ? Remove the ctx argument ?
     template <typename U>
     DETRAY_HOST auto insert(container_t<U> &&new_data,
                             const context_type & /*ctx*/ = {}) noexcept(false)
@@ -234,6 +273,26 @@ class single_store {
         m_container.insert(m_container.end(),
                            std::make_move_iterator(new_data.begin()),
                            std::make_move_iterator(new_data.end()));
+        m_context_size = m_container.size();
+    }
+
+    template <typename U>
+    DETRAY_HOST auto add_context(container_t<U> &context_data) noexcept(false)
+        -> void {
+        // Cannot add context data to an empty store
+        if (m_context_size == 0)
+            return;
+        // Wrong size of the context_data vector
+        if (context_data.size() % m_context_size != 0)
+            return;
+        // Drop previous contexts if any
+        if (m_container.size() > m_context_size)
+            m_container.resize(m_context_size);
+        // Add new contexts
+        m_n_contexts = context_data.size() / m_context_size;
+        m_container.reserve(m_container.size() + context_data.size());
+        m_container.insert(m_container.end(), context_data.begin(),
+                           context_data.end());
     }
 
     /// Append another store to the current one
@@ -241,9 +300,11 @@ class single_store {
     /// @param other The other container
     ///
     /// @note in general can throw an exception
+    /// ? Remove the ctx argument ?
     DETRAY_HOST void append(single_store &other,
                             const context_type &ctx = {}) noexcept(false) {
         insert(other.m_container, ctx);
+        m_context_size = m_container.size();
     }
 
     /// Append another store to the current one - move
@@ -251,9 +312,11 @@ class single_store {
     /// @param other The other container
     ///
     /// @note in general can throw an exception
+    /// ? Remove the ctx argument ?
     DETRAY_HOST void append(single_store &&other,
                             const context_type &ctx = {}) noexcept(false) {
         insert(std::move(other.m_container), ctx);
+        m_context_size = m_container.size();
     }
 
     /// @return the view on the underlying container - non-const
@@ -269,6 +332,8 @@ class single_store {
     private:
     /// The underlying container implementation
     base_type m_container;
+    size_type m_context_size{0};
+    size_type m_n_contexts{0};
 };
 
 }  // namespace detray

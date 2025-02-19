@@ -46,7 +46,7 @@ TEST(container_cuda, single_store) {
     EXPECT_EQ(mng_store.size(), 0u);
 
     // Test the managed memory allocation
-    empty_context ctx{};
+    geometry_context ctx{};
     mng_store.reserve(4, ctx);
     mng_store.emplace_back(ctx, 1.);
     mng_store.push_back(2., ctx);
