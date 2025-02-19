@@ -11,6 +11,8 @@
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/propagator/base_actor.hpp"
+#include "detray/propagator/composite_actor.hpp"
+#include "detray/utils/tuple.hpp"
 #include "detray/utils/tuple_helpers.hpp"
 
 // System include(s)
@@ -27,16 +29,19 @@ namespace detray {
 /// The states of the actors need to be passed to the chain in an external tuple
 ///
 /// @tparam actors_t the types of the actors in the chain.
-template <typename... actors_t>
+template <concepts::actor... actors_t>
 class actor_chain {
 
     public:
     /// Types of the actors that are registered in the chain
-    using actor_list_type = dtuple<actors_t...>;
-    // Tuple of actor states
-    using state_tuple = dtuple<typename actors_t::state...>;
-    // Type of states tuple that is used in the propagator
-    using state = dtuple<typename actors_t::state &...>;
+    using actor_tuple = dtuple<actors_t...>;
+
+    // Tuple of actor states (including states of observing actors, if present)
+    using state_tuple = detail::tuple_cat_t<detail::state_tuple_t<actors_t>...>;
+
+    // Tuple of state references that is used in the propagator
+    using state_ref_tuple =
+        detail::tuple_cat_t<detail::state_ref_tuple_t<actors_t>...>;
 
     /// Call all actors in the chain.
     ///
@@ -50,27 +55,27 @@ class actor_chain {
     }
 
     /// @returns the actor list
-    DETRAY_HOST_DEVICE const actor_list_type &actors() const {
+    DETRAY_HOST_DEVICE constexpr const actor_tuple &actors() const {
         return m_actors;
     }
 
     /// @returns a tuple of default constructible actor states
     DETRAY_HOST_DEVICE
-    static constexpr auto make_actor_states() {
+    static constexpr auto make_default_actor_states() {
         // Only possible if each state is default initializable
         if constexpr ((std::default_initializable<typename actors_t::state> &&
                        ...)) {
-            return dtuple<typename actors_t::state...>{};
+            return state_tuple{};
         } else {
             return std::nullopt;
         }
     }
 
     /// @returns a tuple of reference for every state in the tuple @param t
-    DETRAY_HOST_DEVICE static constexpr state setup_actor_states(
-        dtuple<typename actors_t::state...> &t) {
+    DETRAY_HOST_DEVICE static constexpr state_ref_tuple setup_actor_states(
+        state_tuple &t) {
         return setup_actor_states(
-            t, std::make_index_sequence<sizeof...(actors_t)>{});
+            t, std::make_index_sequence<detail::tuple_size_v<state_tuple>>{});
     }
 
     private:
@@ -79,7 +84,7 @@ class actor_chain {
     /// @param actr the actor (might be a composite actor)
     /// @param states states of all actors (only bare actors)
     /// @param p_state the state of the propagator (stepper and navigator)
-    template <typename actor_t, typename actor_states_t,
+    template <concepts::actor actor_t, typename actor_states_t,
               typename propagator_state_t>
     DETRAY_HOST_DEVICE inline void run(const actor_t &actr,
                                        actor_states_t &states,
@@ -99,7 +104,7 @@ class actor_chain {
 
     /// Resolve the actor calls.
     ///
-    /// @param states states of all actors (only bare actors)
+    /// @param states states of all actors
     /// @param p_state the state of the propagator (stepper and navigator)
     template <typename actor_states_t, typename propagator_state_t,
               std::size_t... indices>
@@ -111,14 +116,13 @@ class actor_chain {
 
     /// @returns a tuple of reference for every state in the tuple @param t
     template <std::size_t... indices>
-    DETRAY_HOST_DEVICE static constexpr state setup_actor_states(
-        dtuple<typename actors_t::state...> &t,
-        std::index_sequence<indices...> /*ids*/) {
+    DETRAY_HOST_DEVICE static constexpr state_ref_tuple setup_actor_states(
+        state_tuple &t, std::index_sequence<indices...> /*ids*/) {
         return detray::tie(detail::get<indices>(t)...);
     }
 
     /// Tuple of actors
-    actor_list_type m_actors = {};
+    [[no_unique_address]] actor_tuple m_actors = {};
 };
 
 /// Empty actor chain (placeholder)
@@ -126,25 +130,42 @@ template <>
 class actor_chain<> {
 
     public:
+    using actor_tuple = dtuple<>;
     using state_tuple = dtuple<>;
+    using state_ref_tuple = dtuple<>;
+
     /// Empty states replaces a real actor states container
-    struct state {};
+    using state = state_tuple;
 
     /// Call to actors does nothing.
     ///
     /// @param states the states of the actors.
     /// @param p_state the propagation state.
     template <typename actor_states_t, typename propagator_state_t>
-    DETRAY_HOST_DEVICE void operator()(actor_states_t & /*states*/,
-                                       propagator_state_t & /*p_state*/) const {
+    DETRAY_HOST_DEVICE constexpr void operator()(
+        actor_states_t & /*states*/, propagator_state_t & /*p_state*/) const {
         /*Do nothing*/
     }
 
+    /// @returns the actor list
+    DETRAY_HOST_DEVICE constexpr const actor_tuple &actors() const {
+        return m_actors;
+    }
+
     /// @returns an empty state
-    DETRAY_HOST_DEVICE static constexpr state setup_actor_states(
+    DETRAY_HOST_DEVICE
+    static consteval state_tuple make_default_actor_states() {
+        return dtuple<>{};
+    }
+
+    /// @returns an empty state
+    DETRAY_HOST_DEVICE static constexpr state_ref_tuple setup_actor_states(
         const state_tuple &) {
         return {};
     }
+
+    private:
+    [[no_unique_address]] actor_tuple m_actors = {};
 };
 
 }  // namespace detray

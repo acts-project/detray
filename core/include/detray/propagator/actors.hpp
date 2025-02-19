@@ -13,3 +13,4 @@
 #include "detray/propagator/actors/parameter_resetter.hpp"
 #include "detray/propagator/actors/parameter_transporter.hpp"
 #include "detray/propagator/actors/pointwise_material_interactor.hpp"
+#include "detray/propagator/concepts.hpp"

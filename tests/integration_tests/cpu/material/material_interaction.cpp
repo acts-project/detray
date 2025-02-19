@@ -40,6 +40,9 @@ using test_algebra = test::algebra;
 using scalar = test::scalar;
 using covariance_t =
     typename bound_track_parameters<test_algebra>::covariance_type;
+using interactor_t = pointwise_material_interactor<test_algebra>;
+
+static_assert(detray::concepts::actor<interactor_t>);
 
 // Test is done for muon
 namespace {
@@ -71,7 +74,6 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
 
     using navigator_t = navigator<decltype(det)>;
     using stepper_t = line_stepper<test_algebra>;
-    using interactor_t = pointwise_material_interactor<test_algebra>;
     using pathlimit_aborter_t = pathlimit_aborter<scalar>;
     using actor_chain_t =
         actor_chain<pathlimit_aborter_t, parameter_transporter<test_algebra>,
@@ -97,13 +99,10 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
         geometry::barcode{}.set_index(0u), bound_vector, bound_cov);
 
     pathlimit_aborter_t::state aborter_state{};
-    parameter_transporter<test_algebra>::state bound_updater{};
     interactor_t::state interactor_state{};
-    parameter_resetter<test_algebra>::state parameter_resetter_state{};
 
     // Create actor states tuples
-    auto actor_states = detray::tie(aborter_state, bound_updater,
-                                    interactor_state, parameter_resetter_state);
+    auto actor_states = detray::tie(aborter_state, interactor_state);
 
     propagator_t::state state(bound_param, det);
     state.do_debug = true;
@@ -227,16 +226,12 @@ GTEST_TEST(detray_material, telescope_geometry_scattering_angle) {
     for (std::size_t i = 0u; i < n_samples; i++) {
 
         pathlimit_aborter_t::state aborter_state{};
-        parameter_transporter<test_algebra>::state bound_updater{};
         // Seed = sample id
         simulator_t::state simulator_state{i};
         simulator_state.do_energy_loss = false;
-        parameter_resetter<test_algebra>::state parameter_resetter_state{};
 
         // Create actor states tuples
-        auto actor_states =
-            detray::tie(aborter_state, bound_updater, simulator_state,
-                        parameter_resetter_state);
+        auto actor_states = detray::tie(aborter_state, simulator_state);
 
         propagator_t::state state(bound_param, det);
         state.do_debug = true;
@@ -249,7 +244,7 @@ GTEST_TEST(detray_material, telescope_geometry_scattering_angle) {
 
         // Updated phi and theta variance
         if (i == 0u) {
-            pointwise_material_interactor<test_algebra>{}.update_angle_variance(
+            interactor_t{}.update_angle_variance(
                 bound_cov, traj.dir(),
                 simulator_state.projected_scattering_angle);
         }

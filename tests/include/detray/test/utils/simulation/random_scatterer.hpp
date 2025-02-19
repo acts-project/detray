@@ -67,13 +67,11 @@ struct random_scatterer : actor {
     /// Material store visitor
     struct kernel {
 
-        using state = typename random_scatterer::state;
-
         template <typename mat_group_t, typename index_t>
         DETRAY_HOST_DEVICE inline bool operator()(
             [[maybe_unused]] const mat_group_t& material_group,
             [[maybe_unused]] const index_t& mat_index,
-            [[maybe_unused]] state& s,
+            [[maybe_unused]] typename random_scatterer::state& s,
             [[maybe_unused]] const pdg_particle<scalar_type>& ptc,
             [[maybe_unused]] const bound_track_parameters<algebra_t>&
                 bound_params,
