@@ -20,7 +20,8 @@ GTEST_TEST(detray_core, static_transform_store) {
     using transform3 = test::transform3;
     using point3 = test::point3;
 
-    using transform_store_t = single_store<transform3>;
+    using transform_store_t =
+        single_store<transform3, dvector, geometry_context>;
     transform_store_t static_store;
     typename transform_store_t::context_type ctx0{};
     typename transform_store_t::context_type ctx1{};
