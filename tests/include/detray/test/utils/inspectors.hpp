@@ -15,7 +15,7 @@
 // Project include(s)
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/math.hpp"
-#include "detray/geometry/tracking_surface.hpp"
+#include "detray/geometry/surface.hpp"
 #include "detray/navigation/navigation_config.hpp"
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/base_actor.hpp"
@@ -288,7 +288,7 @@ struct print_inspector {
             if constexpr (state_type::value_type::is_debug()) {
                 const auto &local = sf_cand.local;
                 const auto pos =
-                    tracking_surface{state.detector(), sf_cand.sf_desc}
+                    geometry::surface{state.detector(), sf_cand.sf_desc}
                         .local_to_global(geo_ctx_t{}, local, track_dir);
                 debug_stream << ", glob: [r:" << vector::perp(pos)
                              << ", z:" << pos[2] << "]" << std::endl;

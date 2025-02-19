@@ -16,7 +16,7 @@
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/coordinates/polar2D.hpp"
 #include "detray/geometry/detail/shape_utils.hpp"
-#include "detray/geometry/detail/vertexing.hpp"
+#include "detray/geometry/detail/vertexer.hpp"
 
 // System include(s)
 #include <limits>
