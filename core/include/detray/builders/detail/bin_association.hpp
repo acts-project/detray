@@ -62,8 +62,8 @@ static inline void bin_association(const context_t & /*context*/,
         edges_intersect_generic<algebra_t> edges_assoc;
 
         // Loop over all bins and associate the surfaces
-        for (unsigned int bin_0 = 0; bin_0 < axis_0.nbins(); ++bin_0) {
-            for (unsigned int bin_1 = 0; bin_1 < axis_1.nbins(); ++bin_1) {
+        for (unsigned int bin_0 = 0u; bin_0 < axis_0.nbins(); ++bin_0) {
+            for (unsigned int bin_1 = 0u; bin_1 < axis_1.nbins(); ++bin_1) {
 
                 auto r_borders = axis_0.bin_edges(bin_0);
                 auto phi_borders = axis_1.bin_edges(bin_1);
@@ -129,8 +129,8 @@ static inline void bin_association(const context_t & /*context*/,
         edges_intersect_generic<algebra_t> edges_assoc;
 
         // Loop over all bins and associate the surfaces
-        for (unsigned int bin_0 = 0; bin_0 < axis_0.nbins(); ++bin_0) {
-            for (unsigned int bin_1 = 0; bin_1 < axis_1.nbins(); ++bin_1) {
+        for (unsigned int bin_0 = 0u; bin_0 < axis_0.nbins(); ++bin_0) {
+            for (unsigned int bin_1 = 0u; bin_1 < axis_1.nbins(); ++bin_1) {
 
                 auto z_borders = axis_0.bin_edges(bin_0);
                 auto phi_borders = axis_1.bin_edges(bin_1);
@@ -200,7 +200,7 @@ static inline void bin_association(const context_t & /*context*/,
                                 phi_min = math::min(phi, phi_min);
                                 phi_max = math::max(phi, phi_max);
                                 surface_contour.push_back({vg[2], phi});
-                                if (phi < 0.) {
+                                if (phi < 0.f) {
                                     s_c_neg.push_back({vg[2], phi});
                                     z_min_neg = math::min(vg[2], z_min_neg);
                                     z_max_neg = math::max(vg[2], z_max_neg);
@@ -211,9 +211,10 @@ static inline void bin_association(const context_t & /*context*/,
                                 }
                             }
                             // Check for phi wrapping
-                            std::vector<std::vector<point2_t>> surface_contours;
+                            std::vector<std::vector<point2_t>>
+                                surface_contours{};
                             if (phi_max - phi_min > constant<scalar_t>::pi &&
-                                phi_max * phi_min < 0.) {
+                                phi_max * phi_min < 0.f) {
                                 s_c_neg.push_back(
                                     {z_max_neg, -constant<scalar_t>::pi});
                                 s_c_neg.push_back(

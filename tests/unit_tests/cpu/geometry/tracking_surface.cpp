@@ -35,6 +35,8 @@ enum class material_ids : unsigned int {
 
 constexpr detray::test::scalar tol{5e-5f};
 
+detray::dvector3D<detray::test::algebra> test_dir{0.f, 0.f, 1.f};
+
 }  // anonymous namespace
 
 // This tests the construction of a surface descriptor object
@@ -160,8 +162,8 @@ GTEST_TEST(detray_geometry, surface_toy_detector) {
 
     // Coordinate transformations
     point3 glob_pos = {4.f, 7.f, 4.f};
-    point3 local = disc.global_to_local(ctx, glob_pos, {});
-    point2 bound = disc.global_to_bound(ctx, glob_pos, {});
+    point3 local = disc.global_to_local(ctx, glob_pos, test_dir);
+    point2 bound = disc.global_to_bound(ctx, glob_pos, test_dir);
 
     ASSERT_NEAR(local[0], std::sqrt(65.f), tol);
     ASSERT_NEAR(local[1], std::atan2(7.f, 4.f), tol);
@@ -169,8 +171,8 @@ GTEST_TEST(detray_geometry, surface_toy_detector) {
     ASSERT_NEAR(bound[1], local[1], tol);
 
     // Roundtrip
-    point3 global = disc.local_to_global(ctx, local, {});
-    point3 global2 = disc.bound_to_global(ctx, bound, {});
+    point3 global = disc.local_to_global(ctx, local, test_dir);
+    point3 global2 = disc.bound_to_global(ctx, bound, test_dir);
 
     ASSERT_NEAR(glob_pos[0], global[0], tol);
     ASSERT_NEAR(glob_pos[1], global[1], tol);
@@ -237,22 +239,22 @@ GTEST_TEST(detray_geometry, surface_toy_detector) {
     // Coordinate transformation roundtrip
     glob_pos = {4.f, 7.f, 4.f};
 
-    local = rec.global_to_local(ctx, glob_pos, {});
-    global = rec.local_to_global(ctx, local, {});
+    local = rec.global_to_local(ctx, glob_pos, test_dir);
+    global = rec.local_to_global(ctx, local, test_dir);
     ASSERT_NEAR(glob_pos[0], global[0], tol);
     ASSERT_NEAR(glob_pos[1], global[1], tol);
     ASSERT_NEAR(glob_pos[2], global[2], tol);
 
     glob_pos = {-71.902099f, -7.081735f, -460.f};
 
-    local = rec.global_to_local(ctx, glob_pos, {});
-    global = rec.local_to_global(ctx, local, {});
+    local = rec.global_to_local(ctx, glob_pos, test_dir);
+    global = rec.local_to_global(ctx, local, test_dir);
     ASSERT_NEAR(glob_pos[0], global[0], tol);
     ASSERT_NEAR(glob_pos[1], global[1], tol);
     ASSERT_NEAR(glob_pos[2], global[2], tol);
 
-    bound = rec.global_to_bound(ctx, glob_pos, {});
-    global = rec.bound_to_global(ctx, bound, {});
+    bound = rec.global_to_bound(ctx, glob_pos, test_dir);
+    global = rec.bound_to_global(ctx, bound, test_dir);
     ASSERT_NEAR(global[0], glob_pos[0], tol);
     ASSERT_NEAR(global[1], glob_pos[1], tol);
     ASSERT_NEAR(global[2], glob_pos[2], tol);
@@ -339,8 +341,8 @@ GTEST_TEST(detray_geometry, surface_toy_detector) {
     // Coordinate transformation roundtrip
     glob_pos = {4.f, 7.f, 4.f};
 
-    local = cyl.global_to_local(ctx, glob_pos, {});
-    global = cyl.local_to_global(ctx, local, {});
+    local = cyl.global_to_local(ctx, glob_pos, test_dir);
+    global = cyl.local_to_global(ctx, local, test_dir);
     ASSERT_NEAR(glob_pos[0], global[0], tol);
     ASSERT_NEAR(glob_pos[1], global[1], tol);
     ASSERT_NEAR(glob_pos[2], global[2], tol);
@@ -348,14 +350,14 @@ GTEST_TEST(detray_geometry, surface_toy_detector) {
     glob_pos = {constant<scalar>::inv_sqrt2 * r,
                 constant<scalar>::inv_sqrt2 * r, 2.f};
 
-    local = cyl.global_to_local(ctx, glob_pos, {});
-    global = cyl.local_to_global(ctx, local, {});
+    local = cyl.global_to_local(ctx, glob_pos, test_dir);
+    global = cyl.local_to_global(ctx, local, test_dir);
     ASSERT_NEAR(glob_pos[0], global[0], tol);
     ASSERT_NEAR(glob_pos[1], global[1], tol);
     ASSERT_NEAR(glob_pos[2], global[2], tol);
 
-    bound = cyl.global_to_bound(ctx, glob_pos, {});
-    global = cyl.bound_to_global(ctx, bound, {});
+    bound = cyl.global_to_bound(ctx, glob_pos, test_dir);
+    global = cyl.bound_to_global(ctx, bound, test_dir);
     ASSERT_NEAR(global[0], glob_pos[0], tol);
     ASSERT_NEAR(global[1], glob_pos[1], tol);
     ASSERT_NEAR(global[2], glob_pos[2], tol);
@@ -442,7 +444,7 @@ GTEST_TEST(detray_geometry, surface_wire_chamber) {
     // Coordinate transformation roundtrip
     point3 glob_pos = {4.f, 7.f, 4.f};
 
-    point3 local = line.global_to_local(ctx, glob_pos, dir);
+    point3 local = line.global_to_local(ctx, glob_pos, test_dir);
     global = line.local_to_global(ctx, local, dir);
 
     // @TODO: Needs a reduced tolerance, why?
@@ -453,15 +455,15 @@ GTEST_TEST(detray_geometry, surface_wire_chamber) {
 
     glob_pos = center;
 
-    local = line.global_to_local(ctx, glob_pos, dir);
-    global = line.local_to_global(ctx, local, dir);
+    local = line.global_to_local(ctx, glob_pos, test_dir);
+    global = line.local_to_global(ctx, local, test_dir);
     red_tol = 7.f * 1e-5f;
     ASSERT_NEAR(glob_pos[0], global[0], red_tol);
     ASSERT_NEAR(glob_pos[1], global[1], red_tol);
     ASSERT_NEAR(glob_pos[2], global[2], red_tol);
 
-    point2 bound = line.global_to_bound(ctx, glob_pos, dir);
-    global = line.bound_to_global(ctx, bound, dir);
+    point2 bound = line.global_to_bound(ctx, glob_pos, test_dir);
+    global = line.bound_to_global(ctx, bound, test_dir);
     ASSERT_NEAR(global[0], glob_pos[0], red_tol);
     ASSERT_NEAR(global[1], glob_pos[1], red_tol);
     ASSERT_NEAR(global[2], glob_pos[2], red_tol);
