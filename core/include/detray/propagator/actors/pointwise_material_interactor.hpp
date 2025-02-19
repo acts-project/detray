@@ -15,6 +15,7 @@
 #include "detray/materials/detail/concepts.hpp"
 #include "detray/materials/detail/material_accessor.hpp"
 #include "detray/materials/interaction.hpp"
+#include "detray/propagator/actors/parameter_updater.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/tracks/bound_track_parameters.hpp"
 #include "detray/utils/ranges.hpp"
@@ -127,7 +128,9 @@ struct pointwise_material_interactor : actor {
 
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE inline void operator()(
-        state &interactor_state, propagator_state_t &prop_state) const {
+        state &interactor_state,
+        parameter_transporter<algebra_t>::state &transporter_state,
+        propagator_state_t &prop_state) const {
 
         interactor_state.reset();
 
@@ -139,7 +142,7 @@ struct pointwise_material_interactor : actor {
             auto &stepping = prop_state._stepping;
 
             this->update(prop_state._context, stepping.particle_hypothesis(),
-                         stepping.bound_params(), interactor_state,
+                         transporter_state.bound_params(), interactor_state,
                          static_cast<int>(navigation.direction()),
                          navigation.get_surface());
         }
