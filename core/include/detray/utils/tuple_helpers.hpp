@@ -199,4 +199,41 @@ template <typename... tuple_ts>
 using tuple_cat_t = typename tuple_cat_type<tuple_ts...>::type;
 /// @}
 
+/// Check for equality of tuple types modulo permutation
+/// @{
+template <typename T1, typename T2>
+struct is_permutation : public std::false_type {};
+
+template <>
+struct is_permutation<dtuple<>, dtuple<>> : public std::true_type {};
+
+template <typename... Args1, typename... Args2>
+struct is_permutation<dtuple<Args1...>, dtuple<Args2...>> {
+
+    using T1 = dtuple<Args1...>;
+    using T2 = dtuple<Args2...>;
+
+    template <typename o_tuple_t, typename T, typename... U>
+    static consteval bool compare() {
+        if constexpr (detray::detail::has_type_v<T, o_tuple_t>) {
+            if constexpr (sizeof...(U) == 0u) {
+                return true;
+            } else {
+                return compare<o_tuple_t, U...>();
+            }
+        } else {
+            return false;
+        }
+    }
+
+    static constexpr bool value =
+        ((detray::detail::tuple_size_v<T1> ==
+          detray::detail::tuple_size_v<T2>)&&compare<T1, Args2...>() &&
+         compare<T2, Args1...>());
+};
+
+template <typename T1, typename T2>
+constexpr bool is_permutation_v = is_permutation<T1, T2>::value;
+/// @}
+
 }  // namespace detray::detail

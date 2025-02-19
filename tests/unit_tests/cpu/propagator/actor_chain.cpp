@@ -10,6 +10,7 @@
 
 #include "detray/definitions/units.hpp"
 #include "detray/propagator/base_actor.hpp"
+#include "detray/propagator/concepts.hpp"
 
 // GTest include(s).
 #include <gtest/gtest.h>
@@ -114,6 +115,26 @@ using chain = composite_actor<example_actor_t, observer_lvl1>;
 // Test the actor chain on some dummy actor types
 GTEST_TEST(detray_propagator, actor_chain) {
 
+    static_assert(detray::concepts::actor<print_actor>);
+    static_assert(detray::concepts::actor<example_actor_t>);
+    static_assert(detray::concepts::actor<composite1>);
+    static_assert(detray::concepts::actor<composite2>);
+    static_assert(detray::concepts::actor<composite3>);
+    static_assert(detray::concepts::actor<composite4>);
+    static_assert(detray::concepts::actor<observer_lvl3>);
+    static_assert(detray::concepts::actor<observer_lvl2>);
+    static_assert(detray::concepts::actor<observer_lvl1>);
+
+    static_assert(!detray::concepts::composite_actor<print_actor>);
+    static_assert(!detray::concepts::composite_actor<example_actor_t>);
+    static_assert(detray::concepts::composite_actor<composite1>);
+    static_assert(detray::concepts::composite_actor<composite2>);
+    static_assert(detray::concepts::composite_actor<composite3>);
+    static_assert(detray::concepts::composite_actor<composite4>);
+    static_assert(detray::concepts::composite_actor<observer_lvl3>);
+    static_assert(detray::concepts::composite_actor<observer_lvl2>);
+    static_assert(detray::concepts::composite_actor<observer_lvl1>);
+
     // The actor states (can be reused between actors)
     example_actor_t::state example_state{};
     print_actor::state printer_state{};
@@ -128,6 +149,10 @@ GTEST_TEST(detray_propagator, actor_chain) {
     // Chain of actors
     using actor_chain_t = actor_chain<example_actor_t, composite1, composite2,
                                       composite3, composite4>;
+
+    static_assert(detray::concepts::actor_chain<actor_chain<>>);
+    static_assert(detray::concepts::actor_chain<actor_chain_t>);
+
     // Run
     actor_chain_t run_actors{};
     run_actors(actor_states, prop_state);
