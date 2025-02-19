@@ -173,7 +173,7 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
         EXPECT_TRUE(sfi_init[i].direction);
         EXPECT_EQ(sfi_init[i].volume_link, 0u);
 
-        vector3 global;
+        vector3 global{0.f, 0.f, 0.f};
 
         if (sfi_init[i].sf_desc.mask().id() == mask_ids::e_rectangle2) {
             global =
@@ -296,7 +296,7 @@ GTEST_TEST(detray_intersection, intersection_kernel_helix) {
             static_context, std::array<scalar, 2>{0.f, 0.f}, scalar{0.f},
             scalar{0.f});
 
-        vector3 global;
+        vector3 global{0.f, 0.f, 0.f};
 
         if (surface.mask().id() == mask_ids::e_rectangle2) {
             global =
