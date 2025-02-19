@@ -92,17 +92,13 @@ GTEST_TEST(detray_propagator, covariance_transport) {
     const bound_track_parameters<test_algebra> bound_param0(
         geometry::barcode{}.set_index(0u), bound_vector, bound_cov);
 
-    // Actors
-    parameter_transporter<test_algebra>::state bound_updater{};
-    parameter_resetter<test_algebra>::state rst{};
-
     propagation::config prop_cfg{};
     prop_cfg.navigation.overstep_tolerance = -100.f * unit<float>::um;
     propagator_t p{prop_cfg};
     propagator_t::state propagation(bound_param0, det, prop_cfg.context);
 
     // Run propagator
-    p.propagate(propagation, detray::tie(bound_updater, rst));
+    p.propagate(propagation);
 
     // Bound state after one turn propagation
     const auto& bound_param1 = propagation._stepping.bound_params();

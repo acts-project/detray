@@ -105,7 +105,7 @@ struct host_propagation_bm : public benchmark_base {
             // Fresh copy of actor states
             actor_states_t actor_states(*input_actor_states);
             // Tuple of references to pass to the propagator
-            typename actor_chain_t::state actor_state_refs =
+            typename actor_chain_t::state_ref_tuple actor_state_refs =
                 actor_chain_t::setup_actor_states(actor_states);
 
             typename propagator_t::state p_state(track, *bfield, *det);
