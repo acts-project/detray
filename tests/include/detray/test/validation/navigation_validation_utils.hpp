@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/navigation/navigator.hpp"
+#include "detray/navigation/caching_navigator.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
 #include "detray/propagator/propagator.hpp"
@@ -54,7 +54,7 @@ inline auto record_propagation(
     /// Inspector that records all encountered surfaces
     using object_tracer_t =
         navigation::object_tracer<intersection_t, dvector,
-                                  navigation::status::e_on_module,
+                                  navigation::status::e_on_object,
                                   navigation::status::e_on_portal>;
     /// Inspector that prints the navigator state from within the
     /// navigator's method calls (cannot be done with an actor)
@@ -64,8 +64,9 @@ inline auto record_propagation(
         aggregate_inspector<object_tracer_t, nav_print_inspector_t>;
 
     // Navigation with inspection
-    using navigator_t = navigator<detector_t, navigation::default_cache_size,
-                                  inspector_t, intersection_t>;
+    using navigator_t =
+        caching_navigator<detector_t, navigation::default_cache_size,
+                          inspector_t, intersection_t>;
 
     // Propagator with pathlimit aborter and validation actors
     using step_tracer_t = step_tracer<algebra_t, dvector>;

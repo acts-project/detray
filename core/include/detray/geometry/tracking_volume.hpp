@@ -108,11 +108,7 @@ class tracking_volume {
 
     /// @returns true if the volume carries material.
     DETRAY_HOST_DEVICE
-    constexpr auto has_material() const -> bool {
-        return m_desc.material().id() !=
-               static_cast<typename descr_t::material_link::id_type>(
-                   detector_t::materials::id::e_none);
-    }
+    constexpr bool has_material() const { return m_desc.has_material(); }
 
     /// @returns an iterator pair for the requested type of surfaces.
     template <surface_id sf_type = surface_id::e_all>
@@ -126,11 +122,9 @@ class tracking_volume {
         }
     }
 
-    /// @returns an iterator pair for the requested type of surfaces.
+    /// @returns an iterator pair for the volume portals.
     DETRAY_HOST_DEVICE constexpr decltype(auto) portals() const {
-        return detray::ranges::subrange{
-            m_detector.surfaces(),
-            m_desc.template sf_link<surface_id::e_portal>()};
+        return surfaces<surface_id::e_portal>();
     }
 
     /// Apply a functor to all surfaces in the volume's acceleration structures
@@ -141,15 +135,15 @@ class tracking_volume {
               int I = static_cast<int>(descr_t::object_id::e_size) - 1,
               typename... Args>
     DETRAY_HOST_DEVICE constexpr void visit_surfaces(Args &&... args) const {
-        visit_surfaces_impl<detail::surface_getter<functor_t>>(
+        visit_surfaces_impl<detail::apply_to_surfaces<functor_t>>(
             std::forward<Args>(args)...);
     }
 
     /// Apply a functor to a neighborhood of surfaces around a track position
     /// in the volume.
     ///
-    /// @tparam functor_t the prescription to be applied to the surfaces (
-    ///                   customization point for the navigation)
+    /// @tparam functor_t the prescription to be applied to the surfaces
+    ///                   (customization point for the navigation)
     /// @tparam track_t   the track around which to build up the neighborhood
     /// @tparam Args      types of additional arguments to the functor
     template <typename functor_t,
@@ -158,7 +152,7 @@ class tracking_volume {
     DETRAY_HOST_DEVICE constexpr void visit_neighborhood(
         const track_t &track, const config_t &cfg, const context_t &ctx,
         Args &&... args) const {
-        visit_surfaces_impl<detail::neighborhood_getter<functor_t>>(
+        visit_surfaces_impl<detail::apply_to_neighbourhood<functor_t>>(
             m_detector, m_desc, track, cfg, ctx, std::forward<Args>(args)...);
     }
 
@@ -300,7 +294,7 @@ class tracking_volume {
     private:
     /// Apply a functor to all acceleration structures of this volume.
     ///
-    /// @tparam functor_t the prescription to be applied to the acc structure
+    /// @tparam functor_t the prescription to be applied to the acc. structures
     /// @tparam Args      types of additional arguments to the functor
     template <typename functor_t,
               int I = static_cast<int>(descr_t::object_id::e_size) - 1,
@@ -312,8 +306,7 @@ class tracking_volume {
         if (const auto &link{m_desc.template accel_link<
                 static_cast<typename descr_t::object_id>(I)>()};
             !link.is_invalid()) {
-            // Run over the surfaces in a single acceleration data structure
-            // and apply the functor to the resulting neighborhood
+            // Get the acceleration data structure and apply the functor to it
             m_detector.accelerator_store().template visit<functor_t>(
                 link, std::forward<Args>(args)...);
         }

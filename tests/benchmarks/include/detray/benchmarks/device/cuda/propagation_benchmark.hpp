@@ -10,7 +10,7 @@
 // Project include(s)
 #include "detray/definitions/algebra.hpp"
 #include "detray/detectors/bfield.hpp"
-#include "detray/navigation/navigator.hpp"
+#include "detray/navigation/caching_navigator.hpp"
 #include "detray/propagator/actors.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
@@ -58,7 +58,7 @@ template <typename metadata_t, typename bfield_t,
 using cuda_propagator_type =
     propagator<rk_stepper<covfie::field_view<bfield_t>,
                           typename detector<metadata_t>::algebra_type>,
-               navigator<detector<metadata_t>>,
+               caching_navigator<detector<metadata_t>>,
                actor_chain_t<typename detector<metadata_t>::algebra_type>>;
 
 /// Launch the propagation kernelfor benchmarking
@@ -82,7 +82,8 @@ void run_propagation_kernel(
     const int);
 
 /// Allocate actor state blueprint on device
-/// @note This only works if each actor state in the tuple is essentially POD
+/// @note This only works if each actor state in the tuple is essentially
+/// POD
 template <typename propagator_t>
 typename propagator_t::actor_chain_type::state_tuple *setup_actor_states(
     typename propagator_t::actor_chain_type::state_tuple *);

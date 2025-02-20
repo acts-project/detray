@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2024 CERN for the benefit of the ACTS project
+ * (c) 2024-2025 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -16,6 +16,20 @@
 #include <ostream>
 
 namespace detray::navigation {
+
+/// @enum NavigationDirection
+/// The navigation direction is always with respect to a given track direction
+enum class direction : std::int_least8_t { e_backward = -1, e_forward = 1 };
+
+/// @enum Navigation status flags
+enum class status : std::int_least8_t {
+    e_abort = -3,          ///< error ocurred, navigation will be aborted
+    e_exit = -2,           ///< navigation finished/reached the end of geometry
+    e_unknown = -1,        ///< unknown state/not initialized
+    e_towards_object = 0,  ///< move towards next geometry object
+    e_on_object = 1,       ///< reached a geometry object that is not a portal
+    e_on_portal = 2,       ///< reached portal (material) surface
+};
 
 /// Navigation trust levels determine how the candidates chache is updated
 enum class trust_level : std::uint_least8_t {
@@ -62,4 +76,5 @@ struct config {
         return out;
     }
 };
+
 }  // namespace detray::navigation
