@@ -11,7 +11,7 @@
 #include "detray/definitions/algebra.hpp"
 #include "detray/materials/detail/concepts.hpp"
 #include "detray/materials/detail/material_accessor.hpp"
-#include "detray/navigation/navigator.hpp"
+#include "detray/navigation/caching_navigator.hpp"
 #include "detray/propagator/actors.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/propagator.hpp"
@@ -176,7 +176,7 @@ struct material_tracer : detray::actor {
         typename propagator_state_t::detector_type::geometry_context gctx{};
 
         // Current surface
-        const auto sf = navigation.get_surface();
+        const auto sf = navigation.current_surface();
 
         // Track direction and bound position on current surface
         point2_t loc_pos{};
@@ -232,7 +232,7 @@ inline auto record_material(
     using scalar_t = dscalar<algebra_t>;
 
     using stepper_t = line_stepper<algebra_t>;
-    using navigator_t = navigator<detector_t>;
+    using navigator_t = caching_navigator<detector_t>;
 
     // Propagator with pathlimit aborter
     using material_tracer_t =

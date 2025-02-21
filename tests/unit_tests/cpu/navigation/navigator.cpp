@@ -6,10 +6,8 @@
  */
 
 // Project include(s)
-#include "detray/navigation/navigator.hpp"
-
 #include "detray/definitions/indexing.hpp"
-#include "detray/navigation/navigator.hpp"
+#include "detray/navigation/caching_navigator.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
 
@@ -65,7 +63,7 @@ inline void check_on_surface(state_t &state, dindex vol_id,
                              dindex next_id) {
     // The status is: on surface/towards surface if the next candidate is
     // immediately updated and set in the same update call
-    ASSERT_TRUE(state.status() == navigation::status::e_on_module ||
+    ASSERT_TRUE(state.status() == navigation::status::e_on_object ||
                 state.status() == navigation::status::e_on_portal);
     // Points towards next candidate
     ASSERT_TRUE(std::abs(state()) >= 1.f * unit<test::scalar>::um);
@@ -138,12 +136,12 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
 
     using detector_t = decltype(toy_det);
     using inspector_t = navigation::print_inspector;
-    using navigator_t = navigator<detector_t, cache_size, inspector_t>;
+    using navigator_t = caching_navigator<detector_t, cache_size, inspector_t>;
     using constraint_t = constrained_step<scalar>;
     using stepper_t = line_stepper<test_algebra, constraint_t>;
 
     // State type in the nominal navigation (no inspectors)
-    using nav_stat_t = navigator<detector_t, cache_size>::state;
+    using nav_stat_t = caching_navigator<detector_t, cache_size>::state;
 
     // 256 bytes for single precision
     static_assert(sizeof(nav_stat_t) ==
@@ -300,7 +298,7 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
             nav.update(stepping_cpy(), navigation_cpy, nav_cfg);
             ASSERT_FALSE(navigation_cpy.is_alive());
             // The status is: exited
-            ASSERT_EQ(navigation_cpy.status(), status::e_on_target);
+            ASSERT_EQ(navigation_cpy.status(), status::e_exit);
             // Switch to next volume leads out of the detector world -> exit
             ASSERT_TRUE(
                 detray::detail::is_invalid_value(navigation_cpy.volume()));
@@ -317,7 +315,7 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
 
     // Leave for debugging
     // std::cout << navigation.inspector().to_string() << std::endl;
-    ASSERT_TRUE(navigation.is_complete()) << navigation.inspector().to_string();
+    ASSERT_TRUE(navigation.finished()) << navigation.inspector().to_string();
 }
 
 GTEST_TEST(detray_navigation, navigator_wire_chamber) {
@@ -342,7 +340,7 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
 
     using detector_t = decltype(wire_det);
     using inspector_t = navigation::print_inspector;
-    using navigator_t = navigator<detector_t, cache_size, inspector_t>;
+    using navigator_t = caching_navigator<detector_t, cache_size, inspector_t>;
     using constraint_t = constrained_step<scalar>;
     using stepper_t = line_stepper<test_algebra, constraint_t>;
 
@@ -480,7 +478,7 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
             nav.update(stepping_cpy(), navigation_cpy, nav_cfg);
             ASSERT_FALSE(navigation_cpy.is_alive());
             // The status is: exited
-            ASSERT_EQ(navigation_cpy.status(), status::e_on_target);
+            ASSERT_EQ(navigation_cpy.status(), status::e_exit);
             // Switch to next volume leads out of the detector world -> exit
             ASSERT_TRUE(
                 detray::detail::is_invalid_value(navigation_cpy.volume()));
@@ -498,5 +496,5 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
 
     // Leave for debugging
     // std::cout << navigation.inspector().to_string() << std::endl;
-    ASSERT_TRUE(navigation.is_complete()) << navigation.inspector().to_string();
+    ASSERT_TRUE(navigation.finished()) << navigation.inspector().to_string();
 }

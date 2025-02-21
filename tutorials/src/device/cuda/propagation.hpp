@@ -11,7 +11,7 @@
 #include "detray/core/detector.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/bfield.hpp"
-#include "detray/navigation/navigator.hpp"
+#include "detray/navigation/caching_navigator.hpp"
 #include "detray/propagator/actors.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
@@ -44,7 +44,7 @@ using inhom_bknd_t = covfie::backend::affine<covfie::backend::linear<
 }  // namespace bfield::cuda
 
 // Navigator
-using navigator_t = navigator<detector_device_t>;
+using navigator_t = caching_navigator<detector_device_t>;
 using intersection_t = navigator_t::intersection_type;
 
 // Stepper

@@ -141,7 +141,7 @@ struct pointwise_material_interactor : actor {
             this->update(prop_state._context, stepping.particle_hypothesis(),
                          stepping.bound_params(), interactor_state,
                          static_cast<int>(navigation.direction()),
-                         navigation.get_surface());
+                         navigation.current_surface());
         }
     }
 
