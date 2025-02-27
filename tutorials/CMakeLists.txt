@@ -10,10 +10,6 @@ include_directories(
     SYSTEM
     $<TARGET_PROPERTY:covfie::core,INTERFACE_INCLUDE_DIRECTORIES>
 )
-include_directories(
-    SYSTEM
-    $<TARGET_PROPERTY:dfelibs::dfelibs,INTERFACE_INCLUDE_DIRECTORIES>
-)
 
 # Set up a tutorial library, which showcases how to use detray components.
 file(
