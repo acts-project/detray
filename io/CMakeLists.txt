@@ -83,7 +83,7 @@ file(
 detray_add_library( detray_csv_io csv_io
    ${_detray_csv_io_public_headers}
 )
-target_link_libraries(detray_csv_io INTERFACE dfelibs::dfelibs detray::io_utils)
+target_link_libraries(detray_csv_io INTERFACE detray::io_utils)
 
 # Test the public headers of the detray I/O libraries.
 if(BUILD_TESTING AND DETRAY_BUILD_TESTING)
