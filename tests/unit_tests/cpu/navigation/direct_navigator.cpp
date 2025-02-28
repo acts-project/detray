@@ -43,4 +43,57 @@ struct prop_state {
     context_t _context{};
 };
 
+/// This tests the construction and general methods of the navigator
+GTEST_TEST(detray_navigation, direct_navigator_toy_geometry) {
+    /*
+    using namespace detray;
+    using namespace detray::navigation;
+
+    using test_algebra = test::algebra;
+    using scalar = test::scalar;
+    using point3 = test::point3;
+    using vector3 = test::vector3;
+
+    vecmem::host_memory_resource host_mr;
+
+    /// Tolerance for tests
+    constexpr double tol{0.01};
+
+    auto [toy_det, names] = build_toy_detector<test_algebra>(host_mr);
+
+    using detector_t = decltype(toy_det);
+    using inspector_t = navigation::print_inspector;
+    using navigator_t = direct_navigator<detector_t, inspector_t>;
+    using constraint_t = constrained_step<scalar>;
+    using stepper_t = line_stepper<test_algebra, constraint_t>;
+
+    // Test track
+    point3 pos{0.f, 0.f, 0.f};
+    vector3 mom{1.f, 1.f, 0.f};
+    free_track_parameters<test_algebra> traj(pos, 0.f, mom, -1.f);
+
+    navigator_t::sequence_t seq;
+    seq.push_back();
+
+    prop_state<stepper_t::state, navigator_t::state> propagation{
+        stepper_t::state{traj}, navigator_t::state(toy_det)};
+    navigator_t::state &navigation = propagation._navigation;
+    stepper_t::state &stepping = propagation._stepping;
+    const auto &ctx = propagation._context;
+    */
+
+    /*
+    stepper_t stepper;
+    navigator_t nav;
+    navigation::config nav_cfg{};
+    stepping::config step_cfg{};
+
+    prop_state<stepper_t::state, navigator_t::state> propagation{
+    stepper_t::state{traj}, navigator_t::state(toy_det)};
+    navigator_t::state &navigation = propagation._navigation;
+    stepper_t::state &stepping = propagation._stepping;
+    const auto &ctx = propagation._context;
+    */
+}
+
 }  // namespace detray

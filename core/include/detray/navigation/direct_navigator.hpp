@@ -46,14 +46,12 @@ class direct_navigator {
 
     class state : public detray::ranges::view_interface<state> {
 
-        // Allow the filling/updating of candidates
-        // friend struct intersection_initialize<ray_intersector>;
-        // friend struct intersection_update<ray_intersector>;
-
-        using sequence_t = vecmem::device_vector<detray::geometry::barcode>;
         using candidate_t = intersection_t;
 
         public:
+        using sequence_t = vecmem::device_vector<detray::geometry::barcode>;
+        using detector_type = direct_navigator::detector_type;
+
         state() = delete;
 
         template <typename vector_t>
