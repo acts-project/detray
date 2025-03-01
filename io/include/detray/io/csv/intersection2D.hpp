@@ -8,13 +8,10 @@
 #pragma once
 
 // Project include(s)
+#include "detray/io/csv/dfe.hpp"
 #include "detray/io/utils/create_path.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 #include "detray/utils/ranges.hpp"
-
-// DFE include(s).
-#include <dfe/dfe_io_dsv.hpp>
-#include <dfe/dfe_namedtuple.hpp>
 
 // System include(s).
 #include <cstdint>

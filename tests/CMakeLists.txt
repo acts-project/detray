@@ -13,10 +13,6 @@ include_directories(
     SYSTEM
     $<TARGET_PROPERTY:covfie::core,INTERFACE_INCLUDE_DIRECTORIES>
 )
-include_directories(
-    SYSTEM
-    $<TARGET_PROPERTY:dfelibs::dfelibs,INTERFACE_INCLUDE_DIRECTORIES>
-)
 
 # Set up a test library, which can be used by downstream projects without
 # building the detray unit and integration

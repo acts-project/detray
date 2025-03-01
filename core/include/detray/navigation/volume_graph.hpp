@@ -109,12 +109,10 @@ class volume_graph {
             using volume_iter =
                 detray::ranges::const_iterator_t<volume_container_t>;
 
-            using difference_type =
-                typename std::iterator_traits<volume_iter>::difference_type;
+            using difference_type = std::iter_difference_t<volume_iter>;
             using value_type = node;
             using pointer = typename std::iterator_traits<volume_iter>::pointer;
-            using reference =
-                typename std::iterator_traits<volume_iter>::reference;
+            using reference = std::iter_reference_t<volume_iter>;
             using iterator_category =
                 typename std::iterator_traits<volume_iter>::iterator_category;
 

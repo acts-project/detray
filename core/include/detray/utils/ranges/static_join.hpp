@@ -47,7 +47,7 @@ struct static_join_view
     using iterator_coll_t = darray<range_itr_t, I>;
     using iterator_t =
         detray::ranges::detail::static_join_iterator<iterator_coll_t>;
-    using value_t = typename std::iterator_traits<iterator_t>::value_type;
+    using value_t = std::iter_value_t<iterator_t>;
 
     /// Default constructor
     constexpr static_join_view() = default;
@@ -120,28 +120,16 @@ struct static_join : public ranges::static_join_view<I, range_itr_t> {
     constexpr static_join() = default;
 
     template <detray::ranges::range... ranges_t>
-    DETRAY_HOST_DEVICE constexpr explicit static_join(
-        const ranges_t &... ranges)
-        : base_type(ranges...) {}
-
-    template <detray::ranges::range... ranges_t>
     DETRAY_HOST_DEVICE constexpr explicit static_join(ranges_t &&... ranges)
         : base_type(std::forward<ranges_t>(ranges)...) {}
 };
 
 // deduction guides
-
-template <detray::ranges::range... ranges_t>
-DETRAY_HOST_DEVICE static_join(const ranges_t &... ranges)
-    ->static_join<sizeof...(ranges_t),
-                  typename detray::ranges::const_iterator_t<
-                      detray::detail::first_t<ranges_t...>>>;
-
 template <detray::ranges::range... ranges_t>
 DETRAY_HOST_DEVICE static_join(ranges_t &&... ranges)
     ->static_join<sizeof...(ranges_t),
-                  typename detray::ranges::iterator_t<
-                      detray::detail::first_t<ranges_t...>>>;
+                  typename detray::ranges::iterator_t<detray::detail::first_t<
+                      std::remove_reference_t<ranges_t>...>>>;
 
 }  // namespace views
 
@@ -163,11 +151,10 @@ requires std::input_iterator<
 
     using iterator_t = detray::detail::get_value_t<iterator_coll_t>;
 
-    using difference_type =
-        typename std::iterator_traits<iterator_t>::difference_type;
-    using value_type = typename std::iterator_traits<iterator_t>::value_type;
+    using difference_type = std::iter_difference_t<iterator_t>;
+    using value_type = std::iter_value_t<iterator_t>;
     using pointer = typename std::iterator_traits<iterator_t>::pointer;
-    using reference = typename std::iterator_traits<iterator_t>::reference;
+    using reference = std::iter_reference_t<iterator_t>;
     using iterator_category =
         typename std::iterator_traits<iterator_t>::iterator_category;
 

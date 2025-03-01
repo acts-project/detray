@@ -640,9 +640,10 @@ class navigator {
     /// @param state the current navigation state
     /// @param cfg the navigation configuration
     template <typename track_t>
-    DETRAY_HOST_DEVICE inline void init(const track_t &track, state &navigation,
-                                        const navigation::config &cfg,
-                                        const context_type &ctx) const {
+    DETRAY_HOST_DEVICE inline void init(
+        const track_t &track, state &navigation, const navigation::config &cfg,
+        const context_type &ctx,
+        const bool use_path_tolerance_as_overstep_tolerance = true) const {
         const auto &det = navigation.detector();
         const auto volume = tracking_volume{det, navigation.volume()};
 
@@ -651,12 +652,16 @@ class navigator {
         navigation.m_heartbeat = true;
 
         // Search for neighboring surfaces and fill candidates into cache
+        const scalar_type overstep_tol =
+            use_path_tolerance_as_overstep_tolerance ? -cfg.path_tolerance
+                                                     : cfg.overstep_tolerance;
+
         volume.template visit_neighborhood<candidate_search>(
             track, cfg, ctx, det, ctx, track, navigation,
             darray<scalar_type, 2u>{cfg.min_mask_tolerance,
                                     cfg.max_mask_tolerance},
             static_cast<scalar_type>(cfg.mask_tolerance_scalor),
-            static_cast<scalar_type>(cfg.overstep_tolerance));
+            static_cast<scalar_type>(overstep_tol));
 
         // Determine overall state of the navigation after updating the cache
         update_navigation_state(navigation, cfg);
@@ -729,7 +734,11 @@ class navigator {
         // If no trust could be restored for the current state, (local)
         // navigation might be exhausted: re-initialize volume
         else {
-            init(track, navigation, cfg, ctx);
+            // Use overstep tolerance instead of path tolerance
+            const bool use_path_tolerance_as_overstep_tolerance = false;
+
+            init(track, navigation, cfg, ctx,
+                 use_path_tolerance_as_overstep_tolerance);
             is_init = true;
 
             // Sanity check: Should never be the case after complete update call
@@ -743,7 +752,8 @@ class navigator {
                     math::min(100.f * cfg.overstep_tolerance,
                               -10.f * cfg.max_mask_tolerance);
 
-                init(track, navigation, loose_cfg, ctx);
+                init(track, navigation, loose_cfg, ctx,
+                     use_path_tolerance_as_overstep_tolerance);
 
                 // Unrecoverable
                 if (navigation.trust_level() !=
@@ -849,7 +859,11 @@ class navigator {
         // Actor flagged cache as broken (other cases of 'no trust' are
         // handeled after volume switch was checked in 'update()')
         if (navigation.trust_level() == navigation::trust_level::e_no_trust) {
-            init(track, navigation, cfg, ctx);
+            // Use overstep tolerance instead of path tolerance
+            const bool use_path_tolerance_as_overstep_tolerance = false;
+
+            init(track, navigation, cfg, ctx,
+                 use_path_tolerance_as_overstep_tolerance);
             return true;
         }
 

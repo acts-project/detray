@@ -225,21 +225,6 @@ if(DETRAY_SETUP_NLOHMANN)
     endif()
 endif()
 
-# Set up dfelibs.
-option(DETRAY_SETUP_DFELIBS "Set up the dfelibs target(s) explicitly" TRUE)
-option(
-    DETRAY_USE_SYSTEM_DFELIBS
-    "Pick up an existing installation of dfelibs from the build environment"
-    ${DETRAY_USE_SYSTEM_LIBS}
-)
-if(DETRAY_SETUP_DFELIBS)
-    if(DETRAY_USE_SYSTEM_DFELIBS)
-        find_package(dfelibs REQUIRED)
-    else()
-        add_subdirectory(extern/dfelibs)
-    endif()
-endif()
-
 # Set up GoogleTest.
 option(
     DETRAY_SETUP_GOOGLETEST

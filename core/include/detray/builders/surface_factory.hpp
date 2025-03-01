@@ -159,10 +159,9 @@ class surface_factory : public surface_factory_interface<detector_t> {
             return {surfaces_offset, surfaces_offset};
         }
 
-        if constexpr (constexpr auto mask_id =
-                          detector_t::masks::template get_id<
-                              mask<mask_shape_t, algebra_t, volume_link_t>>();
-                      static_cast<std::size_t>(mask_id) >=
+        constexpr auto mask_id = detector_t::masks::template get_id<
+            mask<mask_shape_t, algebra_t, volume_link_t>>();
+        if constexpr (static_cast<std::size_t>(mask_id) >=
                       detector_t::masks::n_types) {
 
             throw std::invalid_argument(

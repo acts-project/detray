@@ -9,13 +9,10 @@
 
 // Project include(s)
 #include "detray/definitions/algebra.hpp"
+#include "detray/io/csv/dfe.hpp"
 #include "detray/io/utils/create_path.hpp"
 #include "detray/tracks/free_track_parameters.hpp"
 #include "detray/utils/ranges.hpp"
-
-// DFE include(s).
-#include <dfe/dfe_io_dsv.hpp>
-#include <dfe/dfe_namedtuple.hpp>
 
 // System include(s)
 #include <filesystem>

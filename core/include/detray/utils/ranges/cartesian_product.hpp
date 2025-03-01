@@ -38,8 +38,8 @@ struct cartesian_product_view : public detray::ranges::view_interface<
         detray::tuple<detray::ranges::iterator_t<range_ts>...>;
     using iterator_t = detray::ranges::detail::cartesian_product_iterator<
         detray::ranges::iterator_t<range_ts>...>;
-    using value_type = detray::tuple<typename std::iterator_traits<
-        detray::ranges::iterator_t<range_ts>>::value_type &...>;
+    using value_type = detray::tuple<
+        std::iter_reference_t<detray::ranges::iterator_t<range_ts>>...>;
 
     /// Default constructor
     constexpr cartesian_product_view() = default;
@@ -101,12 +101,13 @@ struct cartesian_product : public ranges::cartesian_product_view<range_ts...> {
 
     constexpr cartesian_product() = default;
 
-    DETRAY_HOST_DEVICE constexpr explicit cartesian_product(range_ts... ranges)
-        : base_type(ranges...) {}
+    template <detray::ranges::range... deduced_range_ts>
+    DETRAY_HOST_DEVICE constexpr explicit cartesian_product(
+        deduced_range_ts &&... ranges)
+        : base_type(std::forward<deduced_range_ts>(ranges)...) {}
 };
 
 // deduction guides
-
 template <detray::ranges::range... ranges_ts>
 DETRAY_HOST_DEVICE cartesian_product(ranges_ts &&... ranges)
     ->cartesian_product<ranges_ts...>;
@@ -120,10 +121,10 @@ template <std::input_iterator... iterator_ts>
 struct cartesian_product_iterator {
 
     using difference_type = std::ptrdiff_t;
-    using value_type =
-        std::tuple<typename std::iterator_traits<iterator_ts>::value_type...>;
+    using value_type = std::tuple<std::iter_reference_t<iterator_ts>...>;
     using pointer = value_type *;
-    using reference = value_type &;
+    using reference = value_type;
+    // TODO: Adapt to the weakest iterator category in pack
     using iterator_category = detray::ranges::bidirectional_iterator_tag;
 
     /// Default constructor required by LegacyIterator trait
@@ -219,7 +220,8 @@ struct cartesian_product_iterator {
     template <std::size_t... I>
     DETRAY_HOST_DEVICE constexpr auto unroll_values(
         std::index_sequence<I...>) const {
-        return std::tuple(*detray::get<I>(m_itrs)...);
+        return std::tuple<std::iter_reference_t<iterator_ts>...>(
+            *detray::get<I>(m_itrs)...);
     }
 
     /// Global range collection of begin and end iterators

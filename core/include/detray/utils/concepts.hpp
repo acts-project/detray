@@ -34,6 +34,10 @@ concept same_as_cvref =
 template <typename T, typename U>
 concept same_as_no_const = std::same_as<std::remove_cv_t<T>, U>;
 
+/// Index concept to access vector/matrix elements
+template <typename T>
+concept index = std::is_integral_v<T> && !std::same_as<T, bool>;
+
 /// Concept that checks if a type models an interval of some value that can
 /// be obtained with 'get'.
 template <typename I>

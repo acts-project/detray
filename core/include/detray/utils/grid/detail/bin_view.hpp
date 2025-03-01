@@ -44,7 +44,7 @@ struct bin_view : public detray::ranges::view_interface<bin_view<grid_t>> {
 
     using iterator_t =
         bin_iterator<grid_t, detray::ranges::iterator_t<bin_indexer_t>>;
-    using value_t = typename std::iterator_traits<iterator_t>::value_type;
+    using value_t = std::iter_value_t<iterator_t>;
 
     /// Default constructor
     constexpr bin_view() = default;
@@ -106,7 +106,7 @@ struct bin_iterator {
     using difference_type = std::ptrdiff_t;
     using value_type = typename grid_t::bin_type;
     using pointer = value_type *;
-    using reference = const value_type &;
+    using reference = value_type;
     using iterator_category = detray::ranges::bidirectional_iterator_tag;
 
     /// Default constructor required by LegacyIterator trait

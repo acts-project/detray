@@ -91,7 +91,7 @@ inline bool check_connectivity(
     // function it should be sorted, which is the stronger constraint
     using vector_t = decltype(trace);
     using records_iterator_t = typename vector_t::iterator;
-    using index_t = typename vector_t::difference_type;
+    using index_t = std::iter_difference_t<records_iterator_t>;
     std::function<records_iterator_t(index_t)> get_connected_record;
     if constexpr (check_sorted_trace) {
         // Get the next record
