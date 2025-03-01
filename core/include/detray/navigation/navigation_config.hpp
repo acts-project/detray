@@ -39,7 +39,7 @@ struct config {
     /// Maximal absolute path distance for a track to be considered 'on surface'
     float path_tolerance{1.f * unit<float>::um};
     /// How far behind the track position to look for candidates
-    float overstep_tolerance{-300.f * unit<float>::um};
+    float overstep_tolerance{-1000.f * unit<float>::um};
     /// Search window size for grid based acceleration structures
     /// (0, 0): only look at current bin
     darray<dindex, 2> search_window = {0u, 0u};
