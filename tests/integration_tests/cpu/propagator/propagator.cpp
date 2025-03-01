@@ -420,8 +420,23 @@ INSTANTIATE_TEST_SUITE_P(
                                               1.f * unit<scalar>::T,
                                               1.f * unit<scalar>::T})));
 
+/// Fixture for Runge-Kutta Propagation
+class PropagatorWithRkStepperDirectNavigator
+    : public ::testing::TestWithParam<test::vector3> {};
+
 /// Test propagation in a constant magnetic field using a Runge-Kutta stepper
-TEST_P(PropagatorWithDirectNavigator, direct_navigator) {
+TEST_P(PropagatorWithRkStepperDirectNavigator, direct_navigator) {
+
+    // Memory resource
+    vecmem::host_memory_resource host_mr;
+
+    // Track generator configuration
+    using generator_t =
+        uniform_track_generator<free_track_parameters<test_algebra>>;
+
+    generator_t::configuration trk_gen_cfg{};
+    trk_gen_cfg.phi_steps(50u).theta_steps(50u);
+    trk_gen_cfg.p_tot(10.f * unit<scalar>::GeV);
 
     // Constant magnetic field type
     using bfield_t = bfield::const_field_t<scalar>;
@@ -432,81 +447,83 @@ TEST_P(PropagatorWithDirectNavigator, direct_navigator) {
     // Runge-Kutta propagation
     using navigator_t =
         navigator<detector_t, cache_size, navigation::print_inspector>;
-    using track_t = free_track_parameters<test_algebra>;
     using constraints_t = constrained_step<scalar>;
     using policy_t = stepper_rk_policy<scalar>;
     using stepper_t =
         rk_stepper<bfield_t::view_t, test_algebra, constraints_t, policy_t>;
     // Include helix actor to check track position/covariance
     using actor_chain_t =
-        actor_chain<helix_inspector, pathlimit_aborter<scalar>,
-                    parameter_transporter<test_algebra>,
+        actor_chain<parameter_transporter<test_algebra>,
                     pointwise_material_interactor<test_algebra>,
                     parameter_resetter<test_algebra>, barcode_sequencer>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Build detector and magnetic field
+    toy_det_config<scalar> toy_cfg =
+        toy_det_config<scalar>{}.n_brl_layers(4u).n_edc_layers(7u);
+
     toy_cfg.use_material_maps(false);
     const auto [det, names] =
         build_toy_detector<test_algebra>(host_mr, toy_cfg);
-    const bfield_t bfield = bfield::create_inhom_field<scalar>();
+    const bfield_t bfield = bfield::create_const_field<scalar>(GetParam());
 
     // Propagator is built from the stepper and navigator
     propagation::config cfg{};
     cfg.navigation.search_window = {3u, 3u};
     propagator_t p{cfg};
 
-    /*
     // Iterate through uniformly distributed momentum directions
     for (auto track : generator_t{trk_gen_cfg}) {
-        // Genrate second track state used for propagation with pathlimit
-        track_t lim_track(track);
 
         // Build actor states: the helix inspector can be shared
-        pathlimit_aborter<scalar>::state unlimted_aborter_state{};
-        pathlimit_aborter<scalar>::state pathlimit_aborter_state{path_limit};
         parameter_transporter<test_algebra>::state transporter_state{};
         pointwise_material_interactor<test_algebra>::state interactor_state{};
         parameter_resetter<test_algebra>::state resetter_state{};
+        vecmem::data::vector_buffer<detray::geometry::barcode> seqs_buffer{
+            50u, host_mr, vecmem::data::buffer_type::resizable};
+        vecmem::copy m_copy;
+        m_copy.setup(seqs_buffer)->wait();
 
-        // Create actor states tuples
-        auto actor_states =
-            detray::tie(unlimted_aborter_state, transporter_state,
-                        interactor_state, resetter_state);
-        auto lim_actor_states =
-            detray::tie(pathlimit_aborter_state, transporter_state,
-                        interactor_state, resetter_state);
+        vecmem::device_vector<detray::geometry::barcode> seqs_device(
+            seqs_buffer);
+        std::cout << "Size capac: " << seqs_device.size() << "  "
+                  << seqs_device.capacity() << std::endl;
+
+        barcode_sequencer::state sequencer_state(seqs_device);
+
+        auto actor_states = detray::tie(transporter_state, interactor_state,
+                                        resetter_state, sequencer_state);
 
         // Init propagator states
         propagator_t::state state(track, bfield, det);
-        propagator_t::state lim_state(lim_track, bfield, det);
 
         // Set step constraints
+        /*
         state._stepping.template set_constraint<step::constraint::e_accuracy>(
             step_constr);
-        lim_state._stepping
-            .template set_constraint<step::constraint::e_accuracy>(step_constr);
+        */
 
         // Propagate the entire detector
         state.do_debug = true;
-        ASSERT_TRUE(p.propagate(state, actor_states))
-            //<< state.debug_stream.str() << std::endl;
-            << state._navigation.inspector().to_string() << std::endl;
+        // p.propagate(state, actor_states);
+        // std::cout << state.debug_stream.str() << std::endl;
 
-        // Propagate with path limit
-        ASSERT_NEAR(pathlimit_aborter_state.path_limit(), path_limit, tol);
-        lim_state.do_debug = true;
-        ASSERT_FALSE(p.propagate(lim_state, lim_actor_states))
-            //<< lim_state.debug_stream.str() << std::endl;
-            << lim_state._navigation.inspector().to_string() << std::endl;
+        ASSERT_TRUE(p.propagate(state, actor_states));
+        std::cout << state.debug_stream.str() << std::endl;
+        //  << state._navigation.inspector().to_string() << std::endl;
 
-        ASSERT_TRUE(lim_state._stepping.path_length() <
-                    std::abs(path_limit) + tol)
-            << "path length: " << lim_state._stepping.path_length()
-            << ", path limit: " << path_limit << std::endl;
-        //<< state._navigation.inspector().to_string() << std::endl;
+        /*
+        for (const auto& bcd : seqs_device) {
+            std::cout << bcd << std::endl;
+        }
+        */
     }
-    */
 
-    using direct_navigator_t = direct_navigator<detector_t>;
+    // using direct_navigator_t = direct_navigator<detector_t>;
 }
+
+INSTANTIATE_TEST_SUITE_P(detray_propagator_direct_navigator_0,
+                         PropagatorWithRkStepperDirectNavigator,
+                         ::testing::Values(vector3{0.f * unit<scalar>::T,
+                                                   0.f * unit<scalar>::T,
+                                                   2.f * unit<scalar>::T}));
