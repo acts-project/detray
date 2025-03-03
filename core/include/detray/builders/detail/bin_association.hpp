@@ -175,15 +175,15 @@ static inline void bin_association(const context_t & /*context*/,
 
                         if (!vertices.empty()) {
                             // Create a surface contour
-                            std::vector<point2_t> surface_contour;
+                            std::vector<point2_t> surface_contour{};
                             surface_contour.reserve(vertices.size());
                             scalar_t phi_min =
                                 std::numeric_limits<scalar_t>::max();
                             scalar_t phi_max =
                                 -std::numeric_limits<scalar_t>::max();
                             // We poentially need the split vertices
-                            std::vector<point2_t> s_c_neg;
-                            std::vector<point2_t> s_c_pos;
+                            std::vector<point2_t> s_c_neg{};
+                            std::vector<point2_t> s_c_pos{};
                             scalar_t z_min_neg =
                                 std::numeric_limits<scalar_t>::max();
                             scalar_t z_max_neg =
@@ -223,9 +223,10 @@ static inline void bin_association(const context_t & /*context*/,
                                     {z_max_pos, constant<scalar_t>::pi});
                                 s_c_pos.push_back(
                                     {z_min_pos, constant<scalar_t>::pi});
-                                surface_contours = {s_c_neg, s_c_pos};
+                                surface_contours.insert(surface_contours.end(),
+                                                        {s_c_neg, s_c_pos});
                             } else {
-                                surface_contours = {surface_contour};
+                                surface_contours.push_back(surface_contour);
                             }
 
                             // Check the association (with potential splits)

@@ -599,6 +599,9 @@ inline void get_volume_extent(
         auto decorator =
             std::dynamic_pointer_cast<const factory_decorator<detector_t>>(
                 sf_factory);
+        if (!decorator) {
+            throw std::bad_cast();
+        }
         cyl_factory =
             dynamic_cast<const cylinder_portal_generator<detector_t> *>(
                 decorator->get_factory());
