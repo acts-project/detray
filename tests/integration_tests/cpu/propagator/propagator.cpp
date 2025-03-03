@@ -57,19 +57,18 @@ struct helix_inspector : actor {
     /// Check that the stepper remains on the right helical track for its pos.
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE void operator()(
-        state& inspector_state, const propagator_state_t& prop_state) const {
+        state& inspector_state,
+        parameter_transporter<test_algebra>::state& transporter_state,
+        const propagator_state_t& prop_state) const {
 
         const auto& navigation = prop_state._navigation;
         const auto& stepping = prop_state._stepping;
+        const auto& bound_params = transporter_state.bound_params();
 
         typename propagator_state_t::detector_type::geometry_context ctx{};
 
         // Update inspector state
         inspector_state._nav_status.push_back(navigation.status());
-        // The propagation does not start on a surface, skipp the inital path
-        if (!stepping.bound_params().surface_link().is_invalid()) {
-            inspector_state.path_from_surface += stepping.step_size();
-        }
 
         // Nothing has happened yet (first call of actor chain)
         if (stepping.path_length() < tol ||
@@ -77,16 +76,16 @@ struct helix_inspector : actor {
             return;
         }
 
-        if (stepping.bound_params().surface_link().is_invalid()) {
+        if (bound_params.surface_link().is_invalid()) {
             return;
         }
 
         // Surface
-        const auto sf = tracking_surface{
-            navigation.detector(), stepping.bound_params().surface_link()};
+        const auto sf = tracking_surface{navigation.detector(),
+                                         bound_params.surface_link()};
 
         const free_track_parameters<test_algebra> free_params =
-            sf.bound_to_free_vector(ctx, stepping.bound_params());
+            sf.bound_to_free_vector(ctx, bound_params);
 
         const auto last_pos = free_params.pos();
 
@@ -112,6 +111,10 @@ struct helix_inspector : actor {
                     getter::element(true_J, i, j),
                     inspector_state.path_from_surface * tol * 10.f);
             }
+        }
+        // The propagation does not start on a surface, skipp the inital path
+        if (!bound_params.surface_link().is_invalid()) {
+            inspector_state.path_from_surface += stepping.step_size();
         }
         // Reset path from surface
         if (navigation.is_on_sensitive() ||
@@ -203,12 +206,16 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
     using policy_t = stepper_rk_policy<scalar>;
     using stepper_t =
         rk_stepper<bfield_t::view_t, test_algebra, constraints_t, policy_t>;
-    // Include helix actor to check track position/covariance
+
+    // Parameter update scheme: Include material interaction and helix
+    // inspector to check track position/covariance
+    using parameter_updater_t =
+        parameter_updater<test_algebra,
+                          pointwise_material_interactor<test_algebra>,
+                          helix_inspector>;
+
     using actor_chain_t =
-        actor_chain<helix_inspector, pathlimit_aborter<scalar>,
-                    parameter_transporter<test_algebra>,
-                    pointwise_material_interactor<test_algebra>,
-                    parameter_resetter<test_algebra>>;
+        actor_chain<pathlimit_aborter<scalar>, parameter_updater_t>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Build detector
@@ -313,12 +320,11 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
     using policy_t = stepper_rk_policy<scalar>;
     using stepper_t =
         rk_stepper<bfield_t::view_t, test_algebra, constraints_t, policy_t>;
-    // Include helix actor to check track position/covariance
+    using parameter_updater_t =
+        parameter_updater<test_algebra,
+                          pointwise_material_interactor<test_algebra>>;
     using actor_chain_t =
-        actor_chain<pathlimit_aborter<scalar>,
-                    parameter_transporter<test_algebra>,
-                    pointwise_material_interactor<test_algebra>,
-                    parameter_resetter<test_algebra>>;
+        actor_chain<pathlimit_aborter<scalar>, parameter_updater_t>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Build detector and magnetic field
@@ -341,13 +347,16 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
         // Build actor states: the helix inspector can be shared
         pathlimit_aborter<scalar>::state unlimted_aborter_state{};
         pathlimit_aborter<scalar>::state pathlimit_aborter_state{path_limit};
+        parameter_transporter<test_algebra>::state transporter_state{track};
+        parameter_transporter<test_algebra>::state transporter_state_lim{
+            lim_track};
         pointwise_material_interactor<test_algebra>::state interactor_state{};
 
         // Create actor states tuples
-        auto actor_states =
-            detray::tie(unlimted_aborter_state, interactor_state);
-        auto lim_actor_states =
-            detray::tie(pathlimit_aborter_state, interactor_state);
+        auto actor_states = detray::tie(unlimted_aborter_state,
+                                        transporter_state, interactor_state);
+        auto lim_actor_states = detray::tie(
+            pathlimit_aborter_state, transporter_state_lim, interactor_state);
 
         // Init propagator states
         propagator_t::state state(track, bfield, det);

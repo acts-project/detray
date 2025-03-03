@@ -67,10 +67,10 @@ TEST_P(BackwardPropagation, backward_propagation) {
 
     using navigator_t = navigator<decltype(det)>;
     using rk_stepper_t = rk_stepper<bfield_t::view_t, test_algebra>;
-    using actor_chain_t =
-        actor_chain<parameter_transporter<test_algebra>,
-                    pointwise_material_interactor<test_algebra>,
-                    parameter_resetter<test_algebra>>;
+    using parameter_updater_t =
+        parameter_updater<test_algebra,
+                          pointwise_material_interactor<test_algebra>>;
+    using actor_chain_t = actor_chain<parameter_updater_t>;
     using propagator_t = propagator<rk_stepper_t, navigator_t, actor_chain_t>;
 
     // Particle hypothesis
@@ -90,6 +90,7 @@ TEST_P(BackwardPropagation, backward_propagation) {
         geometry::barcode{}.set_index(0u), bound_vector, bound_cov);
 
     // Actors
+    parameter_transporter<test_algebra>::state bound_updater{bound_param0};
     pointwise_material_interactor<test_algebra>::state interactor{};
 
     propagation::config prop_cfg{};
@@ -104,13 +105,13 @@ TEST_P(BackwardPropagation, backward_propagation) {
     fw_state.do_debug = true;
 
     // Run propagator
-    p.propagate(fw_state, detray::tie(interactor));
+    p.propagate(fw_state, detray::tie(bound_updater, interactor));
 
     // Print the debug stream
     // std::cout << fw_state.debug_stream.str() << std::endl;
 
-    // Bound state after propagation
-    const auto& bound_param1 = fw_state._stepping.bound_params();
+    // Bound state after propagation (snapshot)
+    const auto bound_param1 = bound_updater.bound_params();
 
     // Check if the track reaches the final surface
     EXPECT_EQ(bound_param0.surface_link().volume(), 4095u);
@@ -127,13 +128,13 @@ TEST_P(BackwardPropagation, backward_propagation) {
     bw_state._navigation.set_direction(navigation::direction::e_backward);
 
     // Run propagator
-    p.propagate(bw_state, detray::tie(interactor));
+    p.propagate(bw_state, detray::tie(bound_updater, interactor));
 
     // Print the debug stream
     // std::cout << bw_state.debug_stream.str() << std::endl;
 
-    // Bound state after propagation
-    const auto& bound_param2 = bw_state._stepping.bound_params();
+    // Bound state after propagation (snapshot)
+    const auto bound_param2 = bound_updater.bound_params();
 
     // Check if the track reaches the initial surface
     EXPECT_EQ(bound_param2.surface_link().volume(), 0u);

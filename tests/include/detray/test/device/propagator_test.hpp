@@ -76,16 +76,14 @@ struct propagator_test_config {
 using step_tracer_host_t = step_tracer<test_algebra, vecmem::vector>;
 using step_tracer_device_t = step_tracer<test_algebra, vecmem::device_vector>;
 using pathlimit_aborter_t = pathlimit_aborter<scalar>;
+using parameter_updater_t =
+    parameter_updater<test_algebra,
+                      pointwise_material_interactor<test_algebra>>;
+
 using actor_chain_host_t =
-    actor_chain<step_tracer_host_t, pathlimit_aborter_t,
-                parameter_transporter<test_algebra>,
-                pointwise_material_interactor<test_algebra>,
-                parameter_resetter<test_algebra>>;
+    actor_chain<step_tracer_host_t, pathlimit_aborter_t, parameter_updater_t>;
 using actor_chain_device_t =
-    actor_chain<step_tracer_device_t, pathlimit_aborter_t,
-                parameter_transporter<test_algebra>,
-                pointwise_material_interactor<test_algebra>,
-                parameter_resetter<test_algebra>>;
+    actor_chain<step_tracer_device_t, pathlimit_aborter_t, parameter_updater_t>;
 
 /// Precompute the tracks
 template <typename track_generator_t = uniform_track_generator<test_track>>
@@ -134,9 +132,10 @@ inline auto run_propagation_host(vecmem::memory_resource *mr,
         tracer_state.collect_only_on_surface(true);
         typename pathlimit_aborter_t::state pathlimit_state{
             cfg.stepping.path_limit};
+        parameter_transporter<test_algebra>::state transporter_state{trk};
         pointwise_material_interactor<test_algebra>::state interactor_state{};
-        auto actor_states =
-            detray::tie(tracer_state, pathlimit_state, interactor_state);
+        auto actor_states = detray::tie(tracer_state, pathlimit_state,
+                                        transporter_state, interactor_state);
 
         typename propagator_host_t::state state(trk, field, det);
 

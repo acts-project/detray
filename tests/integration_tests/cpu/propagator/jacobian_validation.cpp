@@ -11,8 +11,7 @@
 #include "detray/detectors/bfield.hpp"
 #include "detray/navigation/intersection/helix_intersector.hpp"
 #include "detray/navigation/navigator.hpp"
-#include "detray/propagator/actors/parameter_resetter.hpp"
-#include "detray/propagator/actors/parameter_transporter.hpp"
+#include "detray/propagator/actors/parameter_updater.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 
@@ -396,8 +395,10 @@ struct bound_getter : actor {
     };
 
     template <typename propagator_state_t>
-    DETRAY_HOST_DEVICE void operator()(state& actor_state,
-                                       propagator_state_t& propagation) const {
+    DETRAY_HOST_DEVICE void operator()(
+        state& actor_state,
+        const parameter_transporter<algebra_t>::state& transporter_state,
+        propagator_state_t& propagation) const {
 
         auto& navigation = propagation._navigation;
         auto& stepping = propagation._stepping;
@@ -428,7 +429,7 @@ struct bound_getter : actor {
         if ((navigation.is_on_sensitive() || navigation.is_on_passive()) &&
             navigation.barcode().index() == 0u) {
 
-            actor_state.m_param_departure = stepping.bound_params();
+            actor_state.m_param_departure = transporter_state.bound_params();
         }
         // Get the bound track parameters and jacobian at the destination
         // surface
@@ -437,8 +438,8 @@ struct bound_getter : actor {
 
             actor_state.m_path_length = stepping.path_length();
             actor_state.m_abs_path_length = stepping.abs_path_length();
-            actor_state.m_param_destination = stepping.bound_params();
-            actor_state.m_jacobi = stepping.full_jacobian();
+            actor_state.m_param_destination = transporter_state.bound_params();
+            actor_state.m_jacobi = transporter_state.full_jacobian();
 
             // Stop navigation if the destination surface found
             propagation._heartbeat &= navigation.exit();
@@ -476,7 +477,7 @@ bound_getter<test_algebra>::state evaluate_bound_param(
     bound_getter<test_algebra>::state bound_getter_state{};
     bound_getter_state.track_ID = trk_count;
     bound_getter_state.m_min_path_length = detector_length * 0.75f;
-    auto actor_states = detray::tie(bound_getter_state);
+    auto actor_states = detray::tie(transporter_state, bound_getter_state);
 
     // Init propagator states for the reference track
     typename propagator_t::state state(initial_param, field, det);
@@ -521,11 +522,12 @@ bound_param_vector_type get_displaced_bound_vector(
     typename propagator_t::state dstate(dparam, field, det);
 
     // Actor states
+    parameter_transporter<test_algebra>::state transporter_state{dparam};
     bound_getter<test_algebra>::state bound_getter_state{};
     bound_getter_state.track_ID = trk_count;
     bound_getter_state.m_min_path_length = detector_length * 0.75f;
 
-    auto actor_states = detray::tie(bound_getter_state);
+    auto actor_states = detray::tie(transporter_state, bound_getter_state);
     dstate.set_particle(ptc);
     dstate._stepping
         .template set_constraint<detray::step::constraint::e_accuracy>(
@@ -1565,9 +1567,9 @@ int main(int argc, char** argv) {
     const inhom_bfield_t inhom_bfield = bfield::create_inhom_field<scalar>();
 
     // Actor chain type
-    using actor_chain_t = actor_chain<parameter_transporter<test_algebra>,
-                                      bound_getter<test_algebra>,
-                                      parameter_resetter<test_algebra>>;
+    using parameter_updater_t =
+        parameter_updater<test_algebra, bound_getter<test_algebra>>;
+    using actor_chain_t = actor_chain<parameter_updater_t>;
 
     // Iterate over reference (pilot) tracks for a rectangular telescope
     // geometry and Jacobian calculation

@@ -34,14 +34,14 @@ __global__ void material_validation_kernel(
     using navigator_t = navigator<detector_device_t>;
     // Propagator with full covariance transport, pathlimit aborter and
     // material tracer
+    using pathlimit_aborter_t = pathlimit_aborter<scalar_t>;
+    using parameter_updater_t =
+        parameter_updater<algebra_t, pointwise_material_interactor<algebra_t>>;
     using material_tracer_t =
         material_validator::material_tracer<scalar_t, vecmem::device_vector>;
-    using pathlimit_aborter_t = pathlimit_aborter<scalar_t>;
-    using actor_chain_t =
-        actor_chain<pathlimit_aborter_t, parameter_transporter<algebra_t>,
-                    parameter_resetter<algebra_t>,
-                    pointwise_material_interactor<algebra_t>,
-                    material_tracer_t>;
+
+    using actor_chain_t = actor_chain<pathlimit_aborter_t, parameter_updater_t,
+                                      material_tracer_t>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     detector_device_t det(det_data);
@@ -62,11 +62,13 @@ __global__ void material_validation_kernel(
 
     // Create the actor states
     typename pathlimit_aborter_t::state aborter_state{cfg.stepping.path_limit};
+    typename parameter_transporter<algebra_t>::state transporter_state{
+        tracks[trk_id]};
     typename pointwise_material_interactor<algebra_t>::state interactor_state{};
     typename material_tracer_t::state mat_tracer_state{mat_steps.at(trk_id)};
 
-    auto actor_states =
-        ::detray::tie(aborter_state, interactor_state, mat_tracer_state);
+    auto actor_states = ::detray::tie(aborter_state, transporter_state,
+                                      interactor_state, mat_tracer_state);
 
     // Run propagation
     typename navigator_t::state::view_type nav_view{};
