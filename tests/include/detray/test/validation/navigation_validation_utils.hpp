@@ -34,6 +34,51 @@ namespace detray::navigation_validator {
 /// B-field placeholder for straight-line navigation
 struct empty_bfield {};
 
+/// Struct that keeps track of the number of encountered/skipped surfaces
+struct surface_stats {
+    std::size_t n_portals{0u};
+    std::size_t n_sensitives{0u};
+    std::size_t n_passives{0u};
+
+    /// The total number of skipped surfaces
+    std::size_t n_total() const {
+        return n_portals + n_sensitives + n_passives;
+    }
+
+    /// Count a surface depending on its type
+    /// @returns true of the surface type was recognized
+    template <typename sf_descriptor_t>
+    bool count(const sf_descriptor_t &sf_desc) {
+        switch (sf_desc.id()) {
+            using enum surface_id;
+            case e_portal: {
+                n_portals++;
+                return true;
+            }
+            case e_sensitive: {
+                n_sensitives++;
+                return true;
+            }
+            case e_passive: {
+                n_passives++;
+                return true;
+            }
+            default: {
+                return false;
+            }
+        };
+    }
+
+    /// Count up
+    surface_stats &operator+=(const surface_stats &other) {
+        n_portals += other.n_portals;
+        n_sensitives += other.n_sensitives;
+        n_passives += other.n_passives;
+
+        return *this;
+    }
+};
+
 /// Run the propagation and record test data along the way
 template <typename stepper_t, typename detector_t,
           typename bfield_t = empty_bfield>
@@ -131,7 +176,6 @@ auto compare_traces(truth_trace_t &truth_trace,
     std::stringstream matching_stream;
     std::size_t n_inters_nav{recorded_trace.size()};
     std::size_t max_entries{math::max(n_inters_nav, truth_trace.size())};
-    std::size_t min_entries{math::min(n_inters_nav, truth_trace.size())};
 
     // Fill the debug stream with the information from both traces
     for (std::size_t intr_idx = 0u; intr_idx < max_entries; ++intr_idx) {
@@ -154,11 +198,13 @@ auto compare_traces(truth_trace_t &truth_trace,
     }
 
     // Check every single recorded intersection
-    std::size_t n_missed_nav{0u};
-    std::size_t n_missed_truth{0u};
+    surface_stats n_missed_nav{};
+    surface_stats n_missed_truth{};
     std::size_t n_errors{0u};
     std::vector<intersection_t> missed_intersections{};
-    for (long i = 0; i < static_cast<long>(min_entries); ++i) {
+    // Iterate until 'max_entries', because dummy records will be added to the
+    // shorter trace
+    for (long i = 0; i < static_cast<long>(max_entries); ++i) {
 
         const auto idx{static_cast<std::size_t>(i)};
         const auto &nav_inters =
@@ -169,7 +215,7 @@ auto compare_traces(truth_trace_t &truth_trace,
         const bool found_same_surfaces{nav_inters == truth_inters};
 
         if (!found_same_surfaces) {
-            // Intersection record at portal bound might be flipped
+            // Intersection records at portal boundary might be flipped
             // (the portals overlap completely)
             auto is_swapped_portals = [&recorded_trace,
                                        &truth_trace](const long j) {
@@ -180,13 +226,20 @@ auto compare_traces(truth_trace_t &truth_trace,
                 const auto &current_truth_inters =
                     truth_trace[idx_j].intersection.sf_desc.barcode();
 
-                const auto &next_nav_inters =
-                    recorded_trace[idx_j + 1u].intersection.sf_desc.barcode();
-                const auto &next_truth_inters =
-                    truth_trace[idx_j + 1u].intersection.sf_desc.barcode();
+                const std::size_t next_idx{idx_j + 1u};
+                if (next_idx < truth_trace.size() &&
+                    next_idx < recorded_trace.size()) {
 
-                return ((current_nav_inters == next_truth_inters) &&
-                        (next_nav_inters == current_truth_inters));
+                    const auto &next_nav_inters =
+                        recorded_trace[next_idx].intersection.sf_desc.barcode();
+                    const auto &next_truth_inters =
+                        truth_trace[next_idx].intersection.sf_desc.barcode();
+
+                    return ((current_nav_inters == next_truth_inters) &&
+                            (next_nav_inters == current_truth_inters));
+                } else {
+                    return false;
+                }
             };
 
             // Match the barcodes
@@ -197,6 +250,9 @@ auto compare_traces(truth_trace_t &truth_trace,
                 return tr.intersection.sf_desc.barcode() == nav_inters;
             };
 
+            // Check if the portal order is swapped or the surface appears
+            // later in the truth/navigation trace (this means one or
+            // multiple surfaces were skipped respectively)
             if (is_swapped_portals(i)) {
                 // Have already checked the next record
                 ++i;
@@ -208,10 +264,13 @@ auto compare_traces(truth_trace_t &truth_trace,
                 // The navigator missed a(multiple) surface(s)
                 auto first_missed = std::begin(truth_trace) + i;
                 const auto n_check{std::distance(first_missed, last_missed_tr)};
-                // Number of actually missed surfaces in this range
-                std::size_t n{0u};
+                // Number of missed surfaces so far
+                long missed_pt{static_cast<long>(n_missed_nav.n_portals)};
+                long missed_sn{static_cast<long>(n_missed_nav.n_sensitives)};
+                long missed_ps{static_cast<long>(n_missed_nav.n_passives)};
 
-                // Check and record surfaces that were missed
+                // Check and record surfaces that were missed: Insert dummy
+                // records until traces align again
                 for (long j = i; j < i + n_check; ++j) {
                     const auto &truth_sfi =
                         truth_trace[static_cast<std::size_t>(j)].intersection;
@@ -227,15 +286,49 @@ auto compare_traces(truth_trace_t &truth_trace,
                     // Insert dummy records to match the truth trace size
                     recorded_trace.insert(recorded_trace.begin() + i,
                                           nav_record_t{});
-                    ++n;
-                }
-                n_missed_nav += n;
 
-                matching_stream << "\nERROR: Detray navigator missed " << n
-                                << " surface(s) at: " << i << "/" << max_entries
-                                << " (Inserted dummy record(s))";
+                    // Count per surface type
+                    const bool valid{n_missed_nav.count(truth_sfi.sf_desc)};
+                    if (!valid) {
+                        matching_stream << "ERROR: Encountered surface of "
+                                           "unknown type in intersection "
+                                           "trace. Validate the geometry";
+                        ++n_errors;
+                    }
+                }
+
+                auto print_err = [&matching_stream, max_entries, i](
+                                     const std::string &sf_type, long n_sf) {
+                    matching_stream << "\nERROR: Detray navigator missed "
+                                    << n_sf << " " << sf_type << "(s) at: " << i
+                                    << "/" << max_entries << ": "
+                                    << " (Inserted dummy record(s))";
+                };
+
+                // Number of misses on this track
+                missed_pt =
+                    static_cast<long>(n_missed_nav.n_portals) - missed_pt;
+                missed_sn =
+                    static_cast<long>(n_missed_nav.n_sensitives) - missed_sn;
+                missed_ps =
+                    static_cast<long>(n_missed_nav.n_passives) - missed_ps;
+
+                assert(missed_pt >= 0);
+                assert(missed_sn >= 0);
+                assert(missed_ps >= 0);
+
+                if (missed_pt > 0) {
+                    print_err("portal", missed_pt);
+                }
+                if (missed_sn > 0) {
+                    print_err("sensitive", missed_sn);
+                }
+                if (missed_ps > 0) {
+                    print_err("passive", missed_ps);
+                }
 
                 // Continue checking where trace might match again
+                const long n{missed_pt + missed_sn + missed_ps};
                 i += (n - 1);
 
             } else if (auto last_missed_nav = std::ranges::find_if(
@@ -246,8 +339,10 @@ auto compare_traces(truth_trace_t &truth_trace,
                 auto first_missed = std::begin(recorded_trace) + i;
                 const auto n_check{
                     std::distance(first_missed, last_missed_nav)};
-                // Number of actually missed surfaces in this range
-                std::size_t n{0u};
+                // Number of missed surfaces so far
+                long missed_pt{static_cast<long>(n_missed_truth.n_portals)};
+                long missed_sn{static_cast<long>(n_missed_truth.n_sensitives)};
+                long missed_ps{static_cast<long>(n_missed_truth.n_passives)};
 
                 // Check and record surfaces that were missed
                 for (long j = i; j < i + n_check; ++j) {
@@ -265,14 +360,49 @@ auto compare_traces(truth_trace_t &truth_trace,
                     // Insert dummy records to match the truth trace size
                     truth_trace.insert(truth_trace.begin() + i,
                                        truth_record_t{});
-                    ++n;
+
+                    // Count per surface type
+                    const bool valid{n_missed_truth.count(rec_sfi.sf_desc)};
+                    if (!valid) {
+                        matching_stream << "ERROR: Encountered surface of "
+                                           "unknown type in intersection "
+                                           "trace. Validate the geometry";
+                        ++n_errors;
+                    }
                 }
-                n_missed_truth += n;
 
-                matching_stream << "\nERROR: Detray navigator found " << n
-                                << " additional surface(s) at: " << i << "/"
-                                << max_entries << " (Inserted dummy record(s))";
+                auto print_err = [&matching_stream, max_entries, i](
+                                     const std::string &sf_type, long n_sf) {
+                    matching_stream << "\nERROR: Detray navigator found "
+                                    << n_sf << " additional " << sf_type
+                                    << "(s) at: " << i << "/" << max_entries
+                                    << " (Inserted dummy record(s))";
+                };
 
+                // Number of misses on this track
+                missed_pt =
+                    static_cast<long>(n_missed_truth.n_portals) - missed_pt;
+                missed_sn =
+                    static_cast<long>(n_missed_truth.n_sensitives) - missed_sn;
+                missed_ps =
+                    static_cast<long>(n_missed_truth.n_passives) - missed_ps;
+
+                assert(missed_pt >= 0);
+                assert(missed_sn >= 0);
+                assert(missed_ps >= 0);
+
+                if (missed_pt > 0) {
+                    print_err("portal", missed_pt);
+                }
+                if (missed_sn > 0) {
+                    print_err("sensitive", missed_sn);
+                }
+                if (missed_ps > 0) {
+                    print_err("passive", missed_ps);
+                }
+
+                // Continue checking where trace might match again
+                const long n{missed_pt + missed_sn + missed_ps};
                 i += (n - 1);
             } else {
                 // None of the above: Error!
@@ -286,8 +416,8 @@ auto compare_traces(truth_trace_t &truth_trace,
         }
     }
 
-    const bool any_error{(n_missed_nav != 0u) || (n_missed_truth != 0u) ||
-                         (n_errors != 0u)};
+    const bool any_error{(n_missed_nav.n_total() != 0u) ||
+                         (n_missed_truth.n_total() != 0u) || (n_errors != 0u)};
 
     // Fail the test with some extra information
     EXPECT_TRUE(!any_error)
@@ -306,14 +436,14 @@ auto compare_traces(truth_trace_t &truth_trace,
 
     // Multiple missed surfaces are a hint that something might be off with this
     // track
-    if (n_missed_nav > 1u) {
+    if (n_missed_nav.n_total() > 1u) {
         std::cout << "WARNING: Detray navigator skipped multiple surfaces: "
-                  << n_missed_nav << "\n"
+                  << n_missed_nav.n_total() << "\n"
                   << std::endl;
     }
-    if (n_missed_truth > 1u) {
+    if (n_missed_truth.n_total() > 1u) {
         std::cout << "WARNING: Detray navigator found multiple extra surfaces: "
-                  << n_missed_truth << "\n"
+                  << n_missed_truth.n_total() << "\n"
                   << std::endl;
     }
     // Unknown error occured during matching
@@ -327,8 +457,8 @@ auto compare_traces(truth_trace_t &truth_trace,
            "of surfaces after matching! Please check unmatched elements\n"
         << debug_stream.str();
 
-    if (!is_size || (n_missed_nav != 0u) || (n_missed_truth != 0u) ||
-        (n_errors != 0u)) {
+    if (!is_size || (n_missed_nav.n_total() != 0u) ||
+        (n_missed_truth.n_total() != 0u) || (n_errors != 0u)) {
         return std::make_tuple(false, n_missed_nav, n_missed_truth, n_errors,
                                missed_intersections);
     }
@@ -408,50 +538,89 @@ auto write_dist_to_boundary(
 
 /// Calculate and print the navigation efficiency
 /// @NOTE: WIP
-inline auto print_efficiency(std::size_t n_tracks, std::size_t n_surfaces,
-                             std::size_t n_miss_nav, std::size_t n_miss_truth,
+inline auto print_efficiency(std::size_t n_tracks,
+                             const surface_stats &n_surfaces,
+                             const surface_stats &n_miss_nav,
+                             const surface_stats &n_miss_truth,
                              std::size_t n_fatal,
                              std::size_t n_matching_error) {
-    // Print general information
-    if (n_miss_nav > 0u || n_miss_truth > 0u || n_fatal > 0u ||
-        n_matching_error > 0u) {
+    // Column width in output
+    constexpr int cw{20};
 
-        std::cout << "-----------------------------------"
-                  << "Error Statistic:"
-                  << "\nTotal number of tracks:         " << n_tracks
-                  << "\nTotal number of surfaces:       " << n_surfaces
-                  << "\n -> missed by navigator:        " << n_miss_nav
-                  << "\n -> found in add. by navigator: " << n_miss_truth
-                  << "\nFatal propagation failures:     " << n_fatal
-                  << "\nErrors during truth matching:   " << n_matching_error;
+    // Print general information
+    if (n_miss_nav.n_total() > 0u || n_miss_truth.n_total() > 0u ||
+        n_fatal > 0u || n_matching_error > 0u) {
+
+        std::cout
+            << std::left << "-----------------------------------"
+            << "Error Statistic:"
+            << "\nTotal number of tracks: " << n_tracks
+            << "\n\nTotal number of surfaces: " << n_surfaces.n_total()
+            << std::setw(cw) << "\n      portals: " << n_surfaces.n_portals
+            << std::setw(cw)
+            << "\n      sensitives: " << n_surfaces.n_sensitives
+            << std::setw(cw) << "\n      passives: " << n_surfaces.n_passives
+            << "\n\n -> missed by navigator: " << n_miss_nav.n_total()
+            << std::setw(cw) << "\n      portals: " << n_miss_nav.n_portals
+            << std::setw(cw)
+            << "\n      sensitives: " << n_miss_nav.n_sensitives
+            << std::setw(cw) << "\n      passives: " << n_miss_nav.n_passives
+            << "\n\n -> found in add. by navigator: " << n_miss_truth.n_total()
+            << std::setw(cw) << "\n      portals: " << n_miss_truth.n_portals
+            << std::setw(cw)
+            << "\n      sensitives: " << n_miss_truth.n_sensitives
+            << std::setw(cw) << "\n      passives: " << n_miss_truth.n_passives
+            << "\n\nFatal propagation failures:   " << n_fatal
+            << "\nErrors during truth matching: " << n_matching_error;
     } else {
         std::cout << "-----------------------------------\n"
                   << "Tested " << n_tracks << " tracks: OK\n"
-                  << "total number of surfaces:         " << n_surfaces;
+                  << "total number of surfaces:         "
+                  << n_surfaces.n_total();
     }
 
-    // How many significant digits to print
-    const auto n_sig{2 + static_cast<int>(math::ceil(math::log10(n_surfaces)))};
+    assert(n_miss_nav.n_total() <= n_surfaces.n_total());
+    assert(n_miss_nav.n_portals <= n_surfaces.n_portals);
+    assert(n_miss_nav.n_sensitives <= n_surfaces.n_sensitives);
+    assert(n_miss_nav.n_passives <= n_surfaces.n_passives);
 
-    assert(n_miss_nav <= n_surfaces);
+    /// Print the surface finding efficiency per surface tpye
+    auto print_eff = [&n_surfaces](const std::string &sf_type,
+                                   const std::size_t n_sf,
+                                   const std::size_t n_missed) {
+        // How many significant digits to print
+        const auto n_sig{2 + static_cast<int>(math::ceil(
+                                 math::log10(n_surfaces.n_total())))};
 
-    const auto k{static_cast<double>(n_surfaces - n_miss_nav)};
-    const auto n{static_cast<double>(n_surfaces)};
+        const auto k{static_cast<double>(n_sf - n_missed)};
+        const auto n{static_cast<double>(n_sf)};
 
-    // Estimate of the surface finding efficiency by the navigator
-    const auto eff{k / n};
+        // Estimate of the surface finding efficiency by the navigator
+        const auto eff{k / n};
 
-    // Variance
-    // const double var_binomial{eff * (1. - eff) / n};
-    const double var_bayesian{(k + 1.) * (k + 2.) / ((n + 2.) * (n + 3.)) -
-                              std::pow((k + 1.), 2) / std::pow((n + 2.), 2)};
+        // Variance
+        // const double var_binomial{eff * (1. - eff) / n};
+        const double var_bayesian{(k + 1.) * (k + 2.) / ((n + 2.) * (n + 3.)) -
+                                  std::pow((k + 1.), 2) /
+                                      std::pow((n + 2.), 2)};
 
-    // In percent
-    std::cout << "\n\nSurface finding eff.: " << std::fixed
-              << std::setprecision(n_sig) << 100. * eff << " \u00b1 "
-              << 100. * math::sqrt(var_bayesian) << "%"
-              << "\n-----------------------------------\n"
-              << std::endl;
+        // In percent
+        std::cout << "\n"
+                  << sf_type << " finding eff.: " << std::fixed
+                  << std::setprecision(n_sig) << 100. * eff << " \u00b1 "
+                  << 100. * math::sqrt(var_bayesian) << "%";
+    };
+
+    std::cout << std::endl;
+    print_eff("Portal sf.", n_surfaces.n_portals, n_miss_nav.n_portals);
+    print_eff("Sensitive sf.", n_surfaces.n_sensitives,
+              n_miss_nav.n_sensitives);
+    print_eff("Passive sf.", n_surfaces.n_passives, n_miss_nav.n_passives);
+
+    std::cout << std::endl;
+    print_eff("Surface", n_surfaces.n_total(), n_miss_nav.n_total());
+
+    std::cout << "\n-----------------------------------\n" << std::endl;
 }
 
 }  // namespace detray::navigation_validator
