@@ -90,9 +90,7 @@ TEST_P(BackwardPropagation, backward_propagation) {
         geometry::barcode{}.set_index(0u), bound_vector, bound_cov);
 
     // Actors
-    parameter_transporter<test_algebra>::state bound_updater{};
     pointwise_material_interactor<test_algebra>::state interactor{};
-    parameter_resetter<test_algebra>::state rst{};
 
     propagation::config prop_cfg{};
     prop_cfg.stepping.rk_error_tol = 1e-12f * unit<float>::mm;
@@ -106,7 +104,7 @@ TEST_P(BackwardPropagation, backward_propagation) {
     fw_state.do_debug = true;
 
     // Run propagator
-    p.propagate(fw_state, detray::tie(bound_updater, interactor, rst));
+    p.propagate(fw_state, detray::tie(interactor));
 
     // Print the debug stream
     // std::cout << fw_state.debug_stream.str() << std::endl;
@@ -129,7 +127,7 @@ TEST_P(BackwardPropagation, backward_propagation) {
     bw_state._navigation.set_direction(navigation::direction::e_backward);
 
     // Run propagator
-    p.propagate(bw_state, detray::tie(bound_updater, interactor, rst));
+    p.propagate(bw_state, detray::tie(interactor));
 
     // Print the debug stream
     // std::cout << bw_state.debug_stream.str() << std::endl;

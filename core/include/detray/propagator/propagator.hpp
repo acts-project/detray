@@ -150,9 +150,9 @@ struct propagator {
     ///
     /// @note If the return value of this function is true, a propagation step
     /// can be taken afterwards.
+    template <typename actor_states_t>
     DETRAY_HOST_DEVICE void propagate_init(
-        state &propagation,
-        typename actor_chain_t::state actor_state_refs) const {
+        state &propagation, actor_states_t actor_state_refs) const {
         auto &navigation = propagation._navigation;
         auto &stepping = propagation._stepping;
         auto &context = propagation._context;
@@ -179,9 +179,10 @@ struct propagator {
     ///
     /// @note If the return value of this function is true, another step can
     /// be taken afterwards.
+    template <typename actor_states_t>
     DETRAY_HOST_DEVICE bool propagate_step(
         state &propagation, bool is_init,
-        typename actor_chain_t::state actor_state_refs) const {
+        actor_states_t actor_state_refs) const {
         auto &navigation = propagation._navigation;
         auto &stepping = propagation._stepping;
         auto &context = propagation._context;
@@ -242,9 +243,10 @@ struct propagator {
     /// @param actor_state_refs tuple containing refences to the actor states
     ///
     /// @return propagation success.
+    template <typename actor_states_t>
     DETRAY_HOST_DEVICE bool propagate(
         state &propagation,
-        typename actor_chain_t::state actor_state_refs) const {
+        actor_states_t actor_state_refs = dtuple<>{}) const {
 
         propagate_init(propagation, actor_state_refs);
         bool is_init = true;
@@ -278,9 +280,9 @@ struct propagator {
     /// @param actor_states the actor state
     ///
     /// @return propagation success.
+    template <typename actor_states_t>
     DETRAY_HOST_DEVICE bool propagate_sync(
-        state &propagation,
-        typename actor_chain_t::state actor_state_refs) const {
+        state &propagation, actor_states_t actor_state_refs) const {
 
         propagate_init(propagation, actor_state_refs);
         bool is_init = true;

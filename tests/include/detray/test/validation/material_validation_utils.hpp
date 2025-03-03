@@ -183,10 +183,9 @@ struct material_tracer : detray::actor {
 
         // Get the local track position from the bound track parameters,
         // if covariance transport is enabled in the propagation
-        if constexpr (detail::has_type_v<
-                          typename parameter_transporter<algebra_t>::state &,
-                          typename propagator_state_t::actor_chain_type::
-                              state>) {
+        if constexpr (detail::has_type_v<parameter_transporter<algebra_t>,
+                                         typename propagator_state_t::
+                                             actor_chain_type::actor_tuple>) {
             const auto &track_param = prop_state._stepping.bound_params();
             loc_pos = track_param.bound_local();
         } else {
@@ -251,14 +250,11 @@ inline auto record_material(
     // Build actor and propagator states
     typename pathlimit_aborter_t::state pathlimit_aborter_state{
         cfg.stepping.path_limit};
-    typename parameter_transporter<algebra_t>::state transporter_state{};
-    typename parameter_resetter<algebra_t>::state resetter_state{};
     typename pointwise_material_interactor<algebra_t>::state interactor_state{};
     typename material_tracer_t::state mat_tracer_state{*host_mr};
 
-    auto actor_states =
-        detray::tie(pathlimit_aborter_state, transporter_state, resetter_state,
-                    interactor_state, mat_tracer_state);
+    auto actor_states = detray::tie(pathlimit_aborter_state, interactor_state,
+                                    mat_tracer_state);
 
     typename propagator_t::state propagation{track, det, cfg.context};
 

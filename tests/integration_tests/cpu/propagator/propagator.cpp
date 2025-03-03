@@ -235,9 +235,9 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
         track_t lim_track(track);
 
         // Build actor states: the helix inspector can be shared
-        auto actor_states = actor_chain_t::make_actor_states();
-        auto actor_states_lim = actor_chain_t::make_actor_states();
-        auto actor_states_sync = actor_chain_t::make_actor_states();
+        auto actor_states = actor_chain_t::make_default_actor_states();
+        auto actor_states_lim = actor_chain_t::make_default_actor_states();
+        auto actor_states_sync = actor_chain_t::make_default_actor_states();
 
         // Make sure the lim state is being terminated
         auto& pathlimit_aborter_state =
@@ -341,17 +341,13 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
         // Build actor states: the helix inspector can be shared
         pathlimit_aborter<scalar>::state unlimted_aborter_state{};
         pathlimit_aborter<scalar>::state pathlimit_aborter_state{path_limit};
-        parameter_transporter<test_algebra>::state transporter_state{};
         pointwise_material_interactor<test_algebra>::state interactor_state{};
-        parameter_resetter<test_algebra>::state resetter_state{};
 
         // Create actor states tuples
         auto actor_states =
-            detray::tie(unlimted_aborter_state, transporter_state,
-                        interactor_state, resetter_state);
+            detray::tie(unlimted_aborter_state, interactor_state);
         auto lim_actor_states =
-            detray::tie(pathlimit_aborter_state, transporter_state,
-                        interactor_state, resetter_state);
+            detray::tie(pathlimit_aborter_state, interactor_state);
 
         // Init propagator states
         propagator_t::state state(track, bfield, det);
