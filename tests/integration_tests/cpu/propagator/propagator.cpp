@@ -455,7 +455,7 @@ TEST_P(PropagatorWithRkStepperDirectNavigator, direct_navigator) {
     using actor_chain_t =
         actor_chain<parameter_transporter<test_algebra>,
                     pointwise_material_interactor<test_algebra>,
-                    parameter_resetter<test_algebra>, barcode_sequencer>;
+                    parameter_resetter<test_algebra>, geo_id_sequencer>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Build detector and magnetic field
@@ -479,17 +479,17 @@ TEST_P(PropagatorWithRkStepperDirectNavigator, direct_navigator) {
         parameter_transporter<test_algebra>::state transporter_state{};
         pointwise_material_interactor<test_algebra>::state interactor_state{};
         parameter_resetter<test_algebra>::state resetter_state{};
-        vecmem::data::vector_buffer<detray::geometry::barcode> seqs_buffer{
-            50u, host_mr, vecmem::data::buffer_type::resizable};
+        vecmem::data::vector_buffer<detray::geometry::barcode::value_t>
+            seqs_buffer{50u, host_mr, vecmem::data::buffer_type::resizable};
         vecmem::copy m_copy;
         m_copy.setup(seqs_buffer)->wait();
 
-        vecmem::device_vector<detray::geometry::barcode> seqs_device(
+        vecmem::device_vector<detray::geometry::barcode::value_t> seqs_device(
             seqs_buffer);
         std::cout << "Size capac: " << seqs_device.size() << "  "
                   << seqs_device.capacity() << std::endl;
 
-        barcode_sequencer::state sequencer_state(seqs_device);
+        geo_id_sequencer::state sequencer_state(seqs_device);
 
         auto actor_states = detray::tie(transporter_state, interactor_state,
                                         resetter_state, sequencer_state);

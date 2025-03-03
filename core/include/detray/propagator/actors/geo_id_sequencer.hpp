@@ -18,11 +18,12 @@
 
 namespace detray {
 
-struct barcode_sequencer : actor {
+struct geo_id_sequencer : actor {
 
     struct state {
 
-        using sequence_t = vecmem::device_vector<detray::geometry::barcode>;
+        using sequence_t =
+            vecmem::device_vector<detray::geometry::barcode::value_t>;
         sequence_t _sequence;
 
         /// Constructor with the vector of track states
@@ -36,19 +37,6 @@ struct barcode_sequencer : actor {
 
         const auto& navigation = propagation._navigation;
 
-        /*
-        // Do covariance transport when the track is on surface
-        if (navigation.is_on_sensitive() &&
-              navigation.encountered_sf_material()) {
-
-            const auto& bcd = navigation.current().sf_desc.barcode();
-            //assert(!bcd.is_invalid());
-
-            std::cout << bcd << std::endl;
-            actor_state._sequence.push_back(bcd);
-        }
-        */
-
         if (navigation.is_on_surface()) {
 
             const auto& bcd = navigation.current().sf_desc.barcode();
@@ -56,7 +44,7 @@ struct barcode_sequencer : actor {
 
             std::cout << bcd << "  " << actor_state._sequence.size() << "  "
                       << actor_state._sequence.capacity() << std::endl;
-            actor_state._sequence.push_back(bcd);
+            actor_state._sequence.push_back(bcd.value());
         }
 
         return;
