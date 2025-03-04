@@ -107,13 +107,13 @@ GTEST_TEST(detray_core, multicontext_transform_store) {
     ASSERT_EQ(xf_store.size(ctx1), 4u);
 
     // Check that we can access context data as expected
-    auto tr0_0 = xf_store.at(0, ctx0).translation();
-    auto tr1_0 = xf_store.at(0, ctx1).translation();
-    auto tr_diff_0 = tr1_0 - tr0_0;
+    point3 tr0_0 = xf_store.at(0, ctx0).translation();
+    point3 tr1_0 = xf_store.at(0, ctx1).translation();
+    point3 tr_diff_0 = tr1_0 - tr0_0;
     EXPECT_POINT3_NEAR(tr_diff_0, shift, 1e-6);
 
-    auto tr0_3 = xf_store.at(3, ctx0).translation();
-    auto tr1_3 = xf_store.at(3, ctx1).translation();
-    auto tr_diff_3 = tr1_3 - tr0_3;
+    point3 tr0_3 = xf_store.at(3, ctx0).translation();
+    point3 tr1_3 = xf_store.at(3, ctx1).translation();
+    point3 tr_diff_3 = tr1_3 - tr0_3;
     EXPECT_POINT3_NEAR(tr_diff_3, shift, 1e-6);
 }

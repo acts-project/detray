@@ -19,8 +19,8 @@ template <template <typename> class check_t, typename detector_t,
           typename config_t = typename check_t<detector_t>::config>
 void register_checks(const detector_t &det,
                      const typename detector_t::name_map &vol_names,
-                     const config_t &cfg = {},
-                     const typename detector_t::geometry_context &gctx = {}) {
+                     const config_t &cfg,
+                     const typename detector_t::geometry_context &gctx) {
 
     const char *test_name = cfg.name().c_str();
     if (!test_name) {

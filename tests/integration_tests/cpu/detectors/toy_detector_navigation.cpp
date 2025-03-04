@@ -51,11 +51,12 @@ int main(int argc, char **argv) {
         build_toy_detector<test_algebra>(host_mr, toy_cfg);
 
     auto white_board = std::make_shared<test::whiteboard>();
+    toy_detector_t::geometry_context ctx{};
 
     // General data consistency of the detector
     test::consistency_check<toy_detector_t>::config cfg_cons{};
     detail::register_checks<test::consistency_check>(
-        toy_det, toy_names, cfg_cons.name("toy_detector_consistency"));
+        toy_det, toy_names, cfg_cons.name("toy_detector_consistency"), ctx);
 
     // Navigation link consistency, discovered by ray intersection
     test::ray_scan<toy_detector_t>::config cfg_ray_scan{};
@@ -63,7 +64,8 @@ int main(int argc, char **argv) {
     cfg_ray_scan.whiteboard(white_board);
     cfg_ray_scan.track_generator().n_tracks(10000u);
 
-    detail::register_checks<test::ray_scan>(toy_det, toy_names, cfg_ray_scan);
+    detail::register_checks<test::ray_scan>(toy_det, toy_names, cfg_ray_scan,
+                                            ctx);
 
     // Comparison of straight line navigation with ray scan
     test::straight_line_navigation<toy_detector_t>::config cfg_str_nav{};
@@ -77,7 +79,7 @@ int main(int argc, char **argv) {
         static_cast<float>(mask_tolerance[1]);
 
     detail::register_checks<test::straight_line_navigation>(toy_det, toy_names,
-                                                            cfg_str_nav);
+                                                            cfg_str_nav, ctx);
 
     // Navigation link consistency, discovered by helix intersection
     test::helix_scan<toy_detector_t>::config cfg_hel_scan{};
@@ -91,7 +93,8 @@ int main(int argc, char **argv) {
     cfg_hel_scan.track_generator().eta_range(-4.f, 4.f);
     cfg_hel_scan.track_generator().p_T(1.f * unit<scalar>::GeV);
 
-    detail::register_checks<test::helix_scan>(toy_det, toy_names, cfg_hel_scan);
+    detail::register_checks<test::helix_scan>(toy_det, toy_names, cfg_hel_scan,
+                                              ctx);
 
     // Comparison of navigation in a constant B-field with helix
     test::helix_navigation<toy_detector_t>::config cfg_hel_nav{};
@@ -100,7 +103,7 @@ int main(int argc, char **argv) {
     cfg_hel_nav.propagation().navigation.search_window = {3u, 3u};
 
     detail::register_checks<test::helix_navigation>(toy_det, toy_names,
-                                                    cfg_hel_nav);
+                                                    cfg_hel_nav, ctx);
 
     // Run the material validation - Material Maps
     test::material_scan<toy_detector_t>::config mat_scan_cfg{};
@@ -111,7 +114,7 @@ int main(int argc, char **argv) {
 
     // Record the material using a ray scan
     detail::register_checks<test::material_scan>(toy_det, toy_names,
-                                                 mat_scan_cfg);
+                                                 mat_scan_cfg, ctx);
 
     // Now trace the material during navigation and compare
     test::material_validation<toy_detector_t>::config mat_val_cfg{};
@@ -125,7 +128,7 @@ int main(int argc, char **argv) {
 
     // @TODO: Put material maps on all portals
     detail::register_checks<test::material_validation>(toy_det, toy_names,
-                                                       mat_val_cfg);
+                                                       mat_val_cfg, ctx);
 
     // Run the material validation - Homogeneous material
     toy_cfg.use_material_maps(false);
@@ -139,17 +142,17 @@ int main(int argc, char **argv) {
     // Check that the detector was built correctly
     detail::register_checks<test::consistency_check>(
         toy_det_hom_mat, toy_names_hom_mat,
-        cfg_cons.name("toy_detector_consistency_hom_mat"));
+        cfg_cons.name("toy_detector_consistency_hom_mat"), ctx);
 
     // Record the material using a ray scan
     mat_scan_cfg.name("toy_detector_hom_material_scan");
     detail::register_checks<test::material_scan>(
-        toy_det_hom_mat, toy_names_hom_mat, mat_scan_cfg);
+        toy_det_hom_mat, toy_names_hom_mat, mat_scan_cfg, ctx);
 
     // Now trace the material during navigation and compare
     mat_val_cfg.name("toy_detector_hom_material_validaiton");
     detail::register_checks<test::material_validation>(
-        toy_det_hom_mat, toy_names_hom_mat, mat_val_cfg);
+        toy_det_hom_mat, toy_names_hom_mat, mat_val_cfg, ctx);
 
     // Run the checks
     return RUN_ALL_TESTS();
