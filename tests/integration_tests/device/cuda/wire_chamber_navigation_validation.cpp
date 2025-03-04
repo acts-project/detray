@@ -59,6 +59,7 @@ int main(int argc, char **argv) {
         build_wire_chamber<test_algebra>(host_mr, wire_chamber_cfg);
 
     auto white_board = std::make_shared<test::whiteboard>();
+    wire_chamber_t::geometry_context ctx{};
 
     // Navigation link consistency, discovered by ray intersection
     test::ray_scan<wire_chamber_t>::config cfg_ray_scan{};
@@ -67,7 +68,7 @@ int main(int argc, char **argv) {
     cfg_ray_scan.track_generator().seed(42u);
     cfg_ray_scan.track_generator().n_tracks(1000u);
 
-    detail::register_checks<test::ray_scan>(det, names, cfg_ray_scan);
+    detail::register_checks<test::ray_scan>(det, names, cfg_ray_scan, ctx);
 
     // Comparison of straight line navigation with ray scan
     detray::cuda::straight_line_navigation<wire_chamber_t>::config
@@ -82,7 +83,7 @@ int main(int argc, char **argv) {
         static_cast<float>(mask_tolerance[1]);
 
     detail::register_checks<detray::cuda::straight_line_navigation>(
-        det, names, cfg_str_nav);
+        det, names, cfg_str_nav, ctx);
 
     // Navigation link consistency, discovered by helix intersection
     test::helix_scan<wire_chamber_t>::config cfg_hel_scan{};
@@ -96,7 +97,7 @@ int main(int argc, char **argv) {
     // TODO: Fails for smaller momenta
     cfg_hel_scan.track_generator().p_T(4.f * unit<scalar>::GeV);
 
-    detail::register_checks<test::helix_scan>(det, names, cfg_hel_scan);
+    detail::register_checks<test::helix_scan>(det, names, cfg_hel_scan, ctx);
 
     // Comparison of navigation in a constant B-field with helix
     detray::cuda::helix_navigation<wire_chamber_t>::config cfg_hel_nav{};
@@ -106,7 +107,7 @@ int main(int argc, char **argv) {
     cfg_hel_nav.propagation().navigation.search_window = {3u, 3u};
 
     detail::register_checks<detray::cuda::helix_navigation>(det, names,
-                                                            cfg_hel_nav);
+                                                            cfg_hel_nav, ctx);
 
     // Run the material validation
     test::material_scan<wire_chamber_t>::config mat_scan_cfg{};
@@ -116,7 +117,7 @@ int main(int argc, char **argv) {
     mat_scan_cfg.track_generator().phi_steps(100).eta_steps(100);
 
     // Record the material using a ray scan
-    detail::register_checks<test::material_scan>(det, names, mat_scan_cfg);
+    detail::register_checks<test::material_scan>(det, names, mat_scan_cfg, ctx);
 
     // Now trace the material during navigation and compare
     detray::cuda::material_validation<wire_chamber_t>::config mat_val_cfg{};
@@ -129,8 +130,8 @@ int main(int argc, char **argv) {
     }
     mat_val_cfg.propagation() = cfg_str_nav.propagation();
 
-    detail::register_checks<detray::cuda::material_validation>(det, names,
-                                                               mat_val_cfg);
+    detail::register_checks<detray::cuda::material_validation>(
+        det, names, mat_val_cfg, ctx);
 
     // Run the checks
     return RUN_ALL_TESTS();

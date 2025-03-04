@@ -19,8 +19,9 @@ namespace detray {
 
 // Single store test
 /// @{
-using single_store_t = single_store<double, vecmem::vector>;
-using single_store_dev_t = single_store<double, vecmem::device_vector>;
+using single_store_t = single_store<double, vecmem::vector, geometry_context>;
+using single_store_dev_t =
+    single_store<double, vecmem::device_vector, geometry_context>;
 /// @}
 
 // Tuple container test
