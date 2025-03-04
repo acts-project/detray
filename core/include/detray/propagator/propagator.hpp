@@ -10,6 +10,7 @@
 // Project include(s).
 #include "detray/definitions/detail/macros.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/navigation/direct_navigator.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actor_chain.hpp"
@@ -116,6 +117,34 @@ struct propagator {
                                  const context_type &ctx = {})
             : _stepping(param, magnetic_field, det, ctx),
               _navigation(det),
+              _context(ctx) {}
+
+        /// Construct with direct navigator
+        template <typename field_t, typename U = navigator_t,
+                  typename std::enable_if<
+                      std::is_same<U, direct_navigator<detector_type>>::value,
+                      int>::type = 0>
+        DETRAY_HOST_DEVICE state(const free_track_parameters_type &free_params,
+                                 const field_t &magnetic_field,
+                                 const detector_type &det,
+                                 const U::state::sequence_t &seqs,
+                                 const context_type &ctx = {})
+            : _stepping(free_params, magnetic_field),
+              _navigation(det, seqs),
+              _context(ctx) {}
+
+        /// Construct with direct navigator
+        template <typename field_t, typename U = navigator_t,
+                  typename std::enable_if<
+                      std::is_same<U, direct_navigator<detector_type>>::value,
+                      int>::type = 0>
+        DETRAY_HOST_DEVICE state(const bound_track_parameters_type &param,
+                                 const field_t &magnetic_field,
+                                 const detector_type &det,
+                                 const U::state::sequence_t &seqs,
+                                 const context_type &ctx = {})
+            : _stepping(param, magnetic_field, det, ctx),
+              _navigation(det, seqs),
               _context(ctx) {}
 
         /// Set the particle hypothesis

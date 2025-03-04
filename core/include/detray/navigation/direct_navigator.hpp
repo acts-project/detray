@@ -31,11 +31,7 @@ static constexpr std::size_t default_sequence_size{100u};
 
 }
 
-template <typename detector_t,
-          typename inspector_t = navigation::void_inspector,
-          typename intersection_t =
-              intersection2D<typename detector_t::surface_type,
-                             typename detector_t::algebra_type, false>>
+template <typename detector_t>
 class direct_navigator {
 
     public:
@@ -43,21 +39,25 @@ class direct_navigator {
     using context_type = detector_type::geometry_context;
     using algebra_type = typename detector_type::algebra_type;
     using scalar_type = dscalar<algebra_type>;
+    using intersection_type =
+        intersection2D<typename detector_t::surface_type,
+                       typename detector_t::algebra_type, false>;
 
     class state : public detray::ranges::view_interface<state> {
 
-        using candidate_t = intersection_t;
+        using candidate_t = intersection_type;
 
         public:
-        using sequence_t = vecmem::device_vector<detray::geometry::barcode>;
+        using sequence_t = vecmem::device_vector<detray::geometry::barcode::value_t>;
         using detector_type = direct_navigator::detector_type;
+        using view_type = bool;
 
         state() = delete;
 
         template <typename vector_t>
         DETRAY_HOST_DEVICE explicit state(const detector_t &det,
                                           const vector_t &sequence)
-            : m_detector(&det) {
+            : m_detector(&det), m_sequence(sequence) {
 
             // TODO: Copy the sequence
             m_it = m_sequence.begin();
@@ -75,9 +75,9 @@ class direct_navigator {
         DETRAY_HOST_DEVICE
         const detray::geometry::barcode &operator()() const {
             if (m_direction == navigation::direction::e_forward) {
-                return *m_it;
+                return detray::geometry::barcode{*m_it};
             } else {
-                return *m_it_rev;
+                return detray::geometry::barcode{*m_it_rev};
             }
         }
 

@@ -40,10 +40,8 @@ struct geo_id_sequencer : actor {
         if (navigation.is_on_surface()) {
 
             const auto& bcd = navigation.current().sf_desc.barcode();
-            // assert(!bcd.is_invalid());
+            assert(!bcd.is_invalid());
 
-            std::cout << bcd << "  " << actor_state._sequence.size() << "  "
-                      << actor_state._sequence.capacity() << std::endl;
             actor_state._sequence.push_back(bcd.value());
         }
 

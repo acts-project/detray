@@ -458,6 +458,14 @@ TEST_P(PropagatorWithRkStepperDirectNavigator, direct_navigator) {
                     parameter_resetter<test_algebra>, geo_id_sequencer>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
+    using direct_navigator_t = direct_navigator<detector_t>;
+    using direct_actor_chain_t =
+        actor_chain<parameter_transporter<test_algebra>,
+                    pointwise_material_interactor<test_algebra>,
+                    parameter_resetter<test_algebra>>;
+    using direct_propagator_t =
+        propagator<stepper_t, direct_navigator_t, direct_actor_chain_t>;
+
     // Build detector and magnetic field
     toy_det_config<scalar> toy_cfg =
         toy_det_config<scalar>{}.n_brl_layers(4u).n_edc_layers(7u);
@@ -486,40 +494,24 @@ TEST_P(PropagatorWithRkStepperDirectNavigator, direct_navigator) {
 
         vecmem::device_vector<detray::geometry::barcode::value_t> seqs_device(
             seqs_buffer);
-        std::cout << "Size capac: " << seqs_device.size() << "  "
-                  << seqs_device.capacity() << std::endl;
 
         geo_id_sequencer::state sequencer_state(seqs_device);
 
         auto actor_states = detray::tie(transporter_state, interactor_state,
                                         resetter_state, sequencer_state);
 
-        // Init propagator states
         propagator_t::state state(track, bfield, det);
 
-        // Set step constraints
-        /*
-        state._stepping.template set_constraint<step::constraint::e_accuracy>(
-            step_constr);
-        */
-
         // Propagate the entire detector
-        state.do_debug = true;
-        // p.propagate(state, actor_states);
+        //state.do_debug = true;
+        ASSERT_TRUE(p.propagate(state, actor_states));
         // std::cout << state.debug_stream.str() << std::endl;
 
-        ASSERT_TRUE(p.propagate(state, actor_states));
-        std::cout << state.debug_stream.str() << std::endl;
-        //  << state._navigation.inspector().to_string() << std::endl;
+        auto direct_actor_states =
+            detray::tie(transporter_state, interactor_state, resetter_state);
 
-        /*
-        for (const auto& bcd : seqs_device) {
-            std::cout << bcd << std::endl;
-        }
-        */
+        direct_propagator_t::state direct_state(track, bfield, det, seqs_device);            
     }
-
-    // using direct_navigator_t = direct_navigator<detector_t>;
 }
 
 INSTANTIATE_TEST_SUITE_P(detray_propagator_direct_navigator_0,
