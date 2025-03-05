@@ -11,6 +11,7 @@
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/propagator/base_actor.hpp"
+#include "detray/propagator/composite_actor.hpp"
 #include "detray/utils/tuple.hpp"
 #include "detray/utils/tuple_helpers.hpp"
 
@@ -28,7 +29,7 @@ namespace detray {
 /// The states of the actors need to be passed to the chain in an external tuple
 ///
 /// @tparam actors_t the types of the actors in the chain.
-template <typename... actors_t>
+template <concepts::actor... actors_t>
 class actor_chain {
 
     public:
@@ -62,7 +63,8 @@ class actor_chain {
     DETRAY_HOST_DEVICE
     static constexpr auto make_default_actor_states() {
         // Only possible if each state is default initializable
-        if constexpr (std::default_initializable<state_tuple>) {
+        if constexpr ((std::default_initializable<typename actors_t::state> &&
+                       ...)) {
             return state_tuple{};
         } else {
             return std::nullopt;
@@ -82,7 +84,7 @@ class actor_chain {
     /// @param actr the actor (might be a composite actor)
     /// @param states states of all actors (only bare actors)
     /// @param p_state the state of the propagator (stepper and navigator)
-    template <typename actor_t, typename actor_states_t,
+    template <concepts::actor actor_t, typename actor_states_t,
               typename propagator_state_t>
     DETRAY_HOST_DEVICE inline void run(const actor_t &actr,
                                        actor_states_t &states,
@@ -133,7 +135,7 @@ class actor_chain<> {
     using state_ref_tuple = dtuple<>;
 
     /// Empty states replaces a real actor states container
-    struct state {};
+    using state = state_tuple;
 
     /// Call to actors does nothing.
     ///
@@ -145,11 +147,25 @@ class actor_chain<> {
         /*Do nothing*/
     }
 
+    /// @returns the actor list
+    DETRAY_HOST_DEVICE constexpr const actor_tuple &actors() const {
+        return m_actors;
+    }
+
+    /// @returns an empty state
+    DETRAY_HOST_DEVICE
+    static consteval state_tuple make_default_actor_states() {
+        return dtuple<>{};
+    }
+
     /// @returns an empty state
     DETRAY_HOST_DEVICE static constexpr state_ref_tuple setup_actor_states(
         const state_tuple &) {
         return {};
     }
+
+    private:
+    [[no_unique_address]] actor_tuple m_actors = {};
 };
 
 }  // namespace detray
