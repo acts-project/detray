@@ -479,6 +479,7 @@ TEST_P(PropagatorWithRkStepperDirectNavigator, direct_navigator) {
     propagation::config cfg{};
     cfg.navigation.search_window = {3u, 3u};
     propagator_t p{cfg};
+    direct_propagator_t direct_p{cfg};
 
     // Iterate through uniformly distributed momentum directions
     for (auto track : generator_t{trk_gen_cfg}) {
@@ -511,6 +512,10 @@ TEST_P(PropagatorWithRkStepperDirectNavigator, direct_navigator) {
             detray::tie(transporter_state, interactor_state, resetter_state);
 
         direct_propagator_t::state direct_state(track, bfield, det, seqs_device);            
+
+        direct_state.do_debug = true;
+        ASSERT_TRUE(direct_p.propagate(direct_state, direct_actor_states));
+        std::cout << direct_state.debug_stream.str() << std::endl;
     }
 }
 
