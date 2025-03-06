@@ -36,6 +36,10 @@ std::unordered_set<dindex> get_volume_indices(
     std::unordered_set<dindex> volumes{};
     volumes.reserve(intersection_record.size());
     for (const auto &single_ir : intersection_record) {
+        // Could be a dummy record that was inserted during trace matching
+        if (single_ir.intersection.sf_desc.barcode().is_invalid()) {
+            continue;
+        }
         volumes.insert(single_ir.vol_idx);
     }
 
@@ -46,13 +50,37 @@ std::unordered_set<dindex> get_volume_indices(
 /// - intersection collection
 template <typename surface_t, concepts::algebra algebra_t>
 std::unordered_set<dindex> get_volume_indices(
-    const dvector<detray::intersection2D<surface_t, algebra_t>>
+    const dvector<detray::intersection2D<surface_t, algebra_t, true>>
         &intersections) {
 
     std::unordered_set<dindex> volumes{};
     volumes.reserve(intersections.size());
     for (const auto &intr : intersections) {
+        if (intr.sf_desc.barcode().is_invalid()) {
+            continue;
+        }
         volumes.insert(intr.sf_desc.volume());
+    }
+
+    return volumes;
+}
+
+/// Find the unique volume indices that the trajectory crossed
+/// - object tracer candidate collection
+template <template <typename> class candidate_t, typename surface_t,
+          concepts::algebra algebra_t>
+std::unordered_set<dindex> get_volume_indices(
+    const dvector<
+        candidate_t<detray::intersection2D<surface_t, algebra_t, true>>>
+        &candidates) {
+
+    std::unordered_set<dindex> volumes{};
+    volumes.reserve(candidates.size());
+    for (const auto &cand : candidates) {
+        if (cand.intersection.sf_desc.barcode().is_invalid()) {
+            continue;
+        }
+        volumes.insert(cand.intersection.sf_desc.volume());
     }
 
     return volumes;
@@ -73,6 +101,10 @@ auto transcribe_intersections(
     std::vector<intersection_t> intersections{};
     intersections.reserve(intersection_trace.size());
     for (auto &ir : intersection_trace) {
+        // Dummy record
+        if (ir.intersection.sf_desc.barcode().is_invalid()) {
+            continue;
+        }
         intersections.push_back(ir.intersection);
     }
 
