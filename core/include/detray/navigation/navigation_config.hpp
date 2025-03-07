@@ -62,5 +62,4 @@ struct config {
         return out;
     }
 };
-
 }  // namespace detray::navigation
