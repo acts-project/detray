@@ -503,15 +503,25 @@ TEST_P(PropagatorWithRkStepperDirectNavigator, direct_navigator) {
 
         propagator_t::state state(track, bfield, det);
 
+        std::cout << "Start Navigator " << std::endl;
+
         // Propagate the entire detector
-        //state.do_debug = true;
+        // state.do_debug = true;
         ASSERT_TRUE(p.propagate(state, actor_states));
         // std::cout << state.debug_stream.str() << std::endl;
 
         auto direct_actor_states =
             detray::tie(transporter_state, interactor_state, resetter_state);
 
-        direct_propagator_t::state direct_state(track, bfield, det, seqs_device);            
+        direct_propagator_t::state direct_state(track, bfield, det,
+                                                seqs_device);
+
+        std::cout << "Sequence size: " << seqs_device.size() << std::endl;
+        for (auto seq : seqs_device) {
+            std::cout << detray::geometry::barcode{seq} << std::endl;
+        }
+
+        std::cout << "Start Direct Navigator " << std::endl;
 
         direct_state.do_debug = true;
         ASSERT_TRUE(direct_p.propagate(direct_state, direct_actor_states));

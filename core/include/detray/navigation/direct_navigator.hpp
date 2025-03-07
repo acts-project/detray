@@ -101,10 +101,24 @@ class direct_navigator {
         /// @returns next object that we want to reach (current target) - const
         DETRAY_HOST_DEVICE
         void update() {
-            m_candidate.sf_desc.set_barcode(get_target_barcode());
+            // m_candidate.sf_desc.set_barcode(get_target_barcode());
+            m_candidate.sf_desc = m_detector->surface(get_target_barcode());
+            m_candidate.volume_link =
+                tracking_surface{*m_detector, m_candidate.sf_desc}
+                    .volume_link();
             set_volume(m_candidate.volume_link);
+
             if (!is_init()) {
-                m_candidate_prev.sf_desc.set_barcode(get_current_barcode());
+                // m_candidate_prev.sf_desc.set_barcode(get_current_barcode());
+                m_candidate_prev.sf_desc =
+                    m_detector->surface(get_current_barcode());
+                m_candidate_prev.volume_link =
+                    tracking_surface{*m_detector, m_candidate_prev.sf_desc}
+                        .volume_link();
+            }
+
+            if (is_complete()) {
+                m_heartbeat = false;
             }
         }
 
@@ -116,12 +130,6 @@ class direct_navigator {
             return tracking_surface<detector_type>{*m_detector,
                                                    current().sf_desc};
         }
-        /*
-        DETRAY_HOST_DEVICE
-        inline auto target() const -> const candidate_t & {
-            return m_candidate;
-        }
-        */
 
         /// @returns current navigation status - const
         DETRAY_HOST_DEVICE
@@ -303,7 +311,6 @@ class direct_navigator {
 
         if (navigation.is_on_surface(navigation.target(), cfg)) {
             navigation.next();
-            navigation.update();
             navigation.m_status = (navigation.target().sf_desc.is_portal())
                                       ? navigation::status::e_on_portal
                                       : navigation::status::e_on_module;
@@ -311,6 +318,8 @@ class direct_navigator {
             // Otherwise the track is moving towards a surface
             navigation.m_status = navigation::status::e_towards_object;
         }
+
+        navigation.update();
 
         const auto &det = navigation.detector();
         const auto sf = tracking_surface{det, navigation.target().sf_desc};

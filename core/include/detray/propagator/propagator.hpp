@@ -20,6 +20,7 @@
 
 // System include(s).
 #include <iomanip>
+#include <iostream>
 
 namespace detray {
 
