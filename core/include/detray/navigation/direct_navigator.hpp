@@ -285,15 +285,17 @@ class direct_navigator {
 
         /// Heartbeat of this navigation flow signals navigation is alive
         bool m_heartbeat{false};
+
+        /// Mask tolerance
+        float mask_tolerance = 100.f * unit<float>::mm;
     };
 
     template <typename track_t>
-    DETRAY_HOST_DEVICE inline void init(const track_t &track, state &navigation,
-                                        const navigation::config &cfg,
-                                        const context_type &ctx) const {
+    DETRAY_HOST_DEVICE inline void init(const track_t & /*track*/,
+                                        state &navigation,
+                                        const navigation::config & /*cfg*/,
+                                        const context_type & /*ctx*/) const {
         navigation.m_heartbeat = true;
-
-        // Set the geometry barcode for the candidate
         navigation.update();
 
         return;
@@ -324,15 +326,14 @@ class direct_navigator {
         const auto &det = navigation.detector();
         const auto sf = tracking_surface{det, navigation.target().sf_desc};
 
-        // Check whether this candidate is reachable by the track
         return sf.template visit_mask<intersection_update<ray_intersector>>(
             detail::ray<algebra_type>(
                 track.pos(),
                 static_cast<scalar_type>(navigation.direction()) * track.dir()),
             navigation.target(), det.transform_store(), ctx,
             sf.is_portal() ? darray<scalar_type, 2>{0.f, 0.f}
-                           : darray<scalar_type, 2>{cfg.min_mask_tolerance,
-                                                    cfg.max_mask_tolerance},
+                           : darray<scalar_type, 2>{navigation.mask_tolerance,
+                                                    navigation.mask_tolerance},
             static_cast<scalar_type>(cfg.mask_tolerance_scalor),
             static_cast<scalar_type>(cfg.overstep_tolerance));
     }
