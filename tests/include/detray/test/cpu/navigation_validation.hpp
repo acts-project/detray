@@ -95,9 +95,16 @@ class navigation_validation : public test::fixture_base<> {
         const std::string truth_data_name{
             k_use_rays ? det_name + "_ray_scan" : det_name + "_helix_scan"};
 
-        /// Collect some statistics
-        std::size_t n_tracks{0u}, n_surfaces{0u}, n_miss_nav{0u},
-            n_miss_truth{0u}, n_matching_error{0u}, n_fatal{0u};
+        // Collect some statistics
+        std::size_t n_tracks{0u};
+        std::size_t n_matching_error{0u};
+        std::size_t n_fatal{0u};
+        // Total number of encountered surfaces
+        navigation_validator::surface_stats n_surfaces{};
+        // Missed by navigator
+        navigation_validator::surface_stats n_miss_nav{};
+        // Missed by truth finder
+        navigation_validator::surface_stats n_miss_truth{};
 
         std::cout << "\nINFO: Fetching data from white board..." << std::endl;
         if (!m_cfg.whiteboard()->exists(truth_data_name)) {
@@ -219,8 +226,33 @@ class navigation_validation : public test::fixture_base<> {
 
             ++n_tracks;
 
+            // After dummy records insertion, traces should have the same size
             ASSERT_EQ(truth_trace.size(), recorded_traces.back().size());
-            n_surfaces += truth_trace.size();
+
+            // Count the number of different surface types on this trace
+            navigation_validator::surface_stats n_truth{};
+            navigation_validator::surface_stats n_nav{};
+            for (std::size_t i = 0; i < truth_trace.size(); ++i) {
+                n_truth.count(truth_trace[i].intersection.sf_desc);
+                n_nav.count(recorded_traces.back()[i].intersection.sf_desc);
+            }
+
+            // Take max count, since either trace might have skipped surfaces
+            const std::size_t n_portals{
+                math::max(n_truth.n_portals, n_nav.n_portals)};
+            const std::size_t n_sensitives{
+                math::max(n_truth.n_sensitives, n_nav.n_sensitives)};
+            // The first record is for bookkeeping and not a real passive
+            const std::size_t n_passives{
+                math::max(n_truth.n_passives, n_nav.n_passives) - 1u};
+            const std::size_t n{n_portals + n_sensitives + n_passives};
+
+            // Cannot have more surfaces than truth intersections after matching
+            ASSERT_EQ(n, truth_trace.size() - 1u);
+
+            n_surfaces.n_portals += n_portals;
+            n_surfaces.n_sensitives += n_sensitives;
+            n_surfaces.n_passives += n_passives;
         }
 
         // Calculate and display the result
