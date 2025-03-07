@@ -13,8 +13,8 @@
 #include "detray/geometry/shapes/unbounded.hpp"
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actor_chain.hpp"
-#include "detray/propagator/actors/parameter_resetter.hpp"
-#include "detray/propagator/actors/parameter_transporter.hpp"
+#include "detray/propagator/actors/parameter_updater.hpp"
+#include "detray/propagator/concepts.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/tracks/ray.hpp"
@@ -54,6 +54,9 @@ constexpr scalar tol{1e-6f};
 
 GTEST_TEST(detray_propagator, covariance_transport) {
 
+    static_assert(detray::concepts::actor<parameter_transporter<test_algebra>>);
+    static_assert(detray::concepts::actor<parameter_resetter<test_algebra>>);
+
     vecmem::host_memory_resource host_mr;
 
     // Build in x-direction from given module positions
@@ -70,8 +73,7 @@ GTEST_TEST(detray_propagator, covariance_transport) {
 
     using navigator_t = navigator<decltype(det)>;
     using cline_stepper_t = line_stepper<test_algebra>;
-    using actor_chain_t = actor_chain<parameter_transporter<test_algebra>,
-                                      parameter_resetter<test_algebra>>;
+    using actor_chain_t = actor_chain<parameter_updater<test_algebra>>;
     using propagator_t =
         propagator<cline_stepper_t, navigator_t, actor_chain_t>;
 
@@ -92,16 +94,19 @@ GTEST_TEST(detray_propagator, covariance_transport) {
     const bound_track_parameters<test_algebra> bound_param0(
         geometry::barcode{}.set_index(0u), bound_vector, bound_cov);
 
+    // Actors
+    parameter_transporter<test_algebra>::state bound_updater{bound_param0};
+
     propagation::config prop_cfg{};
     prop_cfg.navigation.overstep_tolerance = -100.f * unit<float>::um;
     propagator_t p{prop_cfg};
     propagator_t::state propagation(bound_param0, det, prop_cfg.context);
 
     // Run propagator
-    p.propagate(propagation);
+    p.propagate(propagation, detray::tie(bound_updater));
 
     // Bound state after one turn propagation
-    const auto& bound_param1 = propagation._stepping.bound_params();
+    const auto& bound_param1 = bound_updater.bound_params();
 
     // Check if the track reaches the final surface
     EXPECT_EQ(bound_param0.surface_link().volume(), 4095u);

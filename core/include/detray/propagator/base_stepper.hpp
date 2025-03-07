@@ -18,7 +18,6 @@
 #include "detray/propagator/constrained_step.hpp"
 #include "detray/propagator/stepping_config.hpp"
 #include "detray/tracks/tracks.hpp"
-#include "detray/utils/curvilinear_frame.hpp"
 
 namespace detray {
 
@@ -58,31 +57,17 @@ class base_stepper {
     /// @note It has to cast into a const track via the call operation.
     struct state {
 
-        /// Sets track parameters.
-        DETRAY_HOST_DEVICE
-        explicit state(const free_track_parameters_type &free_params)
-            : m_track(free_params) {
+        /// Construct state from free track parameters.
+        DETRAY_HOST_DEVICE explicit state(
+            const free_track_parameters_type &free_params)
+            : m_track{free_params} {}
 
-            curvilinear_frame<algebra_t> cf(free_params);
-
-            // Set bound track parameters
-            m_bound_params.set_parameter_vector(cf.m_bound_vec);
-
-            // A dummy covariance - should not be used
-            m_bound_params.set_covariance(
-                matrix::identity<bound_matrix_type>());
-
-            // An invalid barcode - should not be used
-            m_bound_params.set_surface_link(geometry::barcode{});
-        }
-
-        /// Sets track parameters from bound track parameter.
+        /// Sets track parameters from bound track parameters.
         template <typename detector_t>
         DETRAY_HOST_DEVICE state(
             const bound_track_parameters_type &bound_params,
             const detector_t &det,
-            const typename detector_t::geometry_context &ctx)
-            : m_bound_params(bound_params) {
+            const typename detector_t::geometry_context &ctx) {
 
             // Departure surface
             const auto sf = tracking_surface{det, bound_params.surface_link()};
@@ -98,16 +83,6 @@ class base_stepper {
         /// @returns free track parameters - const access
         DETRAY_HOST_DEVICE
         const free_track_parameters_type &operator()() const { return m_track; }
-
-        /// @returns bound track parameters - const access
-        DETRAY_HOST_DEVICE
-        bound_track_parameters_type &bound_params() { return m_bound_params; }
-
-        /// @returns bound track parameters - non-const access
-        DETRAY_HOST_DEVICE
-        const bound_track_parameters_type &bound_params() const {
-            return m_bound_params;
-        }
 
         /// Get stepping direction
         DETRAY_HOST_DEVICE
@@ -181,18 +156,6 @@ class base_stepper {
             return m_jac_transport;
         }
 
-        /// @returns the current full Jacbian.
-        DETRAY_HOST_DEVICE
-        inline const bound_matrix_type &full_jacobian() const {
-            return m_full_jacobian;
-        }
-
-        /// Set new full Jacbian.
-        DETRAY_HOST_DEVICE
-        inline void set_full_jacobian(const bound_matrix_type &jac) {
-            m_full_jacobian = jac;
-        }
-
         /// Reset transport Jacbian.
         DETRAY_HOST_DEVICE
         inline void reset_transport_jacobian() {
@@ -229,13 +192,6 @@ class base_stepper {
         private:
         /// Jacobian transport matrix
         free_matrix_type m_jac_transport = matrix::identity<free_matrix_type>();
-
-        /// Full jacobian
-        bound_matrix_type m_full_jacobian =
-            matrix::identity<bound_matrix_type>();
-
-        /// Bound covariance
-        bound_track_parameters_type m_bound_params;
 
         /// Free track parameters
         free_track_parameters_type m_track;
