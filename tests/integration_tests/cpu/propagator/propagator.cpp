@@ -481,8 +481,10 @@ TEST_P(PropagatorWithRkStepperDirectNavigator, direct_navigator) {
     propagator_t p{cfg};
     direct_propagator_t direct_p{cfg};
 
+    int i = 0;
     // Iterate through uniformly distributed momentum directions
     for (auto track : generator_t{trk_gen_cfg}) {
+        std::cout << "Track Id: " << i++ << std::endl;
 
         // Build actor states: the helix inspector can be shared
         parameter_transporter<test_algebra>::state transporter_state{};
@@ -520,6 +522,7 @@ TEST_P(PropagatorWithRkStepperDirectNavigator, direct_navigator) {
         for (auto seq : seqs_device) {
             std::cout << detray::geometry::barcode{seq} << std::endl;
         }
+
 
         std::cout << std::endl;
         std::cout << "Start Forward Direct Navigator " << std::endl;

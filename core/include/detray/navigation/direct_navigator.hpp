@@ -331,8 +331,14 @@ class direct_navigator {
         }
         */
 
+        /*
         if (navigation.is_complete() ||
             navigation.target().sf_desc.barcode().is_invalid()) {
+            navigation.m_heartbeat = false;
+            return true;
+        }
+        */
+        if (navigation.is_complete()) {
             navigation.m_heartbeat = false;
             return true;
         }
