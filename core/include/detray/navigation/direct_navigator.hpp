@@ -331,20 +331,28 @@ class direct_navigator {
         }
         */
 
-        /*
         if (navigation.is_complete() ||
             navigation.target().sf_desc.barcode().is_invalid()) {
-            navigation.m_heartbeat = false;
-            return true;
-        }
-        */
-        if (navigation.is_complete()) {
+
+            std::cout << "is complete? " << navigation.is_complete() << std::endl;
+            std::cout << navigation.target().sf_desc.barcode() << std::endl;
+
             navigation.m_heartbeat = false;
             return true;
         }
 
+        /*
+        if (navigation.is_complete()) {
+            navigation.m_heartbeat = false;
+            return true;
+        }
+        */
+
         const auto &det = navigation.detector();
         const auto sf = tracking_surface{det, navigation.target().sf_desc};
+
+        std::cout << "Current :" << navigation.current();
+        std::cout << "Target :" << navigation.target();
 
         sf.template visit_mask<intersection_update<ray_intersector>>(
             detail::ray<algebra_type>(
@@ -357,7 +365,11 @@ class direct_navigator {
             static_cast<scalar_type>(cfg.mask_tolerance_scalor),
             static_cast<scalar_type>(cfg.overstep_tolerance));
 
+        std::cout << "Current :" << navigation.current();
+        std::cout << "Target :" << navigation.target();
+
         if (navigation.is_on_surface(navigation.target(), cfg)) {
+            std::cout << "On surface" << std::endl;
 
             navigation.m_status = (navigation.target().sf_desc.is_portal())
                                       ? navigation::status::e_on_portal
@@ -385,7 +397,7 @@ class direct_navigator {
 
             return true;
         } else {
-
+            std::cout << "Not on surface" << std::endl;
             // Otherwise the track is moving towards a surface
             navigation.m_status = navigation::status::e_towards_object;
 

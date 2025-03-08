@@ -233,12 +233,18 @@ struct propagator {
         const bool reset_stepsize{navigation.is_on_surface() || is_init};
         // Take the step
 
+        std::cout << std::endl;
+        std::cout << "Step with " << navigation() << std::endl;
+
         propagation._heartbeat &=
             m_stepper.step(navigation(), stepping, m_cfg.stepping,
                            reset_stepsize, vol_mat_ptr);
 
         // Reduce navigation trust level according to stepper update
         typename stepper_t::policy_type{}(stepping.policy_state(), propagation);
+
+        std::cout << std::endl;
+        std::cout << "First update" << std::endl;
 
         // Find next candidate
         is_init =
@@ -247,6 +253,9 @@ struct propagator {
 
         // Run all registered actors/aborters after update
         run_actors(actor_state_refs, propagation);
+
+        std::cout << std::endl;
+        std::cout << "Second update" << std::endl;
 
         // And check the status
         is_init |=
