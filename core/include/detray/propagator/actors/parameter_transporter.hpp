@@ -124,10 +124,6 @@ struct parameter_transporter : actor {
 
         // Set surface link
         bound_params.set_surface_link(sf.barcode());
-
-        std::cout << "Parameter transport: " << stepping().pos()[0] << "  "
-                  << stepping().pos()[1] << "  " << stepping().pos()[2] << "  "
-                  << sf.barcode() << std::endl;
     }
 
 };  // namespace detray

@@ -108,12 +108,15 @@ class direct_navigator {
                 m_candidate_prev = m_candidate;
             }
 
-            m_candidate.sf_desc = m_detector->surface(get_target_barcode());
-            m_candidate.volume_link =
-                tracking_surface{*m_detector, m_candidate.sf_desc}
-                    .volume_link();
-            m_candidate.path = std::numeric_limits<scalar_type>::max();
-            set_volume(m_candidate.volume_link);
+            if (!is_complete()) {
+                std::cout << get_target_barcode() << std::endl;
+                m_candidate.sf_desc = m_detector->surface(get_target_barcode());
+                m_candidate.volume_link =
+                    tracking_surface{*m_detector, m_candidate.sf_desc}
+                        .volume_link();
+                m_candidate.path = std::numeric_limits<scalar_type>::max();
+                set_volume(m_candidate.volume_link);
+            }
         }
 
         /// @returns current detector surface the navigator is on
@@ -301,14 +304,8 @@ class direct_navigator {
             navigation.m_heartbeat = false;
         }
 
-        std::cout << "Init Current before: " << navigation.current();
-        std::cout << "Init Target before: " << navigation.target();
-
         const auto &det = navigation.detector();
         const auto sf = tracking_surface{det, navigation.target().sf_desc};
-
-        std::cout << track.pos()[0] << "  " << track.pos()[1] << "  "
-                  << track.pos()[2] << std::endl;
 
         sf.template visit_mask<intersection_update<ray_intersector>>(
             detail::ray<algebra_type>(
@@ -321,9 +318,6 @@ class direct_navigator {
             static_cast<scalar_type>(cfg.mask_tolerance_scalor),
             static_cast<scalar_type>(cfg.overstep_tolerance));
 
-        std::cout << "Init Current after: " << navigation.current();
-        std::cout << "Init Target after: " << navigation.target();
-
         return;
     }
 
@@ -332,19 +326,18 @@ class direct_navigator {
                                           state &navigation,
                                           const navigation::config &cfg,
                                           const context_type &ctx = {}) const {
-
+        /*
         if (navigation.get_target_barcode().is_invalid()) {
             return false;
         }
+        */
 
-        std::cout << "Update Current: " << navigation.current();
-        std::cout << "Update Target: " << navigation.target();
-
-        if (navigation.is_complete()) {
+        if (navigation.is_complete() ||
+            navigation.target().sf_desc.barcode().is_invalid()) {
             navigation.m_heartbeat = false;
             return true;
         }
-
+        
         const auto &det = navigation.detector();
         const auto sf = tracking_surface{det, navigation.target().sf_desc};
 
@@ -360,7 +353,6 @@ class direct_navigator {
             static_cast<scalar_type>(cfg.overstep_tolerance));
 
         if (navigation.is_on_surface(navigation.target(), cfg)) {
-            std::cout << "On surface" << std::endl;
 
             navigation.m_status = (navigation.target().sf_desc.is_portal())
                                       ? navigation::status::e_on_portal
@@ -370,44 +362,30 @@ class direct_navigator {
             navigation.update_candidate();
             assert(navigation.is_on_surface(navigation.current(), cfg));
 
-            return sf.template visit_mask<intersection_update<ray_intersector>>(
-                detail::ray<algebra_type>(
-                    track.pos(),
-                    static_cast<scalar_type>(navigation.direction()) *
-                        track.dir()),
-                navigation.target(), det.transform_store(), ctx,
-                sf.is_portal()
-                    ? darray<scalar_type, 2>{0.f, 0.f}
-                    : darray<scalar_type, 2>{navigation.mask_tolerance,
-                                             navigation.mask_tolerance},
-                static_cast<scalar_type>(cfg.mask_tolerance_scalor),
-                static_cast<scalar_type>(cfg.overstep_tolerance));
+            if (!navigation.is_complete()) {
 
+                sf.template visit_mask<intersection_update<ray_intersector>>(
+                    detail::ray<algebra_type>(
+                        track.pos(),
+                        static_cast<scalar_type>(navigation.direction()) *
+                            track.dir()),
+                    navigation.target(), det.transform_store(), ctx,
+                    sf.is_portal()
+                        ? darray<scalar_type, 2>{0.f, 0.f}
+                        : darray<scalar_type, 2>{navigation.mask_tolerance,
+                                                 navigation.mask_tolerance},
+                    static_cast<scalar_type>(cfg.mask_tolerance_scalor),
+                    static_cast<scalar_type>(cfg.overstep_tolerance));
+            }
+
+            return true;
         } else {
-
-            std::cout << "Not on surface" << std::endl;
 
             // Otherwise the track is moving towards a surface
             navigation.m_status = navigation::status::e_towards_object;
 
             return false;
         }
-
-        /*
-        const auto &det = navigation.detector();
-        const auto sf = tracking_surface{det, navigation.target().sf_desc};
-
-        return sf.template visit_mask<intersection_update<ray_intersector>>(
-            detail::ray<algebra_type>(
-                track.pos(),
-                static_cast<scalar_type>(navigation.direction()) * track.dir()),
-            navigation.target(), det.transform_store(), ctx,
-            sf.is_portal() ? darray<scalar_type, 2>{0.f, 0.f}
-                           : darray<scalar_type, 2>{navigation.mask_tolerance,
-                                                    navigation.mask_tolerance},
-            static_cast<scalar_type>(cfg.mask_tolerance_scalor),
-            static_cast<scalar_type>(cfg.overstep_tolerance));
-        */
     }
 };
 

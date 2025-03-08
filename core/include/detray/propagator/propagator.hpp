@@ -233,8 +233,6 @@ struct propagator {
         const bool reset_stepsize{navigation.is_on_surface() || is_init};
         // Take the step
 
-        std::cout << "Perform Step " << navigation() << std::endl;
-
         propagation._heartbeat &=
             m_stepper.step(navigation(), stepping, m_cfg.stepping,
                            reset_stepsize, vol_mat_ptr);
