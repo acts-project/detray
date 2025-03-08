@@ -45,6 +45,8 @@ class direct_navigator {
 
     class state : public detray::ranges::view_interface<state> {
 
+        friend struct intersection_update<ray_intersector>;
+
         using candidate_t = intersection_type;
 
         public:
@@ -100,26 +102,18 @@ class direct_navigator {
 
         /// @returns next object that we want to reach (current target) - const
         DETRAY_HOST_DEVICE
-        void update() {
-            // m_candidate.sf_desc.set_barcode(get_target_barcode());
+        void update_candidate() {
+
+            if (!is_init()) {
+                m_candidate_prev = m_candidate;
+            }
+
             m_candidate.sf_desc = m_detector->surface(get_target_barcode());
             m_candidate.volume_link =
                 tracking_surface{*m_detector, m_candidate.sf_desc}
                     .volume_link();
+            m_candidate.path = std::numeric_limits<scalar_type>::max();
             set_volume(m_candidate.volume_link);
-
-            if (!is_init()) {
-                // m_candidate_prev.sf_desc.set_barcode(get_current_barcode());
-                m_candidate_prev.sf_desc =
-                    m_detector->surface(get_current_barcode());
-                m_candidate_prev.volume_link =
-                    tracking_surface{*m_detector, m_candidate_prev.sf_desc}
-                        .volume_link();
-            }
-
-            if (is_complete()) {
-                m_heartbeat = false;
-            }
         }
 
         /// @returns current detector surface the navigator is on
@@ -180,7 +174,7 @@ class direct_navigator {
             if ((m_direction == navigation::direction::e_forward) &&
                 m_it == m_sequence.end()) {
                 return true;
-            } else if ((m_direction != navigation::direction::e_forward) &&
+            } else if ((m_direction == navigation::direction::e_backward) &&
                        m_it_rev == m_sequence.rend()) {
                 return true;
             }
@@ -210,7 +204,7 @@ class direct_navigator {
         /// Helper method to check the track has encountered material
         DETRAY_HOST_DEVICE
         inline auto encountered_sf_material() const -> bool {
-            return (is_on_surface()) && (target().sf_desc.material().id() !=
+            return (is_on_surface()) && (current().sf_desc.material().id() !=
                                          detector_t::materials::id::e_none);
         }
 
@@ -218,7 +212,7 @@ class direct_navigator {
         DETRAY_HOST_DEVICE
         inline auto is_on_sensitive() const -> bool {
             return (m_status == navigation::status::e_on_module) &&
-                   (barcode().id() == surface_id::e_sensitive);
+                   (get_current_barcode().id() == surface_id::e_sensitive);
         }
 
         DETRAY_HOST_DEVICE
@@ -242,6 +236,12 @@ class direct_navigator {
         DETRAY_HOST_DEVICE
         inline auto get_volume() const {
             return tracking_volume<detector_type>{*m_detector, m_volume_index};
+        }
+
+        /// Set direction
+        DETRAY_HOST_DEVICE
+        inline void set_direction(const navigation::direction dir) {
+            m_direction = dir;
         }
 
         DETRAY_HOST_DEVICE
@@ -291,12 +291,38 @@ class direct_navigator {
     };
 
     template <typename track_t>
-    DETRAY_HOST_DEVICE inline void init(const track_t & /*track*/,
-                                        state &navigation,
-                                        const navigation::config & /*cfg*/,
-                                        const context_type & /*ctx*/) const {
+    DETRAY_HOST_DEVICE inline void init(const track_t &track, state &navigation,
+                                        const navigation::config &cfg,
+                                        const context_type &ctx) const {
         navigation.m_heartbeat = true;
-        navigation.update();
+        navigation.update_candidate();
+
+        if (navigation.is_complete()) {
+            navigation.m_heartbeat = false;
+        }
+
+        std::cout << "Init Current before: " << navigation.current();
+        std::cout << "Init Target before: " << navigation.target();
+
+        const auto &det = navigation.detector();
+        const auto sf = tracking_surface{det, navigation.target().sf_desc};
+
+        std::cout << track.pos()[0] << "  " << track.pos()[1] << "  "
+                  << track.pos()[2] << std::endl;
+
+        sf.template visit_mask<intersection_update<ray_intersector>>(
+            detail::ray<algebra_type>(
+                track.pos(),
+                static_cast<scalar_type>(navigation.direction()) * track.dir()),
+            navigation.target(), det.transform_store(), ctx,
+            sf.is_portal() ? darray<scalar_type, 2>{0.f, 0.f}
+                           : darray<scalar_type, 2>{navigation.mask_tolerance,
+                                                    navigation.mask_tolerance},
+            static_cast<scalar_type>(cfg.mask_tolerance_scalor),
+            static_cast<scalar_type>(cfg.overstep_tolerance));
+
+        std::cout << "Init Current after: " << navigation.current();
+        std::cout << "Init Target after: " << navigation.target();
 
         return;
     }
@@ -311,18 +337,63 @@ class direct_navigator {
             return false;
         }
 
+        std::cout << "Update Current: " << navigation.current();
+        std::cout << "Update Target: " << navigation.target();
+
+        if (navigation.is_complete()) {
+            navigation.m_heartbeat = false;
+            return true;
+        }
+
+        const auto &det = navigation.detector();
+        const auto sf = tracking_surface{det, navigation.target().sf_desc};
+
+        sf.template visit_mask<intersection_update<ray_intersector>>(
+            detail::ray<algebra_type>(
+                track.pos(),
+                static_cast<scalar_type>(navigation.direction()) * track.dir()),
+            navigation.target(), det.transform_store(), ctx,
+            sf.is_portal() ? darray<scalar_type, 2>{0.f, 0.f}
+                           : darray<scalar_type, 2>{navigation.mask_tolerance,
+                                                    navigation.mask_tolerance},
+            static_cast<scalar_type>(cfg.mask_tolerance_scalor),
+            static_cast<scalar_type>(cfg.overstep_tolerance));
+
         if (navigation.is_on_surface(navigation.target(), cfg)) {
-            navigation.next();
+            std::cout << "On surface" << std::endl;
+
             navigation.m_status = (navigation.target().sf_desc.is_portal())
                                       ? navigation::status::e_on_portal
                                       : navigation::status::e_on_module;
+            assert(navigation.is_on_surface(navigation.target(), cfg));
+            navigation.next();
+            navigation.update_candidate();
+            assert(navigation.is_on_surface(navigation.current(), cfg));
+
+            return sf.template visit_mask<intersection_update<ray_intersector>>(
+                detail::ray<algebra_type>(
+                    track.pos(),
+                    static_cast<scalar_type>(navigation.direction()) *
+                        track.dir()),
+                navigation.target(), det.transform_store(), ctx,
+                sf.is_portal()
+                    ? darray<scalar_type, 2>{0.f, 0.f}
+                    : darray<scalar_type, 2>{navigation.mask_tolerance,
+                                             navigation.mask_tolerance},
+                static_cast<scalar_type>(cfg.mask_tolerance_scalor),
+                static_cast<scalar_type>(cfg.overstep_tolerance));
+
         } else {
+
+            std::cout << "Not on surface" << std::endl;
+
             // Otherwise the track is moving towards a surface
             navigation.m_status = navigation::status::e_towards_object;
+
+            return false;
         }
 
-        navigation.update();
-
+        /*
         const auto &det = navigation.detector();
         const auto sf = tracking_surface{det, navigation.target().sf_desc};
 
@@ -336,6 +407,7 @@ class direct_navigator {
                                                     navigation.mask_tolerance},
             static_cast<scalar_type>(cfg.mask_tolerance_scalor),
             static_cast<scalar_type>(cfg.overstep_tolerance));
+        */
     }
 };
 

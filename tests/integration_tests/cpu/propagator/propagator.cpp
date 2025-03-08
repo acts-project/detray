@@ -503,7 +503,7 @@ TEST_P(PropagatorWithRkStepperDirectNavigator, direct_navigator) {
 
         propagator_t::state state(track, bfield, det);
 
-        std::cout << "Start Navigator " << std::endl;
+        // std::cout << "Start Navigator " << std::endl;
 
         // Propagate the entire detector
         // state.do_debug = true;
@@ -513,19 +513,40 @@ TEST_P(PropagatorWithRkStepperDirectNavigator, direct_navigator) {
         auto direct_actor_states =
             detray::tie(transporter_state, interactor_state, resetter_state);
 
-        direct_propagator_t::state direct_state(track, bfield, det,
-                                                seqs_device);
+        direct_propagator_t::state direct_forward_state(track, bfield, det,
+                                                        seqs_device);
 
         std::cout << "Sequence size: " << seqs_device.size() << std::endl;
         for (auto seq : seqs_device) {
             std::cout << detray::geometry::barcode{seq} << std::endl;
         }
 
-        std::cout << "Start Direct Navigator " << std::endl;
+        std::cout << std::endl;
+        std::cout << "Start Forward Direct Navigator " << std::endl;
 
-        direct_state.do_debug = true;
-        ASSERT_TRUE(direct_p.propagate(direct_state, direct_actor_states));
-        std::cout << direct_state.debug_stream.str() << std::endl;
+        // direct_state.do_debug = true;
+        ASSERT_TRUE(
+            direct_p.propagate(direct_forward_state, direct_actor_states));
+        // std::cout << direct_state.debug_stream.str() << std::endl;
+
+        std::cout << std::endl;
+        std::cout << "Start Backward Direct Navigator " << std::endl;
+
+        if (seqs_device.size() > 0) {
+
+            std::cout
+                << direct_forward_state._stepping.bound_params().surface_link()
+                << std::endl;
+
+            direct_propagator_t::state direct_backward_state(
+                direct_forward_state._stepping.bound_params(), bfield, det,
+                seqs_device);
+            direct_backward_state._navigation.set_direction(
+                detray::navigation::direction::e_backward);
+
+            ASSERT_TRUE(
+                direct_p.propagate(direct_backward_state, direct_actor_states));
+        }
     }
 }
 

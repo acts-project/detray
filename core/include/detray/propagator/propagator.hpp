@@ -108,7 +108,9 @@ struct propagator {
         DETRAY_HOST_DEVICE state(const bound_track_parameters_type &param,
                                  const detector_type &det,
                                  const context_type &ctx = {})
-            : _stepping(param, det, ctx), _navigation(det), _context(ctx) {}
+            : _stepping(param, det, ctx), _navigation(det), _context(ctx) {
+            _navigation.set_volume(param.surface_link().volume());
+        }
 
         /// Construct the propagation state with bound parameter
         template <typename field_t>
@@ -118,7 +120,9 @@ struct propagator {
                                  const context_type &ctx = {})
             : _stepping(param, magnetic_field, det, ctx),
               _navigation(det),
-              _context(ctx) {}
+              _context(ctx) {
+            _navigation.set_volume(param.surface_link().volume());
+        }
 
         /// Construct with direct navigator
         template <typename field_t, typename U = navigator_t,
@@ -146,7 +150,9 @@ struct propagator {
                                  const context_type &ctx = {})
             : _stepping(param, magnetic_field, det, ctx),
               _navigation(det, seqs),
-              _context(ctx) {}
+              _context(ctx) {
+            _navigation.set_volume(param.surface_link().volume());
+        }
 
         /// Set the particle hypothesis
         DETRAY_HOST_DEVICE
@@ -226,6 +232,9 @@ struct propagator {
         // was reached and whenever the navigation is (re-)initialized
         const bool reset_stepsize{navigation.is_on_surface() || is_init};
         // Take the step
+
+        std::cout << "Perform Step " << navigation() << std::endl;
+
         propagation._heartbeat &=
             m_stepper.step(navigation(), stepping, m_cfg.stepping,
                            reset_stepsize, vol_mat_ptr);
