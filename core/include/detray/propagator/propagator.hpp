@@ -10,6 +10,7 @@
 // Project include(s).
 #include "detray/definitions/detail/macros.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/navigation/direct_navigator.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actor_chain.hpp"
@@ -19,6 +20,7 @@
 
 // System include(s).
 #include <iomanip>
+#include <iostream>
 
 namespace detray {
 
@@ -106,7 +108,9 @@ struct propagator {
         DETRAY_HOST_DEVICE state(const bound_track_parameters_type &param,
                                  const detector_type &det,
                                  const context_type &ctx = {})
-            : _stepping(param, det, ctx), _navigation(det), _context(ctx) {}
+            : _stepping(param, det, ctx), _navigation(det), _context(ctx) {
+            _navigation.set_volume(param.surface_link().volume());
+        }
 
         /// Construct the propagation state with bound parameter
         template <typename field_t>
@@ -116,7 +120,39 @@ struct propagator {
                                  const context_type &ctx = {})
             : _stepping(param, magnetic_field, det, ctx),
               _navigation(det),
+              _context(ctx) {
+            _navigation.set_volume(param.surface_link().volume());
+        }
+
+        /// Construct with direct navigator
+        template <typename field_t, typename U = navigator_t,
+                  typename std::enable_if<
+                      std::is_same<U, direct_navigator<detector_type>>::value,
+                      int>::type = 0>
+        DETRAY_HOST_DEVICE state(const free_track_parameters_type &free_params,
+                                 const field_t &magnetic_field,
+                                 const detector_type &det,
+                                 const U::state::sequence_t &seqs,
+                                 const context_type &ctx = {})
+            : _stepping(free_params, magnetic_field),
+              _navigation(det, seqs),
               _context(ctx) {}
+
+        /// Construct with direct navigator
+        template <typename field_t, typename U = navigator_t,
+                  typename std::enable_if<
+                      std::is_same<U, direct_navigator<detector_type>>::value,
+                      int>::type = 0>
+        DETRAY_HOST_DEVICE state(const bound_track_parameters_type &param,
+                                 const field_t &magnetic_field,
+                                 const detector_type &det,
+                                 const U::state::sequence_t &seqs,
+                                 const context_type &ctx = {})
+            : _stepping(param, magnetic_field, det, ctx),
+              _navigation(det, seqs),
+              _context(ctx) {
+            _navigation.set_volume(param.surface_link().volume());
+        }
 
         /// Set the particle hypothesis
         DETRAY_HOST_DEVICE
@@ -197,12 +233,19 @@ struct propagator {
         // was reached and whenever the navigation is (re-)initialized
         const bool reset_stepsize{navigation.is_on_surface() || is_init};
         // Take the step
+
+        std::cout << std::endl;
+        std::cout << "Step with " << navigation() << std::endl;
+
         propagation._heartbeat &=
             m_stepper.step(navigation(), stepping, m_cfg.stepping,
                            reset_stepsize, vol_mat_ptr);
 
         // Reduce navigation trust level according to stepper update
         typename stepper_t::policy_type{}(stepping.policy_state(), propagation);
+
+        std::cout << std::endl;
+        std::cout << "First update" << std::endl;
 
         // Find next candidate
         is_init =
@@ -211,6 +254,9 @@ struct propagator {
 
         // Run all registered actors/aborters after update
         run_actors(actor_state_refs, propagation);
+
+        std::cout << std::endl;
+        std::cout << "Second update" << std::endl;
 
         // And check the status
         is_init |=

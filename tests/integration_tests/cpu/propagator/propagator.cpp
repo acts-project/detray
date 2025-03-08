@@ -11,6 +11,7 @@
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/bfield.hpp"
 #include "detray/geometry/tracking_surface.hpp"
+#include "detray/navigation/direct_navigator.hpp"
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actors.hpp"
 #include "detray/propagator/base_actor.hpp"
@@ -414,3 +415,142 @@ INSTANTIATE_TEST_SUITE_P(
                                       vector3{1.f * unit<scalar>::T,
                                               1.f * unit<scalar>::T,
                                               1.f * unit<scalar>::T})));
+
+/// Fixture for Runge-Kutta Propagation
+class PropagatorWithRkStepperDirectNavigator
+    : public ::testing::TestWithParam<test::vector3> {};
+
+/// Test propagation in a constant magnetic field using a Runge-Kutta stepper
+TEST_P(PropagatorWithRkStepperDirectNavigator, direct_navigator) {
+
+    // Memory resource
+    vecmem::host_memory_resource host_mr;
+
+    // Track generator configuration
+    using generator_t =
+        uniform_track_generator<free_track_parameters<test_algebra>>;
+
+    generator_t::configuration trk_gen_cfg{};
+    trk_gen_cfg.phi_steps(50u).theta_steps(50u);
+    trk_gen_cfg.p_tot(10.f * unit<scalar>::GeV);
+
+    // Constant magnetic field type
+    using bfield_t = bfield::const_field_t<scalar>;
+
+    // Toy detector
+    using detector_t = detector<test::toy_metadata>;
+
+    // Runge-Kutta propagation
+    using navigator_t =
+        navigator<detector_t, cache_size, navigation::print_inspector>;
+    using constraints_t = constrained_step<scalar>;
+    using policy_t = stepper_rk_policy<scalar>;
+    using stepper_t =
+        rk_stepper<bfield_t::view_t, test_algebra, constraints_t, policy_t>;
+    // Include helix actor to check track position/covariance
+    using actor_chain_t =
+        actor_chain<parameter_transporter<test_algebra>,
+                    pointwise_material_interactor<test_algebra>,
+                    parameter_resetter<test_algebra>, geo_id_sequencer>;
+    using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
+
+    using direct_navigator_t = direct_navigator<detector_t>;
+    using direct_actor_chain_t =
+        actor_chain<parameter_transporter<test_algebra>,
+                    pointwise_material_interactor<test_algebra>,
+                    parameter_resetter<test_algebra>>;
+    using direct_propagator_t =
+        propagator<stepper_t, direct_navigator_t, direct_actor_chain_t>;
+
+    // Build detector and magnetic field
+    toy_det_config<scalar> toy_cfg =
+        toy_det_config<scalar>{}.n_brl_layers(4u).n_edc_layers(7u);
+
+    toy_cfg.use_material_maps(false);
+    const auto [det, names] =
+        build_toy_detector<test_algebra>(host_mr, toy_cfg);
+    const bfield_t bfield = bfield::create_const_field<scalar>(GetParam());
+
+    // Propagator is built from the stepper and navigator
+    propagation::config cfg{};
+    cfg.navigation.search_window = {3u, 3u};
+    propagator_t p{cfg};
+    direct_propagator_t direct_p{cfg};
+
+    int i = 0;
+    // Iterate through uniformly distributed momentum directions
+    for (auto track : generator_t{trk_gen_cfg}) {
+        std::cout << "Track Id: " << i++ << std::endl;
+
+        // Build actor states: the helix inspector can be shared
+        parameter_transporter<test_algebra>::state transporter_state{};
+        pointwise_material_interactor<test_algebra>::state interactor_state{};
+        parameter_resetter<test_algebra>::state resetter_state{};
+        vecmem::data::vector_buffer<detray::geometry::barcode::value_t>
+            seqs_buffer{50u, host_mr, vecmem::data::buffer_type::resizable};
+        vecmem::copy m_copy;
+        m_copy.setup(seqs_buffer)->wait();
+
+        vecmem::device_vector<detray::geometry::barcode::value_t> seqs_device(
+            seqs_buffer);
+
+        geo_id_sequencer::state sequencer_state(seqs_device);
+
+        auto actor_states = detray::tie(transporter_state, interactor_state,
+                                        resetter_state, sequencer_state);
+
+        propagator_t::state state(track, bfield, det);
+
+        // std::cout << "Start Navigator " << std::endl;
+
+        // Propagate the entire detector
+        // state.do_debug = true;
+        ASSERT_TRUE(p.propagate(state, actor_states));
+        // std::cout << state.debug_stream.str() << std::endl;
+
+        auto direct_actor_states =
+            detray::tie(transporter_state, interactor_state, resetter_state);
+
+        direct_propagator_t::state direct_forward_state(track, bfield, det,
+                                                        seqs_device);
+
+        std::cout << "Sequence size: " << seqs_device.size() << std::endl;
+        for (auto seq : seqs_device) {
+            std::cout << detray::geometry::barcode{seq} << std::endl;
+        }
+
+
+        std::cout << std::endl;
+        std::cout << "Start Forward Direct Navigator " << std::endl;
+
+        // direct_state.do_debug = true;
+        ASSERT_TRUE(
+            direct_p.propagate(direct_forward_state, direct_actor_states));
+        // std::cout << direct_state.debug_stream.str() << std::endl;
+
+        std::cout << std::endl;
+        std::cout << "Start Backward Direct Navigator " << std::endl;
+
+        if (seqs_device.size() > 0) {
+
+            std::cout
+                << direct_forward_state._stepping.bound_params().surface_link()
+                << std::endl;
+
+            direct_propagator_t::state direct_backward_state(
+                direct_forward_state._stepping.bound_params(), bfield, det,
+                seqs_device);
+            direct_backward_state._navigation.set_direction(
+                detray::navigation::direction::e_backward);
+
+            ASSERT_TRUE(
+                direct_p.propagate(direct_backward_state, direct_actor_states));
+        }
+    }
+}
+
+INSTANTIATE_TEST_SUITE_P(detray_propagator_direct_navigator_0,
+                         PropagatorWithRkStepperDirectNavigator,
+                         ::testing::Values(vector3{0.f * unit<scalar>::T,
+                                                   0.f * unit<scalar>::T,
+                                                   2.f * unit<scalar>::T}));
