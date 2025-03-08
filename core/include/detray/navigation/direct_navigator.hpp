@@ -109,7 +109,6 @@ class direct_navigator {
             }
 
             if (!is_complete()) {
-                std::cout << get_target_barcode() << std::endl;
                 m_candidate.sf_desc = m_detector->surface(get_target_barcode());
                 m_candidate.volume_link =
                     tracking_surface{*m_detector, m_candidate.sf_desc}
@@ -337,7 +336,7 @@ class direct_navigator {
             navigation.m_heartbeat = false;
             return true;
         }
-        
+
         const auto &det = navigation.detector();
         const auto sf = tracking_surface{det, navigation.target().sf_desc};
 

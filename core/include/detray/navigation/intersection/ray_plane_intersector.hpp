@@ -78,8 +78,6 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, do_debug> {
         if (denom != 0.f) {
             is.path = vector::dot(sn, st - ro) / denom;
 
-            std::cout << is.path << "  " << overstep_tol << std::endl;
-
             // Intersection is valid for navigation - continue
             if (is.path >= overstep_tol) {
 
@@ -101,9 +99,6 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, do_debug> {
         } else {
             is.status = false;
         }
-
-        std::cout << "target Surface" << sf << std::endl;
-        std::cout << "intersection: " << is << std::endl;
 
         return is;
     }
