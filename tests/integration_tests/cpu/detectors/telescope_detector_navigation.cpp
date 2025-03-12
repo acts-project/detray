@@ -51,11 +51,13 @@ int main(int argc, char **argv) {
         build_telescope_detector<test_algebra>(host_mr, tel_cfg);
 
     auto white_board = std::make_shared<test::whiteboard>();
+    tel_detector_t::geometry_context ctx{};
 
     // General data consistency of the detector
     test::consistency_check<tel_detector_t>::config cfg_cons{};
     detail::register_checks<test::consistency_check>(
-        tel_det, tel_names, cfg_cons.name("telescope_detector_consistency"));
+        tel_det, tel_names, cfg_cons.name("telescope_detector_consistency"),
+        ctx);
 
     // Navigation link consistency, discovered by ray intersection
     test::ray_scan<tel_detector_t>::config cfg_ray_scan{};
@@ -67,7 +69,8 @@ int main(int argc, char **argv) {
     cfg_ray_scan.track_generator().theta_range(0.f,
                                                0.25f * constant<scalar>::pi_4);
 
-    detail::register_checks<test::ray_scan>(tel_det, tel_names, cfg_ray_scan);
+    detail::register_checks<test::ray_scan>(tel_det, tel_names, cfg_ray_scan,
+                                            ctx);
 
     // Comparison of straight line navigation with ray scan
     test::straight_line_navigation<tel_detector_t>::config cfg_str_nav{};
@@ -80,7 +83,7 @@ int main(int argc, char **argv) {
         static_cast<float>(mask_tolerance[1]);
 
     detail::register_checks<test::straight_line_navigation>(tel_det, tel_names,
-                                                            cfg_str_nav);
+                                                            cfg_str_nav, ctx);
 
     // Navigation link consistency, discovered by helix intersection
     test::helix_scan<tel_detector_t>::config cfg_hel_scan{};
@@ -95,7 +98,8 @@ int main(int argc, char **argv) {
     cfg_hel_scan.track_generator().theta_range(0.f,
                                                0.25f * constant<scalar>::pi_4);
 
-    detail::register_checks<test::helix_scan>(tel_det, tel_names, cfg_hel_scan);
+    detail::register_checks<test::helix_scan>(tel_det, tel_names, cfg_hel_scan,
+                                              ctx);
 
     // Comparison of navigation in a constant B-field with helix
     test::helix_navigation<tel_detector_t>::config cfg_hel_nav{};
@@ -105,7 +109,7 @@ int main(int argc, char **argv) {
         -100.f * unit<float>::um;
 
     detail::register_checks<test::helix_navigation>(tel_det, tel_names,
-                                                    cfg_hel_nav);
+                                                    cfg_hel_nav, ctx);
 
     // Run the material validation
     test::material_scan<tel_detector_t>::config mat_scan_cfg{};
@@ -117,7 +121,7 @@ int main(int argc, char **argv) {
 
     // Record the material using a ray scan
     detail::register_checks<test::material_scan>(tel_det, tel_names,
-                                                 mat_scan_cfg);
+                                                 mat_scan_cfg, ctx);
 
     // Now trace the material during navigation and compare
     test::material_validation<tel_detector_t>::config mat_val_cfg{};
@@ -126,7 +130,7 @@ int main(int argc, char **argv) {
     mat_val_cfg.propagation() = cfg_str_nav.propagation();
 
     detail::register_checks<test::material_validation>(tel_det, tel_names,
-                                                       mat_val_cfg);
+                                                       mat_val_cfg, ctx);
 
     // Run the checks
     return RUN_ALL_TESTS();
