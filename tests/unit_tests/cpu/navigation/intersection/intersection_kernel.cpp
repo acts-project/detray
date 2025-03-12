@@ -73,7 +73,8 @@ using mask_container_t =
 using mask_link_t = typename mask_container_t::single_link;
 using material_link_t = dtyped_index<material_ids, dindex>;
 
-using transform_container_t = single_store<test::transform3>;
+using transform_container_t =
+    single_store<test::transform3, dvector, geometry_context>;
 
 /// The Surface definition:
 using surface_t =
