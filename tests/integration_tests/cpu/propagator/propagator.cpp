@@ -537,8 +537,7 @@ TEST_P(PropagatorWithRkStepperDirectNavigator, direct_navigator) {
 
             // The initial momentum should be higher than the momentum at the
             // last surface
-            ASSERT_GE(track.p(q),
-                      static_cast<float>(state._stepping.bound_params().p(q)));
+            ASSERT_TRUE(track.p(q) > state._stepping.bound_params().p(q));
             ASSERT_FLOAT_EQ(
                 static_cast<float>(state._stepping.bound_params().p(q)),
                 static_cast<float>(
@@ -557,11 +556,13 @@ TEST_P(PropagatorWithRkStepperDirectNavigator, direct_navigator) {
 
             // @TODO: Need to investigate why there is a discrepancy of =< 0.1%
             // in the initial momentum
-            EXPECT_NEAR(
+            ASSERT_NEAR(
                 static_cast<float>(track.p(q)),
                 static_cast<float>(
                     direct_backward_state._stepping.bound_params().p(q)),
                 static_cast<float>(track.p(q)) * 0.001f);
+            ASSERT_TRUE(direct_backward_state._stepping.bound_params().p(q) >
+                        direct_forward_state._stepping.bound_params().p(q));
         }
     }
 }
