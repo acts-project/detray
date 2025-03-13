@@ -31,3 +31,11 @@
 #else
 #define DETRAY_ALIGN(x) alignas(x)
 #endif
+
+#if defined(__CUDACC__) || defined(__HIP__) || \
+    defined(CL_SYCL_LANGUAGE_VERSION) || \
+    defined(SYCL_LANGUAGE_VERSION)
+#define DETRAY_ON_DEVICE 1
+#else 
+#define DETRAY_ON_DEVICE 0
+#endif
