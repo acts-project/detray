@@ -23,10 +23,10 @@ template <std::random_access_iterator rand_iter_t,
           std::sentinel_for<rand_iter_t> sentinel_t>
 DETRAY_HOST_DEVICE inline void sequential_sort(rand_iter_t first,
                                                sentinel_t last) {
-#if !defined(DETRAY_NO_DEVICE)
-    detray::detail::selection_sort(first, last);
-#else
+#if defined(DETRAY_NO_DEVICE)
     std::ranges::sort(first, last);
+#else
+    detray::detail::selection_sort(first, last);
 #endif
 }
 
@@ -49,10 +49,10 @@ template <std::forward_iterator forw_iter_t,
           std::sentinel_for<forw_iter_t> sentinel_t, typename Value>
 DETRAY_HOST_DEVICE inline auto lower_bound(forw_iter_t first, sentinel_t last,
                                            const Value& value) {
-#if !defined(DETRAY_NO_DEVICE)
-    return detray::detail::lower_bound(first, last, value);
-#else
+#if defined(DETRAY_NO_DEVICE)
     return std::ranges::lower_bound(first, last, value);
+#else
+    return detray::detail::lower_bound(first, last, value);
 #endif
 }
 
@@ -61,10 +61,10 @@ template <std::forward_iterator forw_iter_t,
           std::sentinel_for<forw_iter_t> sentinel_t, typename Value>
 DETRAY_HOST_DEVICE inline auto upper_bound(forw_iter_t first, sentinel_t last,
                                            const Value& value) {
-#if !defined(DETRAY_NO_DEVICE)
-    return detray::detail::upper_bound(first, last, value);
-#else
+#if defined(DETRAY_NO_DEVICE)
     return std::ranges::upper_bound(first, last, value);
+#else
+    return detray::detail::upper_bound(first, last, value);
 #endif
 }
 
