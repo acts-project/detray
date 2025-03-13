@@ -94,7 +94,8 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
 
     // bound track parameter at first physical plane
     const bound_track_parameters<test_algebra> bound_param(
-        geometry::barcode{}.set_index(0u), bound_vector, bound_cov);
+        geometry::barcode{}.set_index(0u).set_volume(0u), bound_vector,
+        bound_cov);
 
     pathlimit_aborter_t::state aborter_state{};
     interactor_t::state interactor_state{};
@@ -215,7 +216,8 @@ GTEST_TEST(detray_material, telescope_geometry_scattering_angle) {
 
     // bound track parameter
     const bound_track_parameters<test_algebra> bound_param(
-        geometry::barcode{}.set_index(0u), bound_vector, bound_cov);
+        geometry::barcode{}.set_index(0u).set_volume(0u), bound_vector,
+        bound_cov);
 
     std::size_t n_samples{100000u};
     std::vector<scalar> phis;
@@ -297,7 +299,8 @@ GTEST_TEST(detray_material, telescope_geometry_volume_material) {
 
     // bound track parameter at first physical plane
     const bound_track_parameters<test_algebra> bound_param(
-        geometry::barcode{}.set_index(0u), bound_vector, bound_cov);
+        geometry::barcode{}.set_index(0u).set_volume(0u), bound_vector,
+        bound_cov);
 
     // Create actor states tuples
     const scalar path_limit = 100 * unit<scalar>::mm;
