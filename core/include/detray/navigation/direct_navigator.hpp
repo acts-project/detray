@@ -221,6 +221,13 @@ class direct_navigator {
             m_volume_index = static_cast<nav_link_type>(v);
         }
 
+        DETRAY_HOST_DEVICE
+        inline auto abort() -> bool {
+            m_status = navigation::status::e_abort;
+            m_heartbeat = false;
+            return m_heartbeat;
+        }
+
         /// @returns current detector volume of the navigation stream
         DETRAY_HOST_DEVICE
         inline auto get_volume() const {
