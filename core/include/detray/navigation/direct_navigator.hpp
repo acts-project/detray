@@ -206,7 +206,7 @@ class direct_navigator {
 
         DETRAY_HOST_DEVICE
         inline auto barcode() const -> geometry::barcode {
-            return m_candidate.sf_desc.barcode();
+            return m_candidate_prev.sf_desc.barcode();
         }
 
         /// @returns current volume (index) - const
