@@ -458,7 +458,7 @@ TEST_P(PropagatorWithRkStepperDirectNavigator, direct_navigator) {
     using direct_actor_chain_t =
         actor_chain<parameter_transporter<test_algebra>,
                     pointwise_material_interactor<test_algebra>,
-                    parameter_resetter<test_algebra>>;
+                    parameter_resetter<test_algebra>, barcode_sequencer>;
     using direct_propagator_t =
         propagator<stepper_t, direct_navigator_t, direct_actor_chain_t>;
 
@@ -492,13 +492,27 @@ TEST_P(PropagatorWithRkStepperDirectNavigator, direct_navigator) {
         parameter_resetter<test_algebra>::state resetter_state{};
         vecmem::data::vector_buffer<detray::geometry::barcode> seqs_buffer{
             100u, host_mr, vecmem::data::buffer_type::resizable};
+        vecmem::data::vector_buffer<detray::geometry::barcode>
+            seqs_forward_buffer{100u, host_mr,
+                                vecmem::data::buffer_type::resizable};
+        vecmem::data::vector_buffer<detray::geometry::barcode>
+            seqs_backward_buffer{100u, host_mr,
+                                 vecmem::data::buffer_type::resizable};
         vecmem::copy m_copy;
         m_copy.setup(seqs_buffer)->wait();
+        m_copy.setup(seqs_forward_buffer)->wait();
+        m_copy.setup(seqs_backward_buffer)->wait();
 
         vecmem::device_vector<detray::geometry::barcode> seqs_device(
             seqs_buffer);
+        vecmem::device_vector<detray::geometry::barcode> seqs_forward_device(
+            seqs_forward_buffer);
+        vecmem::device_vector<detray::geometry::barcode> seqs_backward_device(
+            seqs_backward_buffer);
 
         barcode_sequencer::state sequencer_state(seqs_device);
+        barcode_sequencer::state sequencer_forward_state(seqs_forward_device);
+        barcode_sequencer::state sequencer_backward_state(seqs_backward_device);
 
         auto actor_states = detray::tie(transporter_state, interactor_state,
                                         resetter_state, sequencer_state);
@@ -513,21 +527,32 @@ TEST_P(PropagatorWithRkStepperDirectNavigator, direct_navigator) {
 
         if (seqs_device.size() > 0) {
 
-            auto direct_actor_states = detray::tie(
-                transporter_state, interactor_state, resetter_state);
+            auto direct_forward_actor_states =
+                detray::tie(transporter_state, interactor_state, resetter_state,
+                            sequencer_forward_state);
+            auto direct_backward_actor_states =
+                detray::tie(transporter_state, interactor_state, resetter_state,
+                            sequencer_backward_state);
 
             direct_propagator_t::state direct_forward_state(track, bfield, det,
                                                             seqs_buffer);
 
             // direct_forward_state.do_debug = true;
-            ASSERT_TRUE(
-                direct_p.propagate(direct_forward_state, direct_actor_states));
+            ASSERT_TRUE(direct_p.propagate(direct_forward_state,
+                                           direct_forward_actor_states));
             // std::cout << "Direct navigaiton in forward direction" <<
             // std::endl; std::cout << direct_forward_state.debug_stream.str()
             // << std::endl;
 
             // Check if all surfaces in the sequence are encountered
             ASSERT_TRUE(direct_forward_state._navigation.is_complete());
+            ASSERT_EQ(sequencer_state._sequence.size(),
+                      sequencer_forward_state._sequence.size());
+            for (unsigned int i = 0; i < sequencer_state._sequence.size();
+                 i++) {
+                ASSERT_EQ(sequencer_state._sequence.at(i),
+                          sequencer_forward_state._sequence.at(i));
+            }
 
             const auto ptc = state._stepping.particle_hypothesis();
             ASSERT_EQ(
@@ -549,18 +574,24 @@ TEST_P(PropagatorWithRkStepperDirectNavigator, direct_navigator) {
             direct_backward_state._navigation.set_direction(
                 detray::navigation::direction::e_backward);
 
-            ASSERT_TRUE(
-                direct_p.propagate(direct_backward_state, direct_actor_states));
+            ASSERT_TRUE(direct_p.propagate(direct_backward_state,
+                                           direct_backward_actor_states));
             // Check if all surfaces in the sequence are encountered
             ASSERT_TRUE(direct_backward_state._navigation.is_complete());
+            ASSERT_EQ(sequencer_state._sequence.size(),
+                      sequencer_backward_state._sequence.size());
+            for (unsigned int i = 0; i < sequencer_state._sequence.size();
+                 i++) {
+                unsigned int j = sequencer_state._sequence.size() - 1 - i;
+                ASSERT_EQ(sequencer_state._sequence.at(i),
+                          sequencer_backward_state._sequence.at(j));
+            }
 
-            // @TODO: Need to investigate why there is a discrepancy of =< 0.1%
-            // in the initial momentum
             ASSERT_NEAR(
                 static_cast<float>(track.p(q)),
                 static_cast<float>(
                     direct_backward_state._stepping.bound_params().p(q)),
-                static_cast<float>(track.p(q)) * 0.001f);
+                static_cast<float>(track.p(q)) * 0.0002f);
             ASSERT_TRUE(direct_backward_state._stepping.bound_params().p(q) >
                         direct_forward_state._stepping.bound_params().p(q));
         }

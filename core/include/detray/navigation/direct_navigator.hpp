@@ -288,6 +288,7 @@ class direct_navigator {
     DETRAY_HOST_DEVICE inline void init(const track_t &track, state &navigation,
                                         const navigation::config &cfg,
                                         const context_type &ctx) const {
+
         if (navigation.is_complete()) {
             navigation.m_heartbeat = false;
             return;
@@ -295,9 +296,7 @@ class direct_navigator {
 
         navigation.m_heartbeat = true;
         navigation.update_candidate(!navigation.is_init());
-        update_intersection(track, navigation, cfg, ctx);
-
-        return;
+        update(track, navigation, cfg, ctx);
     }
 
     template <typename track_t>
