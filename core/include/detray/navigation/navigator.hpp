@@ -691,10 +691,10 @@ class navigator {
     ///
     /// @returns a heartbeat to indicate if the navigation is still alive
     template <typename track_t>
-    DETRAY_HOST_DEVICE inline bool update(const track_t &track,
-                                          state &navigation,
-                                          const navigation::config &cfg,
-                                          const context_type &ctx = {}) const {
+    DETRAY_HOST_DEVICE inline bool update(
+        const track_t &track, state &navigation, const navigation::config &cfg,
+        const context_type &ctx = {},
+        [[maybe_unused]] const bool is_before_actor = true) const {
         // Candidates are re-evaluated based on the current trust level.
         // Should result in 'full trust'
         bool is_init = update_kernel(track, navigation, cfg, ctx);

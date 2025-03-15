@@ -300,10 +300,10 @@ class direct_navigator {
     }
 
     template <typename track_t>
-    DETRAY_HOST_DEVICE inline bool update(const track_t &track,
-                                          state &navigation,
-                                          const navigation::config &cfg,
-                                          const context_type &ctx = {}) const {
+    DETRAY_HOST_DEVICE inline bool update(
+        const track_t &track, state &navigation, const navigation::config &cfg,
+        const context_type &ctx = {},
+        const bool is_before_actor_run = true) const {
 
         if (navigation.is_complete()) {
             navigation.m_heartbeat = false;
@@ -313,27 +313,29 @@ class direct_navigator {
         assert(!navigation.get_target_barcode().is_invalid());
         update_intersection(track, navigation, cfg, ctx);
 
-        if (navigation.is_on_surface(navigation.target(), cfg)) {
-            navigation.m_status = (navigation.target().sf_desc.is_portal())
-                                      ? navigation::status::e_on_portal
-                                      : navigation::status::e_on_module;
-            navigation.next();
-            navigation.update_candidate(true);
-            assert(navigation.is_on_surface(navigation.current(), cfg));
+        if (is_before_actor_run) {
+            if (navigation.is_on_surface(navigation.target(), cfg)) {
+                navigation.m_status = (navigation.target().sf_desc.is_portal())
+                                          ? navigation::status::e_on_portal
+                                          : navigation::status::e_on_module;
+                navigation.next();
+                navigation.update_candidate(true);
+                assert(navigation.is_on_surface(navigation.current(), cfg));
 
-            if (!navigation.is_complete()) {
-                update_intersection(track, navigation, cfg, ctx);
+                if (!navigation.is_complete()) {
+                    update_intersection(track, navigation, cfg, ctx);
+                }
+
+                // Return true to reset the step size
+                return true;
             }
-
-            // Return true to reset the step size
-            return true;
-        } else {
-            // Otherwise the track is moving towards a surface
-            navigation.m_status = navigation::status::e_towards_object;
-
-            // Return false to scale the step size with RK4
-            return false;
         }
+
+        // Otherwise the track is moving towards a surface
+        navigation.m_status = navigation::status::e_towards_object;
+
+        // Return false to scale the step size with RK4
+        return false;
     }
 
     template <typename track_t>

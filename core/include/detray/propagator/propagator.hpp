@@ -232,8 +232,8 @@ struct propagator {
         run_actors(actor_state_refs, propagation);
 
         // And check the status
-        is_init |=
-            m_navigator.update(track, navigation, m_cfg.navigation, context);
+        is_init |= m_navigator.update(track, navigation, m_cfg.navigation,
+                                      context, false);
         propagation._heartbeat &= navigation.is_alive();
 
 #if defined(__NO_DEVICE__)
@@ -349,8 +349,8 @@ struct propagator {
                     run_actors(actor_state_refs, propagation);
 
                     // And check the status
-                    is_init |= m_navigator.update(track, navigation,
-                                                  m_cfg.navigation, context);
+                    is_init |= m_navigator.update(
+                        track, navigation, m_cfg.navigation, context, false);
                     propagation._heartbeat &= navigation.is_alive();
                 }
             }
@@ -362,7 +362,7 @@ struct propagator {
 
                 // And check the status
                 is_init |= m_navigator.update(track, navigation,
-                                              m_cfg.navigation, context);
+                                              m_cfg.navigation, context, false);
                 propagation._heartbeat &= navigation.is_alive();
             }
 
