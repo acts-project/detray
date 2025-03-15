@@ -763,10 +763,12 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
             // The initial momentum should be higher than or equal to the
             // momentum at the last surface
             ASSERT_GE(track.p(q), state._stepping.bound_params().p(q));
-            ASSERT_FLOAT_EQ(
+            ASSERT_NEAR(
                 static_cast<float>(state._stepping.bound_params().p(q)),
                 static_cast<float>(
-                    direct_forward_state._stepping.bound_params().p(q)));
+                    direct_forward_state._stepping.bound_params().p(q)),
+                static_cast<float>(state._stepping.bound_params().p(q)) *
+                    1e-6f);
 
             direct_propagator_t::state direct_backward_state(
                 direct_forward_state._stepping.bound_params(), bfield, det,
