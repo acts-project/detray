@@ -10,6 +10,7 @@
 // Project include(s).
 #include "detray/definitions/detail/macros.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/navigation/direct_navigator.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actor_chain.hpp"
@@ -106,7 +107,9 @@ struct propagator {
         DETRAY_HOST_DEVICE state(const bound_track_parameters_type &param,
                                  const detector_type &det,
                                  const context_type &ctx = {})
-            : _stepping(param, det, ctx), _navigation(det), _context(ctx) {}
+            : _stepping(param, det, ctx), _navigation(det), _context(ctx) {
+            _navigation.set_volume(param.surface_link().volume());
+        }
 
         /// Construct the propagation state with bound parameter
         template <typename field_t>
@@ -116,7 +119,23 @@ struct propagator {
                                  const context_type &ctx = {})
             : _stepping(param, magnetic_field, det, ctx),
               _navigation(det),
-              _context(ctx) {}
+              _context(ctx) {
+            _navigation.set_volume(param.surface_link().volume());
+        }
+
+        /// Construct the propagation state with bound parameter and navigator
+        /// state view
+        template <typename field_t>
+        DETRAY_HOST_DEVICE state(
+            const bound_track_parameters_type &param,
+            const field_t &magnetic_field, const detector_type &det,
+            typename navigator_type::state::view_type nav_view,
+            const context_type &ctx = {})
+            : _stepping(param, magnetic_field, det, ctx),
+              _navigation(det, nav_view),
+              _context(ctx) {
+            _navigation.set_volume(param.surface_link().volume());
+        }
 
         /// Set the particle hypothesis
         DETRAY_HOST_DEVICE
@@ -213,8 +232,8 @@ struct propagator {
         run_actors(actor_state_refs, propagation);
 
         // And check the status
-        is_init |=
-            m_navigator.update(track, navigation, m_cfg.navigation, context);
+        is_init |= m_navigator.update(track, navigation, m_cfg.navigation,
+                                      context, false);
         propagation._heartbeat &= navigation.is_alive();
 
 #if defined(__NO_DEVICE__)
@@ -330,8 +349,8 @@ struct propagator {
                     run_actors(actor_state_refs, propagation);
 
                     // And check the status
-                    is_init |= m_navigator.update(track, navigation,
-                                                  m_cfg.navigation, context);
+                    is_init |= m_navigator.update(
+                        track, navigation, m_cfg.navigation, context, false);
                     propagation._heartbeat &= navigation.is_alive();
                 }
             }
@@ -343,7 +362,7 @@ struct propagator {
 
                 // And check the status
                 is_init |= m_navigator.update(track, navigation,
-                                              m_cfg.navigation, context);
+                                              m_cfg.navigation, context, false);
                 propagation._heartbeat &= navigation.is_alive();
             }
 

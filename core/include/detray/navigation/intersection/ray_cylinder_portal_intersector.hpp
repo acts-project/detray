@@ -80,11 +80,15 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
         const auto qe = this->solve_intersection(ray, mask, trf);
 
         // Find the closest valid intersection
-        if (qe.solutions() > 0 && qe.larger() > overstep_tol) {
+        if (qe.solutions() > 0) {
+
             // Only the closest intersection that is outside the overstepping
             // tolerance is needed
-            const scalar_type t{(qe.smaller() > overstep_tol) ? qe.smaller()
-                                                              : qe.larger()};
+            scalar_type t = qe.smaller();
+            if ((qe.smaller() < overstep_tol) && (qe.solutions() == 2u)) {
+                t = qe.larger();
+            }
+
             is = this->template build_candidate<surface_descr_t>(
                 ray, mask, trf, t, mask_tolerance, mask_tol_scalor,
                 overstep_tol);
