@@ -24,6 +24,7 @@ struct barcode_sequencer : actor {
 
         using sequence_t = vecmem::device_vector<detray::geometry::barcode>;
         sequence_t _sequence;
+        bool overflow = false;
 
         /// Constructor with the vector of track states
         DETRAY_HOST_DEVICE
@@ -38,6 +39,11 @@ struct barcode_sequencer : actor {
 
         if (!(navigation.is_on_sensitive() ||
               navigation.encountered_sf_material())) {
+            return;
+        }
+
+        if (actor_state._sequence.size() == actor_state._sequence.capacity()) {
+            actor_state.overflow = true;
             return;
         }
 
