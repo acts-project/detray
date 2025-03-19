@@ -98,7 +98,7 @@ void write_telecope(const po::variables_map &vm,
 
             const auto p{vm["p"].as<scalar_t>() * unit<scalar_t>::GeV};
             detray::detail::helix<algebra_t> h{
-                {0.f, 0.f, 0.f}, 0.f, dir, 1.f / p, &B};
+                {0.f, 0.f, 0.f}, 0.f, dir, 1.f / p, B};
 
             write_telecope<mask_shape_t>(vm, writer_cfg, mask_params, h);
         } else {

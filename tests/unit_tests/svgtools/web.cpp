@@ -91,7 +91,7 @@ GTEST_TEST(svgtools, web) {
 
         const detray::detail::helix<test_algebra> helix(
             ori, 0.f, detray::vector::normalize(dir), static_cast<float>(qop),
-            &B);
+            B);
         const auto helix_ir =
             detray::detector_scanner::run<detray::helix_scan>(gctx, det, helix);
 

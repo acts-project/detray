@@ -283,7 +283,7 @@ GTEST_TEST(detray_detectors, telescope_detector) {
 
     auto pilot_track = free_track_parameters<test_algebra>(pos, 0.f, mom, -1.f);
 
-    detail::helix<test_algebra> helix_bz(pilot_track, &B_z);
+    detail::helix<test_algebra> helix_bz(pilot_track, B_z);
 
     tel_det_config htel_cfg{rectangle, helix_bz};
     htel_cfg.n_surfaces(11u).length(500.f * unit<scalar>::mm);

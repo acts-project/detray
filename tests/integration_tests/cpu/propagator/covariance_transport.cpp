@@ -101,7 +101,7 @@ class detray_propagation_HelixCovarianceTransportValidation
 
         // Step size between two neighbor planes
         const scalar S{2.f * constant<scalar>::pi /
-                       std::abs(reference_helix._K)};
+                       std::abs(reference_helix.qop() * reference_helix.B())};
         const scalar step_size = S / static_cast<scalar>(n_planes);
 
         for (std::size_t i = 0u; i < n_planes; i++) {
@@ -175,7 +175,7 @@ class detray_propagation_HelixCovarianceTransportValidation
             detail::bound_to_free_vector(trf_0, mask_0, bound_vec_0);
 
         // Helix from the departure surface
-        detail::helix<algebra_type> hlx(free_trk_0, &B);
+        detail::helix<algebra_type> hlx(free_trk_0, B);
 
         // Bound-to-free jacobian at the departure surface
         const bound_to_free_matrix_t bound_to_free_jacobi =
@@ -278,7 +278,7 @@ TYPED_TEST(detray_propagation_HelixCovarianceTransportValidation,
     free_track_parameters<test_algebra> free_trk(
         {0.f, 0.f, 0.f}, 0.f, {0.1f * unit<scalar>::GeV, 0.f, 0.f}, -1.f);
 
-    detail::helix<test_algebra> reference_helix(free_trk, &this->B);
+    detail::helix<test_algebra> reference_helix(free_trk, this->B);
 
     const std::size_t n_planes = 10u;
     std::vector<transform3> trfs =
@@ -341,7 +341,8 @@ TYPED_TEST(detray_propagation_HelixCovarianceTransportValidation,
     // Check if the total path length is the expected value
     ASSERT_TRUE(total_path_length > 1e-3);
     ASSERT_NEAR(total_path_length,
-                2.f * constant<scalar>::pi / std::abs(reference_helix._K),
+                2.f * constant<scalar>::pi /
+                    std::abs(reference_helix.qop() * reference_helix.B()),
                 this->tolerance);
 
     ASSERT_EQ(sfis.size(), n_planes);

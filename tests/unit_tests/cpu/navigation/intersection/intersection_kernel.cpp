@@ -279,7 +279,7 @@ GTEST_TEST(detray_intersection, intersection_kernel_helix) {
     const vector3 mom{0.01f, 0.01f, 10.f};
     const vector3 B{0.f * unit<scalar>::T, 0.f * unit<scalar>::T,
                     tol * unit<scalar>::T};
-    const detail::helix<test_algebra> h({pos, 0.f, mom, -1.f}, &B);
+    const detail::helix<test_algebra> h({pos, 0.f, mom, -1.f}, B);
 
     // Validation data
     const point3 expected_rectangle{0.01f, 0.01f, 10.f};

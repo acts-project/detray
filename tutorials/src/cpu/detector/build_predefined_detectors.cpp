@@ -155,7 +155,7 @@ int main(int argc, char** argv) {
     // Helix in a constant B-field 1T in z-direction
     using helix_t = detray::detail::helix<algebra_t>;
     detray::tutorial::vector3 B_z{0.f, 0.f, 1.f * detray::unit<scalar>::T};
-    helix_t helix(y_track, &B_z);
+    helix_t helix(y_track, B_z);
 
     detray::tel_det_config htrp_cfg{trapezoid, helix};
     htrp_cfg.positions(positions);
