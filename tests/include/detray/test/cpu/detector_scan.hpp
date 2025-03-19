@@ -254,7 +254,7 @@ class detector_scan : public test::fixture_base<> {
             test_traj = std::make_unique<trajectory_type>(track);
         } else {
             test_traj =
-                std::make_unique<trajectory_type>(track, &(m_cfg.B_vector()));
+                std::make_unique<trajectory_type>(track, m_cfg.B_vector());
         }
         return *(test_traj.release());
     }

@@ -46,7 +46,7 @@ GTEST_TEST(detray_intersection, helix_trajectory) {
     const scalar pt{std::sqrt(p_mag * p_mag - pz_along * pz_along)};
 
     // helix trajectory
-    detail::helix helix_traj(vertex, &B);
+    detail::helix helix_traj(vertex, B);
     EXPECT_NEAR(helix_traj.time(), 0.f, tol);
     EXPECT_NEAR(helix_traj.qop(), -constant<scalar>::inv_sqrt2, tol);
 
@@ -115,7 +115,7 @@ GTEST_TEST(detray_intersection, helix_trajectory) {
     free_track_parameters<test_algebra> vertex2(pos, time, mom, -q);
 
     // helix trajectory
-    detail::helix helix_traj2(vertex2, &B);
+    detail::helix helix_traj2(vertex2, B);
 
     EXPECT_NEAR(R, helix_traj2.radius(), tol);
 
@@ -186,7 +186,7 @@ GTEST_TEST(detray_intersection, helix_trajectory_small_pT) {
     const vector3 B{0.f, 0.f, 1.f * unit<scalar>::T};
 
     // helix trajectory
-    detail::helix helix_traj(vertex, &B);
+    detail::helix helix_traj(vertex, B);
     EXPECT_NEAR(helix_traj.time(), 0.f, tol);
     EXPECT_NEAR(helix_traj.qop(), -1.f, tol);
 
@@ -219,7 +219,7 @@ GTEST_TEST(detray_intersection, helix_direction_stability) {
     free_track_parameters<test_algebra> vertex(pos, time, mom, q);
 
     // helix trajectory
-    detail::helix hlx(vertex, &B);
+    detail::helix hlx(vertex, B);
 
     for (int i = 0; i < 100; i++) {
         const auto d = hlx.dir(scalar(i) * 10.f);

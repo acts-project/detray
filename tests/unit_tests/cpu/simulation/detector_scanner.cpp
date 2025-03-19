@@ -72,7 +72,7 @@ GTEST_TEST(detray_simulation, detector_scanner) {
     for (const auto track :
          uniform_track_generator<free_track_parameters<test_algebra>>(
              phi_steps, theta_steps)) {
-        const detail::helix test_helix(track, &B);
+        const detail::helix test_helix(track, B);
 
         // Record all intersections and objects along the ray
         const auto intersection_trace =

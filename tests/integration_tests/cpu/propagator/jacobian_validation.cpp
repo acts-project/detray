@@ -611,7 +611,7 @@ bound_track_parameters<test_algebra> get_initial_parameter(
     const vector3& field, const scalar helix_tolerance) {
 
     // Helix from the vertex
-    detail::helix<test_algebra> hlx(vertex, &field);
+    detail::helix<test_algebra> hlx(vertex, field);
 
     const auto& departure_sf = det.surface(0u);
     const auto& trf_link = departure_sf.transform();
@@ -642,7 +642,7 @@ bound_track_parameters<test_algebra> get_initial_parameter(
     const auto pos = hlx(path_length);
     const auto dir = hlx.dir(path_length);
 
-    const free_track_parameters<test_algebra> free_par(pos, 0, dir, hlx._qop);
+    const free_track_parameters<test_algebra> free_par(pos, 0, dir, hlx.qop());
 
     const auto bound_vec =
         tracking_surface{det, departure_sf}.free_to_bound_vector({}, free_par);
@@ -989,7 +989,7 @@ bound_param_vector_type get_displaced_bound_vector_helix(
     dvec[target_index] += displacement;
     const auto free_vec =
         tracking_surface{det, departure_sf}.bound_to_free_vector({}, dvec);
-    detail::helix<test_algebra> hlx(free_vec, &field);
+    detail::helix<test_algebra> hlx(free_vec, field);
 
     using mask_t =
         typename detector_t::mask_container::template get_type<mask_id>;
@@ -1003,7 +1003,7 @@ bound_param_vector_type get_displaced_bound_vector_helix(
     const auto dir = hlx.dir(path_length);
 
     const free_track_parameters<test_algebra> new_free_par(pos, 0, dir,
-                                                           hlx._qop);
+                                                           hlx.qop());
     auto new_bound_vec =
         tracking_surface{det, destination_sf}.free_to_bound_vector(
             {}, new_free_par);
@@ -1038,7 +1038,7 @@ void evaluate_jacobian_difference_helix(
         tracking_surface{det, departure_sf}.bound_to_free_vector({}, track);
 
     // Helix from the departure surface
-    detail::helix<test_algebra> hlx(free_vec, &field);
+    detail::helix<test_algebra> hlx(free_vec, field);
 
     const auto& destination_sf = det.surface(1u);
     const auto& trf_link = destination_sf.transform();
@@ -1069,7 +1069,7 @@ void evaluate_jacobian_difference_helix(
 
     const auto pos = hlx(path_length);
     const auto dir = hlx.dir(path_length);
-    const auto qop = hlx._qop;
+    const auto qop = hlx.qop();
 
     // Get correction term
     const auto correction_term =
@@ -1621,7 +1621,7 @@ int main(int argc, char** argv) {
         mt2.seed(track_count);
 
         // Pilot track
-        detail::helix<test_algebra> helix_bz(track, &B_z);
+        detail::helix<test_algebra> helix_bz(track, B_z);
 
         // Make a telescope geometry with rectagular surface
         const scalar detector_length = rand_length(mt1);

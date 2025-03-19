@@ -60,11 +60,11 @@ class helix {
     DETRAY_HOST_DEVICE
     helix(const point3_type &pos, const scalar_type time,
           const vector3_type &dir, const scalar_type qop,
-          vector3_type const *const mag_field)
-        : _pos(pos), _time(time), _qop(qop), _mag_field(mag_field), _t0{dir} {
+          const vector3_type &mag_field)
+        : _pos(pos), _time(time), _qop(qop), _t0{dir} {
 
         // Normalized B field
-        _h0 = vector::normalize(*_mag_field);
+        _h0 = vector::normalize(mag_field);
 
         assert((math::fabs(vector::norm(_t0) - 1.f) < 1e-5f) &&
                "The helix direction must be normalized");
@@ -83,7 +83,7 @@ class helix {
         _delta = vector::dot(_h0, _t0);
 
         // B field strength
-        _B = vector::norm(*_mag_field);
+        _B = vector::norm(mag_field);
 
         // Path length scaler
         _K = -_qop * _B;
@@ -108,9 +108,17 @@ class helix {
 
     DETRAY_HOST_DEVICE
     helix(const free_track_parameters_type &track,
-          vector3_type const *const mag_field)
+          const vector3_type &mag_field)
         : helix(track.pos(), track.time(), track.dir(), track.qop(),
                 mag_field) {}
+
+    /// @TODO Add covfie field view concept
+    template <typename field_view_t>
+    requires(!concepts::vector3D<field_view_t>) DETRAY_HOST_DEVICE
+        helix(const free_track_parameters_type &track,
+              const field_view_t mag_field)
+        : helix(track.pos(), track.time(), track.dir(), track.qop(),
+                sample_field(mag_field, track.pos())) {}
 
     /// @returns the radius of helix
     DETRAY_HOST_DEVICE
@@ -168,7 +176,10 @@ class helix {
     scalar_type qop() const { return _qop; }
 
     DETRAY_HOST_DEVICE
-    auto b_field() const { return _mag_field; }
+    scalar_type B() const { return _B; }
+
+    DETRAY_HOST_DEVICE
+    vector3_type b_field() const { return _B * _h0; }
 
     /// @returns the transport jacobian after propagating the path length of s
     DETRAY_HOST_DEVICE
@@ -241,16 +252,24 @@ class helix {
         return ret;
     }
 
+    private:
     /// Print
     DETRAY_HOST
     friend std::ostream &operator<<(std::ostream &os, const helix &h) {
         os << "helix: ";
-        os << "ori = [" << h._pos[0] << ", " << h._pos[1] << ", " << h._pos[2]
-           << "], ";
-        os << "dir = [" << h._t0[0] << ", " << h._t0[1] << ", " << h._t0[2]
-           << "]" << std::endl;
+        os << "ori = " << h._pos;
+        os << "dir = " << h._t0 << std::endl;
 
         return os;
+    }
+
+    /// Helper to get a field strenght at a given position
+    template <typename field_view_t>
+    constexpr vector3_type sample_field(const field_view_t field,
+                                        const point3_type &pos) const {
+        const auto bvec = field.at(pos[0], pos[1], pos[2]);
+
+        return {bvec[0], bvec[1], bvec[2]};
     }
 
     /// origin
@@ -261,9 +280,6 @@ class helix {
 
     /// qop
     scalar_type _qop;
-
-    /// B field
-    vector3_type const *_mag_field;
 
     /// B field strength
     scalar_type _B;
@@ -292,5 +308,10 @@ class helix {
     /// Velocity in new z axis divided by transverse velocity
     scalar_type _vz_over_vt;
 };
+
+template <concepts::algebra algebra_t, typename field_view_t>
+requires(!concepts::vector3D<field_view_t>) DETRAY_HOST_DEVICE
+    helix(const free_track_parameters<algebra_t> &, const field_view_t)
+        ->helix<algebra_t>;
 
 }  // namespace detray::detail

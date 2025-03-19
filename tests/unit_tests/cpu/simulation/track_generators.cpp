@@ -106,7 +106,7 @@ GTEST_TEST(detray_simulation, uniform_track_generator) {
                     2.f * unit<scalar>::T};
     n_tracks = 0u;
     for (const auto track : generator_t(phi_steps, theta_steps)) {
-        detail::helix<test_algebra> helix_traj(track, &B);
+        detail::helix<test_algebra> helix_traj(track, B);
         vector3& expected = momenta[n_tracks];
         vector3 result = helix_traj.dir(0.f);
 

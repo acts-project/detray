@@ -132,7 +132,7 @@ struct helix_intersector_impl<line2D<algebra_t>, algebra_t> {
 
                 // dtds = d^2r/ds^2 = qop * (t X b_field)
                 const vector3_type dtds =
-                    h.qop() * vector::cross(t, *h._mag_field);
+                    h.qop() * vector::cross(t, h.b_field());
                 // dwds = t - (t * l)l
                 const vector3_type dwds = t - vector::dot(t, l) * l;
 
@@ -236,7 +236,7 @@ struct helix_intersector_impl<line2D<algebra_t>, algebra_t> {
 
                 // dtds = d^2r/ds^2 = qop * (t X b_field)
                 const vector3_type dtds =
-                    h.qop() * vector::cross(t, *h._mag_field);
+                    h.qop() * vector::cross(t, h.b_field());
                 // dwds = t - (t * l)l
                 const vector3_type dwds = t - vector::dot(t, l) * l;
 
