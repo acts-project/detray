@@ -121,14 +121,15 @@ struct track_statistics {
 };
 
 /// Run the propagation and record test data along the way
-template <typename stepper_t, typename detector_t,
+template <typename stepper_t, typename... actor_ts, typename detector_t,
           typename bfield_t = empty_bfield>
 inline auto record_propagation(
     const typename detector_t::geometry_context ctx,
     vecmem::memory_resource *host_mr, const detector_t &det,
     const propagation::config &cfg,
     const free_track_parameters<typename detector_t::algebra_type> &track,
-    const bfield_t &bfield = {}) {
+    const bfield_t &bfield = {},
+    const navigation::direction nav_dir = navigation::direction::e_forward) {
 
     using algebra_t = typename detector_t::algebra_type;
     using scalar_t = dscalar<algebra_t>;
@@ -158,8 +159,8 @@ inline auto record_propagation(
     using pathlimit_aborter_t = pathlimit_aborter<scalar_t>;
     using material_tracer_t =
         material_validator::material_tracer<scalar_t, dvector>;
-    using actor_chain_t =
-        actor_chain<pathlimit_aborter_t, step_tracer_t, material_tracer_t>;
+    using actor_chain_t = actor_chain<pathlimit_aborter_t, step_tracer_t,
+                                      material_tracer_t, actor_ts...>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Propagator
@@ -170,8 +171,22 @@ inline auto record_propagation(
         cfg.stepping.path_limit};
     typename step_tracer_t::state step_tracer_state{*host_mr};
     typename material_tracer_t::state mat_tracer_state{*host_mr};
-    auto actor_states = detray::tie(pathlimit_aborter_state, step_tracer_state,
-                                    mat_tracer_state);
+
+    // Extra actors
+    dtuple<typename actor_ts::state...> state_tuple{};
+
+    // Combine all actor states
+    auto setup_actor_states =
+        []<std::size_t... indices>(typename pathlimit_aborter_t::state & s1,
+                                   typename step_tracer_t::state & s2,
+                                   typename material_tracer_t::state & s3,
+                                   dtuple<typename actor_ts::state...> & t,
+                                   std::index_sequence<indices...> /*ids*/) {
+        return detray::tie(s1, s2, s3, detail::get<indices>(t)...);
+    };
+    auto actor_states = setup_actor_states(
+        pathlimit_aborter_state, step_tracer_state, mat_tracer_state,
+        state_tuple, std::make_index_sequence<sizeof...(actor_ts)>{});
 
     std::unique_ptr<typename propagator_t::state> propagation{nullptr};
     if constexpr (std::is_same_v<bfield_t, empty_bfield>) {
@@ -191,7 +206,27 @@ inline auto record_propagation(
     // Acces to the stepper information
     auto &step_printer = propagation->_stepping.inspector();
 
+    // Find the end point and direction of the track (approximately)
+    if (nav_dir == navigation::direction::e_backward) {
+        using fw_propagator_t =
+            propagator<stepper_t, navigator_t, actor_chain<>>;
+        std::unique_ptr<typename fw_propagator_t::state> fw_propagation{
+            nullptr};
+        if constexpr (std::is_same_v<bfield_t, empty_bfield>) {
+            fw_propagation = std::make_unique<typename fw_propagator_t::state>(
+                track, det, ctx);
+        } else {
+            fw_propagation = std::make_unique<typename fw_propagator_t::state>(
+                track, bfield, det, ctx);
+        }
+        fw_propagator_t{cfg}.propagate(*fw_propagation);
+        propagation->_stepping() = fw_propagation->_stepping();
+        propagation->_navigation.set_volume(
+            fw_propagation->_navigation.volume());
+    }
+
     // Run the propagation
+    propagation->_navigation.set_direction(nav_dir);
     bool success = prop.propagate(*propagation, actor_states);
 
     return std::make_tuple(
@@ -832,6 +867,221 @@ inline auto print_efficiency(std::size_t n_tracks,
     }
 
     std::cout << "\n-----------------------------------\n" << std::endl;
+}
+
+/// Run the propagation and compare to an externally provided truth trace
+///
+template <typename stepper_t, typename... actor_ts, typename detector_t,
+          typename field_view_t, typename intersection_t,
+          concepts::algebra algebra_t>
+auto compare_to_navigation(
+    vecmem::host_memory_resource &host_mr, const detector_t &det,
+    const typename detector_t::name_map &names,
+    const typename detector_t::geometry_context ctx,
+    const field_view_t field_view, const propagation::config &prop_cfg,
+    std::vector<dvector<navigation::detail::candidate_record<intersection_t>>>
+        &truth_traces,
+    const std::vector<free_track_parameters<algebra_t>> &tracks,
+    const navigation::direction nav_dir = navigation::direction::e_forward,
+    const bool collect_sensitives_only = false, const bool fail_on_diff = true,
+    const bool verbose = true) {
+
+    // Style of svgs
+    detray::svgtools::styling::style svg_style =
+        detray::svgtools::styling::tableau_colorblind::style;
+
+    // Write navigation and stepping debug info if a track fails
+    std::ios_base::openmode io_mode = std::ios::trunc | std::ios::out;
+    detray::io::file_handle debug_file{"navigation_validation.txt", io_mode};
+
+    // Collect some statistics
+    std::size_t n_not_matching{0};
+    std::size_t n_holes{0};
+    std::size_t n_matching_error{0u};
+    std::size_t n_fatal_error{0u};
+
+    // Collect some statistics
+    track_statistics trk_stats{};
+
+    // Total number of encountered surfaces
+    surface_stats n_surfaces{};
+    // Missed by navigator
+    surface_stats n_miss_nav{};
+    // Missed by truth finder
+    surface_stats n_miss_truth{};
+
+    assert(truth_traces.size() == tracks.size());
+    const std::size_t n_samples{truth_traces.size()};
+
+    // Run the navigation on every truth particle
+    for (std::size_t i = 0u; i < n_samples; ++i) {
+        const auto &track = tracks[i];
+        auto &truth_trace = truth_traces[i];
+
+        assert(!truth_traces.empty());
+
+        // Record the propagation through the geometry
+        auto [success, obj_tracer, step_trace, mat_record, mat_trace,
+              nav_printer, step_printer] =
+            record_propagation<stepper_t, actor_ts...>(
+                ctx, &host_mr, det, prop_cfg, track, field_view, nav_dir);
+
+        // Fatal propagation error: Data unreliable
+        if (!success) {
+            std::cout << "ERROR: Propagation failure" << std::endl;
+
+            *debug_file << "TEST TRACK " << i << ":\n\n"
+                        << nav_printer.to_string() << step_printer.to_string();
+
+            n_fatal_error++;
+            n_not_matching++;
+            continue;
+        }
+
+        // Compare to truth trace
+        using obj_tracer_t = decltype(obj_tracer);
+        using record_t = typename obj_tracer_t::candidate_record_t;
+
+        detray::dvector<record_t> recorded_trace{};
+        // Get only the sensitive surfaces
+        if (collect_sensitives_only) {
+            for (const auto &rec : obj_tracer.trace()) {
+                if (rec.intersection.sf_desc.is_sensitive()) {
+                    recorded_trace.push_back(rec);
+                }
+            }
+        } else {
+            std::ranges::copy(obj_tracer.trace(),
+                              std::back_inserter(recorded_trace));
+        }
+
+        // Minimal number of incorrect traces (estimation)
+        if (recorded_trace.size() != truth_trace.size()) {
+            n_not_matching++;
+        }
+        if (recorded_trace.size() < truth_trace.size()) {
+            n_holes++;
+        }
+
+        detray::detail::helix ideal_traj{track, field_view};
+        auto [result, n_miss_trace_nav, n_miss_trace_truth, n_error_trace,
+              missed_inters] =
+            compare_traces(truth_trace, recorded_trace, ideal_traj, i,
+                           n_samples, &(*debug_file), fail_on_diff, verbose);
+
+        // Comparison failed
+        if (!result) {
+            // Write debug info to file
+            *debug_file << "TEST TRACK " << i << ":\n\n"
+                        << nav_printer.to_string() << step_printer.to_string();
+
+            // In this test it is expected that the navigator finds
+            // additional surfaces. Only dump svg if it missed one
+            if (n_miss_trace_nav.n_total() != 0u || n_error_trace != 0u) {
+                detray::detector_scanner::display_error(
+                    ctx, det, names, "Navigation Check", ideal_traj,
+                    truth_trace, svg_style, i, n_samples, recorded_trace);
+            }
+        }
+
+        // After dummy records insertion, traces should have the same size
+        EXPECT_EQ(truth_trace.size(), recorded_trace.size());
+
+        // Add to global statistics
+        n_miss_nav += n_miss_trace_nav;
+        n_miss_truth += n_miss_trace_truth;
+        n_matching_error += n_error_trace;
+
+        // Count the number of different surface types on this trace
+        for (std::size_t j = 0; j < truth_trace.size(); ++j) {
+            n_surfaces.count(truth_trace[j].intersection.sf_desc);
+        }
+
+        // Did the navigation miss a sensitive surface? => count a hole
+        if (n_miss_trace_nav.n_sensitives != 0u) {
+            trk_stats.n_tracks_w_holes++;
+        }
+        if (n_error_trace == 0u && n_miss_trace_nav.n_total() == 0u &&
+            n_miss_trace_truth.n_total() == 0u) {
+            trk_stats.n_good_tracks++;
+        }
+        // Any additional surfaces found (might have material)
+        if (n_miss_trace_truth.n_total() != 0u) {
+            trk_stats.n_tracks_w_extra++;
+        }
+
+        trk_stats.n_max_missed_per_trk = math::max(
+            trk_stats.n_max_missed_per_trk, n_miss_trace_nav.n_sensitives);
+        trk_stats.n_max_extra_per_trk = math::max(trk_stats.n_max_extra_per_trk,
+                                                  n_miss_trace_truth.n_total());
+
+        if (n_error_trace != 0u) {
+            throw std::runtime_error(
+                "FATAL: Error during track comparison. Please check log "
+                "files");
+        }
+
+        // Count the number of tracks that were tested
+        trk_stats.n_tracks++;
+    }
+
+    const std::size_t n_tracks{trk_stats.n_tracks};
+    const std::size_t n_tracks_w_holes{trk_stats.n_tracks_w_holes};
+    const std::size_t n_tracks_w_extra{trk_stats.n_tracks_w_extra};
+    const std::size_t n_good_tracks{trk_stats.n_good_tracks};
+    const std::size_t n_max_holes_per_trk{trk_stats.n_max_missed_per_trk};
+    const std::size_t n_max_extra_per_trk{trk_stats.n_max_extra_per_trk};
+
+    // Self check
+    if (n_not_matching > (n_tracks_w_holes + n_tracks_w_extra)) {
+        throw std::runtime_error(
+            "Number of tracks with mismatches underestimated!");
+    }
+    if (n_holes > n_tracks_w_holes) {
+        throw std::runtime_error(
+            "Number of tracks with holes is underestimated!");
+    }
+
+    // Calculate and display the surface finding efficiency
+    print_efficiency(n_tracks, n_surfaces, n_miss_nav, n_miss_truth,
+                     n_fatal_error, n_matching_error);
+
+    // Column width in output
+    constexpr int cw{35};
+
+    std::cout << std::left << std::setw(cw)
+              << "No. Tracks with holes: " << n_tracks_w_holes << "/"
+              << n_tracks << " (" << 100. * n_tracks_w_holes / n_tracks << "%)"
+              << std::endl;
+    std::cout << std::left << std::setw(cw)
+              << "No. Tracks with add. surfaces: " << n_tracks_w_extra << "/"
+              << n_tracks << " (" << 100. * n_tracks_w_extra / n_tracks << "%)"
+              << std::endl;
+    std::cout << std::left << std::setw(cw)
+              << "No. Good Tracks (exact match):  " << n_good_tracks << "/"
+              << n_tracks << " (" << 100. * n_good_tracks / n_tracks << "%)\n"
+              << std::endl;
+    std::cout << std::left << std::setw(cw + 5)
+              << "Max no. of holes per track: " << n_max_holes_per_trk
+              << " (Mean: "
+              << ((n_tracks_w_holes == 0)
+                      ? "-"
+                      : std::to_string(
+                            static_cast<double>(n_miss_nav.n_sensitives) /
+                            static_cast<double>(n_tracks_w_holes)))
+              << ")" << std::endl;
+    std::cout << std::left << std::setw(cw + 5)
+              << "Max no. of add. surfaces per track: " << n_max_extra_per_trk
+              << " (Mean: "
+              << ((n_tracks_w_extra == 0)
+                      ? "-"
+                      : std::to_string(
+                            static_cast<double>(n_miss_truth.n_total()) /
+                            static_cast<double>(n_tracks_w_extra)))
+              << ")" << std::endl;
+    std::cout << "\n-----------------------------------" << std::endl;
+
+    return std::tuple{trk_stats, n_surfaces, n_miss_nav, n_miss_truth};
 }
 
 }  // namespace detray::navigation_validator
