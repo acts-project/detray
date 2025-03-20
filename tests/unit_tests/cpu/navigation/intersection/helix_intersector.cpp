@@ -56,7 +56,7 @@ const vector3 B_0{0.f * unit<scalar>::T, tol* unit<scalar>::T,
                   tol* unit<scalar>::T};
 
 // Test helix
-const helix_t hlx(free_trk, &B);
+const helix_t hlx(free_trk, B);
 
 // Path along the helix
 const scalar path = 10.f * unit<scalar>::cm;
@@ -77,7 +77,7 @@ GTEST_TEST(detray_intersection, helix_plane_intersector_no_bfield) {
     // Test helix
     const point3 pos{2.f, 1.f, 0.f};
     const vector3 mom{0.f, 0.f, 1.f};
-    const detail::helix<test_algebra> h({pos, 0.f, mom, -1.f}, &B_0);
+    const detail::helix<test_algebra> h({pos, 0.f, mom, -1.f}, B_0);
 
     // The same test but bound to local frame
     helix_intersector<unmasked<2>, test_algebra> pi;
@@ -171,7 +171,7 @@ GTEST_TEST(detray_intersection, helix_cylinder_intersector_no_bfield) {
     const point3 pos{3.f, 2.f, 5.f};
     const vector3 mom{1.f, 0.f, 0.f};
     const helix_t h({pos, 0.f * unit<scalar>::s, mom, -1 * unit<scalar>::e},
-                    &B_0);
+                    B_0);
 
     // Intersect
     mask<cylinder2D, test_algebra, std::uint_least16_t> cylinder{0u, r, -hz,
@@ -273,7 +273,7 @@ GTEST_TEST(detray_intersection,
     const point3 pos{0.f, 0.f, -5.f};
     const vector3 mom{1.f, 0.f, 0.f};
     const helix_t h({pos, 0.f * unit<scalar>::s, mom, -1 * unit<scalar>::e},
-                    &B_0);
+                    B_0);
 
     // Intersect
     mask<concentric_cylinder2D, test_algebra, std::uint_least16_t> cylinder{

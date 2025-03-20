@@ -85,7 +85,7 @@ GTEST_TEST(detray_propagator, rk_stepper) {
         free_track_parameters<test_algebra> c_track(track);
 
         // helix trajectory
-        detail::helix helix(track, &B);
+        detail::helix helix(track, B);
 
         // RK Stepping into forward direction
         rk_stepper_t<bfield_t>::state rk_state{track, hom_bfield};

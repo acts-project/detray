@@ -96,7 +96,7 @@ struct helix_inspector : actor {
             stepping.field().at(last_pos[0], last_pos[1], last_pos[2]);
         const vector3 b{bvec[0], bvec[1], bvec[2]};
 
-        detail::helix<test_algebra> hlx(free_params, &b);
+        detail::helix<test_algebra> hlx(free_params, b);
 
         const auto true_pos = hlx(inspector_state.path_from_surface);
 
