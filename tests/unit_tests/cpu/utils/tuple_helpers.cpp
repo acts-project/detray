@@ -66,4 +66,25 @@ GTEST_TEST(detray_utils, tuple_helpers) {
     EXPECT_FLOAT_EQ(detail::get<float>(d_tuple), 1.0f);
     EXPECT_EQ(detail::get<unsigned long>(d_tuple), 2UL);
     EXPECT_EQ(detail::get<std::string>(d_tuple), std::string("detray::tuple"));
+
+    // Check type concatenation
+    static_assert(
+        std::same_as<
+            detail::tuple_cat_t<std::tuple<int, double>, std::tuple<float>,
+                                std::tuple<>, std::tuple<char, bool, double>>,
+            std::tuple<int, double, float, char, bool, double>>);
+
+    static_assert(
+        std::same_as<detail::tuple_cat_t<dtuple<int, double>, dtuple<float>,
+                                         dtuple<>, dtuple<char, bool, double>>,
+                     dtuple<int, double, float, char, bool, double>>);
+
+    // Permutation check
+    static_assert(detail::is_permutation_v<dtuple<>, dtuple<>>);
+    static_assert(detail::is_permutation_v<dtuple<int, float, double>,
+                                           dtuple<double, int, float>>);
+    static_assert(!detail::is_permutation_v<dtuple<int, float, double>,
+                                            dtuple<char, int, float>>);
+    static_assert(!detail::is_permutation_v<dtuple<int, float, double>,
+                                            dtuple<int, int, double, float>>);
 }
