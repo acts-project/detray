@@ -23,6 +23,9 @@
 // google-test include(s).
 #include <gtest/gtest.h>
 
+// System include(s)
+#include <iomanip>
+
 using namespace detray;
 
 // Algebra types
@@ -354,7 +357,7 @@ TYPED_TEST(detray_propagation_HelixCovarianceTransportValidation,
     for (unsigned int i = 0u; i < e_bound_size; i++) {
         EXPECT_NEAR(bound_vec_0[i], bound_params[i], this->tolerance)
             << "i: " << i << "\n"
-            << bound_params;
+            << std::setprecision(8) << bound_params;
     }
 
     // Check if the same covariance is obtained after one loop
@@ -364,7 +367,7 @@ TYPED_TEST(detray_propagation_HelixCovarianceTransportValidation,
                         getter::element(bound_params.covariance(), i, j),
                         this->tolerance)
                 << "i: " << i << "\nj: " << j << "\n"
-                << bound_params;
+                << std::setprecision(8) << bound_params;
         }
     }
 }
