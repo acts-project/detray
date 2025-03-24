@@ -36,8 +36,6 @@ using scalar = test::scalar;
 using point3 = test::point3;
 using vector3 = test::vector3;
 
-test::transform3 Identity{};
-
 using detector_t = detector<test::toy_metadata>;
 
 }  // anonymous namespace

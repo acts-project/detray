@@ -143,7 +143,7 @@ void BM_GRID2_REGULAR_BIN_CAP4(benchmark::State &state) {
 
     for (auto _ : state) {
         for (const auto &p : points) {
-            for (const dindex entry : g2r.bin(p)) {
+            for (dindex entry : g2r.bin(p)) {
                 benchmark::DoNotOptimize(entry);
             }
         }
@@ -172,7 +172,7 @@ void BM_GRID2_REGULAR_BIN_CAP25(benchmark::State &state) {
 
     for (auto _ : state) {
         for (const auto &p : points) {
-            for (const dindex entry : g2r.bin(p)) {
+            for (dindex entry : g2r.bin(p)) {
                 benchmark::DoNotOptimize(entry);
             }
         }
@@ -201,7 +201,7 @@ void BM_GRID2_REGULAR_BIN_CAP100(benchmark::State &state) {
 
     for (auto _ : state) {
         for (const auto &p : points) {
-            for (const dindex entry : g2r.bin(p)) {
+            for (dindex entry : g2r.bin(p)) {
                 benchmark::DoNotOptimize(entry);
             }
         }
@@ -232,7 +232,7 @@ void BM_GRID2_REGULAR_NEIGHBOR_CAP1(benchmark::State &state) {
 
     for (auto _ : state) {
         for (const auto &p : points) {
-            for (const dindex entry : g2r.zone(p, {zone22, zone22})) {
+            for (dindex entry : g2r.zone(p, {zone22, zone22})) {
                 benchmark::DoNotOptimize(entry);
             }
         }
@@ -263,7 +263,7 @@ void BM_GRID2_REGULAR_NEIGHBOR_CAP4(benchmark::State &state) {
 
     for (auto _ : state) {
         for (const auto &p : points) {
-            for (const dindex entry : g2r.zone(p, {zone22, zone22})) {
+            for (dindex entry : g2r.zone(p, {zone22, zone22})) {
                 benchmark::DoNotOptimize(entry);
             }
         }
@@ -316,7 +316,7 @@ void BM_GRID2_IRREGULAR_NEIGHBOR_CAP1(benchmark::State &state) {
 
     for (auto _ : state) {
         for (const auto &p : points) {
-            for (const dindex entry : g2irr.zone(p, {zone22, zone22})) {
+            for (dindex entry : g2irr.zone(p, {zone22, zone22})) {
                 benchmark::DoNotOptimize(entry);
             }
         }
