@@ -212,7 +212,7 @@ BENCHMARK(BM_INTERSECT_PORTAL_CYLINDERS)
     ->Unit(benchmark::kMillisecond);
 
 /// This benchmark runs intersection with the concentric cylinder intersector
-void BM_INTERSECT_CONCETRIC_CYLINDERS(benchmark::State &state) {
+void BM_INTERSECT_CONCENTRIC_CYLINDERS(benchmark::State &state) {
     unsigned int sfhit = 0u;
     unsigned int sfmiss = 0u;
 
@@ -256,7 +256,7 @@ void BM_INTERSECT_CONCETRIC_CYLINDERS(benchmark::State &state) {
     }
 }
 
-BENCHMARK(BM_INTERSECT_CONCETRIC_CYLINDERS)
+BENCHMARK(BM_INTERSECT_CONCENTRIC_CYLINDERS)
 #ifdef DETRAY_BENCHMARK_MULTITHREAD
     ->ThreadRange(1, benchmark::CPUInfo::Get().num_cpus)
 #endif

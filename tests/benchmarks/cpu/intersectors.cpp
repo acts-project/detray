@@ -366,7 +366,7 @@ BENCHMARK(BM_INTERSECT_CYLINDERS_SOA)
     ->Unit(benchmark::kMillisecond);
 
 /// This benchmark runs intersection with the concentric cylinder intersector
-void BM_INTERSECT_CONCETRIC_CYLINDERS_AOS(benchmark::State& state) {
+void BM_INTERSECT_CONCENTRIC_CYLINDERS_AOS(benchmark::State& state) {
 
     using transform3_t = dtransform3D<algebra_s>;
     using scalar_t = dscalar<algebra_s>;
@@ -421,14 +421,14 @@ void BM_INTERSECT_CONCETRIC_CYLINDERS_AOS(benchmark::State& state) {
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 
-BENCHMARK(BM_INTERSECT_CONCETRIC_CYLINDERS_AOS)
+BENCHMARK(BM_INTERSECT_CONCENTRIC_CYLINDERS_AOS)
 #ifdef DETRAY_BENCHMARK_MULTITHREAD
     ->ThreadRange(1, benchmark::CPUInfo::Get().num_cpus)
 #endif
     ->Unit(benchmark::kMillisecond);
 
 /// This benchmark runs intersection with the concentric cylinder intersector
-void BM_INTERSECT_CONCETRIC_CYLINDERS_SOA(benchmark::State& state) {
+void BM_INTERSECT_CONCENTRIC_CYLINDERS_SOA(benchmark::State& state) {
 
     using transform3_t = dtransform3D<algebra_v>;
     using scalar_t = dscalar<algebra_v>;
@@ -479,7 +479,7 @@ void BM_INTERSECT_CONCETRIC_CYLINDERS_SOA(benchmark::State& state) {
 #endif
 }
 
-BENCHMARK(BM_INTERSECT_CONCETRIC_CYLINDERS_SOA)
+BENCHMARK(BM_INTERSECT_CONCENTRIC_CYLINDERS_SOA)
 #ifdef DETRAY_BENCHMARK_MULTITHREAD
     ->ThreadRange(1, benchmark::CPUInfo::Get().num_cpus)
 #endif
