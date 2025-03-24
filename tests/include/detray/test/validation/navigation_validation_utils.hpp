@@ -165,7 +165,7 @@ inline auto record_propagation(
     // Propagator
     propagator_t prop{cfg};
 
-    // Build actor and propagator states
+    // Build actor states to collect data
     typename pathlimit_aborter_t::state pathlimit_aborter_state{
         cfg.stepping.path_limit};
     typename step_tracer_t::state step_tracer_state{*host_mr};
@@ -239,8 +239,8 @@ auto compare_traces(truth_trace_t &truth_trace,
     std::stringstream matching_stream;
 
     // Collect some statistics and additional data
-    surface_stats n_miss_nav{};
-    surface_stats n_miss_truth{};
+    surface_stats missed_stats_nav{};
+    surface_stats missed_stats_tr{};
     bool matching_traces{true};
     std::size_t n_errors{0u};
     std::vector<intersection_t> missed_intersections{};
@@ -286,15 +286,16 @@ auto compare_traces(truth_trace_t &truth_trace,
 
         if (!found_same_surfaces) {
 
-            // Save number of missed surfaces in the navigation trace so far
-            long missed_pt_nav{static_cast<long>(n_miss_nav.n_portals)};
-            long missed_sn_nav{static_cast<long>(n_miss_nav.n_sensitives)};
-            long missed_ps_nav{static_cast<long>(n_miss_nav.n_passives)};
+            // Count the number of missed surfaces for this mismatch
+            // Missed by navigator
+            long missed_pt_nav{0};
+            long missed_sn_nav{0};
+            long missed_ps_nav{0};
 
-            // Save number of missed surfaces in the truth trace so far
-            long missed_pt_tr{static_cast<long>(n_miss_truth.n_portals)};
-            long missed_sn_tr{static_cast<long>(n_miss_truth.n_sensitives)};
-            long missed_ps_tr{static_cast<long>(n_miss_truth.n_passives)};
+            // Found in addition by navigation (missed by truth)
+            long missed_pt_tr{0};
+            long missed_sn_tr{0};
+            long missed_ps_tr{0};
 
             // Intersection records at portal boundary might be flipped
             // (the portals overlap completely)
@@ -323,13 +324,40 @@ auto compare_traces(truth_trace_t &truth_trace,
                 }
             };
 
+            // Count a missed surface by surface type
+            auto count_one_missed = []<typename insers_t>(const insers_t &intr,
+                                                          long int &missed_pt,
+                                                          long int &missed_sn,
+                                                          long int &missed_ps) {
+                switch (intr.id()) {
+                    using enum surface_id;
+                    case e_portal: {
+                        missed_pt++;
+                        break;
+                    }
+                    case e_sensitive: {
+                        missed_sn++;
+                        break;
+                    }
+                    case e_passive: {
+                        missed_ps++;
+                        break;
+                    }
+                    default: {
+                        throw std::runtime_error(
+                            "Unkown surface type during counting");
+                    }
+                }
+            };
+
             // Compare two traces and insert dummy records for any skipped cand.
             auto compare_and_equalize =
                 [&i, &handle_counting_error, &is_swapped_portals,
+                 &count_one_missed,
                  &missed_intersections]<typename trace_t,
                                         typename other_trace_t>(
                     trace_t &trace, typename trace_t::iterator last_missed_itr,
-                    other_trace_t &other_trace, surface_stats &n_miss_stat,
+                    other_trace_t &other_trace, surface_stats &missed_stats,
                     long int &missed_pt, long int &missed_sn,
                     long int &missed_ps) {
                     // The navigator missed a(multiple) surface(s)
@@ -357,17 +385,12 @@ auto compare_traces(truth_trace_t &truth_trace,
                         other_trace.insert(other_trace.begin() + i, record_t{});
 
                         // Count this missed intersection depending on sf. type
-                        const bool valid{n_miss_stat.count(sfi.sf_desc)};
+                        const bool valid{missed_stats.count(sfi.sf_desc)};
+                        // Missed surfaces this time
+                        count_one_missed(sfi.sf_desc, missed_pt, missed_sn,
+                                         missed_ps);
                         handle_counting_error(valid);
                     }
-
-                    // Number of misses on this track
-                    missed_pt =
-                        static_cast<long>(n_miss_stat.n_portals) - missed_pt;
-                    missed_sn =
-                        static_cast<long>(n_miss_stat.n_sensitives) - missed_sn;
-                    missed_ps =
-                        static_cast<long>(n_miss_stat.n_passives) - missed_ps;
 
                     assert(missed_pt >= 0);
                     assert(missed_sn >= 0);
@@ -380,32 +403,6 @@ auto compare_traces(truth_trace_t &truth_trace,
                     // Continue checking where trace might match again
                     i += (n_missed - 1);
                 };
-
-            // Set the missed surface to one and resolve the type
-            auto count_one_missed = []<typename insers_t>(const insers_t &intr,
-                                                          long int &missed_pt,
-                                                          long int &missed_sn,
-                                                          long int &missed_ps) {
-                switch (intr.id()) {
-                    using enum surface_id;
-                    case e_portal: {
-                        missed_pt = 1;
-                        break;
-                    }
-                    case e_sensitive: {
-                        missed_sn = 1;
-                        break;
-                    }
-                    case e_passive: {
-                        missed_ps = 1;
-                        break;
-                    }
-                    default: {
-                        throw std::runtime_error(
-                            "Unkown surface type during counting");
-                    }
-                }
-            };
 
             // Match the barcodes to find how many surfaces were skipped
             //
@@ -429,62 +426,64 @@ auto compare_traces(truth_trace_t &truth_trace,
                 matching_traces = true;
                 // Have already checked the next record
                 ++i;
-            } else if (auto last_missed_nav = std::ranges::find_if(
+            } else if (auto last_missed_by_nav = std::ranges::find_if(
                            std::ranges::begin(truth_trace) + i,
                            std::ranges::end(truth_trace), search_nav_on_truth);
-                       last_missed_nav != std::end(truth_trace)) {
+                       last_missed_by_nav != std::end(truth_trace)) {
 
                 // The navigator missed a(multiple) surface(s)
-                compare_and_equalize(truth_trace, last_missed_nav,
-                                     recorded_trace, n_miss_nav, missed_pt_nav,
-                                     missed_sn_nav, missed_ps_nav);
+                compare_and_equalize(truth_trace, last_missed_by_nav,
+                                     recorded_trace, missed_stats_nav,
+                                     missed_pt_nav, missed_sn_nav,
+                                     missed_ps_nav);
 
-            } else if (auto last_missed_tr = std::ranges::find_if(
+            } else if (auto last_missed_by_tr = std::ranges::find_if(
                            std::ranges::begin(recorded_trace) + i,
                            std::ranges::end(recorded_trace),
                            search_truth_on_nav);
-                       last_missed_tr != std::end(recorded_trace)) {
+                       last_missed_by_tr != std::end(recorded_trace)) {
 
                 // The navigator found a(multiple) extra surface(s)
-                compare_and_equalize(recorded_trace, last_missed_tr,
-                                     truth_trace, n_miss_truth, missed_pt_tr,
+                compare_and_equalize(recorded_trace, last_missed_by_tr,
+                                     truth_trace, missed_stats_tr, missed_pt_tr,
                                      missed_sn_tr, missed_ps_tr);
 
             } else if (!truth_has_next) {
-
                 // The nav_inters could not be found on the truth trace, because
-                // it does not have anymore records left to check: The surface
-                // was missed
+                // the truth trace does not have anymore records left to check:
+                // The surface was missed on the truth side
                 truth_trace.push_back(truth_record_t{});
 
-                const bool valid{n_miss_truth.count(nav_inters)};
+                const bool valid{missed_stats_tr.count(nav_inters)};
                 handle_counting_error(valid);
                 if (valid) {
+                    // Count to output error messages correctly
                     count_one_missed(nav_inters, missed_pt_tr, missed_sn_tr,
                                      missed_ps_tr);
                 }
             } else if (!nav_has_next) {
-
                 // The truth_inters could not be found on the recorded trace,
-                // because it does not have any records left to check
+                // because the recorded trace does not have any records left
+                // to check: The surface was missed by the navigator
                 recorded_trace.push_back(nav_record_t{});
 
-                const bool valid{n_miss_nav.count(truth_inters)};
+                const bool valid{missed_stats_nav.count(truth_inters)};
                 handle_counting_error(valid);
 
                 if (valid) {
+                    // Count to output error messages correctly
                     count_one_missed(truth_inters, missed_pt_nav, missed_sn_nav,
                                      missed_ps_nav);
                 }
             } else {
-
-                // Both missed a surface at the same time and the record cannot
-                // be found in each others traces
-                bool valid{n_miss_truth.count(nav_inters)};
-                valid &= n_miss_nav.count(truth_inters);
+                // Both missed a surface at the same time, as neither record
+                // can be found in each others traces
+                bool valid{missed_stats_tr.count(nav_inters)};
+                valid &= missed_stats_nav.count(truth_inters);
                 handle_counting_error(valid);
 
                 if (valid) {
+                    // Count to output error messages correctly
                     count_one_missed(truth_inters, missed_pt_nav, missed_sn_nav,
                                      missed_ps_nav);
 
@@ -531,19 +530,21 @@ auto compare_traces(truth_trace_t &truth_trace,
                 print_err_missed("passive", missed_ps_nav);
             }
 
-            // Something must have been missed
-            assert(missed_pt_tr + missed_sn_tr + missed_ps_tr + missed_pt_nav +
-                       missed_sn_nav + missed_ps_nav >
-                   0);
+            // Something must have been missed (unless it was just swapped
+            // portals)
+            assert(matching_traces ||
+                   (missed_pt_tr + missed_sn_tr + missed_ps_tr + missed_pt_nav +
+                        missed_sn_nav + missed_ps_nav >
+                    0));
         }
 
         // Re-evaluate the size after dummy records were added
         max_entries = math::max(recorded_trace.size(), truth_trace.size());
     }
 
-    matching_stream << "\n\nDetray navigator skipped " << n_miss_nav.n_total()
-                    << " surface and found " << n_miss_truth.n_total()
-                    << " extra surfaces.";
+    matching_stream << "\n\nDetray navigator skipped "
+                    << missed_stats_nav.n_total() << " surface(s) and found "
+                    << missed_stats_tr.n_total() << " extra surface(s).";
 
     // Fill the debug stream with the final information from both traces
     for (std::size_t intr_idx = 0u; intr_idx < max_entries; ++intr_idx) {
@@ -565,8 +566,8 @@ auto compare_traces(truth_trace_t &truth_trace,
         }
     }
 
-    const bool any_error{(n_miss_nav.n_total() != 0u) ||
-                         (n_miss_truth.n_total() != 0u) || (n_errors != 0u)};
+    const bool any_error{(missed_stats_nav.n_total() != 0u) ||
+                         (missed_stats_tr.n_total() != 0u) || (n_errors != 0u)};
 
     // Fail the test with some extra information
     EXPECT_TRUE(!any_error || !fail_on_diff)
@@ -585,14 +586,14 @@ auto compare_traces(truth_trace_t &truth_trace,
 
     // Multiple missed surfaces are a hint that something might be off with this
     // track
-    if ((n_miss_nav.n_total() > 1u) && verbose) {
+    if ((missed_stats_nav.n_total() > 1u) && verbose) {
         std::cout << "WARNING: Detray navigator skipped multiple surfaces: "
-                  << n_miss_nav.n_total() << "\n"
+                  << missed_stats_nav.n_total() << "\n"
                   << std::endl;
     }
-    if ((n_miss_truth.n_total() > 1u) && verbose) {
+    if ((missed_stats_tr.n_total() > 1u) && verbose) {
         std::cout << "WARNING: Detray navigator found multiple extra surfaces: "
-                  << n_miss_truth.n_total() << "\n"
+                  << missed_stats_tr.n_total() << "\n"
                   << std::endl;
     }
 
@@ -609,15 +610,15 @@ auto compare_traces(truth_trace_t &truth_trace,
         << "\nNav. : " << recorded_trace.size() << "\n"
         << debug_stream.str();
 
-    if (!is_size || (n_miss_nav.n_total() != 0u) ||
-        (n_miss_truth.n_total() != 0u) || (n_errors != 0u)) {
-        return std::make_tuple(false, n_miss_nav, n_miss_truth, n_errors,
-                               missed_intersections);
+    if (!is_size || (missed_stats_nav.n_total() != 0u) ||
+        (missed_stats_tr.n_total() != 0u) || (n_errors != 0u)) {
+        return std::make_tuple(false, missed_stats_nav, missed_stats_tr,
+                               n_errors, missed_intersections);
     }
 
     // Make sure the failure was at least counted
     if (!matching_traces &&
-        (n_miss_nav.n_total() + n_miss_truth.n_total() == 0)) {
+        (missed_stats_nav.n_total() + missed_stats_tr.n_total() == 0)) {
         if (debug_file) {
             *debug_file << "\n>>>>>>>>>>>>>>>>>>\nFAILURE\n<<<<<<<<<<<<<<<<<<\n"
                         << "\nSUMMARY:\n--------\n"
@@ -632,7 +633,7 @@ auto compare_traces(truth_trace_t &truth_trace,
             "Difference to truth trace was not counted correctly");
     }
 
-    return std::make_tuple(true, n_miss_nav, n_miss_truth, n_errors,
+    return std::make_tuple(true, missed_stats_nav, missed_stats_tr, n_errors,
                            missed_intersections);
 }
 
