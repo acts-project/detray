@@ -76,7 +76,7 @@ class annulus2D {
     DETRAY_HOST_DEVICE darray<scalar_t, 8> stereo_angle(
         const bounds_type<scalar_t> &bounds) const {
         // Half stereo angle (phi_s / 2) (y points in the long strip direction)
-        return 2.f * math::atan(bounds[e_shift_y] / bounds[e_shift_x]);
+        return 2. * math::atan(bounds[e_shift_y] / bounds[e_shift_x]);
     }
 
     /// @returns The phi position in relative to the average phi of the annulus.
@@ -95,12 +95,12 @@ class annulus2D {
         // Go to beam frame to check r boundaries. Use the origin
         // shift in polar coordinates for that
         // TODO: Put shift in r-phi into the bounds?
-        const point_t shift_xy = {-bounds[e_shift_x], -bounds[e_shift_y], 0.f};
+        const point_t shift_xy = {-bounds[e_shift_x], -bounds[e_shift_y], 0.};
         const scalar_t shift_r = vector::perp(shift_xy);
         const scalar_t shift_phi = vector::phi(shift_xy);
 
         return shift_r * shift_r + loc_p[0] * loc_p[0] +
-               2.f * shift_r * loc_p[0] *
+               2. * shift_r * loc_p[0] *
                    math::cos(get_phi_rel(bounds, loc_p) - shift_phi);
     }
 
@@ -135,7 +135,7 @@ class annulus2D {
 
         // Compare the radius with the chord
         return math::min(min_r_dist,
-                         2.f * loc_p[0] * math::sin(0.5f * min_phi_dist));
+                         2. * loc_p[0] * math::sin(0.5 * min_phi_dist));
     }
 
     /// @brief Check boundary values for a local point.
@@ -170,7 +170,7 @@ class annulus2D {
         const scalar_t minR_tol = bounds[e_min_r] - tol;
         const scalar_t maxR_tol = bounds[e_max_r] + tol;
 
-        assert(detail::all_of(minR_tol >= scalar_t(0.f)));
+        assert(detail::all_of(minR_tol >= scalar_t(0.)));
 
         return ((r_beam2 >= (minR_tol * minR_tol)) &&
                 (r_beam2 <= (maxR_tol * maxR_tol))) &&
@@ -222,7 +222,7 @@ class annulus2D {
         using scalar_t = dscalar<algebra_t>;
         using point_t = dpoint2D<algebra_t>;
 
-        assert(env > 0.f);
+        assert(env > 0.);
 
         const auto c_pos = corners(bounds);
 
@@ -237,7 +237,12 @@ class annulus2D {
 
         // bisector = 0.5 * (c + b). Scale to the length of the full circle to
         // get the outermost point
+#ifdef DETRAY_ALGEBRA_FASTOR
+        const point_t tmp = c + b;
+        const point_t t = bounds[e_max_r] * vector::normalize(tmp);
+#else
         const point_t t = bounds[e_max_r] * vector::normalize(c + b);
+#endif
 
         // Find the min/max positions in x and y
         darray<scalar_t, 5> x_pos{c_pos[2] * math::cos(c_pos[3]) - o_x, b[0],
@@ -326,10 +331,10 @@ class annulus2D {
         const auto crns = corners(bounds);
 
         // Coordinates of the centroid position in strip system
-        const scalar_t r{0.25f * (crns[0] + crns[2] + crns[4] + crns[6])};
+        const scalar_t r{0.25 * (crns[0] + crns[2] + crns[4] + crns[6])};
         const scalar_t phi{bounds[e_average_phi]};
 
-        return r * dpoint3D<algebra_t>{math::cos(phi), math::sin(phi), 0.f};
+        return r * dpoint3D<algebra_t>{math::cos(phi), math::sin(phi), 0.};
     }
 
     /// Generate vertices in local cartesian frame
@@ -372,21 +377,21 @@ class annulus2D {
             point2_t dir = {math::cos(phi), math::sin(phi)};
             scalar_t x1 =
                 (O_x + O_y * m -
-                 math::sqrt(-math::pow(O_x, 2.f) * math::pow(m, 2.f) +
-                            2.f * O_x * O_y * m - math::pow(O_y, 2.f) +
-                            math::pow(m, 2.f) * math::pow(r, 2.f) +
-                            math::pow(r, 2.f))) /
-                (math::pow(m, 2.f) + 1.f);
+                 math::sqrt(-math::pow(O_x, 2.) * math::pow(m, 2.) +
+                            2. * O_x * O_y * m - math::pow(O_y, 2.) +
+                            math::pow(m, 2.) * math::pow(r, 2.) +
+                            math::pow(r, 2.))) /
+                (math::pow(m, 2.) + 1.);
             scalar_t x2 =
                 (O_x + O_y * m +
-                 math::sqrt(-math::pow(O_x, 2.f) * math::pow(m, 2.f) +
-                            2.f * O_x * O_y * m - math::pow(O_y, 2.f) +
-                            math::pow(m, 2.f) * math::pow(r, 2.f) +
-                            math::pow(r, 2.f))) /
-                (math::pow(m, 2.f) + 1.f);
+                 math::sqrt(-math::pow(O_x, 2.) * math::pow(m, 2.) +
+                            2. * O_x * O_y * m - math::pow(O_y, 2.) +
+                            math::pow(m, 2.) * math::pow(r, 2.) +
+                            math::pow(r, 2.))) /
+                (math::pow(m, 2.) + 1.);
 
             point2_t v1 = {x1, m * x1};
-            if (vector::dot(v1, dir) > 0.f)
+            if (vector::dot(v1, dir) > 0.)
                 return v1;
             return {x2, m * x2};
         };
@@ -409,13 +414,13 @@ class annulus2D {
         for (scalar_t iphi : inner_phi) {
             annulus_vertices.push_back(
                 point3_t{min_r * math::cos(iphi) + origin_x,
-                         min_r * math::sin(iphi) + origin_y, 0.f});
+                         min_r * math::sin(iphi) + origin_y, 0.});
         }
 
         for (scalar_t ophi : outer_phi) {
             annulus_vertices.push_back(
                 point3_t{max_r * math::cos(ophi) + origin_x,
-                         max_r * math::sin(ophi) + origin_y, 0.f});
+                         max_r * math::sin(ophi) + origin_y, 0.});
         }
 
         return annulus_vertices;
@@ -431,7 +436,7 @@ class annulus2D {
     DETRAY_HOST constexpr bool check_consistency(
         const bounds_type<scalar_t> &bounds, std::ostream &os) const {
 
-        constexpr auto tol{10.f * std::numeric_limits<scalar_t>::epsilon()};
+        constexpr auto tol{10. * std::numeric_limits<scalar_t>::epsilon()};
 
         if (math::signbit(bounds[e_min_r]) || bounds[e_max_r] < tol) {
             os << "ERROR: Radial bounds must be in the range [0, numeric_max)";
