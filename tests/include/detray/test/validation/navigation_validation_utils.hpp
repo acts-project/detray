@@ -386,10 +386,11 @@ auto compare_traces(truth_trace_t &truth_trace,
 
                         // Count this missed intersection depending on sf. type
                         const bool valid{missed_stats.count(sfi.sf_desc)};
+                        handle_counting_error(valid);
+
                         // Missed surfaces this time
                         count_one_missed(sfi.sf_desc, missed_pt, missed_sn,
                                          missed_ps);
-                        handle_counting_error(valid);
                     }
 
                     assert(missed_pt >= 0);
@@ -633,7 +634,36 @@ auto compare_traces(truth_trace_t &truth_trace,
             "Difference to truth trace was not counted correctly");
     }
 
-    return std::make_tuple(true, missed_stats_nav, missed_stats_tr, n_errors,
+    // Recount on the final traces, to be absolutely sure.
+    if (!matching_traces) {
+        std::size_t n_miss_truth{0};
+        std::size_t n_miss_nav{0};
+        for (std::size_t i = 0; i < truth_trace.size(); ++i) {
+            const auto truth_desc{truth_trace[i].intersection.sf_desc};
+            const auto nav_desc{recorded_trace[i].intersection.sf_desc};
+
+            if (detail::is_invalid_value(truth_desc.volume())) {
+                n_miss_truth++;
+            } else if (detail::is_invalid_value(nav_desc.volume())) {
+                n_miss_nav++;
+            } else if (truth_desc.barcode() != nav_desc.barcode()) {
+                n_miss_truth++;
+                n_miss_nav++;
+            }
+        }
+
+        if (n_miss_truth != missed_stats_tr.n_total()) {
+            throw std::runtime_error(
+                "Missed truth surfaces not counted correctly");
+        }
+        if (n_miss_nav != missed_stats_nav.n_total()) {
+            throw std::runtime_error(
+                "Missed navigation surfaces not counted correctly");
+        }
+    }
+
+    const bool success{(!any_error || !fail_on_diff) && is_size};
+    return std::make_tuple(success, missed_stats_nav, missed_stats_tr, n_errors,
                            missed_intersections);
 }
 
