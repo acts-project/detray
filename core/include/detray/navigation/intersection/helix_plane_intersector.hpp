@@ -63,7 +63,7 @@ struct helix_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
         const darray<scalar_type, 2u> mask_tolerance =
             {detail::invalid_value<scalar_type>(),
              detail::invalid_value<scalar_type>()},
-        const scalar_type = 0.f, const scalar_type = 0.f) const {
+        const scalar_type = 0., const scalar_type = 0.) const {
 
         assert((mask_tolerance[0] == mask_tolerance[1]) &&
                "Helix intersectors use only one mask tolerance value");
@@ -80,16 +80,16 @@ struct helix_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
 
             // Starting point on the helix for the Newton iteration
             const vector3_type dist{trf.point_to_global(mask.centroid()) -
-                                    h.pos(0.f)};
-            scalar_type denom{vector::dot(sn, h.dir(0.f))};
+                                    h.pos(0.)};
+            scalar_type denom{vector::dot(sn, h.dir(0.))};
 
             scalar_type s;
-            if (denom == 0.f) {
+            if (denom == 0.) {
                 s = vector::norm(dist);
             }
             s = math::fabs(vector::dot(sn, dist) / denom);
 
-            scalar_type s_prev{0.f};
+            scalar_type s_prev{0.};
 
             // f(s) = sn * (h.pos(s) - st) == 0
             // Run the iteration on s
@@ -99,7 +99,7 @@ struct helix_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
                 // f'(s) = sn * h.dir(s)
                 denom = vector::dot(sn, h.dir(s));
                 // No intersection can be found if dividing by zero
-                if (denom == 0.f) {
+                if (denom == 0.) {
                     return sfi;
                 }
                 // x_n+1 = x_n - f(s) / f'(s)
@@ -122,7 +122,7 @@ struct helix_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
             if (detail::is_invalid_value(tol)) {
                 // Due to floating point errors this can be negative if cos ~ 1
                 const scalar_type sin_inc2{math::fabs(
-                    1.f - cos_incidence_angle * cos_incidence_angle)};
+                    1. - cos_incidence_angle * cos_incidence_angle)};
 
                 tol = math::fabs((s - s_prev) * math::sqrt(sin_inc2));
             }
@@ -140,11 +140,11 @@ struct helix_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
 
             // Starting point on the helix for the Newton iteration
             const vector3_type dist{trf.point_to_global(mask.centroid()) -
-                                    h.pos(0.f)};
+                                    h.pos(0.)};
             scalar_type denom{
-                vector::dot(sn, h.dir(0.5f * vector::norm(dist)))};
+                vector::dot(sn, h.dir(0.5 * vector::norm(dist)))};
             scalar_type s_ini;
-            if (denom == 0.f) {
+            if (denom == 0.) {
                 s_ini = vector::norm(dist);
             } else {
                 s_ini = vector::dot(sn, dist) / denom;
@@ -178,17 +178,17 @@ struct helix_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
     DETRAY_HOST_DEVICE inline intersection_type<surface_descr_t> operator()(
         const helix_type &h, const surface_descr_t &sf_desc, const mask_t &mask,
         const transform3_type &trf, const scalar_type mask_tolerance,
-        const scalar_type = 0.f, const scalar_type = 0.f) const {
+        const scalar_type = 0., const scalar_type = 0.) const {
         return this->operator()(h, sf_desc, mask, trf,
-                                {mask_tolerance, mask_tolerance}, 0.f);
+                                {mask_tolerance, mask_tolerance}, 0.);
     }
 
     /// Tolerance for convergence
-    scalar_type convergence_tolerance{1.f * unit<scalar_type>::um};
+    scalar_type convergence_tolerance{1. * unit<scalar_type>::um};
     // Guard against inifinite loops
     std::size_t max_n_tries{1000u};
     // Early exit, if the intersection is too far away
-    scalar_type max_path{5.f * unit<scalar_type>::m};
+    scalar_type max_path{5. * unit<scalar_type>::m};
     // Complement the Newton algorithm with Bisection steps
     bool run_rtsafe{true};
 };

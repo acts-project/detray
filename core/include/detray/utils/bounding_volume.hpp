@@ -212,15 +212,15 @@ class axis_aligned_bounding_volume {
     DETRAY_HOST_DEVICE constexpr auto center() const -> point3_t {
 
         const scalar_t center_x{
-            0.5f * (m_mask[cuboid3D::e_max_x] + m_mask[cuboid3D::e_min_x])};
+            0.5 * (m_mask[cuboid3D::e_max_x] + m_mask[cuboid3D::e_min_x])};
         const scalar_t center_y{
-            0.5f * (m_mask[cuboid3D::e_max_y] + m_mask[cuboid3D::e_min_y])};
+            0.5 * (m_mask[cuboid3D::e_max_y] + m_mask[cuboid3D::e_min_y])};
         const scalar_t center_z{
-            0.5f * (m_mask[cuboid3D::e_max_z] + m_mask[cuboid3D::e_min_z])};
+            0.5 * (m_mask[cuboid3D::e_max_z] + m_mask[cuboid3D::e_min_z])};
 
-        return {detail::is_invalid_value(center_x) ? 0.f : center_x,
-                detail::is_invalid_value(center_y) ? 0.f : center_y,
-                detail::is_invalid_value(center_z) ? 0.f : center_z};
+        return {detail::is_invalid_value(center_x) ? 0. : center_x,
+                detail::is_invalid_value(center_y) ? 0. : center_y,
+                detail::is_invalid_value(center_z) ? 0. : center_z};
     }
 
     /// @brief Lower and upper point for minimum axis aligned bounding box of

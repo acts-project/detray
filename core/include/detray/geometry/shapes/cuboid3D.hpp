@@ -142,7 +142,7 @@ class cuboid3D {
         const dscalar<algebra_t> env =
             std::numeric_limits<dscalar<algebra_t>>::epsilon()) const {
 
-        assert(env > 0.f);
+        assert(env > 0.);
         bounds_type<dscalar<algebra_t>> o_bounds{bounds};
         for (unsigned int i{0}; i < 3u; ++i) {
             o_bounds[i] -= env;
@@ -156,7 +156,7 @@ class cuboid3D {
     DETRAY_HOST_DEVICE dpoint3D<algebra_t> centroid(
         const bounds_type<dscalar<algebra_t>> &bounds) const {
 
-        return 0.5f * dpoint3D<algebra_t>{bounds[e_min_x] + bounds[e_max_x],
+        return 0.5 * dpoint3D<algebra_t>{bounds[e_min_x] + bounds[e_max_x],
                                           bounds[e_min_y] + bounds[e_max_y],
                                           bounds[e_min_z] + bounds[e_max_z]};
     }
@@ -185,7 +185,7 @@ class cuboid3D {
     DETRAY_HOST constexpr bool check_consistency(
         const bounds_type<scalar_t> &bounds, std::ostream &os) const {
 
-        constexpr auto tol{10.f * std::numeric_limits<scalar_t>::epsilon()};
+        constexpr auto tol{10. * std::numeric_limits<scalar_t>::epsilon()};
 
         if (bounds[e_min_x] >= bounds[e_max_x] ||
             math::fabs(bounds[e_min_x] - bounds[e_max_x]) < tol) {

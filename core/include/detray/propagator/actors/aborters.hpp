@@ -56,7 +56,7 @@ struct pathlimit_aborter : actor {
             math::fabs(prop_state._stepping.abs_path_length());
 
         // Check the path limit
-        if (step_limit <= 0.f) {
+        if (step_limit <= 0.) {
             // Stop navigation
             prop_state._heartbeat &= nav_state.abort();
         }
@@ -91,7 +91,7 @@ struct target_aborter : actor {
         // directly
         if (navigation.is_on_surface() &&
             (navigation.barcode() == abrt_state._target_surface) &&
-            (stepping.path_length() > 0.f)) {
+            (stepping.path_length() > 0.)) {
             prop_state._heartbeat &= navigation.abort();
         }
     }

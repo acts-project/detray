@@ -44,7 +44,7 @@ struct axis_rotation {
         matrix_type<3, 3> axis_outer = mat_helper().outer_product(U, U);
 
         R = cos_theta * I + math::sin(theta) * axis_cross +
-            (1.f - cos_theta) * axis_outer;
+            (1. - cos_theta) * axis_outer;
     }
 
     /// @param v vector to be rotated
@@ -72,11 +72,11 @@ struct euler_rotation {
     using vector3_type = dvector3D<algebra_t>;
 
     // Following the z-x-z convention
-    vector3_type x{1.0f, 0.f, 0.f};
-    vector3_type z{0.f, 0.f, 1.f};
-    scalar_type alpha{0.f};
-    scalar_type beta{0.f};
-    scalar_type gamma{0.f};
+    vector3_type x{1.0, 0., 0.};
+    vector3_type z{0., 0., 1.};
+    scalar_type alpha{0.};
+    scalar_type beta{0.};
+    scalar_type gamma{0.};
 
     /// @returns Get the new x and z axis
     DETRAY_HOST_DEVICE std::pair<vector3_type, vector3_type> operator()()

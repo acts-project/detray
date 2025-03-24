@@ -204,7 +204,7 @@ inline auto build_wire_chamber(
     cylinder_portal_config<scalar_t> inner_pt_cfg{};
     inner_pt_cfg.do_autofit(false)
         .fixed_half_length(cfg.half_z())
-        .fixed_inner_radius(0.f)
+        .fixed_inner_radius(0.)
         .fixed_outer_radius(inner_rad)
         // No inner subdetectors present -> don't build inner portal
         .build_inner(false)

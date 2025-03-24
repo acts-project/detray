@@ -50,12 +50,12 @@ requires std::is_arithmetic_v<scalar_t> class quadratic_equation<scalar_t> {
                 m_values[0] = -c / b;
             }
         } else {
-            const scalar_t discriminant{b * b - 4.f * a * c};
+            const scalar_t discriminant{b * b - 4. * a * c};
             // If there is more than one solution, then a != 0 and q != 0
             if (discriminant > tolerance) {
                 m_solutions = 2;
                 const scalar_t q{
-                    -0.5f *
+                    -0.5 *
                     (b + detail::copysign(math::sqrt(discriminant), b))};
                 m_values = {q / a, c / q};
                 // Sort the two solutions
@@ -64,9 +64,9 @@ requires std::is_arithmetic_v<scalar_t> class quadratic_equation<scalar_t> {
                 }
             }
             // Only one solution and a != 0
-            else if (discriminant >= 0.f) {
+            else if (discriminant >= 0.) {
                 m_solutions = 1;
-                m_values[0] = -0.5f * b / a;
+                m_values[0] = -0.5 * b / a;
             }
             // discriminant < 0 is not allowed, since all solutions should be
             // real
@@ -101,10 +101,10 @@ requires(!std::is_arithmetic_v<scalar_t>) class quadratic_equation<scalar_t> {
     DETRAY_HOST_DEVICE
     constexpr quadratic_equation(const scalar_t &a, const scalar_t &b,
                                  const scalar_t &c,
-                                 const scalar_t &tolerance = 1e-6f) {
+                                 const scalar_t &tolerance = 1e-6) {
         // Linear case
         auto one_sol = (math::fabs(a) <= tolerance);
-        m_solutions(one_sol) = 1.f;
+        m_solutions(one_sol) = 1.;
         m_values[0] = -c / b;
 
         // Early exit
@@ -112,18 +112,18 @@ requires(!std::is_arithmetic_v<scalar_t>) class quadratic_equation<scalar_t> {
             return;
         }
 
-        const scalar_t discriminant = b * b - (4.f * a) * c;
+        const scalar_t discriminant = b * b - (4. * a) * c;
 
         const auto two_sol = (discriminant > tolerance);
-        one_sol = !two_sol && (discriminant >= 0.f);
+        one_sol = !two_sol && (discriminant >= 0.);
 
         // If there is more than one solution, then a != 0 and q != 0
         if (detray::detail::any_of(two_sol)) {
-            m_solutions = 2.f;
+            m_solutions = 2.;
             m_solutions.setZeroInverted(two_sol);
 
             const scalar_t q =
-                -0.5f * (b + math::copysign(math::sqrt(discriminant), b));
+                -0.5 * (b + math::copysign(math::sqrt(discriminant), b));
 
             scalar_t first = q / a;
             scalar_t second = c / q;
@@ -146,8 +146,8 @@ requires(!std::is_arithmetic_v<scalar_t>) class quadratic_equation<scalar_t> {
 
         // Only one solution and a != 0
         if (detray::detail::any_of(one_sol)) {
-            scalar_t sol = 1.f;
-            scalar_t result = -0.5f * b / a;
+            scalar_t sol = 1.;
+            scalar_t result = -0.5 * b / a;
             sol.setZeroInverted(one_sol);
             result.setZeroInverted(one_sol);
 
@@ -168,9 +168,9 @@ requires(!std::is_arithmetic_v<scalar_t>) class quadratic_equation<scalar_t> {
     private:
     /// Number of solutions of the equation (needs to be floating point to
     /// apply the masks correctly)
-    scalar_t m_solutions = 0.f;
+    scalar_t m_solutions = 0.;
     /// The solutions
-    darray<scalar_t, 2> m_values{scalar_t(0.f), scalar_t(0.f)};
+    darray<scalar_t, 2> m_values{scalar_t(0.), scalar_t(0.)};
 };
 
 template <typename S>

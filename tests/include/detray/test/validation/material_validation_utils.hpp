@@ -35,13 +35,13 @@ struct material_record {
     scalar_t eta{detail::invalid_value<scalar_t>()};
     /// @}
     /// Accumulated radiation length per pathlength through the material
-    scalar_t sX0{0.f};
+    scalar_t sX0{0.};
     /// Accumulated radiation length per thickness
-    scalar_t tX0{0.f};
+    scalar_t tX0{0.};
     /// Accumulated interaction length per pathlength through the material
-    scalar_t sL0{0.f};
+    scalar_t sL0{0.};
     /// Accumulated interaction length per thickness
-    scalar_t tL0{0.f};
+    scalar_t tL0{0.};
 };
 
 /// @brief Return type that contains the material parameters and the pathlength
@@ -52,9 +52,9 @@ struct material_params {
     /// Material thickness/radius
     scalar_t thickness{detail::invalid_value<scalar_t>()};
     /// Radiation length
-    scalar_t mat_X0{0.f};
+    scalar_t mat_X0{0.};
     /// Interaction length
-    scalar_t mat_L0{0.f};
+    scalar_t mat_L0{0.};
 };
 
 /// @brief Functor to retrieve the material parameters for a given local
@@ -84,7 +84,7 @@ struct get_material_params {
             if (!mat) {
                 // Set the pathlength and thickness to zero so that they
                 // are not counted
-                return material_params<scalar_t>{0.f, 0.f, inv, inv};
+                return material_params<scalar_t>{0., 0., inv, inv};
             }
 
             const scalar_t seg{mat.path_segment(cos_inc_angle, loc[0])};
@@ -204,13 +204,13 @@ struct material_tracer : detray::actor {
         const scalar_t ml0{mat_params.mat_L0};
 
         // Fill the material record
-        if (mx0 > 0.f) {
+        if (mx0 > 0.) {
             tracer.m_mat_record.sX0 += seg / mx0;
             tracer.m_mat_record.tX0 += t / mx0;
 
             tracer.m_mat_steps.push_back({seg, t, mx0, ml0});
         }
-        if (ml0 > 0.f) {
+        if (ml0 > 0.) {
             tracer.m_mat_record.sL0 += seg / ml0;
             tracer.m_mat_record.tL0 += t / ml0;
 

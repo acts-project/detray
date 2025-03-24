@@ -41,7 +41,7 @@ void prefill_detector(detector_t& d,
         std::make_unique<volume_builder<detector_t>>(volume_id::e_cylinder);
 
     // Volume position
-    v_builder->add_volume_placement(transform3_t(point3_t{0.f, 0.f, 2.f}));
+    v_builder->add_volume_placement(transform3_t(point3_t{0., 0., 2.f}));
 
     // Build homogeneous material on surfaces inside the voume
     auto v_mat_builder =
@@ -54,7 +54,7 @@ void prefill_detector(detector_t& d,
             std::make_unique<rectangle_factory_t>());
 
     rectangle_factory->push_back({surface_id::e_sensitive,
-                                  transform3_t(point3_t{0.f, 0.f, 0.f}),
+                                  transform3_t(point3_t{0., 0., 0.}),
                                   vol_link, std::vector<scalar_t>{-3.f, 3.f}});
     rectangle_factory->add_material(
         material_id::e_slab,
@@ -65,7 +65,7 @@ void prefill_detector(detector_t& d,
             std::make_unique<annulus_factory_t>());
 
     annulus_factory->push_back(
-        {surface_id::e_sensitive, transform3_t(point3_t{1.f, 0.f, 0.f}),
+        {surface_id::e_sensitive, transform3_t(point3_t{1.f, 0., 0.}),
          vol_link, std::vector<scalar_t>{1.f, 2.f, 3.f, 4.f, 5.f, 6.f, 7.f}});
     annulus_factory->add_material(
         material_id::e_slab,
@@ -77,7 +77,7 @@ void prefill_detector(detector_t& d,
             std::make_unique<trapezoid_factory_t>());
 
     trapezoid_factory->push_back(
-        {surface_id::e_sensitive, transform3_t(point3_t{2.f, 0.f, 0.f}),
+        {surface_id::e_sensitive, transform3_t(point3_t{2.f, 0., 0.}),
          vol_link, std::vector<scalar_t>{1.f, 2.f, 3.f, 1.f / 6.f}});
     trapezoid_factory->add_material(
         material_id::e_rod,

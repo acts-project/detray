@@ -59,9 +59,9 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
     operator()(const detail::ray<other_algebra_t> &ray,
                const surface_descr_t &sf, const mask_t &mask,
                const transform3_type &trf,
-               const darray<scalar_type, 2u> &mask_tolerance = {0.f, 1.f},
-               const scalar_type mask_tol_scalor = 0.f,
-               const scalar_type overstep_tol = 0.f) const {
+               const darray<scalar_type, 2u> &mask_tolerance = {0., 1.},
+               const scalar_type mask_tol_scalor = 0.,
+               const scalar_type overstep_tol = 0.) const {
 
         // One or both of these solutions might be invalid
         const auto qe = solve_intersection(ray, mask, trf);
@@ -98,15 +98,15 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
         const detail::ray<other_algebra_t> &ray,
         intersection_type<surface_descr_t> &sfi, const mask_t &mask,
         const transform3_type &trf,
-        const darray<scalar_type, 2u> &mask_tolerance = {0.f, 1.f},
-        const scalar_type mask_tol_scalor = 0.f,
-        const scalar_type overstep_tol = 0.f) const {
+        const darray<scalar_type, 2u> &mask_tolerance = {0., 1.},
+        const scalar_type mask_tol_scalor = 0.,
+        const scalar_type overstep_tol = 0.) const {
 
         // One or both of these solutions might be invalid
         const auto qe = solve_intersection(ray, mask, trf);
 
         // Construct the candidate only when needed
-        sfi.status = (qe.solutions() > 0.f);
+        sfi.status = (qe.solutions() > 0.);
 
         if (detray::detail::none_of(sfi.status)) {
             return;
@@ -141,7 +141,7 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
         const auto pc_cross_sz = vector::cross(tmp, sz);
         const auto rd_cross_sz = vector::cross(rd, sz);
         const scalar_type a = vector::dot(rd_cross_sz, rd_cross_sz);
-        const scalar_type b = 2.f * vector::dot(rd_cross_sz, pc_cross_sz);
+        const scalar_type b = 2. * vector::dot(rd_cross_sz, pc_cross_sz);
         const scalar_type c = vector::dot(pc_cross_sz, pc_cross_sz) - (r * r);
 
         return detail::quadratic_equation<scalar_type>{a, b, c};
@@ -159,9 +159,9 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
     build_candidate(const detail::ray<other_algebra_t> &ray, const mask_t &mask,
                     const transform3_type &trf, const scalar_type path,
                     const darray<scalar_type, 2u> &mask_tolerance =
-                        {0.f, 1.f * unit<scalar_type>::mm},
-                    const scalar_type mask_tol_scalor = 0.f,
-                    const scalar_type overstep_tol = 0.f) const {
+                        {0., 1. * unit<scalar_type>::mm},
+                    const scalar_type mask_tol_scalor = 0.,
+                    const scalar_type overstep_tol = 0.) const {
 
         intersection_type<surface_descr_t> is;
 

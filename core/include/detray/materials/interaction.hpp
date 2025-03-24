@@ -30,7 +30,7 @@ struct interaction {
                            const pdg_particle<scalar_type>& ptc,
                            const relativistic_quantities& rq) const {
 
-        scalar_type stopping_power{0.f};
+        scalar_type stopping_power{0.};
 
         // Inelastic collisions with atomic electrons
         stopping_power += compute_bethe_bloch(mat, ptc, rq);
@@ -47,14 +47,14 @@ struct interaction {
                         const relativistic_quantities& rq) const {
 
         const scalar_type eps_per_length{rq.compute_epsilon_per_length(mat)};
-        if (eps_per_length <= 0.f) {
-            return 0.f;
+        if (eps_per_length <= 0.) {
+            return 0.;
         }
 
         const scalar_type dhalf{rq.compute_delta_half(mat)};
         const scalar_type A = rq.compute_bethe_bloch_log_term(mat);
         const scalar_type running{A - rq.m_beta2 - dhalf};
-        return 2.f * eps_per_length * running;
+        return 2. * eps_per_length * running;
     }
 
     // Function to calculate the Bremsstrahlung energy loss of electron based on
@@ -67,7 +67,7 @@ struct interaction {
                            const pdg_particle<scalar_type>& ptc,
                            const relativistic_quantities& rq) const {
 
-        scalar_type stopping_power{0.f};
+        scalar_type stopping_power{0.};
 
         // Only consider electrons and positrons at the moment
         // For middle-heavy particles muons, the bremss is negligibe
@@ -96,7 +96,7 @@ struct interaction {
                           const pdg_particle<scalar_type>& ptc,
                           const relativistic_quantities& rq) const {
 
-        scalar_type derivative{0.f};
+        scalar_type derivative{0.};
 
         // Inelastic collisions with atomic electrons
         derivative += derive_bethe_bloch(mat, ptc, rq);
@@ -117,8 +117,8 @@ struct interaction {
 
         // (K/2) * (Z/A) * z^2 / beta^2 * density
         const scalar_type eps_per_length{rq.compute_epsilon_per_length(mat)};
-        if (eps_per_length <= 0.f) {
-            return 0.f;
+        if (eps_per_length <= 0.) {
+            return 0.;
         }
 
         /*-----------------------------------------------------------------------
@@ -141,14 +141,14 @@ struct interaction {
         ------------------------------------------------------------------------*/
 
         const scalar_type first_term =
-            2.f / (rq.m_qOverP * rq.m_gamma2) * bethe_stopping_power;
+            2. / (rq.m_qOverP * rq.m_gamma2) * bethe_stopping_power;
 
         const scalar_type dAdqop = rq.derive_bethe_bloch_log_term();
         const scalar_type dBdqop = rq.derive_beta2();
         const scalar_type dCdqop = rq.derive_delta_half(mat);
 
         const scalar_type second_term =
-            2.f * eps_per_length * (dAdqop - dBdqop - dCdqop);
+            2. * eps_per_length * (dAdqop - dBdqop - dCdqop);
 
         return first_term + second_term;
     }
@@ -158,7 +158,7 @@ struct interaction {
                           const pdg_particle<scalar_type>& ptc,
                           const relativistic_quantities& rq) const {
 
-        scalar_type derivative{0.f};
+        scalar_type derivative{0.};
 
         if (ptc.pdg_num() == electron<scalar_type>().pdg_num() ||
             ptc.pdg_num() == positron<scalar_type>().pdg_num()) {
@@ -189,15 +189,15 @@ struct interaction {
         const scalar_type I{mat.mean_excitation_energy()};
         const scalar_type eps{rq.compute_epsilon(mat, path_segment)};
 
-        if (eps <= 0.f) {
-            return 0.f;
+        if (eps <= 0.) {
+            return 0.;
         }
 
         const scalar_type dhalf{rq.compute_delta_half(mat)};
         const scalar_type t{rq.compute_mass_term(constant<scalar_type>::m_e)};
         // uses RPP2018 eq. 33.11
-        const scalar_type running{math::log(t / I) + math::log(eps / I) + 0.2f -
-                                  rq.m_beta2 - 2.f * dhalf};
+        const scalar_type running{math::log(t / I) + math::log(eps / I) + 0.2 -
+                                  rq.m_beta2 - 2. * dhalf};
         return eps * running;
     }
 
@@ -207,7 +207,7 @@ struct interaction {
         const relativistic_quantities& rq) const {
 
         // the Landau-Vavilov fwhm is 4*eps (see RPP2018 fig. 33.7)
-        return 4.f * rq.compute_epsilon(mat, path_segment);
+        return 4. * rq.compute_epsilon(mat, path_segment);
     }
 
     DETRAY_HOST_DEVICE scalar_type compute_energy_loss_landau_sigma(
@@ -267,30 +267,30 @@ struct interaction {
     DETRAY_HOST_DEVICE scalar_type
     theta0Highland(const scalar_type xOverX0, const scalar_type momentumInv,
                    const scalar_type q2OverBeta2) const {
-        if (xOverX0 <= 0.f) {
-            return 0.f;
+        if (xOverX0 <= 0.) {
+            return 0.;
         }
 
         // RPP2018 eq. 33.15 (treats beta and q² consistenly)
         const scalar_type t{math::sqrt(xOverX0 * q2OverBeta2)};
         // log((x/X0) * (q²/beta²)) = log((sqrt(x/X0) * (q/beta))²)
         //                          = 2 * log(sqrt(x/X0) * (q/beta))
-        return 13.6f * unit<scalar_type>::MeV * momentumInv * t *
-               (1.0f + 0.038f * 2.f * math::log(t));
+        return 13.6 * unit<scalar_type>::MeV * momentumInv * t *
+               (1.0 + 0.038 * 2. * math::log(t));
     }
 
     /// Multiple scattering theta0 for electrons.
     DETRAY_HOST_DEVICE scalar_type
     theta0RossiGreisen(const scalar_type xOverX0, const scalar_type momentumInv,
                        const scalar_type q2OverBeta2) const {
-        if (xOverX0 <= 0.f) {
-            return 0.f;
+        if (xOverX0 <= 0.) {
+            return 0.;
         }
 
         // TODO add source paper/ resource
         const scalar_type t{math::sqrt(xOverX0 * q2OverBeta2)};
-        return 17.5f * unit<scalar_type>::MeV * momentumInv * t *
-               (1.0f + 0.125f * math::log10(10.0f * xOverX0));
+        return 17.5 * unit<scalar_type>::MeV * momentumInv * t *
+               (1.0 + 0.125 * math::log10(10.0 * xOverX0));
     }
 
     /// Convert Landau full-width-half-maximum to an equivalent Gaussian
@@ -304,7 +304,7 @@ struct interaction {
     /// @todo: Add a unit test for this function
     DETRAY_HOST_DEVICE scalar_type
     convert_landau_fwhm_to_gaussian_sigma(const scalar_type fwhm) const {
-        return 0.5f * constant<scalar_type>::inv_sqrt2 * fwhm /
+        return 0.5 * constant<scalar_type>::inv_sqrt2 * fwhm /
                math::sqrt(constant<scalar_type>::ln2);
     }
 };

@@ -106,7 +106,7 @@ struct matrix_helper {
         // Cholesky–Banachiewicz algorithm
         for (size_type i = 0u; i < N; i++) {
             for (size_type j = 0u; j <= i; j++) {
-                scalar_type sum = 0.f;
+                scalar_type sum = 0.;
                 for (size_type k = 0u; k < j; k++)
                     sum += getter::element(L, i, k) * getter::element(L, j, k);
 
@@ -115,7 +115,7 @@ struct matrix_helper {
                         math::sqrt(getter::element(mat, i, i) - sum));
                 } else {
                     getter::element(L, i, j) =
-                        (1.f / getter::element(L, j, j) *
+                        (1. / getter::element(L, j, j) *
                          (getter::element(mat, i, j) - sum));
                 }
             }

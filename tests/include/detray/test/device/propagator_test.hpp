@@ -196,7 +196,7 @@ inline void compare_propagation_results(
             auto relative_error = static_cast<point3>(
                 1.f / host_step.path_length * (host_pos - device_pos));
 
-            EXPECT_NEAR(vector::norm(relative_error), 0.f, is_close)
+            EXPECT_NEAR(vector::norm(relative_error), 0., is_close)
                 << "ERROR: Position at track " << i << " step " << j << ": ["
                 << host_pos[0] << ", " << host_pos[1] << ", " << host_pos[2]
                 << "] (host), [" << device_pos[0] << ", " << device_pos[1]
@@ -214,7 +214,7 @@ inline void compare_propagation_results(
                     scalar device_val = getter::element(device_J, row, col);
 
                     ASSERT_NEAR((host_val - device_val) / host_step.path_length,
-                                0.f, is_close)
+                                0., is_close)
                         << "ERROR: matrix element mismatch at row " << row
                         << ", col " << col << std::endl;
                 }

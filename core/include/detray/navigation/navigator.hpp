@@ -397,8 +397,8 @@ class navigator {
             m_heartbeat = false;
             // Don't do anything if aborted
             m_trust_level = navigation::trust_level::e_full;
-            run_inspector({}, point3_type{0.f, 0.f, 0.f},
-                          vector3_type{0.f, 0.f, 0.f}, "Aborted: ");
+            run_inspector({}, point3_type{0., 0., 0.},
+                          vector3_type{0., 0., 0.}, "Aborted: ");
             return m_heartbeat;
         }
 
@@ -411,8 +411,8 @@ class navigator {
             m_status = navigation::status::e_on_target;
             m_heartbeat = false;
             m_trust_level = navigation::trust_level::e_full;
-            run_inspector({}, point3_type{0.f, 0.f, 0.f},
-                          vector3_type{0.f, 0.f, 0.f}, "Exited: ");
+            run_inspector({}, point3_type{0., 0., 0.},
+                          vector3_type{0., 0., 0.}, "Exited: ");
             this->clear();
             return m_heartbeat;
         }
@@ -622,7 +622,7 @@ class navigator {
                     static_cast<scalar_type>(nav_state.direction()) *
                         track.dir()),
                 sf_descr, det.transform_store(), ctx,
-                sf.is_portal() ? darray<scalar_type, 2>{0.f, 0.f} : mask_tol,
+                sf.is_portal() ? darray<scalar_type, 2>{0., 0.} : mask_tol,
                 mask_tol_scalor, overstep_tol);
         }
     };
@@ -749,8 +749,8 @@ class navigator {
                 // Use the max mask tolerance in case a track leaves the volume
                 // when a sf is 'sticking' out of the portals due to the tol
                 loose_cfg.overstep_tolerance =
-                    math::min(100.f * cfg.overstep_tolerance,
-                              -10.f * cfg.max_mask_tolerance);
+                    math::min(100. * cfg.overstep_tolerance,
+                              -10. * cfg.max_mask_tolerance);
 
                 init(track, navigation, loose_cfg, ctx,
                      use_path_tolerance_as_overstep_tolerance);
@@ -936,7 +936,7 @@ class navigator {
             detail::ray<algebra_type>(
                 track.pos(), static_cast<scalar_type>(nav_dir) * track.dir()),
             candidate, det.transform_store(), ctx,
-            sf.is_portal() ? darray<scalar_type, 2>{0.f, 0.f}
+            sf.is_portal() ? darray<scalar_type, 2>{0., 0.}
                            : darray<scalar_type, 2>{cfg.min_mask_tolerance,
                                                     cfg.max_mask_tolerance},
             static_cast<scalar_type>(cfg.mask_tolerance_scalor),

@@ -33,15 +33,15 @@ struct relativistic_quantities {
     static constexpr auto PlasmaEnergyScale{
         static_cast<scalar_type>(28.816 * unit<double>::eV)};
 
-    scalar_type m_qOverP{0.f};
-    scalar_type m_q2OverBeta2{0.f};
-    scalar_type m_beta{0.f};
-    scalar_type m_beta2{0.f};
-    scalar_type m_betaGamma{0.f};
-    scalar_type m_gamma{0.f};
-    scalar_type m_gamma2{0.f};
-    scalar_type m_E{0.f};
-    scalar_type m_Wmax{0.f};
+    scalar_type m_qOverP{0.};
+    scalar_type m_q2OverBeta2{0.};
+    scalar_type m_beta{0.};
+    scalar_type m_beta2{0.};
+    scalar_type m_betaGamma{0.};
+    scalar_type m_gamma{0.};
+    scalar_type m_gamma2{0.};
+    scalar_type m_E{0.};
+    scalar_type m_Wmax{0.};
 
     DETRAY_HOST_DEVICE
     relativistic_quantities(const pdg_particle<scalar_type>& ptc,
@@ -56,20 +56,20 @@ struct relativistic_quantities {
           // q²/beta² = q² + m²(q/p)²
           m_q2OverBeta2{q * q + (mass * qOverP) * (mass * qOverP)} {
 
-        assert(m_qOverP != 0.f);
-        assert(mass != 0.f);
+        assert(m_qOverP != 0.);
+        assert(mass != 0.);
 
         // 1/p = q/(qp) = (q/p)/q
         const scalar_type mOverP{
-            mass * ((q != 0.f) ? math::fabs(qOverP / q) : math::fabs(qOverP))};
-        const scalar_type pOverM{1.f / mOverP};
+            mass * ((q != 0.) ? math::fabs(qOverP / q) : math::fabs(qOverP))};
+        const scalar_type pOverM{1. / mOverP};
         // beta² = p²/E² = p²/(m² + p²) = 1/(1 + (m/p)²)
-        m_beta2 = 1.f / (1.f + mOverP * mOverP);
+        m_beta2 = 1. / (1. + mOverP * mOverP);
         m_beta = math::sqrt(m_beta2);
         // beta*gamma = (p/sqrt(m² + p²))*(sqrt(m² + p²)/m) = p/m
         m_betaGamma = pOverM;
         // gamma = sqrt(m² + p²)/m = sqrt(1 + (p/m)²)
-        m_gamma = math::sqrt(1.f + pOverM * pOverM);
+        m_gamma = math::sqrt(1. + pOverM * pOverM);
         m_gamma2 = m_gamma * m_gamma;
         // E = gamma * mass;
         m_E = m_gamma * mass;
@@ -78,21 +78,21 @@ struct relativistic_quantities {
 
         // Wmax = 2m_e c^2 beta^2 gamma^2 / (1+2gamma*m_e/M + (m_e/M)^2)
         m_Wmax =
-            (2.f * constant<scalar_type>::m_e * m_betaGamma * m_betaGamma) /
-            (1.f + 2.f * m_gamma * mfrac + mfrac * mfrac);
+            (2. * constant<scalar_type>::m_e * m_betaGamma * m_betaGamma) /
+            (1. + 2. * m_gamma * mfrac + mfrac * mfrac);
     }
 
     /// @return 2 * mass * (beta * gamma)² mass term.
     DETRAY_HOST_DEVICE constexpr scalar_type compute_mass_term(
         const scalar_type mass) const {
-        return 2.f * mass * m_betaGamma * m_betaGamma;
+        return 2. * mass * m_betaGamma * m_betaGamma;
     }
 
     /// @return [(K/2) * (Z/A) * z^2 / beta^2 * density] in [energy/length]
     /// @brief defined in 34.12 of 2023 PDG review
     DETRAY_HOST_DEVICE constexpr scalar_type compute_epsilon_per_length(
         const material<scalar_type>& mat) const {
-        return 0.5f * K * mat.molar_electron_density() * m_q2OverBeta2;
+        return 0.5 * K * mat.molar_electron_density() * m_q2OverBeta2;
     }
 
     /// @return  (K/2) * (Z/A) * z^2 / beta^2 * density * path_length
@@ -108,29 +108,29 @@ struct relativistic_quantities {
     compute_bethe_bloch_log_term(const material<scalar_type>& mat) const {
         const scalar_type I = mat.mean_excitation_energy();
 
-        assert(I != 0.f);
+        assert(I != 0.);
 
         // u = 2 * m_e c^2* beta^2 * gamma^2
         const scalar_t u{compute_mass_term(constant<scalar_t>::m_e)};
-        const scalar_type A = 0.5f * math::log(u * m_Wmax / (I * I));
+        const scalar_type A = 0.5 * math::log(u * m_Wmax / (I * I));
         return A;
     }
 
     /// @return d(bethe_log_term)/dqop
     /// @brief  dA/dqop = - 1 / (2 * qop) * [4 - W_max/ (gamma M c^2) ]
     DETRAY_HOST_DEVICE scalar_type derive_bethe_bloch_log_term() const {
-        assert(m_gamma != 0.f);
-        assert(m_E != 0.f);
+        assert(m_gamma != 0.);
+        assert(m_E != 0.);
         const scalar_type dAdqop =
-            -1.f / (2.f * m_qOverP) * (4.f - m_Wmax / m_E);
+            -1. / (2. * m_qOverP) * (4. - m_Wmax / m_E);
         return dAdqop;
     }
 
     /// @return d(beta^2)/dqop = - 2beta^2 / (qop * gamma^2)
     DETRAY_HOST_DEVICE scalar_type derive_beta2() const {
-        assert(m_qOverP != 0.f);
-        assert(m_gamma2 != 0.f);
-        return -2.f * m_beta2 / (m_qOverP * m_gamma2);
+        assert(m_qOverP != 0.);
+        assert(m_gamma2 != 0.);
+        return -2. * m_beta2 / (m_qOverP * m_gamma2);
     }
 
     /// @return the half of density correction factor (delta/2).
@@ -148,18 +148,18 @@ struct relativistic_quantities {
             //
             // For further discussion, please follow the ATLAS JIRA Tickets:
             // ATLASRECTS-3144 and ATLASRECTS-7586 (ATLAS-restricted)
-            if (m_betaGamma < 10.f) {
-                return 0.f;
+            if (m_betaGamma < 10.) {
+                return 0.;
             }
             // Equation 34.6 of PDG2022
             // @NOTE A factor of 1000 is required to convert the unit of density
             // (mm^-3 to cm^-3)
             const scalar_type plasmaEnergy{
                 PlasmaEnergyScale *
-                math::sqrt(1000.f * mat.molar_electron_density())};
+                math::sqrt(1000. * mat.molar_electron_density())};
             return math::log(m_betaGamma * plasmaEnergy /
                              mat.mean_excitation_energy()) -
-                   0.5f;
+                   0.5;
         } else {
             const auto& density = mat.density_effect_data();
 
@@ -171,32 +171,32 @@ struct relativistic_quantities {
 
             const scalar_type x{math::log10(m_betaGamma)};
 
-            scalar_type delta{0.f};
+            scalar_type delta{0.};
 
             // From Geant4
             // processes/electromagnetic/lowenergy/src/G4hBetheBlochModel.cc
             if (x < x0den) {
-                delta = 0.f;
+                delta = 0.;
                 // @TODO: Add a branch for conductors (Eq 34.7 of
                 // https://pdg.lbl.gov/2023/reviews/rpp2023-rev-particle-detectors-accel.pdf)
             } else {
-                delta = 2.f * constant<scalar_type>::ln10 * x - cden;
+                delta = 2. * constant<scalar_type>::ln10 * x - cden;
                 if (x < x1den)
                     delta += aden * math::pow((x1den - x), mden);
             }
 
-            return 0.5f * delta;
+            return 0.5 * delta;
         }
     }
 
     /// @return the derivation of the density correction factor delta/2.
     DETRAY_HOST_DEVICE inline scalar_type derive_delta_half(
         const material<scalar_type>& mat) const {
-        assert(m_qOverP != 0.f);
+        assert(m_qOverP != 0.);
 
         if (!mat.has_density_effect_data()) {
             // d(ln(betagamma))/dqop = -1/qop
-            return -1.f / m_qOverP;
+            return -1. / m_qOverP;
         } else {
             const auto& density = mat.density_effect_data();
 
@@ -208,24 +208,24 @@ struct relativistic_quantities {
 
             const scalar_type x{math::log10(m_betaGamma)};
 
-            scalar_type delta{0.f};
+            scalar_type delta{0.};
 
             // From Geant4
             // processes/electromagnetic/lowenergy/src/G4hBetheBlochModel.cc
             if (x < x0den) {
-                delta = 0.f;
+                delta = 0.;
                 // @TODO: Add a branch for conductors (Eq 34.7 of
                 // https://pdg.lbl.gov/2023/reviews/rpp2023-rev-particle-detectors-accel.pdf)
             } else {
-                delta = -2.f / m_qOverP;
+                delta = -2. / m_qOverP;
                 if (x < x1den) {
                     delta += aden * mden /
                              (m_qOverP * constant<scalar_type>::ln10) *
-                             math::pow(x1den - x, mden - 1.f);
+                             math::pow(x1den - x, mden - 1.);
                 }
             }
 
-            return 0.5f * delta;
+            return 0.5 * delta;
         }
     }
 };

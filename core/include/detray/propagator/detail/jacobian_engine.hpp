@@ -73,7 +73,7 @@ requires std::is_object_v<typename frame_t::loc_point> struct jacobian_engine {
                                                          pos, dir);
 
         // Set d(bound time)/d(free time)
-        getter::element(jac_to_global, e_free_time, e_bound_time) = 1.f;
+        getter::element(jac_to_global, e_free_time, e_bound_time) = 1.;
 
         // Set d(n_x,n_y,n_z)/d(phi, theta)
         getter::element(jac_to_global, e_free_dir0, e_bound_phi) =
@@ -85,7 +85,7 @@ requires std::is_object_v<typename frame_t::loc_point> struct jacobian_engine {
         getter::element(jac_to_global, e_free_dir1, e_bound_theta) =
             cos_theta * sin_phi;
         getter::element(jac_to_global, e_free_dir2, e_bound_theta) = -sin_theta;
-        getter::element(jac_to_global, e_free_qoverp, e_bound_qoverp) = 1.f;
+        getter::element(jac_to_global, e_free_qoverp, e_bound_qoverp) = 1.;
 
         // Set d(x,y,z)/d(phi, theta)
         jacobian_t::set_bound_angle_to_free_pos_derivative(jac_to_global, trf3,
@@ -120,7 +120,7 @@ requires std::is_object_v<typename frame_t::loc_point> struct jacobian_engine {
                                                          pos, dir);
 
         // Set d(free time)/d(bound time)
-        getter::element(jac_to_local, e_bound_time, e_free_time) = 1.f;
+        getter::element(jac_to_local, e_bound_time, e_free_time) = 1.;
 
         // Set d(phi, theta)/d(n_x, n_y, n_z)
         // @note This codes have a serious bug when theta is equal to zero...
@@ -135,7 +135,7 @@ requires std::is_object_v<typename frame_t::loc_point> struct jacobian_engine {
         getter::element(jac_to_local, e_bound_theta, e_free_dir2) = -sin_theta;
 
         // Set d(Free Qop)/d(Bound Qop)
-        getter::element(jac_to_local, e_bound_qoverp, e_free_qoverp) = 1.f;
+        getter::element(jac_to_local, e_bound_qoverp, e_free_qoverp) = 1.;
 
         return jac_to_local;
     }

@@ -67,7 +67,7 @@ struct mixture
             return ((M.fraction() / M.X0()) + ...);
         };
         this->set_X0(
-            1.f / std::apply(sum_rho_over_X0, std::tuple<material_types...>()));
+            1. / std::apply(sum_rho_over_X0, std::tuple<material_types...>()));
 
         // Compute effective nuclear radiation length
         // Follow the same equation of effective X0
@@ -77,7 +77,7 @@ struct mixture
         };
 
         this->set_L0(
-            1.f / std::apply(sum_rho_over_L0, std::tuple<material_types...>()));
+            1. / std::apply(sum_rho_over_L0, std::tuple<material_types...>()));
 
         // Compute molar density
         this->set_molar_density(

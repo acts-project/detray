@@ -69,9 +69,9 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
         const ray_type &ray, const surface_descr_t &sf, const mask_t &mask,
         const transform3_type &trf,
         const darray<scalar_type, 2u> mask_tolerance =
-            {0.f, 1.f * unit<scalar_type>::mm},
-        const scalar_type mask_tol_scalor = 0.f,
-        const scalar_type overstep_tol = 0.f) const {
+            {0., 1. * unit<scalar_type>::mm},
+        const scalar_type mask_tol_scalor = 0.,
+        const scalar_type overstep_tol = 0.) const {
 
         intersection_type<surface_descr_t> is;
 
@@ -105,8 +105,8 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
     DETRAY_HOST_DEVICE inline intersection_type<surface_descr_t> operator()(
         const ray_type &ray, const surface_descr_t &sf, const mask_t &mask,
         const transform3_type &trf, const scalar_type mask_tolerance,
-        const scalar_type overstep_tol = 0.f) const {
-        return this->operator()(ray, sf, mask, trf, {mask_tolerance, 0.f}, 0.f,
+        const scalar_type overstep_tol = 0.) const {
+        return this->operator()(ray, sf, mask, trf, {mask_tolerance, 0.}, 0.,
                                 overstep_tol);
     }
 
@@ -125,9 +125,9 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
         const ray_type &ray, intersection_type<surface_descr_t> &sfi,
         const mask_t &mask, const transform3_type &trf,
         const darray<scalar_type, 2u> &mask_tolerance =
-            {0.f, 1.f * unit<scalar_type>::mm},
-        const scalar_type mask_tol_scalor = 0.f,
-        const scalar_type overstep_tol = 0.f) const {
+            {0., 1. * unit<scalar_type>::mm},
+        const scalar_type mask_tol_scalor = 0.,
+        const scalar_type overstep_tol = 0.) const {
         sfi = this->operator()(ray, sfi.sf_desc, mask, trf, mask_tolerance,
                                mask_tol_scalor, overstep_tol);
     }

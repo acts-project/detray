@@ -131,7 +131,7 @@ struct material {
     scalar_type mean_excitation_energy() const {
         if (!m_has_density_effect_data) {
             // use approximative computation as defined in ATL-SOFT-PUB-2008-003
-            return 16.f * unit<scalar_type>::eV *
+            return 16. * unit<scalar_type>::eV *
                    math::pow(m_z, static_cast<scalar_type>(0.9));
         } else {
             return m_density.get_mean_excitation_energy();
@@ -141,7 +141,7 @@ struct material {
     DETRAY_HOST_DEVICE
     constexpr scalar_type fraction() const {
         if constexpr (ratio::num == 0) {
-            return 0.f;
+            return 0.;
         } else if constexpr (ratio::den == 0) {
             return detail::invalid_value<scalar_type>();
         } else {
@@ -154,7 +154,7 @@ struct material {
     DETRAY_HOST
     std::string to_string() const {
         std::stringstream strm;
-        if (m_ar <= 0.f) {
+        if (m_ar <= 0.) {
             strm << "vacuum";
             return strm.str();
         }
@@ -225,7 +225,7 @@ struct material {
     /// @return [mass_density / A]
     constexpr scalar_type mass_to_molar_density(double ar, double mass_rho) {
         if (mass_rho == 0.) {
-            return 0.f;
+            return 0.;
         }
 
         const double molar_mass{ar * unit<double>::g / unit<double>::mol};
@@ -237,10 +237,10 @@ struct material {
     // Material properties
     scalar_type m_x0 = detail::invalid_value<scalar_type>();
     scalar_type m_l0 = detail::invalid_value<scalar_type>();
-    scalar_type m_ar = 0.f;
-    scalar_type m_z = 0.f;
-    scalar_type m_mass_rho = 0.f;
-    scalar_type m_molar_rho = 0.f;
+    scalar_type m_ar = 0.;
+    scalar_type m_z = 0.;
+    scalar_type m_mass_rho = 0.;
+    scalar_type m_molar_rho = 0.;
     material_state m_state = material_state::e_unknown;
     detail::density_effect_data<scalar_type> m_density = {};
     bool m_has_density_effect_data = false;
