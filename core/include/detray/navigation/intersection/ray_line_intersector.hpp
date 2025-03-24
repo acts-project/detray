@@ -86,7 +86,7 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t, do_debug> {
         }
 
         // vector from track position to line center
-        const auto t2l = _t - _p;
+        const point3_type t2l = _t - _p;
 
         // t2l projection on line direction
         const scalar_type t2l_on_line{vector::dot(t2l, _z)};
