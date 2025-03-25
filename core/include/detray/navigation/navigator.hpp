@@ -726,8 +726,8 @@ class navigator {
             init(track, navigation, cfg, ctx);
             is_init = true;
 
-            // Fresh initialization, reset trust and heartbeat even though we are
-            // on inner portal
+            // Fresh initialization, reset trust and heartbeat even though we
+            // are on inner portal
             navigation.m_trust_level = navigation::trust_level::e_full;
             navigation.m_heartbeat = !navigation.is_exhausted();
         }
