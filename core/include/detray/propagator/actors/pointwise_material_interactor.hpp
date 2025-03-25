@@ -251,7 +251,7 @@ struct pointwise_material_interactor : actor {
 
         getter::element(covariance, e_bound_phi, e_bound_phi) +=
             (dir[2] == 1.) ? inv
-                            : var_scattering_angle / (1. - dir[2] * dir[2]);
+                           : var_scattering_angle / (1. - dir[2] * dir[2]);
 
         getter::element(covariance, e_bound_theta, e_bound_theta) +=
             var_scattering_angle;

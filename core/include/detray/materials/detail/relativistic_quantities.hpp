@@ -77,9 +77,8 @@ struct relativistic_quantities {
         const scalar_type mfrac{constant<scalar_type>::m_e / mass};
 
         // Wmax = 2m_e c^2 beta^2 gamma^2 / (1+2gamma*m_e/M + (m_e/M)^2)
-        m_Wmax =
-            (2. * constant<scalar_type>::m_e * m_betaGamma * m_betaGamma) /
-            (1. + 2. * m_gamma * mfrac + mfrac * mfrac);
+        m_Wmax = (2. * constant<scalar_type>::m_e * m_betaGamma * m_betaGamma) /
+                 (1. + 2. * m_gamma * mfrac + mfrac * mfrac);
     }
 
     /// @return 2 * mass * (beta * gamma)² mass term.
@@ -121,8 +120,7 @@ struct relativistic_quantities {
     DETRAY_HOST_DEVICE scalar_type derive_bethe_bloch_log_term() const {
         assert(m_gamma != 0.);
         assert(m_E != 0.);
-        const scalar_type dAdqop =
-            -1. / (2. * m_qOverP) * (4. - m_Wmax / m_E);
+        const scalar_type dAdqop = -1. / (2. * m_qOverP) * (4. - m_Wmax / m_E);
         return dAdqop;
     }
 

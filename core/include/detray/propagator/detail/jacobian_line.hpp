@@ -90,8 +90,7 @@ struct jacobian<line2D<algebra_t>> {
         // Local x axis component of pc:
         const vector3_type pc_x = pc - pz * local_zaxis;
 
-        const scalar_type norm =
-            -1. / (1. - dz * dz + vector::dot(pc_x, dtds));
+        const scalar_type norm = -1. / (1. - dz * dz + vector::dot(pc_x, dtds));
 
         const vector3_type pos_term = norm * (dir - dz * local_zaxis);
         const vector3_type dir_term = norm * pc_x;

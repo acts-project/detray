@@ -79,7 +79,7 @@ struct material_rod {
         const scalar_type sin_inc_angle_2{1. - cos_inc_angle * cos_inc_angle};
 
         return 2. * math::sqrt((m_radius * m_radius - approach * approach) /
-                                sin_inc_angle_2);
+                               sin_inc_angle_2);
     }
 
     /// @returns the path segment through the material in X0

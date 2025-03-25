@@ -123,7 +123,7 @@ class detector_builder {
 
             // TODO: Construct it correctly with the grid builder
             mask<cylinder3D, algebra_type> vgrid_dims{
-                0u,      0.,   -constant<scalar_type>::pi,
+                0u,     0.,   -constant<scalar_type>::pi,
                 -2000., 180., constant<scalar_type>::pi,
                 2000.};
             darray<std::size_t, 3> n_vgrid_bins{1u, 1u, 1u};

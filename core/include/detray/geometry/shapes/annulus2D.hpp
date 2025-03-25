@@ -375,20 +375,18 @@ class annulus2D {
             //
             scalar_t m = math::tan(phi);
             point2_t dir = {math::cos(phi), math::sin(phi)};
-            scalar_t x1 =
-                (O_x + O_y * m -
-                 math::sqrt(-math::pow(O_x, 2.) * math::pow(m, 2.) +
-                            2. * O_x * O_y * m - math::pow(O_y, 2.) +
-                            math::pow(m, 2.) * math::pow(r, 2.) +
-                            math::pow(r, 2.))) /
-                (math::pow(m, 2.) + 1.);
-            scalar_t x2 =
-                (O_x + O_y * m +
-                 math::sqrt(-math::pow(O_x, 2.) * math::pow(m, 2.) +
-                            2. * O_x * O_y * m - math::pow(O_y, 2.) +
-                            math::pow(m, 2.) * math::pow(r, 2.) +
-                            math::pow(r, 2.))) /
-                (math::pow(m, 2.) + 1.);
+            scalar_t x1 = (O_x + O_y * m -
+                           math::sqrt(-math::pow(O_x, 2.) * math::pow(m, 2.) +
+                                      2. * O_x * O_y * m - math::pow(O_y, 2.) +
+                                      math::pow(m, 2.) * math::pow(r, 2.) +
+                                      math::pow(r, 2.))) /
+                          (math::pow(m, 2.) + 1.);
+            scalar_t x2 = (O_x + O_y * m +
+                           math::sqrt(-math::pow(O_x, 2.) * math::pow(m, 2.) +
+                                      2. * O_x * O_y * m - math::pow(O_y, 2.) +
+                                      math::pow(m, 2.) * math::pow(r, 2.) +
+                                      math::pow(r, 2.))) /
+                          (math::pow(m, 2.) + 1.);
 
             point2_t v1 = {x1, m * x1};
             if (vector::dot(v1, dir) > 0.)

@@ -59,13 +59,13 @@ struct brute_force_scan {
     using trajectory_type = trajectory_t;
 
     template <typename detector_t>
-    inline auto operator()(const typename detector_t::geometry_context ctx,
-                           const detector_t &detector, const trajectory_t &traj,
-                           const darray<typename detector_t::scalar_type, 2>
-                               mask_tolerance = {0., 0.},
-                           const typename detector_t::scalar_type p =
-                               1.f *
-                               unit<typename detector_t::scalar_type>::GeV) {
+    inline auto operator()(
+        const typename detector_t::geometry_context ctx,
+        const detector_t &detector, const trajectory_t &traj,
+        const darray<typename detector_t::scalar_type, 2> mask_tolerance = {0.,
+                                                                            0.},
+        const typename detector_t::scalar_type p =
+            1.f * unit<typename detector_t::scalar_type>::GeV) {
 
         using algebra_t = typename detector_t::algebra_type;
         using scalar_t = dscalar<algebra_t>;
@@ -91,8 +91,7 @@ struct brute_force_scan {
             const auto sf = tracking_surface{detector, sf_desc};
             sf.template visit_mask<intersection_kernel_t>(
                 intersections, traj, sf_desc, trf_store, ctx,
-                sf.is_portal() ? darray<scalar_t, 2>{0., 0.}
-                               : mask_tolerance);
+                sf.is_portal() ? darray<scalar_t, 2>{0., 0.} : mask_tolerance);
 
             // Candidate is invalid if it lies in the opposite direction
             for (auto &sfi : intersections) {
@@ -128,12 +127,12 @@ struct brute_force_scan {
         start_intersection.volume_link =
             static_cast<nav_link_t>(first_record.vol_idx);
 
-        intersection_trace.insert(intersection_trace.begin(),
-                                  intersection_record<detector_t>{
-                                      q,
-                                      {traj.pos(), 0., p * traj.dir(), q},
-                                      first_record.vol_idx,
-                                      start_intersection});
+        intersection_trace.insert(
+            intersection_trace.begin(),
+            intersection_record<detector_t>{q,
+                                            {traj.pos(), 0., p * traj.dir(), q},
+                                            first_record.vol_idx,
+                                            start_intersection});
 
         return intersection_trace;
     }

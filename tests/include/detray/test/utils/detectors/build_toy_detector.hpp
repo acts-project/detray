@@ -863,8 +863,7 @@ inline auto add_endcap_detector(
                                       std::min(std::abs(vol_bounds.upper_z),
                                                std::abs(vol_bounds.lower_z))};
 
-            const point3_t gap_center{0., 0.,
-                                      0.5f * (gap_east_z + gap_west_z)};
+            const point3_t gap_center{0., 0., 0.5f * (gap_east_z + gap_west_z)};
             vm_builder->add_volume_placement({gap_center});
 
             detail::add_cylinder_portals(

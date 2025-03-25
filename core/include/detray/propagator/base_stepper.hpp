@@ -113,7 +113,7 @@ class base_stepper {
         DETRAY_HOST_DEVICE
         inline step::direction direction() const {
             return m_step_size >= 0. ? step::direction::e_forward
-                                      : step::direction::e_backward;
+                                     : step::direction::e_backward;
         }
 
         /// Updates the total number of step trials

@@ -68,16 +68,14 @@ DETRAY_DECLARE_MATERIAL(carbon_gas, 213.5 * unit<scalar_t>::mm,
 
 // N₂ (7): Nitrogen Gas
 DETRAY_DECLARE_MATERIAL(nitrogen_gas, 3.260E+02 * unit<scalar_t>::m,
-                        7.696E+02 * unit<scalar_t>::m, 2. * 14.007,
-                        2. * 7.,
+                        7.696E+02 * unit<scalar_t>::m, 2. * 14.007, 2. * 7.,
                         static_cast<scalar_t>(1.165E-03 * unit<double>::g /
                                               unit<double>::cm3),
                         material_state::e_gas);
 
 // O₂ (8): Oxygen Gas
 DETRAY_DECLARE_MATERIAL(oxygen_gas, 2.571E+02 * unit<scalar_t>::m,
-                        6.772E+02 * unit<scalar_t>::m, 2. * 15.999,
-                        2. * 8.,
+                        6.772E+02 * unit<scalar_t>::m, 2. * 15.999, 2. * 8.,
                         static_cast<scalar_t>(1.332E-3 * unit<double>::g /
                                               unit<double>::cm3),
                         material_state::e_gas);
@@ -232,11 +230,12 @@ DETRAY_DECLARE_MATERIAL(cesium_iodide, 1.86 * unit<scalar_t>::cm,
                                               unit<double>::cm3),
                         material_state::e_solid);
 
-DETRAY_DECLARE_MATERIAL_WITH_DED(
-    cesium_iodide_with_ded, 1.86 * unit<scalar_t>::cm,
-    38.04 * unit<scalar_t>::cm, 259.81, 108.,
-    static_cast<scalar_t>(4.510 * unit<double>::g / unit<double>::cm3),
-    material_state::e_solid, 0.25381, 2.6657, 0.0395, 3.3353, 553.1,
-    6.2807, 0.00);
+DETRAY_DECLARE_MATERIAL_WITH_DED(cesium_iodide_with_ded,
+                                 1.86 * unit<scalar_t>::cm,
+                                 38.04 * unit<scalar_t>::cm, 259.81, 108.,
+                                 static_cast<scalar_t>(4.510 * unit<double>::g /
+                                                       unit<double>::cm3),
+                                 material_state::e_solid, 0.25381, 2.6657,
+                                 0.0395, 3.3353, 553.1, 6.2807, 0.00);
 
 }  // namespace detray

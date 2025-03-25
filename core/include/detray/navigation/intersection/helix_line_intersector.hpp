@@ -160,8 +160,8 @@ struct helix_intersector_impl<line2D<algebra_t>, algebra_t> {
             scalar_type tol{mask_tolerance[1]};
             if (detail::is_invalid_value(tol)) {
                 // Due to floating point errors this can be negative if cos ~ 1
-                const scalar_type sin_inc2{math::fabs(
-                    1. - cos_incidence_angle * cos_incidence_angle)};
+                const scalar_type sin_inc2{
+                    math::fabs(1. - cos_incidence_angle * cos_incidence_angle)};
 
                 tol = math::fabs((s - s_prev) * math::sqrt(sin_inc2));
             }

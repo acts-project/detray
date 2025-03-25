@@ -397,8 +397,8 @@ class navigator {
             m_heartbeat = false;
             // Don't do anything if aborted
             m_trust_level = navigation::trust_level::e_full;
-            run_inspector({}, point3_type{0., 0., 0.},
-                          vector3_type{0., 0., 0.}, "Aborted: ");
+            run_inspector({}, point3_type{0., 0., 0.}, vector3_type{0., 0., 0.},
+                          "Aborted: ");
             return m_heartbeat;
         }
 
@@ -411,8 +411,8 @@ class navigator {
             m_status = navigation::status::e_on_target;
             m_heartbeat = false;
             m_trust_level = navigation::trust_level::e_full;
-            run_inspector({}, point3_type{0., 0., 0.},
-                          vector3_type{0., 0., 0.}, "Exited: ");
+            run_inspector({}, point3_type{0., 0., 0.}, vector3_type{0., 0., 0.},
+                          "Exited: ");
             this->clear();
             return m_heartbeat;
         }

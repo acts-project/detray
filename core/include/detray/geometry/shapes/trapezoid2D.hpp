@@ -165,8 +165,7 @@ class trapezoid2D {
         const scalar_t a_2{bounds[e_half_length_1]};
         const scalar_t b_2{bounds[e_half_length_0]};
 
-        const scalar_t y{2. * h_2 * (2. * a_2 + b_2) * 1. /
-                         (3. * (a_2 + b_2))};
+        const scalar_t y{2. * h_2 * (2. * a_2 + b_2) * 1. / (3. * (a_2 + b_2))};
 
         return {0., y - h_2, 0.};
     }

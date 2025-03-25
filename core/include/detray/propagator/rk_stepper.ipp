@@ -214,7 +214,7 @@ DETRAY_HOST_DEVICE inline void detray::rk_stepper<
 
         getter::element(D, e_free_qoverp, e_free_qoverp) =
             1. + h_6 * (d2qop1dsdqop1 + 2. * (d2qop2dsdqop1 + d2qop3dsdqop1) +
-                         d2qop4dsdqop1);
+                        d2qop4dsdqop1);
     }
 
     /*-----------------------------------------------------------------
@@ -299,10 +299,10 @@ DETRAY_HOST_DEVICE inline void detray::rk_stepper<
         // dk4/dr1
         dkndr[3u] = sd.qop[3u] *
                     mat_helper().column_wise_cross(h * dkndr[2u], sd.b_last);
-        dkndr[3u] = dkndr[3u] -
-                    sd.qop[3u] *
-                        mat_helper().column_wise_cross(
-                            dBdr_fin * (I33 + h2 * 0.5 * dkndr[2u]), sd.t[3u]);
+        dkndr[3u] =
+            dkndr[3u] -
+            sd.qop[3u] * mat_helper().column_wise_cross(
+                             dBdr_fin * (I33 + h2 * 0.5 * dkndr[2u]), sd.t[3u]);
 
         // Set dF/dr1 and dG/dr1
         auto dFdr = matrix::identity<matrix_type<3, 3>>();

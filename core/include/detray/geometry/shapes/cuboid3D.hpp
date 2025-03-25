@@ -157,8 +157,8 @@ class cuboid3D {
         const bounds_type<dscalar<algebra_t>> &bounds) const {
 
         return 0.5 * dpoint3D<algebra_t>{bounds[e_min_x] + bounds[e_max_x],
-                                          bounds[e_min_y] + bounds[e_max_y],
-                                          bounds[e_min_z] + bounds[e_max_z]};
+                                         bounds[e_min_y] + bounds[e_max_y],
+                                         bounds[e_min_z] + bounds[e_max_z]};
     }
 
     /// Generate vertices in local cartesian frame

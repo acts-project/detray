@@ -121,8 +121,8 @@ struct helix_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
             scalar_type tol{mask_tolerance[1]};
             if (detail::is_invalid_value(tol)) {
                 // Due to floating point errors this can be negative if cos ~ 1
-                const scalar_type sin_inc2{math::fabs(
-                    1. - cos_incidence_angle * cos_incidence_angle)};
+                const scalar_type sin_inc2{
+                    math::fabs(1. - cos_incidence_angle * cos_incidence_angle)};
 
                 tol = math::fabs((s - s_prev) * math::sqrt(sin_inc2));
             }
@@ -141,8 +141,7 @@ struct helix_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
             // Starting point on the helix for the Newton iteration
             const vector3_type dist{trf.point_to_global(mask.centroid()) -
                                     h.pos(0.)};
-            scalar_type denom{
-                vector::dot(sn, h.dir(0.5 * vector::norm(dist)))};
+            scalar_type denom{vector::dot(sn, h.dir(0.5 * vector::norm(dist)))};
             scalar_type s_ini;
             if (denom == 0.) {
                 s_ini = vector::norm(dist);
