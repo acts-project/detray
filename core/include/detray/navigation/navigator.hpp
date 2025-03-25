@@ -726,7 +726,7 @@ class navigator {
             init(track, navigation, cfg, ctx);
             is_init = true;
 
-            // Fresh initialization, reset trust and hearbeat even though we are
+            // Fresh initialization, reset trust and heartbeat even though we are
             // on inner portal
             navigation.m_trust_level = navigation::trust_level::e_full;
             navigation.m_heartbeat = !navigation.is_exhausted();
@@ -749,8 +749,8 @@ class navigator {
                 // Use the max mask tolerance in case a track leaves the volume
                 // when a sf is 'sticking' out of the portals due to the tol
                 loose_cfg.overstep_tolerance =
-                    math::min(100. * cfg.overstep_tolerance,
-                              -10. * cfg.max_mask_tolerance);
+                    math::min(100.f * cfg.overstep_tolerance,
+                              -10.f * cfg.max_mask_tolerance);
 
                 init(track, navigation, loose_cfg, ctx,
                      use_path_tolerance_as_overstep_tolerance);
