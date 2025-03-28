@@ -39,7 +39,7 @@ template <concepts::scalar scalar_t, typename function_t>
 DETRAY_HOST_DEVICE inline bool expand_bracket(const scalar_t a,
                                               const scalar_t b, function_t &f,
                                               darray<scalar_t, 2> &bracket,
-                                              const scalar_t k = 1.f) {
+                                              const scalar_t k = 1.) {
 
     if (a == b) {
         throw std::invalid_argument(
@@ -95,9 +95,9 @@ DETRAY_HOST_DEVICE inline bool expand_bracket(const scalar_t a,
 template <concepts::scalar scalar_t, typename function_t>
 DETRAY_HOST_DEVICE inline std::pair<scalar_t, scalar_t> newton_raphson_safe(
     function_t &evaluate_func, scalar_t s,
-    const scalar_t convergence_tolerance = 1.f * unit<scalar_t>::um,
+    const scalar_t convergence_tolerance = 1. * unit<scalar_t>::um,
     const std::size_t max_n_tries = 1000u,
-    const scalar_t max_path = 5.f * unit<scalar_t>::m) {
+    const scalar_t max_path = 5. * unit<scalar_t>::m) {
 
     constexpr scalar_t inv{detail::invalid_value<scalar_t>()};
     constexpr scalar_t epsilon{std::numeric_limits<scalar_t>::epsilon()};
@@ -110,13 +110,13 @@ DETRAY_HOST_DEVICE inline std::pair<scalar_t, scalar_t> newton_raphson_safe(
     };
 
     // Initial bracket
-    scalar_t a{math::fabs(s) == 0.f ? -0.1f : 0.9f * s};
-    scalar_t b{math::fabs(s) == 0.f ? 0.1f : 1.1f * s};
+    scalar_t a{math::fabs(s) == 0. ? -0.1 : 0.9 * s};
+    scalar_t b{math::fabs(s) == 0. ? 0.1 : 1.1 * s};
     darray<scalar_t, 2> br{};
     bool is_bracketed = expand_bracket(a, b, f, br);
 
     // Update initial guess on the root after bracketing
-    s = is_bracketed ? 0.5f * (br[1] + br[0]) : s;
+    s = is_bracketed ? 0.5 * (br[1] + br[0]) : s;
 
     if (is_bracketed) {
         // Check bracket
@@ -153,7 +153,7 @@ DETRAY_HOST_DEVICE inline std::pair<scalar_t, scalar_t> newton_raphson_safe(
     }
 
     // Run the iteration on s
-    scalar_t s_prev{0.f};
+    scalar_t s_prev{0.};
     std::size_t n_tries{0u};
     auto [f_s, df_s] = evaluate_func(s);
     if (math::fabs(f_s) < convergence_tolerance) {
@@ -169,37 +169,37 @@ DETRAY_HOST_DEVICE inline std::pair<scalar_t, scalar_t> newton_raphson_safe(
 
         // Does Newton step escape bracket?
         bool bracket_escape{true};
-        scalar_t s_newton{0.f};
-        if (math::fabs(df_s) != 0.f) {
+        scalar_t s_newton{0.};
+        if (math::fabs(df_s) != 0.) {
             s_newton = s - f_s / df_s;
             bracket_escape = math::signbit((s_newton - a) * (b - s_newton));
         }
 
         // This criterion from Numerical Recipes seems to work, but why?
-        /*const bool slow_convergence{math::fabs(2.f * f_s) >
+        /*const bool slow_convergence{math::fabs(2. * f_s) >
                                     math::fabs((s_prev - s) * df_s)};*/
 
         // Take a bisection step if it converges faster than Newton
         // |f(next_newton_s)| > |f(next_bisection_s)|
         bool slow_convergence{true};
         // The criterion is only well defined if the step lengths are small
-        if (const scalar_t ds_bisection{0.5f * (a + b) - s};
+        if (const scalar_t ds_bisection{0.5 * (a + b) - s};
             is_bracketed &&
-            (math::fabs(ds_bisection) < 10.f * unit<scalar_t>::mm)) {
+            (math::fabs(ds_bisection) < 10. * unit<scalar_t>::mm)) {
             slow_convergence =
-                (2.f * math::fabs(f_s) > math::fabs(df_s * ds_bisection + f_s));
+                (2. * math::fabs(f_s) > math::fabs(df_s * ds_bisection + f_s));
         }
 
         s_prev = s;
 
         // Run bisection if Newton-Raphson would be poor
         if (is_bracketed &&
-            (bracket_escape || slow_convergence || math::fabs(df_s) == 0.f)) {
+            (bracket_escape || slow_convergence || math::fabs(df_s) == 0.)) {
             // Test the function sign in the middle of the interval
-            s = 0.5f * (a + b);
+            s = 0.5 * (a + b);
         } else {
             // No intersection can be found if dividing by zero
-            if (!is_bracketed && math::fabs(df_s) == 0.f) {
+            if (!is_bracketed && math::fabs(df_s) == 0.) {
                 std::cout << "WARNING: Encountered invalid derivative "
                           << std::endl;
 
@@ -282,7 +282,7 @@ DETRAY_HOST_DEVICE inline void build_intersection(
         if (detail::is_invalid_value(tol)) {
             // Due to floating point errors this can be negative if cos ~ 1
             const scalar_t sin_inc2{
-                math::fabs(1.f - cos_incidence_angle * cos_incidence_angle)};
+                math::fabs(1. - cos_incidence_angle * cos_incidence_angle)};
 
             tol = math::fabs(ds * math::sqrt(sin_inc2));
         }

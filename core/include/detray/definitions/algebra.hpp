@@ -17,6 +17,8 @@
 #include "detray/plugins/algebra/vc_aos_definitions.hpp"
 #elif DETRAY_ALGEBRA_VC_SOA
 #include "detray/plugins/algebra/vc_soa_definitions.hpp"
+#elif DETRAY_ALGEBRA_FASTOR
+#include "detray/plugins/algebra/fastor_definitions.hpp"
 #else
 #error "No algebra plugin selected! Please link to one of the algebra plugins."
 #endif

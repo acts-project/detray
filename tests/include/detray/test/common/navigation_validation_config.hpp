@@ -45,7 +45,7 @@ struct navigation_validation_config
         detray::detail::invalid_value<scalar_type>(),
         detray::detail::invalid_value<scalar_type>()};
     /// B-field vector for helix
-    vector3_type m_B{0.f * unit<scalar_type>::T, 0.f * unit<scalar_type>::T,
+    vector3_type m_B{0. * unit<scalar_type>::T, 0. * unit<scalar_type>::T,
                      2.f * unit<scalar_type>::T};
     /// Visualization style to be applied to the svgs
     detray::svgtools::styling::style m_style =

@@ -61,7 +61,7 @@ inline auto variance(const range_t& r) noexcept(false)
 
     // Variance is zero for single element
     if (r.size() == 1u) {
-        return 0.f;
+        return 0.;
     }
 
     value_t mean = statistics::mean(r);

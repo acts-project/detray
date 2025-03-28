@@ -75,11 +75,11 @@ class line_stepper final
         }
 
         DETRAY_HOST_DEVICE
-        constexpr vector3_type dtds() const { return {0.f, 0.f, 0.f}; }
+        constexpr vector3_type dtds() const { return {0., 0., 0.}; }
 
         DETRAY_HOST_DEVICE
         constexpr scalar_type dqopds(const material<scalar_type>*) const {
-            return 0.f;
+            return 0.;
         }
     };
 
