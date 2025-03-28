@@ -151,7 +151,7 @@ void BM_GRID_REGULAR_BIN_CAP4(benchmark::State &state) {
 
     for (auto _ : state) {
         for (const auto &p : points) {
-            for (const dindex entry : g2r.search(p)) {
+            for (dindex entry : g2r.search(p)) {
                 benchmark::DoNotOptimize(entry);
             }
         }
@@ -180,7 +180,7 @@ void BM_GRID_REGULAR_BIN_CAP25(benchmark::State &state) {
 
     for (auto _ : state) {
         for (const auto &p : points) {
-            for (const dindex entry : g2r.search(p)) {
+            for (dindex entry : g2r.search(p)) {
                 benchmark::DoNotOptimize(entry);
             }
         }
@@ -209,7 +209,7 @@ void BM_GRID_REGULAR_BIN_CAP100(benchmark::State &state) {
 
     for (auto _ : state) {
         for (const auto &p : points) {
-            for (const dindex entry : g2r.search(p)) {
+            for (dindex entry : g2r.search(p)) {
                 benchmark::DoNotOptimize(entry);
             }
         }
@@ -240,7 +240,7 @@ void BM_GRID_REGULAR_NEIGHBOR_CAP1(benchmark::State &state) {
 
     for (auto _ : state) {
         for (const auto &p : points) {
-            for (const dindex entry : g2r.search(p, window)) {
+            for (dindex entry : g2r.search(p, window)) {
                 benchmark::DoNotOptimize(entry);
             }
         }
@@ -271,7 +271,7 @@ void BM_GRID_REGULAR_NEIGHBOR_CAP4(benchmark::State &state) {
 
     for (auto _ : state) {
         for (const auto &p : points) {
-            for (const dindex entry : g2r.search(p, window)) {
+            for (dindex entry : g2r.search(p, window)) {
                 benchmark::DoNotOptimize(entry);
             }
         }
@@ -324,7 +324,7 @@ void BM_GRID_IRREGULAR_NEIGHBOR_CAP1(benchmark::State &state) {
 
     for (auto _ : state) {
         for (const auto &p : points) {
-            for (const dindex entry : g2irr.search(p, window)) {
+            for (dindex entry : g2irr.search(p, window)) {
                 benchmark::DoNotOptimize(entry);
             }
         }

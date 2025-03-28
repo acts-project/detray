@@ -22,6 +22,8 @@
 #endif
 
 // Algebra-plugins include(s)
+#include "algebra/utils/approximately_equal.hpp"
+#include "algebra/utils/casts.hpp"
 #include "algebra/utils/print.hpp"
 
 namespace detray {
