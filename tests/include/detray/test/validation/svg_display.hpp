@@ -36,7 +36,6 @@ std::unordered_set<dindex> get_volume_indices(
     std::unordered_set<dindex> volumes{};
     volumes.reserve(intersection_record.size());
     for (const auto &single_ir : intersection_record) {
-        // Could be a dummy record that was inserted during trace matching
         if (single_ir.intersection.sf_desc.barcode().is_invalid()) {
             continue;
         }
@@ -125,18 +124,21 @@ auto draw_intersection_and_traj_svg(
     auto truth_intersections = transcribe_intersections(truth_trace);
     auto recorded_intersections = transcribe_intersections(recorded_trace);
 
-    // Draw the truth intersections
-    auto svg_traj = il.draw_intersections("truth_trace", truth_intersections,
-                                          traj.dir(0.f), view, gctx);
+    // Draw the truth intersections as black crosses
+    actsvg::svg::object svg_traj;
+    if (!truth_intersections.empty()) {
+        svg_traj = il.draw_intersections("truth_trace", truth_intersections,
+                                         traj.dir(0.f), view, gctx);
+    }
 
     // Draw an approximation of the trajectory with the recorded intersections
+    const auto path{math::max(math::fabs(truth_intersections.front().path),
+                              math::fabs(truth_intersections.back().path))};
     if (!recorded_intersections.empty()) {
         svg_traj.add_object(il.draw_intersections_and_trajectory(
-            traj_name, recorded_intersections, traj, view,
-            truth_intersections.back().path, gctx));
+            traj_name, recorded_intersections, traj, view, path, gctx));
     } else {
-        svg_traj.add_object(il.draw_trajectory(
-            traj_name, traj, truth_intersections.back().path, view));
+        svg_traj.add_object(il.draw_trajectory(traj_name, traj, path, view));
     }
 
     return svg_traj;
@@ -151,6 +153,7 @@ inline void svg_display(const typename detector_t::geometry_context gctx,
                         const std::string &traj_name,
                         const std::string &outfile = "detector_display",
                         const recorded_trace_t &recorded_trace = {},
+                        const bool verbose = true,
                         const std::string &outdir = "./plots/") {
 
     // Gather all volumes that need to be displayed
@@ -193,8 +196,10 @@ inline void svg_display(const typename detector_t::geometry_context gctx,
         path / (outfile + "_" + vol_zr_svg._id + "_" + traj_name),
         {zr_axis, vol_zr_svg, svg_traj});
 
-    std::cout << "INFO: Wrote svgs for debugging in: " << path << "\n"
-              << std::endl;
+    if (verbose) {
+        std::cout << "INFO: Wrote svgs for debugging in: " << path << "\n"
+                  << std::endl;
+    }
 }
 
 }  // namespace detray::detail

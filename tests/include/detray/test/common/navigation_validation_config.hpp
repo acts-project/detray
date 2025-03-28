@@ -7,6 +7,9 @@
 
 #pragma once
 
+// Project include(s)
+#include "detray/definitions/pdg_particle.hpp"
+
 // detray plugin include(s)
 #include "detray/plugins/svgtools/styling/styling.hpp"
 
@@ -36,8 +39,18 @@ struct navigation_validation_config
     /// Name of the input file, containing the complete ray scan traces
     std::string m_intersection_file{"truth_intersections.csv"};
     std::string m_track_param_file{"truth_trk_parameters.csv"};
-    /// The maximal number of test tracks to run
+    /// The maximum number of test tracks to run
     std::size_t m_n_tracks{detray::detail::invalid_value<std::size_t>()};
+    /// Particle hypothesis (truth particle from simulation)
+    pdg_particle<scalar_type> m_ptc_hypo{muon<scalar_type>()};
+    /// Navigaiton direction
+    navigation::direction m_nav_dir{navigation::direction::e_forward};
+    /// Collect only the sensitive intersections for comparison
+    bool m_collect_sensitives_only{false};
+    /// Whether to stop execution at the first error
+    bool m_fail_on_diff{true};
+    /// Verbosity of the console output
+    bool m_verbose{true};
     /// Configured momentum range of the test sample (only needed to generate
     /// correct file names). If none was passed, it will be determined from
     /// the track data (imprecise!)
@@ -61,8 +74,13 @@ struct navigation_validation_config
     const std::string &intersection_file() const { return m_intersection_file; }
     const std::string &track_param_file() const { return m_track_param_file; }
     std::size_t n_tracks() const { return m_n_tracks; }
+    pdg_particle<scalar_type> ptc_hypothesis() const { return m_ptc_hypo; }
+    navigation::direction navigation_direction() const { return m_nav_dir; }
+    bool collect_sensitives_only() const { return m_collect_sensitives_only; }
+    bool fail_on_diff() const { return m_fail_on_diff; }
+    bool verbose() const { return m_verbose; }
     darray<scalar_type, 2> p_range() const { return m_p_range; }
-    const vector3_type &B_vector() { return m_B; }
+    const vector3_type &B_vector() const { return m_B; }
     const auto &svg_style() const { return m_style; }
     /// @}
 
@@ -87,6 +105,29 @@ struct navigation_validation_config
     }
     navigation_validation_config &track_param_file(const std::string &f) {
         m_track_param_file = f;
+        return *this;
+    }
+    navigation_validation_config &ptc_hypothesis(
+        pdg_particle<scalar_type> pdg_ptc) {
+        m_ptc_hypo = pdg_ptc;
+        return *this;
+    }
+    navigation_validation_config &navigation_direction(
+        const navigation::direction dir) {
+        m_nav_dir = dir;
+        return *this;
+    }
+    navigation_validation_config &collect_sensitives_only(
+        const bool only_sensitives) {
+        m_collect_sensitives_only = only_sensitives;
+        return *this;
+    }
+    navigation_validation_config &fail_on_diff(const bool fail_on_diff) {
+        m_fail_on_diff = fail_on_diff;
+        return *this;
+    }
+    navigation_validation_config &verbose(const bool v) {
+        m_verbose = v;
         return *this;
     }
     navigation_validation_config &n_tracks(std::size_t n) {
