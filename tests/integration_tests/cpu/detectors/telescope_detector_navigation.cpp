@@ -75,6 +75,7 @@ int main(int argc, char **argv) {
     // Comparison of straight line navigation with ray scan
     test::straight_line_navigation<tel_detector_t>::config cfg_str_nav{};
     cfg_str_nav.name("telescope_detector_straight_line_navigation");
+    cfg_str_nav.n_tracks(cfg_ray_scan.track_generator().n_tracks());
     cfg_str_nav.whiteboard(white_board);
     auto mask_tolerance = cfg_ray_scan.mask_tolerance();
     cfg_str_nav.propagation().navigation.min_mask_tolerance =
@@ -104,6 +105,7 @@ int main(int argc, char **argv) {
     // Comparison of navigation in a constant B-field with helix
     test::helix_navigation<tel_detector_t>::config cfg_hel_nav{};
     cfg_hel_nav.name("telescope_detector_helix_navigation");
+    cfg_hel_nav.n_tracks(cfg_hel_scan.track_generator().n_tracks());
     cfg_hel_nav.whiteboard(white_board);
     cfg_hel_nav.propagation().navigation.overstep_tolerance =
         -100.f * unit<float>::um;
