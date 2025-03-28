@@ -17,7 +17,7 @@ With the geometry description comes a fully featured, GPU-ready track state prop
 - The CUDA Toolkit version must be greater than major version 11
 
 #### Dependencies:
-- CMake (version >= 3.14, version >= 3.18 for CUDA)
+- CMake (version >= 3.21)
 
 
 ## Getting started
