@@ -69,6 +69,7 @@ int main(int argc, char **argv) {
     // Comparison of straight line navigation with ray scan
     test::straight_line_navigation<wire_chamber_t>::config cfg_str_nav{};
     cfg_str_nav.name("wire_chamber_straight_line_navigation");
+    cfg_str_nav.n_tracks(cfg_ray_scan.track_generator().n_tracks());
     cfg_str_nav.whiteboard(white_board);
     cfg_str_nav.propagation().navigation.search_window = {3u, 3u};
     auto mask_tolerance = cfg_ray_scan.mask_tolerance();
@@ -98,6 +99,7 @@ int main(int argc, char **argv) {
     // Comparison of navigation in a constant B-field with helix
     test::helix_navigation<wire_chamber_t>::config cfg_hel_nav{};
     cfg_hel_nav.name("wire_chamber_helix_navigation");
+    cfg_hel_nav.n_tracks(cfg_hel_scan.track_generator().n_tracks());
     cfg_hel_nav.whiteboard(white_board);
     cfg_hel_nav.propagation().navigation.min_mask_tolerance *= 12.f;
     cfg_hel_nav.propagation().navigation.search_window = {3u, 3u};

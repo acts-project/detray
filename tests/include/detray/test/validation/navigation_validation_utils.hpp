@@ -23,6 +23,7 @@
 #include "detray/io/utils/file_handle.hpp"
 
 // Detray test include(s)
+#include "detray/test/common/navigation_validation_config.hpp"
 #include "detray/test/utils/inspectors.hpp"
 #include "detray/test/validation/detector_scan_utils.hpp"
 #include "detray/test/validation/material_validation_utils.hpp"
@@ -128,8 +129,11 @@ inline auto record_propagation(
     vecmem::memory_resource *host_mr, const detector_t &det,
     const propagation::config &cfg,
     const free_track_parameters<typename detector_t::algebra_type> &track,
+    const pdg_particle<typename detector_t::scalar_type> ptc_hypo =
+        muon<typename detector_t::scalar_type>(),
     const bfield_t &bfield = {},
-    const navigation::direction nav_dir = navigation::direction::e_forward) {
+    const navigation::direction nav_dir = navigation::direction::e_forward,
+    typename actor_chain<actor_ts...>::state_tuple state_tuple = {}) {
 
     using algebra_t = typename detector_t::algebra_type;
     using scalar_t = dscalar<algebra_t>;
@@ -159,8 +163,8 @@ inline auto record_propagation(
     using pathlimit_aborter_t = pathlimit_aborter<scalar_t>;
     using material_tracer_t =
         material_validator::material_tracer<scalar_t, dvector>;
-    using actor_chain_t = actor_chain<pathlimit_aborter_t, step_tracer_t,
-                                      material_tracer_t, actor_ts...>;
+    using actor_chain_t = actor_chain<pathlimit_aborter_t, actor_ts...,
+                                      step_tracer_t, material_tracer_t>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Propagator
@@ -172,21 +176,21 @@ inline auto record_propagation(
     typename step_tracer_t::state step_tracer_state{*host_mr};
     typename material_tracer_t::state mat_tracer_state{*host_mr};
 
-    // Extra actors
-    dtuple<typename actor_ts::state...> state_tuple{};
-
     // Combine all actor states
-    auto setup_actor_states =
-        []<std::size_t... indices>(typename pathlimit_aborter_t::state & s1,
-                                   typename step_tracer_t::state & s2,
-                                   typename material_tracer_t::state & s3,
-                                   dtuple<typename actor_ts::state...> & t,
-                                   std::index_sequence<indices...> /*ids*/) {
-        return detray::tie(s1, s2, s3, detail::get<indices>(t)...);
+    auto setup_actor_states = []<std::size_t... indices>(
+        typename pathlimit_aborter_t::state & s1,
+        typename step_tracer_t::state & s2,
+        typename material_tracer_t::state & s3,
+        typename actor_chain<actor_ts...>::state_tuple & t,
+        std::index_sequence<indices...> /*ids*/) {
+        return detray::tie(s1, detail::get<indices>(t)..., s2, s3);
     };
-    auto actor_states = setup_actor_states(
-        pathlimit_aborter_state, step_tracer_state, mat_tracer_state,
-        state_tuple, std::make_index_sequence<sizeof...(actor_ts)>{});
+    constexpr auto idx_seq{std::make_index_sequence<detail::tuple_size_v<
+        typename actor_chain<actor_ts...>::state_tuple>>{}};
+
+    auto actor_states =
+        setup_actor_states(pathlimit_aborter_state, step_tracer_state,
+                           mat_tracer_state, state_tuple, idx_seq);
 
     std::unique_ptr<typename propagator_t::state> propagation{nullptr};
     if constexpr (std::is_same_v<bfield_t, empty_bfield>) {
@@ -209,7 +213,8 @@ inline auto record_propagation(
     // Find the end point and direction of the track (approximately)
     if (nav_dir == navigation::direction::e_backward) {
         using fw_propagator_t =
-            propagator<stepper_t, navigator_t, actor_chain<>>;
+            propagator<stepper_t, navigator_t,
+                       actor_chain<pathlimit_aborter_t, actor_ts...>>;
         std::unique_ptr<typename fw_propagator_t::state> fw_propagation{
             nullptr};
         if constexpr (std::is_same_v<bfield_t, empty_bfield>) {
@@ -219,7 +224,23 @@ inline auto record_propagation(
             fw_propagation = std::make_unique<typename fw_propagator_t::state>(
                 track, bfield, det, ctx);
         }
-        fw_propagator_t{cfg}.propagate(*fw_propagation);
+
+        // Omit the expensive tracers
+        auto setup_fw_actor_states = []<std::size_t... indices>(
+            typename pathlimit_aborter_t::state & s1,
+            typename actor_chain<actor_ts...>::state_tuple & t,
+            std::index_sequence<indices...> /*ids*/) {
+            return detray::tie(s1, detail::get<indices>(t)...);
+        };
+        auto fw_pathlimit_aborter_state = pathlimit_aborter_state;
+        auto fw_state_tuple = state_tuple;
+        auto fw_actor_states = setup_fw_actor_states(fw_pathlimit_aborter_state,
+                                                     fw_state_tuple, idx_seq);
+
+        // Perform forward propagation and set the result for main prop. run
+        fw_propagation->set_particle(
+            update_particle_hypothesis(ptc_hypo, track));
+        fw_propagator_t{cfg}.propagate(*fw_propagation, fw_actor_states);
         propagation->_stepping() = fw_propagation->_stepping();
         propagation->_navigation.set_volume(
             fw_propagation->_navigation.volume());
@@ -227,6 +248,7 @@ inline auto record_propagation(
 
     // Run the propagation
     propagation->_navigation.set_direction(nav_dir);
+    propagation->set_particle(update_particle_hypothesis(ptc_hypo, track));
     bool success = prop.propagate(*propagation, actor_states);
 
     return std::make_tuple(
@@ -248,17 +270,15 @@ inline auto record_propagation(
 ///
 /// @param traj initial track parameters at the bginning of the track
 /// @param trk_no number of the track in the sample
-/// @param total_n_trks total number of tracks in the sample
 /// @param debug_file where to output debugging information to
 ///
 /// @returns the counts on missed and additional surfaces, matching errorsm
 /// as well as the collections of the intersections that did not match
 template <typename truth_trace_t, typename recorded_trace_t, typename traj_t>
-auto compare_traces(truth_trace_t &truth_trace,
+auto compare_traces(const detray::test::navigation_validation_config &cfg,
+                    truth_trace_t &truth_trace,
                     recorded_trace_t &recorded_trace, const traj_t &traj,
-                    std::size_t trk_no, std::size_t total_n_trks,
-                    std::fstream *debug_file = nullptr,
-                    const bool fail_on_diff = true, const bool verbose = true) {
+                    std::size_t trk_no, std::fstream *debug_file = nullptr) {
 
     using nav_record_t = typename recorded_trace_t::value_type;
     using truth_record_t = typename truth_trace_t::value_type;
@@ -606,15 +626,15 @@ auto compare_traces(truth_trace_t &truth_trace,
                          (missed_stats_tr.n_total() != 0u) || (n_errors != 0u)};
 
     // Fail the test with some extra information
-    EXPECT_TRUE(!any_error || !fail_on_diff)
+    EXPECT_TRUE(!any_error || !cfg.fail_on_diff())
         << "\n--------\n"
-        << "Track no. " << trk_no << "/" << total_n_trks << ":\n"
+        << "Track no. " << trk_no << "/" << cfg.n_tracks() << ":\n"
         << traj << matching_stream.str() << "\n--------";
 
     if (any_error && debug_file) {
         *debug_file << "\n>>>>>>>>>>>>>>>>>>\nFAILURE\n<<<<<<<<<<<<<<<<<<\n"
                     << "\nSUMMARY:\n--------\n"
-                    << "Track no. " << trk_no << "/" << total_n_trks << ":\n"
+                    << "Track no. " << trk_no << "/" << cfg.n_tracks() << ":\n"
                     << traj << matching_stream.str() << "\n--------\n"
                     << "\nFull Trace:\n\n"
                     << debug_stream.str();
@@ -622,12 +642,12 @@ auto compare_traces(truth_trace_t &truth_trace,
 
     // Multiple missed surfaces are a hint that something might be off with this
     // track
-    if ((missed_stats_nav.n_total() > 1u) && verbose) {
+    if ((missed_stats_nav.n_total() > 1u) && cfg.verbose()) {
         std::cout << "WARNING: Detray navigator skipped multiple surfaces: "
                   << missed_stats_nav.n_total() << "\n"
                   << std::endl;
     }
-    if ((missed_stats_tr.n_total() > 1u) && verbose) {
+    if ((missed_stats_tr.n_total() > 1u) && cfg.verbose()) {
         std::cout << "WARNING: Detray navigator found multiple extra surfaces: "
                   << missed_stats_tr.n_total() << "\n"
                   << std::endl;
@@ -658,7 +678,7 @@ auto compare_traces(truth_trace_t &truth_trace,
         if (debug_file) {
             *debug_file << "\n>>>>>>>>>>>>>>>>>>\nFAILURE\n<<<<<<<<<<<<<<<<<<\n"
                         << "\nSUMMARY:\n--------\n"
-                        << "Track no. " << trk_no << "/" << total_n_trks
+                        << "Track no. " << trk_no << "/" << cfg.n_tracks()
                         << ":\n"
                         << traj << matching_stream.str() << "\n--------\n"
                         << "\nFull Trace:\n\n"
@@ -697,7 +717,7 @@ auto compare_traces(truth_trace_t &truth_trace,
         }
     }
 
-    const bool success{(!any_error || !fail_on_diff) && is_size};
+    const bool success{(!any_error || !cfg.fail_on_diff()) && is_size};
     return std::make_tuple(success, missed_stats_nav, missed_stats_tr, n_errors,
                            missed_intersections);
 }
@@ -875,6 +895,7 @@ template <typename stepper_t, typename... actor_ts, typename detector_t,
           typename field_view_t, typename intersection_t,
           concepts::algebra algebra_t>
 auto compare_to_navigation(
+    const detray::test::navigation_validation_config &cfg,
     vecmem::host_memory_resource &host_mr, const detector_t &det,
     const typename detector_t::name_map &names,
     const typename detector_t::geometry_context ctx,
@@ -882,9 +903,7 @@ auto compare_to_navigation(
     std::vector<dvector<navigation::detail::candidate_record<intersection_t>>>
         &truth_traces,
     const std::vector<free_track_parameters<algebra_t>> &tracks,
-    const navigation::direction nav_dir = navigation::direction::e_forward,
-    const bool collect_sensitives_only = false, const bool fail_on_diff = true,
-    const bool verbose = true) {
+    typename actor_chain<actor_ts...>::state_tuple state_tuple = {}) {
 
     // Style of svgs
     detray::svgtools::styling::style svg_style =
@@ -892,7 +911,8 @@ auto compare_to_navigation(
 
     // Write navigation and stepping debug info if a track fails
     std::ios_base::openmode io_mode = std::ios::trunc | std::ios::out;
-    detray::io::file_handle debug_file{"navigation_validation.txt", io_mode};
+    detray::io::file_handle debug_file{
+        "navigation_validation_" + cfg.name() + ".txt", io_mode};
 
     // Collect some statistics
     std::size_t n_not_matching{0};
@@ -913,6 +933,18 @@ auto compare_to_navigation(
     assert(truth_traces.size() == tracks.size());
     const std::size_t n_samples{truth_traces.size()};
 
+    // Amount of material recorded per track
+    using scalar_t = dscalar<algebra_t>;
+
+    std::vector<dvector<detail::step_data<algebra_t>>> step_traces{};
+    std::vector<material_validator::material_record<scalar_t>> mat_records{};
+    std::vector<dvector<material_validator::material_params<scalar_t>>>
+        mat_traces{};
+
+    mat_records.reserve(n_samples);
+    mat_traces.reserve(n_samples);
+    step_traces.reserve(n_samples);
+
     // Run the navigation on every truth particle
     for (std::size_t i = 0u; i < n_samples; ++i) {
         const auto &track = tracks[i];
@@ -924,13 +956,15 @@ auto compare_to_navigation(
         auto [success, obj_tracer, step_trace, mat_record, mat_trace,
               nav_printer, step_printer] =
             record_propagation<stepper_t, actor_ts...>(
-                ctx, &host_mr, det, prop_cfg, track, field_view, nav_dir);
+                ctx, &host_mr, det, prop_cfg, track, cfg.ptc_hypothesis(),
+                field_view, cfg.navigation_direction(), state_tuple);
 
         // Fatal propagation error: Data unreliable
         if (!success) {
             std::cout << "ERROR: Propagation failure" << std::endl;
 
-            *debug_file << "TEST TRACK " << i << ":\n\n"
+            *debug_file << "ERROR: Propagation failure:\n"
+                        << "TEST TRACK " << i << ":\n\n"
                         << nav_printer.to_string() << step_printer.to_string();
 
             n_fatal_error++;
@@ -938,13 +972,18 @@ auto compare_to_navigation(
             continue;
         }
 
+        // Save material for later comparison
+        step_traces.push_back(std::move(step_trace));
+        mat_records.push_back(std::move(mat_record));
+        mat_traces.push_back(mat_trace);
+
         // Compare to truth trace
         using obj_tracer_t = decltype(obj_tracer);
         using record_t = typename obj_tracer_t::candidate_record_t;
 
         detray::dvector<record_t> recorded_trace{};
         // Get only the sensitive surfaces
-        if (collect_sensitives_only) {
+        if (cfg.collect_sensitives_only()) {
             for (const auto &rec : obj_tracer.trace()) {
                 if (rec.intersection.sf_desc.is_sensitive()) {
                     recorded_trace.push_back(rec);
@@ -965,9 +1004,8 @@ auto compare_to_navigation(
 
         detray::detail::helix ideal_traj{track, field_view};
         auto [result, n_miss_trace_nav, n_miss_trace_truth, n_error_trace,
-              missed_inters] =
-            compare_traces(truth_trace, recorded_trace, ideal_traj, i,
-                           n_samples, &(*debug_file), fail_on_diff, verbose);
+              missed_inters] = compare_traces(cfg, truth_trace, recorded_trace,
+                                              ideal_traj, i, &(*debug_file));
 
         // Comparison failed
         if (!result) {
@@ -979,8 +1017,8 @@ auto compare_to_navigation(
             // additional surfaces. Only dump svg if it missed one
             if (n_miss_trace_nav.n_total() != 0u || n_error_trace != 0u) {
                 detray::detector_scanner::display_error(
-                    ctx, det, names, "Navigation Check", ideal_traj,
-                    truth_trace, svg_style, i, n_samples, recorded_trace);
+                    ctx, det, names, cfg.name(), ideal_traj, truth_trace,
+                    svg_style, i, n_samples, recorded_trace, cfg.verbose());
             }
         }
 
@@ -1025,12 +1063,16 @@ auto compare_to_navigation(
         trk_stats.n_tracks++;
     }
 
-    const std::size_t n_tracks{trk_stats.n_tracks};
-    const std::size_t n_tracks_w_holes{trk_stats.n_tracks_w_holes};
-    const std::size_t n_tracks_w_extra{trk_stats.n_tracks_w_extra};
-    const std::size_t n_good_tracks{trk_stats.n_good_tracks};
-    const std::size_t n_max_holes_per_trk{trk_stats.n_max_missed_per_trk};
-    const std::size_t n_max_extra_per_trk{trk_stats.n_max_extra_per_trk};
+    const auto n_tracks{static_cast<double>(trk_stats.n_tracks)};
+    const auto n_tracks_w_holes{
+        static_cast<double>(trk_stats.n_tracks_w_holes)};
+    const auto n_tracks_w_extra{
+        static_cast<double>(trk_stats.n_tracks_w_extra)};
+    const auto n_good_tracks{static_cast<double>(trk_stats.n_good_tracks)};
+    const auto n_max_holes_per_trk{
+        static_cast<double>(trk_stats.n_max_missed_per_trk)};
+    const auto n_max_extra_per_trk{
+        static_cast<double>(trk_stats.n_max_extra_per_trk)};
 
     // Self check
     if (n_not_matching > (n_tracks_w_holes + n_tracks_w_extra)) {
@@ -1043,8 +1085,10 @@ auto compare_to_navigation(
     }
 
     // Calculate and display the surface finding efficiency
-    print_efficiency(n_tracks, n_surfaces, n_miss_nav, n_miss_truth,
-                     n_fatal_error, n_matching_error);
+    if (cfg.verbose()) {
+        print_efficiency(trk_stats.n_tracks, n_surfaces, n_miss_nav,
+                         n_miss_truth, n_fatal_error, n_matching_error);
+    }
 
     // Column width in output
     constexpr int cw{35};
@@ -1068,7 +1112,7 @@ auto compare_to_navigation(
                       ? "-"
                       : std::to_string(
                             static_cast<double>(n_miss_nav.n_sensitives) /
-                            static_cast<double>(n_tracks_w_holes)))
+                            n_tracks_w_holes))
               << ")" << std::endl;
     std::cout << std::left << std::setw(cw + 5)
               << "Max no. of add. surfaces per track: " << n_max_extra_per_trk
@@ -1077,11 +1121,12 @@ auto compare_to_navigation(
                       ? "-"
                       : std::to_string(
                             static_cast<double>(n_miss_truth.n_total()) /
-                            static_cast<double>(n_tracks_w_extra)))
+                            n_tracks_w_extra))
               << ")" << std::endl;
     std::cout << "\n-----------------------------------" << std::endl;
 
-    return std::tuple{trk_stats, n_surfaces, n_miss_nav, n_miss_truth};
+    return std::tuple{trk_stats,   n_surfaces, n_miss_nav, n_miss_truth,
+                      step_traces, mat_traces, mat_records};
 }
 
 }  // namespace detray::navigation_validator
