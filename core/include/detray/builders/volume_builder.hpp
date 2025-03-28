@@ -11,7 +11,7 @@
 #include "detray/builders/surface_factory_interface.hpp"
 #include "detray/builders/volume_builder_interface.hpp"
 #include "detray/definitions/geometry.hpp"
-#include "detray/geometry/tracking_surface.hpp"
+#include "detray/geometry/surface.hpp"
 #include "detray/utils/concepts.hpp"
 #include "detray/utils/grid/detail/concepts.hpp"
 
@@ -211,7 +211,7 @@ class volume_builder : public volume_builder_interface<detector_t> {
         std::size_t n_portals{0u};
         for (auto& sf_desc : m_surfaces) {
 
-            const auto sf = tracking_surface{det, sf_desc};
+            const auto sf = geometry::surface{det, sf_desc};
 
             sf.template visit_mask<detail::mask_index_update>(sf_desc);
             sf_desc.set_volume(m_volume.index());

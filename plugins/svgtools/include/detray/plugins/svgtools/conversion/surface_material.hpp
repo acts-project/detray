@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/geometry/tracking_surface.hpp"
+#include "detray/geometry/surface.hpp"
 #include "detray/utils/grid/detail/concepts.hpp"
 
 // Plugin include(s)
@@ -144,7 +144,7 @@ struct material_converter {
 /// @returns An actsvg proto surface material the material map.
 template <typename detector_t, typename view_t>
 auto surface_material(const detector_t& detector,
-                      const detray::tracking_surface<detector_t>& d_surface,
+                      const detray::geometry::surface<detector_t>& d_surface,
                       const view_t& view,
                       const styling::surface_material_style& style =
                           styling::tableau_colorblind::material_style) {
