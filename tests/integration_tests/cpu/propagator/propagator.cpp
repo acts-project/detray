@@ -456,12 +456,8 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     using direct_navigator_t = direct_navigator<detector_t>;
-    using direct_actor_chain_t =
-        actor_chain<parameter_transporter<test_algebra>,
-                    pointwise_material_interactor<test_algebra>,
-                    parameter_resetter<test_algebra>, barcode_sequencer>;
     using direct_propagator_t =
-        propagator<stepper_t, direct_navigator_t, direct_actor_chain_t>;
+        propagator<stepper_t, direct_navigator_t, actor_chain_t>;
 
     // Build toy detector
     toy_det_config<scalar> toy_cfg =
@@ -490,9 +486,7 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
     for (auto track : generator_t{trk_gen_cfg}) {
 
         // Build actor states: the helix inspector can be shared
-        parameter_transporter<test_algebra>::state transporter_state{};
         pointwise_material_interactor<test_algebra>::state interactor_state{};
-        parameter_resetter<test_algebra>::state resetter_state{};
         vecmem::data::vector_buffer<detray::geometry::barcode> seqs_buffer{
             100u, host_mr, vecmem::data::buffer_type::resizable};
         vecmem::data::vector_buffer<detray::geometry::barcode>
@@ -517,8 +511,7 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
         barcode_sequencer::state sequencer_forward_state(seqs_forward_device);
         barcode_sequencer::state sequencer_backward_state(seqs_backward_device);
 
-        auto actor_states = detray::tie(transporter_state, interactor_state,
-                                        resetter_state, sequencer_state);
+        auto actor_states = detray::tie(interactor_state, sequencer_state);
 
         propagator_t::state state(track, bfield, det);
 
@@ -531,11 +524,9 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
         if (seqs_device.size() > 0) {
 
             auto direct_forward_actor_states =
-                detray::tie(transporter_state, interactor_state, resetter_state,
-                            sequencer_forward_state);
+                detray::tie(interactor_state, sequencer_forward_state);
             auto direct_backward_actor_states =
-                detray::tie(transporter_state, interactor_state, resetter_state,
-                            sequencer_backward_state);
+                detray::tie(interactor_state, sequencer_backward_state);
 
             direct_propagator_t::state direct_forward_state(track, bfield, det,
                                                             seqs_buffer);
@@ -657,12 +648,8 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     using direct_navigator_t = direct_navigator<detector_t>;
-    using direct_actor_chain_t =
-        actor_chain<parameter_transporter<test_algebra>,
-                    pointwise_material_interactor<test_algebra>,
-                    parameter_resetter<test_algebra>, barcode_sequencer>;
     using direct_propagator_t =
-        propagator<stepper_t, direct_navigator_t, direct_actor_chain_t>;
+        propagator<stepper_t, direct_navigator_t, actor_chain_t>;
 
     // Build wire chamber
     wire_chamber_config<scalar> wire_cfg{};
@@ -687,9 +674,7 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
     for (auto track : generator_t{trk_gen_cfg}) {
 
         // Build actor states: the helix inspector can be shared
-        parameter_transporter<test_algebra>::state transporter_state{};
         pointwise_material_interactor<test_algebra>::state interactor_state{};
-        parameter_resetter<test_algebra>::state resetter_state{};
         vecmem::data::vector_buffer<detray::geometry::barcode> seqs_buffer{
             100u, host_mr, vecmem::data::buffer_type::resizable};
         vecmem::data::vector_buffer<detray::geometry::barcode>
@@ -714,8 +699,7 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
         barcode_sequencer::state sequencer_forward_state(seqs_forward_device);
         barcode_sequencer::state sequencer_backward_state(seqs_backward_device);
 
-        auto actor_states = detray::tie(transporter_state, interactor_state,
-                                        resetter_state, sequencer_state);
+        auto actor_states = detray::tie(interactor_state, sequencer_state);
 
         propagator_t::state state(track, bfield, det);
 
@@ -728,11 +712,9 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
         if (seqs_device.size() > 0) {
 
             auto direct_forward_actor_states =
-                detray::tie(transporter_state, interactor_state, resetter_state,
-                            sequencer_forward_state);
+                detray::tie(interactor_state, sequencer_forward_state);
             auto direct_backward_actor_states =
-                detray::tie(transporter_state, interactor_state, resetter_state,
-                            sequencer_backward_state);
+                detray::tie(interactor_state, sequencer_backward_state);
 
             direct_propagator_t::state direct_forward_state(track, bfield, det,
                                                             seqs_buffer);
