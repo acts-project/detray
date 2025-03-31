@@ -320,9 +320,9 @@ struct bound_track_parameters : public bound_parameters_vector<algebra_t> {
     friend std::ostream& operator<<(std::ostream& out_stream,
                                     const bound_track_parameters& bparam) {
         out_stream << "Surface: " << bparam.m_barcode << std::endl;
-        out_stream << "Param.:  " << static_cast<parameter_vector_type>(bparam)
-                   << std::endl;
-        out_stream << "Cov.:    " << bparam.m_covariance;
+        out_stream << "Param.:\n"
+                   << static_cast<parameter_vector_type>(bparam) << std::endl;
+        out_stream << "Cov.:\n" << bparam.m_covariance;
 
         return out_stream;
     }
