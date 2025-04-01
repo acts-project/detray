@@ -67,7 +67,7 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
                const darray<scalar_type, 2u> mask_tolerance =
                    {detail::invalid_value<scalar_type>(),
                     detail::invalid_value<scalar_type>()},
-               const scalar_type = 0.f, const scalar_type = 0.f) const {
+               const scalar_type = 0., const scalar_type = 0.) const {
         assert((mask_tolerance[0] == mask_tolerance[1]) &&
                "Helix intersectors use only one mask tolerance value");
 
@@ -89,7 +89,7 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
             // Try to guess the best starting positions for the iteration
 
             // Direction of the track at the helix origin
-            const auto h_dir = h.dir(0.f);
+            const auto h_dir = h.dir(0.);
             // Default starting path length for the Newton iteration (assumes
             // concentric cylinder)
             const scalar_type default_s{r * vector::perp(h_dir)};
@@ -135,7 +135,7 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
                 intersection_type<surface_descr_t> &sfi = ret[i];
 
                 // Path length in the previous iteration step
-                scalar_type s_prev{0.f};
+                scalar_type s_prev{0.};
 
                 // f(s) = ((h.pos(s) - sc) x sz)^2 - r^2 == 0
                 // Run the iteration on s
@@ -146,10 +146,10 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
                     // f'(s) = 2 * ( (h.pos(s) - sc) x sz) * (h.dir(s) x sz) )
                     const vector3_type crp = vector::cross(h.pos(s) - sc, sz);
                     const scalar_type denom{
-                        2.f * vector::dot(crp, vector::cross(h.dir(s), sz))};
+                        2. * vector::dot(crp, vector::cross(h.dir(s), sz))};
 
                     // No intersection can be found if dividing by zero
-                    if (denom == 0.f) {
+                    if (denom == 0.) {
                         return ret;
                     }
 
@@ -176,7 +176,7 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
                     // Due to floating point errors this can be negative if
                     // cos ~ 1
                     const scalar_type sin_inc2{math::fabs(
-                        1.f - cos_incidence_angle * cos_incidence_angle)};
+                        1. - cos_incidence_angle * cos_incidence_angle)};
 
                     tol = math::fabs((s - s_prev) * math::sqrt(sin_inc2));
                 }
@@ -201,7 +201,7 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
             // Try to guess the best starting positions for the iteration
 
             // Direction of the track at the helix origin
-            const auto h_dir = h.dir(0.5f * r);
+            const auto h_dir = h.dir(0.5 * r);
             // Default starting path length for the Newton iteration (assumes
             // concentric cylinder)
             const scalar_type default_s{r * vector::perp(h_dir)};
@@ -247,7 +247,7 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
                 const scalar_type f_s{(vector::dot(crp, crp) - r * r)};
                 // f'(s) = 2 * ( (h.pos(s) - sc) x sz) * (h.dir(s) x sz) )
                 const scalar_type df_s{
-                    2.f * vector::dot(crp, vector::cross(h.dir(x), sz))};
+                    2. * vector::dot(crp, vector::cross(h.dir(x), sz))};
 
                 return std::make_tuple(f_s, df_s);
             };
@@ -276,18 +276,18 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
     DETRAY_HOST_DEVICE inline darray<intersection_type<surface_descr_t>, 2>
     operator()(const helix_type &h, const surface_descr_t &sf_desc,
                const mask_t &mask, const transform3_type &trf,
-               const scalar_type mask_tolerance, const scalar_type = 0.f,
-               const scalar_type = 0.f) const {
+               const scalar_type mask_tolerance, const scalar_type = 0.,
+               const scalar_type = 0.) const {
         return this->operator()(h, sf_desc, mask, trf,
-                                {mask_tolerance, mask_tolerance}, 0.f);
+                                {mask_tolerance, mask_tolerance}, 0.);
     }
 
     /// Tolerance for convergence
-    scalar_type convergence_tolerance{1.f * unit<scalar_type>::um};
+    scalar_type convergence_tolerance{1. * unit<scalar_type>::um};
     // Guard against inifinite loops
     std::size_t max_n_tries{1000u};
     // Early exit, if the intersection is too far away
-    scalar_type max_path{5.f * unit<scalar_type>::m};
+    scalar_type max_path{5. * unit<scalar_type>::m};
     // Complement the Newton algorithm with Bisection steps
     bool run_rtsafe{true};
 };

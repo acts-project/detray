@@ -52,8 +52,8 @@ struct material_slab {
         if (m_thickness <= std::numeric_limits<scalar_type>::epsilon() ||
             m_thickness == std::numeric_limits<scalar_type>::max() ||
             m_material == vacuum<scalar_type>() ||
-            m_material.mass_density() == 0.f ||
-            m_material.molar_density() == 0.f) {
+            m_material.mass_density() == 0. ||
+            m_material.molar_density() == 0.) {
             return false;
         }
         return true;
@@ -76,7 +76,7 @@ struct material_slab {
     ///
     /// @param cos_inc_angle cosine of the track incidence angle
     DETRAY_HOST_DEVICE constexpr scalar_type path_segment(
-        const scalar_type cos_inc_angle, const scalar_type = 0.f) const {
+        const scalar_type cos_inc_angle, const scalar_type = 0.) const {
         return m_thickness / cos_inc_angle;
     }
 
@@ -84,7 +84,7 @@ struct material_slab {
     ///
     /// @param cos_inc_angle cosine of the track incidence angle
     DETRAY_HOST_DEVICE constexpr scalar_type path_segment_in_X0(
-        const scalar_type cos_inc_angle, const scalar_type = 0.f) const {
+        const scalar_type cos_inc_angle, const scalar_type = 0.) const {
         return m_thickness_in_X0 / cos_inc_angle;
     }
 
@@ -92,7 +92,7 @@ struct material_slab {
     ///
     /// @param cos_inc_angle cosine of the track incidence angle
     DETRAY_HOST_DEVICE constexpr scalar_type path_segment_in_L0(
-        const scalar_type cos_inc_angle, const scalar_type = 0.f) const {
+        const scalar_type cos_inc_angle, const scalar_type = 0.) const {
         return m_thickness_in_L0 / cos_inc_angle;
     }
 

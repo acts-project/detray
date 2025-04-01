@@ -109,7 +109,7 @@ class concentric_cylinder2D {
     template <concepts::scalar scalar_t>
     DETRAY_HOST_DEVICE constexpr scalar_t area(
         const bounds_type<scalar_t> &bounds) const {
-        return 2.f * constant<scalar_t>::pi * bounds[e_r] *
+        return 2. * constant<scalar_t>::pi * bounds[e_r] *
                (bounds[e_upper_z] - bounds[e_lower_z]);
     }
 
@@ -128,7 +128,7 @@ class concentric_cylinder2D {
         const dscalar<algebra_t> env =
             std::numeric_limits<dscalar<algebra_t>>::epsilon()) const {
 
-        assert(env > 0.f);
+        assert(env > 0.);
         const dscalar<algebra_t> xy_bound{bounds[e_r] + env};
         return {-xy_bound, -xy_bound, bounds[e_lower_z] - env,
                 xy_bound,  xy_bound,  bounds[e_upper_z] + env};
@@ -139,7 +139,7 @@ class concentric_cylinder2D {
     DETRAY_HOST_DEVICE dpoint3D<algebra_t> centroid(
         const bounds_type<dscalar<algebra_t>> &bounds) const {
 
-        return {0.f, 0.f, 0.5f * (bounds[e_lower_z] + bounds[e_upper_z])};
+        return {0., 0., 0.5 * (bounds[e_lower_z] + bounds[e_upper_z])};
     }
 
     /// Generate vertices in local cartesian frame
@@ -166,7 +166,7 @@ class concentric_cylinder2D {
     DETRAY_HOST constexpr bool check_consistency(
         const bounds_type<scalar_t> &bounds, std::ostream &os) const {
 
-        constexpr auto tol{10.f * std::numeric_limits<scalar_t>::epsilon()};
+        constexpr auto tol{10. * std::numeric_limits<scalar_t>::epsilon()};
 
         if (bounds[e_r] < tol) {
             os << "ERROR: Radius must be in the range (0, numeric_max)"

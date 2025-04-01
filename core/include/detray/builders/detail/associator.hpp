@@ -38,11 +38,11 @@ struct center_of_gravity_rectangle {
         using point2_t = dpoint2D<algebra_t>;
 
         // Check if centre of gravity is inside bin
-        point2_t cgs = {0.f, 0.f};
+        point2_t cgs = {0., 0.};
         for (const auto &svtx : surface_contour) {
             cgs = cgs + svtx;
         }
-        cgs = 1.f / static_cast<scalar_t>(surface_contour.size()) * cgs;
+        cgs = 1. / static_cast<scalar_t>(surface_contour.size()) * cgs;
         scalar_t min_l0 = std::numeric_limits<scalar_t>::max();
         scalar_t max_l0 = -std::numeric_limits<scalar_t>::max();
         scalar_t min_l1 = std::numeric_limits<scalar_t>::max();
@@ -80,11 +80,11 @@ struct center_of_gravity_generic {
         using point2_t = dpoint2D<algebra_t>;
 
         // Check if centre of gravity is inside bin
-        point2_t cgs = {0.f, 0.f};
+        point2_t cgs = {0., 0.};
         for (const auto &svtx : surface_contour) {
             cgs = cgs + svtx;
         }
-        cgs = 1.f / static_cast<scalar_t>(surface_contour.size()) * cgs;
+        cgs = 1. / static_cast<scalar_t>(surface_contour.size()) * cgs;
 
         std::size_t i = 0u;
         std::size_t j = 0u;
@@ -126,14 +126,14 @@ struct edges_intersect_generic {
             scalar_t d = (pj[0] - pi[0]) * (pl[1] - pk[1]) -
                          (pj[1] - pi[1]) * (pl[0] - pk[0]);
 
-            if (d != 0.f) {
+            if (d != 0.) {
                 double r = ((pi[1] - pk[1]) * (pl[0] - pk[0]) -
                             (pi[0] - pk[0]) * (pl[1] - pk[1])) /
                            d;
                 double s = ((pi[1] - pk[1]) * (pj[0] - pi[0]) -
                             (pi[0] - pk[0]) * (pj[1] - pi[1])) /
                            d;
-                if (r >= 0.f && r <= 1.f && s >= 0.f && s <= 1.f) {
+                if (r >= 0. && r <= 1. && s >= 0. && s <= 1.) {
                     return true;
                 }
             }

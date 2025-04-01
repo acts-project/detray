@@ -49,9 +49,9 @@ class rk_stepper final
     rk_stepper() = default;
 
     struct intermediate_state {
-        vector3_type b_first{0.f, 0.f, 0.f};
-        vector3_type b_middle{0.f, 0.f, 0.f};
-        vector3_type b_last{0.f, 0.f, 0.f};
+        vector3_type b_first{0., 0., 0.};
+        vector3_type b_middle{0., 0., 0.};
+        vector3_type b_last{0., 0., 0.};
         // t = tangential direction = dr/ds
         darray<vector3_type, 4u> t;
         // q/p
@@ -158,7 +158,7 @@ class rk_stepper final
         scalar_type m_dqopds_3;
 
         /// Next step size after adaptive step size scaling
-        scalar_type m_next_step_size{0.f};
+        scalar_type m_next_step_size{0.};
 
         /// Magnetic field view
         const magnetic_field_t m_magnetic_field;

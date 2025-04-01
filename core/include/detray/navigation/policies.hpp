@@ -98,8 +98,8 @@ template <concepts::scalar scalar_t>
 struct stepper_rk_policy : actor {
 
     struct state {
-        scalar_t m_threshold_fair_trust{0.05f};
-        scalar_t m_threshold_no_trust{0.1f};
+        scalar_t m_threshold_fair_trust{0.05};
+        scalar_t m_threshold_no_trust{0.1};
     };
 
     /// Sets the navigation trust level depending on the step size correction

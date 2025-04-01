@@ -42,7 +42,7 @@ struct detector_scan_config : public test::fixture_base<>::configuration {
         std::numeric_limits<scalar_type>::epsilon(),
         std::numeric_limits<scalar_type>::epsilon()};
     /// B-field vector for helix
-    vector3_type m_B{0.f * unit<scalar_type>::T, 0.f * unit<scalar_type>::T,
+    vector3_type m_B{0. * unit<scalar_type>::T, 0. * unit<scalar_type>::T,
                      2.f * unit<scalar_type>::T};
     /// Configuration of the ray generator
     trk_gen_config_t m_trk_gen_cfg{};
