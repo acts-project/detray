@@ -64,8 +64,9 @@ struct parameter_transporter : actor {
             const free_matrix_t correction_term =
                 matrix::identity<free_matrix_t>() + path_correction;
 
-            return free_to_bound_jacobian * correction_term *
-                   stepping.transport_jacobian() * bound_to_free_jacobian;
+            return free_to_bound_jacobian *
+                   (correction_term *
+                    (stepping.transport_jacobian() * bound_to_free_jacobian));
         }
     };
 
