@@ -131,11 +131,11 @@ GTEST_TEST(detray_geometry, surface_toy_detector) {
         disc.transform(ctx).translation();  // beampipe portal
     ASSERT_NEAR(disc_translation[0], 0.f, tol);
     ASSERT_NEAR(disc_translation[1], 0.f, tol);
-    ASSERT_NEAR(disc_translation[2], -824.5f, tol);
+    ASSERT_NEAR(disc_translation[2], -827.5f, tol);
     auto center = disc.center(ctx);
     ASSERT_NEAR(center[0], 0.f, tol);
     ASSERT_NEAR(center[1], 0.f, tol);
-    ASSERT_NEAR(center[2], -824.5f, tol);
+    ASSERT_NEAR(center[2], -827.5f, tol);
 
     // Surface normal
     const auto z_axis = vector3{0.f, 0.f, 1.f};
