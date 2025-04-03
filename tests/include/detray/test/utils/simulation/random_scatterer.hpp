@@ -13,13 +13,13 @@
 #include "detray/definitions/pdg_particle.hpp"
 #include "detray/definitions/track_parametrization.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/geometry/tracking_surface.hpp"
 #include "detray/materials/detail/concepts.hpp"
+#include "detray/materials/detail/material_accessor.hpp"
 #include "detray/materials/interaction.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/tracks/bound_track_parameters.hpp"
 #include "detray/utils/axis_rotation.hpp"
-#include "detray/utils/ranges.hpp"
+#include "detray/utils/geometry_utils.hpp"
 #include "detray/utils/unit_vectors.hpp"
 
 // Detray test include(s)
@@ -145,9 +145,9 @@ struct random_scatterer : actor {
         const auto& ptc = stepping.particle_hypothesis();
         auto& bound_params = stepping.bound_params();
         const auto sf = navigation.get_surface();
-        const scalar_type cos_inc_angle{
-            sf.cos_angle(geo_context_type{}, bound_params.dir(),
-                         bound_params.bound_local())};
+        const scalar_type cos_inc_angle{cos_angle(geo_context_type{}, sf,
+                                                  bound_params.dir(),
+                                                  bound_params.bound_local())};
 
         sf.template visit_material<kernel>(simulator_state, ptc, bound_params,
                                            cos_inc_angle,

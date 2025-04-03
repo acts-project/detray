@@ -10,7 +10,7 @@
 // Project include(s)
 #include "detray/core/concepts.hpp"
 #include "detray/definitions/algebra.hpp"
-#include "detray/geometry/tracking_surface.hpp"
+#include "detray/geometry/surface.hpp"
 #include "detray/geometry/tracking_volume.hpp"
 #include "detray/io/backend/detail/basic_converter.hpp"
 #include "detray/io/backend/detail/type_info.hpp"
@@ -112,7 +112,7 @@ class homogeneous_material_writer {
         for (const auto& sf_desc : vol.surfaces()) {
 
             // Convert material slabs and rods
-            const auto sf = tracking_surface{det, sf_desc};
+            const auto sf = geometry::surface{det, sf_desc};
 
             if (material_slab_payload mslp =
                     sf.template visit_material<get_material_payload>(sf_idx);

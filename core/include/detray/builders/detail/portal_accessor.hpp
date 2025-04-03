@@ -12,7 +12,7 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/geometry/shapes/cylinder2D.hpp"
 #include "detray/geometry/shapes/ring2D.hpp"
-#include "detray/geometry/tracking_surface.hpp"
+#include "detray/geometry/surface.hpp"
 #include "detray/geometry/tracking_volume.hpp"
 
 // System include(s).
@@ -37,7 +37,7 @@ auto get_cylinder_portals(const tracking_volume<detector_t> &vol) {
 
     // Loop over all portals
     for (const auto &pt_desc : vol.portals()) {
-        auto pt = tracking_surface{vol.detector(), pt_desc};
+        auto pt = geometry::surface{vol.detector(), pt_desc};
         const std::string name = pt.shape_name();
 
         if (name == "cylinder2D" || name == "concentric_cylinder2D") {

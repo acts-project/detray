@@ -1,0 +1,114 @@
+/** Detray library, part of the ACTS project (R&D line)
+ *
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
+ *
+ * Mozilla Public License Version 2.0
+ */
+
+#pragma once
+
+// Project include(s)
+#include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/geometry/detail/surface_kernels.hpp"
+#include "detray/propagator/detail/jacobian_engine.hpp"
+#include "detray/tracks/detail/transform_track_parameters.hpp"
+#include "detray/tracks/tracks.hpp"
+
+// System include(s)
+#include <ostream>
+
+namespace detray::detail {
+
+/// Functors to be used in the @c tracking_surface class
+template <typename algebra_t>
+struct tracking_surface_kernels : public surface_kernels<algebra_t> {
+
+    using vector3_type = dvector3D<algebra_t>;
+    using transform3_type = dtransform3D<algebra_t>;
+    using bound_param_vector_type = bound_parameters_vector<algebra_t>;
+    using free_param_vector_type = free_parameters_vector<algebra_t>;
+    using free_matrix_type = free_matrix<algebra_t>;
+
+    /// A functor to get from a free to a bound vector
+    struct free_to_bound_vector {
+
+        // Visitor to the detector mask store that is called on the mask
+        // collection that contains the mask (shape) type of the surface
+        template <typename mask_group_t, typename index_t>
+        DETRAY_HOST_DEVICE inline bound_param_vector_type operator()(
+            const mask_group_t& /*mask_group*/, const index_t& /*index*/,
+            const transform3_type& trf3,
+            const free_param_vector_type& free_vec) const {
+
+            using frame_t = typename mask_group_t::value_type::local_frame;
+
+            return detail::free_to_bound_vector<frame_t>(trf3, free_vec);
+        }
+    };
+
+    /// A functor to get from a bound to a free vector
+    struct bound_to_free_vector {
+
+        template <typename mask_group_t, typename index_t>
+        DETRAY_HOST_DEVICE inline free_param_vector_type operator()(
+            const mask_group_t& mask_group, const index_t& index,
+            const transform3_type& trf3,
+            const bound_param_vector_type& bound_vec) const {
+
+            return detail::bound_to_free_vector(trf3, mask_group[index],
+                                                bound_vec);
+        }
+    };
+
+    /// A functor to get the free-to-bound Jacobian
+    struct free_to_bound_jacobian {
+
+        template <typename mask_group_t, typename index_t>
+        DETRAY_HOST_DEVICE inline auto operator()(
+            const mask_group_t& /*mask_group*/, const index_t& /*index*/,
+            const transform3_type& trf3,
+            const free_param_vector_type& free_vec) const {
+
+            using frame_t = typename mask_group_t::value_type::local_frame;
+
+            return detail::jacobian_engine<frame_t>::free_to_bound_jacobian(
+                trf3, free_vec);
+        }
+    };
+
+    /// A functor to get the bound-to-free Jacobian
+    struct bound_to_free_jacobian {
+
+        template <typename mask_group_t, typename index_t>
+        DETRAY_HOST_DEVICE inline auto operator()(
+            const mask_group_t& mask_group, const index_t& index,
+            const transform3_type& trf3,
+            const bound_param_vector_type& bound_vec) const {
+
+            using frame_t = typename mask_group_t::value_type::local_frame;
+
+            return detail::jacobian_engine<frame_t>::bound_to_free_jacobian(
+                trf3, mask_group[index], bound_vec);
+        }
+    };
+
+    /// A functor to get the path correction
+    struct path_correction {
+
+        template <typename mask_group_t, typename index_t,
+                  concepts::scalar scalar_t>
+        DETRAY_HOST_DEVICE inline free_matrix_type operator()(
+            const mask_group_t& /*mask_group*/, const index_t& /*index*/,
+            const transform3_type& trf3, const vector3_type& pos,
+            const vector3_type& dir, const vector3_type& dtds,
+            const scalar_t dqopds) const {
+
+            using frame_t = typename mask_group_t::value_type::local_frame;
+
+            return detail::jacobian_engine<frame_t>::path_correction(
+                pos, dir, dtds, dqopds, trf3);
+        }
+    };
+};
+
+}  // namespace detray::detail

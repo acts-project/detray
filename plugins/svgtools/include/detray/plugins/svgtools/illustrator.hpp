@@ -9,7 +9,7 @@
 
 // Project include(s)
 #include "detray/definitions/algebra.hpp"
-#include "detray/geometry/tracking_surface.hpp"
+#include "detray/geometry/surface.hpp"
 #include "detray/plugins/svgtools/conversion/detector.hpp"
 #include "detray/plugins/svgtools/conversion/grid.hpp"
 #include "detray/plugins/svgtools/conversion/information_section.hpp"
@@ -108,7 +108,7 @@ class illustrator {
         const typename detector_t::geometry_context& gctx = {}) const {
 
         const auto surface =
-            detray::tracking_surface<detector_t>{_detector, index};
+            detray::geometry::surface<detector_t>{_detector, index};
 
         actsvg::svg::object ret;
         actsvg::svg::object material;
@@ -208,7 +208,7 @@ class illustrator {
                                       const view_t& view) const {
 
         const auto surface =
-            detray::tracking_surface<detector_t>{_detector, index};
+            detray::geometry::surface<detector_t>{_detector, index};
 
         if (_hide_material) {
             return actsvg::svg::object{};
@@ -526,7 +526,7 @@ class illustrator {
                 prefix + "_record", p_ir, view));
 
             // The intersection record is always sorted by path length
-            const auto sf{detray::tracking_surface{
+            const auto sf{detray::geometry::surface{
                 _detector, intersections.back().sf_desc}};
             const auto final_pos = sf.local_to_global(
                 gctx, intersections.back().local, trajectory.dir(0.f));
