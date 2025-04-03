@@ -14,6 +14,7 @@ template <typename bfield_t, typename detector_t,
           typename intersection_record_t>
 __global__ void navigation_validation_kernel(
     typename detector_t::view_type det_data, const propagation::config cfg,
+    pdg_particle<typename detector_t::scalar_type> ptc_hypo,
     bfield_t field_data,
     vecmem::data::jagged_vector_view<const intersection_record_t>
         truth_intersection_traces_view,
@@ -110,12 +111,16 @@ __global__ void navigation_validation_kernel(
             track, det,
             typename navigator_t::state::view_type{
                 recorded_intersections_view.ptr()[trk_id]});
+        propagation.set_particle(update_particle_hypothesis(ptc_hypo, track));
+
         p.propagate(propagation, actor_states);
     } else {
         typename propagator_t::state propagation(
             track, field_data, det,
             typename navigator_t::state::view_type{
                 recorded_intersections_view.ptr()[trk_id]});
+        propagation.set_particle(update_particle_hypothesis(ptc_hypo, track));
+
         p.propagate(propagation, actor_states);
     }
 
@@ -129,6 +134,7 @@ template <typename bfield_t, typename detector_t,
           typename intersection_record_t>
 void navigation_validation_device(
     typename detector_t::view_type det_view, const propagation::config &cfg,
+    pdg_particle<typename detector_t::scalar_type> ptc_hypo,
     bfield_t field_data,
     vecmem::data::jagged_vector_view<const intersection_record_t>
         &truth_intersection_traces_view,
@@ -148,7 +154,7 @@ void navigation_validation_device(
     // run the test kernel
     navigation_validation_kernel<bfield_t, detector_t, intersection_record_t>
         <<<block_dim, thread_dim>>>(
-            det_view, cfg, field_data, truth_intersection_traces_view,
+            det_view, cfg, ptc_hypo, field_data, truth_intersection_traces_view,
             recorded_intersections_view, mat_records_view, mat_steps_view);
 
     // cuda error check
@@ -164,6 +170,7 @@ void navigation_validation_device(
             bfield::const_bknd_t<dscalar<typename METADATA::algebra_type>>>,   \
         detector<METADATA>, detray::intersection_record<detector<METADATA>>>(  \
         typename detector<METADATA>::view_type, const propagation::config &,   \
+        pdg_particle<typename detector<METADATA>::scalar_type>,                \
         covfie::field_view<                                                    \
             bfield::const_bknd_t<dscalar<typename METADATA::algebra_type>>>,   \
         vecmem::data::jagged_vector_view<                                      \
@@ -180,6 +187,7 @@ void navigation_validation_device(
         detray::navigation_validator::empty_bfield, detector<METADATA>,        \
         detray::intersection_record<detector<METADATA>>>(                      \
         typename detector<METADATA>::view_type, const propagation::config &,   \
+        pdg_particle<typename detector<METADATA>::scalar_type>,                \
         detray::navigation_validator::empty_bfield,                            \
         vecmem::data::jagged_vector_view<                                      \
             const detray::intersection_record<detector<METADATA>>> &,          \

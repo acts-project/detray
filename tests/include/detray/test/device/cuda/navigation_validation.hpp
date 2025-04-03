@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/core/detector.hpp"
+#include "detray/definitions/pdg_particle.hpp"
 #include "detray/detectors/bfield.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/rk_stepper.hpp"
@@ -47,6 +48,7 @@ template <typename bfield_t, typename detector_t,
           typename intersection_record_t>
 void navigation_validation_device(
     typename detector_t::view_type det_view, const propagation::config &cfg,
+    pdg_particle<typename detector_t::scalar_type> ptc_hypo,
     bfield_t field_data,
     vecmem::data::jagged_vector_view<const intersection_record_t>
         &truth_intersection_traces_view,
@@ -65,7 +67,9 @@ template <typename bfield_t, typename detector_t,
           typename intersection_record_t>
 inline auto run_navigation_validation(
     vecmem::memory_resource *host_mr, vecmem::memory_resource *dev_mr,
-    const detector_t &det, const propagation::config &cfg, bfield_t field_data,
+    const detector_t &det, const propagation::config &cfg,
+    pdg_particle<typename detector_t::scalar_type> ptc_hypo,
+    bfield_t field_data,
     const std::vector<std::vector<intersection_record_t>>
         &truth_intersection_traces) {
 
@@ -121,7 +125,7 @@ inline auto run_navigation_validation(
 
     // Run the navigation validation test on device
     navigation_validation_device<bfield_t, detector_t, intersection_record_t>(
-        det_view, cfg, field_data, truth_intersection_traces_view,
+        det_view, cfg, ptc_hypo, field_data, truth_intersection_traces_view,
         recorded_intersections_view, mat_records_view, mat_steps_view);
 
     // Get the results back to the host and pass them on to the checking
@@ -239,9 +243,8 @@ class navigation_validation : public test::fixture_base<> {
         auto &truth_intersection_traces =
             m_cfg.whiteboard()->template get<std::vector<intersection_trace_t>>(
                 m_truth_data_name);
+        ASSERT_EQ(m_cfg.n_tracks(), truth_intersection_traces.size());
 
-        std::size_t n_test_tracks{
-            std::min(m_cfg.n_tracks(), truth_intersection_traces.size())};
         std::cout << "\nINFO: Running device navigation validation on: "
                   << m_det.name(m_names) << "...\n"
                   << std::endl;
@@ -258,8 +261,8 @@ class navigation_validation : public test::fixture_base<> {
         // Run the propagation on device and record the navigation data
         auto [recorded_intersections, mat_records, mat_steps] =
             run_navigation_validation<bfield_view_t>(
-                &m_host_mr, &m_dev_mr, m_det, m_cfg.propagation(), b_field,
-                truth_intersection_traces);
+                &m_host_mr, &m_dev_mr, m_det, m_cfg.propagation(),
+                m_cfg.ptc_hypothesis(), b_field, truth_intersection_traces);
 
         // Collect some statistics
         std::size_t n_tracks{0u};
@@ -328,8 +331,8 @@ class navigation_validation : public test::fixture_base<> {
                 auto [result, n_missed_nav, n_missed_truth, n_error,
                       missed_inters] =
                     navigation_validator::compare_traces(
-                        truth_trace, recorded_trace, test_traj, n_tracks,
-                        n_test_tracks, &(*debug_file));
+                        m_cfg, truth_trace, recorded_trace, test_traj, n_tracks,
+                        &(*debug_file));
 
                 missed_intersections.push_back(
                     std::make_pair(test_traj, std::move(missed_inters)));
@@ -344,7 +347,7 @@ class navigation_validation : public test::fixture_base<> {
             if (!success) {
                 detector_scanner::display_error(
                     m_gctx, m_det, m_names, m_cfg.name(), test_traj,
-                    truth_trace, m_cfg.svg_style(), n_tracks, n_test_tracks,
+                    truth_trace, m_cfg.svg_style(), n_tracks, m_cfg.n_tracks(),
                     recorded_trace);
             }
 

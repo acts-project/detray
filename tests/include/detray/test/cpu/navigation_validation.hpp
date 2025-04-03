@@ -114,9 +114,8 @@ class navigation_validation : public test::fixture_base<> {
         auto &truth_traces =
             m_cfg.whiteboard()->template get<std::vector<truth_trace_t>>(
                 truth_data_name);
+        ASSERT_EQ(m_cfg.n_tracks(), truth_traces.size());
 
-        std::size_t n_test_tracks{
-            std::min(m_cfg.n_tracks(), truth_traces.size())};
         std::cout << "\nINFO: Running navigation validation on: " << det_name
                   << "...\n"
                   << std::endl;
@@ -167,7 +166,7 @@ class navigation_validation : public test::fixture_base<> {
                   nav_printer, step_printer] =
                 navigation_validator::record_propagation<stepper_t>(
                     m_gctx, &m_host_mr, m_det, m_cfg.propagation(), track,
-                    b_field);
+                    m_cfg.ptc_hypothesis(), b_field);
 
             if (success) {
                 // The navigator does not record the initial track position:
@@ -185,8 +184,8 @@ class navigation_validation : public test::fixture_base<> {
                 auto [result, n_missed_nav, n_missed_truth, n_error,
                       missed_inters] =
                     navigation_validator::compare_traces(
-                        truth_trace, obj_tracer.object_trace, test_traj,
-                        n_tracks, n_test_tracks, &(*debug_file));
+                        m_cfg, truth_trace, obj_tracer.object_trace, test_traj,
+                        n_tracks, &(*debug_file));
 
                 missed_intersections.push_back(
                     std::make_pair(test_traj, std::move(missed_inters)));
@@ -214,7 +213,7 @@ class navigation_validation : public test::fixture_base<> {
 
                 detector_scanner::display_error(
                     m_gctx, m_det, m_names, m_cfg.name(), test_traj,
-                    truth_trace, m_cfg.svg_style(), n_tracks, n_test_tracks,
+                    truth_trace, m_cfg.svg_style(), n_tracks, m_cfg.n_tracks(),
                     obj_tracer.object_trace);
             }
 
