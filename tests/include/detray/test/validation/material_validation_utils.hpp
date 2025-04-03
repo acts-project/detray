@@ -47,6 +47,8 @@ struct material_record {
 /// @brief Return type that contains the material parameters and the pathlength
 template <concepts::scalar scalar_t>
 struct material_params {
+    /// The surface the material belongs to
+    geometry::barcode bcd{};
     /// Pathlength of the track through the material
     scalar_t path{detail::invalid_value<scalar_t>()};
     /// Material thickness/radius
@@ -72,6 +74,7 @@ struct get_material_params {
         using material_t = typename mat_group_t::value_type;
 
         constexpr auto inv{detail::invalid_value<scalar_t>()};
+        constexpr geometry::barcode inv_sf{};
 
         // Access homogeneous surface material or material maps
         if constexpr (concepts::surface_material<material_t>) {
@@ -84,7 +87,7 @@ struct get_material_params {
             if (!mat) {
                 // Set the pathlength and thickness to zero so that they
                 // are not counted
-                return material_params<scalar_t>{0.f, 0.f, inv, inv};
+                return material_params<scalar_t>{inv_sf, 0.f, 0.f, inv, inv};
             }
 
             const scalar_t seg{mat.path_segment(cos_inc_angle, loc[0])};
@@ -92,9 +95,9 @@ struct get_material_params {
             const scalar_t mat_X0{mat.get_material().X0()};
             const scalar_t mat_L0{mat.get_material().L0()};
 
-            return material_params<scalar_t>{seg, t, mat_X0, mat_L0};
+            return material_params<scalar_t>{inv_sf, seg, t, mat_X0, mat_L0};
         } else {
-            return material_params<scalar_t>{inv, inv, inv, inv};
+            return material_params<scalar_t>{inv_sf, inv, inv, inv, inv};
         }
     }
 };
@@ -207,14 +210,13 @@ struct material_tracer : detray::actor {
         if (mx0 > 0.f) {
             tracer.m_mat_record.sX0 += seg / mx0;
             tracer.m_mat_record.tX0 += t / mx0;
-
-            tracer.m_mat_steps.push_back({seg, t, mx0, ml0});
         }
         if (ml0 > 0.f) {
             tracer.m_mat_record.sL0 += seg / ml0;
             tracer.m_mat_record.tL0 += t / ml0;
-
-            tracer.m_mat_steps.push_back({seg, t, mx0, ml0});
+        }
+        if (t > 0.f) {
+            tracer.m_mat_steps.push_back({sf.barcode(), seg, t, mx0, ml0});
         }
     }
 };
@@ -264,6 +266,126 @@ inline auto record_material(
     return std::make_tuple(
         success, std::move(mat_tracer_state).release_material_record(),
         std::move(mat_tracer_state).release_material_steps());
+}
+
+/// Compare the result of two material tracers
+///
+/// @param reference the reference trace to compare against
+/// @param ref_record the reference total material to compare against (s/X0)
+/// @param mat_trace the recoded material trace
+/// @param mat_record the recoded total material along the track (s/X0)
+/// @param trk_i the track index/identifier
+/// @param rel_tol the maximum allowed relative error for any parameters
+/// @param verbose debug output
+///
+/// @returns if the traces contains matching material steps and if matching
+/// traces contain the same total material
+template <concepts::scalar scalar_t>
+inline auto compare_traces(
+    const dvector<material_params<scalar_t>> &reference,
+    const material_record<scalar_t> &ref_record,
+    const dvector<material_params<scalar_t>> &mat_trace,
+    const material_record<scalar_t> &mat_record,
+    std::size_t trk_i = detail::invalid_value<std::size_t>(),
+    const double rel_tol = 0.01, const bool verbose = true) {
+
+    // Material traces contain records of different surfaces/material
+    bool is_bad_comp{reference.size() != mat_trace.size()};
+    // Overall recored material is different (in case small errors accumulate)
+    bool is_diff_mat{false};
+
+    std::stringstream debug_msg{};
+    debug_msg << "Track No. " << trk_i << ":\n----------------" << std::endl;
+
+    if (is_bad_comp) {
+        debug_msg << "-> Different no. of surfaces: " << mat_trace.size()
+                  << " (ref.: " << reference.size() << ")\n"
+                  << std::endl;
+    } else {
+        for (std::size_t j = 0u;
+             j < math::min(reference.size(), mat_trace.size()); ++j) {
+
+            if (reference[j].bcd != mat_trace[j].bcd) {
+                is_bad_comp |= true;
+                debug_msg << "-> Surfaces don't match: " << mat_trace[j].bcd
+                          << " (ref.: " << reference[j].bcd << ")" << std::endl;
+                continue;
+            }
+
+            // TODO: Use approx_equal from algebra-plugins
+            // Compare thickness of the surface material
+            if ((reference[j].thickness - mat_trace[j].thickness) /
+                    reference[j].thickness >
+                rel_tol) {
+                is_bad_comp |= true;
+                debug_msg << "-> On surface: " << reference[j].bcd << ":"
+                          << std::endl;
+                debug_msg << "-> thickness: " << mat_trace[j].thickness
+                          << ", thickness ref.: " << reference[j].thickness
+                          << std::endl;
+            }
+
+            // Compare radiation length of the surface material
+            if ((reference[j].mat_X0 - mat_trace[j].mat_X0) /
+                    reference[j].mat_X0 >
+                rel_tol) {
+                is_bad_comp |= true;
+                debug_msg << "-> On surface: " << reference[j].bcd << ":"
+                          << std::endl;
+                debug_msg << "-> X0: " << mat_trace[j].mat_X0
+                          << ", X0 ref.: " << reference[j].mat_X0 << std::endl;
+            }
+
+            // Compare interaction length of the surface material
+            if ((reference[j].mat_L0 - mat_trace[j].mat_L0) /
+                    reference[j].mat_L0 >
+                rel_tol) {
+                is_bad_comp |= true;
+                debug_msg << "-> On surface: " << reference[j].bcd << ":"
+                          << std::endl;
+                debug_msg << "-> L0: " << mat_trace[j].mat_L0
+                          << ", L0 ref.: " << reference[j].mat_L0 << std::endl;
+            }
+
+            // Compare path of the track through the surface material
+            if ((reference[j].path - mat_trace[j].path) / reference[j].path >
+                rel_tol) {
+                is_bad_comp |= true;
+                debug_msg << "-> On surface: " << reference[j].bcd << ":"
+                          << std::endl;
+                debug_msg << "-> Mat. path: "
+                          << mat_trace[j].path / unit<scalar_t>::mm
+                          << " mm, mat. path ref.: "
+                          << reference[j].path / unit<scalar_t>::mm << " mm"
+                          << std::endl;
+            }
+        }
+    }
+
+    // Compare the total accumulated material along the track
+    const double ref_mat_X0{static_cast<double>(ref_record.sX0)};
+    const double mat_X0{static_cast<double>(mat_record.sX0)};
+    const double rel_error{(ref_mat_X0 - mat_X0) / ref_mat_X0};
+    const bool small_mat{ref_mat_X0 < rel_tol && mat_X0 < rel_tol};
+
+    // If almost no material was collected, the relative error can be
+    // large, but also has little consequence for tracking
+    if (!(small_mat || (rel_error <= rel_tol))) {
+        // Already know that material cannot add up: Only flag the additional
+        // cases here
+        if (!is_bad_comp) {
+            is_diff_mat = true;
+        }
+        debug_msg << "\nTotal material discrepancy of " << 100. * rel_error
+                  << "%\n"
+                  << std::endl;
+    }
+
+    if (verbose && (is_bad_comp || is_diff_mat)) {
+        std::cout << debug_msg.str() << std::endl;
+    }
+
+    return std::make_tuple(is_bad_comp, is_diff_mat);
 }
 
 /// Write the accumulated material of a track from @param mat_records to a csv
