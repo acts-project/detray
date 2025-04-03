@@ -9,7 +9,7 @@
 
 // Project include(s)
 #include "detray/geometry/barcode.hpp"
-#include "detray/geometry/surface.hpp"
+#include "detray/geometry/tracking_surface.hpp"
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
@@ -75,11 +75,11 @@ struct surface_stats {
     /// @returns true of the surface type was recognized
     /// @{
     template <typename sf_descriptor_t>
-    bool count(const sf_descriptor_t &sf_desc) {
-        return count(sf_desc.barcode());
+    bool count(const sf_descriptor_t &sf_desc, const bool verbose = true) {
+        return count(sf_desc.barcode(), verbose);
     }
 
-    bool count(geometry::barcode bcd) {
+    bool count(geometry::barcode bcd, const bool verbose = true) {
         switch (bcd.id()) {
             using enum surface_id;
             case e_portal: {
@@ -95,6 +95,10 @@ struct surface_stats {
                 return true;
             }
             default: {
+                if (verbose) {
+                    std::cout << "WARNING: Surface type unknown " << bcd
+                              << std::endl;
+                }
                 return false;
             }
         }
@@ -133,7 +137,9 @@ inline auto record_propagation(
         muon<typename detector_t::scalar_type>(),
     const bfield_t &bfield = {},
     const navigation::direction nav_dir = navigation::direction::e_forward,
-    typename actor_chain<actor_ts...>::state_tuple state_tuple = {}) {
+    typename actor_chain<actor_ts...>::state_tuple state_tuple = {},
+    const std::array<dscalar<typename detector_t::algebra_type>, e_bound_size>
+        &stddevs = {0.f}) {
 
     using algebra_t = typename detector_t::algebra_type;
     using scalar_t = dscalar<algebra_t>;
@@ -201,6 +207,28 @@ inline auto record_propagation(
             track, bfield, det, ctx);
     }
 
+    // Set the initial covariances
+    // if constexpr (detail::has_type_v<parameter_transporter<algebra_t>,
+    // actor_chain_t>) {
+    if (!stddevs.empty()) {
+        std::random_device rd{};
+
+        std::mt19937 generator{rd()};
+
+        auto &bound_param = propagation->_stepping.bound_params();
+        for (std::size_t i = 0; i < e_bound_size; i++) {
+
+            if (stddevs[i] != scalar_t{0}) {
+                bound_param[i] = std::normal_distribution<scalar_t>(
+                    bound_param[i], stddevs[i])(generator);
+            }
+
+            getter::element(bound_param.covariance(), i, i) =
+                stddevs[i] * stddevs[i];
+        }
+    }
+    //}
+
     // Access to navigation information
     auto &nav_inspector = propagation->_navigation.inspector();
     auto &obj_tracer = nav_inspector.template get<object_tracer_t>();
@@ -240,8 +268,14 @@ inline auto record_propagation(
         // Perform forward propagation and set the result for main prop. run
         fw_propagation->set_particle(
             update_particle_hypothesis(ptc_hypo, track));
+        fw_propagation->_stepping.bound_params() =
+            propagation->_stepping.bound_params();
+
         fw_propagator_t{cfg}.propagate(*fw_propagation, fw_actor_states);
+
         propagation->_stepping() = fw_propagation->_stepping();
+        propagation->_stepping.bound_params() =
+            fw_propagation->_stepping.bound_params();
         propagation->_navigation.set_volume(
             fw_propagation->_navigation.volume());
     }
@@ -655,7 +689,8 @@ auto compare_traces(const detray::test::navigation_validation_config &cfg,
 
     // Unknown error occured during matching
     EXPECT_TRUE(n_errors == 0u)
-        << "FATAL: Errors during matching: " << n_errors;
+        << "FATAL: Errors during matching: " << n_errors << "\n"
+        << matching_stream.str();
 
     // After inserting the placeholders, do a final check on the trace sizes
     const bool is_size{recorded_trace.size() == truth_trace.size()};
@@ -774,8 +809,7 @@ auto write_dist_to_boundary(
         for (const auto &missed_sfi : missed_inters_vec) {
 
             const auto &track = entry.first;
-            const auto sf =
-                geometry::surface{det, missed_sfi.sf_desc.barcode()};
+            const auto sf = tracking_surface{det, missed_sfi.sf_desc.barcode()};
             const auto vol = tracking_volume{det, sf.volume()};
 
             const auto dist =
@@ -903,7 +937,9 @@ auto compare_to_navigation(
     std::vector<dvector<navigation::detail::candidate_record<intersection_t>>>
         &truth_traces,
     const std::vector<free_track_parameters<algebra_t>> &tracks,
-    typename actor_chain<actor_ts...>::state_tuple state_tuple = {}) {
+    dvector<typename actor_chain<actor_ts...>::state_tuple> state_tuples = {{}},
+    const dvector<std::array<dscalar<algebra_t>, e_bound_size>>
+        &stddevs_per_track = {{0.f}}) {
 
     // Style of svgs
     detray::svgtools::styling::style svg_style =
@@ -931,6 +967,7 @@ auto compare_to_navigation(
     surface_stats n_miss_truth{};
 
     assert(truth_traces.size() == tracks.size());
+    assert(!state_tuples.empty());
     const std::size_t n_samples{truth_traces.size()};
 
     // Amount of material recorded per track
@@ -947,8 +984,13 @@ auto compare_to_navigation(
 
     // Run the navigation on every truth particle
     for (std::size_t i = 0u; i < n_samples; ++i) {
-        const auto &track = tracks[i];
-        auto &truth_trace = truth_traces[i];
+        const auto &track = tracks.at(i);
+        auto &truth_trace = truth_traces.at(i);
+        auto state_tuple =
+            state_tuples.size() >= 1u ? state_tuples.at(0) : state_tuples.at(i);
+        const auto &stddevs = stddevs_per_track.size() >= 1u
+                                  ? stddevs_per_track.at(0)
+                                  : stddevs_per_track.at(1);
 
         assert(!truth_traces.empty());
 
@@ -957,7 +999,7 @@ auto compare_to_navigation(
               nav_printer, step_printer] =
             record_propagation<stepper_t, actor_ts...>(
                 ctx, &host_mr, det, prop_cfg, track, cfg.ptc_hypothesis(),
-                field_view, cfg.navigation_direction(), state_tuple);
+                field_view, cfg.navigation_direction(), state_tuple, stddevs);
 
         // Fatal propagation error: Data unreliable
         if (!success) {
@@ -1032,7 +1074,7 @@ auto compare_to_navigation(
 
         // Count the number of different surface types on this trace
         for (std::size_t j = 0; j < truth_trace.size(); ++j) {
-            n_surfaces.count(truth_trace[j].intersection.sf_desc);
+            n_surfaces.count(truth_trace[j].intersection.sf_desc, false);
         }
 
         // Did the navigation miss a sensitive surface? => count a hole
