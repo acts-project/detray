@@ -47,6 +47,8 @@ struct navigation_validation_config
     navigation::direction m_nav_dir{navigation::direction::e_forward};
     /// Collect only the sensitive intersections for comparison
     bool m_collect_sensitives_only{false};
+    /// Drop an SVG only if navigation missed a surface
+    bool m_display_only_missed{false};
     /// Whether to stop execution at the first error
     bool m_fail_on_diff{true};
     /// Verbosity of the console output
@@ -60,7 +62,7 @@ struct navigation_validation_config
     /// B-field vector for helix
     vector3_type m_B{0.f * unit<scalar_type>::T, 0.f * unit<scalar_type>::T,
                      2.f * unit<scalar_type>::T};
-    /// Visualization style to be applied to the svgs
+    /// Visualization style to be applied to the SVGs
     detray::svgtools::styling::style m_style =
         detray::svgtools::styling::tableau_colorblind::style;
 
@@ -77,6 +79,7 @@ struct navigation_validation_config
     pdg_particle<scalar_type> ptc_hypothesis() const { return m_ptc_hypo; }
     navigation::direction navigation_direction() const { return m_nav_dir; }
     bool collect_sensitives_only() const { return m_collect_sensitives_only; }
+    bool display_only_missed() const { return m_display_only_missed; }
     bool fail_on_diff() const { return m_fail_on_diff; }
     bool verbose() const { return m_verbose; }
     darray<scalar_type, 2> p_range() const { return m_p_range; }
@@ -119,7 +122,11 @@ struct navigation_validation_config
     }
     navigation_validation_config &collect_sensitives_only(
         const bool only_sensitives) {
-        m_collect_sensitives_only = only_sensitives;
+        m_display_only_missed = only_sensitives;
+        return *this;
+    }
+    navigation_validation_config &display_only_missed(const bool only_missed) {
+        m_display_only_missed = only_missed;
         return *this;
     }
     navigation_validation_config &fail_on_diff(const bool fail_on_diff) {

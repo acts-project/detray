@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/track_parametrization.hpp"
 #include "detray/geometry/barcode.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/navigation/navigator.hpp"
@@ -31,9 +32,6 @@
 
 // Detray plugin include(s)
 #include "detray/plugins/svgtools/styling/styling.hpp"
-
-// GTest include(s).
-#include <gtest/gtest.h>
 
 // System include(s)
 #include <algorithm>
@@ -75,11 +73,11 @@ struct surface_stats {
     /// @returns true of the surface type was recognized
     /// @{
     template <typename sf_descriptor_t>
-    bool count(const sf_descriptor_t &sf_desc) {
-        return count(sf_desc.barcode());
+    bool count(const sf_descriptor_t &sf_desc, const bool verbose = true) {
+        return count(sf_desc.barcode(), verbose);
     }
 
-    bool count(geometry::barcode bcd) {
+    bool count(geometry::barcode bcd, const bool verbose = true) {
         switch (bcd.id()) {
             using enum surface_id;
             case e_portal: {
@@ -95,6 +93,10 @@ struct surface_stats {
                 return true;
             }
             default: {
+                if (verbose) {
+                    std::cout << "WARNING: Surface type unknown " << bcd
+                              << std::endl;
+                }
                 return false;
             }
         }
@@ -133,7 +135,9 @@ inline auto record_propagation(
         muon<typename detector_t::scalar_type>(),
     const bfield_t &bfield = {},
     const navigation::direction nav_dir = navigation::direction::e_forward,
-    typename actor_chain<actor_ts...>::state_tuple state_tuple = {}) {
+    typename actor_chain<actor_ts...>::state_ref_tuple state_tuple = {},
+    const std::array<dscalar<typename detector_t::algebra_type>, e_bound_size>
+        &stddevs = {}) {
 
     using algebra_t = typename detector_t::algebra_type;
     using scalar_t = dscalar<algebra_t>;
@@ -181,12 +185,12 @@ inline auto record_propagation(
         typename pathlimit_aborter_t::state & s1,
         typename step_tracer_t::state & s2,
         typename material_tracer_t::state & s3,
-        typename actor_chain<actor_ts...>::state_tuple & t,
+        typename actor_chain<actor_ts...>::state_ref_tuple & t,
         std::index_sequence<indices...> /*ids*/) {
         return detray::tie(s1, detail::get<indices>(t)..., s2, s3);
     };
     constexpr auto idx_seq{std::make_index_sequence<detail::tuple_size_v<
-        typename actor_chain<actor_ts...>::state_tuple>>{}};
+        typename actor_chain<actor_ts...>::state_ref_tuple>>{}};
 
     auto actor_states =
         setup_actor_states(pathlimit_aborter_state, step_tracer_state,
@@ -201,6 +205,25 @@ inline auto record_propagation(
             track, bfield, det, ctx);
     }
 
+    // Set the initial covariances
+    if (!stddevs.empty()) {
+        std::random_device rd{};
+        std::mt19937 generator{rd()};
+
+        auto &bound_param = propagation->_stepping.bound_params();
+
+        for (std::size_t i = 0u; i < e_bound_size; i++) {
+
+            if (stddevs[i] != scalar_t{0}) {
+                bound_param[i] = std::normal_distribution<scalar_t>(
+                    bound_param[i], stddevs[i])(generator);
+            }
+
+            getter::element(bound_param.covariance(), i, i) =
+                stddevs[i] * stddevs[i];
+        }
+    }
+
     // Access to navigation information
     auto &nav_inspector = propagation->_navigation.inspector();
     auto &obj_tracer = nav_inspector.template get<object_tracer_t>();
@@ -210,7 +233,8 @@ inline auto record_propagation(
     // Acces to the stepper information
     auto &step_printer = propagation->_stepping.inspector();
 
-    // Find the end point and direction of the track (approximately)
+    // Find the end point and direction of the track (approximately) for
+    // backward propagation
     if (nav_dir == navigation::direction::e_backward) {
         using fw_propagator_t =
             propagator<stepper_t, navigator_t,
@@ -225,23 +249,52 @@ inline auto record_propagation(
                 track, bfield, det, ctx);
         }
 
-        // Omit the expensive tracers
-        auto setup_fw_actor_states = []<std::size_t... indices>(
+        // Make a deep copy of states for forward propagation, but omit the
+        // expensive tracers for the forward pass
+        auto copy_actor_states = []<std::size_t... indices>(
             typename pathlimit_aborter_t::state & s1,
-            typename actor_chain<actor_ts...>::state_tuple & t,
+            typename actor_chain<actor_ts...>::state_ref_tuple & t,
             std::index_sequence<indices...> /*ids*/) {
-            return detray::tie(s1, detail::get<indices>(t)...);
+            using fw_state_tuple_t =
+                typename actor_chain<pathlimit_aborter_t,
+                                     actor_ts...>::state_tuple;
+            return fw_state_tuple_t{s1, detail::get<indices>(t)...};
         };
-        auto fw_pathlimit_aborter_state = pathlimit_aborter_state;
-        auto fw_state_tuple = state_tuple;
-        auto fw_actor_states = setup_fw_actor_states(fw_pathlimit_aborter_state,
-                                                     fw_state_tuple, idx_seq);
 
-        // Perform forward propagation and set the result for main prop. run
+        // Setup forward actor states
+        auto setup_fw_actor_states = []<std::size_t... indices>(
+            typename actor_chain<pathlimit_aborter_t,
+                                 actor_ts...>::state_tuple &
+                t,
+            std::index_sequence<indices...> /*ids*/) {
+            return detray::tie(detail::get<indices>(t)...);
+        };
+
+        auto fw_state_tuple =
+            copy_actor_states(pathlimit_aborter_state, state_tuple, idx_seq);
+        constexpr auto fw_idx_seq{std::make_index_sequence<
+            detail::tuple_size_v<decltype(fw_state_tuple)>>{}};
+        auto fw_actor_states =
+            setup_fw_actor_states(fw_state_tuple, fw_idx_seq);
+
+        // Perform forward propagation
         fw_propagation->set_particle(
             update_particle_hypothesis(ptc_hypo, track));
+        fw_propagation->_stepping.bound_params() =
+            propagation->_stepping.bound_params();
+
         fw_propagator_t{cfg}.propagate(*fw_propagation, fw_actor_states);
+
+        if (!fw_propagation->_navigation.is_complete()) {
+            std::cout << "ERROR: Could not propagate to end of track to "
+                         "prepare backward propagation"
+                      << std::endl;
+        }
+
+        // USe the result to set up main propagation run
         propagation->_stepping() = fw_propagation->_stepping();
+        propagation->_stepping.bound_params() =
+            fw_propagation->_stepping.bound_params();
         propagation->_navigation.set_volume(
             fw_propagation->_navigation.volume());
     }
@@ -622,22 +675,45 @@ auto compare_traces(const detray::test::navigation_validation_config &cfg,
         }
     }
 
+    // Missed surfaces or errors during matching
     const bool any_error{(missed_stats_nav.n_total() != 0u) ||
                          (missed_stats_tr.n_total() != 0u) || (n_errors != 0u)};
 
-    // Fail the test with some extra information
-    EXPECT_TRUE(!any_error || !cfg.fail_on_diff())
-        << "\n--------\n"
-        << "Track no. " << trk_no << "/" << cfg.n_tracks() << ":\n"
-        << traj << matching_stream.str() << "\n--------";
+    // Print debugging information if anything went wrong
+    if (any_error && cfg.verbose()) {
+        std::cout << "\n--------\n"
+                  << "Track no. " << trk_no << "/" << cfg.n_tracks() << ":\n"
+                  << traj << matching_stream.str() << "\n--------";
+        if (debug_file) {
+            *debug_file << "\n>>>>>>>>>>>>>>>>>>\nFAILURE\n<<<<<<<<<<<<<<<<<<\n"
+                        << "\nSUMMARY:\n--------\n"
+                        << "Track no. " << trk_no << "/" << cfg.n_tracks()
+                        << ":\n"
+                        << traj << matching_stream.str() << "\n--------\n"
+                        << "\nFull Trace:\n\n"
+                        << debug_stream.str();
+        }
+    }
 
-    if (any_error && debug_file) {
-        *debug_file << "\n>>>>>>>>>>>>>>>>>>\nFAILURE\n<<<<<<<<<<<<<<<<<<\n"
-                    << "\nSUMMARY:\n--------\n"
-                    << "Track no. " << trk_no << "/" << cfg.n_tracks() << ":\n"
-                    << traj << matching_stream.str() << "\n--------\n"
-                    << "\nFull Trace:\n\n"
-                    << debug_stream.str();
+    // Unknown error occured during matching
+    if (n_errors != 0u) {
+        std::stringstream err_str{};
+        err_str << "FATAL: Errors during matching: " << n_errors << "\n"
+                << matching_stream.str();
+        throw std::runtime_error(err_str.str());
+    }
+
+    // After inserting the placeholders, do a final check on the trace sizes
+    const bool is_size{recorded_trace.size() == truth_trace.size()};
+    if (!is_size) {
+        std::stringstream err_str{};
+        err_str
+            << "FATAL: Intersection traces have different number "
+               "of surfaces after matching! Please check unmatched elements\n"
+            << "Truth: " << truth_trace.size()
+            << "\nNav. : " << recorded_trace.size() << "\n"
+            << debug_stream.str();
+        throw std::runtime_error(err_str.str());
     }
 
     // Multiple missed surfaces are a hint that something might be off with this
@@ -653,44 +729,30 @@ auto compare_traces(const detray::test::navigation_validation_config &cfg,
                   << std::endl;
     }
 
-    // Unknown error occured during matching
-    EXPECT_TRUE(n_errors == 0u)
-        << "FATAL: Errors during matching: " << n_errors;
+    // Make sure the mismatches were correctly counted
+    if (!matching_traces) {
+        // No mismatch counted for traces that don't match: Error
+        if (missed_stats_nav.n_total() + missed_stats_tr.n_total() == 0) {
+            if (debug_file) {
+                *debug_file
+                    << "\n>>>>>>>>>>>>>>>>>>\nFAILURE\n<<<<<<<<<<<<<<<<<<\n"
+                    << "\nSUMMARY:\n--------\n"
+                    << "Track no. " << trk_no << "/" << cfg.n_tracks() << ":\n"
+                    << traj << matching_stream.str() << "\n--------\n"
+                    << "\nFull Trace:\n\n"
+                    << debug_stream.str();
+            }
 
-    // After inserting the placeholders, do a final check on the trace sizes
-    const bool is_size{recorded_trace.size() == truth_trace.size()};
-    EXPECT_TRUE(is_size)
-        << "FATAL: Intersection traces have different number "
-           "of surfaces after matching! Please check unmatched elements\n"
-        << "Truth: " << truth_trace.size()
-        << "\nNav. : " << recorded_trace.size() << "\n"
-        << debug_stream.str();
-
-    if (!is_size || (missed_stats_nav.n_total() != 0u) ||
-        (missed_stats_tr.n_total() != 0u) || (n_errors != 0u)) {
-        return std::make_tuple(false, missed_stats_nav, missed_stats_tr,
-                               n_errors, missed_intersections);
-    }
-
-    // Make sure the failure was at least counted
-    if (!matching_traces &&
-        (missed_stats_nav.n_total() + missed_stats_tr.n_total() == 0)) {
-        if (debug_file) {
-            *debug_file << "\n>>>>>>>>>>>>>>>>>>\nFAILURE\n<<<<<<<<<<<<<<<<<<\n"
-                        << "\nSUMMARY:\n--------\n"
-                        << "Track no. " << trk_no << "/" << cfg.n_tracks()
-                        << ":\n"
-                        << traj << matching_stream.str() << "\n--------\n"
-                        << "\nFull Trace:\n\n"
-                        << debug_stream.str();
+            const std::string msg{
+                "Difference to truth trace was not counted correctly"};
+            if (cfg.fail_on_diff()) {
+                throw std::runtime_error(msg);
+            } else {
+                std::cout << "ERROR: " << msg << std::endl;
+            }
         }
 
-        throw std::runtime_error(
-            "Difference to truth trace was not counted correctly");
-    }
-
-    // Recount on the final traces, to be absolutely sure.
-    if (!matching_traces) {
+        // Recount on the final traces, to be absolutely sure.
         std::size_t n_miss_truth{0};
         std::size_t n_miss_nav{0};
         for (std::size_t i = 0; i < truth_trace.size(); ++i) {
@@ -708,16 +770,26 @@ auto compare_traces(const detray::test::navigation_validation_config &cfg,
         }
 
         if (n_miss_truth != missed_stats_tr.n_total()) {
-            throw std::runtime_error(
-                "Missed truth surfaces not counted correctly");
+            const std::string msg{
+                "Missed truth surfaces not counted correctly"};
+            if (cfg.fail_on_diff()) {
+                throw std::runtime_error(msg);
+            } else {
+                std::cout << "ERROR: " << msg << std::endl;
+            }
         }
         if (n_miss_nav != missed_stats_nav.n_total()) {
-            throw std::runtime_error(
-                "Missed navigation surfaces not counted correctly");
+            const std::string msg{
+                "Missed navigation surfaces not counted correctly"};
+            if (cfg.fail_on_diff()) {
+                throw std::runtime_error(msg);
+            } else {
+                std::cout << "ERROR: " << msg << std::endl;
+            }
         }
     }
 
-    const bool success{(!any_error || !cfg.fail_on_diff()) && is_size};
+    const bool success{!any_error && is_size};
     return std::make_tuple(success, missed_stats_nav, missed_stats_tr, n_errors,
                            missed_intersections);
 }
@@ -889,8 +961,32 @@ inline auto print_efficiency(std::size_t n_tracks,
     std::cout << "\n-----------------------------------\n" << std::endl;
 }
 
-/// Run the propagation and compare to an externally provided truth trace
+/// Run the propagation and compare to an externally provided truth trace.
 ///
+/// The resulting statistics on tracks with missed surfaces etc. will be
+/// printed to stdout. For any track with mismatches in the surface trace, a
+/// detailed report will be dumped into a debug file and an svg showing the
+/// track and truth trace in the detector geometry will be provided in ./plots
+///
+/// @tparam stepper_t the type of stepper to use (e.g. straight line vs. RKN)
+/// @tparam actor_ts types of additional actors (e.g. parameter transport)
+///
+/// @param cfg navigation validation config
+/// @param host_mr host memory resource
+/// @param det the detector
+/// @param names voluem names for the detector
+/// @param ctx the geometry context
+/// @param field_view magnetic field view
+/// @param prop_cfg the propagation configuration
+/// @param truth_traces coll. of truth traces (one per track)
+/// @param tracks coll. of tracks
+/// @param state_tuples coll. of actor state tuples for actor_ts (one per track)
+/// @param stddevs_per_track coll. standard dev. for bound parameter smearing
+///
+/// @returns tuple of track statistics: stats of tracks (holes etc.), stats of
+/// encountered surfaces, stats of missed surfaces for navigation, stats of
+/// missed surfaces for truth traces, recorded step traces, recorded material
+/// traces and intergrated material
 template <typename stepper_t, typename... actor_ts, typename detector_t,
           typename field_view_t, typename intersection_t,
           concepts::algebra algebra_t>
@@ -903,39 +999,40 @@ auto compare_to_navigation(
     std::vector<dvector<navigation::detail::candidate_record<intersection_t>>>
         &truth_traces,
     const std::vector<free_track_parameters<algebra_t>> &tracks,
-    typename actor_chain<actor_ts...>::state_tuple state_tuple = {}) {
+    dvector<typename actor_chain<actor_ts...>::state_ref_tuple> state_tuples =
+        {{}},
+    const dvector<std::array<dscalar<algebra_t>, e_bound_size>>
+        &stddevs_per_track = {}) {
 
-    // Style of svgs
-    detray::svgtools::styling::style svg_style =
-        detray::svgtools::styling::tableau_colorblind::style;
+    using scalar_t = dscalar<algebra_t>;
+
+    assert(truth_traces.size() == tracks.size());
+    assert(!state_tuples.empty());
+    assert(!stddevs_per_track.empty());
 
     // Write navigation and stepping debug info if a track fails
     std::ios_base::openmode io_mode = std::ios::trunc | std::ios::out;
     detray::io::file_handle debug_file{
         "navigation_validation_" + cfg.name() + ".txt", io_mode};
 
-    // Collect some statistics
-    std::size_t n_not_matching{0};
+    const std::size_t n_samples{truth_traces.size()};
+
+    // Collect some statistics for consistency checking
     std::size_t n_holes{0};
     std::size_t n_matching_error{0u};
     std::size_t n_fatal_error{0u};
 
-    // Collect some statistics
+    // Collect global track statistics
     track_statistics trk_stats{};
 
     // Total number of encountered surfaces
     surface_stats n_surfaces{};
     // Missed by navigator
     surface_stats n_miss_nav{};
-    // Missed by truth finder
+    // Missed in truth trace
     surface_stats n_miss_truth{};
 
-    assert(truth_traces.size() == tracks.size());
-    const std::size_t n_samples{truth_traces.size()};
-
-    // Amount of material recorded per track
-    using scalar_t = dscalar<algebra_t>;
-
+    // Collect step and material traces for all tracks
     std::vector<dvector<detail::step_data<algebra_t>>> step_traces{};
     std::vector<material_validator::material_record<scalar_t>> mat_records{};
     std::vector<dvector<material_validator::material_params<scalar_t>>>
@@ -945,10 +1042,15 @@ auto compare_to_navigation(
     mat_traces.reserve(n_samples);
     step_traces.reserve(n_samples);
 
-    // Run the navigation on every truth particle
+    // Run the navigation on every truth trace
     for (std::size_t i = 0u; i < n_samples; ++i) {
-        const auto &track = tracks[i];
-        auto &truth_trace = truth_traces[i];
+        const auto &track = tracks.at(i);
+        auto &truth_trace = truth_traces.at(i);
+        auto state_tuple =
+            state_tuples.size() > i ? state_tuples.at(i) : state_tuples.at(0);
+        const auto &stddevs = stddevs_per_track.size() > i
+                                  ? stddevs_per_track.at(i)
+                                  : std::array<scalar_t, e_bound_size>{0.f};
 
         assert(!truth_traces.empty());
 
@@ -957,19 +1059,16 @@ auto compare_to_navigation(
               nav_printer, step_printer] =
             record_propagation<stepper_t, actor_ts...>(
                 ctx, &host_mr, det, prop_cfg, track, cfg.ptc_hypothesis(),
-                field_view, cfg.navigation_direction(), state_tuple);
+                field_view, cfg.navigation_direction(), state_tuple, stddevs);
 
         // Fatal propagation error: Data unreliable
         if (!success) {
             std::cout << "ERROR: Propagation failure" << std::endl;
 
             *debug_file << "ERROR: Propagation failure:\n"
-                        << "TEST TRACK " << i << ":\n\n"
-                        << nav_printer.to_string() << step_printer.to_string();
+                        << "TEST TRACK " << i;
 
             n_fatal_error++;
-            n_not_matching++;
-            continue;
         }
 
         // Save material for later comparison
@@ -982,6 +1081,7 @@ auto compare_to_navigation(
         using record_t = typename obj_tracer_t::candidate_record_t;
 
         detray::dvector<record_t> recorded_trace{};
+        recorded_trace.reserve(obj_tracer.trace().size());
         // Get only the sensitive surfaces
         if (cfg.collect_sensitives_only()) {
             for (const auto &rec : obj_tracer.trace()) {
@@ -994,45 +1094,61 @@ auto compare_to_navigation(
                               std::back_inserter(recorded_trace));
         }
 
-        // Minimal number of incorrect traces (estimation)
-        if (recorded_trace.size() != truth_trace.size()) {
-            n_not_matching++;
-        }
+        // The recorded trace missed somethin, make an estimate of min. number
+        // of missed surfaces
         if (recorded_trace.size() < truth_trace.size()) {
             n_holes++;
         }
 
+        // Compare recorded and truth traces and count missed surfaces for both
         detray::detail::helix ideal_traj{track, field_view};
-        auto [result, n_miss_trace_nav, n_miss_trace_truth, n_error_trace,
+        auto [traces_match, n_miss_trace_nav, n_miss_trace_truth, n_error_trace,
               missed_inters] = compare_traces(cfg, truth_trace, recorded_trace,
                                               ideal_traj, i, &(*debug_file));
-
         // Comparison failed
-        if (!result) {
+        if (!traces_match) {
             // Write debug info to file
             *debug_file << "TEST TRACK " << i << ":\n\n"
                         << nav_printer.to_string() << step_printer.to_string();
 
-            // In this test it is expected that the navigator finds
-            // additional surfaces. Only dump svg if it missed one
-            if (n_miss_trace_nav.n_total() != 0u || n_error_trace != 0u) {
+            // Create SVGs for traces with mismatches
+            if (n_miss_trace_truth.n_total() != 0u ||
+                n_miss_trace_nav.n_total() != 0u || n_error_trace != 0u) {
+                // Only dump SVG if navigator missed a surface
+                if (cfg.display_only_missed() &&
+                    n_miss_trace_nav.n_total() == 0u) {
+                    continue;
+                }
                 detray::detector_scanner::display_error(
                     ctx, det, names, cfg.name(), ideal_traj, truth_trace,
-                    svg_style, i, n_samples, recorded_trace, cfg.verbose());
+                    cfg.svg_style(), i, n_samples, recorded_trace,
+                    cfg.verbose());
             }
         }
 
         // After dummy records insertion, traces should have the same size
-        EXPECT_EQ(truth_trace.size(), recorded_trace.size());
+        if (truth_trace.size() != recorded_trace.size()) {
+            throw std::runtime_error(
+                "ERROR: Trace comparison failed: Trace do not have the same "
+                "size after intersection matching");
+        }
+
+        // Internal error during trace matching
+        if (n_error_trace != 0u) {
+            throw std::runtime_error(
+                "FATAL: Error during track comparison. Please check log "
+                "files");
+        }
 
         // Add to global statistics
         n_miss_nav += n_miss_trace_nav;
         n_miss_truth += n_miss_trace_truth;
         n_matching_error += n_error_trace;
 
-        // Count the number of different surface types on this trace
+        // Count the number of surfaces per type in all traces
         for (std::size_t j = 0; j < truth_trace.size(); ++j) {
-            n_surfaces.count(truth_trace[j].intersection.sf_desc);
+            n_surfaces.count(truth_trace[j].intersection.sf_desc,
+                             cfg.verbose());
         }
 
         // Did the navigation miss a sensitive surface? => count a hole
@@ -1048,21 +1164,17 @@ auto compare_to_navigation(
             trk_stats.n_tracks_w_extra++;
         }
 
+        // Maximum number of missed/extra surfaces over all tracks
         trk_stats.n_max_missed_per_trk = math::max(
             trk_stats.n_max_missed_per_trk, n_miss_trace_nav.n_sensitives);
         trk_stats.n_max_extra_per_trk = math::max(trk_stats.n_max_extra_per_trk,
                                                   n_miss_trace_truth.n_total());
 
-        if (n_error_trace != 0u) {
-            throw std::runtime_error(
-                "FATAL: Error during track comparison. Please check log "
-                "files");
-        }
-
-        // Count the number of tracks that were tested
+        // Count the number of tracks that were tested surccessfully
         trk_stats.n_tracks++;
     }
 
+    // Print results
     const auto n_tracks{static_cast<double>(trk_stats.n_tracks)};
     const auto n_tracks_w_holes{
         static_cast<double>(trk_stats.n_tracks_w_holes)};
@@ -1075,10 +1187,6 @@ auto compare_to_navigation(
         static_cast<double>(trk_stats.n_max_extra_per_trk)};
 
     // Self check
-    if (n_not_matching > (n_tracks_w_holes + n_tracks_w_extra)) {
-        throw std::runtime_error(
-            "Number of tracks with mismatches underestimated!");
-    }
     if (n_holes > n_tracks_w_holes) {
         throw std::runtime_error(
             "Number of tracks with holes is underestimated!");
