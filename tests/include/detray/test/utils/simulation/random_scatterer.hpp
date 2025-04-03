@@ -43,6 +43,9 @@ struct random_scatterer : actor {
         std::random_device rd{};
         std::mt19937_64 generator{rd()};
 
+        /// Minimum momentum before simulation is stopped
+        scalar_type e_min_p = 10.f * unit<scalar_type>::MeV;
+
         /// most probable energy loss
         scalar_type e_loss_mpv = 0.f;
 
@@ -149,30 +152,37 @@ struct random_scatterer : actor {
                                                   bound_params.dir(),
                                                   bound_params.bound_local())};
 
-        sf.template visit_material<kernel>(simulator_state, ptc, bound_params,
-                                           cos_inc_angle,
-                                           bound_params.bound_local()[0]);
+        const bool success = sf.template visit_material<kernel>(
+            simulator_state, ptc, bound_params, cos_inc_angle,
+            bound_params.bound_local()[0]);
 
-        // Get the new momentum
-        const auto new_mom =
-            attenuate(simulator_state.e_loss_mpv, simulator_state.e_loss_sigma,
-                      ptc.mass(), bound_params.p(ptc.charge()),
-                      simulator_state.generator);
+        if (success) {
+            // Get the new momentum
+            const auto new_mom = attenuate(
+                simulator_state.e_loss_mpv, simulator_state.e_loss_sigma,
+                ptc.mass(), bound_params.p(ptc.charge()),
+                simulator_state.generator);
 
-        // Update Qop
-        bound_params.set_qop(ptc.charge() / new_mom);
+            // Update Qop
+            bound_params.set_qop(ptc.charge() / new_mom);
 
-        // Get the new direction from random scattering
-        const auto new_dir = scatter(bound_params.dir(),
-                                     simulator_state.projected_scattering_angle,
-                                     simulator_state.generator);
+            // Get the new direction from random scattering
+            const auto new_dir = scatter(
+                bound_params.dir(), simulator_state.projected_scattering_angle,
+                simulator_state.generator);
 
-        // Update Phi and Theta
-        stepping.bound_params().set_phi(vector::phi(new_dir));
-        stepping.bound_params().set_theta(vector::theta(new_dir));
+            // Update Phi and Theta
+            stepping.bound_params().set_phi(vector::phi(new_dir));
+            stepping.bound_params().set_theta(vector::theta(new_dir));
 
-        // Flag renavigation of the current candidate
-        prop_state._navigation.set_high_trust();
+            if (bound_params.p(ptc.charge()) < simulator_state.e_min_p) {
+                // Particle below minimum p for simulation: stop
+                prop_state._heartbeat &= prop_state._navigation.abort();
+            } else {
+                // Flag renavigation of the current candidate
+                prop_state._navigation.set_high_trust();
+            }
+        }
     }
 
     /// @brief Get the new momentum from the landau distribution
