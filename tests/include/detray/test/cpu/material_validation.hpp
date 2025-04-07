@@ -163,7 +163,7 @@ class material_validation_impl : public test::fixture_base<> {
 
                 if (truth <= e && rec <= e) {
                     // No material for this ray => valid
-                    return scalar_t{0.f};
+                    return scalar_t{0.};
                 } else if (truth <= e) {
                     // Material found where none should be
                     return detail::invalid_value<scalar_t>();

@@ -125,7 +125,7 @@ class ring2D {
         const dscalar<algebra_t> env =
             std::numeric_limits<dscalar<algebra_t>>::epsilon()) const {
 
-        assert(env > 0.f);
+        assert(env > 0.);
         const dscalar<algebra_t> r_bound{env + bounds[e_outer_r]};
         return {-r_bound, -r_bound, -env, r_bound, r_bound, env};
     }
@@ -135,7 +135,7 @@ class ring2D {
     DETRAY_HOST_DEVICE dpoint3D<algebra_t> centroid(
         const bounds_type<dscalar<algebra_t>> &) const {
 
-        return {0.f, 0.f, 0.f};
+        return {0., 0., 0.};
     }
 
     /// Generate vertices in local cartesian frame
@@ -162,7 +162,7 @@ class ring2D {
     DETRAY_HOST constexpr bool check_consistency(
         const bounds_type<scalar_t> &bounds, std::ostream &os) const {
 
-        constexpr auto tol{10.f * std::numeric_limits<scalar_t>::epsilon()};
+        constexpr auto tol{10. * std::numeric_limits<scalar_t>::epsilon()};
 
         if (math::signbit(bounds[e_inner_r]) || bounds[e_outer_r] < tol) {
             os << "ERROR: Radius must be in the range [0, numeric_max)"

@@ -66,12 +66,12 @@ class helix {
         // Normalized B field
         _h0 = vector::normalize(mag_field);
 
-        assert((math::fabs(vector::norm(_t0) - 1.f) < 1e-5f) &&
+        assert((math::fabs(vector::norm(_t0) - 1.) < 1e-5) &&
                "The helix direction must be normalized");
 
         // Momentum
         const vector3_type mom =
-            (1.f / static_cast<scalar_type>(math::fabs(qop))) * _t0;
+            (1. / static_cast<scalar_type>(math::fabs(qop))) * _t0;
 
         // Normalized _h0 X _t0
         _n0 = vector::normalize(vector::cross(_h0, _t0));
@@ -98,7 +98,7 @@ class helix {
         _R = vector::norm(pT) / _B;
 
         // Handle the case of pT ~ 0
-        if (vector::norm(pT) < 1e-6f) {
+        if (vector::norm(pT) < 1e-6) {
             _vz_over_vt = detail::invalid_value<scalar_type>();
         } else {
             // Get vz over vt in new coordinate
@@ -140,7 +140,7 @@ class helix {
         point3_type ret = _pos;
         ret = ret + _delta / _K * (_K * s - math::sin(_K * s)) * _h0;
         ret = ret + math::sin(_K * s) / _K * _t0;
-        ret = ret + _alpha / _K * (1.f - math::cos(_K * s)) * _n0;
+        ret = ret + _alpha / _K * (1. - math::cos(_K * s)) * _n0;
 
         return ret;
     }
@@ -157,7 +157,7 @@ class helix {
             return _t0;
         }
 
-        vector3_type ret{0.f, 0.f, 0.f};
+        vector3_type ret{0., 0., 0.};
 
         ret = ret + _delta * (1 - math::cos(_K * s)) * _h0;
         ret = ret + math::cos(_K * s) * _t0;
@@ -220,7 +220,7 @@ class helix {
         drdt = drdt + (_K * s - sin_ks) / _K * H0H0_T;
 
         drdt = drdt +
-               (cos_ks - 1.f) / _K * mat_helper().column_wise_cross(I33, _h0);
+               (cos_ks - 1.) / _K * mat_helper().column_wise_cross(I33, _h0);
 
         getter::set_block(ret, drdt, e_free_pos0, e_free_dir0);
 
@@ -234,7 +234,7 @@ class helix {
 
         // Get drdl
         vector3_type drdl =
-            1.f / _qop * (s * this->dir(s) + _pos - this->pos(s));
+            1. / _qop * (s * this->dir(s) + _pos - this->pos(s));
 
         getter::set_block(ret, drdl, e_free_pos0, e_free_qoverp);
 
@@ -246,8 +246,8 @@ class helix {
         getter::set_block(ret, dtdl, e_free_dir0, e_free_qoverp);
 
         // 3x3 and 7x7 element is 1 (Maybe?)
-        getter::element(ret, e_free_time, e_free_time) = 1.f;
-        getter::element(ret, e_free_qoverp, e_free_qoverp) = 1.f;
+        getter::element(ret, e_free_time, e_free_time) = 1.;
+        getter::element(ret, e_free_qoverp, e_free_qoverp) = 1.;
 
         return ret;
     }

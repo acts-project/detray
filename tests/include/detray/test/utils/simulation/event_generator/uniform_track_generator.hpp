@@ -158,7 +158,7 @@ class uniform_track_generator
             if constexpr (std::is_same_v<track_t, detail::ray<algebra_t>>) {
                 p = vector::normalize(p);
             } else {
-                sin_theta = (sin_theta == scalar_t{0.f})
+                sin_theta = (sin_theta == scalar_t{0.})
                                 ? std::numeric_limits<scalar_t>::epsilon()
                                 : sin_theta;
                 p = (m_cfg.is_pT() ? 1.f / sin_theta : 1.f) * m_cfg.m_p_mag *
@@ -186,13 +186,13 @@ class uniform_track_generator
         configuration m_cfg{};
 
         /// Angular step sizes
-        scalar_t m_phi_step_size{0.f};
-        scalar_t m_theta_step_size{0.f};
-        scalar_t m_eta_step_size{0.f};
+        scalar_t m_phi_step_size{0.};
+        scalar_t m_theta_step_size{0.};
+        scalar_t m_eta_step_size{0.};
 
         /// Phi and theta angles of momentum direction
         scalar_t m_phi{-constant<scalar_t>::pi};
-        scalar_t m_theta{0.f};
+        scalar_t m_theta{0.};
 
         /// Iteration indices
         std::size_t i_phi{0u};

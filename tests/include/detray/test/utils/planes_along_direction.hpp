@@ -40,7 +40,7 @@ auto planes_along_direction(const dvector<dscalar<algebra_t>> &distances,
 
     // New z- and x-axes
     vector3_t z{vector::normalize(direction)};
-    vector3_t x = vector::normalize(vector3_t{0.f, -z[2], z[1]});
+    vector3_t x = vector::normalize(vector3_t{0., -z[2], z[1]});
 
     dvector<surface_descriptor<plane_mask_link_t, plane_material_link_t>>
         surfaces;

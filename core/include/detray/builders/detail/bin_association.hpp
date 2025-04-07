@@ -200,7 +200,7 @@ static inline void bin_association(const context_t & /*context*/,
                                 phi_min = math::min(phi, phi_min);
                                 phi_max = math::max(phi, phi_max);
                                 surface_contour.push_back({vg[2], phi});
-                                if (phi < 0.f) {
+                                if (phi < 0.) {
                                     s_c_neg.push_back({vg[2], phi});
                                     z_min_neg = math::min(vg[2], z_min_neg);
                                     z_max_neg = math::max(vg[2], z_max_neg);
@@ -214,7 +214,7 @@ static inline void bin_association(const context_t & /*context*/,
                             std::vector<std::vector<point2_t>>
                                 surface_contours{};
                             if (phi_max - phi_min > constant<scalar_t>::pi &&
-                                phi_max * phi_min < 0.f) {
+                                phi_max * phi_min < 0.) {
                                 s_c_neg.push_back(
                                     {z_max_neg, -constant<scalar_t>::pi});
                                 s_c_neg.push_back(

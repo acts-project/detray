@@ -32,8 +32,8 @@ auto get_cylinder_portals(const tracking_volume<detector_t> &vol) {
     std::vector<const typename detector_t::volume_type &> inner_pt{},
         outer_pt{}, lower_pt{}, upper_pr{};
 
-    std::map<const typename detector_t::surface_type &, scalar_t> radii{0.f};
-    std::map<const typename detector_t::surface_type &, scalar_t> z_pos{0.f};
+    std::map<const typename detector_t::surface_type &, scalar_t> radii{0.};
+    std::map<const typename detector_t::surface_type &, scalar_t> z_pos{0.};
 
     // Loop over all portals
     for (const auto &pt_desc : vol.portals()) {

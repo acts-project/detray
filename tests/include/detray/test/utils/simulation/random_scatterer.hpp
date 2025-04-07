@@ -44,13 +44,13 @@ struct random_scatterer : actor {
         std::mt19937_64 generator{rd()};
 
         /// most probable energy loss
-        scalar_type e_loss_mpv = 0.f;
+        scalar_type e_loss_mpv = 0.;
 
         /// energy loss sigma
-        scalar_type e_loss_sigma = 0.f;
+        scalar_type e_loss_sigma = 0.;
 
         /// projected scattering angle
-        scalar_type projected_scattering_angle = 0.f;
+        scalar_type projected_scattering_angle = 0.;
 
         // Simulation setup
         bool do_energy_loss = true;

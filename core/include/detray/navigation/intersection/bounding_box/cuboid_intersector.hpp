@@ -37,7 +37,7 @@ struct cuboid_intersector {
     template <concepts::algebra algebra_t, typename mask_t>
     DETRAY_HOST_DEVICE bool operator()(
         const detail::ray<algebra_t> &ray, const mask_t &box,
-        const dscalar<algebra_t> /*mask_tolerance*/ = 0.f) const {
+        const dscalar<algebra_t> /*mask_tolerance*/ = 0.) const {
 
         using scalar_type = dscalar<algebra_t>;
         using point3_type = dpoint3D<algebra_t>;
@@ -48,9 +48,9 @@ struct cuboid_intersector {
         const vector3_type &rd = ray.dir();
         // @TODO: put vector-vector operator/ in algebra-plugins
         constexpr scalar_type inv{detail::invalid_value<scalar_type>()};
-        const vector3_type inv_dir{rd[0] == 0.f ? inv : 1.f / rd[0],
-                                   rd[1] == 0.f ? inv : 1.f / rd[1],
-                                   rd[2] == 0.f ? inv : 1.f / rd[2]};
+        const vector3_type inv_dir{rd[0] == 0. ? inv : 1. / rd[0],
+                                   rd[1] == 0. ? inv : 1. / rd[1],
+                                   rd[2] == 0. ? inv : 1. / rd[2]};
 
         // This is prob. slow -> @todo refactor masks to hold custom mask values
         const vector3_type min{box[boundaries::e_min_x],
