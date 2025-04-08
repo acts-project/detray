@@ -210,22 +210,26 @@ class navigator {
             return static_cast<dindex>(m_last - m_next + 1);
         }
 
-        /// @returns current/previous object that was reached
+        /// @returns the current/previous object, if available in the cache.
         DETRAY_HOST_DEVICE
         inline auto current() const -> const candidate_t & {
-            assert(m_next > 0);
-            return m_candidates[static_cast<std::size_t>(m_next - 1)];
+            assert(is_on_surface());
+            const auto curr_idx{
+                static_cast<std::size_t>(m_next >= 1 ? m_next - 1 : 0)};
+            return m_candidates[curr_idx];
         }
 
-        /// @returns next object that we want to reach (current target) - const
+        /// @returns next object that we want to reach (target) - const
         DETRAY_HOST_DEVICE
         inline auto target() const -> const candidate_t & {
+            assert(!is_exhausted());
             return m_candidates[static_cast<std::size_t>(m_next)];
         }
 
         /// @returns last valid candidate (by position in the cache) - const
         DETRAY_HOST_DEVICE
         inline auto last() const -> const candidate_t & {
+            assert(!is_exhausted());
             return m_candidates[static_cast<std::size_t>(m_last)];
         }
 
@@ -885,13 +889,13 @@ class navigator {
         // portal, in which case the navigation needs to be re-initialized
         if (!navigation.is_exhausted() &&
             navigation.is_on_surface(navigation.target(), cfg)) {
+            navigation.m_status = (navigation.target().sf_desc.is_portal())
+                                      ? navigation::status::e_on_portal
+                                      : navigation::status::e_on_module;
             // Set the next object that we want to reach (this function is only
             // called once the cache has been updated to a full trust state).
             // Might lead to exhausted cache.
             navigation.next();
-            navigation.m_status = (navigation.current().sf_desc.is_portal())
-                                      ? navigation::status::e_on_portal
-                                      : navigation::status::e_on_module;
         } else {
             // Otherwise the track is moving towards a surface
             navigation.m_status = navigation::status::e_towards_object;
