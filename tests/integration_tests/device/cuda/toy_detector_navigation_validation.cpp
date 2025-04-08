@@ -72,6 +72,7 @@ int main(int argc, char **argv) {
     detray::cuda::straight_line_navigation<toy_detector_t>::config
         cfg_str_nav{};
     cfg_str_nav.name("toy_detector_straight_line_navigation_cuda");
+    cfg_str_nav.n_tracks(cfg_ray_scan.track_generator().n_tracks());
     cfg_str_nav.whiteboard(white_board);
     cfg_str_nav.propagation().navigation.search_window = {3u, 3u};
     auto mask_tolerance = cfg_ray_scan.mask_tolerance();
@@ -100,6 +101,7 @@ int main(int argc, char **argv) {
     // Comparison of navigation in a constant B-field with helix
     detray::cuda::helix_navigation<toy_detector_t>::config cfg_hel_nav{};
     cfg_hel_nav.name("toy_detector_helix_navigation_cuda");
+    cfg_hel_nav.n_tracks(cfg_hel_scan.track_generator().n_tracks());
     cfg_hel_nav.whiteboard(white_board);
     cfg_hel_nav.propagation().navigation.search_window = {3u, 3u};
 
