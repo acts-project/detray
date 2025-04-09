@@ -89,6 +89,9 @@ class base_stepper {
 
             // Set free track parameters for stepping/navigation
             m_track = sf.bound_to_free_vector(ctx, bound_params);
+
+            // Bad seed: track points back at the IP
+            assert(vector::dot(m_track.pos(), m_track.dir()) > 0.f);
         }
 
         /// @returns free track parameters - non-const access

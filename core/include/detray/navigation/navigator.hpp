@@ -223,6 +223,7 @@ class navigator {
         DETRAY_HOST_DEVICE
         inline auto target() const -> const candidate_t & {
             assert(!is_exhausted());
+            assert(m_next >= 0);
             return m_candidates[static_cast<std::size_t>(m_next)];
         }
 
@@ -230,6 +231,7 @@ class navigator {
         DETRAY_HOST_DEVICE
         inline auto last() const -> const candidate_t & {
             assert(!is_exhausted());
+            assert(m_next >= 0);
             return m_candidates[static_cast<std::size_t>(m_last)];
         }
 
@@ -237,6 +239,7 @@ class navigator {
         /// @returns distance to next
         DETRAY_HOST_DEVICE
         scalar_type operator()() const {
+            assert(math::isfinite(target().path));
             return static_cast<scalar_type>(direction()) * target().path;
         }
 
@@ -521,6 +524,7 @@ class navigator {
         DETRAY_HOST_DEVICE
         inline void set_next(dindex pos) {
             m_next = pos;
+            assert(m_next >= 0);
             assert(m_next <= m_last + 1);
             assert(m_next < static_cast<dist_t>(k_cache_capacity) + 1);
         }
@@ -530,6 +534,8 @@ class navigator {
         inline void set_next(candidate_itr_t new_next) {
             m_next = static_cast<dist_t>(
                 detray::ranges::distance(m_candidates.begin(), new_next));
+            assert(m_next >= 0);
+            assert(m_next <= m_last + 1);
             assert(m_next < static_cast<dist_t>(k_cache_capacity));
         }
 
@@ -650,6 +656,8 @@ class navigator {
         const auto &det = navigation.detector();
         const auto volume = tracking_volume{det, navigation.volume()};
 
+        assert(!track.is_invalid());
+
         // Clean up state
         navigation.clear();
         navigation.m_heartbeat = true;
@@ -707,6 +715,8 @@ class navigator {
         const track_t &track, state &navigation, const navigation::config &cfg,
         const context_type &ctx = {},
         const bool /*is_before_actor*/ = true) const {
+
+        assert(!track.is_invalid());
 
         // Candidates are re-evaluated based on the current trust level.
         // Should result in 'full trust'

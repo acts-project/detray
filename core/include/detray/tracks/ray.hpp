@@ -48,7 +48,9 @@ class ray {
     /// @param track the track state that should be approximated
     template <typename A>
     DETRAY_HOST_DEVICE explicit ray(const free_track_parameters<A> &track)
-        : ray(track.pos(), track.dir()) {}
+        : ray(track.pos(), track.dir()) {
+        assert(!track.is_invalid());
+    }
 
     /// @returns position on the ray (compatible with tracks/intersectors)
     DETRAY_HOST_DEVICE const point3_type &pos() const { return _pos; }

@@ -35,6 +35,7 @@ struct parameter_resetter : actor {
         const auto sf = navigation.get_surface();
         stepping() = sf.bound_to_free_vector(propagation._context,
                                              stepping.bound_params());
+        assert(!stepping().is_invalid());
 
         // Reset jacobian transport to identity matrix
         stepping.reset_transport_jacobian();

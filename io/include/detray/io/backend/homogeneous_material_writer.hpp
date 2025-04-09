@@ -115,7 +115,10 @@ class homogeneous_material_writer {
             const auto sf = geometry::surface{det, sf_desc};
 
             if (material_slab_payload mslp =
-                    sf.template visit_material<get_material_payload>(sf_idx);
+                    sf.has_material()
+                        ? sf.template visit_material<get_material_payload>(
+                              sf_idx)
+                        : material_slab_payload{};
                 mslp.type == material_type::slab) {
                 mslp.index_in_coll = slab_idx++;
                 mv_data.mat_slabs.push_back(mslp);
