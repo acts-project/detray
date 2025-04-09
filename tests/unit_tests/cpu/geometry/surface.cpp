@@ -263,8 +263,6 @@ GTEST_TEST(detray_geometry, surface_toy_detector) {
 
     // Test the material (no material on sensitive surfaces)
     ASSERT_FALSE(rec.has_material());
-    mat_param = rec.material_parameters({0.f, 0.f});
-    ASSERT_FALSE(mat_param);
 
     //
     // Concentric Cylinder

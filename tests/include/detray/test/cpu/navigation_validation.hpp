@@ -145,6 +145,7 @@ class navigation_validation : public test::fixture_base<> {
             // the same volumes and distances along the way
             const auto &start = truth_trace.front();
             const auto &track = start.track_param;
+            assert(!track.is_invalid());
             trajectory_type test_traj = get_parametrized_trajectory(track);
 
             const scalar q = start.charge;
@@ -160,6 +161,10 @@ class navigation_validation : public test::fixture_base<> {
                 min_pT = m_cfg.p_range()[0];
                 max_pT = m_cfg.p_range()[1];
             }
+            assert(min_pT > 0.f);
+            assert(max_pT > 0.f);
+            assert(min_pT < std::numeric_limits<scalar_t>::max());
+            assert(max_pT < std::numeric_limits<scalar_t>::max());
 
             // Run the propagation
             auto [success, obj_tracer, step_trace, mat_record, mat_trace,
@@ -169,6 +174,7 @@ class navigation_validation : public test::fixture_base<> {
                     m_cfg.ptc_hypothesis(), b_field);
 
             if (success) {
+                assert(!obj_tracer.object_trace.empty());
                 // The navigator does not record the initial track position:
                 // add it as a dummy record
                 obj_tracer.object_trace.insert(

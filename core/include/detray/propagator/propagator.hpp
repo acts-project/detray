@@ -202,6 +202,7 @@ struct propagator {
         auto &stepping = propagation._stepping;
         auto &context = propagation._context;
         const auto &track = stepping();
+        assert(!track.is_invalid());
 
         // Initialize the navigation
         m_navigator.init(track, navigation, m_cfg.navigation, context);
@@ -209,6 +210,7 @@ struct propagator {
 
         // Run all registered actors/aborters after init
         run_actors(actor_state_refs, propagation);
+        assert(!track.is_invalid());
 
         // Find next candidate
         m_navigator.update(track, navigation, m_cfg.navigation, context);
@@ -233,6 +235,7 @@ struct propagator {
         auto &stepping = propagation._stepping;
         auto &context = propagation._context;
         const auto &track = stepping();
+        assert(!track.is_invalid());
 
         // Set access to the volume material for the stepper
         auto vol = navigation.get_volume();
@@ -257,6 +260,7 @@ struct propagator {
 
         // Run all registered actors/aborters after update
         run_actors(actor_state_refs, propagation);
+        assert(!track.is_invalid());
 
         // And check the status
         is_init |= m_navigator.update(track, navigation, m_cfg.navigation,
@@ -366,6 +370,7 @@ struct propagator {
                     break;
                 } else {
                     run_actors(actor_state_refs, propagation);
+                    assert(!track.is_invalid());
 
                     // And check the status
                     is_init |= m_navigator.update(
@@ -378,6 +383,7 @@ struct propagator {
 
                 // Synchronized actor
                 run_actors(actor_state_refs, propagation);
+                assert(!track.is_invalid());
 
                 // And check the status
                 is_init |= m_navigator.update(track, navigation,

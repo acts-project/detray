@@ -37,7 +37,7 @@ constexpr scalar tol{1e-5f};
 }  // anonymous namespace
 
 /// This tests the basic functionality cuboid axis aligned bounding box
-GTEST_TEST(detray_tools, bounding_cuboid3D) {
+GTEST_TEST(detray_utils, bounding_cuboid3D) {
 
     // cuboid
     constexpr scalar hx{1.f * unit<scalar>::mm};
@@ -72,7 +72,7 @@ GTEST_TEST(detray_tools, bounding_cuboid3D) {
 }
 
 /// This tests the basic functionality cylindrical axis aligned bounding box
-GTEST_TEST(detray_tools, bounding_cylinder3D) {
+GTEST_TEST(detray_utils, bounding_cylinder3D) {
 
     // cylinder
     constexpr scalar r{3.f * unit<scalar>::mm};
@@ -108,7 +108,7 @@ GTEST_TEST(detray_tools, bounding_cylinder3D) {
 }
 
 /// This tests the basic functionality of an aabb around a stereo annulus
-GTEST_TEST(detray_tools, annulus2D_aabb) {
+GTEST_TEST(detray_utils, annulus2D_aabb) {
 
     constexpr scalar minR{7.2f * unit<scalar>::mm};
     constexpr scalar maxR{12.0f * unit<scalar>::mm};
@@ -140,7 +140,7 @@ GTEST_TEST(detray_tools, annulus2D_aabb) {
 }
 
 /// This tests the basic functionality of an aabb around a cylinder
-GTEST_TEST(detray_tools, cylinder2D_aabb) {
+GTEST_TEST(detray_utils, cylinder2D_aabb) {
 
     constexpr scalar r{3.f * unit<scalar>::mm};
     constexpr scalar hz{4.f * unit<scalar>::mm};
@@ -166,7 +166,7 @@ GTEST_TEST(detray_tools, cylinder2D_aabb) {
 }
 
 /// This tests the basic functionality of an aabb around a line
-GTEST_TEST(detray_tools, line2D_aabb) {
+GTEST_TEST(detray_utils, line2D_aabb) {
 
     constexpr scalar cell_size{1.f * unit<scalar>::mm};
     constexpr scalar hz{50.f * unit<scalar>::mm};
@@ -214,7 +214,7 @@ GTEST_TEST(detray_tools, line2D_aabb) {
 }
 
 /// This tests the basic functionality of an aabb around a rectangle
-GTEST_TEST(detray_tools, rectangle2D_aabb) {
+GTEST_TEST(detray_utils, rectangle2D_aabb) {
 
     constexpr scalar hx{1.f * unit<scalar>::mm};
     constexpr scalar hy{9.3f * unit<scalar>::mm};
@@ -240,7 +240,7 @@ GTEST_TEST(detray_tools, rectangle2D_aabb) {
 }
 
 /// This tests the basic functionality of an aabb around a rectangle
-GTEST_TEST(detray_tools, ring2D_aabb) {
+GTEST_TEST(detray_utils, ring2D_aabb) {
 
     constexpr scalar inner_r{0.f * unit<scalar>::mm};
     constexpr scalar outer_r{3.5f * unit<scalar>::mm};
@@ -268,7 +268,7 @@ GTEST_TEST(detray_tools, ring2D_aabb) {
 }
 
 /// This tests the basic functionality of an aabb around a rectangle
-GTEST_TEST(detray_tools, trapezoid2D_aabb) {
+GTEST_TEST(detray_utils, trapezoid2D_aabb) {
 
     constexpr scalar hx_miny{1.f * unit<scalar>::mm};
     constexpr scalar hx_maxy{3.f * unit<scalar>::mm};
@@ -297,7 +297,7 @@ GTEST_TEST(detray_tools, trapezoid2D_aabb) {
 }
 
 /// This tests wrapping a collection of cuboid bounding volumes
-GTEST_TEST(detray_tools, wrap_bounding_cuboid3D) {
+GTEST_TEST(detray_utils, wrap_bounding_cuboid3D) {
 
     using box_t = axis_aligned_bounding_volume<cuboid3D, test_algebra>;
 

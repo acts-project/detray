@@ -40,7 +40,10 @@ struct intersection_record {
     /// The charge associated with the track parameters
     scalar_t charge{};
     /// Current global track parameters
-    track_parameter_type track_param{};
+    track_parameter_type track_param{{0.f, 0.f, 0.f},
+                                     0.f,
+                                     {0.f, 0.f, 1.f},
+                                     detail::invalid_value<scalar_t>()};
     /// Index of the volume the intersection was found in
     dindex vol_idx{};
     /// The intersection result, including the surface descriptor

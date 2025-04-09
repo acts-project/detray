@@ -31,7 +31,7 @@ using namespace detray;
 using scalar = detray::test::scalar;
 
 /// Unittest: Test the construction of a collection of materials
-TEST(detray_tools, homogeneous_volume_material_builder) {
+TEST(detray_builders, homogeneous_volume_material_builder) {
 
     using metadata_t = test::default_metadata;
     using detector_t = detector<metadata_t>;

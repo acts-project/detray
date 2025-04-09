@@ -57,7 +57,10 @@ class tracking_volume {
     /// Constructor from detector @param det and volume descriptor
     /// @param vol_idx from that detector.
     constexpr tracking_volume(const detector_t &det, const descr_t &desc)
-        : m_detector{det}, m_desc{desc} {}
+        : m_detector{det}, m_desc{desc} {
+        assert(m_desc.index() < det.volumes().size());
+        assert(m_desc.id() != volume_id::e_unknown);
+    }
 
     /// Constructor from detector @param det and volume index @param vol_idx in
     /// that detector.
@@ -168,8 +171,8 @@ class tracking_volume {
     /// @tparam Args      types of additional arguments to the functor
     template <typename functor_t, typename... Args>
     DETRAY_HOST_DEVICE constexpr auto visit_material(Args &&... args) const {
+        assert(has_material());
         const auto &materials = m_detector.material_store();
-
         return materials.template visit<functor_t>(m_desc.material(),
                                                    std::forward<Args>(args)...);
     }

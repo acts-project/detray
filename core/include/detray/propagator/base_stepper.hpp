@@ -74,6 +74,8 @@ class base_stepper {
 
             // An invalid barcode - should not be used
             m_bound_params.set_surface_link(geometry::barcode{});
+
+            assert(!m_bound_params.is_invalid());
         }
 
         /// Sets track parameters from bound track parameter.
@@ -84,11 +86,23 @@ class base_stepper {
             const typename detector_t::geometry_context &ctx)
             : m_bound_params(bound_params) {
 
+            assert(!m_bound_params.is_invalid());
+            assert(!m_bound_params.surface_link().is_invalid());
+
             // Departure surface
             const auto sf = tracking_surface{det, bound_params.surface_link()};
 
             // Set free track parameters for stepping/navigation
             m_track = sf.bound_to_free_vector(ctx, bound_params);
+
+            assert(!m_track.is_invalid());
+
+            // Bad seed: track direction points back at the IP
+            // (only test high mom. tracks, as low mom. tracks can be looping)
+            assert(math::fabs(m_track.qop()) > 0.5f ||
+                   vector::dot(m_track.pos(), m_track.dir()) > 0.f ||
+                   algebra::approx_equal(vector::norm(m_track.pos()),
+                                         scalar_type{0.f}, scalar_type{1e-5f}));
         }
 
         /// @returns free track parameters - non-const access

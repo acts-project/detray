@@ -13,6 +13,9 @@
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/track_parametrization.hpp"
 
+// System include(s)
+#include <ostream>
+
 namespace detray {
 
 template <concepts::algebra algebra_t>
@@ -35,7 +38,9 @@ struct free_parameters_vector {
 
     /// Construct from a 6-dim vector of parameters
     DETRAY_HOST_DEVICE
-    explicit free_parameters_vector(const vector_type& vec) : m_vector(vec) {}
+    explicit free_parameters_vector(const vector_type& vec) : m_vector(vec) {
+        assert(!this->is_invalid());
+    }
 
     /// Construct from single parameters
     ///
@@ -54,6 +59,8 @@ struct free_parameters_vector {
         vector3_type mom_norm = vector::normalize(mom);
         getter::set_block(m_vector, mom_norm, e_free_dir0, 0u);
         getter::element(m_vector, e_free_qoverp, 0u) = q / p;
+
+        assert(!this->is_invalid());
     }
 
     /// @param rhs is the left hand side params for comparison
@@ -92,6 +99,9 @@ struct free_parameters_vector {
     /// Set the global track position
     DETRAY_HOST_DEVICE
     void set_pos(const vector3_type& pos) {
+        assert(math::isfinite(pos[0]));
+        assert(math::isfinite(pos[1]));
+        assert(math::isfinite(pos[2]));
         getter::set_block(m_vector, pos, e_free_pos0, 0u);
     }
 
@@ -107,6 +117,11 @@ struct free_parameters_vector {
     /// @note Must be normalized!
     DETRAY_HOST_DEVICE
     void set_dir(const vector3_type& dir) {
+        assert(math::isfinite(dir[0]));
+        assert(math::isfinite(dir[1]));
+        assert(math::isfinite(dir[2]));
+        assert(algebra::approx_equal(vector::norm(dir), scalar_type{1},
+                                     scalar_type{1e-5f}));
         getter::set_block(m_vector, dir, e_free_dir0, 0u);
     }
 
@@ -119,6 +134,7 @@ struct free_parameters_vector {
     /// Set the time
     DETRAY_HOST_DEVICE
     void set_time(const scalar_type t) {
+        assert(math::isfinite(t));
         getter::element(m_vector, e_free_time, 0u) = t;
     }
 
@@ -131,6 +147,7 @@ struct free_parameters_vector {
     /// Set the q/p value
     DETRAY_HOST_DEVICE
     void set_qop(const scalar_type qop) {
+        assert(math::isfinite(qop));
         getter::element(m_vector, e_free_qoverp, 0u) = qop;
     }
 
@@ -175,6 +192,19 @@ struct free_parameters_vector {
         assert(this->qop() != 0.f);
         assert(q * qop() > 0.f);
         return math::fabs(q / this->qop() * this->dir()[2]);
+    }
+
+    /// @returns true if the parameter vector contains invalid elements or the
+    /// direction is not normalized
+    DETRAY_HOST_DEVICE
+    constexpr bool is_invalid() const {
+        bool inv_elem{false};
+        for (std::size_t i = 0u; i < e_free_size; ++i) {
+            inv_elem |= !math::isfinite(getter::element(m_vector, i, 0u));
+        }
+        return inv_elem ||
+               !algebra::approx_equal(vector::norm(dir()), scalar_type{1},
+                                      scalar_type{1e-5f});
     }
 
     private:

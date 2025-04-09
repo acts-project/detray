@@ -34,6 +34,8 @@ struct curvilinear_frame {
     DETRAY_HOST_DEVICE
     explicit curvilinear_frame(const free_track_parameters_type& free_params) {
 
+        assert(!free_params.is_invalid());
+
         const vector3 t = free_params.pos();
         const vector3 z = free_params.dir();
         const vector3 x = unit_vectors_type().make_curvilinear_unit_u(z);

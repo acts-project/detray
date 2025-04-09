@@ -154,15 +154,15 @@ struct candidate_record {
           p_mag{p} {}
 
     /// Current global track position
-    point3_type pos{};
+    point3_type pos{0.f, 0.f, 0.f};
     /// Current global track direction
-    vector3_type dir{};
+    vector3_type dir{0.f, 0.f, 1.f};
     /// The intersection result
     intersetion_t intersection{};
     /// Charge hypothesis of the particle (invalid value if not known)
     scalar_type charge{detray::detail::invalid_value<scalar_type>()};
-    /// Current momentum magnitude of the particle (invalid value if not known)
-    scalar_type p_mag{detray::detail::invalid_value<scalar_type>()};
+    /// Current momentum magnitude of the particle
+    scalar_type p_mag{1.f};
 };
 
 }  // namespace detail
