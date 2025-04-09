@@ -94,7 +94,7 @@ TEST_P(BackwardPropagation, backward_propagation) {
     pointwise_material_interactor<test_algebra>::state interactor{};
 
     propagation::config prop_cfg{};
-    prop_cfg.stepping.rk_error_tol = 1e-12f * unit<float>::mm;
+    prop_cfg.stepping.rk_error_tol = 1e-7f * unit<float>::mm;
     prop_cfg.navigation.overstep_tolerance = -100.f * unit<float>::um;
     propagator_t p{prop_cfg};
 

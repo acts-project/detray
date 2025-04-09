@@ -185,6 +185,8 @@ struct pointwise_material_interactor : actor {
                     interactor_state.projected_scattering_angle);
             }
         }
+
+        assert(!bound_params.is_invalid());
     }
 
     /// @brief Update the q over p of bound track parameter

@@ -53,7 +53,11 @@ class surface {
     /// @param desc from that detector.
     DETRAY_HOST_DEVICE
     constexpr surface(const detector_t &det, const descr_t &desc)
-        : m_detector{det}, m_desc{desc} {}
+        : m_detector{det}, m_desc{desc} {
+        assert(!m_desc.barcode().is_invalid());
+        assert(m_desc.index() < det.surfaces().size());
+        assert(m_desc.transform() < det.transform_store().size());
+    }
 
     /// Constructor from detector @param det and barcode @param bcd in
     /// that detector.
@@ -84,20 +88,30 @@ class surface {
     /// @returns the surface barcode
     DETRAY_HOST_DEVICE
     constexpr auto barcode() const -> geometry::barcode {
+        assert(!m_desc.barcode().is_invalid());
         return m_desc.barcode();
     }
 
     /// @returns the index of the mother volume
     DETRAY_HOST_DEVICE
-    constexpr auto volume() const -> dindex { return barcode().volume(); }
+    constexpr auto volume() const -> dindex {
+        assert(barcode().volume() < m_detector.volumes().size());
+        return barcode().volume();
+    }
 
     /// @returns the index of the surface in the detector surface lookup
     DETRAY_HOST_DEVICE
-    constexpr auto index() const -> dindex { return barcode().index(); }
+    constexpr auto index() const -> dindex {
+        assert(barcode().index() < m_detector.surfaces().size());
+        return barcode().index();
+    }
 
     /// @returns the surface id (sensitive, passive or portal)
     DETRAY_HOST_DEVICE
-    constexpr auto id() const -> surface_id { return barcode().id(); }
+    constexpr auto id() const -> surface_id {
+        assert(barcode().id() != surface_id::e_unknown);
+        return barcode().id();
+    }
 
     /// @returns the extra bits in the barcode
     DETRAY_HOST_DEVICE
@@ -110,7 +124,7 @@ class surface {
     /// @returns the surface source link
     DETRAY_HOST_DEVICE
     constexpr auto source() const {
-        return m_detector.surface(m_desc.barcode()).source;
+        return m_detector.surface(barcode()).source;
     }
 
     /// @returns true if the surface is a senstive detector module.
@@ -156,6 +170,7 @@ class surface {
     DETRAY_HOST_DEVICE
     constexpr auto transform(const context &ctx) const
         -> const transform3_type & {
+        assert(m_desc.transform() < m_detector.transform_store().size());
         return m_detector.transform_store().at(m_desc.transform(), ctx);
     }
 
@@ -239,8 +254,8 @@ class surface {
     /// @tparam Args      types of additional arguments to the functor
     template <typename functor_t, typename... Args>
     DETRAY_HOST_DEVICE constexpr auto visit_mask(Args &&... args) const {
+        assert(!m_desc.mask().is_invalid());
         const auto &masks = m_detector.mask_store();
-
         return masks.template visit<functor_t>(m_desc.mask(),
                                                std::forward<Args>(args)...);
     }
@@ -251,8 +266,8 @@ class surface {
     /// @tparam Args      types of additional arguments to the functor
     template <typename functor_t, typename... Args>
     DETRAY_HOST_DEVICE constexpr auto visit_material(Args &&... args) const {
+        assert(has_material());
         const auto &materials = m_detector.material_store();
-
         return materials.template visit<functor_t>(m_desc.material(),
                                                    std::forward<Args>(args)...);
     }

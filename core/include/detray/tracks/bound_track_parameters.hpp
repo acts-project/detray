@@ -16,6 +16,9 @@
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/barcode.hpp"
 
+// System include(s)
+#include <ostream>
+
 namespace detray {
 
 template <concepts::algebra algebra_t>
@@ -38,7 +41,9 @@ struct bound_parameters_vector {
 
     /// Construct from a 6-dim vector of parameters
     DETRAY_HOST_DEVICE
-    explicit bound_parameters_vector(const vector_type& vec) : m_vector(vec) {}
+    explicit bound_parameters_vector(const vector_type& vec) : m_vector(vec) {
+        assert(!this->is_invalid());
+    }
 
     /// Construct from single parameters
     ///
@@ -57,6 +62,8 @@ struct bound_parameters_vector {
         getter::element(m_vector, e_bound_theta, 0u) = theta;
         getter::element(m_vector, e_bound_qoverp, 0u) = qop;
         getter::element(m_vector, e_bound_time, 0u) = t;
+
+        assert(!this->is_invalid());
     }
 
     /// @param rhs is the left hand side params for comparison
@@ -98,7 +105,10 @@ struct bound_parameters_vector {
 
     /// Set the underlying vector
     DETRAY_HOST_DEVICE
-    void set_vector(const vector_type& v) { m_vector = v; }
+    void set_vector(const vector_type& v) {
+        m_vector = v;
+        assert(!this->is_invalid());
+    }
 
     /// @returns the bound local position
     DETRAY_HOST_DEVICE
@@ -110,6 +120,8 @@ struct bound_parameters_vector {
     /// Set the bound local position
     DETRAY_HOST_DEVICE
     void set_bound_local(const point2_type& pos) {
+        assert(math::isfinite(pos[0]));
+        assert(math::isfinite(pos[1]));
         getter::set_block(m_vector, pos, e_bound_loc0, 0u);
     }
 
@@ -160,6 +172,7 @@ struct bound_parameters_vector {
     /// Set the time
     DETRAY_HOST_DEVICE
     void set_time(const scalar_type t) {
+        assert(math::isfinite(t));
         getter::element(m_vector, e_bound_time, 0u) = t;
     }
 
@@ -172,6 +185,7 @@ struct bound_parameters_vector {
     /// Set the q/p value
     DETRAY_HOST_DEVICE
     void set_qop(const scalar_type qop) {
+        assert(math::isfinite(qop));
         getter::element(m_vector, e_bound_qoverp, 0u) = qop;
     }
 
@@ -219,6 +233,16 @@ struct bound_parameters_vector {
         assert(qop() != 0.f);
         assert(q * qop() > 0.f);
         return math::fabs(q / qop() * dir()[2]);
+    }
+
+    /// @returns true if the parameter vector contains invalid elements
+    DETRAY_HOST_DEVICE
+    constexpr bool is_invalid() const {
+        bool inv_elem{false};
+        for (std::size_t i = 0u; i < e_bound_size; ++i) {
+            inv_elem |= !math::isfinite(getter::element(m_vector, i, 0u));
+        }
+        return inv_elem;
     }
 
     private:

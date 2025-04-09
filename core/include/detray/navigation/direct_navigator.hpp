@@ -288,6 +288,7 @@ class direct_navigator {
     DETRAY_HOST_DEVICE inline void init(const track_t &track, state &navigation,
                                         const navigation::config &cfg,
                                         const context_type &ctx) const {
+        assert(!track.is_invalid());
 
         if (navigation.is_complete()) {
             navigation.m_heartbeat = false;
@@ -304,6 +305,8 @@ class direct_navigator {
         const track_t &track, state &navigation, const navigation::config &cfg,
         const context_type &ctx = {},
         const bool is_before_actor_run = true) const {
+
+        assert(!track.is_invalid());
 
         if (navigation.is_complete()) {
             navigation.m_heartbeat = false;
