@@ -550,7 +550,7 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
 
     if (do_reset) {
         stepping.set_step_size(dist_to_next);
-    } else if (stepping.step_size() > 0) {
+    } else if (stepping.next_step_size() > 0) {
         stepping.set_step_size(
             math::min(stepping.next_step_size(), dist_to_next));
     } else {
@@ -558,6 +558,10 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
             math::max(stepping.next_step_size(), dist_to_next));
     }
 
+    // Don't allow too small stepsizes, unless the navigation needs it
+    const scalar_type min_stepsize{
+        math::min(math::fabs(stepping.step_size()),
+                  static_cast<scalar_type>(cfg.min_stepsize))};
     const point3_type pos = stepping().pos();
 
     intermediate_state sd{};
@@ -681,6 +685,12 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
         stepping.set_step_size(max_step);
     }
 
+    // Adjust the min step size
+    if (math::fabs(stepping.step_size()) < min_stepsize) {
+        stepping.set_step_size(
+            math::copysign(min_stepsize, stepping.step_size()));
+    }
+
     // Advance track state
     stepping.advance_track(sd, vol_mat_ptr);
 
@@ -693,9 +703,11 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
     stepping.set_next_step_size(stepping.step_size() *
                                 step_size_scaling(error));
 
-    // Don't allow a too small step size (unless requested by the navigator)
-    if (stepping.next_step_size() < cfg.min_stepsize) {
-        stepping.set_next_step_size(cfg.min_stepsize);
+    // Don't allow a too small step size
+    if (math::fabs(stepping.next_step_size()) < cfg.min_stepsize) {
+        stepping.set_next_step_size(
+            math::copysign(static_cast<scalar_type>(cfg.min_stepsize),
+                           stepping.next_step_size()));
     }
 
     // Run final inspection
