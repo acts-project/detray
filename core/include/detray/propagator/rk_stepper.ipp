@@ -432,17 +432,19 @@ detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
                    inspector_t>::state::dtds() const -> vector3_type {
 
     // In case there was no step before
-    if (this->path_length() == 0.f) {
-        const point3_type pos = (*this)().pos();
+    if (this->path_length() == 0.f)
+        [[unlikely]] {
+            const point3_type pos = (*this)().pos();
 
-        const auto bvec_tmp = this->m_magnetic_field.at(pos[0], pos[1], pos[2]);
-        vector3_type bvec;
-        bvec[0u] = bvec_tmp[0u];
-        bvec[1u] = bvec_tmp[1u];
-        bvec[2u] = bvec_tmp[2u];
+            const auto bvec_tmp =
+                this->m_magnetic_field.at(pos[0], pos[1], pos[2]);
+            vector3_type bvec;
+            bvec[0u] = bvec_tmp[0u];
+            bvec[1u] = bvec_tmp[1u];
+            bvec[2u] = bvec_tmp[2u];
 
-        return (*this)().qop() * vector::cross((*this)().dir(), bvec);
-    }
+            return (*this)().qop() * vector::cross((*this)().dir(), bvec);
+        }
 
     return m_dtds_3;
 }
@@ -455,9 +457,8 @@ DETRAY_HOST_DEVICE inline auto detray::rk_stepper<
     -> scalar_type {
 
     // In case there was no step before
-    if (this->path_length() == 0.f) {
-        return this->dqopds((*this)().qop(), vol_mat_ptr);
-    }
+    if (this->path_length() == 0.f)
+        [[unlikely]] { return this->dqopds((*this)().qop(), vol_mat_ptr); }
 
     return m_dqopds_3;
 }
