@@ -70,24 +70,22 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
 
         darray<intersection_type<surface_descr_t>, 2> ret;
         switch (qe.solutions()) {
-            case 2:
-                ret[1] = build_candidate<surface_descr_t>(
-                    ray, mask, trf, qe.larger(), mask_tolerance,
-                    mask_tol_scalor, overstep_tol);
-                ret[1].sf_desc = sf;
-                // If there are two solutions, reuse the case for a single
-                // solution to setup the intersection with the smaller path
-                // in ret[0]
-                [[fallthrough]];
-            case 1:
-                ret[0] = build_candidate<surface_descr_t>(
-                    ray, mask, trf, qe.smaller(), mask_tolerance,
-                    mask_tol_scalor, overstep_tol);
-                ret[0].sf_desc = sf;
-                break;
-            case 0:
-                ret[0].status = false;
-                ret[1].status = false;
+            [[likely]] case 2 : ret[1] = build_candidate<surface_descr_t>(
+                                    ray, mask, trf, qe.larger(), mask_tolerance,
+                                    mask_tol_scalor, overstep_tol);
+            ret[1].sf_desc = sf;
+            // If there are two solutions, reuse the case for a single
+            // solution to setup the intersection with the smaller path
+            // in ret[0]
+            [[fallthrough]];
+            [[likely]] case 1
+                : ret[0] = build_candidate<surface_descr_t>(
+                      ray, mask, trf, qe.smaller(), mask_tolerance,
+                      mask_tol_scalor, overstep_tol);
+            ret[0].sf_desc = sf;
+            break;
+            [[unlikely]] case 0 : ret[0].status = false;
+            ret[1].status = false;
         }
 
         // Even if there are two geometrically valid solutions, the smaller one
@@ -130,13 +128,12 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
         const auto qe = solve_intersection(ray, mask, trf);
 
         switch (qe.solutions()) {
-            case 1:
-                sfi = build_candidate<surface_descr_t>(
-                    ray, mask, trf, qe.smaller(), mask_tolerance,
-                    mask_tol_scalor, overstep_tol);
-                break;
-            case 0:
-                sfi.status = false;
+            [[likely]] case 1
+                : sfi = build_candidate<surface_descr_t>(
+                      ray, mask, trf, qe.smaller(), mask_tolerance,
+                      mask_tol_scalor, overstep_tol);
+            break;
+            [[unlikely]] case 0 : sfi.status = false;
         }
     }
 

@@ -80,10 +80,11 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t, do_debug> {
         const scalar_type denom = 1.f - (zd * zd);
 
         // Case for wire is parallel to track
-        if (detray::detail::all_of(denom < 1e-5f)) {
-            is.status = decltype(is.status)(false);
-            return is;
-        }
+        if (detray::detail::all_of(denom < 1e-5f))
+            [[unlikely]] {
+                is.status = decltype(is.status)(false);
+                return is;
+            }
 
         // vector from track position to line center
         const vector3_type t2l = st - ro;
