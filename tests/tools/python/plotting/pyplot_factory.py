@@ -742,7 +742,7 @@ class pyplot_factory:
         self, plot_data, name="plot", file_format="svg", out_prefix="", dpi=450
     ):
         if out_prefix == "":
-            file_name = self.output_prefix + name + "." + file_format
+            file_name = self.output_prefix + "/" + name + "." + file_format
         else:
             file_name = out_prefix + name + "." + file_format
 
