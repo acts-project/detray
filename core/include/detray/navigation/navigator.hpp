@@ -394,15 +394,54 @@ class navigator {
         /// Navigation state that cannot be recovered from. Leave the other
         /// data for inspection.
         ///
+        /// @param custom_msg additional information on the reason for the error
+        ///
         /// @return navigation heartbeat (dead)
         DETRAY_HOST_DEVICE
-        inline auto abort() -> bool {
+        inline auto abort(const char *custom_msg = "Navigator (unkown reason)")
+            -> bool {
             m_status = navigation::status::e_abort;
             m_heartbeat = false;
             // Don't do anything if aborted
             m_trust_level = navigation::trust_level::e_full;
+
+            /// Wrapper around the custom message that a print inspector can
+            /// understand
+            struct message_wrapper {
+                const char *const m_msg{nullptr};
+
+                DETRAY_HOST_DEVICE
+                constexpr const char *operator()() const { return m_msg; }
+            };
+
+            assert(custom_msg != nullptr);
             run_inspector({}, point3_type{0.f, 0.f, 0.f},
-                          vector3_type{0.f, 0.f, 0.f}, "Aborted: ");
+                          vector3_type{0.f, 0.f, 0.f},
+                          "Aborted: ", message_wrapper{custom_msg});
+
+            return m_heartbeat;
+        }
+
+        /// Navigation state that cannot be recovered from. Leave the other
+        /// data for inspection.
+        ///
+        /// @param debug_msg_generator functor that returns additional
+        ///                            information on the reason for the error
+        ///
+        /// @return navigation heartbeat (dead)
+        template <typename debug_msg_generator_t>
+        requires(!std::same_as<char *, debug_msg_generator_t>)
+            DETRAY_HOST_DEVICE
+            inline auto abort(const debug_msg_generator_t &debug_msg_generator)
+                -> bool {
+            m_status = navigation::status::e_abort;
+            m_heartbeat = false;
+            m_trust_level = navigation::trust_level::e_full;
+
+            run_inspector({}, point3_type{0.f, 0.f, 0.f},
+                          vector3_type{0.f, 0.f, 0.f},
+                          "Aborted: ", debug_msg_generator);
+
             return m_heartbeat;
         }
 
@@ -576,6 +615,20 @@ class navigator {
             if constexpr (!std::is_same_v<inspector_t,
                                           navigation::void_inspector>) {
                 m_inspector(*this, cfg, track_pos, track_dir, message);
+            }
+        }
+
+        /// Call the navigation inspector
+        template <typename debug_msg_generator_t>
+        DETRAY_HOST_DEVICE inline void run_inspector(
+            [[maybe_unused]] const navigation::config &cfg,
+            [[maybe_unused]] const point3_type &track_pos,
+            [[maybe_unused]] const vector3_type &track_dir,
+            [[maybe_unused]] const char *message,
+            [[maybe_unused]] const debug_msg_generator_t &msg_gen) {
+            if constexpr (!std::is_same_v<inspector_t,
+                                          navigation::void_inspector>) {
+                m_inspector(*this, cfg, track_pos, track_dir, message, msg_gen);
             }
         }
 
@@ -788,7 +841,7 @@ class navigator {
         // Unrecoverable
         if (navigation.trust_level() != navigation::trust_level::e_full ||
             navigation.is_exhausted()) {
-            navigation.abort();
+            navigation.abort("Navigator: No reachable surfaces");
         }
 
         return is_init;

@@ -58,7 +58,8 @@ struct pathlimit_aborter : actor {
         // Check the path limit
         if (step_limit <= 0.f) {
             // Stop navigation
-            prop_state._heartbeat &= nav_state.abort();
+            prop_state._heartbeat &=
+                nav_state.abort("Aborter: Maximal path length reached");
         }
 
         // Don't go over the path limit in the next step
@@ -123,7 +124,8 @@ struct momentum_aborter : actor {
 
         if (mag <= abrt_state.p_limit()) {
             // Stop navigation
-            prop_state._heartbeat &= nav_state.abort();
+            prop_state._heartbeat &=
+                nav_state.abort("Aborter: Minimum momentum reached");
         }
     }
 };
@@ -153,7 +155,8 @@ struct target_aborter : actor {
         if (navigation.is_on_surface() &&
             (navigation.barcode() == abrt_state._target_surface) &&
             (stepping.path_length() > 0.f)) {
-            prop_state._heartbeat &= navigation.abort();
+            prop_state._heartbeat &=
+                navigation.abort("Aborter: Reached target surface");
         }
     }
 };
