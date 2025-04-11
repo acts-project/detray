@@ -211,9 +211,8 @@ class volume_builder : public volume_builder_interface<detector_t> {
         std::size_t n_portals{0u};
         for (auto& sf_desc : m_surfaces) {
 
-            const auto sf = geometry::surface{det, sf_desc};
-
-            sf.template visit_mask<detail::mask_index_update>(sf_desc);
+            det._masks.template visit<detail::mask_index_update>(sf_desc.mask(),
+                                                                 sf_desc);
             sf_desc.set_volume(m_volume.index());
             sf_desc.update_transform(trf_offset);
             sf_desc.set_index(sf_offset++);
@@ -294,21 +293,6 @@ struct mask_index_update {
                                        const index_t& /*index*/,
                                        surface_t& sf) const {
         sf.update_mask(static_cast<dindex>(group.size()));
-    }
-};
-
-/// TODO: Remove once the material builder is used everywhere
-/// A functor to update the material index in surface objects
-struct material_index_update {
-
-    template <typename group_t, typename index_t, typename surface_t>
-    DETRAY_HOST inline void operator()(
-        [[maybe_unused]] const group_t& group,
-        [[maybe_unused]] const index_t& /*index*/,
-        [[maybe_unused]] surface_t& sf) const {
-        if constexpr (!concepts::grid<typename group_t::value_type>) {
-            sf.update_material(static_cast<dindex>(group.size()));
-        }
     }
 };
 

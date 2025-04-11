@@ -117,8 +117,11 @@ class geometry_writer {
         sf_data.type = sf.id();
         sf_data.barcode = sf.barcode().value();
         sf_data.transform = to_payload<detector_t>(sf.transform({}));
-        sf_data.mask = sf.template visit_mask<get_mask_payload>();
-        sf_data.material = sf.template visit_material<get_material_payload>();
+        sf_data.mask = sf.template visit_mask<get_mask_link_payload>();
+        sf_data.material =
+            sf.has_material()
+                ? sf.template visit_material<get_material_link_payload>()
+                : typed_link_payload<io::material_id>{};
         sf_data.source = sf.source();
 
         return sf_data;
@@ -169,7 +172,7 @@ class geometry_writer {
 
     private:
     /// Retrieve @c mask_payload from mask_store element
-    struct get_mask_payload {
+    struct get_mask_link_payload {
         template <typename mask_group_t, typename index_t>
         constexpr auto operator()(const mask_group_t& mask_group,
                                   const index_t& index) const {
@@ -178,7 +181,7 @@ class geometry_writer {
     };
 
     /// Retrieve @c material_link_payload from material_store element
-    struct get_material_payload {
+    struct get_material_link_payload {
         template <typename material_group_t, typename index_t>
         constexpr auto operator()(const material_group_t&,
                                   const index_t& index) const {
