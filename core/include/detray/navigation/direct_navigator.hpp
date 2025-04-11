@@ -222,10 +222,15 @@ class direct_navigator {
         }
 
         DETRAY_HOST_DEVICE
-        inline auto abort() -> bool {
+        inline auto abort(const char * = nullptr) -> bool {
             m_status = navigation::status::e_abort;
             m_heartbeat = false;
             return m_heartbeat;
+        }
+
+        template <typename G>
+        DETRAY_HOST_DEVICE inline auto abort(const G &) -> bool {
+            return abort();
         }
 
         DETRAY_HOST_DEVICE
