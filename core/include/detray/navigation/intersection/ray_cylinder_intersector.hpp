@@ -130,13 +130,12 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
         const auto qe = solve_intersection(ray, mask, trf);
 
         switch (qe.solutions()) {
-            case 1:
-                sfi = build_candidate<surface_descr_t>(
-                    ray, mask, trf, qe.smaller(), mask_tolerance,
-                    mask_tol_scalor, overstep_tol);
-                break;
-            case 0:
-                sfi.status = false;
+            [[likely]] case 1
+                : sfi = build_candidate<surface_descr_t>(
+                      ray, mask, trf, qe.smaller(), mask_tolerance,
+                      mask_tol_scalor, overstep_tol);
+            break;
+            [[unlikely]] case 0 : sfi.status = false;
         }
     }
 

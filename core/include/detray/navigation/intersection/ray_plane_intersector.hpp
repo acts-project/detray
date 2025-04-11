@@ -75,30 +75,32 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, do_debug> {
         const vector3_type &rd = ray.dir();
         const scalar_type denom = vector::dot(rd, sn);
         // this is dangerous
-        if (denom != 0.f) {
-            is.path = vector::dot(sn, st - ro) / denom;
+        if (denom != 0.f)
+            [[likely]] {
+                is.path = vector::dot(sn, st - ro) / denom;
 
-            // Intersection is valid for navigation - continue
-            if (is.path >= overstep_tol) {
+                // Intersection is valid for navigation - continue
+                if (is.path >= overstep_tol) {
 
-                const point3_type p3 = ro + is.path * rd;
-                const auto loc{mask_t::to_local_frame(trf, p3, rd)};
-                if constexpr (intersection_type<surface_descr_t>::is_debug()) {
-                    is.local = loc;
+                    const point3_type p3 = ro + is.path * rd;
+                    const auto loc{mask_t::to_local_frame(trf, p3, rd)};
+                    if constexpr (intersection_type<
+                                      surface_descr_t>::is_debug()) {
+                        is.local = loc;
+                    }
+                    // Tolerance: per mille of the distance
+                    is.status = mask.is_inside(
+                        loc, math::max(mask_tolerance[0],
+                                       math::min(mask_tolerance[1],
+                                                 mask_tol_scalor *
+                                                     math::fabs(is.path))));
+                    is.sf_desc = sf;
+                    is.direction = !detail::signbit(is.path);
+                    is.volume_link = mask.volume_link();
                 }
-                // Tolerance: per mille of the distance
-                is.status = mask.is_inside(
-                    loc, math::max(
-                             mask_tolerance[0],
-                             math::min(mask_tolerance[1],
-                                       mask_tol_scalor * math::fabs(is.path))));
-                is.sf_desc = sf;
-                is.direction = !detail::signbit(is.path);
-                is.volume_link = mask.volume_link();
             }
-        } else {
-            is.status = false;
-        }
+        else
+            [[unlikely]] { is.status = false; }
 
         return is;
     }
