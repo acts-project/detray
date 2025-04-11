@@ -283,9 +283,10 @@ inline auto record_propagation(
         fw_propagation->_stepping.bound_params() =
             propagation->_stepping.bound_params();
 
-        fw_propagator_t{cfg}.propagate(*fw_propagation, fw_actor_states);
+        const bool fw_success =
+            fw_propagator_t{cfg}.propagate(*fw_propagation, fw_actor_states);
 
-        if (!fw_propagation->_navigation.is_complete()) {
+        if (!fw_success) {
             std::cout << "ERROR: Could not propagate to end of track to "
                          "prepare backward propagation"
                       << std::endl;

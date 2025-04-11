@@ -162,6 +162,29 @@ struct propagator {
 #endif
     };
 
+    /// Propagate method finale: Return whether or not the propagation
+    /// completed succesfully.
+    ///
+    /// @param propagation the state of a propagation flow
+    ///
+    /// @return propagation success.
+    DETRAY_HOST_DEVICE bool is_complete(const state &propagation) const {
+        return propagation._navigation.is_complete();
+    }
+
+    /// @returns true if the @param propagation is suspended
+    DETRAY_HOST_DEVICE
+    inline auto is_paused(const state &propagation) const -> bool {
+        return !propagation.is_alive() && propagation._navigation.is_alive();
+    }
+
+    /// Revive the propagation
+    DETRAY_HOST_DEVICE
+    inline void resume(state &propagation) const {
+        assert(propagation._navigation.is_alive());
+        propagation._heartbeat = true;
+    }
+
     /// Propagate method init: Initialize a propagation state
     ///
     /// @param propagation the state of a propagation flow
@@ -249,16 +272,6 @@ struct propagator {
         return is_init;
     }
 
-    /// Propagate method finale: Return whether or not the propagation
-    /// completed succesfully.
-    ///
-    /// @param propagation the state of a propagation flow
-    ///
-    /// @return propagation success.
-    DETRAY_HOST_DEVICE bool propagate_is_complete(state &propagation) const {
-        return propagation._navigation.is_complete();
-    }
-
     /// Propagate method: Coordinates the calls of the stepper, navigator and
     /// all registered actors.
     ///
@@ -281,7 +294,7 @@ struct propagator {
         }
 
         // Pass on the whether the propagation was successful
-        return propagate_is_complete(propagation);
+        return is_complete(propagation) || is_paused(propagation);
     }
 
     /// Overload for emtpy actor chain
@@ -380,7 +393,7 @@ struct propagator {
         }
 
         // Pass on the whether the propagation was successful
-        return propagate_is_complete(propagation);
+        return is_complete(propagation) || is_paused(propagation);
     }
 
     template <typename state_t>
