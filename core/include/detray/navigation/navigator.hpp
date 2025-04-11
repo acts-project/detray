@@ -669,9 +669,18 @@ class navigator {
         // Determine overall state of the navigation after updating the cache
         update_navigation_state(navigation, cfg);
 
-        // If init was not successful, the propagation setup is broken
+        // If init was not successful, the propagation setup might be broken
         if (navigation.trust_level() != navigation::trust_level::e_full) {
-            navigation.m_heartbeat = false;
+            // Do not exit if backward navigation starts on the outmost portal
+            if (navigation.is_on_portal() &&
+                navigation.direction() == navigation::direction::e_backward) {
+                navigation.m_trust_level =
+                    detail::is_invalid_value(navigation.current().volume_link)
+                        ? navigation::trust_level::e_full
+                        : navigation::trust_level::e_no_trust;
+            } else {
+                navigation.m_heartbeat = false;
+            }
         }
 
         navigation.run_inspector(cfg, track.pos(), track.dir(),
@@ -697,7 +706,8 @@ class navigator {
     DETRAY_HOST_DEVICE inline bool update(
         const track_t &track, state &navigation, const navigation::config &cfg,
         const context_type &ctx = {},
-        [[maybe_unused]] const bool is_before_actor = true) const {
+        const bool /*is_before_actor*/ = true) const {
+
         // Candidates are re-evaluated based on the current trust level.
         // Should result in 'full trust'
         bool is_init = update_kernel(track, navigation, cfg, ctx);
@@ -708,14 +718,14 @@ class navigator {
         }
         // Otherwise: did we run into a portal?
         else if (navigation.is_on_portal()) {
-            // Set volume index to the next volume provided by the portal
-            navigation.set_volume(navigation.current().volume_link);
-
             // Navigation reached the end of the detector world
-            if (detail::is_invalid_value(navigation.volume())) {
+            if (detail::is_invalid_value(navigation.current().volume_link)) {
                 navigation.exit();
                 return is_init;
             }
+
+            // Set volume index to the next volume provided by the portal
+            navigation.set_volume(navigation.current().volume_link);
 
             // Either end of world or valid volume index
             assert(detail::is_invalid_value(navigation.volume()) ||
@@ -732,7 +742,7 @@ class navigator {
             // Fresh initialization, reset trust and hearbeat even though we are
             // on inner portal
             navigation.m_trust_level = navigation::trust_level::e_full;
-            navigation.m_heartbeat = !navigation.is_exhausted();
+            navigation.m_heartbeat = true;
         }
         // If no trust could be restored for the current state, (local)
         // navigation might be exhausted: re-initialize volume
@@ -757,13 +767,12 @@ class navigator {
 
                 init(track, navigation, loose_cfg, ctx,
                      use_path_tolerance_as_overstep_tolerance);
-
-                // Unrecoverable
-                if (navigation.trust_level() !=
-                    navigation::trust_level::e_full) {
-                    navigation.abort();
-                }
             }
+        }
+        // Unrecoverable
+        if (navigation.trust_level() != navigation::trust_level::e_full ||
+            navigation.is_exhausted()) {
+            navigation.abort();
         }
 
         return is_init;
@@ -833,7 +842,8 @@ class navigator {
 
         // Re-evaluate all currently available candidates and sort again
         // - do this when your navigation state is stale, but not invalid
-        if (navigation.trust_level() == navigation::trust_level::e_fair) {
+        if (navigation.trust_level() == navigation::trust_level::e_fair &&
+            !navigation.is_exhausted()) {
 
             for (auto &candidate : navigation) {
                 // Disregard this candidate if it is not reachable

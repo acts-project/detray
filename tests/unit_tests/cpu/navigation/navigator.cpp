@@ -301,9 +301,8 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
             ASSERT_FALSE(navigation_cpy.is_alive());
             // The status is: exited
             ASSERT_EQ(navigation_cpy.status(), status::e_on_target);
-            // Switch to next volume leads out of the detector world -> exit
-            ASSERT_TRUE(
-                detray::detail::is_invalid_value(navigation_cpy.volume()));
+            // Keep current volume id, so that nav. direction can be reversed
+            ASSERT_EQ(last_vol_id, navigation_cpy.volume());
             // We know we went out of the detector
             ASSERT_EQ(navigation_cpy.trust_level(), trust_level::e_full);
         } else {
@@ -481,9 +480,8 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
             ASSERT_FALSE(navigation_cpy.is_alive());
             // The status is: exited
             ASSERT_EQ(navigation_cpy.status(), status::e_on_target);
-            // Switch to next volume leads out of the detector world -> exit
-            ASSERT_TRUE(
-                detray::detail::is_invalid_value(navigation_cpy.volume()));
+            // Keep current volume id, so that nav. direction can be reversed
+            ASSERT_EQ(last_vol_id, navigation_cpy.volume());
             // We know we went out of the detector
             ASSERT_EQ(navigation_cpy.trust_level(), trust_level::e_full);
         } else {
