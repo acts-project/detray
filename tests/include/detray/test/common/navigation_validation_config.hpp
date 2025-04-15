@@ -122,7 +122,7 @@ struct navigation_validation_config
     }
     navigation_validation_config &collect_sensitives_only(
         const bool only_sensitives) {
-        m_display_only_missed = only_sensitives;
+        m_collect_sensitives_only = only_sensitives;
         return *this;
     }
     navigation_validation_config &display_only_missed(const bool only_missed) {

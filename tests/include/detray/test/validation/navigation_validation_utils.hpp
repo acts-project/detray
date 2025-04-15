@@ -731,17 +731,10 @@ auto compare_traces(const detray::test::navigation_validation_config &cfg,
 
     // Make sure the mismatches were correctly counted
     if (!matching_traces) {
+        bool is_counting_error{false};
         // No mismatch counted for traces that don't match: Error
         if (missed_stats_nav.n_total() + missed_stats_tr.n_total() == 0) {
-            if (debug_file) {
-                *debug_file
-                    << "\n>>>>>>>>>>>>>>>>>>\nFAILURE\n<<<<<<<<<<<<<<<<<<\n"
-                    << "\nSUMMARY:\n--------\n"
-                    << "Track no. " << trk_no << "/" << cfg.n_tracks() << ":\n"
-                    << traj << matching_stream.str() << "\n--------\n"
-                    << "\nFull Trace:\n\n"
-                    << debug_stream.str();
-            }
+            is_counting_error = true;
 
             const std::string msg{
                 "Difference to truth trace was not counted correctly"};
@@ -753,15 +746,15 @@ auto compare_traces(const detray::test::navigation_validation_config &cfg,
         }
 
         // Recount on the final traces, to be absolutely sure.
-        std::size_t n_miss_truth{0};
-        std::size_t n_miss_nav{0};
-        for (std::size_t i = 0; i < truth_trace.size(); ++i) {
+        std::size_t n_miss_truth{0u};
+        std::size_t n_miss_nav{0u};
+        for (std::size_t i = 0u; i < truth_trace.size(); ++i) {
             const auto truth_desc{truth_trace[i].intersection.sf_desc};
             const auto nav_desc{recorded_trace[i].intersection.sf_desc};
 
-            if (detail::is_invalid_value(truth_desc.volume())) {
+            if (truth_desc.barcode().is_invalid()) {
                 n_miss_truth++;
-            } else if (detail::is_invalid_value(nav_desc.volume())) {
+            } else if (nav_desc.barcode().is_invalid()) {
                 n_miss_nav++;
             } else if (truth_desc.barcode() != nav_desc.barcode()) {
                 n_miss_truth++;
@@ -770,6 +763,7 @@ auto compare_traces(const detray::test::navigation_validation_config &cfg,
         }
 
         if (n_miss_truth != missed_stats_tr.n_total()) {
+            is_counting_error = true;
             const std::string msg{
                 "Missed truth surfaces not counted correctly"};
             if (cfg.fail_on_diff()) {
@@ -779,12 +773,28 @@ auto compare_traces(const detray::test::navigation_validation_config &cfg,
             }
         }
         if (n_miss_nav != missed_stats_nav.n_total()) {
+            is_counting_error = true;
             const std::string msg{
                 "Missed navigation surfaces not counted correctly"};
             if (cfg.fail_on_diff()) {
                 throw std::runtime_error(msg);
             } else {
                 std::cout << "ERROR: " << msg << std::endl;
+            }
+        }
+
+        if (is_counting_error) {
+            n_errors++;
+
+            if (debug_file) {
+                *debug_file << "\n>>>>>>>>>>>>>>>>>>\nCOUNTING "
+                               "ERROR\n<<<<<<<<<<<<<<<<<<\n"
+                            << "\nSUMMARY:\n--------\n"
+                            << "Track no. " << trk_no << "/" << cfg.n_tracks()
+                            << ":\n"
+                            << traj << matching_stream.str() << "\n--------\n"
+                            << "\nFull Trace:\n\n"
+                            << debug_stream.str();
             }
         }
     }
@@ -1002,7 +1012,7 @@ auto compare_to_navigation(
     dvector<typename actor_chain<actor_ts...>::state_ref_tuple> state_tuples =
         {{}},
     const dvector<std::array<dscalar<algebra_t>, e_bound_size>>
-        &stddevs_per_track = {}) {
+        &stddevs_per_track = {{0.f}}) {
 
     using scalar_t = dscalar<algebra_t>;
 
@@ -1114,15 +1124,14 @@ auto compare_to_navigation(
             // Create SVGs for traces with mismatches
             if (n_miss_trace_truth.n_total() != 0u ||
                 n_miss_trace_nav.n_total() != 0u || n_error_trace != 0u) {
-                // Only dump SVG if navigator missed a surface
-                if (cfg.display_only_missed() &&
-                    n_miss_trace_nav.n_total() == 0u) {
-                    continue;
+                // Only dump SVG if navigator missed a sf. or an error occured
+                if (!cfg.display_only_missed() ||
+                    (n_miss_trace_nav.n_total() != 0u)) {
+                    detray::detector_scanner::display_error(
+                        ctx, det, names, cfg.name(), ideal_traj, truth_trace,
+                        cfg.svg_style(), i, n_samples, recorded_trace,
+                        cfg.verbose());
                 }
-                detray::detector_scanner::display_error(
-                    ctx, det, names, cfg.name(), ideal_traj, truth_trace,
-                    cfg.svg_style(), i, n_samples, recorded_trace,
-                    cfg.verbose());
             }
         }
 
@@ -1202,7 +1211,7 @@ auto compare_to_navigation(
     constexpr int cw{35};
 
     std::cout << std::left << std::setw(cw)
-              << "No. Tracks with holes: " << n_tracks_w_holes << "/"
+              << "No. Tracks with miss. surfaces: " << n_tracks_w_holes << "/"
               << n_tracks << " (" << 100. * n_tracks_w_holes / n_tracks << "%)"
               << std::endl;
     std::cout << std::left << std::setw(cw)
@@ -1214,7 +1223,7 @@ auto compare_to_navigation(
               << n_tracks << " (" << 100. * n_good_tracks / n_tracks << "%)\n"
               << std::endl;
     std::cout << std::left << std::setw(cw + 5)
-              << "Max no. of holes per track: " << n_max_holes_per_trk
+              << "Max no. of miss. surfaces per track: " << n_max_holes_per_trk
               << " (Mean: "
               << ((n_tracks_w_holes == 0)
                       ? "-"
