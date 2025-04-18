@@ -297,6 +297,7 @@ class navigator {
         DETRAY_HOST_DEVICE
         inline void set_direction(const navigation::direction dir) {
             m_direction = dir;
+            set_no_trust();
         }
 
         /// @returns navigation trust level - const
@@ -393,15 +394,52 @@ class navigator {
         /// Navigation state that cannot be recovered from. Leave the other
         /// data for inspection.
         ///
+        /// @param custom_msg additional information on the reason for the error
+        ///
         /// @return navigation heartbeat (dead)
         DETRAY_HOST_DEVICE
-        inline auto abort() -> bool {
+        inline auto abort(const char *custom_msg = nullptr) -> bool {
             m_status = navigation::status::e_abort;
             m_heartbeat = false;
             // Don't do anything if aborted
             m_trust_level = navigation::trust_level::e_full;
+
+            /// Wrapper around the custom message that a print inspector can
+            /// understand
+            struct message_wrapper {
+                const char *const m_msg{nullptr};
+
+                DETRAY_HOST_DEVICE
+                constexpr const char *operator()() const { return m_msg; }
+            };
+
             run_inspector({}, point3_type{0.f, 0.f, 0.f},
-                          vector3_type{0.f, 0.f, 0.f}, "Aborted: ");
+                          vector3_type{0.f, 0.f, 0.f},
+                          "Aborted: ", message_wrapper{custom_msg});
+
+            return m_heartbeat;
+        }
+
+        /// Navigation state that cannot be recovered from. Leave the other
+        /// data for inspection.
+        ///
+        /// @param debug_msg_generator functor that returns additional
+        ///                            information on the reason for the error
+        ///
+        /// @return navigation heartbeat (dead)
+        template <typename debug_msg_generator_t>
+        requires(!std::same_as<char *, debug_msg_generator_t>)
+            DETRAY_HOST_DEVICE
+            inline auto abort(const debug_msg_generator_t &debug_msg_generator)
+                -> bool {
+            m_status = navigation::status::e_abort;
+            m_heartbeat = false;
+            m_trust_level = navigation::trust_level::e_full;
+
+            run_inspector({}, point3_type{0.f, 0.f, 0.f},
+                          vector3_type{0.f, 0.f, 0.f},
+                          "Aborted: ", debug_msg_generator);
+
             return m_heartbeat;
         }
 
@@ -418,6 +456,18 @@ class navigator {
                           vector3_type{0.f, 0.f, 0.f}, "Exited: ");
             this->clear();
             return m_heartbeat;
+        }
+
+        /// Navigation is being paused by actor: Maintain the navigation state
+        /// and resume later
+        ///
+        /// @return propagation heartbeat (quit propagation loop, but keep
+        /// navigation alive)
+        DETRAY_HOST_DEVICE
+        inline auto pause() -> bool {
+            run_inspector({}, point3_type{0.f, 0.f, 0.f},
+                          vector3_type{0.f, 0.f, 0.f}, "Paused by actor: ");
+            return false;
         }
 
         private:
@@ -566,6 +616,20 @@ class navigator {
             }
         }
 
+        /// Call the navigation inspector
+        template <typename debug_msg_generator_t>
+        DETRAY_HOST_DEVICE inline void run_inspector(
+            [[maybe_unused]] const navigation::config &cfg,
+            [[maybe_unused]] const point3_type &track_pos,
+            [[maybe_unused]] const vector3_type &track_dir,
+            [[maybe_unused]] const char *message,
+            [[maybe_unused]] const debug_msg_generator_t &msg_gen) {
+            if constexpr (!std::is_same_v<inspector_t,
+                                          navigation::void_inspector>) {
+                m_inspector(*this, cfg, track_pos, track_dir, message, msg_gen);
+            }
+        }
+
         /// Our cache of candidates (intersections with any kind of surface)
         candidate_cache_t m_candidates;
 
@@ -649,6 +713,9 @@ class navigator {
         const bool use_path_tolerance_as_overstep_tolerance = true) const {
         const auto &det = navigation.detector();
         const auto volume = tracking_volume{det, navigation.volume()};
+
+        // Do not resurrect a failed/finished navigation state
+        assert(navigation.status() > navigation::status::e_on_target);
 
         // Clean up state
         navigation.clear();
@@ -772,7 +839,7 @@ class navigator {
         // Unrecoverable
         if (navigation.trust_level() != navigation::trust_level::e_full ||
             navigation.is_exhausted()) {
-            navigation.abort();
+            navigation.abort("Navigator: No reachable surfaces");
         }
 
         return is_init;

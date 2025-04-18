@@ -35,6 +35,10 @@ DETRAY_HOST inline std::string print_state(const state_type &state) {
     debug_stream << std::left << std::setw(cw) << "Volume:" << state.volume()
                  << std::endl;
 
+    debug_stream << std::setw(cw) << std::boolalpha
+                 << "hearbeat:" << state.is_alive() << std::endl;
+    std::cout << std::noboolalpha;
+
     // Navigation direction
     debug_stream << std::setw(cw) << "direction:";
     switch (state.direction()) {
