@@ -297,6 +297,7 @@ class navigator {
         DETRAY_HOST_DEVICE
         inline void set_direction(const navigation::direction dir) {
             m_direction = dir;
+            set_no_trust();
         }
 
         /// @returns navigation trust level - const
@@ -418,6 +419,18 @@ class navigator {
                           vector3_type{0.f, 0.f, 0.f}, "Exited: ");
             this->clear();
             return m_heartbeat;
+        }
+
+        /// Navigation is being paused by actor: Maintain the navigation state
+        /// and resume later
+        ///
+        /// @return propagation heartbeat (quit propagation loop, but keep
+        /// navigation alive)
+        DETRAY_HOST_DEVICE
+        inline auto pause() -> bool {
+            run_inspector({}, point3_type{0.f, 0.f, 0.f},
+                          vector3_type{0.f, 0.f, 0.f}, "Paused by actor: ");
+            return false;
         }
 
         private:
@@ -649,6 +662,9 @@ class navigator {
         const bool use_path_tolerance_as_overstep_tolerance = true) const {
         const auto &det = navigation.detector();
         const auto volume = tracking_volume{det, navigation.volume()};
+
+        // Do not resurrect a failed/finished navigation state
+        assert(navigation.status() > navigation::status::e_on_target);
 
         // Clean up state
         navigation.clear();

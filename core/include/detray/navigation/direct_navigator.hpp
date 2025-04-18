@@ -56,8 +56,8 @@ class direct_navigator {
                                           const view_type &sequence)
             : m_detector(&det), m_sequence(sequence) {
 
-            m_it = m_sequence.begin();
-            m_it_rev = m_sequence.rbegin();
+            m_it = m_sequence.cbegin();
+            m_it_rev = m_sequence.crbegin();
         }
 
         /// Scalar representation of the navigation state,
@@ -121,11 +121,11 @@ class direct_navigator {
         inline auto status() const -> navigation::status { return m_status; }
 
         DETRAY_HOST_DEVICE
-        inline bool is_init() {
+        inline bool is_init() const {
             if (m_direction == navigation::direction::e_forward) {
-                return m_it == m_sequence.begin();
+                return m_it == m_sequence.cbegin();
             } else {
-                return m_it_rev == m_sequence.rbegin();
+                return m_it_rev == m_sequence.crbegin();
             }
         }
 
@@ -159,12 +159,12 @@ class direct_navigator {
 
         /// @return true if the iterator reaches the end of vector
         DETRAY_HOST_DEVICE
-        bool is_complete() {
+        bool is_complete() const {
             if ((m_direction == navigation::direction::e_forward) &&
-                m_it == m_sequence.end()) {
+                m_it == m_sequence.cend()) {
                 return true;
             } else if ((m_direction == navigation::direction::e_backward) &&
-                       m_it_rev == m_sequence.rend()) {
+                       m_it_rev == m_sequence.crend()) {
                 return true;
             }
             return false;
@@ -228,6 +228,16 @@ class direct_navigator {
             return m_heartbeat;
         }
 
+        DETRAY_HOST_DEVICE
+        inline auto exit() -> bool {
+            m_status = navigation::status::e_on_target;
+            m_heartbeat = false;
+            return m_heartbeat;
+        }
+
+        DETRAY_HOST_DEVICE
+        inline auto pause() const -> bool { return false; }
+
         /// @returns current detector volume of the navigation stream
         DETRAY_HOST_DEVICE
         inline auto get_volume() const {
@@ -266,10 +276,10 @@ class direct_navigator {
         sequence_t m_sequence;
 
         // iterator for forward direction
-        typename sequence_t::iterator m_it;
+        typename sequence_t::const_iterator m_it;
 
         // iterator for backward direction
-        typename sequence_t::reverse_iterator m_it_rev;
+        typename sequence_t::const_reverse_iterator m_it_rev;
 
         /// The navigation direction
         navigation::direction m_direction{navigation::direction::e_forward};
@@ -288,6 +298,8 @@ class direct_navigator {
     DETRAY_HOST_DEVICE inline void init(const track_t &track, state &navigation,
                                         const navigation::config &cfg,
                                         const context_type &ctx) const {
+        // Do not resurrect a failed/finished navigation state
+        assert(navigation.status() > navigation::status::e_on_target);
 
         if (navigation.is_complete()) {
             navigation.m_heartbeat = false;
