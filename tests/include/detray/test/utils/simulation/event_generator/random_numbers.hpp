@@ -75,20 +75,9 @@ struct random_numbers {
 
     /// Explicit normal distribution around a @param mean and @param stddev
     DETRAY_HOST auto normal(const scalar_t mean, const scalar_t stddev) {
-        const bool is_zero_stddev{stddev == scalar_t{0}};
-        const scalar_t ret{is_zero_stddev ? mean
-                                          : std::normal_distribution<scalar_t>(
-                                                mean, stddev)(m_engine)};
-        // Hotfix for the traccc wire chamber Kalman fitter CI tests: Only a
-        // specific set of tracks pass the test, so detray needs to make sure
-        // that these tracks are generated in the random_track_generator. This
-        // means that the correct number of draws from the random number engine
-        // needs to be done in order to arrive at the SAME internal state of
-        // 'm_engine'. TODO: Remove once the test are stable
-        if (is_zero_stddev) {
-            std::normal_distribution<scalar_t>(mean, 1.f)(m_engine);
-        }
-        return ret;
+        return (stddev == scalar_t{0})
+                   ? mean
+                   : std::normal_distribution<scalar_t>(mean, stddev)(m_engine);
     }
 
     /// 50:50 coin toss
