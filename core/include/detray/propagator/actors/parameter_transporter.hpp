@@ -111,6 +111,8 @@ struct parameter_transporter : actor {
 
         // Set surface link
         bound_params.set_surface_link(sf.barcode());
+
+        assert(!bound_params.is_invalid());
     }
 
     template <typename propagator_state_t>
