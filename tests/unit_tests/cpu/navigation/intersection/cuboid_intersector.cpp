@@ -13,7 +13,7 @@
 #include "detray/utils/bounding_volume.hpp"
 
 // Detray test include(s)
-#include "detray/test/utils/types.hpp"
+#include "detray/test/framework/types.hpp"
 
 // GTest include
 #include <gtest/gtest.h>

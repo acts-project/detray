@@ -139,14 +139,14 @@ void run_propagation_kernel(
         cuda_propagator_type<METADATA, FIELD,                                  \
                              CHAIN>::actor_chain_type::state_tuple *);
 
-DECLARE_PROPAGATION_BENCHMARK(test::default_metadata, empty_chain,
+DECLARE_PROPAGATION_BENCHMARK(benchmarks::default_metadata, empty_chain,
                               const_field_t, propagation_opt::e_unsync)
-DECLARE_PROPAGATION_BENCHMARK(test::default_metadata, default_chain,
+DECLARE_PROPAGATION_BENCHMARK(benchmarks::default_metadata, default_chain,
                               const_field_t, propagation_opt::e_unsync)
 
-DECLARE_PROPAGATION_BENCHMARK(test::toy_metadata, empty_chain, const_field_t,
-                              propagation_opt::e_unsync)
-DECLARE_PROPAGATION_BENCHMARK(test::toy_metadata, default_chain, const_field_t,
-                              propagation_opt::e_unsync)
+DECLARE_PROPAGATION_BENCHMARK(benchmarks::toy_metadata, empty_chain,
+                              const_field_t, propagation_opt::e_unsync)
+DECLARE_PROPAGATION_BENCHMARK(benchmarks::toy_metadata, default_chain,
+                              const_field_t, propagation_opt::e_unsync)
 
 }  // namespace detray::benchmarks

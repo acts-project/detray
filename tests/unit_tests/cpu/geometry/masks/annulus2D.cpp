@@ -13,8 +13,8 @@
 #include "detray/geometry/mask.hpp"
 
 // Detray test include(s)
+#include "detray/test/framework/types.hpp"
 #include "detray/test/utils/ratio_test.hpp"
-#include "detray/test/utils/types.hpp"
 
 // GTest include
 #include <gtest/gtest.h>

@@ -7,7 +7,9 @@
 
 // Project include(s)
 #include "detray/navigation/volume_graph.hpp"
-#include "detray/test/utils/detectors/build_toy_detector.hpp"
+
+// Detray test include(s)
+#include "detray/test/common/build_toy_detector.hpp"
 #include "detray/test/utils/hash_tree.hpp"
 
 // Example linear algebra plugin: std::array

@@ -23,7 +23,7 @@
 #include "detray/utils/consistency_checker.hpp"
 
 // Detray test include(s)
-#include "detray/test/utils/detectors/factories/telescope_generator.hpp"
+#include "detray/test/common/factories/telescope_generator.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>

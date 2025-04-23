@@ -6,13 +6,8 @@
  */
 
 // Project include(s)
-#include "detray/detectors/bfield.hpp"
 #include "detray/navigation/navigator.hpp"
-#include "detray/propagator/actor_chain.hpp"
-#include "detray/propagator/actors/aborters.hpp"
-#include "detray/propagator/actors/parameter_resetter.hpp"
-#include "detray/propagator/actors/parameter_transporter.hpp"
-#include "detray/propagator/actors/pointwise_material_interactor.hpp"
+#include "detray/propagator/actors.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/type_list.hpp"
@@ -22,10 +17,11 @@
 
 // Detray benchmark include(s)
 #include "detray/benchmarks/cpu/propagation_benchmark.hpp"
+#include "detray/benchmarks/types.hpp"
 
-// Detray test include(s).
-#include "detray/test/utils/simulation/event_generator/track_generators.hpp"
-#include "detray/test/utils/types.hpp"
+// Detray test include(s)
+#include "detray/test/common/bfield.hpp"
+#include "detray/test/common/track_generators.hpp"
 
 // Detray tools include(s)
 #include "detray/options/detector_io_options.hpp"
@@ -47,24 +43,24 @@ using namespace detray;
 int main(int argc, char** argv) {
 
     // Use the most general type to be able to read in all detector files
-    using detector_t = detray::detector<test::default_metadata>;
-    using test_algebra = typename detector_t::algebra_type;
-    using scalar = dscalar<test_algebra>;
-    using vector3 = dvector3D<test_algebra>;
+    using detector_t = detray::detector<detray::benchmarks::default_metadata>;
+    using bench_algebra = typename detector_t::algebra_type;
+    using scalar = dscalar<bench_algebra>;
+    using vector3 = dvector3D<bench_algebra>;
 
-    using free_track_parameters_t = free_track_parameters<test_algebra>;
+    using free_track_parameters_t = free_track_parameters<bench_algebra>;
     using uniform_gen_t =
         detail::random_numbers<scalar, std::uniform_real_distribution<scalar>>;
     using track_generator_t =
         random_track_generator<free_track_parameters_t, uniform_gen_t>;
 
     using field_t = bfield::const_field_t<scalar>;
-    using stepper_t = rk_stepper<typename field_t::view_t, test_algebra>;
+    using stepper_t = rk_stepper<typename field_t::view_t, bench_algebra>;
     using empty_chain_t = actor_chain<>;
     using default_chain =
-        actor_chain<parameter_transporter<test_algebra>,
-                    pointwise_material_interactor<test_algebra>,
-                    parameter_resetter<test_algebra>>;
+        actor_chain<parameter_transporter<bench_algebra>,
+                    pointwise_material_interactor<bench_algebra>,
+                    parameter_resetter<bench_algebra>>;
 
     // Host memory resource
     vecmem::host_memory_resource host_mr;
@@ -144,12 +140,12 @@ int main(int argc, char** argv) {
             &host_mr, n_tracks, trk_cfg, do_sort);
 
     // Create a constant b-field
-    auto bfield = bfield::create_const_field<scalar>(B);
+    auto bfield = create_const_field<scalar>(B);
 
     // Build actor states
     dtuple<> empty_state{};
 
-    pointwise_material_interactor<test_algebra>::state interactor_state{};
+    pointwise_material_interactor<bench_algebra>::state interactor_state{};
 
     auto actor_states = detail::make_tuple<dtuple>(interactor_state);
 
@@ -183,7 +179,7 @@ int main(int argc, char** argv) {
     ::benchmark::AddCustomContext("Backend", "CPU");
     ::benchmark::AddCustomContext("Backend Name", proc_name);
     ::benchmark::AddCustomContext("Algebra-plugin",
-                                  detray::types::get_name<test_algebra>());
+                                  detray::types::get_name<bench_algebra>());
     ::benchmark::AddCustomContext("Detector Setup", setup_str);
 
     // Run benchmarks

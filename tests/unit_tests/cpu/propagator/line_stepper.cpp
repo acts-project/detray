@@ -9,11 +9,10 @@
 #include "detray/propagator/line_stepper.hpp"
 
 #include "detray/definitions/units.hpp"
-#include "detray/detectors/bfield.hpp"
 #include "detray/tracks/tracks.hpp"
 
 // Detray test include(s)
-#include "detray/test/utils/types.hpp"
+#include "detray/test/framework/types.hpp"
 
 // google-test include(s)
 #include <gtest/gtest.h>

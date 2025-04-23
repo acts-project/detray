@@ -7,10 +7,8 @@
 
 #pragma once
 
-// Detray test include(s).
-#include "detray/test/common/detail/whiteboard.hpp"
-#include "detray/test/common/fixture_base.hpp"
-#include "detray/test/utils/types.hpp"
+// Detray test include(s)
+#include "detray/test/common/test_configuration.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>
@@ -23,17 +21,18 @@
 namespace detray::test {
 
 /// @brief Configuration for a detector scan test.
-struct material_validation_config : public test::fixture_base<>::configuration {
-    using base_type = test::fixture_base<>;
-    using scalar_type = typename base_type::scalar;
-    using vector3_type = typename base_type::vector3;
+template <concepts::algebra algebra_t>
+struct material_validation_config
+    : public detray::test::configuration<dscalar<algebra_t>> {
+
+    using scalar_type = dscalar<algebra_t>;
+    using vector3_type = dvector3D<algebra_t>;
+    using base_type = detray::test::configuration<scalar_type>;
 
     /// Name of the test
     std::string m_name{"material_validation"};
     /// Vecmem memory resource for the device allocations
     vecmem::memory_resource *m_dev_mr{nullptr};
-    /// Access to truth data and tracks
-    std::shared_ptr<test::whiteboard> m_white_board;
     /// Name of the output file, containing the complete ray material traces
     std::string m_material_file{"navigation_material_trace.csv"};
     /// The maximal number of test tracks to run
@@ -45,10 +44,6 @@ struct material_validation_config : public test::fixture_base<>::configuration {
     /// @{
     const std::string &name() const { return m_name; }
     vecmem::memory_resource *device_mr() const { return m_dev_mr; }
-    std::shared_ptr<test::whiteboard> whiteboard() { return m_white_board; }
-    std::shared_ptr<test::whiteboard> whiteboard() const {
-        return m_white_board;
-    }
     const std::string &material_file() const { return m_material_file; }
     std::size_t n_tracks() const { return m_n_tracks; }
     scalar_type relative_error() const { return m_rel_error; }
@@ -62,15 +57,6 @@ struct material_validation_config : public test::fixture_base<>::configuration {
     }
     material_validation_config &device_mr(vecmem::memory_resource *mr) {
         m_dev_mr = mr;
-        return *this;
-    }
-    material_validation_config &whiteboard(
-        std::shared_ptr<test::whiteboard> w_board) {
-        if (!w_board) {
-            throw std::invalid_argument(
-                "Material validation: No valid whiteboard instance");
-        }
-        m_white_board = std::move(w_board);
         return *this;
     }
     material_validation_config &material_file(const std::string &f) {

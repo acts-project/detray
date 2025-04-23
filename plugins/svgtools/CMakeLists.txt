@@ -19,7 +19,7 @@ detray_add_library( detray_svgtools svgtools
 )
 target_link_libraries(
     detray_svgtools
-    INTERFACE detray::core actsvg::core actsvg::meta
+    INTERFACE detray::core detray::io actsvg::core actsvg::meta
 )
 
 # Clean up.

@@ -5,9 +5,11 @@
  * Mozilla Public License Version 2.0
  */
 
-// Detray test include(s).
-#include "detray/test/utils/detectors/build_toy_detector.hpp"
-#include "detray/test/utils/types.hpp"
+// Detray benchmark include(s)
+#include "detray/benchmarks/types.hpp"
+
+// Detray test include(s)
+#include "detray/test/common/build_toy_detector.hpp"
 
 // VecMem include(s).
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -21,8 +23,8 @@
 // Use the detray:: namespace implicitly.
 using namespace detray;
 
-using test_algebra = test::algebra;
-using scalar = test::scalar;
+using bench_algebra = benchmarks::algebra;
+using scalar = benchmarks::scalar;
 
 // Benchmarks the cost of searching a volume by position
 void BM_FIND_VOLUMES(benchmark::State &state) {
@@ -35,7 +37,7 @@ void BM_FIND_VOLUMES(benchmark::State &state) {
     vecmem::host_memory_resource host_mr;
     toy_det_config<scalar> toy_cfg{};
     toy_cfg.n_edc_layers(7u);
-    auto [d, names] = build_toy_detector<test_algebra>(host_mr, toy_cfg);
+    auto [d, names] = build_toy_detector<bench_algebra>(host_mr, toy_cfg);
 
     static const unsigned int itest = 10000u;
 
@@ -57,8 +59,8 @@ void BM_FIND_VOLUMES(benchmark::State &state) {
     for (auto _ : state) {
         for (unsigned int i1 = 0u; i1 < itest; ++i1) {
             for (unsigned int i0 = 0u; i0 < itest; ++i0) {
-                test::vector3 rz{static_cast<scalar>(i0) * step0, 0.f,
-                                 static_cast<scalar>(i1) * step1};
+                benchmarks::vector3 rz{static_cast<scalar>(i0) * step0, 0.f,
+                                       static_cast<scalar>(i1) * step1};
                 const auto &v = d.volume(rz);
 
                 benchmark::DoNotOptimize(successful);

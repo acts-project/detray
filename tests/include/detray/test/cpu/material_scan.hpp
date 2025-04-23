@@ -15,16 +15,17 @@
 #include "detray/io/utils/file_handle.hpp"
 
 // Detray test include(s)
-#include "detray/test/common/detail/whiteboard.hpp"
-#include "detray/test/common/fixture_base.hpp"
-#include "detray/test/utils/simulation/event_generator/track_generators.hpp"
-#include "detray/test/utils/types.hpp"
+#include "detray/test/common/track_generators.hpp"
+#include "detray/test/framework/fixture_base.hpp"
+#include "detray/test/framework/types.hpp"
+#include "detray/test/framework/whiteboard.hpp"
 #include "detray/test/validation/detector_scanner.hpp"
 #include "detray/test/validation/material_validation_utils.hpp"
 
 // System include(s)
 #include <ios>
 #include <iostream>
+#include <memory>
 #include <string>
 
 namespace detray::test {
@@ -48,8 +49,6 @@ class material_scan : public test::fixture_base<> {
         using trk_gen_config_t = typename track_generator_t::configuration;
 
         std::string m_name{"material_scan"};
-        /// Save results for later use in downstream tests
-        std::shared_ptr<test::whiteboard> m_white_board;
         trk_gen_config_t m_trk_gen_cfg{};
 
         /// Getters
@@ -59,10 +58,6 @@ class material_scan : public test::fixture_base<> {
         const trk_gen_config_t &track_generator() const {
             return m_trk_gen_cfg;
         }
-        std::shared_ptr<test::whiteboard> whiteboard() { return m_white_board; }
-        std::shared_ptr<test::whiteboard> whiteboard() const {
-            return m_white_board;
-        }
         /// @}
 
         /// Setters
@@ -71,26 +66,22 @@ class material_scan : public test::fixture_base<> {
             m_name = n;
             return *this;
         }
-        config &whiteboard(std::shared_ptr<test::whiteboard> w_board) {
-            if (!w_board) {
-                throw std::invalid_argument(
-                    "Material scan: Not a valid whiteboard instance");
-            }
-            m_white_board = std::move(w_board);
-            return *this;
-        }
         /// @}
     };
 
     explicit material_scan(
         const detector_t &det, const typename detector_t::name_map &names,
-        const config &cfg = {},
+        const config &cfg = {}, std::shared_ptr<test::whiteboard> wb = nullptr,
         const typename detector_t::geometry_context &gctx = {})
-        : m_cfg{cfg}, m_gctx{gctx}, m_det{det}, m_names{names} {
+        : m_cfg{cfg},
+          m_gctx{gctx},
+          m_det{det},
+          m_names{names},
+          m_whiteboard{std::move(wb)} {
 
-        if (!m_cfg.whiteboard()) {
+        if (!m_whiteboard) {
             throw std::invalid_argument("No white board was passed to " +
-                                        m_cfg.name() + " test");
+                                        m_cfg.name());
         }
     }
 
@@ -220,9 +211,9 @@ class material_scan : public test::fixture_base<> {
         material_validator::write_material(coll_name + ".csv", mat_records);
 
         // Pin data to whiteboard
-        m_cfg.whiteboard()->add(coll_name, std::move(mat_records));
-        m_cfg.whiteboard()->add(m_det.name(m_names) + "_material_scan_tracks",
-                                std::move(tracks));
+        m_whiteboard->add(coll_name, std::move(mat_records));
+        m_whiteboard->add(m_det.name(m_names) + "_material_scan_tracks",
+                          std::move(tracks));
     }
 
     private:
@@ -234,6 +225,8 @@ class material_scan : public test::fixture_base<> {
     const detector_t &m_det;
     /// Volume names
     const typename detector_t::name_map &m_names;
+    /// Whiteboard to pin data
+    std::shared_ptr<test::whiteboard> m_whiteboard{nullptr};
 };
 
 }  // namespace detray::test

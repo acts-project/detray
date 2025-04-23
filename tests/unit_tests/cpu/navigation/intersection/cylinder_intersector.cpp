@@ -15,7 +15,7 @@
 #include "detray/tracks/ray.hpp"
 
 // Detray test include(s)
-#include "detray/test/utils/types.hpp"
+#include "detray/test/framework/types.hpp"
 
 // GTest include(s)
 #include <gtest/gtest.h>

@@ -8,7 +8,6 @@
 // Project include(s).
 #include "detray/definitions/pdg_particle.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/detectors/bfield.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes/unbounded.hpp"
 #include "detray/materials/interaction.hpp"
@@ -20,13 +19,14 @@
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
+#include "detray/test/common/bfield.hpp"
 
 // Detray test include(s)
-#include "detray/test/utils/detectors/build_telescope_detector.hpp"
+#include "detray/test/common/build_telescope_detector.hpp"
+#include "detray/test/framework/types.hpp"
 #include "detray/test/utils/inspectors.hpp"
-#include "detray/test/utils/simulation/random_scatterer.hpp"
+#include "detray/test/utils/random_scatterer.hpp"
 #include "detray/test/utils/statistics.hpp"
-#include "detray/test/utils/types.hpp"
 
 // VecMem include(s).
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -288,7 +288,7 @@ GTEST_TEST(detray_material, telescope_geometry_volume_material) {
 
     // Bfield setup
     vector3 B_z{0.f, 0.f, 2.f * unit<scalar>::T};
-    const bfield_t const_bfield = bfield::create_const_field<scalar>(B_z);
+    const bfield_t const_bfield = create_const_field<scalar>(B_z);
 
     // Track setup
     constexpr scalar q{-1.f};
