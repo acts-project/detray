@@ -8,21 +8,23 @@
 #pragma once
 
 // Project include(s)
-#include "detray/detectors/bfield.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/tracks/ray.hpp"
 #include "detray/tracks/tracks.hpp"
 
 // Detray test include(s)
-#include "detray/test/common/fixture_base.hpp"
-#include "detray/test/common/navigation_validation_config.hpp"
+#include "detray/test/common/bfield.hpp"
+#include "detray/test/framework/fixture_base.hpp"
+#include "detray/test/framework/whiteboard.hpp"
 #include "detray/test/validation/detector_scan_utils.hpp"
 #include "detray/test/validation/material_validation_utils.hpp"
+#include "detray/test/validation/navigation_validation_config.hpp"
 #include "detray/test/validation/navigation_validation_utils.hpp"
 
 // System include(s)
 #include <iostream>
+#include <memory>
 #include <string>
 
 namespace detray::test {
@@ -47,15 +49,19 @@ class navigation_validation : public test::fixture_base<> {
 
     public:
     using fixture_type = test::fixture_base<>;
-    using config = navigation_validation_config;
+    using config = navigation_validation_config<algebra_t>;
 
     explicit navigation_validation(
         const detector_t &det, const typename detector_t::name_map &names,
-        const config &cfg = {},
+        const config &cfg = {}, std::shared_ptr<test::whiteboard> wb = nullptr,
         const typename detector_t::geometry_context gctx = {})
-        : m_cfg{cfg}, m_gctx{gctx}, m_det{det}, m_names{names} {
+        : m_cfg{cfg},
+          m_gctx{gctx},
+          m_det{det},
+          m_names{names},
+          m_whiteboard{std::move(wb)} {
 
-        if (!m_cfg.whiteboard()) {
+        if (!m_whiteboard) {
             throw std::invalid_argument("No white board was passed to " +
                                         m_cfg.name() + " test");
         }
@@ -87,7 +93,7 @@ class navigation_validation : public test::fixture_base<> {
 
         bfield_t b_field{};
         if constexpr (!k_use_rays) {
-            b_field = bfield::create_const_field<scalar_t>(m_cfg.B_vector());
+            b_field = create_const_field<scalar_t>(m_cfg.B_vector());
         }
 
         // Use ray or helix
@@ -107,12 +113,12 @@ class navigation_validation : public test::fixture_base<> {
         navigation_validator::surface_stats n_miss_truth{};
 
         std::cout << "\nINFO: Fetching data from white board..." << std::endl;
-        if (!m_cfg.whiteboard()->exists(truth_data_name)) {
+        if (!m_whiteboard->exists(truth_data_name)) {
             throw std::runtime_error(
                 "White board is empty! Please run detector scan first");
         }
         auto &truth_traces =
-            m_cfg.whiteboard()->template get<std::vector<truth_trace_t>>(
+            m_whiteboard->template get<std::vector<truth_trace_t>>(
                 truth_data_name);
         ASSERT_EQ(m_cfg.n_tracks(), truth_traces.size());
 
@@ -333,6 +339,8 @@ class navigation_validation : public test::fixture_base<> {
     const detector_t &m_det;
     /// Volume names
     const typename detector_t::name_map &m_names;
+    /// Whiteboard to pin data
+    std::shared_ptr<test::whiteboard> m_whiteboard{nullptr};
 };
 
 template <typename detector_t>

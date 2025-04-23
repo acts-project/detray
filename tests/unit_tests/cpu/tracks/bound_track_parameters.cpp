@@ -9,7 +9,7 @@
 #include "detray/tracks/bound_track_parameters.hpp"
 
 // Detray test include(s)
-#include "detray/test/utils/types.hpp"
+#include "detray/test/framework/types.hpp"
 
 // Google Test include(s)
 #include <gtest/gtest.h>

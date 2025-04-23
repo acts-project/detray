@@ -19,9 +19,9 @@
 #include "detray/options/parse_options.hpp"
 #include "detray/options/propagation_options.hpp"
 #include "detray/options/track_generator_options.hpp"
-#include "detray/test/common/detail/register_checks.hpp"
 #include "detray/test/cpu/material_scan.hpp"
-#include "detray/test/utils/types.hpp"
+#include "detray/test/framework/register_checks.hpp"
+#include "detray/test/framework/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -80,16 +80,13 @@ int main(int argc, char **argv) {
     detector_t::geometry_context ctx{};
 
     // Print the detector's material as recorded by a ray scan
-    mat_scan_cfg.whiteboard(white_board);
     mat_scan_cfg.track_generator().uniform_eta(true);
-    detray::detail::register_checks<test::material_scan>(det, names,
-                                                         mat_scan_cfg, ctx);
+    detray::test::register_checks<test::material_scan>(det, names, mat_scan_cfg,
+                                                       ctx, white_board);
 
     // Now trace the material during navigation and compare
-    mat_val_cfg.whiteboard(white_board);
-
-    detail::register_checks<detray::test::material_validation>(
-        det, names, mat_val_cfg, ctx);
+    test::register_checks<detray::test::material_validation>(
+        det, names, mat_val_cfg, ctx, white_board);
 
     // Run the checks
     return RUN_ALL_TESTS();

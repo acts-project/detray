@@ -24,11 +24,11 @@
 #include "detray/io/utils/file_handle.hpp"
 
 // Detray test include(s)
-#include "detray/test/common/navigation_validation_config.hpp"
 #include "detray/test/utils/inspectors.hpp"
+#include "detray/test/utils/step_tracer.hpp"
 #include "detray/test/validation/detector_scan_utils.hpp"
 #include "detray/test/validation/material_validation_utils.hpp"
-#include "detray/test/validation/step_tracer.hpp"
+#include "detray/test/validation/navigation_validation_config.hpp"
 
 // Detray plugin include(s)
 #include "detray/plugins/svgtools/styling/styling.hpp"
@@ -328,11 +328,13 @@ inline auto record_propagation(
 ///
 /// @returns the counts on missed and additional surfaces, matching errorsm
 /// as well as the collections of the intersections that did not match
-template <typename truth_trace_t, typename recorded_trace_t, typename traj_t>
-auto compare_traces(const detray::test::navigation_validation_config &cfg,
-                    truth_trace_t &truth_trace,
-                    recorded_trace_t &recorded_trace, const traj_t &traj,
-                    std::size_t trk_no, std::fstream *debug_file = nullptr) {
+template <typename truth_trace_t, typename recorded_trace_t, typename traj_t,
+          concepts::algebra algebra_t>
+auto compare_traces(
+    const detray::test::navigation_validation_config<algebra_t> &cfg,
+    truth_trace_t &truth_trace, recorded_trace_t &recorded_trace,
+    const traj_t &traj, std::size_t trk_no,
+    std::fstream *debug_file = nullptr) {
 
     using nav_record_t = typename recorded_trace_t::value_type;
     using truth_record_t = typename truth_trace_t::value_type;
@@ -1003,7 +1005,7 @@ template <typename stepper_t, typename... actor_ts, typename detector_t,
           typename field_view_t, typename intersection_t,
           concepts::algebra algebra_t>
 auto compare_to_navigation(
-    const detray::test::navigation_validation_config &cfg,
+    const detray::test::navigation_validation_config<algebra_t> &cfg,
     vecmem::host_memory_resource &host_mr, const detector_t &det,
     const typename detector_t::name_map &names,
     const typename detector_t::geometry_context ctx,

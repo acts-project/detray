@@ -10,7 +10,6 @@
 // Project include(s).
 #include "detray/core/detector.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/detectors/bfield.hpp"
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actors.hpp"
 #include "detray/propagator/propagator.hpp"
@@ -18,6 +17,7 @@
 #include "detray/tracks/tracks.hpp"
 
 // Tutorial include(s)
+#include "detray/test/common/bfield.hpp"
 #include "detray/tutorial/types.hpp"
 
 // Covfie include(s)

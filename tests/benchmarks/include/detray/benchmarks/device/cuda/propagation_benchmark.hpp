@@ -9,20 +9,20 @@
 
 // Project include(s)
 #include "detray/definitions/algebra.hpp"
-#include "detray/detectors/bfield.hpp"
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actors.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
 
-// Detray test include(s).
-#include "detray/test/utils/types.hpp"
+// Detray test include(s)
+#include "detray/test/common/bfield.hpp"
 
 // Detray benchmark include(s)
 #include "detray/benchmarks/benchmark_base.hpp"
 #include "detray/benchmarks/propagation_benchmark_config.hpp"
 #include "detray/benchmarks/propagation_benchmark_utils.hpp"
+#include "detray/benchmarks/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/cuda/device_memory_resource.hpp>
@@ -51,7 +51,7 @@ using default_chain = actor_chain<parameter_transporter<algebra_t>,
                                   pointwise_material_interactor<algebra_t>,
                                   parameter_resetter<algebra_t>>;
 
-using const_field_t = bfield::const_bknd_t<test::scalar>;
+using const_field_t = bfield::const_bknd_t<benchmarks::scalar>;
 
 template <typename metadata_t, typename bfield_t,
           template <typename> class actor_chain_t>

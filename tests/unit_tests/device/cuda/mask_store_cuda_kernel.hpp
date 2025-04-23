@@ -14,7 +14,7 @@
 #include "detray/geometry/shapes.hpp"
 
 // Detray test include(s)
-#include "detray/test/utils/types.hpp"
+#include "detray/test/framework/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/containers/data/jagged_vector_buffer.hpp>

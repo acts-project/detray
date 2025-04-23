@@ -14,12 +14,12 @@
 #include "detray/tracks/tracks.hpp"
 
 // Detray test include(s)
-#include "detray/test/utils/detectors/build_toy_detector.hpp"
-#include "detray/test/utils/detectors/build_wire_chamber.hpp"
+#include "detray/test/common/build_toy_detector.hpp"
+#include "detray/test/common/build_wire_chamber.hpp"
 #include "detray/test/utils/inspectors.hpp"
 
 // Test include(s)
-#include "detray/test/utils/types.hpp"
+#include "detray/test/framework/types.hpp"
 
 // VecMem include(s).
 #include <vecmem/memory/host_memory_resource.hpp>

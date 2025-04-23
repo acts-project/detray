@@ -10,10 +10,8 @@
 // Detray plugin include(s)
 #include "detray/plugins/svgtools/styling/styling.hpp"
 
-// Detray test include(s).
-#include "detray/test/common/detail/whiteboard.hpp"
-#include "detray/test/common/fixture_base.hpp"
-#include "detray/test/utils/types.hpp"
+// Detray test include(s)
+#include "detray/test/common/test_configuration.hpp"
 
 // System include(s)
 #include <limits>
@@ -23,17 +21,17 @@
 namespace detray::test {
 
 /// @brief Configuration for a detector scan test.
-template <typename track_generator_t>
-struct detector_scan_config : public test::fixture_base<>::configuration {
-    using base_type = test::fixture_base<>;
-    using scalar_type = typename base_type::scalar;
-    using vector3_type = typename base_type::vector3;
+template <typename track_generator_t, concepts::algebra algebra_t>
+struct detector_scan_config
+    : public detray::test::configuration<dscalar<algebra_t>> {
+
+    using scalar_type = dscalar<algebra_t>;
+    using vector3_type = dvector3D<algebra_t>;
+    using base_type = detray::test::configuration<scalar_type>;
     using trk_gen_config_t = typename track_generator_t::configuration;
 
     /// Name of the test
     std::string m_name{"detector_scan"};
-    /// Save results for later use in downstream tests
-    std::shared_ptr<test::whiteboard> m_white_board;
     /// Name of the input file, containing the complete ray scan traces
     std::string m_intersection_file{"truth_intersections"};
     std::string m_track_param_file{"truth_trk_parameters"};
@@ -59,10 +57,6 @@ struct detector_scan_config : public test::fixture_base<>::configuration {
     const std::string &track_param_file() const { return m_track_param_file; }
     darray<scalar_type, 2> mask_tolerance() const { return m_mask_tol; }
     const vector3_type &B_vector() { return m_B; }
-    std::shared_ptr<test::whiteboard> whiteboard() { return m_white_board; }
-    std::shared_ptr<test::whiteboard> whiteboard() const {
-        return m_white_board;
-    }
     bool write_intersections() const { return m_write_inters; }
     trk_gen_config_t &track_generator() { return m_trk_gen_cfg; }
     const trk_gen_config_t &track_generator() const { return m_trk_gen_cfg; }
@@ -94,15 +88,6 @@ struct detector_scan_config : public test::fixture_base<>::configuration {
     detector_scan_config &B_vector(const scalar_type B0, const scalar_type B1,
                                    const scalar_type B2) {
         m_B = vector3_type{B0, B1, B2};
-        return *this;
-    }
-    detector_scan_config &whiteboard(
-        std::shared_ptr<test::whiteboard> w_board) {
-        if (!w_board) {
-            throw std::invalid_argument(
-                "Detector scan: No valid whiteboard instance");
-        }
-        m_white_board = std::move(w_board);
         return *this;
     }
     detector_scan_config &write_intersections(const bool do_write) {

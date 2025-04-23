@@ -19,7 +19,10 @@ file(
 )
 
 detray_add_library( detray_tutorial tutorial ${_detray_tutorial_headers})
-target_link_libraries(detray_tutorial INTERFACE vecmem::core detray::core)
+target_link_libraries(
+    detray_tutorial
+    INTERFACE vecmem::core detray::core detray::detectors
+)
 unset(_detray_tutorial_headers)
 
 # Include all of the code-holding sub-directories.

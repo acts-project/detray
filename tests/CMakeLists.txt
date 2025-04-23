@@ -4,8 +4,6 @@
 #
 # Mozilla Public License Version 2.0
 
-message(STATUS "Building 'detray::test_utils' component")
-
 # Set the common C++ flags.
 include(detray-compiler-options-cpp)
 
@@ -14,30 +12,76 @@ include_directories(
     $<TARGET_PROPERTY:covfie::core,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
-# Set up a test library, which can be used by downstream projects without
-# building the detray unit and integration
+# Detray unit and integration test framework (depends on google test)
+if(DETRAY_BUILD_TESTING)
+    message(STATUS "Building 'detray::test_framework' component")
+
+    file(
+        GLOB _detray_test_headers
+        RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
+        "include/detray/test/framework/*.hpp"
+    )
+
+    add_library(detray_test_framework INTERFACE "${_detray_test_headers}")
+    add_library(detray::test_framework ALIAS detray_test_framework)
+
+    target_include_directories(
+        detray_test_framework
+        INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/include"
+    )
+
+    target_link_libraries(
+        detray_test_framework
+        INTERFACE GTest::gtest vecmem::core detray::core detray::detectors
+    )
+
+    unset(_detray_test_headers)
+endif()
+
+# Common test dependencies such as test detectors, B-fields and track generators
+# (depends on covfie)
 if(DETRAY_BUILD_TEST_UTILS)
+    message(STATUS "Building 'detray::test_common' component")
+
+    file(
+        GLOB _detray_test_common_headers
+        RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
+        "include/detray/test/common/*.hpp"
+        "include/detray/test/common/factories/*.hpp"
+        "include/detray/test/common/event_generator/*.hpp"
+    )
+
+    detray_add_library(detray_test_common test_common "${_detray_test_common_headers}")
+
+    target_link_libraries(
+        detray_test_common
+        INTERFACE vecmem::core covfie::core detray::core detray::detectors
+    )
+
+    unset(_detray_test_common_headers)
+endif()
+
+# Lightweight test utils library without external dependencies
+if(DETRAY_BUILD_TEST_UTILS OR DETRAY_BUILD_VALIDATION_TOOLS)
+    message(STATUS "Building 'detray::test_utils' component")
+
     file(
         GLOB _detray_test_utils_headers
         RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
         "include/detray/test/utils/*.hpp"
-        "include/detray/test/utils/detectors/*.hpp"
-        "include/detray/test/utils/detectors/factories/*.hpp"
-        "include/detray/test/utils/simulation/event_generator/*.hpp"
-        "include/detray/test/utils/simulation/*.hpp"
     )
 
     detray_add_library(detray_test_utils test_utils ${_detray_test_utils_headers})
-    target_link_libraries(
-        detray_test_utils
-        INTERFACE vecmem::core detray::core detray::detectors
-    )
+
+    target_link_libraries(detray_test_utils INTERFACE vecmem::core detray::core)
 
     unset(_detray_test_utils_headers)
 endif()
 
-# Build extended validation tools
+# Build extended validation tools (actsvg and csv depencies)
 if(DETRAY_BUILD_VALIDATION_TOOLS)
+    message(STATUS "Building 'detray::validation_utils' component")
+
     file(
         GLOB _detray_validation_headers
         RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
@@ -45,6 +89,7 @@ if(DETRAY_BUILD_VALIDATION_TOOLS)
     )
 
     detray_add_library(detray_validation_utils validation_utils ${_detray_validation_headers})
+
     target_link_libraries(
         detray_validation_utils
         INTERFACE
@@ -56,33 +101,6 @@ if(DETRAY_BUILD_VALIDATION_TOOLS)
     )
 
     unset(_detray_validation_headers)
-endif()
-
-# Build the common (host and device) test library (mostly for integration tests)
-if(DETRAY_BUILD_TESTING)
-    message(STATUS "Building 'detray::test_common' component")
-
-    file(
-        GLOB _detray_test_headers
-        RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
-        "include/detray/test/common/*.hpp"
-        "include/detray/test/common/detail/*.hpp"
-    )
-
-    add_library(detray_test_common INTERFACE "${_detray_test_headers}")
-    add_library(detray::test_common ALIAS detray_test_common)
-
-    target_include_directories(
-        detray_test_common
-        INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/include"
-    )
-
-    target_link_libraries(
-        detray_test_common
-        INTERFACE GTest::gtest vecmem::core detray::core detray::test_utils
-    )
-
-    unset(_detray_test_headers)
 endif()
 
 # Include all of the code-holding sub-directories.

@@ -7,7 +7,6 @@
 
 // Project include(s).
 #include "detray/definitions/units.hpp"
-#include "detray/detectors/bfield.hpp"
 #include "detray/geometry/barcode.hpp"
 #include "detray/geometry/shapes/rectangle2D.hpp"
 #include "detray/navigation/navigator.hpp"
@@ -18,8 +17,9 @@
 #include "detray/tracks/tracks.hpp"
 
 // Detray test include(s)
-#include "detray/test/utils/detectors/build_telescope_detector.hpp"
-#include "detray/test/utils/types.hpp"
+#include "detray/test/common/bfield.hpp"
+#include "detray/test/common/build_telescope_detector.hpp"
+#include "detray/test/framework/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -63,7 +63,7 @@ TEST_P(BackwardPropagation, backward_propagation) {
     using bfield_t = bfield::const_field_t<scalar>;
     vector3 B{0.f * unit<scalar>::T, 0.f * unit<scalar>::T,
               1.f * unit<scalar>::T};
-    const bfield_t hom_bfield = bfield::create_const_field<scalar>(B);
+    const bfield_t hom_bfield = create_const_field<scalar>(B);
 
     using navigator_t = navigator<decltype(det)>;
     using rk_stepper_t = rk_stepper<bfield_t::view_t, test_algebra>;

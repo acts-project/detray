@@ -13,7 +13,7 @@
 #include "detray/definitions/units.hpp"
 
 // Detray test include(s)
-#include "detray/test/utils/simulation/event_generator/random_numbers.hpp"
+#include "detray/test/common/event_generator/random_numbers.hpp"
 
 // System include(s)
 #include <algorithm>

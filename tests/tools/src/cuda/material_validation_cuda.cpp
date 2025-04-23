@@ -17,9 +17,9 @@
 #include "detray/options/parse_options.hpp"
 #include "detray/options/propagation_options.hpp"
 #include "detray/options/track_generator_options.hpp"
-#include "detray/test/common/detail/register_checks.hpp"
 #include "detray/test/cpu/material_scan.hpp"
 #include "detray/test/device/cuda/material_validation.hpp"
+#include "detray/test/framework/register_checks.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/cuda/device_memory_resource.hpp>
@@ -82,18 +82,16 @@ int main(int argc, char **argv) {
 
     // Print the detector's material as recorded by a ray scan
     mat_val_cfg.name("material_validation_for_cuda");
-    mat_scan_cfg.whiteboard(white_board);
     mat_scan_cfg.track_generator().uniform_eta(true);
-    detray::detail::register_checks<test::material_scan>(det, names,
-                                                         mat_scan_cfg, ctx);
+    detray::test::register_checks<test::material_scan>(det, names, mat_scan_cfg,
+                                                       ctx, white_board);
 
     // Now trace the material during navigation and compare
     mat_val_cfg.name("material_validation_cuda");
-    mat_val_cfg.whiteboard(white_board);
     mat_val_cfg.device_mr(&dev_mr);
 
-    detail::register_checks<detray::cuda::material_validation>(
-        det, names, mat_val_cfg, ctx);
+    test::register_checks<detray::cuda::material_validation>(
+        det, names, mat_val_cfg, ctx, white_board);
 
     // Run the checks
     return RUN_ALL_TESTS();

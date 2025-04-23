@@ -4,7 +4,7 @@
 #
 # Mozilla Public License Version 2.0
 
-# Set the CUDA build flags.
+# Set the CPU build flags.
 include(detray-compiler-options-cpp)
 
 # Set up a test library, which the "new style" benchmarks and tests could use.
