@@ -51,7 +51,7 @@ macro(detray_add_cpu_test algebra)
        "geometry/masks/trapezoid2D.cpp"
        "geometry/masks/unbounded.cpp"
        "geometry/masks/unmasked.cpp"
-       "geometry/tracking_surface.cpp"
+       "geometry/surface.cpp"
        "geometry/tracking_volume.cpp"
        "grid2/axis.cpp"
        "grid2/grid2.cpp"

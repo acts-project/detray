@@ -15,6 +15,7 @@
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/barcode.hpp"
+#include "detray/geometry/tracking_surface.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
 #include "detray/navigation/intersection_kernel.hpp"
@@ -209,22 +210,26 @@ class navigator {
             return static_cast<dindex>(m_last - m_next + 1);
         }
 
-        /// @returns current/previous object that was reached
+        /// @returns the current/previous object, if available in the cache.
         DETRAY_HOST_DEVICE
         inline auto current() const -> const candidate_t & {
-            assert(m_next > 0);
-            return m_candidates[static_cast<std::size_t>(m_next - 1)];
+            assert(is_on_surface());
+            const auto curr_idx{
+                static_cast<std::size_t>(m_next >= 1 ? m_next - 1 : 0)};
+            return m_candidates[curr_idx];
         }
 
-        /// @returns next object that we want to reach (current target) - const
+        /// @returns next object that we want to reach (target) - const
         DETRAY_HOST_DEVICE
         inline auto target() const -> const candidate_t & {
+            assert(!is_exhausted());
             return m_candidates[static_cast<std::size_t>(m_next)];
         }
 
         /// @returns last valid candidate (by position in the cache) - const
         DETRAY_HOST_DEVICE
         inline auto last() const -> const candidate_t & {
+            assert(!is_exhausted());
             return m_candidates[static_cast<std::size_t>(m_last)];
         }
 
@@ -259,19 +264,17 @@ class navigator {
         }
 
         /// @returns the next surface the navigator intends to reach
-        DETRAY_HOST_DEVICE
-        inline auto next_surface() const {
-            return tracking_surface<detector_type>{*m_detector,
-                                                   target().sf_desc};
+        template <template <typename> class surface_t = tracking_surface>
+        DETRAY_HOST_DEVICE inline auto next_surface() const {
+            return surface_t{*m_detector, target().sf_desc};
         }
 
         /// @returns current detector surface the navigator is on
         /// (cannot be used when not on surface) - const
-        DETRAY_HOST_DEVICE
-        inline auto get_surface() const {
+        template <template <typename> class surface_t = tracking_surface>
+        DETRAY_HOST_DEVICE inline auto get_surface() const {
             assert(is_on_surface());
-            return tracking_surface<detector_type>{*m_detector,
-                                                   current().sf_desc};
+            return surface_t{*m_detector, current().sf_desc};
         }
 
         /// @returns current detector volume of the navigation stream
@@ -613,7 +616,7 @@ class navigator {
             const scalar_type mask_tol_scalor,
             const scalar_type overstep_tol) const {
 
-            const auto sf = tracking_surface{det, sf_descr};
+            const auto sf = geometry::surface{det, sf_descr};
 
             sf.template visit_mask<intersection_initialize<ray_intersector>>(
                 nav_state,
@@ -666,9 +669,18 @@ class navigator {
         // Determine overall state of the navigation after updating the cache
         update_navigation_state(navigation, cfg);
 
-        // If init was not successful, the propagation setup is broken
+        // If init was not successful, the propagation setup might be broken
         if (navigation.trust_level() != navigation::trust_level::e_full) {
-            navigation.m_heartbeat = false;
+            // Do not exit if backward navigation starts on the outmost portal
+            if (navigation.is_on_portal() &&
+                navigation.direction() == navigation::direction::e_backward) {
+                navigation.m_trust_level =
+                    detail::is_invalid_value(navigation.current().volume_link)
+                        ? navigation::trust_level::e_full
+                        : navigation::trust_level::e_no_trust;
+            } else {
+                navigation.m_heartbeat = false;
+            }
         }
 
         navigation.run_inspector(cfg, track.pos(), track.dir(),
@@ -694,7 +706,8 @@ class navigator {
     DETRAY_HOST_DEVICE inline bool update(
         const track_t &track, state &navigation, const navigation::config &cfg,
         const context_type &ctx = {},
-        [[maybe_unused]] const bool is_before_actor = true) const {
+        const bool /*is_before_actor*/ = true) const {
+
         // Candidates are re-evaluated based on the current trust level.
         // Should result in 'full trust'
         bool is_init = update_kernel(track, navigation, cfg, ctx);
@@ -705,14 +718,14 @@ class navigator {
         }
         // Otherwise: did we run into a portal?
         else if (navigation.is_on_portal()) {
-            // Set volume index to the next volume provided by the portal
-            navigation.set_volume(navigation.current().volume_link);
-
             // Navigation reached the end of the detector world
-            if (detail::is_invalid_value(navigation.volume())) {
+            if (detail::is_invalid_value(navigation.current().volume_link)) {
                 navigation.exit();
                 return is_init;
             }
+
+            // Set volume index to the next volume provided by the portal
+            navigation.set_volume(navigation.current().volume_link);
 
             // Either end of world or valid volume index
             assert(detail::is_invalid_value(navigation.volume()) ||
@@ -729,7 +742,7 @@ class navigator {
             // Fresh initialization, reset trust and heartbeat even though we
             // are on inner portal
             navigation.m_trust_level = navigation::trust_level::e_full;
-            navigation.m_heartbeat = !navigation.is_exhausted();
+            navigation.m_heartbeat = true;
         }
         // If no trust could be restored for the current state, (local)
         // navigation might be exhausted: re-initialize volume
@@ -754,13 +767,12 @@ class navigator {
 
                 init(track, navigation, loose_cfg, ctx,
                      use_path_tolerance_as_overstep_tolerance);
-
-                // Unrecoverable
-                if (navigation.trust_level() !=
-                    navigation::trust_level::e_full) {
-                    navigation.abort();
-                }
             }
+        }
+        // Unrecoverable
+        if (navigation.trust_level() != navigation::trust_level::e_full ||
+            navigation.is_exhausted()) {
+            navigation.abort();
         }
 
         return is_init;
@@ -830,7 +842,8 @@ class navigator {
 
         // Re-evaluate all currently available candidates and sort again
         // - do this when your navigation state is stale, but not invalid
-        if (navigation.trust_level() == navigation::trust_level::e_fair) {
+        if (navigation.trust_level() == navigation::trust_level::e_fair &&
+            !navigation.is_exhausted()) {
 
             for (auto &candidate : navigation) {
                 // Disregard this candidate if it is not reachable
@@ -886,13 +899,13 @@ class navigator {
         // portal, in which case the navigation needs to be re-initialized
         if (!navigation.is_exhausted() &&
             navigation.is_on_surface(navigation.target(), cfg)) {
+            navigation.m_status = (navigation.target().sf_desc.is_portal())
+                                      ? navigation::status::e_on_portal
+                                      : navigation::status::e_on_module;
             // Set the next object that we want to reach (this function is only
             // called once the cache has been updated to a full trust state).
             // Might lead to exhausted cache.
             navigation.next();
-            navigation.m_status = (navigation.current().sf_desc.is_portal())
-                                      ? navigation::status::e_on_portal
-                                      : navigation::status::e_on_module;
         } else {
             // Otherwise the track is moving towards a surface
             navigation.m_status = navigation::status::e_towards_object;
@@ -929,7 +942,7 @@ class navigator {
             return false;
         }
 
-        const auto sf = tracking_surface{det, candidate.sf_desc};
+        const auto sf = geometry::surface{det, candidate.sf_desc};
 
         // Check whether this candidate is reachable by the track
         return sf.template visit_mask<intersection_update<ray_intersector>>(

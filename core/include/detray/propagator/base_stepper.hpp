@@ -181,18 +181,6 @@ class base_stepper {
             return m_jac_transport;
         }
 
-        /// @returns the current full Jacbian.
-        DETRAY_HOST_DEVICE
-        inline const bound_matrix_type &full_jacobian() const {
-            return m_full_jacobian;
-        }
-
-        /// Set new full Jacbian.
-        DETRAY_HOST_DEVICE
-        inline void set_full_jacobian(const bound_matrix_type &jac) {
-            m_full_jacobian = jac;
-        }
-
         /// Reset transport Jacbian.
         DETRAY_HOST_DEVICE
         inline void reset_transport_jacobian() {
@@ -229,10 +217,6 @@ class base_stepper {
         private:
         /// Jacobian transport matrix
         free_matrix_type m_jac_transport = matrix::identity<free_matrix_type>();
-
-        /// Full jacobian
-        bound_matrix_type m_full_jacobian =
-            matrix::identity<bound_matrix_type>();
 
         /// Bound covariance
         bound_track_parameters_type m_bound_params;

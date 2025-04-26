@@ -9,7 +9,7 @@
 
 // Project include(s)
 #include "detray/definitions/algebra.hpp"
-#include "detray/geometry/tracking_surface.hpp"
+#include "detray/geometry/surface.hpp"
 #include "detray/plugins/svgtools/conversion/detector.hpp"
 #include "detray/plugins/svgtools/conversion/grid.hpp"
 #include "detray/plugins/svgtools/conversion/information_section.hpp"
@@ -108,7 +108,7 @@ class illustrator {
         const typename detector_t::geometry_context& gctx = {}) const {
 
         const auto surface =
-            detray::tracking_surface<detector_t>{_detector, index};
+            detray::geometry::surface<detector_t>{_detector, index};
 
         actsvg::svg::object ret;
         actsvg::svg::object material;
@@ -208,7 +208,7 @@ class illustrator {
                                       const view_t& view) const {
 
         const auto surface =
-            detray::tracking_surface<detector_t>{_detector, index};
+            detray::geometry::surface<detector_t>{_detector, index};
 
         if (_hide_material) {
             return actsvg::svg::object{};
@@ -444,8 +444,6 @@ class illustrator {
 
         auto p_ir = svgtools::conversion::intersection(
             _detector, intersections, dir, gctx, _style._intersection_style);
-        // The first intersection sits in the origin by convention
-        p_ir._landmarks.front()._position = {0.f, 0.f, 0.f};
 
         return svgtools::meta::display::intersection(prefix, p_ir, view);
     }
@@ -519,18 +517,24 @@ class illustrator {
             auto p_ir = svgtools::conversion::intersection(
                 _detector, intersections, trajectory.dir(0.f), gctx,
                 _style._landmark_style);
-            // The first intersection sits in the origin by convention
-            p_ir._landmarks.front()._position = {0.f, 0.f, 0.f};
 
             ret.add_object(svgtools::meta::display::intersection(
                 prefix + "_record", p_ir, view));
 
             // The intersection record is always sorted by path length
-            const auto sf{detray::tracking_surface{
+            const auto sf_back{detray::geometry::surface{
                 _detector, intersections.back().sf_desc}};
-            const auto final_pos = sf.local_to_global(
+            const auto sf_front{detray::geometry::surface{
+                _detector, intersections.front().sf_desc}};
+
+            const auto pos_back = sf_back.local_to_global(
                 gctx, intersections.back().local, trajectory.dir(0.f));
-            max_path = vector::norm(final_pos - trajectory.pos(0.f));
+            const auto pos_front = sf_front.local_to_global(
+                gctx, intersections.front().local, trajectory.dir(0.f));
+
+            max_path = vector::norm(pos_back - trajectory.pos(0.f));
+            max_path = math::max(max_path,
+                                 vector::norm(pos_front - trajectory.pos(0.f)));
         }
 
         ret.add_object(draw_trajectory(prefix + "_trajectory", trajectory,

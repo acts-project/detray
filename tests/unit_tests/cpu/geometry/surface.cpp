@@ -6,9 +6,10 @@
  */
 
 // Project include(s)
-#include "detray/geometry/tracking_surface.hpp"
+#include "detray/geometry/surface.hpp"
 
 #include "detray/definitions/indexing.hpp"
+#include "detray/utils/geometry_utils.hpp"  //< cos incidence angle
 
 // Detray test include(s)
 #include "detray/test/utils/detectors/build_toy_detector.hpp"
@@ -95,10 +96,10 @@ GTEST_TEST(detray_geometry, surface_toy_detector) {
     using detector_t = detector<test::toy_metadata>;
 
     using test_algebra = detector_t::algebra_type;
-    using scalar = tracking_surface<detector_t>::scalar_type;
-    using point2 = tracking_surface<detector_t>::point2_type;
-    using point3 = tracking_surface<detector_t>::point3_type;
-    using vector3 = tracking_surface<detector_t>::vector3_type;
+    using scalar = geometry::surface<detector_t>::scalar_type;
+    using point2 = geometry::surface<detector_t>::point2_type;
+    using point3 = geometry::surface<detector_t>::point3_type;
+    using vector3 = geometry::surface<detector_t>::vector3_type;
 
     vecmem::host_memory_resource host_mr;
     toy_det_config<test::scalar> toy_cfg{};
@@ -112,7 +113,7 @@ GTEST_TEST(detray_geometry, surface_toy_detector) {
     // Disc
     //
     const auto disc_descr = toy_det.surfaces()[1u];
-    const auto disc = tracking_surface{toy_det, disc_descr};
+    const auto disc = geometry::surface{toy_det, disc_descr};
 
     // IDs
     ASSERT_EQ(disc.barcode(), disc_descr.barcode());
@@ -130,11 +131,11 @@ GTEST_TEST(detray_geometry, surface_toy_detector) {
         disc.transform(ctx).translation();  // beampipe portal
     ASSERT_NEAR(disc_translation[0], 0.f, tol);
     ASSERT_NEAR(disc_translation[1], 0.f, tol);
-    ASSERT_NEAR(disc_translation[2], -824.5f, tol);
+    ASSERT_NEAR(disc_translation[2], -827.5f, tol);
     auto center = disc.center(ctx);
     ASSERT_NEAR(center[0], 0.f, tol);
     ASSERT_NEAR(center[1], 0.f, tol);
-    ASSERT_NEAR(center[2], -824.5f, tol);
+    ASSERT_NEAR(center[2], -827.5f, tol);
 
     // Surface normal
     const auto z_axis = vector3{0.f, 0.f, 1.f};
@@ -144,21 +145,22 @@ GTEST_TEST(detray_geometry, surface_toy_detector) {
 
     // Cos incidence angle
     vector3 dir = vector::normalize(vector3{1.f, 0.f, 1.f});
-    ASSERT_NEAR(disc.cos_angle(ctx, dir, point3{0.f, 0.f, 0.f}),
+    ASSERT_NEAR(cos_angle(ctx, disc, dir, point3{0.f, 0.f, 0.f}),
                 constant<scalar>::inv_sqrt2, tol);
-    ASSERT_NEAR(disc.cos_angle(ctx, dir, point2{0.f, 0.f}),
+    ASSERT_NEAR(cos_angle(ctx, disc, dir, point2{0.f, 0.f}),
                 constant<scalar>::inv_sqrt2, tol);
 
     dir = vector::normalize(vector3{1.f, 1.f, 0.f});
-    ASSERT_NEAR(disc.cos_angle(ctx, dir, point3{1.f, 0.5f, 0.f}), 0.f, tol);
-    ASSERT_NEAR(disc.cos_angle(ctx, dir, point2{1.f, 0.5f}), 0.f, tol);
+    ASSERT_NEAR(cos_angle(ctx, disc, dir, point3{1.f, 0.5f, 0.f}), 0.f, tol);
+    ASSERT_NEAR(cos_angle(ctx, disc, dir, point2{1.f, 0.5f}), 0.f, tol);
 
     dir = vector::normalize(vector3{1.f, 0.f, constant<scalar>::pi});
     scalar cos_inc_angle{constant<scalar>::pi /
                          std::sqrt(1.f + std::pow(constant<scalar>::pi, 2.f))};
-    ASSERT_NEAR(disc.cos_angle(ctx, dir, point3{2.f, 1.f, 0.f}), cos_inc_angle,
+    ASSERT_NEAR(cos_angle(ctx, disc, dir, point3{2.f, 1.f, 0.f}), cos_inc_angle,
                 tol);
-    ASSERT_NEAR(disc.cos_angle(ctx, dir, point2{2.f, 1.f}), cos_inc_angle, tol);
+    ASSERT_NEAR(cos_angle(ctx, disc, dir, point2{2.f, 1.f}), cos_inc_angle,
+                tol);
 
     // Coordinate transformations
     point3 glob_pos = {4.f, 7.f, 4.f};
@@ -172,7 +174,7 @@ GTEST_TEST(detray_geometry, surface_toy_detector) {
 
     // Roundtrip
     point3 global = disc.local_to_global(ctx, local, test_dir);
-    point3 global2 = disc.bound_to_global(ctx, bound, test_dir);
+    point3 global2 = disc.local_to_global(ctx, bound, test_dir);
 
     ASSERT_NEAR(glob_pos[0], global[0], tol);
     ASSERT_NEAR(glob_pos[1], global[1], tol);
@@ -193,7 +195,7 @@ GTEST_TEST(detray_geometry, surface_toy_detector) {
     // Rectangle
     //
     const auto rec_descr = toy_det.surfaces()[604u];
-    const auto rec = tracking_surface{toy_det, rec_descr};
+    const auto rec = geometry::surface{toy_det, rec_descr};
 
     // IDs
     ASSERT_EQ(rec.barcode(), rec_descr.barcode());
@@ -223,18 +225,18 @@ GTEST_TEST(detray_geometry, surface_toy_detector) {
 
     // Incidence angle
     dir = vector::normalize(global);
-    ASSERT_NEAR(rec.cos_angle(ctx, dir, point3{0.f, 0.f, 0.f}), 1.f, tol);
-    ASSERT_NEAR(rec.cos_angle(ctx, dir, point2{0.f, 0.f}), 1.f, tol);
+    ASSERT_NEAR(cos_angle(ctx, rec, dir, point3{0.f, 0.f, 0.f}), 1.f, tol);
+    ASSERT_NEAR(cos_angle(ctx, rec, dir, point2{0.f, 0.f}), 1.f, tol);
 
     dir = vector::normalize(vector3{0.f, -global[2], global[1]});
-    ASSERT_NEAR(rec.cos_angle(ctx, dir, point3{1.f, 0.5f, 0.f}), 0.f, tol);
-    ASSERT_NEAR(rec.cos_angle(ctx, dir, point2{1.f, 0.5f}), 0.f, tol);
+    ASSERT_NEAR(cos_angle(ctx, rec, dir, point3{1.f, 0.5f, 0.f}), 0.f, tol);
+    ASSERT_NEAR(cos_angle(ctx, rec, dir, point2{1.f, 0.5f}), 0.f, tol);
 
     dir = vector::normalize(vector3{1.f, 0.f, constant<scalar>::pi});
     cos_inc_angle = std::fabs(vector::dot(dir, global));
-    ASSERT_NEAR(rec.cos_angle(ctx, dir, point3{2.f, 1.f, 0.f}), cos_inc_angle,
+    ASSERT_NEAR(cos_angle(ctx, rec, dir, point3{2.f, 1.f, 0.f}), cos_inc_angle,
                 tol);
-    ASSERT_NEAR(rec.cos_angle(ctx, dir, point2{2.f, 1.f}), cos_inc_angle, tol);
+    ASSERT_NEAR(cos_angle(ctx, rec, dir, point2{2.f, 1.f}), cos_inc_angle, tol);
 
     // Coordinate transformation roundtrip
     glob_pos = {4.f, 7.f, 4.f};
@@ -254,7 +256,7 @@ GTEST_TEST(detray_geometry, surface_toy_detector) {
     ASSERT_NEAR(glob_pos[2], global[2], tol);
 
     bound = rec.global_to_bound(ctx, glob_pos, test_dir);
-    global = rec.bound_to_global(ctx, bound, test_dir);
+    global = rec.local_to_global(ctx, bound, test_dir);
     ASSERT_NEAR(global[0], glob_pos[0], tol);
     ASSERT_NEAR(global[1], glob_pos[1], tol);
     ASSERT_NEAR(global[2], glob_pos[2], tol);
@@ -268,7 +270,7 @@ GTEST_TEST(detray_geometry, surface_toy_detector) {
     // Concentric Cylinder
     //
     const auto cyl_descr = toy_det.surfaces()[8u];
-    const auto cyl = tracking_surface{toy_det, cyl_descr};
+    const auto cyl = geometry::surface{toy_det, cyl_descr};
 
     // IDs
     ASSERT_EQ(cyl.barcode(), cyl_descr.barcode());
@@ -319,23 +321,23 @@ GTEST_TEST(detray_geometry, surface_toy_detector) {
 
     // Incidence angle
     ASSERT_NEAR(
-        cyl.cos_angle(ctx, x_axis, point3{r * constant<scalar>::pi, 0.f, r}),
+        cos_angle(ctx, cyl, x_axis, point3{r * constant<scalar>::pi, 0.f, r}),
         1.f, tol);
     ASSERT_NEAR(
-        cyl.cos_angle(ctx, x_axis, point2{r * constant<scalar>::pi, 0.f}), 1.f,
+        cos_angle(ctx, cyl, x_axis, point2{r * constant<scalar>::pi, 0.f}), 1.f,
         tol);
 
     ASSERT_NEAR(
-        cyl.cos_angle(ctx, z_axis, point3{r * constant<scalar>::pi_2, 0.f, r}),
+        cos_angle(ctx, cyl, z_axis, point3{r * constant<scalar>::pi_2, 0.f, r}),
         0.f, tol);
     ASSERT_NEAR(
-        cyl.cos_angle(ctx, z_axis, point2{r * constant<scalar>::pi_2, 0.f}),
+        cos_angle(ctx, cyl, z_axis, point2{r * constant<scalar>::pi_2, 0.f}),
         0.f, tol);
 
     dir = vector::normalize(vector3{1.f, 1.f, 0.f});
-    ASSERT_NEAR(cyl.cos_angle(ctx, dir, point3{0.f, 1.f, r}),
+    ASSERT_NEAR(cos_angle(ctx, cyl, dir, point3{0.f, 1.f, r}),
                 constant<scalar>::inv_sqrt2, tol);
-    ASSERT_NEAR(cyl.cos_angle(ctx, dir, point2{0.f, 1.f}),
+    ASSERT_NEAR(cos_angle(ctx, cyl, dir, point2{0.f, 1.f}),
                 constant<scalar>::inv_sqrt2, tol);
 
     // Coordinate transformation roundtrip
@@ -357,7 +359,7 @@ GTEST_TEST(detray_geometry, surface_toy_detector) {
     ASSERT_NEAR(glob_pos[2], global[2], tol);
 
     bound = cyl.global_to_bound(ctx, glob_pos, test_dir);
-    global = cyl.bound_to_global(ctx, bound, test_dir);
+    global = cyl.local_to_global(ctx, bound, test_dir);
     ASSERT_NEAR(global[0], glob_pos[0], tol);
     ASSERT_NEAR(global[1], glob_pos[1], tol);
     ASSERT_NEAR(global[2], glob_pos[2], tol);
@@ -379,10 +381,10 @@ GTEST_TEST(detray_geometry, surface_wire_chamber) {
     using detector_t = detector<metadata_t>;
 
     using test_algebra = metadata_t::algebra_type;
-    using scalar = tracking_surface<detector_t>::scalar_type;
-    using point2 = tracking_surface<detector_t>::point2_type;
-    using point3 = tracking_surface<detector_t>::point3_type;
-    using vector3 = tracking_surface<detector_t>::vector3_type;
+    using scalar = geometry::surface<detector_t>::scalar_type;
+    using point2 = geometry::surface<detector_t>::point2_type;
+    using point3 = geometry::surface<detector_t>::point3_type;
+    using vector3 = geometry::surface<detector_t>::vector3_type;
 
     vecmem::host_memory_resource host_mr;
     wire_chamber_config<scalar> cfg{};
@@ -395,7 +397,7 @@ GTEST_TEST(detray_geometry, surface_wire_chamber) {
     // Line
     //
     const auto line_descr = wire_chmbr.surfaces()[23u];
-    const auto line = tracking_surface{wire_chmbr, line_descr};
+    const auto line = geometry::surface{wire_chmbr, line_descr};
 
     // IDs
     ASSERT_EQ(line.barcode(), line_descr.barcode());
@@ -428,17 +430,17 @@ GTEST_TEST(detray_geometry, surface_wire_chamber) {
 
     // Cos incidence angle
     vector3 dir = vector::normalize(global);
-    ASSERT_NEAR(line.cos_angle(ctx, dir, point3{1.f, 0.f, 0.f}), 1.f, tol);
-    ASSERT_NEAR(line.cos_angle(ctx, dir, point2{1.f, 0.f}), 1.f, tol);
+    ASSERT_NEAR(cos_angle(ctx, line, dir, point3{1.f, 0.f, 0.f}), 1.f, tol);
+    ASSERT_NEAR(cos_angle(ctx, line, dir, point2{1.f, 0.f}), 1.f, tol);
 
     dir = vector::normalize(vector3{0.f, -global[2], global[1]});
-    ASSERT_NEAR(line.cos_angle(ctx, dir, point3{1.f, 100.f, 0.f}), 0.f, tol);
-    ASSERT_NEAR(line.cos_angle(ctx, dir, point2{1.f, 100.f}), 0.f, tol);
+    ASSERT_NEAR(cos_angle(ctx, line, dir, point3{1.f, 100.f, 0.f}), 0.f, tol);
+    ASSERT_NEAR(cos_angle(ctx, line, dir, point2{1.f, 100.f}), 0.f, tol);
 
-    dir = {-0.685475f, -0.0404595f, 0.726971f};
-    ASSERT_NEAR(line.cos_angle(ctx, dir, point3{2.f, 1.f, 0.f}),
+    dir = vector3{-0.685475f, -0.0404595f, 0.726971f};
+    ASSERT_NEAR(cos_angle(ctx, line, dir, point3{2.f, 1.f, 0.f}),
                 constant<scalar>::inv_sqrt2, 0.0005);
-    ASSERT_NEAR(line.cos_angle(ctx, dir, point2{2.f, 1.f}),
+    ASSERT_NEAR(cos_angle(ctx, line, dir, point2{2.f, 1.f}),
                 constant<scalar>::inv_sqrt2, 0.0005);
 
     // Coordinate transformation roundtrip
@@ -463,7 +465,7 @@ GTEST_TEST(detray_geometry, surface_wire_chamber) {
     ASSERT_NEAR(glob_pos[2], global[2], red_tol);
 
     point2 bound = line.global_to_bound(ctx, glob_pos, test_dir);
-    global = line.bound_to_global(ctx, bound, test_dir);
+    global = line.local_to_global(ctx, bound, test_dir);
     ASSERT_NEAR(global[0], glob_pos[0], red_tol);
     ASSERT_NEAR(global[1], glob_pos[1], red_tol);
     ASSERT_NEAR(global[2], glob_pos[2], red_tol);

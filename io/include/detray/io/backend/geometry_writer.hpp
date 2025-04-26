@@ -10,7 +10,7 @@
 // Project include(s)
 #include "detray/definitions/indexing.hpp"
 #include "detray/geometry/mask.hpp"
-#include "detray/geometry/tracking_surface.hpp"
+#include "detray/geometry/surface.hpp"
 #include "detray/io/backend/detail/basic_converter.hpp"
 #include "detray/io/backend/detail/type_info.hpp"
 #include "detray/io/frontend/payloads.hpp"
@@ -109,7 +109,7 @@ class geometry_writer {
 
     /// Convert a detector surface @param sf into its io payload
     template <typename detector_t>
-    static surface_payload to_payload(const tracking_surface<detector_t>& sf,
+    static surface_payload to_payload(const geometry::surface<detector_t>& sf,
                                       std::size_t sf_idx) {
         surface_payload sf_data;
 
@@ -143,7 +143,7 @@ class geometry_writer {
         for (const auto& sf_desc : det.surfaces()) {
             if (sf_desc.volume() == vol_desc.index()) {
                 vol_data.surfaces.push_back(
-                    to_payload(tracking_surface{det, sf_desc}, sf_idx++));
+                    to_payload(geometry::surface{det, sf_desc}, sf_idx++));
             }
         }
 

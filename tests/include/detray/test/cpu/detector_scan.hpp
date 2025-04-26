@@ -8,7 +8,6 @@
 #pragma once
 
 // Project include(s)
-#include "detray/geometry/tracking_surface.hpp"
 #include "detray/navigation/volume_graph.hpp"
 #include "detray/tracks/ray.hpp"
 

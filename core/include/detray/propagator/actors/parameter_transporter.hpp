@@ -64,8 +64,9 @@ struct parameter_transporter : actor {
             const free_matrix_t correction_term =
                 matrix::identity<free_matrix_t>() + path_correction;
 
-            return free_to_bound_jacobian * correction_term *
-                   stepping.transport_jacobian() * bound_to_free_jacobian;
+            return free_to_bound_jacobian *
+                   (correction_term *
+                    (stepping.transport_jacobian() * bound_to_free_jacobian));
         }
     };
 
@@ -94,26 +95,12 @@ struct parameter_transporter : actor {
         // from curvilinear frame)
         if (!bound_params.surface_link().is_invalid()) {
 
-            // Previous surface
-            tracking_surface prev_sf{navigation.detector(),
-                                     bound_params.surface_link()};
-
-            const bound_to_free_matrix_t bound_to_free_jacobian =
-                prev_sf.bound_to_free_jacobian(gctx, bound_params);
-
-            auto vol = navigation.get_volume();
-            const auto vol_mat_ptr =
-                vol.has_material() ? vol.material_parameters(stepping().pos())
-                                   : nullptr;
-            stepping.set_full_jacobian(
-                sf.template visit_mask<get_full_jacobian_kernel>(
-                    sf.transform(gctx), bound_to_free_jacobian, vol_mat_ptr,
-                    propagation._stepping));
+            const auto full_jacobian = get_full_jacobian(propagation);
 
             // Calculate surface-to-surface covariance transport
-            const bound_matrix_t new_cov =
-                stepping.full_jacobian() * bound_params.covariance() *
-                matrix::transpose(stepping.full_jacobian());
+            const bound_matrix_t new_cov = full_jacobian *
+                                           bound_params.covariance() *
+                                           matrix::transpose(full_jacobian);
 
             stepping.bound_params().set_covariance(new_cov);
         }
@@ -124,6 +111,39 @@ struct parameter_transporter : actor {
 
         // Set surface link
         bound_params.set_surface_link(sf.barcode());
+    }
+
+    template <typename propagator_state_t>
+    DETRAY_HOST_DEVICE inline bound_matrix_t get_full_jacobian(
+        propagator_state_t& propagation) const {
+
+        const auto& stepping = propagation._stepping;
+        const auto& navigation = propagation._navigation;
+
+        // Geometry context for this track
+        const auto& gctx = propagation._context;
+
+        // Current Surface
+        const auto sf = navigation.get_surface();
+
+        // Bound track params of departure surface
+        auto& bound_params = stepping.bound_params();
+
+        // Previous surface
+        tracking_surface prev_sf{navigation.detector(),
+                                 bound_params.surface_link()};
+
+        const bound_to_free_matrix_t bound_to_free_jacobian =
+            prev_sf.bound_to_free_jacobian(gctx, bound_params);
+
+        auto vol = navigation.get_volume();
+        const auto vol_mat_ptr = vol.has_material()
+                                     ? vol.material_parameters(stepping().pos())
+                                     : nullptr;
+
+        return sf.template visit_mask<get_full_jacobian_kernel>(
+            sf.transform(gctx), bound_to_free_jacobian, vol_mat_ptr,
+            propagation._stepping);
     }
 
 };  // namespace detray

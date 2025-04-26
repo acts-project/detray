@@ -18,6 +18,9 @@
 
 namespace detray::concepts {
 
+template <typename T, typename... U>
+concept any_of = std::disjunction_v<std::is_same<T, U>...>;
+
 /// Arithmetic types
 template <typename T>
 concept arithmetic = std::is_arithmetic_v<T>;

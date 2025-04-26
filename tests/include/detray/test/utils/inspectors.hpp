@@ -15,9 +15,8 @@
 // Project include(s)
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/math.hpp"
-#include "detray/geometry/tracking_surface.hpp"
+#include "detray/navigation/detail/print_state.hpp"
 #include "detray/navigation/navigation_config.hpp"
-#include "detray/navigation/navigator.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/base_stepper.hpp"
 #include "detray/propagator/stepping_config.hpp"
@@ -70,6 +69,19 @@ struct aggregate_inspector {
         if constexpr (current_id <
                       std::tuple_size<inspector_tuple_t>::value - 1) {
             return operator()<current_id + 1>(state, cfg, pos, dir, message);
+        }
+    }
+
+    /// Inspector interface
+    template <unsigned int current_id = 0, typename state_type>
+    DETRAY_HOST_DEVICE auto operator()(state_type &state, const char *message) {
+        // Call inspector
+        std::get<current_id>(_inspectors)(state, message);
+
+        // Next inspector
+        if constexpr (current_id <
+                      std::tuple_size<inspector_tuple_t>::value - 1) {
+            return operator()<current_id + 1>(state, message);
         }
     }
 
@@ -202,6 +214,13 @@ struct object_tracer {
         }
     }
 
+    /// Inspector interface
+    template <typename state_type>
+    DETRAY_HOST_DEVICE auto operator()(
+        const state_type & /*state*/,
+        const char * /*message*/) { /* Do nothing*/
+    }
+
     /// @returns a specific candidate from the trace
     DETRAY_HOST_DEVICE
     constexpr const candidate_record_t &operator[](std::size_t i) const {
@@ -263,112 +282,30 @@ struct print_inspector {
                     const point3_t &track_pos, const vector3_t &track_dir,
                     const char *message) {
         std::string msg(message);
-        std::string tabs = "\t\t\t\t";
-
         debug_stream << msg << std::endl;
+        debug_stream << "----------------------------------------" << std::endl;
 
-        debug_stream << "Volume" << tabs << state.volume() << std::endl;
-        debug_stream << "Overstep tol:\t\t\t" << cfg.overstep_tolerance
-                     << std::endl;
-        debug_stream << "Track pos: [r:" << vector::perp(track_pos)
-                     << ", z:" << track_pos[2] << "], dir: [" << track_dir[0]
-                     << ", " << track_dir[1] << ", " << track_dir[2] << "]"
-                     << std::endl;
-        debug_stream << "No. reachable\t\t\t" << state.n_candidates()
-                     << std::endl;
+        debug_stream << navigation::print_state(state);
+        debug_stream << navigation::print_candidates(state, cfg, track_pos,
+                                                     track_dir);
 
-        debug_stream << "Surface candidates: " << std::endl;
+        debug_stream << std::endl << std::endl;
+    }
 
-        using geo_ctx_t = typename state_type::detector_type::geometry_context;
-        for (const auto &sf_cand : state) {
+    /// Inspector interface. Print basic state information
+    template <typename state_type>
+    auto operator()(const state_type &state, const char *message) {
+        std::string msg(message);
+        debug_stream << msg << std::endl;
+        debug_stream << "----------------------------------------" << std::endl;
 
-            debug_stream << sf_cand;
+        debug_stream << navigation::print_state(state);
 
-            // Use additional debug information that was gathered on the cand.
-            if constexpr (state_type::value_type::is_debug()) {
-                const auto &local = sf_cand.local;
-                const auto pos =
-                    tracking_surface{state.detector(), sf_cand.sf_desc}
-                        .local_to_global(geo_ctx_t{}, local, track_dir);
-                debug_stream << ", glob: [r:" << vector::perp(pos)
-                             << ", z:" << pos[2] << "]" << std::endl;
-            }
-        }
-        if (!state.candidates().empty()) {
-            debug_stream << "=> next: ";
-            if (state.is_exhausted()) {
-                debug_stream << "exhausted" << std::endl;
-            } else {
-                debug_stream << " -> " << state.next_surface().barcode()
-                             << std::endl;
-            }
-        }
-
-        switch (state.status()) {
-            using enum status;
-            case e_abort:
-                debug_stream << "status" << tabs << "abort" << std::endl;
-                break;
-            case e_on_target:
-                debug_stream << "status" << tabs << "e_on_target" << std::endl;
-                break;
-            case e_unknown:
-                debug_stream << "status" << tabs << "unknowm" << std::endl;
-                break;
-            case e_towards_object:
-                debug_stream << "status" << tabs << "towards_surface"
-                             << std::endl;
-                break;
-            case e_on_module:
-                debug_stream << "status" << tabs << "on_module" << std::endl;
-                break;
-            case e_on_portal:
-                debug_stream << "status" << tabs << "on_portal" << std::endl;
-                break;
-            default:
-                break;
-        }
-
-        debug_stream << "current object\t\t\t";
-        if (state.is_on_surface() || state.status() == status::e_on_target) {
-            debug_stream << state.barcode() << std::endl;
-        } else {
-            debug_stream << "undefined" << std::endl;
-        }
-
-        debug_stream << "distance to next\t\t";
-        if (!state.is_exhausted() &&
-            math::fabs(state()) < static_cast<decltype(math::fabs(state()))>(
-                                      cfg.path_tolerance)) {
-            debug_stream << "on obj (within tol)" << std::endl;
-        } else if (state.is_exhausted()) {
-            debug_stream << "no target" << std::endl;
-        } else {
-            debug_stream << state() << std::endl;
-        }
-
-        switch (state.trust_level()) {
-            using enum trust_level;
-            case e_no_trust:
-                debug_stream << "trust" << tabs << "no_trust" << std::endl;
-                break;
-            case e_fair:
-                debug_stream << "trust" << tabs << "fair_trust" << std::endl;
-                break;
-            case e_high:
-                debug_stream << "trust" << tabs << "high_trust" << std::endl;
-                break;
-            case e_full:
-                debug_stream << "trust" << tabs << "full_trust" << std::endl;
-                break;
-            default:
-                break;
-        }
-        debug_stream << std::endl;
+        debug_stream << std::endl << std::endl;
     }
 
     /// @returns a string representation of the gathered information
-    std::string to_string() { return debug_stream.str(); }
+    std::string to_string() const { return debug_stream.str(); }
 };
 
 }  // namespace navigation

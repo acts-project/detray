@@ -22,7 +22,6 @@
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/toy_metadata.hpp"
-#include "detray/geometry/tracking_surface.hpp"
 #include "detray/geometry/tracking_volume.hpp"
 #include "detray/materials/mixture.hpp"
 #include "detray/materials/predefined_materials.hpp"
@@ -120,7 +119,7 @@ struct toy_det_config {
     // Radius of the innermost volume that contains the beampipe
     scalar_t m_beampipe_volume_radius{25.f * unit<scalar_t>::mm};
     // Envelope around the modules used by the cylinder portal generator
-    scalar_t m_portal_envelope{0.5f * unit<scalar_t>::mm};
+    scalar_t m_portal_envelope{2.f * unit<scalar_t>::mm};
     /// Configuration for the homogeneous material generator
     hom_material_config<scalar_t> m_material_config{};
     /// Put material maps on portals or use homogenous material on modules
@@ -909,7 +908,7 @@ inline auto add_endcap_detector(
 
             endcap_cfg.center(center_z)
                 .inner_radius(inner_radius)
-                .outer_radius(outer_radius);
+                .outer_radius(outer_radius - cfg.envelope());
 
             // Configure the portal factory
             cylinder_portal_config<scalar_t> portal_cfg{};

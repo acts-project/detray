@@ -213,7 +213,10 @@ class endcap_generator final : public surface_factory_interface<detector_t> {
             // Sum up the total length of the modules along r
             scalar_t tot_length{0.f};
             for (const auto &bounds : m_cfg.module_bounds()) {
-                tot_length += 2.f * bounds[trapezoid2D::e_half_length_2] + 0.5f;
+                // Add an extra buffer, so that the trapezoid corners don't poke
+                // out of the cylinder portals
+                tot_length += 2.f * bounds[trapezoid2D::e_half_length_2] +
+                              1.f * unit<scalar_t>::mm;
             }
 
             // Calculate the overlap (equal pay)

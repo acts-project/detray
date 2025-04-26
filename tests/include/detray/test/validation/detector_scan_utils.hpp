@@ -600,15 +600,13 @@ inline bool check_trace(const std::vector<record_t> &intersection_trace,
 /// @param n_track total number of test tracks
 template <typename detector_t, typename trajectory_t, typename truth_trace_t,
           typename recorded_trace_t>
-inline void display_error(const typename detector_t::geometry_context gctx,
-                          const detector_t &det,
-                          const typename detector_t::name_map vol_names,
-                          const std::string &test_name,
-                          const trajectory_t &test_track,
-                          const truth_trace_t &truth_trace,
-                          const detray::svgtools::styling::style &svg_style,
-                          const std::size_t i_track, const std::size_t n_tracks,
-                          const recorded_trace_t &recorded_trace = {}) {
+inline void display_error(
+    const typename detector_t::geometry_context gctx, const detector_t &det,
+    const typename detector_t::name_map vol_names, const std::string &test_name,
+    const trajectory_t &test_track, const truth_trace_t &truth_trace,
+    const detray::svgtools::styling::style &svg_style,
+    const std::size_t i_track, const std::size_t n_tracks,
+    const recorded_trace_t &recorded_trace = {}, const bool verbose = true) {
 
     // Creating the svg generator for the detector.
     detray::svgtools::illustrator il{det, vol_names, svg_style};
@@ -627,13 +625,15 @@ inline void display_error(const typename detector_t::geometry_context gctx,
         track_type = "helix";
     }
 
+    if (verbose) {
+        std::cout << "\nFailed on " << track_type << ": " << i_track << "/"
+                  << n_tracks << "\n"
+                  << test_track;
+    }
+
     detail::svg_display(gctx, il, truth_trace, test_track,
                         track_type + "_" + std::to_string(i_track), test_name,
-                        recorded_trace);
-
-    std::cout << "\nFailed on " << track_type << ": " << i_track << "/"
-              << n_tracks << "\n"
-              << test_track;
+                        recorded_trace, verbose);
 }
 
 /// Print an intersection trace
