@@ -61,9 +61,9 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
     operator()(const ray_type &ray, const surface_descr_t &sf,
                const mask_t &mask, const transform3_type &trf,
                const darray<scalar_type, 2u> mask_tolerance =
-                   {0., 100. * unit<scalar_type>::um},
-               const scalar_type mask_tol_scalor = 0.,
-               const scalar_type overstep_tol = 0.) const {
+                   {0.f, 100.f * unit<scalar_type>::um},
+               const scalar_type mask_tol_scalor = 0.f,
+               const scalar_type overstep_tol = 0.f) const {
 
         // One or both of these solutions might be invalid
         const auto qe = solve_intersection(ray, mask, trf);
@@ -102,8 +102,8 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
     operator()(const ray_type &ray, const surface_descr_t &sf,
                const mask_t &mask, const transform3_type &trf,
                const scalar_type mask_tolerance,
-               const scalar_type overstep_tol = 0.) const {
-        return this->operator()(ray, sf, mask, trf, {mask_tolerance, 0.}, 0.,
+               const scalar_type overstep_tol = 0.f) const {
+        return this->operator()(ray, sf, mask, trf, {mask_tolerance, 0.f}, 0.f,
                                 overstep_tol);
     }
 
@@ -122,9 +122,9 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
         const ray_type &ray, intersection_type<surface_descr_t> &sfi,
         const mask_t &mask, const transform3_type &trf,
         const darray<scalar_type, 2u> mask_tolerance =
-            {0., 1. * unit<scalar_type>::mm},
-        const scalar_type mask_tol_scalor = 0.,
-        const scalar_type overstep_tol = 0.) const {
+            {0.f, 1.f * unit<scalar_type>::mm},
+        const scalar_type mask_tol_scalor = 0.f,
+        const scalar_type overstep_tol = 0.f) const {
 
         // One or both of these solutions might be invalid
         const auto qe = solve_intersection(ray, mask, trf);
@@ -156,15 +156,10 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
         const point3_type &ro = ray.pos();
         const vector3_type &rd = ray.dir();
 
-#ifdef DETRAY_ALGEBRA_FASTOR
-        const vector3_type tmp = ro - sc;
-        const auto pc_cross_sz = vector::cross(tmp, sz);
-#else
         const auto pc_cross_sz = vector::cross(ro - sc, sz);
-#endif
         const auto rd_cross_sz = vector::cross(rd, sz);
         const scalar_type a{vector::dot(rd_cross_sz, rd_cross_sz)};
-        const scalar_type b{2. * vector::dot(rd_cross_sz, pc_cross_sz)};
+        const scalar_type b{2.f * vector::dot(rd_cross_sz, pc_cross_sz)};
         const scalar_type c{vector::dot(pc_cross_sz, pc_cross_sz) - (r * r)};
 
         return detail::quadratic_equation<scalar_type>{a, b, c};

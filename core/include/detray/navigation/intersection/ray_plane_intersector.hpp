@@ -60,9 +60,9 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, do_debug> {
         const ray_type &ray, const surface_descr_t &sf, const mask_t &mask,
         const transform3_type &trf,
         const darray<scalar_type, 2u> mask_tolerance =
-            {0., 1. * unit<scalar_type>::mm},
-        const scalar_type mask_tol_scalor = 0.,
-        const scalar_type overstep_tol = 0.) const {
+            {0.f, 1.f * unit<scalar_type>::mm},
+        const scalar_type mask_tol_scalor = 0.f,
+        const scalar_type overstep_tol = 0.f) const {
 
         intersection_type<surface_descr_t> is;
 
@@ -75,13 +75,9 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, do_debug> {
         const vector3_type &rd = ray.dir();
         const scalar_type denom = vector::dot(rd, sn);
         // this is dangerous
-        if (denom != 0.) {
-#ifdef DETRAY_ALGEBRA_FASTOR
-            const vector3_type tmp = st - ro;
-            is.path = vector::dot(sn, tmp) / denom;
-#else
+        if (denom != 0.f) {
             is.path = vector::dot(sn, st - ro) / denom;
-#endif
+
             // Intersection is valid for navigation - continue
             if (is.path >= overstep_tol) {
 
@@ -112,8 +108,8 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, do_debug> {
     DETRAY_HOST_DEVICE inline intersection_type<surface_descr_t> operator()(
         const ray_type &ray, const surface_descr_t &sf, const mask_t &mask,
         const transform3_type &trf, const scalar_type mask_tolerance,
-        const scalar_type overstep_tol = 0.) const {
-        return this->operator()(ray, sf, mask, trf, {mask_tolerance, 0.}, 0.,
+        const scalar_type overstep_tol = 0.f) const {
+        return this->operator()(ray, sf, mask, trf, {mask_tolerance, 0.f}, 0.f,
                                 overstep_tol);
     }
 
@@ -133,9 +129,9 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, do_debug> {
         const ray_type &ray, intersection_type<surface_descr_t> &sfi,
         const mask_t &mask, const transform3_type &trf,
         const darray<scalar_type, 2u> &mask_tolerance =
-            {0., 1. * unit<scalar_type>::mm},
-        const scalar_type mask_tol_scalor = 0.,
-        const scalar_type overstep_tol = 0.) const {
+            {0.f, 1.f * unit<scalar_type>::mm},
+        const scalar_type mask_tol_scalor = 0.f,
+        const scalar_type overstep_tol = 0.f) const {
         sfi = this->operator()(ray, sfi.sf_desc, mask, trf, mask_tolerance,
                                mask_tol_scalor, overstep_tol);
     }

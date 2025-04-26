@@ -49,12 +49,7 @@ struct line2D {
         // Assign the sign depending on the position w.r.t line
         // Right: -1
         // Left: 1
-#ifdef DETRAY_ALGEBRA_FASTOR
-        const vector3_type tmp = t - p;
-        const scalar_type sign = vector::dot(r, tmp) > 0. ? -1. : 1.;
-#else
-        const scalar_type sign = vector::dot(r, t - p) > 0. ? -1. : 1.;
-#endif
+        const scalar_type sign = vector::dot(r, t - p) > 0.f ? -1.f : 1.f;
 
         return {sign * vector::perp(local3), local3[2], vector::phi(local3)};
     }
@@ -98,7 +93,7 @@ struct line2D {
 
         // Local Z poisition in global cartesian coordinate
         const point3_type locZ_in_global =
-            trf.point_to_global(point3_type{0., 0., p[1]});
+            trf.point_to_global(point3_type{0.f, 0.f, p[1]});
 
         return locZ_in_global + p[0] * vector::normalize(r);
     }
