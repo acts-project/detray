@@ -70,17 +70,17 @@ struct density_effect_data {
 
     /// Fitting parameters of Eq. 33.7 of RPP 2018
     /// @{
-    scalar_type m_a = 0.;
-    scalar_type m_m = 0.;
-    scalar_type m_X0 = 0.;
-    scalar_type m_X1 = 0.;
+    scalar_type m_a = 0.f;
+    scalar_type m_m = 0.f;
+    scalar_type m_X0 = 0.f;
+    scalar_type m_X1 = 0.f;
     /// @}
     /// Mean excitation energy in eV
-    scalar_type m_I = 0.;
+    scalar_type m_I = 0.f;
     /// -C
-    scalar_type m_nC = 0.;
+    scalar_type m_nC = 0.f;
     /// Density-effect value delta(X_0)
-    scalar_type m_delta0 = 0.;
+    scalar_type m_delta0 = 0.f;
 };
 
 }  // namespace detray::detail

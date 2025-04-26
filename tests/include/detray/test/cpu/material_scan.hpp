@@ -126,7 +126,7 @@ class material_scan : public test::fixture_base<> {
             }
 
             // Record track parameters
-            tracks.push_back({ray.pos(), 0., ray.dir(), 0.});
+            tracks.push_back({ray.pos(), 0.f, ray.dir(), 0.f});
 
             // New material record
             material_record_t mat_record{};
@@ -181,14 +181,14 @@ class material_scan : public test::fixture_base<> {
                 const scalar_t mx0{mat_params.mat_X0};
                 const scalar_t ml0{mat_params.mat_L0};
 
-                if (mx0 > 0.) {
+                if (mx0 > 0.f) {
                     mat_record.sX0 += seg / mx0;
                     mat_record.tX0 += t / mx0;
                 } else {
                     std::cout << "WARNING: Encountered invalid X_0: " << mx0
                               << "\nOn surface: " << sf << std::endl;
                 }
-                if (ml0 > 0.) {
+                if (ml0 > 0.f) {
                     mat_record.sL0 += seg / ml0;
                     mat_record.tL0 += t / ml0;
                 } else {
@@ -197,8 +197,8 @@ class material_scan : public test::fixture_base<> {
                 }
             }
 
-            if (mat_record.sX0 == 0. || mat_record.sL0 == 0. ||
-                mat_record.tX0 == 0. || mat_record.tL0 == 0.) {
+            if (mat_record.sX0 == 0.f || mat_record.sL0 == 0.f ||
+                mat_record.tX0 == 0.f || mat_record.tL0 == 0.f) {
                 std::cout << "WARNING: No material recorded for ray "
                           << n_tracks << "/" << ray_generator.size() << ": "
                           << ray << std::endl;

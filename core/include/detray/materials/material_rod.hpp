@@ -73,13 +73,13 @@ struct material_rod {
         const scalar_type cos_inc_angle, const scalar_type approach) const {
         // Assume that is.local[0] is radial distance of line intersector
         if (math::fabs(approach) > m_radius) {
-            return 0.;
+            return 0.f;
         }
 
-        const scalar_type sin_inc_angle_2{1. - cos_inc_angle * cos_inc_angle};
+        const scalar_type sin_inc_angle_2{1.f - cos_inc_angle * cos_inc_angle};
 
-        return 2. * math::sqrt((m_radius * m_radius - approach * approach) /
-                               sin_inc_angle_2);
+        return 2.f * math::sqrt((m_radius * m_radius - approach * approach) /
+                                sin_inc_angle_2);
     }
 
     /// @returns the path segment through the material in X0

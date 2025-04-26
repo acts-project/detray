@@ -148,12 +148,12 @@ class wire_layer_generator final
         detray::dvector<point3_t> cell_centers{};
         // Distance between wires in phi
         const scalar_t delta = 2.f * m_cfg.cell_size() / m_layer_central_rad;
-        scalar_t phi{0.};
+        scalar_t phi{0.f};
         while (phi <= 2.f * constant<scalar_t>::pi) {
 
             const scalar_t x = m_layer_central_rad * math::cos(phi);
             const scalar_t y = m_layer_central_rad * math::sin(phi);
-            const scalar_t z = 0.;
+            const scalar_t z = 0.f;
 
             cell_centers.push_back({x, y, z});
             phi += delta;
@@ -178,7 +178,7 @@ class wire_layer_generator final
                 m_cfg.half_length());
 
             // Build the transform
-            vector3_t z_axis{0., 0., 1.};
+            vector3_t z_axis{0.f, 0.f, 1.f};
             const vector3_t r_axis = vector::normalize(cell_center);
             z_axis =
                 axis_rotation<algebra_t>(r_axis, m_cfg.stereo_angle())(z_axis);

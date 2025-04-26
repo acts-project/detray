@@ -175,7 +175,7 @@ struct object_tracer {
     const scalar_t inv_pos{detray::detail::invalid_value<scalar_t>()};
     typename candidate_record_t::point3_type last_pos = {inv_pos, inv_pos,
                                                          inv_pos};
-    typename candidate_record_t::vector3_type last_dir = {0., 0., 0.};
+    typename candidate_record_t::vector3_type last_dir = {0.f, 0.f, 0.f};
 
     /// Inspector interface
     template <typename state_type, concepts::point3D point3_t,

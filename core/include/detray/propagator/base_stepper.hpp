@@ -112,8 +112,8 @@ class base_stepper {
         /// Get stepping direction
         DETRAY_HOST_DEVICE
         inline step::direction direction() const {
-            return m_step_size >= 0. ? step::direction::e_forward
-                                     : step::direction::e_backward;
+            return m_step_size >= 0.f ? step::direction::e_forward
+                                      : step::direction::e_backward;
         }
 
         /// Updates the total number of step trials
@@ -247,13 +247,13 @@ class base_stepper {
         std::size_t m_n_total_trials{0u};
 
         /// Current step size
-        scalar_type m_step_size{0.};
+        scalar_type m_step_size{0.f};
 
         /// Track path length (current position along track)
-        scalar_type m_path_length{0.};
+        scalar_type m_path_length{0.f};
 
         /// Absolute path length (total path length covered by the integration)
-        scalar_type m_abs_path_length{0.};
+        scalar_type m_abs_path_length{0.f};
 
         /// Step size constraints (optional)
         [[no_unique_address]] constraint_t m_constraint = {};

@@ -60,10 +60,10 @@ class telescope_generator final : public surface_factory_interface<detector_t> {
         darray<scalar_t, mask_shape_t::boundaries::e_size> boundaries,
         trajectory_t traj)
         : m_traj{traj}, m_positions{}, m_boundaries{boundaries} {
-        scalar_t pos{0.};
+        scalar_t pos{0.f};
         scalar_t dist{n_surfaces > 1u
                           ? length / static_cast<scalar_t>(n_surfaces - 1u)
-                          : 0.};
+                          : 0.f};
         for (std::size_t i = 0u; i < n_surfaces; ++i) {
             m_positions.push_back(pos);
             pos += dist;

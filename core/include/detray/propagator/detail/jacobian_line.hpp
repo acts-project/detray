@@ -90,7 +90,8 @@ struct jacobian<line2D<algebra_t>> {
         // Local x axis component of pc:
         const vector3_type pc_x = pc - pz * local_zaxis;
 
-        const scalar_type norm = -1. / (1. - dz * dz + vector::dot(pc_x, dtds));
+        const scalar_type norm =
+            -1.f / (1.f - dz * dz + vector::dot(pc_x, dtds));
 
         const vector3_type pos_term = norm * (dir - dz * local_zaxis);
         const vector3_type dir_term = norm * pc_x;
@@ -157,7 +158,7 @@ struct jacobian<line2D<algebra_t>> {
         const vector3_type new_zaxis = getter::vector<3>(frame, 0u, 2u);
 
         // The projection of direction onto ref frame normal
-        const scalar_type ipdn{1. / vector::dot(dir, new_zaxis)};
+        const scalar_type ipdn{1.f / vector::dot(dir, new_zaxis)};
 
         // d(n_x,n_y,n_z)/dPhi
         const vector3_type dNdPhi =

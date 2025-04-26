@@ -56,9 +56,9 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t, do_debug> {
         const ray_type &ray, const surface_descr_t &sf, const mask_t &mask,
         const transform3_type &trf,
         const darray<scalar_type, 2u> mask_tolerance =
-            {0., 1. * unit<scalar_type>::mm},
-        const scalar_type mask_tol_scalor = 0.,
-        const scalar_type overstep_tol = 0.) const {
+            {0.f, 1.f * unit<scalar_type>::mm},
+        const scalar_type mask_tol_scalor = 0.f,
+        const scalar_type overstep_tol = 0.f) const {
 
         intersection_type<surface_descr_t> is;
 
@@ -77,10 +77,10 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t, do_debug> {
         // Projection of line to track direction
         const scalar_type zd{vector::dot(_z, _d)};
 
-        const scalar_type denom{1. - (zd * zd)};
+        const scalar_type denom{1.f - (zd * zd)};
 
         // Case for wire is parallel to track
-        if (denom < 1e-5) {
+        if (denom < 1e-5f) {
             is.status = false;
             return is;
         }
@@ -95,7 +95,7 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t, do_debug> {
         const scalar_type t2l_on_track{vector::dot(t2l, _d)};
 
         // path length to the point of closest approach on the track
-        const scalar_type A{1. / denom * (t2l_on_track - t2l_on_line * zd)};
+        const scalar_type A{1.f / denom * (t2l_on_track - t2l_on_line * zd)};
 
         is.path = A;
         // Intersection is not valid for navigation - return early
@@ -126,8 +126,8 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t, do_debug> {
     DETRAY_HOST_DEVICE inline intersection_type<surface_descr_t> operator()(
         const ray_type &ray, const surface_descr_t &sf, const mask_t &mask,
         const transform3_type &trf, const scalar_type mask_tolerance,
-        const scalar_type overstep_tol = 0.) const {
-        return this->operator()(ray, sf, mask, trf, {mask_tolerance, 0.}, 0.,
+        const scalar_type overstep_tol = 0.f) const {
+        return this->operator()(ray, sf, mask, trf, {mask_tolerance, 0.f}, 0.f,
                                 overstep_tol);
     }
 
@@ -146,9 +146,9 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t, do_debug> {
         const ray_type &ray, intersection_type<surface_descr_t> &sfi,
         const mask_t &mask, const transform3_type &trf,
         const darray<scalar_type, 2u> &mask_tolerance =
-            {0., 1. * unit<scalar_type>::mm},
-        const scalar_type mask_tol_scalor = 0.,
-        const scalar_type overstep_tol = 0.) const {
+            {0.f, 1.f * unit<scalar_type>::mm},
+        const scalar_type mask_tol_scalor = 0.f,
+        const scalar_type overstep_tol = 0.f) const {
 
         sfi = this->operator()(ray, sfi.sf_desc, mask, trf, mask_tolerance,
                                mask_tol_scalor, overstep_tol);

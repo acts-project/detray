@@ -100,7 +100,7 @@ struct tel_det_config {
         return *this;
     }
     constexpr tel_det_config &length(const scalar_t l) {
-        assert((l > 0.) &&
+        assert((l > 0.f) &&
                "Telescope detector length must be greater than zero");
         m_length = l;
         return *this;
@@ -108,7 +108,7 @@ struct tel_det_config {
     constexpr tel_det_config &positions(const std::vector<scalar_t> &dists) {
         m_positions.clear();
         std::ranges::copy_if(dists, std::back_inserter(m_positions),
-                             [](scalar_t d) { return (d >= 0.); });
+                             [](scalar_t d) { return (d >= 0.f); });
         return *this;
     }
     constexpr tel_det_config &module_material(const material<scalar_t> &mat) {
@@ -120,7 +120,7 @@ struct tel_det_config {
         return *this;
     }
     constexpr tel_det_config &mat_thickness(const scalar_t t) {
-        assert(t >= 0. && "Material thickness must be non-negative");
+        assert(t >= 0.f && "Material thickness must be non-negative");
         m_material_config.thickness(t);
         return *this;
     }
@@ -129,7 +129,7 @@ struct tel_det_config {
         return *this;
     }
     constexpr tel_det_config &envelope(const scalar_t e) {
-        assert(e > 0. && "Portal envelope must be greater than zero");
+        assert(e > 0.f && "Portal envelope must be greater than zero");
         m_envelope = e;
         return *this;
     }

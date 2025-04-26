@@ -437,7 +437,7 @@ struct irregular {
     DETRAY_HOST_DEVICE
     irregular()
         : n_bins(detail::invalid_value<dindex>()),
-          min(0.),
+          min(0.f),
           max(static_cast<scalar>(n_bins)),
           boundaries({}) {}
 
@@ -445,7 +445,7 @@ struct irregular {
     DETRAY_HOST
     explicit irregular(vecmem::memory_resource &resource)
         : n_bins(detail::invalid_value<dindex>()),
-          min(0.),
+          min(0.f),
           max(static_cast<scalar>(n_bins)),
           boundaries(&resource) {}
 

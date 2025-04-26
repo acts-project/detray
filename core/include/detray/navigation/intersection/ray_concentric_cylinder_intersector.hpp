@@ -60,9 +60,9 @@ struct ray_concentric_cylinder_intersector {
         const ray_type &ray, const surface_descr_t &sf, const mask_t &mask,
         const transform3_type & /*trf*/,
         const darray<scalar_type, 2u> mask_tolerance =
-            {0., 1. * unit<scalar_type>::mm},
-        const scalar_type mask_tol_scalor = 0.,
-        const scalar_type overstep_tol = 0.) const {
+            {0.f, 1.f * unit<scalar_type>::mm},
+        const scalar_type mask_tol_scalor = 0.f,
+        const scalar_type overstep_tol = 0.f) const {
 
         intersection_type<surface_descr_t> is;
 
@@ -74,20 +74,20 @@ struct ray_concentric_cylinder_intersector {
         const point3_type l1 = ro + rd;
 
         // swap coorinates x/y for numerical stability
-        const bool swap_x_y = math::fabs(rd[0]) < 1e-3;
+        const bool swap_x_y = math::fabs(rd[0]) < 1e-3f;
 
         unsigned int _x = swap_x_y ? 1u : 0u;
         unsigned int _y = swap_x_y ? 0u : 1u;
         const scalar_type k{(l0[_y] - l1[_y]) / (l0[_x] - l1[_x])};
         const scalar_type d{l1[_y] - k * l1[_x]};
 
-        detail::quadratic_equation<scalar_type> qe{(1. + k * k), 2. * k * d,
+        detail::quadratic_equation<scalar_type> qe{(1.f + k * k), 2.f * k * d,
                                                    d * d - r * r};
 
         if (qe.solutions() > 0) {
             const scalar_type overstep_tolerance{overstep_tol};
             darray<point3_type, 2> candidates;
-            darray<scalar_type, 2> t01 = {0., 0.};
+            darray<scalar_type, 2> t01 = {0.f, 0.f};
 
             candidates[0][_x] = qe.smaller();
             candidates[0][_y] = k * qe.smaller() + d;
@@ -138,8 +138,8 @@ struct ray_concentric_cylinder_intersector {
     DETRAY_HOST_DEVICE inline intersection_type<surface_descr_t> operator()(
         const ray_type &ray, const surface_descr_t &sf, const mask_t &mask,
         const transform3_type &trf, const scalar_type mask_tolerance,
-        const scalar_type overstep_tol = 0.) const {
-        return this->operator()(ray, sf, mask, trf, {mask_tolerance, 0.}, 0.,
+        const scalar_type overstep_tol = 0.f) const {
+        return this->operator()(ray, sf, mask, trf, {mask_tolerance, 0.f}, 0.f,
                                 overstep_tol);
     }
 
@@ -159,9 +159,9 @@ struct ray_concentric_cylinder_intersector {
         const ray_type &ray, intersection_type<surface_descr_t> &sfi,
         const mask_t &mask, const transform3_type &trf,
         const darray<scalar_type, 2u> &mask_tolerance =
-            {0., 1. * unit<scalar_type>::mm},
-        const scalar_type mask_tol_scalor = 0.,
-        const scalar_type overstep_tol = 0.) const {
+            {0.f, 1.f * unit<scalar_type>::mm},
+        const scalar_type mask_tol_scalor = 0.f,
+        const scalar_type overstep_tol = 0.f) const {
         sfi = this->operator()(ray, sfi.sf_desc, mask, trf, mask_tolerance,
                                mask_tol_scalor, overstep_tol)[0];
     }

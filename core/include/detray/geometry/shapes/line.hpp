@@ -144,10 +144,10 @@ class line {
         const bounds_type<scalar_t> &bounds) const {
 
         if constexpr (square_cross_sect) {
-            return 8. * bounds[e_half_z] * bounds[e_cross_section] *
+            return 8.f * bounds[e_half_z] * bounds[e_cross_section] *
                    bounds[e_cross_section];
         } else {
-            return constant<scalar_t>::pi * 2. * bounds[e_half_z] *
+            return constant<scalar_t>::pi * 2.f * bounds[e_half_z] *
                    bounds[e_cross_section] * bounds[e_cross_section];
         }
     }
@@ -162,9 +162,9 @@ class line {
         const bounds_type<scalar_t> &bounds) const {
 
         if constexpr (square_cross_sect) {
-            return 16. * bounds[e_half_z] * bounds[e_cross_section];
+            return 16.f * bounds[e_half_z] * bounds[e_cross_section];
         } else {
-            return 4. * constant<scalar_t>::pi * bounds[e_cross_section] *
+            return 4.f * constant<scalar_t>::pi * bounds[e_cross_section] *
                    bounds[e_half_z];
         }
     }
@@ -186,7 +186,7 @@ class line {
 
         using scalar_t = dscalar<algebra_t>;
 
-        assert(env > 0.);
+        assert(env > 0.f);
         const scalar_t xy_bound{bounds[e_cross_section] + env};
         const scalar_t z_bound{bounds[e_half_z] + env};
 
@@ -198,7 +198,7 @@ class line {
     DETRAY_HOST_DEVICE dpoint3D<algebra_t> centroid(
         const bounds_type<dscalar<algebra_t>> &) const {
 
-        return {0., 0., 0.};
+        return {0.f, 0.f, 0.f};
     }
 
     /// Generate vertices in local cartesian frame
@@ -214,8 +214,8 @@ class line {
 
         using point3_t = dpoint3D<algebra_t>;
 
-        point3_t lc = {0., 0., -bounds[e_half_z]};
-        point3_t rc = {0., 0., bounds[e_half_z]};
+        point3_t lc = {0.f, 0.f, -bounds[e_half_z]};
+        point3_t rc = {0.f, 0.f, bounds[e_half_z]};
 
         return {lc, rc};
     }
@@ -230,7 +230,7 @@ class line {
     DETRAY_HOST constexpr bool check_consistency(
         const bounds_type<scalar_t> &bounds, std::ostream &os) const {
 
-        constexpr auto tol{10. * std::numeric_limits<scalar_t>::epsilon()};
+        constexpr auto tol{10.f * std::numeric_limits<scalar_t>::epsilon()};
 
         if (bounds[e_cross_section] < tol) {
             os << "ERROR: Radius/sides must be in the range (0, numeric_max)"

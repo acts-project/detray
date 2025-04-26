@@ -75,7 +75,7 @@ class ray {
 
     /// @returns the q over p value: Zero for ray
     DETRAY_HOST_DEVICE
-    constexpr scalar_type qop() const { return 0.; }
+    constexpr scalar_type qop() const { return 0.f; }
 
     /// Print
     DETRAY_HOST
@@ -91,9 +91,9 @@ class ray {
 
     private:
     /// origin of ray
-    point3_type _pos{0., 0., 0.};
+    point3_type _pos{0.f, 0.f, 0.f};
     /// direction of ray
-    vector3_type _dir{0., 0., 1.};
+    vector3_type _dir{0.f, 0.f, 1.f};
 };
 
 // Deduce the type of algebra from the track

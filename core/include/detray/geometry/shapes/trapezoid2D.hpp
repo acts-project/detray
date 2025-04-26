@@ -66,7 +66,7 @@ class trapezoid2D {
         const bounds_type<scalar_t> &bounds, const point_t &loc_p) const {
 
         // Minimum distance between loc point and line between corner points
-        const scalar_t d_y = -2. * bounds[e_half_length_2];
+        const scalar_t d_y = -2.f * bounds[e_half_length_2];
         const scalar_t d_x = bounds[e_half_length_1] - bounds[e_half_length_0];
 
         const scalar_t denom = math::sqrt(d_y * d_y + d_x * d_x);
@@ -123,7 +123,7 @@ class trapezoid2D {
     template <concepts::scalar scalar_t>
     DETRAY_HOST_DEVICE constexpr scalar_t area(
         const bounds_type<scalar_t> &bounds) const {
-        return 2. * (bounds[e_half_length_0] + bounds[e_half_length_1]) *
+        return 2.f * (bounds[e_half_length_0] + bounds[e_half_length_1]) *
                bounds[e_half_length_2];
     }
 
@@ -144,7 +144,7 @@ class trapezoid2D {
 
         using scalar_t = dscalar<algebra_t>;
 
-        assert(env > 0.);
+        assert(env > 0.f);
         const scalar_t x_bound{
             (bounds[e_half_length_0] > bounds[e_half_length_1]
                  ? bounds[e_half_length_0]
@@ -165,9 +165,10 @@ class trapezoid2D {
         const scalar_t a_2{bounds[e_half_length_1]};
         const scalar_t b_2{bounds[e_half_length_0]};
 
-        const scalar_t y{2. * h_2 * (2. * a_2 + b_2) * 1. / (3. * (a_2 + b_2))};
+        const scalar_t y{2.f * h_2 * (2.f * a_2 + b_2) * 1.f /
+                         (3.f * (a_2 + b_2))};
 
-        return {0., y - h_2, 0.};
+        return {0.f, y - h_2, 0.f};
     }
 
     /// Generate vertices in local cartesian frame
@@ -183,13 +184,13 @@ class trapezoid2D {
         using point3_t = dpoint3D<algebra_t>;
 
         // left hand lower corner
-        point3_t lh_lc{-bounds[e_half_length_0], -bounds[e_half_length_2], 0.};
+        point3_t lh_lc{-bounds[e_half_length_0], -bounds[e_half_length_2], 0.f};
         // right hand lower corner
-        point3_t rh_lc{bounds[e_half_length_0], -bounds[e_half_length_2], 0.};
+        point3_t rh_lc{bounds[e_half_length_0], -bounds[e_half_length_2], 0.f};
         // right hand upper corner
-        point3_t rh_uc{bounds[e_half_length_1], bounds[e_half_length_2], 0.};
+        point3_t rh_uc{bounds[e_half_length_1], bounds[e_half_length_2], 0.f};
         // left hand upper corner
-        point3_t lh_uc{-bounds[e_half_length_1], bounds[e_half_length_2], 0.};
+        point3_t lh_uc{-bounds[e_half_length_1], bounds[e_half_length_2], 0.f};
 
         // Return the confining vertices
         return {lh_lc, rh_lc, rh_uc, lh_uc};
@@ -205,7 +206,7 @@ class trapezoid2D {
     DETRAY_HOST constexpr bool check_consistency(
         const bounds_type<scalar_t> &bounds, std::ostream &os) const {
 
-        constexpr auto tol{10. * std::numeric_limits<scalar_t>::epsilon()};
+        constexpr auto tol{10.f * std::numeric_limits<scalar_t>::epsilon()};
 
         if (bounds[e_half_length_0] < tol || bounds[e_half_length_1] < tol) {
             os << "ERROR: Half length in x must be in the range (0, "
@@ -220,7 +221,7 @@ class trapezoid2D {
             return false;
         }
 
-        if (const auto div{1. / (2. * bounds[e_half_length_2])};
+        if (const auto div{1.f / (2.f * bounds[e_half_length_2])};
             math::fabs(bounds[e_divisor] - div) > tol) {
             os << "ERROR: Divisor incorrect. Should be: " << div << std::endl;
             return false;

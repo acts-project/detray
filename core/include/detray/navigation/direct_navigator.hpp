@@ -278,7 +278,7 @@ class direct_navigator {
         navigation::status m_status{navigation::status::e_unknown};
 
         /// Step size when the valid intersection is not found for the target
-        scalar_type safe_step_size = 10. * unit<scalar_type>::mm;
+        scalar_type safe_step_size = 10.f * unit<scalar_type>::mm;
 
         /// Heartbeat of this navigation flow signals navigation is alive
         bool m_heartbeat{false};

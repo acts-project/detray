@@ -43,9 +43,9 @@ struct intersector {
         const detail::ray<algebra_t> &ray, const surface_descr_t &sf,
         const mask_t &mask, const transform3_type &trf,
         const darray<scalar_type, 2u> mask_tolerance =
-            {0., 1. * unit<scalar_type>::mm},
-        const scalar_type mask_tol_scalor = 0.,
-        const scalar_type overstep_tol = 0.) const {
+            {0.f, 1.f * unit<scalar_type>::mm},
+        const scalar_type mask_tol_scalor = 0.f,
+        const scalar_type overstep_tol = 0.f) const {
 
         return ray_intersector_type{}(ray, sf, mask, trf, mask_tolerance,
                                       mask_tol_scalor, overstep_tol);
@@ -57,8 +57,8 @@ struct intersector {
         const detail::helix<algebra_t> &h, const surface_descr_t &sf,
         const mask_t &mask, const transform3_type &trf,
         const darray<scalar_type, 2u> mask_tolerance =
-            {0., 1. * unit<scalar_type>::mm},
-        const scalar_type = 0., const scalar_type = 0.) const {
+            {0.f, 1.f * unit<scalar_type>::mm},
+        const scalar_type = 0.f, const scalar_type = 0.f) const {
 
         return helix_intersector_type{}(h, sf, mask, trf, mask_tolerance);
     }

@@ -133,7 +133,7 @@ class unmasked {
     template <concepts::algebra algebra_t>
     DETRAY_HOST_DEVICE dpoint3D<algebra_t> centroid(
         const bounds_type<dscalar<algebra_t>>&) const {
-        return {0., 0., 0.};
+        return {0.f, 0.f, 0.f};
     }
 
     /// Generate vertices in local cartesian frame

@@ -33,10 +33,6 @@ static constexpr char filenames[] = "smatrix-";
 #elif DETRAY_ALGEBRA_VC_AOS
 using algebra = detray::vc_aos<DETRAY_CUSTOM_SCALARTYPE>;
 static constexpr char filenames[] = "vc_aos-";
-
-#elif DETRAY_ALGEBRA_FASTOR
-using algebra = detray::fastor<DETRAY_CUSTOM_SCALARTYPE>;
-static constexpr char filenames[] = "fastor-";
 #endif
 
 // Test algebra types

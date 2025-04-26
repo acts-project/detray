@@ -102,7 +102,7 @@ class rectangle2D {
     template <concepts::scalar scalar_t>
     DETRAY_HOST_DEVICE constexpr scalar_t area(
         const bounds_type<scalar_t> &bounds) const {
-        return 4. * bounds[e_half_x] * bounds[e_half_y];
+        return 4.f * bounds[e_half_x] * bounds[e_half_y];
     }
 
     /// @brief Lower and upper point for minimal axis aligned bounding box.
@@ -121,7 +121,7 @@ class rectangle2D {
             std::numeric_limits<dscalar<algebra_t>>::epsilon()) const {
         using scalar_t = dscalar<algebra_t>;
 
-        assert(env > 0.);
+        assert(env > 0.f);
         const scalar_t x_bound{bounds[e_half_x] + env};
         const scalar_t y_bound{bounds[e_half_y] + env};
         return {-x_bound, -y_bound, -env, x_bound, y_bound, env};
@@ -132,7 +132,7 @@ class rectangle2D {
     DETRAY_HOST_DEVICE dpoint3D<algebra_t> centroid(
         const bounds_type<dscalar<algebra_t>> &) const {
 
-        return {0., 0., 0.};
+        return {0.f, 0.f, 0.f};
     }
 
     /// Generate vertices in local cartesian frame
@@ -149,13 +149,13 @@ class rectangle2D {
         using point3_t = dpoint3D<algebra_t>;
 
         // left hand lower corner
-        point3_t lh_lc{-bounds[e_half_x], -bounds[e_half_y], 0.};
+        point3_t lh_lc{-bounds[e_half_x], -bounds[e_half_y], 0.f};
         // right hand lower corner
-        point3_t rh_lc{bounds[e_half_x], -bounds[e_half_y], 0.};
+        point3_t rh_lc{bounds[e_half_x], -bounds[e_half_y], 0.f};
         // right hand upper corner
-        point3_t rh_uc{bounds[e_half_x], bounds[e_half_y], 0.};
+        point3_t rh_uc{bounds[e_half_x], bounds[e_half_y], 0.f};
         // left hand upper corner
-        point3_t lh_uc{-bounds[e_half_x], bounds[e_half_y], 0.};
+        point3_t lh_uc{-bounds[e_half_x], bounds[e_half_y], 0.f};
 
         // Return the confining vertices
         return {lh_lc, rh_lc, rh_uc, lh_uc};
@@ -171,7 +171,7 @@ class rectangle2D {
     DETRAY_HOST constexpr bool check_consistency(
         const bounds_type<scalar_t> &bounds, std::ostream &os) const {
 
-        if (constexpr auto tol{10. * std::numeric_limits<scalar_t>::epsilon()};
+        if (constexpr auto tol{10.f * std::numeric_limits<scalar_t>::epsilon()};
             bounds[e_half_x] < tol || bounds[e_half_y] < tol) {
             os << "ERROR: Half lengths must be in the range (0, numeric_max)"
                << std::endl;

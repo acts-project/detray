@@ -149,8 +149,8 @@ class navigation_validation : public test::fixture_base<> {
             trajectory_type test_traj = get_parametrized_trajectory(track);
 
             const scalar q = start.charge;
-            const scalar pT{q == 0. ? 1.f * unit<scalar>::GeV : track.pT(q)};
-            const scalar p{q == 0. ? 1.f * unit<scalar>::GeV : track.p(q)};
+            const scalar pT{q == 0.f ? 1.f * unit<scalar>::GeV : track.pT(q)};
+            const scalar p{q == 0.f ? 1.f * unit<scalar>::GeV : track.p(q)};
 
             // If the momentum is unknown, 1 GeV is the safest option to keep
             // the direction vector normalized

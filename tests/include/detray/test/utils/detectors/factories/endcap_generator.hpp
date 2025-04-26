@@ -33,7 +33,7 @@ struct endcap_generator_config {
     /// Construct positive or negative endcap
     int m_side{-1};
     /// Center position (|z|)
-    scalar_t m_center_z{0.};
+    scalar_t m_center_z{0.f};
     /// Inner layer radius
     scalar_t m_inner_radius{25.f * unit<scalar_t>::mm};
     /// Outer layer radius
@@ -53,7 +53,7 @@ struct endcap_generator_config {
     std::vector<scalar_t> m_phi_sub_stagger = {0.5f * unit<scalar_t>::mm,
                                                0.5f * unit<scalar_t>::mm};
     /// Module tilt (per ring)
-    std::vector<scalar_t> m_tilt = {0., 0.};
+    std::vector<scalar_t> m_tilt = {0.f, 0.f};
     /// Number of modules in phi (per ring)
     std::vector<unsigned int> m_binning = {40u, 68u};
 
@@ -211,7 +211,7 @@ class endcap_generator final : public surface_factory_interface<detector_t> {
                             (m_cfg.inner_radius() + m_cfg.outer_radius()));
         } else {
             // Sum up the total length of the modules along r
-            scalar_t tot_length{0.};
+            scalar_t tot_length{0.f};
             for (const auto &bounds : m_cfg.module_bounds()) {
                 tot_length += 2.f * bounds[trapezoid2D::e_half_length_2] + 0.5f;
             }
@@ -223,8 +223,8 @@ class endcap_generator final : public surface_factory_interface<detector_t> {
 
             // Fill the radii and gaps
             scalar_t prev_r{m_cfg.inner_radius() + r_overlap};
-            scalar_t prev_hl{0.};
-            scalar_t prev_ol{0.};
+            scalar_t prev_hl{0.f};
+            scalar_t prev_ol{0.f};
 
             for (const auto &bounds : m_cfg.module_bounds()) {
                 const scalar_t mod_hlength{
@@ -252,7 +252,7 @@ class endcap_generator final : public surface_factory_interface<detector_t> {
             // Generate the ring module positions (observe phi stagger)
             const scalar_t sub_stagger{m_cfg.phi_sub_stagger().size() > 1u
                                            ? m_cfg.phi_sub_stagger()[ir]
-                                           : 0.};
+                                           : 0.f};
 
             std::vector<point3_t> module_positions =
                 module_positions_ring(rz, radii[ir], m_cfg.phi_stagger()[ir],
@@ -278,9 +278,9 @@ class endcap_generator final : public surface_factory_interface<detector_t> {
                 // The rotation matrix of the module
                 const scalar_t mod_phi{vector::phi(mod_position)};
                 const vector3_t mod_loc_y{math::cos(mod_phi),
-                                          math::sin(mod_phi), 0.};
+                                          math::sin(mod_phi), 0.f};
                 // Take different axis to have the same readout direction
-                const vector3_t mod_loc_z{0., 0.,
+                const vector3_t mod_loc_z{0.f, 0.f,
                                           static_cast<scalar_t>(m_cfg.side())};
                 const vector3_t mod_loc_x{vector::cross(mod_loc_y, mod_loc_z)};
 
@@ -332,11 +332,11 @@ class endcap_generator final : public surface_factory_interface<detector_t> {
 
         for (unsigned int iphi = 0u; iphi < n_phi_bins; ++iphi) {
             // If we have a phi sub stagger presents
-            scalar_t rzs{0.};
+            scalar_t rzs{0.f};
             // Phi stagger affects 0 vs 1, 2 vs 3 ... etc
             // -> only works if it is a %4
             // Phi sub stagger affects 2 vs 4, 1 vs 3 etc.
-            if (phi_sub_stagger != 0. && !(n_phi_bins % 4u)) {
+            if (phi_sub_stagger != 0.f && !(n_phi_bins % 4u)) {
                 // switch sides
                 if (!(iphi % 4u)) {
                     rzs = phi_sub_stagger;

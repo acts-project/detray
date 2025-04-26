@@ -48,10 +48,10 @@ struct intersection_initialize {
         const surface_t &surface,
         const transform_container_t &contextual_transforms,
         const typename transform_container_t::context_type &ctx,
-        const darray<scalar_t, 2u> &mask_tolerance = {0.,
-                                                      1. * unit<scalar_t>::mm},
-        const scalar_t mask_tol_scalor = 0.,
-        const scalar_t overstep_tol = 0.) const {
+        const darray<scalar_t, 2u> &mask_tolerance = {0.f,
+                                                      1.f * unit<scalar_t>::mm},
+        const scalar_t mask_tol_scalor = 0.f,
+        const scalar_t overstep_tol = 0.f) const {
 
         using mask_t = typename mask_group_t::value_type;
         using algebra_t = typename mask_t::algebra_type;
@@ -140,10 +140,10 @@ struct intersection_update {
         const traj_t &traj, intersection_t &sfi,
         const transform_container_t &contextual_transforms,
         const typename transform_container_t::context_type &ctx,
-        const darray<scalar_t, 2u> &mask_tolerance = {0.,
-                                                      1. * unit<scalar_t>::mm},
-        const scalar_t mask_tol_scalor = 0.,
-        const scalar_t overstep_tol = 0.) const {
+        const darray<scalar_t, 2u> &mask_tolerance = {0.f,
+                                                      1.f * unit<scalar_t>::mm},
+        const scalar_t mask_tol_scalor = 0.f,
+        const scalar_t overstep_tol = 0.f) const {
 
         using mask_t = typename mask_group_t::value_type;
         using algebra_t = typename mask_t::algebra_type;

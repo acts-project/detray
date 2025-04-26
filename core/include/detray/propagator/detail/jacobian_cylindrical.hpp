@@ -79,7 +79,8 @@ struct jacobian<cylindrical2D<algebra_t>> {
             coordinate_frame::global_to_local_3D(trf3, pos, dir);
         const vector3_type normal = coordinate_frame::normal(trf3, local);
 
-        const vector3_type pos_term = (-1. / vector::dot(normal, dir)) * normal;
+        const vector3_type pos_term =
+            (-1.f / vector::dot(normal, dir)) * normal;
 
         getter::element(derivative, 0u, e_free_pos0) = pos_term[0];
         getter::element(derivative, 0u, e_free_pos1) = pos_term[1];

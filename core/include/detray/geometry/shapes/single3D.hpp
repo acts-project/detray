@@ -122,7 +122,7 @@ class single3D {
         const dscalar<algebra_t> env =
             std::numeric_limits<dscalar<algebra_t>>::epsilon()) const {
 
-        assert(env > 0.);
+        assert(env > 0.f);
         darray<dscalar<algebra_t>, 6> o_bounds{-env, -env, -env, env, env, env};
         o_bounds[kCheckIndex] += bounds[e_lower];
         o_bounds[3u + kCheckIndex] += bounds[e_upper];
@@ -136,8 +136,8 @@ class single3D {
 
         using point3_t = dpoint3D<algebra_t>;
 
-        point3_t centr{0., 0., 0.};
-        centr[kCheckIndex] = 0.5 * (bounds[e_lower] + bounds[e_upper]);
+        point3_t centr{0.f, 0.f, 0.f};
+        centr[kCheckIndex] = 0.5f * (bounds[e_lower] + bounds[e_upper]);
 
         return centr;
     }

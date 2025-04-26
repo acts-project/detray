@@ -44,7 +44,7 @@ inline std::vector<material_slab<scalar_t>> generate_cyl_mat(
     // Make sure the cylinder bounds are centered around zero
     const scalar_t length{math::fabs(bounds[cylinder2D::e_upper_z] -
                                      bounds[cylinder2D::e_lower_z])};
-    scalar_t z{-0.5 * length};
+    scalar_t z{-0.5f * length};
     const scalar_t z_step{length / static_cast<scalar_t>(nbins - 1u)};
     for (std::size_t n = 0u; n < nbins; ++n) {
         ts.emplace_back(mat, static_cast<scalar_t>(scalor * z * z) + t);
@@ -92,9 +92,9 @@ struct material_map_config {
         /// Material to be filled into the maps
         material<scalar_t> mapped_material{silicon_tml<scalar_t>()};
         /// Minimal thickness of the material slabs in the material maps
-        scalar_t thickness{0.15 * unit<scalar_t>::mm};
+        scalar_t thickness{0.15f * unit<scalar_t>::mm};
         /// Scale factor for the material thickness calculation
-        scalar_t scalor{1.};
+        scalar_t scalor{1.f};
         /// How to vary the material thickness along the bins
         std::function<std::vector<material_slab<scalar_t>>(
             const std::vector<scalar_t> &, const std::size_t,

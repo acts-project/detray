@@ -33,13 +33,13 @@ struct cylinder_portal_config {
     /// Autofit the lower/upper z extend and inner/outer radii
     bool m_do_autofit{true};
     /// Minimal envelope for the portals (used in autofitting)
-    scalar_t m_envelope{100. * unit<scalar_t>::um};
+    scalar_t m_envelope{100.f * unit<scalar_t>::um};
     /// Fixed inner radius during autofit
-    scalar_t m_fixed_inner_r{0.};
+    scalar_t m_fixed_inner_r{0.f};
     /// Fixed outer radius during autofit
-    scalar_t m_fixed_outer_r{0.};
+    scalar_t m_fixed_outer_r{0.f};
     /// Fixed length of the cylinder
-    scalar_t m_fixed_z{0.};
+    scalar_t m_fixed_z{0.f};
     /// The portal volumes links (north, south, east, west)
     std::vector<dindex> m_volume_links{dindex_invalid, dindex_invalid,
                                        dindex_invalid, dindex_invalid};
@@ -137,10 +137,10 @@ class cylinder_portal_generator final
     public:
     /// Save the boundaries of the cylinder after autofitting the portals
     struct boundaries {
-        scalar_t inner_radius{0.};
-        scalar_t outer_radius{0.};
-        scalar_t lower_z{0.};
-        scalar_t upper_z{0.};
+        scalar_t inner_radius{0.f};
+        scalar_t outer_radius{0.f};
+        scalar_t lower_z{0.f};
+        scalar_t upper_z{0.f};
     };
 
     /// Construct from configuration @param cfg
@@ -194,9 +194,9 @@ class cylinder_portal_generator final
 
         if (!m_cfg.do_autofit()) {
             // Without autofit, the portal bounds have to be given explicitly
-            assert(!(m_cfg.fixed_inner_radius() == 0. &&
-                     m_cfg.fixed_outer_radius() == 0.) ||
-                   m_cfg.fixed_half_length() != 0.);
+            assert(!(m_cfg.fixed_inner_radius() == 0.f &&
+                     m_cfg.fixed_outer_radius() == 0.f) ||
+                   m_cfg.fixed_half_length() != 0.f);
         } else {
             // Need surfaces in volume to do autofit
             assert(n_surfaces != 0u);
@@ -228,7 +228,7 @@ class cylinder_portal_generator final
             const point3_t box_max = world_box.template loc_max<point3_t>();
 
             // Get the half lengths for the cylinder height and disc translation
-            const point3_t h_lengths = 0.5 * (box_max - box_min);
+            const point3_t h_lengths = 0.5f * (box_max - box_min);
             const scalar_t h_x{math::fabs(h_lengths[0])};
             const scalar_t h_y{math::fabs(h_lengths[1])};
             const scalar_t h_z{math::fabs(h_lengths[2])};
@@ -243,13 +243,13 @@ class cylinder_portal_generator final
         }
 
         // Observe boundary conditions
-        if (m_cfg.fixed_inner_radius() > 0.) {
+        if (m_cfg.fixed_inner_radius() > 0.f) {
             inner_r = m_cfg.fixed_inner_radius();
         }
-        if (m_cfg.fixed_outer_radius() > 0.) {
+        if (m_cfg.fixed_outer_radius() > 0.f) {
             outer_r = m_cfg.fixed_outer_radius();
         }
-        if (m_cfg.fixed_half_length() > 0.) {
+        if (m_cfg.fixed_half_length() > 0.f) {
             lower_z = -m_cfg.fixed_half_length();
             upper_z = m_cfg.fixed_half_length();
         }
@@ -295,7 +295,7 @@ class cylinder_portal_generator final
         const scalar_t max_z{math::max(lower_z, upper_z)};
 
         // translation
-        const point3_t tsl{0., 0., 0.};
+        const point3_t tsl{0.f, 0.f, 0.f};
 
         // Add transform and mask data
         transforms.emplace_back(ctx, tsl);
@@ -335,7 +335,7 @@ class cylinder_portal_generator final
         const scalar_t max_r{math::max(inner_r, outer_r)};
 
         // translation
-        point3_t tsl{0., 0., z};
+        point3_t tsl{0.f, 0.f, z};
 
         // Add transform and mask data
         transforms.emplace_back(ctx, tsl);

@@ -81,7 +81,7 @@ struct cylindrical2D {
     DETRAY_HOST_DEVICE static inline vector3_type normal(
         const transform3_type &trf, const point2_type &p, const mask_t &mask) {
         const scalar_type phi{p[0] / mask[mask_t::shape::e_r]};
-        const vector3_type local_normal{math::cos(phi), math::sin(phi), 0.};
+        const vector3_type local_normal{math::cos(phi), math::sin(phi), 0.f};
 
         // normal vector in global coordinate
         return trf.vector_to_global(local_normal);
@@ -92,7 +92,7 @@ struct cylindrical2D {
     DETRAY_HOST_DEVICE static inline vector3_type normal(
         const transform3_type &trf, const point3_type &p) {
         const scalar_type phi{p[0] / p[2]};
-        const vector3_type local_normal{math::cos(phi), math::sin(phi), 0.};
+        const vector3_type local_normal{math::cos(phi), math::sin(phi), 0.f};
 
         // normal vector in global coordinate
         return trf.vector_to_global(local_normal);

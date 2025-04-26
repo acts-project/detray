@@ -28,7 +28,7 @@ struct unit_vectors {
     DETRAY_HOST_DEVICE inline vector3_t make_curvilinear_unit_u(
         const vector3_t& dir) {
 
-        vector3_t unit_u{0., 0., 0.};
+        vector3_t unit_u{0.f, 0.f, 0.f};
         // explicit version of U = Z x T
         unit_u[0] = -dir[1];
         unit_u[1] = dir[0];
@@ -39,11 +39,11 @@ struct unit_vectors {
         // aligned with the z-axis. the ZxT product is ill-defined since any
         // vector in the x-y plane would be orthogonal to the direction. fix the
         // U unit vector along the x-axis to avoid this numerical instability.
-        if (scale < 1e-6) {
+        if (scale < 1e-6f) {
             unit_u[0] = 1;
             unit_u[1] = 0;
         } else {
-            unit_u = unit_u * (1. / scale);
+            unit_u = unit_u * (1.f / scale);
         }
 
         return unit_u;

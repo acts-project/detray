@@ -215,7 +215,7 @@ class detector_scan : public test::fixture_base<> {
                 // surfaces it encounters
                 // @note: For rays, set the momentum to 1 GeV to keep the
                 //        direction vector normalized
-                const scalar p{q == 0. ? 1.f * unit<scalar>::GeV : trk.p(q)};
+                const scalar p{q == 0.f ? 1.f * unit<scalar>::GeV : trk.p(q)};
                 auto trace = detector_scanner::run<scan_type>(
                     m_gctx, m_det, test_traj, m_cfg.mask_tolerance(), p);
 

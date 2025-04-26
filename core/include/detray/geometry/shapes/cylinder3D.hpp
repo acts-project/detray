@@ -79,7 +79,7 @@ class cylinder3D {
         // Use the chord for the phi distance
         return math::min(
             math::min(min_r_dist,
-                      2. * loc_p[0] * math::sin(0.5 * min_phi_dist)),
+                      2.f * loc_p[0] * math::sin(0.5f * min_phi_dist)),
             min_z_dist);
     }
 
@@ -150,7 +150,7 @@ class cylinder3D {
         const dscalar<algebra_t> env =
             std::numeric_limits<dscalar<algebra_t>>::epsilon()) const {
 
-        assert(env > 0.);
+        assert(env > 0.f);
         const dscalar<algebra_t> r_bound{bounds[e_max_r] + env};
         return {-r_bound, -r_bound, bounds[e_min_z] - env,
                 r_bound,  r_bound,  bounds[e_max_z] + env};
@@ -161,8 +161,8 @@ class cylinder3D {
     DETRAY_HOST_DEVICE dpoint3D<algebra_t> centroid(
         const bounds_type<dscalar<algebra_t>> &bounds) const {
 
-        return 0.5 *
-               dpoint3D<algebra_t>{0., (bounds[e_min_phi] + bounds[e_max_phi]),
+        return 0.5f *
+               dpoint3D<algebra_t>{0.f, (bounds[e_min_phi] + bounds[e_max_phi]),
                                    (bounds[e_min_z] + bounds[e_max_z])};
     }
 
@@ -190,7 +190,7 @@ class cylinder3D {
     DETRAY_HOST constexpr bool check_consistency(
         const bounds_type<scalar_t> &bounds, std::ostream &os) const {
 
-        constexpr auto tol{10. * std::numeric_limits<scalar_t>::epsilon()};
+        constexpr auto tol{10.f * std::numeric_limits<scalar_t>::epsilon()};
 
         if (bounds[e_min_r] < tol) {
             os << "ERROR: Radii must be in the range (0, numeric_max)"

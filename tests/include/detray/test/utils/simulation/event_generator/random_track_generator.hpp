@@ -127,7 +127,7 @@ class random_track_generator
             if constexpr (std::is_same_v<track_t, detail::ray<algebra_t>>) {
                 mom = vector::normalize(mom);
             } else {
-                sin_theta = (sin_theta == scalar_t{0.})
+                sin_theta = (sin_theta == scalar_t{0.f})
                                 ? std::numeric_limits<scalar_t>::epsilon()
                                 : sin_theta;
                 mom = (m_cfg.is_pT() ? 1.f / sin_theta : 1.f) * p_mag *

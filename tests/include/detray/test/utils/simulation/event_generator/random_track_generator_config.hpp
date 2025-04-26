@@ -42,7 +42,7 @@ struct random_track_generator_config {
     /// Range for phi [-pi, pi) and theta [0, pi)
     darray<scalar_t, 2> m_phi_range{-constant<scalar_t>::pi,
                                     constant<scalar_t>::pi};
-    darray<scalar_t, 2> m_theta_range{0., constant<scalar_t>::pi};
+    darray<scalar_t, 2> m_theta_range{0.f, constant<scalar_t>::pi};
 
     /// Momentum range
     darray<scalar_t, 2> m_mom_range{1.f * unit<scalar_t>::GeV,
@@ -51,14 +51,14 @@ struct random_track_generator_config {
     bool m_is_pT{false};
 
     /// Track origin
-    darray<scalar_t, 3> m_origin{0., 0., 0.};
-    darray<scalar_t, 3> m_origin_stddev{0., 0., 0.};
+    darray<scalar_t, 3> m_origin{0.f, 0.f, 0.f};
+    darray<scalar_t, 3> m_origin_stddev{0.f, 0.f, 0.f};
 
     /// Randomly flip the charge sign?
     bool m_randomize_charge{false};
 
     /// Time parameter and charge of the track
-    scalar_t m_time{0. * unit<scalar_t>::us};
+    scalar_t m_time{0.f * unit<scalar_t>::us};
     scalar_t m_charge{-1.f * unit<scalar_t>::e};
 
     /// Setters
@@ -97,8 +97,8 @@ struct random_track_generator_config {
     }
     DETRAY_HOST_DEVICE random_track_generator_config& theta_range(
         scalar_t low, scalar_t high) {
-        auto min_theta{std::clamp(low, scalar_t{0.}, constant<scalar_t>::pi)};
-        auto max_theta{std::clamp(high, scalar_t{0.}, constant<scalar_t>::pi)};
+        auto min_theta{std::clamp(low, scalar_t{0.f}, constant<scalar_t>::pi)};
+        auto max_theta{std::clamp(high, scalar_t{0.f}, constant<scalar_t>::pi)};
 
         assert(min_theta <= max_theta);
 
@@ -137,7 +137,7 @@ struct random_track_generator_config {
     DETRAY_HOST_DEVICE random_track_generator_config& mom_range(scalar_t low,
                                                                 scalar_t high) {
         m_is_pT = false;
-        assert(low >= 0.);
+        assert(low >= 0.f);
         assert(low <= high);
         m_mom_range = {low, high};
         return *this;
@@ -151,7 +151,7 @@ struct random_track_generator_config {
     DETRAY_HOST_DEVICE random_track_generator_config& pT_range(scalar_t low,
                                                                scalar_t high) {
         m_is_pT = true;
-        assert(low >= 0.);
+        assert(low >= 0.f);
         assert(low <= high);
         m_mom_range = {low, high};
         return *this;
@@ -198,7 +198,7 @@ struct random_track_generator_config {
         return *this;
     }
     DETRAY_HOST_DEVICE random_track_generator_config& time(scalar_t t) {
-        assert(t >= 0.);
+        assert(t >= 0.f);
         m_time = t;
         return *this;
     }

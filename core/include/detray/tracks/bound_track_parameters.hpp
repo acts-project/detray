@@ -135,7 +135,7 @@ struct bound_parameters_vector {
     /// Set the global theta angle
     DETRAY_HOST_DEVICE
     void set_theta(const scalar_type theta) {
-        assert(0. < theta);
+        assert(0.f < theta);
         assert(theta <= constant<scalar_type>::pi);
         getter::element(m_vector, e_bound_theta, 0u) = theta;
     }
@@ -180,7 +180,7 @@ struct bound_parameters_vector {
     scalar_type qopT() const {
         const scalar_type theta{getter::element(m_vector, e_bound_theta, 0u)};
         const scalar_type sinTheta{math::sin(theta)};
-        assert(sinTheta != 0.);
+        assert(sinTheta != 0.f);
         return getter::element(m_vector, e_bound_qoverp, 0u) / sinTheta;
     }
 
@@ -189,15 +189,15 @@ struct bound_parameters_vector {
     scalar_type qopz() const {
         const scalar_type theta{getter::element(m_vector, e_bound_theta, 0u)};
         const scalar_type cosTheta{math::cos(theta)};
-        assert(cosTheta != 0.);
+        assert(cosTheta != 0.f);
         return getter::element(m_vector, e_bound_qoverp, 0u) / cosTheta;
     }
 
     /// @returns the absolute momentum
     DETRAY_HOST_DEVICE
     scalar_type p(const scalar_type q) const {
-        assert(qop() != 0.);
-        assert(q * qop() > 0.);
+        assert(qop() != 0.f);
+        assert(q * qop() > 0.f);
         return q / qop();
     }
 
@@ -208,16 +208,16 @@ struct bound_parameters_vector {
     /// @returns the transverse momentum
     DETRAY_HOST_DEVICE
     scalar_type pT(const scalar_type q) const {
-        assert(qop() != 0.);
-        assert(q * qop() > 0.);
+        assert(qop() != 0.f);
+        assert(q * qop() > 0.f);
         return math::fabs(q / qop() * vector::perp(dir()));
     }
 
     /// @returns the absolute momentum z-component
     DETRAY_HOST_DEVICE
     scalar_type pz(const scalar_type q) const {
-        assert(qop() != 0.);
-        assert(q * qop() > 0.);
+        assert(qop() != 0.f);
+        assert(q * qop() > 0.f);
         return math::fabs(q / qop() * dir()[2]);
     }
 

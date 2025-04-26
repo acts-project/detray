@@ -138,7 +138,7 @@ struct free_parameters_vector {
     DETRAY_HOST_DEVICE
     scalar_type qopT() const {
         const vector3_type dir = this->dir();
-        assert(vector::perp(dir) != 0.);
+        assert(vector::perp(dir) != 0.f);
         return getter::element(m_vector, e_free_qoverp, 0u) / vector::perp(dir);
     }
 
@@ -152,8 +152,8 @@ struct free_parameters_vector {
     /// @returns the absolute momentum
     DETRAY_HOST_DEVICE
     scalar_type p(const scalar_type q) const {
-        assert(qop() != 0.);
-        assert(q * qop() > 0.);
+        assert(qop() != 0.f);
+        assert(q * qop() > 0.f);
         return q / qop();
     }
 
@@ -164,16 +164,16 @@ struct free_parameters_vector {
     /// @returns the transverse momentum
     DETRAY_HOST_DEVICE
     scalar_type pT(const scalar_type q) const {
-        assert(this->qop() != 0.);
-        assert(q * qop() > 0.);
+        assert(this->qop() != 0.f);
+        assert(q * qop() > 0.f);
         return math::fabs(q / this->qop() * vector::perp(this->dir()));
     }
 
     /// @returns the absolute momentum z-component
     DETRAY_HOST_DEVICE
     scalar_type pz(const scalar_type q) const {
-        assert(this->qop() != 0.);
-        assert(q * qop() > 0.);
+        assert(this->qop() != 0.f);
+        assert(q * qop() > 0.f);
         return math::fabs(q / this->qop() * this->dir()[2]);
     }
 

@@ -36,11 +36,11 @@ struct pointwise_material_interactor : actor {
     struct state {
 
         /// Evaluated energy loss
-        scalar_type e_loss{0.};
+        scalar_type e_loss{0.f};
         /// Evaluated projected scattering angle
-        scalar_type projected_scattering_angle{0.};
+        scalar_type projected_scattering_angle{0.f};
         /// Evaluated sigma of qoverp
-        scalar_type sigma_qop{0.};
+        scalar_type sigma_qop{0.f};
 
         bool do_covariance_transport = true;
         bool do_energy_loss = true;
@@ -48,9 +48,9 @@ struct pointwise_material_interactor : actor {
 
         DETRAY_HOST_DEVICE
         void reset() {
-            e_loss = 0.;
-            projected_scattering_angle = 0.;
-            sigma_qop = 0.;
+            e_loss = 0.f;
+            projected_scattering_angle = 0.f;
+            sigma_qop = 0.f;
         }
     };
 
@@ -212,12 +212,12 @@ struct pointwise_material_interactor : actor {
 
         // Put particle at rest if energy loss is too large
         const scalar_type next_p{
-            (m < next_e) ? math::sqrt(next_e * next_e - m * m) : 0.};
+            (m < next_e) ? math::sqrt(next_e * next_e - m * m) : 0.f};
 
         // For neutral particles, qoverp = 1/p
         constexpr auto inv{detail::invalid_value<scalar_type>()};
-        const scalar_type next_qop{(q != 0.) ? q / next_p : 1. / next_p};
-        vector.set_qop((next_p == 0.) ? inv : next_qop);
+        const scalar_type next_qop{(q != 0.f) ? q / next_p : 1.f / next_p};
+        vector.set_qop((next_p == 0.f) ? inv : next_qop);
     }
 
     /// @brief Update the variance of q over p of bound track parameter
@@ -250,8 +250,8 @@ struct pointwise_material_interactor : actor {
         constexpr auto inv{detail::invalid_value<scalar_type>()};
 
         getter::element(covariance, e_bound_phi, e_bound_phi) +=
-            (dir[2] == 1.) ? inv
-                           : var_scattering_angle / (1. - dir[2] * dir[2]);
+            (dir[2] == 1.f) ? inv
+                            : var_scattering_angle / (1.f - dir[2] * dir[2]);
 
         getter::element(covariance, e_bound_theta, e_bound_theta) +=
             var_scattering_angle;

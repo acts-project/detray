@@ -21,7 +21,7 @@ namespace detray::detail {
 /// using a small angle approximation
 template <concepts::scalar scalar_t>
 constexpr scalar_t phi_tolerance(scalar_t tol, scalar_t radius) {
-    return radius > 0. ? tol / radius : tol;
+    return radius > 0.f ? tol / radius : tol;
 }
 
 }  // namespace detray::detail

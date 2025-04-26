@@ -642,7 +642,7 @@ auto write_tracks(const std::string &track_param_file_name,
         for (const auto &record : trace) {
             track_params.back().emplace_back(
                 record.charge,
-                track_param_t{record.pos, 0., record.dir, record.charge});
+                track_param_t{record.pos, 0.f, record.dir, record.charge});
         }
     }
 
@@ -686,7 +686,7 @@ auto write_dist_to_boundary(
                        << "," << vector::phi(glob_pos) << ", "
                        << vector::eta(glob_pos) << "," << missed_sfi.path
                        << ", " << dist << ", " << std::boolalpha
-                       << sf.is_inside(missed_sfi.local, 0.) << ", "
+                       << sf.is_inside(missed_sfi.local, 0.f) << ", "
                        << static_cast<int>(sf.shape_id()) << std::endl;
         }
     }

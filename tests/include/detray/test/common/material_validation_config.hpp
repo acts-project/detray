@@ -82,7 +82,7 @@ struct material_validation_config : public test::fixture_base<>::configuration {
         return *this;
     }
     material_validation_config &relative_error(scalar_type re) {
-        assert(re > 0.);
+        assert(re > 0.f);
         m_rel_error = re;
         return *this;
     }

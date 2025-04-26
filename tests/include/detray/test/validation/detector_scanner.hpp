@@ -59,13 +59,13 @@ struct brute_force_scan {
     using trajectory_type = trajectory_t;
 
     template <typename detector_t>
-    inline auto operator()(
-        const typename detector_t::geometry_context ctx,
-        const detector_t &detector, const trajectory_t &traj,
-        const darray<typename detector_t::scalar_type, 2> mask_tolerance = {0.,
-                                                                            0.},
-        const typename detector_t::scalar_type p =
-            1.f * unit<typename detector_t::scalar_type>::GeV) {
+    inline auto operator()(const typename detector_t::geometry_context ctx,
+                           const detector_t &detector, const trajectory_t &traj,
+                           const darray<typename detector_t::scalar_type, 2>
+                               mask_tolerance = {0.f, 0.f},
+                           const typename detector_t::scalar_type p =
+                               1.f *
+                               unit<typename detector_t::scalar_type>::GeV) {
 
         using algebra_t = typename detector_t::algebra_type;
         using scalar_t = dscalar<algebra_t>;
@@ -79,7 +79,7 @@ struct brute_force_scan {
 
         const auto &trf_store = detector.transform_store();
 
-        assert(p > 0.);
+        assert(p > 0.f);
         const scalar_t q{p * traj.qop()};
 
         std::vector<intersection_t> intersections{};
@@ -91,7 +91,8 @@ struct brute_force_scan {
             const auto sf = tracking_surface{detector, sf_desc};
             sf.template visit_mask<intersection_kernel_t>(
                 intersections, traj, sf_desc, trf_store, ctx,
-                sf.is_portal() ? darray<scalar_t, 2>{0., 0.} : mask_tolerance);
+                sf.is_portal() ? darray<scalar_t, 2>{0.f, 0.f}
+                               : mask_tolerance);
 
             // Candidate is invalid if it lies in the opposite direction
             for (auto &sfi : intersections) {
@@ -100,7 +101,7 @@ struct brute_force_scan {
                     // Record the intersection
                     intersection_trace.push_back(
                         {q,
-                         {traj.pos(sfi.path), 0., p * traj.dir(sfi.path), q},
+                         {traj.pos(sfi.path), 0.f, p * traj.dir(sfi.path), q},
                          sf.volume(),
                          sfi});
                 }
@@ -122,17 +123,17 @@ struct brute_force_scan {
         start_intersection.sf_desc.set_index(dindex_invalid);
         start_intersection.sf_desc.material().set_id(
             detector_t::materials::id::e_none);
-        start_intersection.path = 0.;
-        start_intersection.local = {0., 0., 0.};
+        start_intersection.path = 0.f;
+        start_intersection.local = {0.f, 0.f, 0.f};
         start_intersection.volume_link =
             static_cast<nav_link_t>(first_record.vol_idx);
 
-        intersection_trace.insert(
-            intersection_trace.begin(),
-            intersection_record<detector_t>{q,
-                                            {traj.pos(), 0., p * traj.dir(), q},
-                                            first_record.vol_idx,
-                                            start_intersection});
+        intersection_trace.insert(intersection_trace.begin(),
+                                  intersection_record<detector_t>{
+                                      q,
+                                      {traj.pos(), 0.f, p * traj.dir(), q},
+                                      first_record.vol_idx,
+                                      start_intersection});
 
         return intersection_trace;
     }

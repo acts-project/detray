@@ -123,16 +123,16 @@ class detector_builder {
 
             // TODO: Construct it correctly with the grid builder
             mask<cylinder3D, algebra_type> vgrid_dims{
-                0u,     0.,   -constant<scalar_type>::pi,
-                -2000., 180., constant<scalar_type>::pi,
-                2000.};
+                0u,      0.f,   -constant<scalar_type>::pi,
+                -2000.f, 180.f, constant<scalar_type>::pi,
+                2000.f};
             darray<std::size_t, 3> n_vgrid_bins{1u, 1u, 1u};
 
             darray<std::vector<scalar_type>, 3UL> bin_edges{
-                std::vector<scalar_type>{0., 180.},
+                std::vector<scalar_type>{0.f, 180.f},
                 std::vector<scalar_type>{-constant<scalar_type>::pi,
                                          constant<scalar_type>::pi},
-                std::vector<scalar_type>{-2000., 2000.}};
+                std::vector<scalar_type>{-2000.f, 2000.f}};
 
             grid_factory_type<vol_finder_t> vgrid_factory{};
             m_vol_finder = vgrid_factory.template new_grid<

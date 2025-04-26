@@ -24,8 +24,8 @@ struct step_data {
     using track_param_type = free_track_parameters<algebra_t>;
     using free_matrix_type = free_matrix<algebra_t>;
 
-    scalar_type step_size{0.};
-    scalar_type path_length{0.};
+    scalar_type step_size{0.f};
+    scalar_type path_length{0.f};
     std::size_t n_total_trials{0u};
     navigation::direction nav_dir = navigation::direction::e_forward;
     geometry::barcode barcode{};

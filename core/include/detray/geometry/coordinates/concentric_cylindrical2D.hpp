@@ -81,7 +81,7 @@ struct concentric_cylindrical2D {
         const mask_t & /*mask*/) {
         // normal vector in global coordinates (concentric cylinders have no
         // rotation)
-        return {math::cos(p[0]), math::sin(p[0]), 0.};
+        return {math::cos(p[0]), math::sin(p[0]), 0.f};
     }
 
     /// @returns the normal vector given a local position @param p
@@ -89,7 +89,7 @@ struct concentric_cylindrical2D {
         const transform3_type &, const point3_type &p) {
         // normal vector in global coordinates (concentric cylinders have no
         // rotation)
-        return {math::cos(p[0]), math::sin(p[0]), 0.};
+        return {math::cos(p[0]), math::sin(p[0]), 0.f};
     }
 
 };  // struct concentric_cylindrical2D

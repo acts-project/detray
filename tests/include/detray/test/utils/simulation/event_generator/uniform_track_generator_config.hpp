@@ -37,7 +37,7 @@ struct uniform_track_generator_config {
 
     /// Range for phi [-pi, pi) and theta [0, pi)
     darray<scalar_t, 2> m_phi_range{-constant<scalar_t>::pi, k_max_pi};
-    darray<scalar_t, 2> m_theta_range{0., k_max_pi};
+    darray<scalar_t, 2> m_theta_range{0.f, k_max_pi};
     darray<scalar_t, 2> m_eta_range{-5.f, 5.f};
 
     /// Angular step size
@@ -49,7 +49,7 @@ struct uniform_track_generator_config {
     bool m_uniform_eta{false};
 
     /// Track origin
-    darray<scalar_t, 3> m_origin{0., 0., 0.};
+    darray<scalar_t, 3> m_origin{0.f, 0.f, 0.f};
 
     /// Magnitude of momentum: Default is one to keep directions normalized
     /// if no momentum information is needed (e.g. for a ray)
@@ -61,7 +61,7 @@ struct uniform_track_generator_config {
     bool m_randomize_charge{false};
 
     /// Time parameter and charge of the track
-    scalar_t m_time{0. * unit<scalar_t>::us};
+    scalar_t m_time{0.f * unit<scalar_t>::us};
     scalar_t m_charge{-1.f * unit<scalar_t>::e};
 
     /// Setters
@@ -88,8 +88,8 @@ struct uniform_track_generator_config {
     }
     DETRAY_HOST_DEVICE uniform_track_generator_config& theta_range(
         scalar_t low, scalar_t high) {
-        auto min_theta{std::clamp(low, scalar_t{0.}, k_max_pi)};
-        auto max_theta{std::clamp(high, scalar_t{0.}, k_max_pi)};
+        auto min_theta{std::clamp(low, scalar_t{0.f}, k_max_pi)};
+        auto max_theta{std::clamp(high, scalar_t{0.f}, k_max_pi)};
 
         assert(min_theta <= max_theta);
 
@@ -158,13 +158,13 @@ struct uniform_track_generator_config {
         return origin(ori[0], ori[1], ori[2]);
     }
     DETRAY_HOST_DEVICE uniform_track_generator_config& p_tot(scalar_t p) {
-        assert(p > 0.);
+        assert(p > 0.f);
         m_is_pT = false;
         m_p_mag = p;
         return *this;
     }
     DETRAY_HOST_DEVICE uniform_track_generator_config& p_T(scalar_t p) {
-        assert(p > 0.);
+        assert(p > 0.f);
         m_is_pT = true;
         m_p_mag = p;
         return *this;

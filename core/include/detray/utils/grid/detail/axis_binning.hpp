@@ -77,7 +77,7 @@ struct regular {
     /// @returns the corresponding bin index
     DETRAY_HOST_DEVICE
     int bin(const scalar_type v) const {
-        return static_cast<int>((v - span()[0]) / bin_width() + 1.) - 1;
+        return static_cast<int>((v - span()[0]) / bin_width() + 1.f) - 1;
     }
 
     /// Access function to a range with binned neighborhood

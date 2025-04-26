@@ -33,7 +33,7 @@ struct hom_material_config {
     /// Type of material to put on the portal surfaces
     material<scalar_t> m_portal_material{vacuum<scalar_t>{}};
     /// Minimal envelope for the portals (used in autofitting)
-    scalar_t m_thickness{1.5 * unit<scalar_t>::mm};
+    scalar_t m_thickness{1.5f * unit<scalar_t>::mm};
 
     /// Setters
     /// @{

@@ -33,7 +33,7 @@ DETRAY_HOST_DEVICE inline void detray::rk_stepper<
 
     // Reference: Eq (82) of https://doi.org/10.1016/0029-554X(81)90063-X
     dir =
-        dir + h_6 * (sd.dtds[0] + 2. * (sd.dtds[1] + sd.dtds[2]) + sd.dtds[3]);
+        dir + h_6 * (sd.dtds[0] + 2.f * (sd.dtds[1] + sd.dtds[2]) + sd.dtds[3]);
     dir = vector::normalize(dir);
     track.set_dir(dir);
 
@@ -41,7 +41,7 @@ DETRAY_HOST_DEVICE inline void detray::rk_stepper<
     if (vol_mat_ptr != nullptr) {
         // Reference: Eq (82) of https://doi.org/10.1016/0029-554X(81)90063-X
         qop =
-            qop + h_6 * (sd.dqopds[0u] + 2. * (sd.dqopds[1u] + sd.dqopds[2u]) +
+            qop + h_6 * (sd.dqopds[0u] + 2.f * (sd.dqopds[1u] + sd.dqopds[2u]) +
                          sd.dqopds[3u]);
     }
     track.set_qop(qop);
@@ -86,8 +86,8 @@ DETRAY_HOST_DEVICE inline void detray::rk_stepper<
 
     // Half step length
     const scalar_type h2{h * h};
-    const scalar_type half_h{h * 0.5};
-    const scalar_type h_6{h * (1. / 6.)};
+    const scalar_type half_h{h * 0.5f};
+    const scalar_type h_6{h * (1.f / 6.f)};
 
     // 3X3 Identity matrix
     const auto I33 = matrix::identity<matrix_type<3, 3>>();
@@ -96,7 +96,7 @@ DETRAY_HOST_DEVICE inline void detray::rk_stepper<
     darray<matrix_type<3u, 3u>, 4u> dkndt{I33, I33, I33, I33};
     darray<vector3_type, 4u> dkndqop;
     darray<matrix_type<3u, 3u>, 4u> dkndr;
-    darray<scalar_type, 4u> dqopn_dqop{1., 1., 1., 1.};
+    darray<scalar_type, 4u> dqopn_dqop{1.f, 1.f, 1.f, 1.f};
 
     /*---------------------------------------------------------------------------
      *  dk_n/dt1
@@ -188,22 +188,22 @@ DETRAY_HOST_DEVICE inline void detray::rk_stepper<
     ---------------------------------------------------------------------------*/
 
     if (!cfg.use_eloss_gradient) {
-        getter::element(D, e_free_qoverp, e_free_qoverp) = 1.;
+        getter::element(D, e_free_qoverp, e_free_qoverp) = 1.f;
     } else {
         // Pre-calculate dqop_n/dqop1
         const scalar_type d2qop1dsdqop1 =
             this->d2qopdsdqop(sd.qop[0u], vol_mat_ptr);
 
-        dqopn_dqop[0u] = 1.;
-        dqopn_dqop[1u] = 1. + half_h * d2qop1dsdqop1;
+        dqopn_dqop[0u] = 1.f;
+        dqopn_dqop[1u] = 1.f + half_h * d2qop1dsdqop1;
 
         const scalar_type d2qop2dsdqop1 =
             this->d2qopdsdqop(sd.qop[1u], vol_mat_ptr) * dqopn_dqop[1u];
-        dqopn_dqop[2u] = 1. + half_h * d2qop2dsdqop1;
+        dqopn_dqop[2u] = 1.f + half_h * d2qop2dsdqop1;
 
         const scalar_type d2qop3dsdqop1 =
             this->d2qopdsdqop(sd.qop[2u], vol_mat_ptr) * dqopn_dqop[2u];
-        dqopn_dqop[3u] = 1. + h * d2qop3dsdqop1;
+        dqopn_dqop[3u] = 1.f + h * d2qop3dsdqop1;
 
         const scalar_type d2qop4dsdqop1 =
             this->d2qopdsdqop(sd.qop[3u], vol_mat_ptr) * dqopn_dqop[3u];
@@ -213,8 +213,8 @@ DETRAY_HOST_DEVICE inline void detray::rk_stepper<
         -------------------------------------------------------------------*/
 
         getter::element(D, e_free_qoverp, e_free_qoverp) =
-            1. + h_6 * (d2qop1dsdqop1 + 2. * (d2qop2dsdqop1 + d2qop3dsdqop1) +
-                        d2qop4dsdqop1);
+            1.f + h_6 * (d2qop1dsdqop1 + 2.f * (d2qop2dsdqop1 + d2qop3dsdqop1) +
+                         d2qop4dsdqop1);
     }
 
     /*-----------------------------------------------------------------
@@ -265,8 +265,8 @@ DETRAY_HOST_DEVICE inline void detray::rk_stepper<
         // the fourth order RKN
         vector3_type r_ini = track.pos();
         vector3_type r_mid =
-            r_ini + half_h * sd.t[0u] + h2 * 0.125 * sd.dtds[0u];
-        vector3_type r_fin = r_ini + h * sd.t[0u] + h2 * 0.5 * sd.dtds[2u];
+            r_ini + half_h * sd.t[0u] + h2 * 0.125f * sd.dtds[0u];
+        vector3_type r_fin = r_ini + h * sd.t[0u] + h2 * 0.5f * sd.dtds[2u];
 
         matrix_type<3, 3> dBdr_ini = evaluate_field_gradient(r_ini);
         matrix_type<3, 3> dBdr_mid = evaluate_field_gradient(r_mid);
@@ -285,7 +285,7 @@ DETRAY_HOST_DEVICE inline void detray::rk_stepper<
                                      half_h * dkndr[0u], sd.b_middle);
         dkndr[1u] = dkndr[1u] -
                     sd.qop[1u] * mat_helper().column_wise_cross(
-                                     dBdr_mid * (I33 + h2 * 0.125 * dkndr[0u]),
+                                     dBdr_mid * (I33 + h2 * 0.125f * dkndr[0u]),
                                      sd.t[1u]);
 
         // dk3/dr1
@@ -293,22 +293,22 @@ DETRAY_HOST_DEVICE inline void detray::rk_stepper<
                                      half_h * dkndr[1u], sd.b_middle);
         dkndr[2u] = dkndr[2u] -
                     sd.qop[2u] * mat_helper().column_wise_cross(
-                                     dBdr_mid * (I33 + h2 * 0.125 * dkndr[0u]),
+                                     dBdr_mid * (I33 + h2 * 0.125f * dkndr[0u]),
                                      sd.t[2u]);
 
         // dk4/dr1
         dkndr[3u] = sd.qop[3u] *
                     mat_helper().column_wise_cross(h * dkndr[2u], sd.b_last);
-        dkndr[3u] =
-            dkndr[3u] -
-            sd.qop[3u] * mat_helper().column_wise_cross(
-                             dBdr_fin * (I33 + h2 * 0.5 * dkndr[2u]), sd.t[3u]);
+        dkndr[3u] = dkndr[3u] -
+                    sd.qop[3u] *
+                        mat_helper().column_wise_cross(
+                            dBdr_fin * (I33 + h2 * 0.5f * dkndr[2u]), sd.t[3u]);
 
         // Set dF/dr1 and dG/dr1
         auto dFdr = matrix::identity<matrix_type<3, 3>>();
         auto dGdr = matrix::identity<matrix_type<3, 3>>();
         dFdr = dFdr + h * h_6 * (dkndr[0u] + dkndr[1u] + dkndr[2u]);
-        dGdr = h_6 * (dkndr[0u] + 2. * (dkndr[1u] + dkndr[2u]) + dkndr[3u]);
+        dGdr = h_6 * (dkndr[0u] + 2.f * (dkndr[1u] + dkndr[2u]) + dkndr[3u]);
 
         getter::set_block(D, dFdr, 0u, 0u);
         getter::set_block(D, dGdr, 4u, 0u);
@@ -319,7 +319,7 @@ DETRAY_HOST_DEVICE inline void detray::rk_stepper<
     auto dGdt = matrix::identity<matrix_type<3, 3>>();
     dFdt = dFdt + h_6 * (dkndt[0u] + dkndt[1u] + dkndt[2u]);
     dFdt = h * dFdt;
-    dGdt = dGdt + h_6 * (dkndt[0u] + 2. * (dkndt[1u] + dkndt[2u]) + dkndt[3u]);
+    dGdt = dGdt + h_6 * (dkndt[0u] + 2.f * (dkndt[1u] + dkndt[2u]) + dkndt[3u]);
 
     getter::set_block(D, dFdt, 0u, 4u);
     getter::set_block(D, dGdt, 4u, 4u);
@@ -327,7 +327,7 @@ DETRAY_HOST_DEVICE inline void detray::rk_stepper<
     // Set dF/dqop1 and dG/dqop1
     vector3_type dFdqop = h * h_6 * (dkndqop[0u] + dkndqop[1u] + dkndqop[2u]);
     vector3_type dGdqop =
-        h_6 * (dkndqop[0u] + 2. * (dkndqop[1u] + dkndqop[2u]) + dkndqop[3u]);
+        h_6 * (dkndqop[0u] + 2.f * (dkndqop[1u] + dkndqop[2u]) + dkndqop[3u]);
     getter::set_block(D, dFdqop, 0u, 7u);
     getter::set_block(D, dGdqop, 4u, 7u);
 
@@ -348,7 +348,7 @@ DETRAY_HOST_DEVICE inline auto detray::rk_stepper<
 
     if (!vol_mat_ptr) {
         const scalar_type qop = track.qop();
-        return detray::make_pair(scalar_type(0.), qop);
+        return detray::make_pair(scalar_type(0.f), qop);
     } else if (cfg.use_mean_loss && i != 0u) {
         // qop_n is calculated recursively like the direction of
         // evaluate_dtds.
@@ -393,7 +393,7 @@ DETRAY_HOST_DEVICE inline auto detray::rk_stepper<
 
     auto dBdr = matrix::zero<matrix_type<3, 3>>();
 
-    constexpr auto delta{1e-1 * unit<scalar_type>::mm};
+    constexpr auto delta{1e-1f * unit<scalar_type>::mm};
 
     for (unsigned int i = 0; i < 3; i++) {
 
@@ -415,7 +415,7 @@ DETRAY_HOST_DEVICE inline auto detray::rk_stepper<
         bvec2[1u] = bvec2_tmp[1u];
         bvec2[2u] = bvec2_tmp[2u];
 
-        const vector3_type gradient = (bvec1 - bvec2) * (1. / (2. * delta));
+        const vector3_type gradient = (bvec1 - bvec2) * (1.f / (2.f * delta));
 
         getter::element(dBdr, 0u, i) = gradient[0u];
         getter::element(dBdr, 1u, i) = gradient[1u];
@@ -432,7 +432,7 @@ detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
                    inspector_t>::state::dtds() const -> vector3_type {
 
     // In case there was no step before
-    if (this->path_length() == 0.) {
+    if (this->path_length() == 0.f) {
         const point3_type pos = (*this)().pos();
 
         const auto bvec_tmp = this->m_magnetic_field.at(pos[0], pos[1], pos[2]);
@@ -455,7 +455,7 @@ DETRAY_HOST_DEVICE inline auto detray::rk_stepper<
     -> scalar_type {
 
     // In case there was no step before
-    if (this->path_length() == 0.) {
+    if (this->path_length() == 0.f) {
         return this->dqopds((*this)().qop(), vol_mat_ptr);
     }
 
@@ -472,7 +472,7 @@ DETRAY_HOST_DEVICE auto detray::rk_stepper<
 
     // d(qop)ds is zero for empty space
     if (!vol_mat_ptr) {
-        return 0.;
+        return 0.f;
     }
 
     const scalar_type q = this->particle_hypothesis().charge();
@@ -486,7 +486,7 @@ DETRAY_HOST_DEVICE auto detray::rk_stepper<
             *vol_mat_ptr, this->particle_hypothesis(), {mass, qop, q});
 
     // Assert that a momentum is a positive value
-    assert(p >= 0.);
+    assert(p >= 0.f);
 
     // d(qop)ds, which is equal to (qop) * E * (-dE/ds) / p^2
     // or equal to (qop)^3 * E * (-dE/ds) / q^2
@@ -503,7 +503,7 @@ detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
     -> scalar_type {
 
     if (!vol_mat_ptr) {
-        return 0.;
+        return 0.f;
     }
 
     const scalar_type q = this->particle_hypothesis().charge();
@@ -519,12 +519,12 @@ detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
     // g = dE/ds = -1 * (-dE/ds) = -1 * stopping power
     const detail::relativistic_quantities<scalar_type> rq(mass, qop, q);
     const scalar_type g =
-        -1. *
+        -1.f *
         I.compute_stopping_power(*vol_mat_ptr, this->particle_hypothesis(), rq);
 
     // dg/d(qop) = -1 * derivation of stopping power
     const scalar_type dgdqop =
-        -1. *
+        -1.f *
         I.derive_stopping_power(*vol_mat_ptr, this->particle_hypothesis(), rq);
 
     // d(qop)/ds = - qop^3 * E * g / q^2
@@ -532,7 +532,7 @@ detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
 
     // Check Eq 3.12 of
     // (https://iopscience.iop.org/article/10.1088/1748-0221/4/04/P04016/meta)
-    return dqopds * (1. / qop * (3. - p2 / E2) + 1. / g * dgdqop);
+    return dqopds * (1.f / qop * (3.f - p2 / E2) + 1.f / g * dgdqop);
 }
 
 template <typename magnetic_field_t, detray::concepts::algebra algebra_t,
@@ -571,21 +571,21 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
     // qop should be recalcuated at every point
     // Reference: Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
     detray::tie(sd.dqopds[0u], sd.qop[0u]) =
-        stepping.evaluate_dqopds(0u, 0., 0., vol_mat_ptr, cfg);
+        stepping.evaluate_dqopds(0u, 0.f, 0.f, vol_mat_ptr, cfg);
     detray::tie(sd.dtds[0u], sd.t[0u]) = stepping.evaluate_dtds(
-        sd.b_first, 0u, 0., vector3_type{0., 0., 0.}, sd.qop[0u]);
+        sd.b_first, 0u, 0.f, vector3_type{0.f, 0.f, 0.f}, sd.qop[0u]);
 
     /// RKN step trial and error estimation
     const auto estimate_error = [&](const scalar_type& h) {
         // State the square and half of the step size
         const scalar_type h2{h * h};
-        const scalar_type half_h{h * 0.5};
+        const scalar_type half_h{h * 0.5f};
 
         // Second Runge-Kutta point
         // qop should be recalcuated at every point
         // Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
         const point3_type pos1 =
-            pos + half_h * sd.t[0u] + h2 * 0.125 * sd.dtds[0u];
+            pos + half_h * sd.t[0u] + h2 * 0.125f * sd.dtds[0u];
         const auto bvec1 = magnetic_field.at(pos1[0], pos1[1], pos1[2]);
         sd.b_middle[0] = bvec1[0];
         sd.b_middle[1] = bvec1[1];
@@ -607,7 +607,7 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
         // Last Runge-Kutta point
         // qop should be recalcuated at every point
         // Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
-        const point3_type pos2 = pos + h * sd.t[0u] + h2 * 0.5 * sd.dtds[2u];
+        const point3_type pos2 = pos + h * sd.t[0u] + h2 * 0.5f * sd.dtds[2u];
         const auto bvec2 = magnetic_field.at(pos2[0], pos2[1], pos2[2]);
         sd.b_last[0] = bvec2[0];
         sd.b_last[1] = bvec2[1];
@@ -652,7 +652,7 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
 
         // Error is small enough
         // ---> break and advance track
-        if (error <= 4. * cfg.rk_error_tol) {
+        if (error <= 4.f * cfg.rk_error_tol) {
             break;
         }
         // Error estimate is too big
