@@ -74,22 +74,23 @@ struct momentum_aborter : actor {
     struct state {
         /// @return whether the limit should be interpreted as transverse
         /// momentum
-        bool is_pT() const { return m_is_pT; }
+        DETRAY_HOST_DEVICE
+        constexpr bool is_pT() const { return m_is_pT; }
 
         /// @returns the momentum limit.
         DETRAY_HOST_DEVICE
-        inline scalar_t p_limit() const { return m_min_p; }
+        constexpr scalar_t p_limit() const { return m_min_p; }
 
         /// Set the momentum limit to @param p
         DETRAY_HOST_DEVICE
-        inline void min_p(const scalar_t p) {
+        constexpr void min_p(const scalar_t p) {
             m_is_pT = false;
             m_min_p = p;
         }
 
         /// Set the transverse momentum limit to @param p
         DETRAY_HOST_DEVICE
-        inline void min_pT(const scalar_t p) {
+        constexpr void min_pT(const scalar_t p) {
             m_is_pT = true;
             m_min_p = p;
         }
