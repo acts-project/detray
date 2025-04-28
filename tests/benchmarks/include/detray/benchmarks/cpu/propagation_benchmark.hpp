@@ -123,7 +123,7 @@ struct host_propagation_bm : public benchmark_base {
                 ::benchmark::DoNotOptimize(
                     p.propagate_sync(p_state, actor_state_refs));
             }
-            assert(p.propagate_is_complete(p_state));
+            assert(p.is_complete(p_state));
         };
 
         // Warm-up
