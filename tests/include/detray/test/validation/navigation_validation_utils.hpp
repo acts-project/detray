@@ -1074,10 +1074,10 @@ auto compare_to_navigation(
 
         // Fatal propagation error: Data unreliable
         if (!success) {
-            std::cout << "ERROR: Propagation failure" << std::endl;
+            std::cout << "ERROR: Propagation aborted! "
+                      << nav_printer.fata_error_msg << std::endl;
 
-            *debug_file << "ERROR: Propagation failure:\n"
-                        << "TEST TRACK " << i;
+            *debug_file << "ERROR: Propagation aborted:" << std::endl;
 
             n_fatal_error++;
         }

@@ -56,32 +56,38 @@ struct aggregate_inspector {
 
     /// Inspector interface
     template <unsigned int current_id = 0, typename state_type,
-              concepts::point3D point3_t, concepts::vector3D vector3_t>
+              concepts::point3D point3_t, concepts::vector3D vector3_t,
+              typename... Args>
     DETRAY_HOST_DEVICE auto operator()(state_type &state,
                                        const navigation::config &cfg,
                                        const point3_t &pos,
                                        const vector3_t &dir,
-                                       const char *message) {
+                                       const char *message, Args &&... args) {
         // Call inspector
-        std::get<current_id>(_inspectors)(state, cfg, pos, dir, message);
+        std::get<current_id>(_inspectors)(state, cfg, pos, dir, message,
+                                          std::forward<Args>(args)...);
 
         // Next inspector
         if constexpr (current_id <
                       std::tuple_size<inspector_tuple_t>::value - 1) {
-            return operator()<current_id + 1>(state, cfg, pos, dir, message);
+            return operator()<current_id + 1>(state, cfg, pos, dir, message,
+                                              std::forward<Args>(args)...);
         }
     }
 
     /// Inspector interface
-    template <unsigned int current_id = 0, typename state_type>
-    DETRAY_HOST_DEVICE auto operator()(state_type &state, const char *message) {
+    template <unsigned int current_id = 0, typename state_type,
+              typename... Args>
+    DETRAY_HOST_DEVICE auto operator()(state_type &state, const char *message,
+                                       Args &&... args) {
         // Call inspector
         std::get<current_id>(_inspectors)(state, message);
 
         // Next inspector
         if constexpr (current_id <
                       std::tuple_size<inspector_tuple_t>::value - 1) {
-            return operator()<current_id + 1>(state, message);
+            return operator()<current_id + 1>(state, message,
+                                              std::forward<Args>(args)...);
         }
     }
 
@@ -191,12 +197,12 @@ struct object_tracer {
 
     /// Inspector interface
     template <typename state_type, concepts::point3D point3_t,
-              concepts::vector3D vector3_t>
+              concepts::vector3D vector3_t, typename... Args>
     DETRAY_HOST_DEVICE auto operator()(const state_type &state,
                                        const navigation::config &,
                                        const point3_t &pos,
                                        const vector3_t &dir,
-                                       const char * /*message*/) {
+                                       const char * /*message*/, Args &&...) {
 
         // Record the candidate of an encountered object
         if ((is_status(state.status(), navigation_status) || ...)) {
@@ -245,6 +251,8 @@ struct print_inspector {
     using view_type = dvector_view<char>;
     using const_view_type = dvector_view<const char>;
 
+    struct void_generator {};
+
     /// Default constructor
     print_inspector() = default;
 
@@ -272,17 +280,24 @@ struct print_inspector {
     /// Move assignemten operator
     print_inspector &operator=(print_inspector &&other) = default;
 
-    /// Gathers navigation information accross navigator update calls
-    std::stringstream debug_stream{};
-
     /// Inspector interface. Gathers detailed information during navigation
     template <typename state_type, concepts::point3D point3_t,
-              concepts::vector3D vector3_t>
+              concepts::vector3D vector3_t,
+              typename message_generator_t = void_generator>
     auto operator()(const state_type &state, const navigation::config &cfg,
                     const point3_t &track_pos, const vector3_t &track_dir,
-                    const char *message) {
+                    const char *message,
+                    const message_generator_t &msg_gen = {}) {
         std::string msg(message);
-        debug_stream << msg << std::endl;
+        debug_stream << msg;
+        if constexpr (!std::same_as<message_generator_t, void_generator>) {
+            debug_stream << msg_gen();
+
+            if (state.status() == navigation::status::e_abort) {
+                fata_error_msg = msg_gen();
+            }
+        }
+        debug_stream << std::endl;
         debug_stream << "----------------------------------------" << std::endl;
 
         debug_stream << navigation::print_state(state);
@@ -293,10 +308,20 @@ struct print_inspector {
     }
 
     /// Inspector interface. Print basic state information
-    template <typename state_type>
-    auto operator()(const state_type &state, const char *message) {
+    template <typename state_type,
+              typename message_generator_t = void_generator>
+    auto operator()(const state_type &state, const char *message,
+                    const message_generator_t &msg_gen = {}) {
         std::string msg(message);
-        debug_stream << msg << std::endl;
+        debug_stream << msg;
+        if constexpr (!std::same_as<message_generator_t, void_generator>) {
+            debug_stream << msg_gen();
+
+            if (state.status() == navigation::status::e_abort) {
+                fata_error_msg = msg_gen();
+            }
+        }
+        debug_stream << std::endl;
         debug_stream << "----------------------------------------" << std::endl;
 
         debug_stream << navigation::print_state(state);
@@ -306,6 +331,11 @@ struct print_inspector {
 
     /// @returns a string representation of the gathered information
     std::string to_string() const { return debug_stream.str(); }
+
+    /// Gathers navigation information accross navigator update calls
+    std::stringstream debug_stream{};
+    /// Special message that is collected if the navigator hits a fatal error
+    std::string fata_error_msg{""};
 };
 
 }  // namespace navigation
