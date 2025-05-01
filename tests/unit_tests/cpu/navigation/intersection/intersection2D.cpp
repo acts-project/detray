@@ -7,7 +7,7 @@
 
 // Project include(s)
 #include "detray/definitions/indexing.hpp"
-#include "detray/geometry/detail/surface_descriptor.hpp"
+#include "detray/geometry/surface_descriptor.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 #include "detray/utils/invalid_values.hpp"
 

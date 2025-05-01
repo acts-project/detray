@@ -10,9 +10,9 @@
 
 #include "detray/core/detail/multi_store.hpp"
 #include "detray/core/detail/single_store.hpp"
-#include "detray/geometry/detail/surface_descriptor.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes.hpp"
+#include "detray/geometry/surface_descriptor.hpp"
 #include "detray/navigation/intersection/helix_intersector.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
 #include "detray/navigation/intersection_kernel.hpp"

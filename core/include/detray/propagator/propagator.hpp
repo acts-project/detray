@@ -10,6 +10,7 @@
 // Project include(s).
 #include "detray/definitions/detail/macros.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/navigation/detail/print_state.hpp"
 #include "detray/navigation/direct_navigator.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 #include "detray/navigation/navigator.hpp"
@@ -155,8 +156,8 @@ struct propagator {
         typename stepper_t::state _stepping;
         typename navigator_t::state _navigation;
         context_type _context;
-
         bool do_debug = false;
+
 #if defined(__NO_DEVICE__)
         std::stringstream debug_stream{};
 #endif
@@ -203,6 +204,8 @@ struct propagator {
         auto &context = propagation._context;
         const auto &track = stepping();
         assert(!track.is_invalid());
+
+        std::cout << "TRACK " << track << std::endl;
 
         // Initialize the navigation
         m_navigator.init(track, navigation, m_cfg.navigation, context);
@@ -268,8 +271,20 @@ struct propagator {
         propagation._heartbeat &= navigation.is_alive();
 
 #if defined(__NO_DEVICE__)
-        if (propagation.do_debug) {
+        if (true) {
             inspect(propagation);
+
+            if (math::fabs(track.qop()) < 0.105557f) {
+                std::cout << "Step " << stepping.step_size() << std::endl;
+                std::cout << "Dist " << navigation() << std::endl;
+                std::cout << navigation::print_state(navigation) << std::endl;
+                std::cout << navigation::print_candidates(
+                                 navigation, m_cfg.navigation, track.pos(),
+                                 track.dir())
+                          << std::endl;
+            }
+            // std::cout << propagation.debug_stream.str() << std::endl;
+            propagation.debug_stream.clear();
         }
 #endif
 
@@ -392,9 +407,6 @@ struct propagator {
             }
 
 #if defined(__NO_DEVICE__)
-            if (propagation.do_debug) {
-                inspect(propagation);
-            }
 #endif
         }
 
