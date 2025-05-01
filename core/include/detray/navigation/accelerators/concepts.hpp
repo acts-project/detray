@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/geometry/detail/surface_descriptor.hpp"
+#include "detray/geometry/surface_descriptor.hpp"
 #include "detray/utils/grid/detail/concepts.hpp"
 
 // System include(s)

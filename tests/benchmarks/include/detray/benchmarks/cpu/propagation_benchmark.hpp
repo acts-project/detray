@@ -133,7 +133,7 @@ struct host_propagation_bm : public benchmark_base {
             stride = (stride == 0) ? 10 : stride;
             assert(stride > 0);
 
-#pragma omp parallel for
+            //#pragma omp parallel for
             for (int i = 0; i < n_samples; i += stride) {
                 // The track gets copied into the stepper state, so that the
                 // original track sample vector remains unchanged
@@ -151,7 +151,7 @@ struct host_propagation_bm : public benchmark_base {
         // https://github.com/google/benchmark/blob/main/docs/user_guide.md#custom-counters
         std::size_t total_tracks = 0u;
         for (auto _ : state) {
-#pragma omp parallel for
+            //#pragma omp parallel for
             for (int i = 0; i < n_samples; ++i) {
                 run_propagation((*tracks)[static_cast<std::size_t>(i)]);
             }

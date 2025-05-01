@@ -6,10 +6,10 @@
  */
 
 // Project include(s)
-#include "detray/geometry/detail/surface_descriptor.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes/concentric_cylinder2D.hpp"
 #include "detray/geometry/shapes/cylinder2D.hpp"
+#include "detray/geometry/surface_descriptor.hpp"
 #include "detray/navigation/intersection/ray_concentric_cylinder_intersector.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
 #include "detray/tracks/ray.hpp"

@@ -6,9 +6,9 @@
  */
 
 // Project include(s)
-#include "detray/geometry/detail/surface_descriptor.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes/line.hpp"
+#include "detray/geometry/surface_descriptor.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
 #include "detray/tracks/ray.hpp"

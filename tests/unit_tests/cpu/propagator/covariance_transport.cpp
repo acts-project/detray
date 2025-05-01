@@ -7,10 +7,10 @@
 
 // Project include(s).
 #include "detray/definitions/units.hpp"
-#include "detray/geometry/detail/surface_descriptor.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes.hpp"
 #include "detray/geometry/shapes/unbounded.hpp"
+#include "detray/geometry/surface_descriptor.hpp"
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/parameter_resetter.hpp"
