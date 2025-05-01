@@ -240,7 +240,12 @@ class navigator {
         DETRAY_HOST_DEVICE
         scalar_type operator()() const {
             assert(math::isfinite(target().path));
-            return static_cast<scalar_type>(direction()) * target().path;
+            
+            const scalar_type dist_to_next{
+                math::max(math::fabs(target().path), 1.01f * unit<float>::um)};
+
+            return static_cast<scalar_type>(direction()) *
+                   math::copysign(dist_to_next, target().path);
         }
 
         /// @returns current volume (index) - const
