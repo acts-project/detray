@@ -50,7 +50,7 @@ class multi_store {
     template <typename index_t>
     using link_type = dtyped_index<ID, index_t>;
     using single_link = link_type<dindex>;
-    using range_link = link_type<dindex_range>;
+    using range_link = link_type<detail::index_range<dindex>>;
     /// @}
 
     /// Allow matching between IDs and collection value types

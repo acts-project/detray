@@ -54,7 +54,7 @@ bool constexpr is_n_owning = false;
 // Bin edges for all axes
 dvector<scalar> bin_edges = {-10.f, 10.f, -20.f, 20.f, 0.f, 100.f};
 // Offsets into edges container and #bins for all axes
-dvector<dindex_range> edge_ranges = {{0u, 20u}, {2u, 40u}, {4u, 50u}};
+dvector<dsized_index_range> edge_ranges = {{0u, 20u}, {2u, 40u}, {4u, 50u}};
 
 // non-owning multi-axis for the non-owning grid
 cartesian_3D<is_n_owning, host_container_types> ax_n_own(edge_ranges,
@@ -114,7 +114,7 @@ GTEST_TEST(detray_grid, single_grid) {
 
     // Copy data that will be moved into the data owning types
     dvector<scalar> bin_edges_cp(bin_edges);
-    dvector<dindex_range> edge_ranges_cp(edge_ranges);
+    dvector<dsized_index_range> edge_ranges_cp(edge_ranges);
     grid_owning_t::bin_container_type bin_data_cp(bin_data);
 
     // Data-owning axes and grid
@@ -124,7 +124,7 @@ GTEST_TEST(detray_grid, single_grid) {
 
     // Copy a second time for the comparison
     dvector<scalar> bin_edges_cp2(bin_edges);
-    dvector<dindex_range> edge_ranges_cp2(edge_ranges);
+    dvector<dsized_index_range> edge_ranges_cp2(edge_ranges);
     grid_owning_t::bin_container_type bin_data_cp2(bin_data);
 
     // Make a second grid
@@ -269,7 +269,7 @@ GTEST_TEST(detray_grid, dynamic_array) {
 
     // Copy data that will be moved into the data owning types
     dvector<scalar> bin_edges_cp(bin_edges);
-    dvector<dindex_range> edge_ranges_cp(edge_ranges);
+    dvector<dsized_index_range> edge_ranges_cp(edge_ranges);
     grid_owning_t::bin_container_type bin_data_cp(bin_data);
 
     // Data-owning axes and grid
@@ -289,7 +289,7 @@ GTEST_TEST(detray_grid, dynamic_array) {
     // Check equality operator:
     // - Copy a second time for the comparison
     dvector<scalar> bin_edges_cp2(bin_edges);
-    dvector<dindex_range> edge_ranges_cp2(edge_ranges);
+    dvector<dsized_index_range> edge_ranges_cp2(edge_ranges);
     grid_owning_t::bin_container_type bin_data_cp2(bin_data);
 
     // Make a second grid
@@ -365,7 +365,7 @@ GTEST_TEST(detray_grid, bin_view) {
 
     // Copy data that will be moved into the data owning types
     dvector<scalar> bin_edges_cp(bin_edges);
-    dvector<dindex_range> edge_ranges_cp(edge_ranges);
+    dvector<dsized_index_range> edge_ranges_cp(edge_ranges);
     grid_t::bin_container_type bin_data_cp(bin_data);
 
     // Data-owning axes and grid

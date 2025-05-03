@@ -182,7 +182,7 @@ class volume_descriptor {
         } else {
             // Update upper border
             assert(detail::get<1>(rg) == detail::get<0>(other));
-            detail::get<1>(rg) = detail::get<1>(other);
+            rg.set_upper(other.upper());
         }
     }
 
@@ -204,8 +204,7 @@ class volume_descriptor {
             rg = {0u, static_cast<dindex>(n_surfaces)};
         }
         // Update
-        detail::get<0>(rg) += static_cast<dindex>(shift);
-        detail::get<1>(rg) += static_cast<dindex>(shift);
+        rg.shift(static_cast<dindex>(shift));
     }
 
     /// @returns the volume material link

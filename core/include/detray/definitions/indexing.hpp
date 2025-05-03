@@ -20,7 +20,9 @@ using dindex = unsigned int;
 inline constexpr dindex dindex_invalid = detail::invalid_value<dindex>();
 
 /// Index ranges and sequences
-using dindex_range = darray<dindex, 2>;
+using dindex_range = detail::index_range<dindex>;
+using dsized_index_range =
+    detail::index_range<dindex, detail::sized_index_range>;
 using dindex_sequence = dvector<dindex>;
 
 /// Index that consists of multiple subindices

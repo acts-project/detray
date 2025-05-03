@@ -594,7 +594,7 @@ class grid_factory {
         using axes_t = typename owning_grid_t::axes_type;
 
         // Prepare data
-        vector_type<dindex_range> axes_data{};
+        vector_type<dsized_index_range> axes_data{};
         vector_type<scalar_type> bin_edges{};
 
         // Call init for every axis
@@ -650,7 +650,7 @@ class grid_factory {
                    [[maybe_unused]] const std::vector<std::size_t> &n_bins,
                    [[maybe_unused]] const std::vector<std::vector<scalar_type>>
                        &ax_bin_edges,
-                   vector_type<dindex_range> &axes_data,
+                   vector_type<dsized_index_range> &axes_data,
                    vector_type<scalar_type> &bin_edges) const {
         if constexpr (std::is_same_v<
                           types::at<binnings, I>,
@@ -675,7 +675,7 @@ class grid_factory {
         const std::vector<scalar_type> &spans,
         const std::vector<std::size_t> &n_bins,
         const std::vector<std::vector<scalar_type>> &ax_bin_edges,
-        vector_type<dindex_range> &axes_data,
+        vector_type<dsized_index_range> &axes_data,
         vector_type<scalar_type> &bin_edges,
         std::index_sequence<I...> /*ids*/) const {
         (axis_init<I, binnings>(spans, n_bins, ax_bin_edges, axes_data,

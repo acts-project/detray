@@ -171,6 +171,7 @@ inline auto build_wire_chamber(
     using cyl_grid_t =
         typename detector_t::accelerator_container::template get_type<grid_id>;
     using loc_bin_idx_t = typename cyl_grid_t::loc_bin_index;
+    static_assert(cyl_grid_t::dim == 2);
     using grid_builder_t =
         grid_builder<detector_t, cyl_grid_t, detray::fill_by_pos>;
 

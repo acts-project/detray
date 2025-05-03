@@ -303,7 +303,7 @@ requires(!detray::grid_impl<axes_t, bin_t, serializer_t>::
         const auto start_idx{m_bin_edge_offsets.size() - grid_type::dim};
         for (std::size_t i = start_idx; i < m_bin_edge_offsets.size(); ++i) {
             auto &bin_entry_range = m_bin_edge_offsets.at(i);
-            bin_entry_range[0] += bin_edges_offset;
+            bin_entry_range.shift(bin_edges_offset);
         }
 
         // Add the bin edges of the new grid to the collection

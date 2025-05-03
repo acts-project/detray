@@ -70,9 +70,9 @@ GTEST_TEST(detray_grid, grid_collection) {
     dvector<dindex> grid_offsets = {0u, 48u, 72u};
 
     // Offsets into edges container and #bins for all axes
-    dvector<dindex_range> edge_ranges = {{0u, 2u},  {2u, 4u},  {4u, 6u},
-                                         {6u, 1u},  {8u, 3u},  {10u, 8u},
-                                         {12u, 5u}, {14u, 5u}, {16u, 5u}};
+    dvector<dsized_index_range> edge_ranges = {{0u, 2u},  {2u, 4u},  {4u, 6u},
+                                               {6u, 1u},  {8u, 3u},  {10u, 8u},
+                                               {12u, 5u}, {14u, 5u}, {16u, 5u}};
 
     // Bin edges for all axes
     dvector<scalar> bin_edges = {-10.f, 10.f, -20.f, 20.f, 0.f, 120.f,
@@ -193,9 +193,9 @@ GTEST_TEST(detray_grid, grid_collection_dynamic_bin) {
     dvector<dindex> grid_offsets = {0u, 48u, 72u};
 
     // Offsets into edges container and #bins for all axes
-    dvector<dindex_range> edge_ranges = {{0u, 2u},  {2u, 4u},  {4u, 6u},
-                                         {6u, 1u},  {8u, 3u},  {10u, 8u},
-                                         {12u, 5u}, {14u, 5u}, {16u, 5u}};
+    dvector<dsized_index_range> edge_ranges = {{0u, 2u},  {2u, 4u},  {4u, 6u},
+                                               {6u, 1u},  {8u, 3u},  {10u, 8u},
+                                               {12u, 5u}, {14u, 5u}, {16u, 5u}};
 
     // Bin edges for all axes
     dvector<scalar> bin_edges = {-10.f, 10.f, -20.f, 20.f, 0.f, 120.f,

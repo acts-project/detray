@@ -174,12 +174,12 @@ class material_map_generator final : public factory_decorator<detector_t> {
                     typename detector_t::geometry_context ctx = {})
         -> dindex_range override {
 
-        auto [lower, upper] =
+        const dindex_range idx_range =
             (*this->get_factory())(volume, surfaces, transforms, masks, ctx);
 
-        m_surface_range = {lower, upper};
+        m_surface_range = idx_range;
 
-        return {lower, upper};
+        return idx_range;
     }
 
     /// Create material maps for all surfaces that the undelying surface
