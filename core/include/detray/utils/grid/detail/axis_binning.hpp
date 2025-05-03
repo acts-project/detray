@@ -21,7 +21,6 @@
 namespace detray::axis {
 
 /// @brief Helper to tie two bin indices to a range.
-/// @note Cannot use dindex_range for signed integer bin indices.
 using bin_range = darray<int, 2>;
 
 /// @brief A regular binning scheme.
@@ -54,9 +53,10 @@ struct regular {
     /// @param range range of bin boundary entries in an external storage
     /// @param edges lower edges for all bins in an external storage
     DETRAY_HOST_DEVICE
-    regular(const dindex_range &range, const vector_type<scalar_type> *edges)
-        : m_offset(detray::detail::get<0>(range)),
-          m_n_bins{detray::detail::get<1>(range)},
+    regular(const dsized_index_range &range,
+            const vector_type<scalar_type> *edges)
+        : m_offset(range.lower()),
+          m_n_bins{static_cast<dindex>(range.size())},
           m_bin_edges(edges) {}
 
     /// @returns the total number of bins, which for the regular axis is simply
@@ -213,9 +213,10 @@ struct irregular {
     /// @param range range of bin boundary entries in an external storage
     /// @param edges lower edges for all bins in an external storage
     DETRAY_HOST_DEVICE
-    irregular(const dindex_range &range, const vector_type<scalar_type> *edges)
-        : m_offset(detray::detail::get<0>(range)),
-          m_n_bins{detray::detail::get<1>(range)},
+    irregular(const dsized_index_range &range,
+              const vector_type<scalar_type> *edges)
+        : m_offset(range.lower()),
+          m_n_bins{static_cast<dindex>(range.size())},
           m_bin_edges(edges) {}
 
     /// @returns the total number of bins

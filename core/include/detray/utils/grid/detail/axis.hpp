@@ -32,15 +32,20 @@ namespace detray::axis {
 
 /// @brief Multi-bin: contains bin indices from multiple axes
 template <std::size_t DIM, typename index_t = dindex>
-struct multi_bin : public dmulti_index<index_t, DIM> {};
+struct multi_bin : public dmulti_index<index_t, DIM> {
+    using base_t = dmulti_index<index_t, DIM>;
+    using base_t::base_t;
+};
 
 /// @brief Helper to tie two bin indices to a range.
-/// @note Cannot use dindex_range for signed integer bin indices.
 using bin_range = darray<int, 2>;
 
 /// @brief Multi-bin-range: contains bin index ranges from multiple axes
 template <std::size_t DIM>
-struct multi_bin_range : public dmulti_index<bin_range, DIM> {};
+struct multi_bin_range : public dmulti_index<bin_range, DIM> {
+    using base_t = dmulti_index<bin_range, DIM>;
+    using base_t::base_t;
+};
 
 /// @brief A single axis.
 ///
@@ -77,7 +82,7 @@ struct single_axis {
 
     /// Parametrized constructor that builds the binning scheme
     template <typename... Args>
-    DETRAY_HOST_DEVICE single_axis(const dindex_range &indx_range,
+    DETRAY_HOST_DEVICE single_axis(const dsized_index_range &indx_range,
                                    const vector_type<scalar_type> *edges)
         : m_binning(indx_range, edges) {}
 
@@ -223,8 +228,8 @@ class multi_axis {
     private:
     /// Owning and non-owning range of edge offsets
     using edge_offset_range_t = std::conditional_t<
-        is_owning, vector_type<dindex_range>,
-        detray::ranges::subrange<const vector_type<dindex_range>>>;
+        is_owning, vector_type<dsized_index_range>,
+        detray::ranges::subrange<const vector_type<dsized_index_range>>>;
     /// Owning and non-owning range of bin edges
     using edge_range_t = std::conditional_t<is_owning, vector_type<scalar_type>,
                                             const vector_type<scalar_type> *>;
@@ -232,17 +237,17 @@ class multi_axis {
     public:
     /// Axes boundary/bin edges storage
     /// @{
-    using edge_offset_container_type = vector_type<dindex_range>;
+    using edge_offset_container_type = vector_type<dsized_index_range>;
     using edges_container_type = vector_type<scalar_type>;
     /// @}
 
     /// Vecmem based view type
-    using view_type =
-        dmulti_view<dvector_view<dindex_range>, dvector_view<scalar_type>>;
-    using const_view_type = dmulti_view<dvector_view<const dindex_range>,
+    using view_type = dmulti_view<dvector_view<dsized_index_range>,
+                                  dvector_view<scalar_type>>;
+    using const_view_type = dmulti_view<dvector_view<const dsized_index_range>,
                                         dvector_view<const scalar_type>>;
     /// Vecmem based buffer type
-    using buffer_type = dmulti_buffer<dvector_buffer<dindex_range>,
+    using buffer_type = dmulti_buffer<dvector_buffer<dsized_index_range>,
                                       dvector_buffer<scalar_type>>;
 
     /// Find the corresponding (non-)owning type
@@ -271,10 +276,11 @@ class multi_axis {
     /// @param offset offset into the global edge offset container
     template <bool owner = is_owning>
     requires(!owner) DETRAY_HOST_DEVICE
-        multi_axis(const vector_type<dindex_range> &edge_offsets,
+        multi_axis(const vector_type<dsized_index_range> &edge_offsets,
                    const vector_type<scalar_type> &edges,
                    const unsigned int offset = 0)
-        : m_edge_offsets(edge_offsets, dindex_range{offset, offset + dim}),
+        : m_edge_offsets(edge_offsets,
+                         dsized_index_range{offset, offset + dim}),
           m_edges(&edges) {}
 
     /// Construct containers from vecmem based view type
@@ -455,7 +461,7 @@ class multi_axis {
                                          loc_bin_index &bin_indices) const {
         // Get the index corresponding to the axis label (e.g. bin_x <=> 0)
         constexpr auto loc_idx{axis_reg::to_index(axis_t::bounds_type::label)};
-        bin_indices.indices[loc_idx] = ax.bin(p[loc_idx]);
+        bin_indices[loc_idx] = ax.bin(p[loc_idx]);
     }
 
     /// Perform the bin lookup on a particular axis within a given bin
@@ -477,7 +483,7 @@ class multi_axis {
         multi_bin_range<dim> &bin_ranges) const {
         // Get the index corresponding to the axis label (e.g. bin_range_x = 0)
         constexpr auto loc_idx{axis_reg::to_index(axis_t::bounds_type::label)};
-        bin_ranges.indices[loc_idx] = ax.range(p[loc_idx], nhood);
+        bin_ranges[loc_idx] = ax.range(p[loc_idx], nhood);
     }
 
     /// Data that the axes keep: index ranges in the edges container
