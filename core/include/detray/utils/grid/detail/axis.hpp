@@ -38,6 +38,7 @@ struct multi_bin : public dmulti_index<index_t, DIM> {
 };
 
 /// @brief Helper to tie two bin indices to a range.
+/// @note Cannot use dindex_range for signed integer bin indices.
 using bin_range = darray<int, 2>;
 
 /// @brief Multi-bin-range: contains bin index ranges from multiple axes

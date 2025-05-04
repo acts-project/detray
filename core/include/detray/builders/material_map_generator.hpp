@@ -35,15 +35,22 @@ namespace detail {
 /// Generate material along z bins for a cylinder material grid
 template <concepts::scalar scalar_t>
 inline std::vector<material_slab<scalar_t>> generate_cyl_mat(
-    const std::vector<scalar_t> &bounds, const std::size_t nbins,
+    const dvector<dvector<scalar_t>> &bounds_vec, const std::size_t nbins,
     material<scalar_t> mat, const scalar_t t, const scalar_t scalor) {
 
     std::vector<material_slab<scalar_t>> ts;
     ts.reserve(nbins);
 
+    // Find the surface bounds from the masks
+    scalar_t z_lower{detail::invalid_value<scalar_t>()};
+    scalar_t z_upper{-detail::invalid_value<scalar_t>()};
+    for (const auto &bounds : bounds_vec) {
+        z_lower = math::min(z_lower, bounds[cylinder2D::e_lower_z]);
+        z_upper = math::max(z_upper, bounds[cylinder2D::e_upper_z]);
+    }
+
     // Make sure the cylinder bounds are centered around zero
-    const scalar_t length{math::fabs(bounds[cylinder2D::e_upper_z] -
-                                     bounds[cylinder2D::e_lower_z])};
+    const scalar_t length{math::fabs(z_upper - z_lower)};
     scalar_t z{-0.5f * length};
     const scalar_t z_step{length / static_cast<scalar_t>(nbins - 1u)};
     for (std::size_t n = 0u; n < nbins; ++n) {
@@ -57,16 +64,23 @@ inline std::vector<material_slab<scalar_t>> generate_cyl_mat(
 /// Generate material along r bins for a disc material grid
 template <concepts::scalar scalar_t>
 inline std::vector<material_slab<scalar_t>> generate_disc_mat(
-    const std::vector<scalar_t> &bounds, const std::size_t nbins,
+    const dvector<dvector<scalar_t>> &bounds_vec, const std::size_t nbins,
     material<scalar_t> mat, const scalar_t t, const scalar_t scalor) {
 
     std::vector<material_slab<scalar_t>> ts;
     ts.reserve(nbins);
 
-    scalar_t r{bounds[ring2D::e_inner_r]};
-    const scalar_t r_step{
-        (bounds[ring2D::e_outer_r] - bounds[ring2D::e_inner_r]) /
-        static_cast<scalar_t>(nbins - 1u)};
+    // Find the surface bounds from the masks
+    scalar_t r_inner{detail::invalid_value<scalar_t>()};
+    scalar_t r_outer{0.f};
+    for (const auto &bounds : bounds_vec) {
+        r_inner = math::min(r_inner, bounds[ring2D::e_inner_r]);
+        r_outer = math::max(r_outer, bounds[ring2D::e_outer_r]);
+    }
+
+    scalar_t r{r_inner};
+    const scalar_t r_step{(r_outer - r_inner) /
+                          static_cast<scalar_t>(nbins - 1u)};
     for (std::size_t n = 0u; n < nbins; ++n) {
         ts.emplace_back(mat, static_cast<scalar_t>(scalor * r) + t);
         r += r_step;
@@ -97,7 +111,7 @@ struct material_map_config {
         scalar_t scalor{1.f};
         /// How to vary the material thickness along the bins
         std::function<std::vector<material_slab<scalar_t>>(
-            const std::vector<scalar_t> &, const std::size_t,
+            const dvector<dvector<scalar_t>> &, const std::size_t,
             material<scalar_t>, const scalar_t, const scalar_t)>
             mat_generator{detray::detail::generate_cyl_mat<scalar_t>};
     };
@@ -241,13 +255,13 @@ class material_map_generator final : public factory_decorator<detector_t> {
             using sf_kernels =
                 detail::surface_kernels<typename detector_t::algebra_type>;
 
-            const auto bounds =
+            const auto bounds_vec =
                 masks.template visit<typename sf_kernels::get_mask_values>(
                     sf.mask());
 
             // Generate the raw material
             const auto material{
-                map_cfg.mat_generator(bounds, bins, map_cfg.mapped_material,
+                map_cfg.mat_generator(bounds_vec, bins, map_cfg.mapped_material,
                                       map_cfg.thickness, map_cfg.scalor)};
 
             // Add the material slabs with their local bin indices to the
@@ -261,7 +275,8 @@ class material_map_generator final : public factory_decorator<detector_t> {
 
                     auto search = material_map.find(sf_idx);
                     if (search == material_map.end()) {
-                        material_map[sf_idx] = std::vector<bin_data_t>{data};
+                        material_map.emplace(sf_idx,
+                                             std::vector<bin_data_t>{data});
                     } else {
                         search->second.push_back(data);
                     }

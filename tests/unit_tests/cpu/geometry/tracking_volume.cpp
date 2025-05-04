@@ -109,7 +109,7 @@ GTEST_TEST(detray_geometry, tracking_volume) {
     for (const auto& sf : vol7.surfaces()) {
         sf_indices.push_back(sf.index());
     }
-    auto seq = detray::views::iota(372u, 600u);
+    auto seq = detray::views::iota(354u, 582u);
     EXPECT_TRUE(std::ranges::equal(sf_indices, seq));
 
     // Access to portals
@@ -117,7 +117,7 @@ GTEST_TEST(detray_geometry, tracking_volume) {
     for (const auto& pt : vol7.portals()) {
         sf_indices.push_back(pt.index());
     }
-    seq = detray::views::iota(596u, 600u);
+    seq = detray::views::iota(578u, 582u);
     EXPECT_TRUE(std::ranges::equal(sf_indices, seq));
 
     // Access to sensitive surfaces
@@ -125,7 +125,7 @@ GTEST_TEST(detray_geometry, tracking_volume) {
     for (const auto& sens : vol7.template surfaces<surface_id::e_sensitive>()) {
         sf_indices.push_back(sens.index());
     }
-    seq = detray::views::iota(372u, 596u);
+    seq = detray::views::iota(354u, 578u);
     EXPECT_TRUE(std::ranges::equal(sf_indices, seq));
     //
     // Volume 5 is negative endcap layer with sensitive surfaces
@@ -146,7 +146,7 @@ GTEST_TEST(detray_geometry, tracking_volume) {
     for (const auto& sf : vol5.surfaces()) {
         sf_indices.push_back(sf.index());
     }
-    seq = detray::views::iota(256u, 368u);
+    seq = detray::views::iota(238u, 350u);
     EXPECT_TRUE(std::ranges::equal(sf_indices, seq));
 
     // Access to portals
@@ -154,7 +154,7 @@ GTEST_TEST(detray_geometry, tracking_volume) {
     for (const auto& pt : vol5.portals()) {
         sf_indices.push_back(pt.index());
     }
-    seq = detray::views::iota(364u, 368u);
+    seq = detray::views::iota(346u, 350u);
     EXPECT_TRUE(std::ranges::equal(sf_indices, seq));
 
     // Access to sensitive surfaces
@@ -162,7 +162,7 @@ GTEST_TEST(detray_geometry, tracking_volume) {
     for (const auto& sens : vol5.template surfaces<surface_id::e_sensitive>()) {
         sf_indices.push_back(sens.index());
     }
-    seq = detray::views::iota(256u, 364u);
+    seq = detray::views::iota(238u, 346u);
     EXPECT_TRUE(std::ranges::equal(sf_indices, seq));
 
     //
@@ -177,14 +177,14 @@ GTEST_TEST(detray_geometry, tracking_volume) {
     ASSERT_NEAR(t[0], 0.f, tol);
     ASSERT_NEAR(t[1], 0.f, tol);
     ASSERT_NEAR(t[2], 546.25f, tol);
-    ASSERT_EQ(vol17.surfaces().size(), 12u);
+    ASSERT_EQ(vol17.surfaces().size(), 4u);
 
     // Access to all surfaces
     sf_indices.clear();
     for (const auto& sf : vol17.surfaces()) {
         sf_indices.push_back(sf.index());
     }
-    seq = detray::views::iota(3012u, 3024u);
+    seq = detray::views::iota(2994u, 2998u);
     EXPECT_TRUE(std::ranges::equal(sf_indices, seq));
 
     // Access to portals

@@ -77,7 +77,7 @@ class subrange_view
 }  // namespace detail
 
 /// @brief interface type to construct a @c subrange_view with CTAD
-template <detray::ranges::range range_t, typename index_range_t = bool>
+template <detray::ranges::range range_t, typename index_range_t = dindex_range>
 struct subrange : public detail::subrange_view<range_t> {
 
     using base_type = detray::ranges::detail::subrange_view<range_t>;

@@ -169,6 +169,26 @@ class line {
         }
     }
 
+    /// @brief Merge two line shapes
+    ///
+    /// @param bounds the boundary values for this shape
+    /// @param o_bounds the boundary values for the other shape
+    ///
+    /// @returns merged bound values
+    template <concepts::scalar scalar_t>
+    DETRAY_HOST_DEVICE constexpr bounds_type<scalar_t> merge(
+        const bounds_type<scalar_t> &bounds,
+        const bounds_type<scalar_t> &o_bounds) const {
+
+        bounds_type<scalar_t> new_bounds{};
+
+        new_bounds[e_cross_section] =
+            math::max(bounds[e_cross_section], o_bounds[e_cross_section]);
+        new_bounds[e_half_z] = math::max(bounds[e_half_z], o_bounds[e_half_z]);
+
+        return new_bounds;
+    }
+
     /// @brief Lower and upper point for minimal axis aligned bounding box.
     ///
     /// Computes the min and max vertices in a local cartesian frame.

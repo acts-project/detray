@@ -37,15 +37,14 @@ class direct_navigator {
         intersection2D<typename detector_t::surface_type,
                        typename detector_t::algebra_type, false>;
 
-    class state : public detray::ranges::view_interface<state> {
+    class state {
 
         friend struct intersection_update<ray_intersector>;
 
         using candidate_t = intersection_type;
 
         public:
-        using value_type = candidate_t;
-        using sequence_type = vecmem::device_vector<detray::geometry::barcode>;
+        using sequence_t = vecmem::device_vector<detray::geometry::barcode>;
         using detector_type = direct_navigator::detector_type;
         using nav_link_type =
             typename detector_type::surface_type::navigation_link;
@@ -60,14 +59,6 @@ class direct_navigator {
             m_it = m_sequence.cbegin();
             m_it_rev = m_sequence.crbegin();
         }
-
-        /// @return start position of the valid candidate range - const
-        DETRAY_HOST_DEVICE
-        constexpr auto begin() const { return &m_candidate; }
-
-        /// @return sentinel of the valid candidate range.
-        DETRAY_HOST_DEVICE
-        constexpr auto end() const { return &m_candidate + 1; }
 
         /// Scalar representation of the navigation state,
         /// @returns distance to next
@@ -84,16 +75,6 @@ class direct_navigator {
         DETRAY_HOST_DEVICE
         bool is_alive() const { return m_heartbeat; }
 
-        /// @returns the direct navigator always has only one condidate
-        DETRAY_HOST_DEVICE
-        constexpr auto n_candidates() const -> dindex { return 1u; }
-
-        /// @returns range of current candidates
-        DETRAY_HOST_DEVICE
-        inline auto candidates() const {
-            return detray::ranges::views::pointer(m_candidate);
-        }
-
         /// @returns current/previous object that was reached
         DETRAY_HOST_DEVICE
         inline auto current() const -> const candidate_t & {
@@ -109,12 +90,6 @@ class direct_navigator {
         DETRAY_HOST_DEVICE
         inline auto target() -> candidate_t & { return m_candidate; }
 
-        /// @returns navigation trust level - const
-        DETRAY_HOST_DEVICE
-        constexpr auto trust_level() const -> navigation::trust_level {
-            return navigation::trust_level::e_no_trust;
-        }
-
         DETRAY_HOST_DEVICE
         void update_candidate(bool update_candidate_prev = true) {
 
@@ -122,20 +97,13 @@ class direct_navigator {
                 m_candidate_prev = m_candidate;
             }
 
-            if (!is_exhausted()) {
+            if (!is_complete()) {
                 m_candidate.sf_desc = m_detector->surface(get_target_barcode());
                 m_candidate.volume_link =
-                    tracking_surface{*m_detector, m_candidate.sf_desc}
-                        .volume_link();
+                    detail::invalid_value<nav_link_type>();
                 m_candidate.path = std::numeric_limits<scalar_type>::max();
-                set_volume(m_candidate.volume_link);
+                set_volume(m_candidate.sf_desc.volume());
             }
-        }
-
-        /// @returns the next surface the navigator intends to reach
-        template <template <typename> class surface_t = tracking_surface>
-        DETRAY_HOST_DEVICE inline auto next_surface() const {
-            return surface_t{*m_detector, m_candidate.sf_desc};
         }
 
         /// @returns current detector surface the navigator is on
@@ -190,7 +158,7 @@ class direct_navigator {
 
         /// @return true if the iterator reaches the end of vector
         DETRAY_HOST_DEVICE
-        bool is_exhausted() const {
+        bool is_complete() const {
             if ((m_direction == navigation::direction::e_forward) &&
                 m_it == m_sequence.cend()) {
                 return true;
@@ -199,12 +167,6 @@ class direct_navigator {
                 return true;
             }
             return false;
-        }
-
-        /// @returns flag that indicates whether navigation was successful
-        DETRAY_HOST_DEVICE
-        inline auto is_complete() const -> bool {
-            return is_exhausted() && !m_heartbeat;
         }
 
         /// @returns current navigation direction - const
@@ -316,13 +278,13 @@ class direct_navigator {
         nav_link_type m_volume_index{0u};
 
         /// Target surfaces
-        sequence_type m_sequence;
+        sequence_t m_sequence;
 
         // iterator for forward direction
-        typename sequence_type::const_iterator m_it;
+        typename sequence_t::const_iterator m_it;
 
         // iterator for backward direction
-        typename sequence_type::const_reverse_iterator m_it_rev;
+        typename sequence_t::const_reverse_iterator m_it_rev;
 
         /// The navigation direction
         navigation::direction m_direction{navigation::direction::e_forward};
@@ -345,7 +307,7 @@ class direct_navigator {
         assert(navigation.status() > navigation::status::e_on_target);
         assert(!track.is_invalid());
 
-        if (navigation.is_exhausted()) {
+        if (navigation.is_complete()) {
             navigation.m_heartbeat = false;
             return;
         }
@@ -363,7 +325,7 @@ class direct_navigator {
 
         assert(!track.is_invalid());
 
-        if (navigation.is_exhausted()) {
+        if (navigation.is_complete()) {
             navigation.m_heartbeat = false;
             return true;
         }
@@ -380,7 +342,7 @@ class direct_navigator {
                 navigation.update_candidate(true);
                 assert(navigation.is_on_surface(navigation.current(), cfg));
 
-                if (!navigation.is_exhausted()) {
+                if (!navigation.is_complete()) {
                     update_intersection(track, navigation, cfg, ctx);
                 }
 

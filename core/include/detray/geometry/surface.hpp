@@ -15,6 +15,7 @@
 #include "detray/geometry/barcode.hpp"
 #include "detray/geometry/detail/surface_kernels.hpp"
 #include "detray/materials/material.hpp"
+#include "detray/utils/ranges/ranges.hpp"
 
 // System include(s)
 #include <ostream>
@@ -156,14 +157,24 @@ class surface {
 
     /// @returns the mask volume link
     DETRAY_HOST_DEVICE
-    constexpr auto volume_link() const {
-        return visit_mask<typename kernels::get_volume_link>();
+    constexpr auto volume_links() const {
+        return visit_mask<typename kernels::get_volume_links>();
     }
 
     /// @returns the mask shape name
     DETRAY_HOST
     std::string shape_name() const {
         return visit_mask<typename kernels::get_shape_name>();
+    }
+
+    /// @returns the number of masks associated with this surface
+    DETRAY_HOST_DEVICE
+    std::size_t n_masks() const {
+        if constexpr (concepts::interval<decltype(m_desc.mask().index())>) {
+            return m_desc.mask().index().size();
+        } else {
+            return 1u;
+        }
     }
 
     /// @returns the coordinate transform matrix of the surface
@@ -183,7 +194,7 @@ class surface {
 
     /// @returns a boundary value of the surface, according to @param index
     DETRAY_HOST_DEVICE
-    constexpr scalar_type boundary(std::size_t index) const {
+    constexpr auto boundary(std::size_t index) const {
         return visit_mask<typename kernels::get_mask_value>(index);
     }
 
@@ -319,20 +330,24 @@ class surface {
             os << "\nSurface: " << *this << std::endl;
             return false;
         }
+
         // Check the mask volume link
-        const auto vol_link = visit_mask<typename kernels::get_volume_link>();
-        if (is_portal()) {
-            if (vol_link == volume()) {
-                os << "ERROR: Portal surface links to mother volume:\n"
+        const auto vol_links = visit_mask<typename kernels::get_volume_links>();
+        for (const auto vol_link : vol_links) {
+            if (is_portal()) {
+                if (vol_link == volume()) {
+                    os << "ERROR: Portal surface links to mother volume:\n"
+                       << *this << std::endl;
+                    return false;
+                }
+            } else if (vol_link != volume()) {
+                os << "ERROR: Passive/sensitive surface does not link to "
+                      "mother "
+                      "volume:"
+                   << "Mask volume link : " << vol_link << "\n"
                    << *this << std::endl;
                 return false;
             }
-        } else if (vol_link != volume()) {
-            os << "ERROR: Passive/sensitive surface does not link to mother "
-                  "volume:"
-               << "Mask volume link : " << vol_link << "\n"
-               << *this << std::endl;
-            return false;
         }
 
         return true;

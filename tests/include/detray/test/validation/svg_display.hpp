@@ -128,8 +128,7 @@ auto draw_intersection_and_traj_svg(
 
     // Was a dummy record removed before printing?
     if (truth_intersections.size() < truth_trace.size()) {
-        highlight_idx[0] -= 1u;
-        highlight_idx[1] -= 1u;
+        highlight_idx.shift(-1);
     }
 
     // Draw the truth intersections as black crosses

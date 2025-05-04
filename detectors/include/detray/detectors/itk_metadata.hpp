@@ -127,7 +127,7 @@ struct itk_metadata {
     /// It holds the indices to the surface data in the detector data stores
     /// that were defined above
     using transform_link = typename transform_store<>::link_type;
-    using mask_link = typename mask_store<>::single_link;
+    using mask_link = typename mask_store<>::range_link;
     using material_link = typename material_store<>::single_link;
     /// Surface type used for sensitives, passives and portals
     using surface_type =

@@ -264,7 +264,8 @@ class endcap_generator final : public surface_factory_interface<detector_t> {
             // Build the modules
             for (const point3_t &mod_position : module_positions) {
                 // Module mask
-                mask_link_t mask_link{mask_id, masks.template size<mask_id>()};
+                mask_link_t mask_link{mask_id,
+                                      {masks.template size<mask_id>(), 1u}};
                 material_link_t material_link{no_material, dindex_invalid};
 
                 // Surface descriptor

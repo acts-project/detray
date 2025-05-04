@@ -134,6 +134,31 @@ class cylinder3D {
                 bounds[e_min_r] * bounds[e_min_r]);
     }
 
+    /// @brief Merge two 3D cylinder shapes
+    ///
+    /// @param bounds the boundary values for this shape
+    /// @param o_bounds the boundary values for the other shape
+    ///
+    /// @returns merged bound values
+    template <concepts::scalar scalar_t>
+    DETRAY_HOST_DEVICE constexpr bounds_type<scalar_t> merge(
+        const bounds_type<scalar_t> &bounds,
+        const bounds_type<scalar_t> &o_bounds) const {
+
+        bounds_type<scalar_t> new_bounds{};
+
+        new_bounds[e_min_r] = math::min(bounds[e_min_r], o_bounds[e_min_r]);
+        new_bounds[e_min_phi] =
+            math::min(bounds[e_min_phi], o_bounds[e_min_phi]);
+        new_bounds[e_min_z] = math::min(bounds[e_min_z], o_bounds[e_min_z]);
+        new_bounds[e_max_r] = math::max(bounds[e_max_r], o_bounds[e_max_r]);
+        new_bounds[e_max_phi] =
+            math::max(bounds[e_max_phi], o_bounds[e_max_phi]);
+        new_bounds[e_max_z] = math::max(bounds[e_max_z], o_bounds[e_max_z]);
+
+        return new_bounds;
+    }
+
     /// @brief Lower and upper point for minimal axis aligned bounding box.
     ///
     /// Computes the min and max vertices in a local cartesian frame.

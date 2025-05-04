@@ -213,7 +213,8 @@ class barrel_generator final : public surface_factory_interface<detector_t> {
         for (auto &mod_center : mod_centers) {
 
             // Surfaces with the linking into the local containers
-            mask_link_t mask_link = {mask_id, masks.template size<mask_id>()};
+            mask_link_t mask_link = {mask_id,
+                                     {masks.template size<mask_id>(), 1u}};
             material_link_t material_link{no_material, dindex_invalid};
             const auto trf_index = transforms.size(ctx);
 

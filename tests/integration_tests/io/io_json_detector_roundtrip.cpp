@@ -222,8 +222,8 @@ GTEST_TEST(io, json_toy_geometry) {
     const auto& masks = comp_det.mask_store();
 
     EXPECT_EQ(comp_det.volumes().size(), 22u);
-    EXPECT_EQ(comp_det.surfaces().size(), 3256);
-    EXPECT_EQ(comp_det.transform_store().size(), 3278);
+    EXPECT_EQ(comp_det.surfaces().size(), 3230);
+    EXPECT_EQ(comp_det.transform_store().size(), 3252);
     EXPECT_EQ(masks.template size<mask_id::e_rectangle2>(), 2492u);
     EXPECT_EQ(masks.template size<mask_id::e_portal_rectangle2>(), 2492u);
     EXPECT_EQ(masks.template size<mask_id::e_trapezoid2>(), 648u);

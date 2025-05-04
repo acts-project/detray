@@ -107,6 +107,25 @@ class single3D {
         return math::fabs(bounds[e_upper] - bounds[e_lower]);
     }
 
+    /// @brief Merge two 'single' shapes
+    ///
+    /// @param bounds the boundary values for this shape
+    /// @param o_bounds the boundary values for the other shape
+    ///
+    /// @returns merged bound values
+    template <concepts::scalar scalar_t>
+    DETRAY_HOST_DEVICE constexpr bounds_type<scalar_t> merge(
+        const bounds_type<scalar_t> &bounds,
+        const bounds_type<scalar_t> &o_bounds) const {
+
+        bounds_type<scalar_t> new_bounds{};
+
+        new_bounds[e_lower] = math::min(bounds[e_lower], o_bounds[e_lower]);
+        new_bounds[e_upper] = math::max(bounds[e_upper], o_bounds[e_upper]);
+
+        return new_bounds;
+    }
+
     /// @brief Lower and upper point for minimal axis aligned bounding box.
     ///
     /// Computes the min and max vertices in a local cartesian frame.

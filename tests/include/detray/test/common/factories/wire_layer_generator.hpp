@@ -162,7 +162,8 @@ class wire_layer_generator final
         // Generate a wire surface at every position
         for (const point3_t &cell_center : cell_centers) {
             // Mask link for the cell
-            mask_link_t mask_link{mask_id, masks.template size<mask_id>()};
+            mask_link_t mask_link{mask_id,
+                                  {masks.template size<mask_id>(), 1u}};
             // The material will be added in a later step
             material_link_t material_link{surface_t::material_id::e_none,
                                           dindex_invalid};
