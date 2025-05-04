@@ -121,7 +121,7 @@ struct toy_metadata {
 
     /// How to link to the entries in the data stores
     using transform_link = typename transform_store<>::link_type;
-    using mask_link = typename mask_store<>::single_link;
+    using mask_link = typename mask_store<>::range_link;
     using material_link = typename material_store<>::single_link;
     /// Surface type used for sensitives, passives and portals
     using surface_type =

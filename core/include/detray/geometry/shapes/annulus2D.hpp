@@ -95,7 +95,9 @@ class annulus2D {
         // Go to beam frame to check r boundaries. Use the origin
         // shift in polar coordinates for that
         // TODO: Put shift in r-phi into the bounds?
-        const point_t shift_xy = {-bounds[e_shift_x], -bounds[e_shift_y], 0.f};
+        point_t shift_xy;
+        shift_xy[0u] = -bounds[e_shift_x];
+        shift_xy[1u] = -bounds[e_shift_y];
         const scalar_t shift_r = vector::perp(shift_xy);
         const scalar_t shift_phi = vector::phi(shift_xy);
 

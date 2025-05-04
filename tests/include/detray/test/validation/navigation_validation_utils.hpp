@@ -46,12 +46,19 @@ namespace detray::navigation_validator {
 /// A functor to get the minimum distance to any surface boundary.
 struct min_dist_to_boundary {
 
-    template <typename mask_group_t, typename index_t, typename point_t>
+    template <typename mask_group_t, typename idx_range_t, typename point_t>
     DETRAY_HOST_DEVICE inline auto operator()(const mask_group_t &mask_group,
-                                              const index_t &index,
+                                              const idx_range_t idx_range,
                                               const point_t &loc_p) const {
+        using scalar_t = typename mask_group_t::value_type::scalar_type;
 
-        return mask_group[index].min_dist_to_boundary(loc_p);
+        scalar_t min_dist{detail::invalid_value<scalar_t>()};
+        for (const auto &mask :
+             detray::ranges::subrange(mask_group, idx_range)) {
+            min_dist = math::min(min_dist, mask.min_dist_to_boundary(loc_p));
+        }
+
+        return min_dist;
     }
 };
 

@@ -49,7 +49,7 @@ struct tracking_surface_kernels : public surface_kernels<algebra_t> {
     /// A functor to get from a bound to a free vector
     struct bound_to_free_vector {
 
-        template <typename mask_group_t, typename index_t>
+        template <typename mask_group_t, concepts::index index_t>
         DETRAY_HOST_DEVICE inline free_param_vector_type operator()(
             const mask_group_t& mask_group, const index_t& index,
             const transform3_type& trf3,
@@ -57,6 +57,16 @@ struct tracking_surface_kernels : public surface_kernels<algebra_t> {
 
             return detail::bound_to_free_vector(trf3, mask_group[index],
                                                 bound_vec);
+        }
+
+        template <typename mask_group_t, concepts::interval idx_range_t>
+        DETRAY_HOST_DEVICE inline free_param_vector_type operator()(
+            const mask_group_t& mask_group, const idx_range_t& idx_range,
+            const transform3_type& trf3,
+            const bound_param_vector_type& bound_vec) const {
+
+            return detail::bound_to_free_vector(
+                trf3, mask_group[idx_range.lower()], bound_vec);
         }
     };
 
@@ -79,7 +89,7 @@ struct tracking_surface_kernels : public surface_kernels<algebra_t> {
     /// A functor to get the bound-to-free Jacobian
     struct bound_to_free_jacobian {
 
-        template <typename mask_group_t, typename index_t>
+        template <typename mask_group_t, concepts::index index_t>
         DETRAY_HOST_DEVICE inline auto operator()(
             const mask_group_t& mask_group, const index_t& index,
             const transform3_type& trf3,
@@ -89,6 +99,18 @@ struct tracking_surface_kernels : public surface_kernels<algebra_t> {
 
             return detail::jacobian_engine<frame_t>::bound_to_free_jacobian(
                 trf3, mask_group[index], bound_vec);
+        }
+
+        template <typename mask_group_t, concepts::interval idx_range_t>
+        DETRAY_HOST_DEVICE inline auto operator()(
+            const mask_group_t& mask_group, const idx_range_t& idx_range,
+            const transform3_type& trf3,
+            const bound_param_vector_type& bound_vec) const {
+
+            using frame_t = typename mask_group_t::value_type::local_frame;
+
+            return detail::jacobian_engine<frame_t>::bound_to_free_jacobian(
+                trf3, mask_group[idx_range.lower()], bound_vec);
         }
     };
 

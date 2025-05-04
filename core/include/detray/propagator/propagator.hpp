@@ -204,8 +204,6 @@ struct propagator {
         auto &context = propagation._context;
         const auto &track = stepping();
 
-        std::cout << "TRACK " << track << std::endl;
-
         // Initialize the navigation
         m_navigator.init(track, navigation, m_cfg.navigation, context);
         propagation._heartbeat = navigation.is_alive();
@@ -267,20 +265,8 @@ struct propagator {
         propagation._heartbeat &= navigation.is_alive();
 
 #if defined(__NO_DEVICE__)
-        if (true) {
+        if (propagation.do_debug) {
             inspect(propagation);
-
-            if (math::fabs(track.qop()) < 0.105557f) {
-                std::cout << "Step " << stepping.step_size() << std::endl;
-                std::cout << "Dist " << navigation() << std::endl;
-                std::cout << navigation::print_state(navigation) << std::endl;
-                std::cout << navigation::print_candidates(
-                                 navigation, m_cfg.navigation, track.pos(),
-                                 track.dir())
-                          << std::endl;
-            }
-            // std::cout << propagation.debug_stream.str() << std::endl;
-            propagation.debug_stream.clear();
         }
 #endif
 
@@ -401,6 +387,9 @@ struct propagator {
             }
 
 #if defined(__NO_DEVICE__)
+            if (propagation.do_debug) {
+                inspect(propagation);
+            }
 #endif
         }
 

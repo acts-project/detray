@@ -267,25 +267,25 @@ GTEST_TEST(detray_builders, tracking_volume_construction) {
 
     // check surface mask links
     std::vector<typename detector_t::surface_type::mask_link> mask_links{
-        {mask_id::e_rectangle2, 0u},
-        {mask_id::e_annulus2, 0u},
-        {mask_id::e_trapezoid2, 0u},
-        {mask_id::e_portal_cylinder2, 0u},
-        {mask_id::e_portal_cylinder2, 1u},
-        {mask_id::e_portal_ring2, 0u},
-        {mask_id::e_portal_ring2, 1u},
-        {mask_id::e_annulus2, 1u},
-        {mask_id::e_annulus2, 2u},
-        {mask_id::e_rectangle2, 1u},
-        {mask_id::e_rectangle2, 2u},
-        {mask_id::e_rectangle2, 3u},
-        {mask_id::e_trapezoid2, 1u},
-        {mask_id::e_cylinder2, 0u},
-        {mask_id::e_ring2, 2u},
-        {mask_id::e_ring2, 3u},
-        {mask_id::e_rectangle2, 4u},
-        {mask_id::e_rectangle2, 5u},
-        {mask_id::e_rectangle2, 6u}};
+        {mask_id::e_rectangle2, {0u, 1u}},
+        {mask_id::e_annulus2, {0u, 1u}},
+        {mask_id::e_trapezoid2, {0u, 1u}},
+        {mask_id::e_portal_cylinder2, {0u, 1u}},
+        {mask_id::e_portal_cylinder2, {1u, 1u}},
+        {mask_id::e_portal_ring2, {0u, 1u}},
+        {mask_id::e_portal_ring2, {1u, 1u}},
+        {mask_id::e_annulus2, {1u, 1u}},
+        {mask_id::e_annulus2, {2u, 1u}},
+        {mask_id::e_rectangle2, {1u, 1u}},
+        {mask_id::e_rectangle2, {2u, 1u}},
+        {mask_id::e_rectangle2, {3u, 1u}},
+        {mask_id::e_trapezoid2, {1u, 1u}},
+        {mask_id::e_cylinder2, {0u, 1u}},
+        {mask_id::e_ring2, {2u, 1u}},
+        {mask_id::e_ring2, {3u, 1u}},
+        {mask_id::e_rectangle2, {4u, 1u}},
+        {mask_id::e_rectangle2, {5u, 1u}},
+        {mask_id::e_rectangle2, {6u, 1u}}};
     for (const auto [idx, m_link] : detray::views::enumerate(mask_links)) {
         geometry::barcode bcd{};
         bcd.set_index(idx);

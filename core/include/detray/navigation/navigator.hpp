@@ -222,8 +222,8 @@ class navigator {
         /// @returns distance to next
         DETRAY_HOST_DEVICE
         scalar_type operator()() const {
-            const scalar_type dist_to_next{
-                math::max(math::fabs(target().path), 1.01f * unit<float>::um)};
+            const scalar_type dist_to_next{math::max(
+                math::fabs(target().path), 1.f * unit<scalar_type>::um)};
 
             return static_cast<scalar_type>(direction()) *
                    math::copysign(dist_to_next, target().path);

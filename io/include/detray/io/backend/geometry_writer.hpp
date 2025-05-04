@@ -117,7 +117,7 @@ class geometry_writer {
         sf_data.type = sf.id();
         sf_data.barcode = sf.barcode().value();
         sf_data.transform = to_payload<detector_t>(sf.transform({}));
-        sf_data.mask = sf.template visit_mask<get_mask_payload>();
+        sf_data.masks = sf.template visit_mask<get_mask_payload>();
         sf_data.material = sf.template visit_material<get_material_payload>();
         sf_data.source = sf.source();
 
@@ -170,10 +170,17 @@ class geometry_writer {
     private:
     /// Retrieve @c mask_payload from mask_store element
     struct get_mask_payload {
-        template <typename mask_group_t, typename index_t>
+        template <typename mask_group_t, typename idx_range_t>
         constexpr auto operator()(const mask_group_t& mask_group,
-                                  const index_t& index) const {
-            return geometry_writer::to_payload(mask_group[index]);
+                                  const idx_range_t& idx_range) const {
+            std::vector<mask_payload> payloads{};
+
+            for (const auto& mask :
+                 detray::ranges::subrange(mask_group, idx_range)) {
+                payloads.push_back(geometry_writer::to_payload(mask));
+            }
+
+            return payloads;
         }
     };
 

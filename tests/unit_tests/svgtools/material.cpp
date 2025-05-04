@@ -54,7 +54,7 @@ GTEST_TEST(svgtools, material) {
     il.hide_material(false);
 
     // Indexes of the surfaces in the detector to be visualized.
-    std::array indices{0u, 364u, 365u, 596u, 597u, 3010u, 3011u};
+    std::array indices{0u, 346u, 347u, 578u, 579u, 2992u, 2993u};
 
     auto& portal_mat_style = il.style()
                                  ._detector_style._volume_style._portal_style
@@ -75,8 +75,8 @@ GTEST_TEST(svgtools, material) {
     portal_mat_style._gradient_color_scale =
         detray::svgtools::styling::colors::gradient::plasma_scale;
 
-    std::vector indices2{598u, 599u, 1054u, 1055u, 1790u, 1791u, 2890u, 2891u};
-    std::string name = "test_svgtools_disc_materials";
+    std::vector indices2{578u, 579u, 1034u, 1035u, 1770u, 1771u, 2870u, 2871u};
+    std::string name = "test_svgtools_cyl_materials";
 
     const auto svg_xy = il.draw_surface_materials(indices2, xy);
     detray::svgtools::write_svg(name + "_xy", {axes, svg_xy});

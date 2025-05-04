@@ -51,12 +51,11 @@ inline constexpr bool sized_index_range{true};
 template <typename index_t, bool contains_size = !sized_index_range,
           typename value_t = std::uint_least32_t,
           value_t lower_mask = 0xffff0000, value_t upper_mask = ~lower_mask>
-requires std::convertible_to<index_t, value_t>
-struct index_range {
+requires std::convertible_to<index_t, value_t> struct index_range {
     using index_type = index_t;
     using encoder = detail::bit_encoder<value_t>;
 
-    consteval index_range() = default;
+    constexpr index_range() = default;
 
     /// Construct around encoded value @param v
     DETRAY_HOST_DEVICE
@@ -491,6 +490,18 @@ requires(std::convertible_to<value_t, index_t> ||
             set_index(this->index() + static_cast<index_type>(1));
         } else {
             set_index(this->index() + 1u);
+        }
+
+        return *this;
+    }
+
+    /// Shift the contained index.
+    template <std::integral idx_t>
+    DETRAY_HOST_DEVICE constexpr typed_index& shift(idx_t s) {
+        if constexpr (std::integral<index_type>) {
+            set_index(this->index() + static_cast<index_type>(s));
+        } else {
+            set_index(this->index().shift(s));
         }
 
         return *this;

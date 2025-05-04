@@ -230,7 +230,8 @@ struct add_sf_material_map {
         [[maybe_unused]] const darray<std::vector<scalar_t>, DIM>& axis_spans,
         [[maybe_unused]] material_store_t& mat_store) const {
 
-        using mask_shape_t = typename coll_t::value_type::shape;
+        using mask_t = typename coll_t::value_type;
+        using mask_shape_t = typename mask_t::shape;
 
         constexpr bool is_line{
             std::is_same_v<mask_shape_t, detray::line_square> ||
@@ -239,7 +240,13 @@ struct add_sf_material_map {
         // No material maps for line surfaces
         if constexpr (!is_line && mask_shape_t::dim == DIM) {
             // Map a grid onto the surface mask
-            const auto& sf_mask = coll[index];
+            mask_t sf_mask = {};
+            if constexpr (concepts::interval<index_t>) {
+                sf_mask = coll[index.lower()];
+            } else {
+                sf_mask = coll[index];
+            }
+
             auto mat_grid =
                 mat_factory.new_grid(sf_mask, n_bins, {}, {}, axis_spans);
 

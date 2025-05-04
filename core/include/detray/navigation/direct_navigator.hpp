@@ -125,10 +125,9 @@ class direct_navigator {
             if (!is_exhausted()) {
                 m_candidate.sf_desc = m_detector->surface(get_target_barcode());
                 m_candidate.volume_link =
-                    tracking_surface{*m_detector, m_candidate.sf_desc}
-                        .volume_link();
+                    detail::invalid_value<nav_link_type>();
                 m_candidate.path = std::numeric_limits<scalar_type>::max();
-                set_volume(m_candidate.volume_link);
+                set_volume(m_candidate.sf_desc.volume());
             }
         }
 
