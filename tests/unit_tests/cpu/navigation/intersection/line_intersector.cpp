@@ -174,6 +174,8 @@ GTEST_TEST(detray_intersection, line_intersector_square_scope) {
                                              tol));
     }
 
+    ASSERT_TRUE(is.size() >= 12);
+
     EXPECT_TRUE(is[0].status);
     EXPECT_NEAR(is[0].path, constant<scalar>::sqrt2, tol);
     const auto local0 = ln.to_local_frame(
