@@ -153,7 +153,7 @@ class pyplot_factory:
         if x_axis.log_scale is not None:
             ax.set_xscale("log", base=x_axis.log_scale)
         if y_axis.log_scale is not None:
-            ax.set_yscale("log", base=x_axis.log_scale)
+            ax.set_yscale("log", base=y_axis.log_scale)
 
         if x_axis.tick_positions is not None:
             ax.set_xticks(x_axis.tick_positions)
@@ -315,7 +315,8 @@ class pyplot_factory:
             label=label_str,
             histtype="stepfilled",
             density=normalize,
-            facecolor=mcolors.to_rgba(color, alpha),
+            alpha=alpha,
+            facecolor=color,
             edgecolor=color,
         )
 
@@ -406,7 +407,8 @@ class pyplot_factory:
             label=f"{label} ({len(x)} entries)",
             weights=w,
             histtype="stepfilled",
-            facecolor=mcolors.to_rgba(color, alpha),
+            facecolor=color,
+            alpha=alpha,
             edgecolor=color,
         )
 
