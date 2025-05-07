@@ -27,7 +27,7 @@ template <typename T>
 template <typename T>
     requires(!std::is_fundamental_v<T>) &&
     (!std::is_enum_v<T>)&&std::is_default_constructible_v<T> DETRAY_HOST_DEVICE
-    inline T invalid_value() noexcept {
+    constexpr T invalid_value() noexcept {
     return T{};
 }
 

@@ -132,16 +132,21 @@ class illustrator {
                                        ? style._sensitive_surface_style
                                        : style._passive_surface_style;
 
-            auto p_surface = svgtools::conversion::surface(
+            auto p_surfaces = svgtools::conversion::surface(
                 gctx, _detector, surface, view, sf_style, _hide_material);
 
-            // Draw the surface directly
-            std::string id = p_surface._name + "_" + svg_id(view);
-            ret = actsvg::display::surface(std::move(id), p_surface, view);
+            // Draw the surfaces directly
+            for (auto& p_surface : p_surfaces) {
+                std::string id = p_surface._name + "_" + svg_id(view);
+                ret.add_object(
+                    actsvg::display::surface(std::move(id), p_surface, view));
+            }
 
+            // The surface links to only one material for all masks
             if (!_hide_material) {
+                std::string id = p_surfaces[0]._name + "_" + svg_id(view);
                 material = actsvg::display::surface_material(
-                    id + "_material_map", p_surface._material);
+                    id + "_material_map", p_surfaces[0]._material);
             }
         }
         // Add an optional info box

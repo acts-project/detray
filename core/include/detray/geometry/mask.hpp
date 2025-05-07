@@ -152,14 +152,15 @@ class mask {
     /// @param tol dynamic tolerance determined by caller
     ///
     /// @return an intersection status e_inside / e_outside
-    DETRAY_HOST_DEVICE
-    inline auto is_inside(
-        const point3_type& loc_p,
+    template <concepts::point point_t>
+    DETRAY_HOST_DEVICE inline auto is_inside(
+        const point_t& loc_p,
         const scalar_type t =
             std::numeric_limits<scalar_type>::epsilon()) const {
 
         return get_shape().check_boundaries(_values, loc_p, t);
     }
+    /// @}
 
     /// @returns the boundary values
     DETRAY_HOST_DEVICE

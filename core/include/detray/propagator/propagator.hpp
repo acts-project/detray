@@ -10,6 +10,7 @@
 // Project include(s).
 #include "detray/definitions/detail/macros.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/navigation/detail/print_state.hpp"
 #include "detray/navigation/direct_navigator.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 #include "detray/navigation/navigator.hpp"
@@ -155,8 +156,8 @@ struct propagator {
         typename stepper_t::state _stepping;
         typename navigator_t::state _navigation;
         context_type _context;
-
         bool do_debug = false;
+
 #if defined(__NO_DEVICE__)
         std::stringstream debug_stream{};
 #endif

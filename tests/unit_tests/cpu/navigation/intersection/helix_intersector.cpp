@@ -9,12 +9,12 @@
 #include "detray/navigation/intersection/helix_intersector.hpp"
 
 #include "detray/definitions/units.hpp"
-#include "detray/geometry/detail/surface_descriptor.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes/concentric_cylinder2D.hpp"
 #include "detray/geometry/shapes/line.hpp"
 #include "detray/geometry/shapes/rectangle2D.hpp"
 #include "detray/geometry/shapes/unmasked.hpp"
+#include "detray/geometry/surface_descriptor.hpp"
 #include "detray/tracks/helix.hpp"
 #include "detray/tracks/tracks.hpp"
 

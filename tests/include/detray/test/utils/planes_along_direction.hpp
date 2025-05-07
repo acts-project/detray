@@ -10,7 +10,7 @@
 // Detray core include(s).
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/containers.hpp"
-#include "detray/geometry/detail/surface_descriptor.hpp"
+#include "detray/geometry/surface_descriptor.hpp"
 #include "detray/utils/ranges.hpp"
 
 // Detray tests include(s).

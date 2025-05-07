@@ -17,30 +17,37 @@
 // Actsvg includes(s)
 #include "actsvg/proto/portal.hpp"
 
+// System include(s)
+#include <vector>
+
 namespace detray::svgtools::conversion {
 
 /// @returns The proto link calculated using the surface normal vector.
 template <typename detector_t>
-inline auto link(const typename detector_t::geometry_context& context,
-                 const detector_t& detector,
-                 const detray::geometry::surface<detector_t>& d_portal) {
+inline auto links(const typename detector_t::geometry_context& context,
+                  const detector_t& detector,
+                  const detray::geometry::surface<detector_t>& d_portal) {
 
     using point3_container_t = std::vector<typename detector_t::point3_type>;
     using p_link_t = typename actsvg::proto::portal<point3_container_t>::link;
 
+    std::vector<p_link_t> pt_links{};
     typename detector_t::vector3_type dir{};
 
     // Length of link arrow is currently hardcoded.
     constexpr double link_length = 4.;
 
-    const auto [start, end] = svgtools::utils::link_points(
-        context, detector, d_portal, dir, link_length);
+    for (std::size_t i = 0u; i < d_portal.n_masks(); ++i) {
+        const auto [start, end] = svgtools::utils::link_points(
+            context, detector, d_portal, dir, link_length, i);
 
-    p_link_t p_link;
-    p_link._start = start;
-    p_link._end = end;
+        p_link_t p_link;
+        p_link._start = start;
+        p_link._end = end;
+        pt_links.push_back(p_link);
+    }
 
-    return p_link;
+    return pt_links;
 }
 
 }  // namespace detray::svgtools::conversion

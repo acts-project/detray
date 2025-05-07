@@ -43,12 +43,20 @@ auto portal(const typename detector_t::geometry_context& context,
     p_portal._surface._sf_type = p_surface_t::sf_type::e_portal;
 
     if (!hide_links && svgtools::utils::is_not_world_portal(d_portal)) {
-        p_portal._volume_links = {
-            svgtools::conversion::link(context, detector, d_portal)};
+        p_portal._volume_links =
+            svgtools::conversion::links(context, detector, d_portal);
     }
 
-    p_portal._surface = svgtools::conversion::surface(
+    const auto p_surfaces = svgtools::conversion::surface(
         context, detector, d_portal, view, style._surface_style, hide_material);
+
+    // Merge the proto surfaces to a single portal proto surface
+    p_surface_t p_surface{};
+    for (const auto& partial_p_surface : p_surfaces) {
+        p_surface = partial_p_surface;
+    }
+
+    p_portal._surface = p_surface;
 
     svgtools::styling::apply_style(p_portal, style);
 

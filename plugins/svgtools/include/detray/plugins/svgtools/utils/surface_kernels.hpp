@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2025 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -14,6 +14,7 @@
 #include "detray/geometry/shapes.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/geometry/tracking_volume.hpp"
+#include "detray/utils/concepts.hpp"
 
 // System include(s)
 #include <cassert>
@@ -26,10 +27,17 @@ namespace detray::svgtools::utils {
 struct outer_radius_getter {
 
     public:
-    template <typename mask_group_t, typename index_t>
+    template <typename mask_group_t, concepts::index index_t>
     DETRAY_HOST inline auto operator()(const mask_group_t& mask_group,
                                        const index_t& index) const {
         return outer_radius(mask_group[index]);
+    }
+
+    template <typename mask_group_t, concepts::interval idx_range_t>
+    DETRAY_HOST inline auto operator()(const mask_group_t& mask_group,
+                                       const idx_range_t& idx_range) const {
+        // All masks on the same surface have the same radius
+        return outer_radius(mask_group[idx_range.lower()]);
     }
 
     private:
@@ -77,26 +85,28 @@ struct outer_radius_getter {
     }
 };
 
-/// @brief Functor to obtain the volume link.
-struct link_getter {
-    template <typename mask_group_t, typename index_t>
-    DETRAY_HOST inline auto operator()(const mask_group_t& mask_group,
-                                       const index_t& index) const {
-        return mask_group[index].volume_link();
-    }
-};
-
 /// @brief Functor to calculate a suitable starting point for displaying the
 /// link arrow.
 struct link_start_getter {
 
     public:
-    template <typename mask_group_t, typename index_t,
+    template <typename mask_group_t, concepts::index index_t,
               concepts::transform3D transform3_t>
     DETRAY_HOST inline auto operator()(const mask_group_t& mask_group,
                                        const index_t& index,
-                                       const transform3_t& transform) const {
+                                       const transform3_t& transform,
+                                       const std::size_t = 0) const {
         return link_start(mask_group[index], transform);
+    }
+
+    template <typename mask_group_t, concepts::interval idx_range_t,
+              concepts::transform3D transform3_t>
+    DETRAY_HOST inline auto operator()(const mask_group_t& mask_group,
+                                       const idx_range_t& idx_range,
+                                       const transform3_t& transform,
+                                       const std::size_t mask_idx) const {
+        assert(mask_idx < idx_range.size());
+        return link_start(mask_group[idx_range.lower() + mask_idx], transform);
     }
 
     private:
@@ -200,18 +210,34 @@ struct link_start_getter {
 struct link_end_getter {
 
     public:
-    template <typename mask_group_t, typename index_t, typename detector_t,
-              concepts::point3D point3_t, concepts::vector3D vector3_t,
-              concepts::scalar scalar_t>
+    template <typename mask_group_t, concepts::index index_t,
+              typename detector_t, concepts::point3D point3_t,
+              concepts::vector3D vector3_t, concepts::scalar scalar_t>
     DETRAY_HOST inline auto operator()(
         const mask_group_t& mask_group, const index_t& index,
         const detector_t& detector,
         const detray::tracking_volume<detector_t>& volume,
         const point3_t& surface_point, const vector3_t& surface_normal,
-        const scalar_t& link_length) const {
+        const scalar_t& link_length, const std::size_t = 0) const {
 
         return link_dir(mask_group[index], detector, volume, surface_point,
                         surface_normal) *
+                   link_length +
+               surface_point;
+    }
+
+    template <typename mask_group_t, concepts::interval idx_range_t,
+              typename detector_t, concepts::point3D point3_t,
+              concepts::vector3D vector3_t, concepts::scalar scalar_t>
+    DETRAY_HOST inline auto operator()(
+        const mask_group_t& mask_group, const idx_range_t& idx_range,
+        const detector_t& detector,
+        const detray::tracking_volume<detector_t>& volume,
+        const point3_t& surface_point, const vector3_t& surface_normal,
+        const scalar_t& link_length, const std::size_t mask_idx) const {
+        assert(mask_idx < idx_range.size());
+        return link_dir(mask_group[idx_range.lower() + mask_idx], detector,
+                        volume, surface_point, surface_normal) *
                    link_length +
                surface_point;
     }

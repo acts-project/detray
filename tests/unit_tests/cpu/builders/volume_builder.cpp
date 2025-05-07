@@ -75,13 +75,13 @@ GTEST_TEST(detray_builders, surface_factory) {
     EXPECT_EQ(pt_cyl_factory->bounds().size(), 2u);
     EXPECT_EQ(pt_cyl_factory->transforms().size(), 2u);
     EXPECT_EQ(pt_cyl_factory->volume_links().size(), 2u);
-    const auto& portal_cyl_comps = pt_cyl_factory->bounds().front();
+    const auto& portal_cyl_comps = pt_cyl_factory->bounds().front().front();
     EXPECT_NEAR(portal_cyl_comps[0], 10.f, tol);
     EXPECT_NEAR(portal_cyl_comps[1], -1000.f, tol);
     EXPECT_NEAR(portal_cyl_comps[2], 1500.f, tol);
     const auto& portal_cyl_vol_links = pt_cyl_factory->volume_links();
-    EXPECT_EQ(portal_cyl_vol_links[0], 0u);
-    EXPECT_EQ(portal_cyl_vol_links[1], 2u);
+    EXPECT_EQ(portal_cyl_vol_links[0][0], 0u);
+    EXPECT_EQ(portal_cyl_vol_links[1][0], 2u);
 
     //
     // check sensitive cylinder
@@ -118,11 +118,11 @@ GTEST_TEST(detray_builders, surface_factory) {
     EXPECT_EQ(cyl_factory->bounds().size(), 4u);
     EXPECT_EQ(cyl_factory->transforms().size(), 4u);
     EXPECT_EQ(cyl_factory->volume_links().size(), 4u);
-    const auto& sens_cyl_comps = cyl_factory->bounds().front();
+    const auto& sens_cyl_comps = cyl_factory->bounds().front().front();
     EXPECT_NEAR(sens_cyl_comps[0], 5.f, tol);
     EXPECT_NEAR(sens_cyl_comps[1], -900.f, tol);
     EXPECT_NEAR(sens_cyl_comps[2], 900.f, tol);
-    const auto& sens_cyl_vol_links = cyl_factory->volume_links();
+    const auto& sens_cyl_vol_links = cyl_factory->volume_links().front();
     EXPECT_EQ(sens_cyl_vol_links[0], 1u);
 
     //
@@ -141,7 +141,7 @@ GTEST_TEST(detray_builders, surface_factory) {
     ann_factory->push_back(std::move(ann_sf_data));
     ann_sf_data.clear();
 
-    const auto& ann_comps = ann_factory->bounds().front();
+    const auto& ann_comps = ann_factory->bounds().front().front();
     EXPECT_NEAR(ann_comps[0], 300.f, tol);
     EXPECT_NEAR(ann_comps[1], 350.f, tol);
     EXPECT_NEAR(ann_comps[2], -0.1f, tol);
@@ -162,7 +162,7 @@ GTEST_TEST(detray_builders, surface_factory) {
     rect_factory->push_back(std::move(rect_sf_data));
     rect_sf_data.clear();
 
-    const auto& rectgl_comps = rect_factory->bounds().front();
+    const auto& rectgl_comps = rect_factory->bounds().front().front();
     EXPECT_NEAR(rectgl_comps[0], 10.f, tol);
     EXPECT_NEAR(rectgl_comps[1], 8.f, tol);
 
@@ -178,7 +178,7 @@ GTEST_TEST(detray_builders, surface_factory) {
     sf_disc_factory->push_back(std::move(disc_sf_data));
     disc_sf_data.clear();
 
-    const auto& ring_comps = sf_disc_factory->bounds().front();
+    const auto& ring_comps = sf_disc_factory->bounds().front().front();
     EXPECT_NEAR(ring_comps[0], 0.f, tol);
     EXPECT_NEAR(ring_comps[1], 5.f, tol);
 
@@ -194,7 +194,7 @@ GTEST_TEST(detray_builders, surface_factory) {
     trpz_factory->push_back(std::move(trpz_sf_data));
     trpz_sf_data.clear();
 
-    const auto& trpz_comps = trpz_factory->bounds().front();
+    const auto& trpz_comps = trpz_factory->bounds().front().front();
     EXPECT_NEAR(trpz_comps[0], 1.f, tol);
     EXPECT_NEAR(trpz_comps[1], 3.f, tol);
     EXPECT_NEAR(trpz_comps[2], 2.f, tol);
