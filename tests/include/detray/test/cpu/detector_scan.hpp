@@ -14,12 +14,12 @@
 // Detray IO inlcude(s)
 #include "detray/io/utils/create_path.hpp"
 
-// Detray test include(s).
-#include "detray/test/common/detail/whiteboard.hpp"
-#include "detray/test/common/detector_scan_config.hpp"
-#include "detray/test/common/fixture_base.hpp"
-#include "detray/test/utils/simulation/event_generator/track_generators.hpp"
-#include "detray/test/utils/types.hpp"
+// Detray test include(s)
+#include "detray/test/common/track_generators.hpp"
+#include "detray/test/framework/fixture_base.hpp"
+#include "detray/test/framework/types.hpp"
+#include "detray/test/framework/whiteboard.hpp"
+#include "detray/test/validation/detector_scan_config.hpp"
 #include "detray/test/validation/detector_scan_utils.hpp"
 #include "detray/test/validation/detector_scanner.hpp"
 
@@ -54,13 +54,23 @@ class detector_scan : public test::fixture_base<> {
 
     public:
     using fixture_type = test::fixture_base<>;
-    using config = detector_scan_config<track_generator_t>;
+    using config = detector_scan_config<track_generator_t, algebra_t>;
 
     explicit detector_scan(
         const detector_t &det, const typename detector_t::name_map &names,
-        const config &cfg = {},
+        const config &cfg = {}, std::shared_ptr<test::whiteboard> wb = nullptr,
         const typename detector_t::geometry_context gctx = {})
-        : m_cfg{cfg}, m_gctx{gctx}, m_det{det}, m_names{names} {}
+        : m_cfg{cfg},
+          m_gctx{gctx},
+          m_det{det},
+          m_names{names},
+          m_whiteboard{std::move(wb)} {
+
+        if (!m_whiteboard) {
+            throw std::invalid_argument("No white board was passed to " +
+                                        m_cfg.name());
+        }
+    }
 
     /// Run the detector scan
     void TestBody() override {
@@ -84,7 +94,7 @@ class detector_scan : public test::fixture_base<> {
         const std::size_t n_helices = fill_scan_data();
 
         auto &detector_scan_traces =
-            m_cfg.whiteboard()->template get<std::vector<intersection_trace_t>>(
+            m_whiteboard->template get<std::vector<intersection_trace_t>>(
                 m_cfg.name());
 
         const std::string det_name{m_det.name(m_names)};
@@ -239,7 +249,7 @@ class detector_scan : public test::fixture_base<> {
                   << " intersection traces to whiteboard" << std::endl;
 
         // Move the data to the whiteboard
-        m_cfg.whiteboard()->add(m_cfg.name(), std::move(intersection_traces));
+        m_whiteboard->add(m_cfg.name(), std::move(intersection_traces));
 
         return n_helices;
     }
@@ -266,6 +276,8 @@ class detector_scan : public test::fixture_base<> {
     const detector_t &m_det;
     /// Volume names
     const typename detector_t::name_map &m_names;
+    /// Whiteboard to pin data
+    std::shared_ptr<test::whiteboard> m_whiteboard{nullptr};
 };
 
 template <typename detector_t>

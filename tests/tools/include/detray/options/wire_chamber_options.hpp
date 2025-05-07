@@ -13,7 +13,7 @@
 
 // Detray test include(s)
 #include "detray/options/options_handling.hpp"
-#include "detray/test/utils/detectors/build_wire_chamber.hpp"
+#include "detray/test/common/build_wire_chamber.hpp"
 
 // Boost
 #include "detray/options/boost_program_options.hpp"

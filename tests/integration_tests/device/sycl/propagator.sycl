@@ -6,7 +6,7 @@
  */
 
 // Detray test include(s)
-#include "detray/test/utils/detectors/build_toy_detector.hpp"
+#include "detray/test/common/build_toy_detector.hpp"
 #include "propagator_sycl_kernel.hpp"
 
 // Vecmem include(s)
@@ -57,7 +57,7 @@ TEST_P(SyclPropConstBFieldMng, propagator) {
 
     // Set the magnetic field
     const vector3 B = std::get<2>(GetParam());
-    auto field = bfield::create_const_field<scalar>(B);
+    auto field = create_const_field<scalar>(B);
 
     // Create the toy geometry
     auto [det, names] = build_toy_detector<test_algebra>(shared_mr);
@@ -99,7 +99,7 @@ TEST_P(SyclPropConstBFieldCpy, propagator) {
 
     // Set the magnetic field
     const vector3 B = std::get<2>(GetParam());
-    auto field = bfield::create_const_field<scalar>(B);
+    auto field = create_const_field<scalar>(B);
 
     // Create the toy geometry
     auto [det, names] = build_toy_detector<test_algebra>(host_mr);

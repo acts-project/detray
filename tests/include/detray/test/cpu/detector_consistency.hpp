@@ -11,8 +11,8 @@
 #include "detray/navigation/volume_graph.hpp"
 #include "detray/utils/consistency_checker.hpp"
 
-// Detray test include(s).
-#include "detray/test/common/fixture_base.hpp"
+// Detray test include(s)
+#include "detray/test/framework/fixture_base.hpp"
 #include "detray/test/utils/hash_tree.hpp"
 
 // System include(s)
@@ -59,7 +59,7 @@ class consistency_check : public detray::test::fixture_base<> {
     explicit consistency_check(
         const detector_t &det, const typename detector_t::name_map &names,
         const config_t &cfg = {},
-        const typename detector_t::geometry_context gctx = {})
+        const typename detector_t::geometry_context &gctx = {})
         : m_cfg{cfg}, m_gctx{gctx}, m_det{det}, m_names{names} {}
 
     /// Run the consistency check

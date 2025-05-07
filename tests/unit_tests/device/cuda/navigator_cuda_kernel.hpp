@@ -15,8 +15,8 @@
 #include "detray/propagator/propagation_config.hpp"
 
 // Detray test include(s)
-#include "detray/test/utils/simulation/event_generator/track_generators.hpp"
-#include "detray/test/utils/types.hpp"
+#include "detray/test/common/track_generators.hpp"
+#include "detray/test/framework/types.hpp"
 
 namespace detray {
 

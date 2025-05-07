@@ -13,7 +13,7 @@
 #include "detray/geometry/shapes/rectangle2D.hpp"
 
 // Detray test include(s)
-#include "detray/test/utils/types.hpp"
+#include "detray/test/framework/types.hpp"
 
 // GTest include(s)
 #include <gtest/gtest.h>

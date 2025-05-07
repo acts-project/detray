@@ -9,7 +9,6 @@
 #include "detray/propagator/propagator.hpp"
 
 #include "detray/definitions/units.hpp"
-#include "detray/detectors/bfield.hpp"
 #include "detray/geometry/tracking_surface.hpp"
 #include "detray/navigation/direct_navigator.hpp"
 #include "detray/navigation/navigator.hpp"
@@ -21,11 +20,12 @@
 #include "detray/tracks/trajectories.hpp"
 
 // Detray test include(s)
-#include "detray/test/utils/detectors/build_toy_detector.hpp"
-#include "detray/test/utils/detectors/build_wire_chamber.hpp"
+#include "detray/test/common/bfield.hpp"
+#include "detray/test/common/build_toy_detector.hpp"
+#include "detray/test/common/build_wire_chamber.hpp"
+#include "detray/test/common/track_generators.hpp"
+#include "detray/test/framework/types.hpp"
 #include "detray/test/utils/inspectors.hpp"
-#include "detray/test/utils/simulation/event_generator/track_generators.hpp"
-#include "detray/test/utils/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -219,8 +219,7 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
     const auto [det, names] =
         build_toy_detector<test_algebra>(host_mr, toy_cfg);
 
-    const bfield_t bfield =
-        bfield::create_const_field<scalar>(std::get<2>(GetParam()));
+    const bfield_t bfield = create_const_field<scalar>(std::get<2>(GetParam()));
 
     // Propagator is built from the stepper and navigator
     propagation::config cfg{};
@@ -327,7 +326,7 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
     toy_cfg.use_material_maps(false);
     const auto [det, names] =
         build_toy_detector<test_algebra>(host_mr, toy_cfg);
-    const bfield_t bfield = bfield::create_inhom_field<scalar>();
+    const bfield_t bfield = create_inhom_field<scalar>();
 
     // Propagator is built from the stepper and navigator
     propagation::config cfg{};
@@ -468,8 +467,7 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
         build_toy_detector<test_algebra>(host_mr, toy_cfg);
 
     // Build mangetic field
-    const bfield_t bfield =
-        bfield::create_const_field<scalar>(std::get<1>(GetParam()));
+    const bfield_t bfield = create_const_field<scalar>(std::get<1>(GetParam()));
 
     // Propagation configuration
     propagation::config cfg{};
@@ -656,8 +654,7 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
     auto [det, names] = build_wire_chamber<test::algebra>(host_mr, wire_cfg);
 
     // Build mangetic field
-    const bfield_t bfield =
-        bfield::create_const_field<scalar>(std::get<1>(GetParam()));
+    const bfield_t bfield = create_const_field<scalar>(std::get<1>(GetParam()));
 
     // Propagation configuration
     propagation::config cfg{};

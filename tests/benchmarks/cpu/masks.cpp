@@ -16,8 +16,8 @@
 #include "detray/geometry/shapes.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 
-// Detray test include(s).
-#include "detray/test/utils/types.hpp"
+// Detray benchmark include(s)
+#include "detray/benchmarks/types.hpp"
 
 // Google benchmark include(s).
 #include <benchmark/benchmark.h>
@@ -28,15 +28,15 @@
 // Use the detray:: namespace implicitly.
 using namespace detray;
 
-using test_algebra = test::algebra;
-using point3 = test::point3;
-using scalar = test::scalar;
+using bench_algebra = benchmarks::algebra;
+using point3 = benchmarks::point3;
+using scalar = benchmarks::scalar;
 
 static constexpr unsigned int steps_x3{1000u};
 static constexpr unsigned int steps_y3{1000u};
 static constexpr unsigned int steps_z3{1000u};
 
-static const test::transform3 trf{};
+static const benchmarks::transform3 trf{};
 
 // Tolerance applied to the mask
 static constexpr scalar tol{0.f};
@@ -44,7 +44,7 @@ static constexpr scalar tol{0.f};
 // This runs a benchmark on a rectangle2D mask
 void BM_MASK_CUBOID_3D(benchmark::State &state) {
 
-    using mask_type = mask<cuboid3D, test_algebra>;
+    using mask_type = mask<cuboid3D, bench_algebra>;
     constexpr mask_type cb(0u, 0.f, 0.f, 0.f, 3.f, 4.f, 1.f);
 
     constexpr scalar world{10.f};
@@ -96,7 +96,7 @@ BENCHMARK(BM_MASK_CUBOID_3D)
 // This runs a benchmark on a rectangle2D mask
 void BM_MASK_RECTANGLE_2D(benchmark::State &state) {
 
-    using mask_type = mask<rectangle2D, test_algebra>;
+    using mask_type = mask<rectangle2D, bench_algebra>;
     constexpr mask_type r(0u, 3.f, 4.f);
 
     constexpr scalar world{10.f};
@@ -148,7 +148,7 @@ BENCHMARK(BM_MASK_RECTANGLE_2D)
 // This runs a benchmark on a trapezoid2D mask
 void BM_MASK_TRAPEZOID_2D(benchmark::State &state) {
 
-    using mask_type = mask<trapezoid2D, test_algebra>;
+    using mask_type = mask<trapezoid2D, bench_algebra>;
     constexpr mask_type t{0u, 2.f, 3.f, 4.f, 1.f / (2.f * 4.f)};
 
     constexpr scalar world{10.f};
@@ -200,7 +200,7 @@ BENCHMARK(BM_MASK_TRAPEZOID_2D)
 // This runs a benchmark on a ring2D mask (as disc)
 void BM_MASK_DISC_2D(benchmark::State &state) {
 
-    using mask_type = mask<ring2D, test_algebra>;
+    using mask_type = mask<ring2D, bench_algebra>;
     constexpr mask_type r{0u, 0.f, 5.f};
 
     constexpr scalar world{10.f};
@@ -252,7 +252,7 @@ BENCHMARK(BM_MASK_DISC_2D)
 // This runs a benchmark on a ring2D mask
 void BM_MASK_RING_2D(benchmark::State &state) {
 
-    using mask_type = mask<ring2D, test_algebra>;
+    using mask_type = mask<ring2D, bench_algebra>;
     constexpr mask_type r{0u, 2.f, 5.f};
 
     constexpr scalar world{10.f};
@@ -304,7 +304,7 @@ BENCHMARK(BM_MASK_RING_2D)
 // This runs a benchmark on a cylinder2D mask
 void BM_MASK_CYLINDER_3D(benchmark::State &state) {
 
-    using mask_type = mask<cylinder3D, test_algebra>;
+    using mask_type = mask<cylinder3D, bench_algebra>;
     constexpr mask_type c{
         0u, 1.f, -constant<scalar>::pi, 0.f, 3.f, constant<scalar>::pi, 5.f};
 
@@ -358,7 +358,7 @@ BENCHMARK(BM_MASK_CYLINDER_3D)
 // This runs a benchmark on a cylinder2D mask
 void BM_MASK_CYLINDER_2D(benchmark::State &state) {
 
-    using mask_type = mask<cylinder2D, test_algebra>;
+    using mask_type = mask<cylinder2D, bench_algebra>;
     constexpr mask_type c{0u, 3.f, 0.f, 5.f};
 
     constexpr scalar world{10.f};
@@ -408,7 +408,7 @@ BENCHMARK(BM_MASK_CYLINDER_2D)
 // This runs a benchmark on a cylinder2D mask
 void BM_MASK_CONCENTRIC_CYLINDER_2D(benchmark::State &state) {
 
-    using mask_type = mask<concentric_cylinder2D, test_algebra>;
+    using mask_type = mask<concentric_cylinder2D, bench_algebra>;
     constexpr mask_type c{0u, 3.f, 0.f, 5.f};
 
     constexpr scalar world{10.f};
@@ -458,7 +458,7 @@ BENCHMARK(BM_MASK_CONCENTRIC_CYLINDER_2D)
 // This runs a benchmark on an annulus2D mask
 void BM_MASK_ANNULUS_2D(benchmark::State &state) {
 
-    using mask_type = mask<annulus2D, test_algebra>;
+    using mask_type = mask<annulus2D, bench_algebra>;
     constexpr mask_type ann{0u, 2.5f, 5.f, -0.64299f, 4.13173f, 1.f, 0.5f, 0.f};
 
     constexpr scalar world{10.f};
@@ -508,7 +508,7 @@ BENCHMARK(BM_MASK_ANNULUS_2D)
 // This runs a benchmark on a straw tube mask
 void BM_MASK_LINE_CIRCULAR(benchmark::State &state) {
 
-    using mask_type = mask<line_circular, test_algebra>;
+    using mask_type = mask<line_circular, bench_algebra>;
     constexpr mask_type st{0u, 3.f, 5.f};
 
     constexpr scalar world{10.f};
@@ -560,7 +560,7 @@ BENCHMARK(BM_MASK_LINE_CIRCULAR)
 // This runs a benchmark on a wire cell mask
 void BM_MASK_LINE_SQUARE(benchmark::State &state) {
 
-    using mask_type = mask<line_square, test_algebra>;
+    using mask_type = mask<line_square, bench_algebra>;
     constexpr mask_type dcl{0u, 3.f, 5.f};
 
     constexpr scalar world{10.f};

@@ -15,7 +15,7 @@
 #include "detray/utils/grid/detail/axis.hpp"
 
 // Detray test include(s)
-#include "detray/test/utils/types.hpp"
+#include "detray/test/framework/types.hpp"
 
 // vecmem include(s)
 #include <vecmem/containers/vector.hpp>

@@ -8,7 +8,6 @@
 // Project include(s)
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/detectors/bfield.hpp"
 #include "detray/geometry/tracking_surface.hpp"
 #include "detray/navigation/intersection/helix_intersector.hpp"
 #include "detray/navigation/navigator.hpp"
@@ -18,11 +17,12 @@
 #include "detray/propagator/rk_stepper.hpp"
 
 // Detray test include(s)
-#include "detray/test/utils/detectors/build_telescope_detector.hpp"
+#include "detray/test/common/bfield.hpp"
+#include "detray/test/common/build_telescope_detector.hpp"
+#include "detray/test/common/track_generators.hpp"
+#include "detray/test/framework/types.hpp"
 #include "detray/test/utils/inspectors.hpp"
-#include "detray/test/utils/simulation/event_generator/track_generators.hpp"
 #include "detray/test/utils/statistics.hpp"
-#include "detray/test/utils/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -1564,8 +1564,8 @@ int main(int argc, char** argv) {
     // Magnetic field map using nearest neightbor interpolation
     using inhom_bfield_t = bfield::inhom_field_t<scalar>;
 
-    const const_bfield_t const_bfield = bfield::create_const_field<scalar>(B_z);
-    const inhom_bfield_t inhom_bfield = bfield::create_inhom_field<scalar>();
+    const const_bfield_t const_bfield = create_const_field<scalar>(B_z);
+    const inhom_bfield_t inhom_bfield = create_inhom_field<scalar>();
 
     // Actor chain type
     using actor_chain_t = actor_chain<parameter_transporter<test_algebra>,

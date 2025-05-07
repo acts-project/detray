@@ -24,7 +24,7 @@ detray_add_unit_test( io_payloads
 
 detray_add_unit_test( io_writer
    "io_json_detector_writer.cpp"
-   LINK_LIBRARIES GTest::gtest_main vecmem::core detray::core_array detray::io_array detray::test_utils
+   LINK_LIBRARIES GTest::gtest_main vecmem::core detray::core_array detray::io_array detray::test_framework detray::test_common
 )
 _run_test_in_dir( io_writer
    "${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/io_writer_test_rundir"

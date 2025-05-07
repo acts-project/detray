@@ -10,7 +10,11 @@ add_library(detray::test_device ALIAS detray_test_device)
 
 target_link_libraries(
     detray_test_device
-    INTERFACE detray::core_array detray::test_common detray::test_utils
+    INTERFACE
+        detray::core_array
+        detray::test_framework
+        detray::test_utils
+        detray::validation_utils
 )
 
 if(DETRAY_BUILD_CUDA)

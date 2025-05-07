@@ -8,19 +8,15 @@
 // detray include(s)
 #include "detray/propagator/rk_stepper.hpp"
 
-#include "detray/builders/volume_builder.hpp"
-#include "detray/core/detector.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/detectors/bfield.hpp"
-#include "detray/io/utils/file_handle.hpp"
-#include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/stepping_config.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/tracks/trajectories.hpp"
 
 // Detray test include(s)
-#include "detray/test/utils/simulation/event_generator/track_generators.hpp"
-#include "detray/test/utils/types.hpp"
+#include "detray/test/common/bfield.hpp"
+#include "detray/test/common/track_generators.hpp"
+#include "detray/test/framework/types.hpp"
 
 // System include(s)
 #include <memory>
@@ -61,7 +57,7 @@ GTEST_TEST(detray_propagator, rk_stepper) {
 
     vector3 B{1.f * unit<scalar>::T, 1.f * unit<scalar>::T,
               1.f * unit<scalar>::T};
-    const bfield_t hom_bfield = bfield::create_const_field<scalar>(B);
+    const bfield_t hom_bfield = create_const_field<scalar>(B);
 
     // RK stepper
     rk_stepper_t<bfield_t> rk_stepper;
@@ -152,7 +148,7 @@ TEST(detray_propagator, rk_stepper_inhomogeneous_bfield) {
 
     // Read the magnetic field map
     using bfield_t = bfield::inhom_field_t<scalar>;
-    bfield_t inhom_bfield = bfield::create_inhom_field<scalar>();
+    bfield_t inhom_bfield = create_inhom_field<scalar>();
 
     // RK stepper
     rk_stepper_t<bfield_t> rk_stepper;
@@ -227,7 +223,7 @@ TEST(detray_propagator, qop_derivative) {
 
     vector3 B{0.f * unit<scalar>::T, 0.f * unit<scalar>::T,
               2.f * unit<scalar>::T};
-    const bfield_t hom_bfield = bfield::create_const_field<scalar>(B);
+    const bfield_t hom_bfield = create_const_field<scalar>(B);
 
     // RK stepper
     rk_stepper_t<bfield_t> rk_stepper;

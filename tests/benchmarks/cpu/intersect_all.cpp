@@ -15,10 +15,12 @@
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/ranges.hpp"
 
-// Detray test include(s).
-#include "detray/test/utils/detectors/build_toy_detector.hpp"
-#include "detray/test/utils/simulation/event_generator/track_generators.hpp"
-#include "detray/test/utils/types.hpp"
+// Detray test include(s)
+#include "detray/test/common/build_toy_detector.hpp"
+#include "detray/test/common/track_generators.hpp"
+
+// Detray benchmark include(s)
+#include "detray/benchmarks/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -34,10 +36,10 @@
 // Use the detray:: namespace implicitly.
 using namespace detray;
 
-using test_algebra = test::algebra;
+using bench_algebra = benchmarks::algebra;
 
 using trk_generator_t =
-    uniform_track_generator<free_track_parameters<test_algebra>>;
+    uniform_track_generator<free_track_parameters<bench_algebra>>;
 
 constexpr unsigned int theta_steps{100u};
 constexpr unsigned int phi_steps{100u};
@@ -47,12 +49,12 @@ void BM_INTERSECT_ALL(benchmark::State &state) {
 
     // Detector configuration
     vecmem::host_memory_resource host_mr;
-    toy_det_config<test::scalar> toy_cfg{};
+    toy_det_config<benchmarks::scalar> toy_cfg{};
     toy_cfg.n_edc_layers(7u);
-    auto [d, names] = build_toy_detector<test_algebra>(host_mr, toy_cfg);
+    auto [d, names] = build_toy_detector<bench_algebra>(host_mr, toy_cfg);
 
     using detector_t = decltype(d);
-    using scalar_t = dscalar<test_algebra>;
+    using scalar_t = dscalar<bench_algebra>;
     using sf_desc_t = typename detector_t::surface_type;
 
     detector_t::geometry_context geo_context;
@@ -62,8 +64,8 @@ void BM_INTERSECT_ALL(benchmark::State &state) {
     std::size_t hits{0u};
     std::size_t missed{0u};
     std::size_t n_surfaces{0u};
-    test::point3 origin{0.f, 0.f, 0.f};
-    std::vector<intersection2D<sf_desc_t, test_algebra>> intersections{};
+    benchmarks::point3 origin{0.f, 0.f, 0.f};
+    std::vector<intersection2D<sf_desc_t, bench_algebra>> intersections{};
 
     // Iterate through uniformly distributed momentum directions
     auto trk_generator = trk_generator_t{};

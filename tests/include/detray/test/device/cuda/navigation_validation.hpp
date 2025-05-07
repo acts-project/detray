@@ -10,19 +10,20 @@
 // Project include(s)
 #include "detray/core/detector.hpp"
 #include "detray/definitions/pdg_particle.hpp"
-#include "detray/detectors/bfield.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/tracks/ray.hpp"
 #include "detray/tracks/tracks.hpp"
 
 // Detray test include(s)
-#include "detray/test/common/fixture_base.hpp"
-#include "detray/test/common/navigation_validation_config.hpp"
+#include "detray/test/common/bfield.hpp"
+#include "detray/test/framework/fixture_base.hpp"
+#include "detray/test/framework/whiteboard.hpp"
 #include "detray/test/utils/inspectors.hpp"
 #include "detray/test/validation/detector_scan_utils.hpp"
 #include "detray/test/validation/detector_scanner.hpp"
 #include "detray/test/validation/material_validation_utils.hpp"
+#include "detray/test/validation/navigation_validation_config.hpp"
 #include "detray/test/validation/navigation_validation_utils.hpp"
 
 // Vecmem include(s)
@@ -32,6 +33,7 @@
 #include <vecmem/utils/cuda/copy.hpp>
 
 // System include(s)
+#include <memory>
 #include <tuple>
 
 namespace detray::cuda {
@@ -164,15 +166,19 @@ class navigation_validation : public test::fixture_base<> {
 
     public:
     using fixture_type = test::fixture_base<>;
-    using config = detray::test::navigation_validation_config;
+    using config = detray::test::navigation_validation_config<algebra_t>;
 
     explicit navigation_validation(
         const detector_t &det, const typename detector_t::name_map &names,
-        const config &cfg = {},
+        const config &cfg = {}, std::shared_ptr<test::whiteboard> wb = nullptr,
         const typename detector_t::geometry_context gctx = {})
-        : m_cfg{cfg}, m_gctx{gctx}, m_det{det}, m_names{names} {
+        : m_cfg{cfg},
+          m_gctx{gctx},
+          m_det{det},
+          m_names{names},
+          m_whiteboard{wb} {
 
-        if (!m_cfg.whiteboard()) {
+        if (!m_whiteboard) {
             throw std::invalid_argument("No white board was passed to " +
                                         m_cfg.name() + " test");
         }
@@ -183,12 +189,12 @@ class navigation_validation : public test::fixture_base<> {
                                        : det_name + "_helix_scan_for_cuda";
 
         // Pin the data onto the whiteboard
-        if (!m_cfg.whiteboard()->exists(m_truth_data_name) &&
+        if (!m_whiteboard->exists(m_truth_data_name) &&
             io::file_exists(m_cfg.intersection_file()) &&
             io::file_exists(m_cfg.track_param_file())) {
 
             // Name clash: Choose alternative name
-            if (m_cfg.whiteboard()->exists(m_truth_data_name)) {
+            if (m_whiteboard->exists(m_truth_data_name)) {
                 m_truth_data_name = io::alt_file_name(m_truth_data_name);
             }
 
@@ -201,9 +207,9 @@ class navigation_validation : public test::fixture_base<> {
                                            m_cfg.track_param_file(),
                                            intersection_traces);
 
-            m_cfg.whiteboard()->add(m_truth_data_name,
-                                    std::move(intersection_traces));
-        } else if (m_cfg.whiteboard()->exists(m_truth_data_name)) {
+            m_whiteboard->add(m_truth_data_name,
+                              std::move(intersection_traces));
+        } else if (m_whiteboard->exists(m_truth_data_name)) {
             std::cout << "\nINFO: Fetching data from white board..."
                       << std::endl;
         } else {
@@ -212,7 +218,7 @@ class navigation_validation : public test::fixture_base<> {
         }
 
         // Check that data is ready
-        if (!m_cfg.whiteboard()->exists(m_truth_data_name)) {
+        if (!m_whiteboard->exists(m_truth_data_name)) {
             throw std::invalid_argument(
                 "Data for navigation check is not on the whiteboard");
         }
@@ -236,12 +242,12 @@ class navigation_validation : public test::fixture_base<> {
 
         bfield_t b_field{};
         if constexpr (!k_use_rays) {
-            b_field = bfield::create_const_field<scalar_t>(m_cfg.B_vector());
+            b_field = create_const_field<scalar_t>(m_cfg.B_vector());
         }
 
         // Fetch the truth data
         auto &truth_intersection_traces =
-            m_cfg.whiteboard()->template get<std::vector<intersection_trace_t>>(
+            m_whiteboard->template get<std::vector<intersection_trace_t>>(
                 m_truth_data_name);
         ASSERT_EQ(m_cfg.n_tracks(), truth_intersection_traces.size());
 
@@ -463,6 +469,8 @@ class navigation_validation : public test::fixture_base<> {
     const detector_t &m_det;
     /// Volume names
     const typename detector_t::name_map &m_names;
+    /// Whiteboard to pin data
+    std::shared_ptr<test::whiteboard> m_whiteboard{nullptr};
 };
 
 template <typename detector_t>

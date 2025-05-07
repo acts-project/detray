@@ -12,7 +12,7 @@
 #include "detray/utils/grid/detail/grid_bins.hpp"
 
 // Detray test include(s)
-#include "detray/test/utils/types.hpp"
+#include "detray/test/framework/types.hpp"
 
 // GTest
 #include <gtest/gtest.h>

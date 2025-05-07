@@ -12,7 +12,7 @@
 #include "detray/geometry/shapes/cylinder2D.hpp"
 
 // Detray test include(s)
-#include "detray/test/utils/types.hpp"
+#include "detray/test/framework/types.hpp"
 
 // System include(s)
 #include <atomic>

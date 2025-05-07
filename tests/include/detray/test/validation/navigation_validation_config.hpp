@@ -13,10 +13,8 @@
 // detray plugin include(s)
 #include "detray/plugins/svgtools/styling/styling.hpp"
 
-// Detray test include(s).
-#include "detray/test/common/detail/whiteboard.hpp"
-#include "detray/test/common/fixture_base.hpp"
-#include "detray/test/utils/types.hpp"
+// Detray test include(s)
+#include "detray/test/common/test_configuration.hpp"
 
 // System include(s)
 #include <limits>
@@ -26,16 +24,16 @@
 namespace detray::test {
 
 /// @brief Configuration for a detector scan test.
+template <concepts::algebra algebra_t>
 struct navigation_validation_config
-    : public test::fixture_base<>::configuration {
-    using base_type = test::fixture_base<>;
-    using scalar_type = typename base_type::scalar;
-    using vector3_type = typename base_type::vector3;
+    : public detray::test::configuration<dscalar<algebra_t>> {
+
+    using scalar_type = dscalar<algebra_t>;
+    using vector3_type = dvector3D<algebra_t>;
+    using base_type = detray::test::configuration<scalar_type>;
 
     /// Name of the test
     std::string m_name{"navigation_validation"};
-    /// Access to truth data
-    std::shared_ptr<test::whiteboard> m_white_board;
     /// Name of the input file, containing the complete ray scan traces
     std::string m_intersection_file{"truth_intersections.csv"};
     std::string m_track_param_file{"truth_trk_parameters.csv"};
@@ -69,10 +67,6 @@ struct navigation_validation_config
     /// Getters
     /// @{
     const std::string &name() const { return m_name; }
-    std::shared_ptr<test::whiteboard> whiteboard() { return m_white_board; }
-    std::shared_ptr<test::whiteboard> whiteboard() const {
-        return m_white_board;
-    }
     const std::string &intersection_file() const { return m_intersection_file; }
     const std::string &track_param_file() const { return m_track_param_file; }
     std::size_t n_tracks() const { return m_n_tracks; }
@@ -91,15 +85,6 @@ struct navigation_validation_config
     /// @{
     navigation_validation_config &name(const std::string &n) {
         m_name = n;
-        return *this;
-    }
-    navigation_validation_config &whiteboard(
-        std::shared_ptr<test::whiteboard> w_board) {
-        if (!w_board) {
-            throw std::invalid_argument(
-                "Navigation validation: No valid whiteboard instance");
-        }
-        m_white_board = std::move(w_board);
         return *this;
     }
     navigation_validation_config &intersection_file(const std::string &f) {

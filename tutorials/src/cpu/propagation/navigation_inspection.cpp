@@ -11,12 +11,14 @@
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/propagator.hpp"
-#include "detray/test/utils/detectors/build_toy_detector.hpp"
-#include "detray/test/utils/inspectors.hpp"
-#include "detray/test/utils/simulation/event_generator/track_generators.hpp"
-#include "detray/test/validation/detector_scanner.hpp"
 #include "detray/tracks/ray.hpp"
 #include "detray/tracks/tracks.hpp"
+
+// Detray test include(s)
+#include "detray/test/common/build_toy_detector.hpp"
+#include "detray/test/common/track_generators.hpp"
+#include "detray/test/utils/inspectors.hpp"
+#include "detray/test/validation/detector_scanner.hpp"
 
 // Example linear algebra plugin: std::array
 #include "detray/tutorial/types.hpp"

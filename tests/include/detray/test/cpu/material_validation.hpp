@@ -13,8 +13,9 @@
 #include "detray/utils/ranges.hpp"
 
 // Detray test include(s)
-#include "detray/test/common/fixture_base.hpp"
-#include "detray/test/common/material_validation_config.hpp"
+#include "detray/test/framework/fixture_base.hpp"
+#include "detray/test/framework/whiteboard.hpp"
+#include "detray/test/validation/material_validation_config.hpp"
 #include "detray/test/validation/material_validation_utils.hpp"
 
 // Vecmem include(s)
@@ -23,6 +24,7 @@
 // System include(s)
 #include <iostream>
 #include <limits>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -87,15 +89,19 @@ class material_validation_impl : public test::fixture_base<> {
 
     public:
     using fixture_type = test::fixture_base<>;
-    using config = detray::test::material_validation_config;
+    using config = detray::test::material_validation_config<algebra_t>;
 
     explicit material_validation_impl(
         const detector_t &det, const typename detector_t::name_map &names,
-        const config &cfg = {},
+        const config &cfg = {}, std::shared_ptr<test::whiteboard> wb = nullptr,
         const typename detector_t::geometry_context gctx = {})
-        : m_cfg{cfg}, m_gctx{gctx}, m_det{det}, m_names{names} {
+        : m_cfg{cfg},
+          m_gctx{gctx},
+          m_det{det},
+          m_names{names},
+          m_whiteboard{std::move(wb)} {
 
-        if (!m_cfg.whiteboard()) {
+        if (!m_whiteboard) {
             throw std::invalid_argument("No white board was passed to " +
                                         m_cfg.name() + " test");
         }
@@ -105,12 +111,12 @@ class material_validation_impl : public test::fixture_base<> {
         m_track_data_name = m_det.name(m_names) + "_material_scan_tracks";
 
         // Check that data is available in memory
-        if (!m_cfg.whiteboard()->exists(m_scan_data_name)) {
+        if (!m_whiteboard->exists(m_scan_data_name)) {
             throw std::invalid_argument(
                 "Material validation: Could not find scan data on whiteboard."
                 "Please run material scan first.");
         }
-        if (!m_cfg.whiteboard()->exists(m_track_data_name)) {
+        if (!m_whiteboard->exists(m_track_data_name)) {
             throw std::invalid_argument(
                 "Material validation: Could not find track data on whiteboard."
                 "Please run material scan first.");
@@ -123,11 +129,11 @@ class material_validation_impl : public test::fixture_base<> {
 
         // Fetch the input data
         const auto &tracks =
-            m_cfg.whiteboard()->template get<dvector<free_track_parameters_t>>(
+            m_whiteboard->template get<dvector<free_track_parameters_t>>(
                 m_track_data_name);
 
         const auto &truth_mat_records =
-            m_cfg.whiteboard()->template get<dvector<material_record_t>>(
+            m_whiteboard->template get<dvector<material_record_t>>(
                 m_scan_data_name);
 
         std::cout << "\nINFO: Running material validation on: "
@@ -222,6 +228,8 @@ class material_validation_impl : public test::fixture_base<> {
     const detector_t &m_det;
     /// Volume names
     const typename detector_t::name_map &m_names;
+    /// Whiteboard to pin data
+    std::shared_ptr<test::whiteboard> m_whiteboard{nullptr};
 };
 
 template <typename detector_t>

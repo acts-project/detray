@@ -10,10 +10,10 @@
 #include "detray/tracks/tracks.hpp"
 
 // Detray test include(s)
-#include "detray/test/utils/simulation/random_scatterer.hpp"
-#include "detray/test/utils/simulation/scattering_helper.hpp"
+#include "detray/test/framework/types.hpp"
+#include "detray/test/utils/random_scatterer.hpp"
+#include "detray/test/utils/scattering_helper.hpp"
 #include "detray/test/utils/statistics.hpp"
-#include "detray/test/utils/types.hpp"
 
 // google-test include(s).
 #include <gtest/gtest.h>

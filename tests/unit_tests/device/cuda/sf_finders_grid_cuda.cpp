@@ -6,7 +6,7 @@
  */
 
 // Detray test include(s)
-#include <detray/test/common/assert.hpp>
+#include <detray/test/framework/assert.hpp>
 
 #include "sf_finders_grid_cuda_kernel.hpp"
 

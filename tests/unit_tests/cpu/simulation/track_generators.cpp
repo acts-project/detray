@@ -6,15 +6,15 @@
  */
 
 // Project include(s)
-#include "detray/test/utils/simulation/event_generator/track_generators.hpp"
+#include "detray/test/common/track_generators.hpp"
 
 #include "detray/definitions/units.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/tracks/trajectories.hpp"
 
 // Detray test include(s)
+#include "detray/test/framework/types.hpp"
 #include "detray/test/utils/statistics.hpp"
-#include "detray/test/utils/types.hpp"
 
 // GTest include(s)
 #include <gtest/gtest.h>
