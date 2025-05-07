@@ -315,7 +315,8 @@ class pyplot_factory:
             label=label_str,
             histtype="stepfilled",
             density=normalize,
-            facecolor=mcolors.to_rgba(color, alpha),
+            alpha=alpha,
+            facecolor=color,
             edgecolor=color,
         )
 
@@ -406,7 +407,8 @@ class pyplot_factory:
             label=f"{label} ({len(x)} entries)",
             weights=w,
             histtype="stepfilled",
-            facecolor=mcolors.to_rgba(color, alpha),
+            facecolor=color,
+            alpha=alpha,
             edgecolor=color,
         )
 
