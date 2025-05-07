@@ -223,6 +223,9 @@ inline auto trace_intersections(const record_container &intersection_records,
 
         /// getter
         /// @{
+        inline bool is_invalid() const {
+            return entry.intersection.sf_desc.barcode().is_invalid();
+        }
         inline auto surface_idx() const {
             return entry.intersection.sf_desc.index();
         }
@@ -258,7 +261,7 @@ inline auto trace_intersections(const record_container &intersection_records,
 
     // No intersections found by ray
     if (intersection_records.empty()) {
-        err_stream << "No surfaces found!";
+        err_stream << "No surfaces found in detector!";
         print_err(err_stream);
 
         return std::make_tuple(portal_trace, module_trace, error_code);
@@ -271,22 +274,34 @@ inline auto trace_intersections(const record_container &intersection_records,
 
         // No exit potal
         if (!rec.is_portal()) {
-            const std::string sf_type{rec.is_sensitive() ? "sensitive"
-                                                         : "passive"};
+            if (rec.is_invalid()) {
+                err_stream << "No surfaces found in detector!";
+                print_err(err_stream);
+            } else {
+                const std::string sf_type{rec.is_sensitive() ? "sensitive"
+                                                             : "passive"};
 
-            err_stream << "We don't leave the detector by portal!" << std::endl;
-            err_stream << "Only found single " << sf_type
-                       << " surface: portal(s) missing!";
+                err_stream << "We don't leave the detector by portal!"
+                           << std::endl;
+                err_stream << "Only found single " << sf_type
+                           << " surface: portal(s) missing!";
 
-            print_err(err_stream);
+                print_err(err_stream);
+            }
 
             return std::make_tuple(portal_trace, module_trace, error_code);
         }
+        e
     }
 
     // Go through recorded intersection (two at a time)
     dindex current_vol = start_volume;
-    for (std::size_t rec = 0u; rec < (intersection_records.size() - 1u);) {
+    // The first entry is the dummy record that preserve initial track
+    // parameters, skip it
+    const std::size_t start_idx{
+        record{intersection_records.at(0)}.is_invalid() ? 1u : 0u};
+    for (std::size_t rec = start_idx;
+         rec < (intersection_records.size() - 1u);) {
 
         const record current_rec = record{intersection_records.at(rec)};
         const record next_rec = record{intersection_records.at(rec + 1u)};

@@ -169,8 +169,12 @@ def __main__():
         logging, datadir, det_name, p_min, p_max
     )
 
-    plot_detector_scan_data(args, det_name, plot_factory, "ray", ray_scan_df, "png")
-    plot_detector_scan_data(args, det_name, plot_factory, "helix", helix_scan_df, "png")
+    plot_detector_scan_data(
+        args, det_name, plot_factory, "ray", ray_scan_df, out_format
+    )
+    plot_detector_scan_data(
+        args, det_name, plot_factory, "helix", helix_scan_df, out_format
+    )
 
     # Plot distributions of track parameter values
     # Only take initial track parameters from generator
