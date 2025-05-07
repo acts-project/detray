@@ -92,12 +92,12 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
     bound_vector.set_theta(constant<scalar>::pi_2);
     bound_vector.set_qop(ptc.charge() / iniP);
 
-    auto bound_cov = matrix::zero<covariance_t>();
+    auto bound_cov = matrix::identity<covariance_t>();
+    getter::element(bound_cov, e_bound_qoverp, e_bound_qoverp) = 0.f;
 
     // bound track parameter at first physical plane
     const bound_track_parameters<test_algebra> bound_param(
-        geometry::barcode{}.set_index(0u).set_volume(0u), bound_vector,
-        bound_cov);
+        det.surface(0u).barcode(), bound_vector, bound_cov);
 
     pathlimit_aborter_t::state aborter_state{};
     interactor_t::state interactor_state{};
@@ -214,12 +214,13 @@ GTEST_TEST(detray_material, telescope_geometry_scattering_angle) {
     bound_vector.set_theta(constant<scalar>::pi_2);
     bound_vector.set_qop(q / iniP);
 
-    auto bound_cov = matrix::zero<covariance_t>();
+    auto bound_cov = matrix::identity<covariance_t>();
+    getter::element(bound_cov, e_bound_phi, e_bound_phi) = 0.f;
+    getter::element(bound_cov, e_bound_theta, e_bound_theta) = 0.f;
 
     // bound track parameter
     const bound_track_parameters<test_algebra> bound_param(
-        geometry::barcode{}.set_index(0u).set_volume(0u), bound_vector,
-        bound_cov);
+        det.surface(0u).barcode(), bound_vector, bound_cov);
 
     std::size_t n_samples{100000u};
     std::vector<scalar> phis;
@@ -297,12 +298,8 @@ GTEST_TEST(detray_material, telescope_geometry_volume_material) {
     bound_vector.set_theta(constant<scalar>::pi_2);
     bound_vector.set_qop(q / iniP);
 
-    auto bound_cov = matrix::zero<covariance_t>();
-
-    // bound track parameter at first physical plane
-    const bound_track_parameters<test_algebra> bound_param(
-        geometry::barcode{}.set_index(0u).set_volume(0u), bound_vector,
-        bound_cov);
+    auto bound_cov = matrix::identity<covariance_t>();
+    getter::element(bound_cov, e_bound_qoverp, e_bound_qoverp) = 0.f;
 
     // Create actor states tuples
     const scalar path_limit = 100 * unit<scalar>::mm;
@@ -327,6 +324,10 @@ GTEST_TEST(detray_material, telescope_geometry_volume_material) {
         tel_cfg.volume_material(mat);
         const auto [det, names] =
             build_telescope_detector<test_algebra>(host_mr, tel_cfg);
+
+        // bound track parameter at first physical plane
+        const bound_track_parameters<test_algebra> bound_param(
+            det.surface(0u).barcode(), bound_vector, bound_cov);
 
         using navigator_t = navigator<decltype(det)>;
         using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;

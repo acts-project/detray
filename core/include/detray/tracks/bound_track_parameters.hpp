@@ -16,6 +16,9 @@
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/barcode.hpp"
 
+// System include(s)
+#include <ostream>
+
 namespace detray {
 
 template <concepts::algebra algebra_t>
@@ -38,7 +41,9 @@ struct bound_parameters_vector {
 
     /// Construct from a 6-dim vector of parameters
     DETRAY_HOST_DEVICE
-    explicit bound_parameters_vector(const vector_type& vec) : m_vector(vec) {}
+    explicit bound_parameters_vector(const vector_type& vec) : m_vector(vec) {
+        assert(!this->is_invalid());
+    }
 
     /// Construct from single parameters
     ///
@@ -57,6 +62,8 @@ struct bound_parameters_vector {
         getter::element(m_vector, e_bound_theta, 0u) = theta;
         getter::element(m_vector, e_bound_qoverp, 0u) = qop;
         getter::element(m_vector, e_bound_time, 0u) = t;
+
+        assert(!this->is_invalid());
     }
 
     /// @param rhs is the left hand side params for comparison
@@ -98,7 +105,11 @@ struct bound_parameters_vector {
 
     /// Set the underlying vector
     DETRAY_HOST_DEVICE
-    void set_vector(const vector_type& v) { m_vector = v; }
+    void set_vector(const vector_type& v,
+                    [[maybe_unused]] const bool skip_check = false) {
+        m_vector = v;
+        assert(skip_check || !this->is_invalid());
+    }
 
     /// @returns the bound local position
     DETRAY_HOST_DEVICE
@@ -110,6 +121,8 @@ struct bound_parameters_vector {
     /// Set the bound local position
     DETRAY_HOST_DEVICE
     void set_bound_local(const point2_type& pos) {
+        assert(math::isfinite(pos[0]));
+        assert(math::isfinite(pos[1]));
         getter::set_block(m_vector, pos, e_bound_loc0, 0u);
     }
 
@@ -160,6 +173,7 @@ struct bound_parameters_vector {
     /// Set the time
     DETRAY_HOST_DEVICE
     void set_time(const scalar_type t) {
+        assert(math::isfinite(t));
         getter::element(m_vector, e_bound_time, 0u) = t;
     }
 
@@ -172,6 +186,7 @@ struct bound_parameters_vector {
     /// Set the q/p value
     DETRAY_HOST_DEVICE
     void set_qop(const scalar_type qop) {
+        assert(math::isfinite(qop));
         getter::element(m_vector, e_bound_qoverp, 0u) = qop;
     }
 
@@ -219,6 +234,25 @@ struct bound_parameters_vector {
         assert(qop() != 0.f);
         assert(q * qop() > 0.f);
         return math::fabs(q / qop() * dir()[2]);
+    }
+
+    /// @param do_check toggle checking (e.g. don't trigger assertions for
+    /// documented errors)
+    /// @returns true if the parameter vector contains invalid elements
+    DETRAY_HOST_DEVICE
+    constexpr bool is_invalid(const bool do_check = true) const {
+        if (!do_check) {
+            return false;
+        }
+        bool inv_elem{false};
+        bool is_all_zero{true};
+        for (std::size_t i = 0u; i < e_bound_size; ++i) {
+            inv_elem |= !math::isfinite(getter::element(m_vector, i, 0u));
+            is_all_zero &=
+                (math::fabs(getter::element(m_vector, i, 0u)) == 0.f);
+        }
+
+        return (inv_elem || is_all_zero);
     }
 
     private:
@@ -298,8 +332,9 @@ struct bound_track_parameters : public bound_parameters_vector<algebra_t> {
 
     /// Set the track parameter vector
     DETRAY_HOST_DEVICE
-    void set_parameter_vector(const parameter_vector_type& v) {
-        this->set_vector(v.vector());
+    void set_parameter_vector(const parameter_vector_type& v,
+                              const bool skip_check = false) {
+        this->set_vector(v.vector(), skip_check);
     }
 
     /// @returns the track parameter covariance - non-const
@@ -314,14 +349,30 @@ struct bound_track_parameters : public bound_parameters_vector<algebra_t> {
     DETRAY_HOST_DEVICE
     void set_covariance(const covariance_type& c) { m_covariance = c; }
 
+    /// @param do_check toggle checking (e.g. don't trigger assertions for
+    /// documented errors)
+    /// @returns true if the parameter vector contains invalid elements
+    DETRAY_HOST_DEVICE
+    constexpr bool is_invalid(const bool do_check = true) const {
+        if (!do_check) {
+            return false;
+        }
+        if (base_type::is_invalid()) {
+            return true;
+        }
+
+        // @TODO: Add tests positive semi-definite, check the determinant etc
+        return (m_covariance == matrix::zero<covariance_type>());
+    }
+
     private:
     /// Transform to a string for debugging output
     DETRAY_HOST
     friend std::ostream& operator<<(std::ostream& out_stream,
                                     const bound_track_parameters& bparam) {
         out_stream << "Surface: " << bparam.m_barcode << std::endl;
-        out_stream << "Param.:\n"
-                   << static_cast<parameter_vector_type>(bparam) << std::endl;
+        out_stream << "Param.:\n " << static_cast<parameter_vector_type>(bparam)
+                   << std::endl;
         out_stream << "Cov.:\n" << bparam.m_covariance;
 
         return out_stream;

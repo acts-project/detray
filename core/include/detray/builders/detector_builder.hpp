@@ -69,6 +69,7 @@ class detector_builder {
     /// functionality
     template <class builder_t>
     DETRAY_HOST auto decorate(dindex volume_idx) -> builder_t* {
+        assert(has_volume(volume_idx));
 
         m_volumes[volume_idx] =
             std::make_unique<builder_t>(std::move(m_volumes[volume_idx]));

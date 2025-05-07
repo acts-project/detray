@@ -487,7 +487,7 @@ auto compare_traces(const detray::test::navigation_validation_config &cfg,
                             ++j;
                             continue;
                         }
-                        // Record the missed intersections fro later analysis
+                        // Record the missed intersections for later analysis
                         missed_intersections.push_back(sfi);
                         // Insert dummy record to match the truth trace size
                         using record_t = typename other_trace_t::value_type;
@@ -824,7 +824,8 @@ auto write_tracks(const std::string &track_param_file_name,
         for (const auto &record : trace) {
             track_params.back().emplace_back(
                 record.charge,
-                track_param_t{record.pos, 0.f, record.dir, record.charge});
+                track_param_t{record.pos, 0.f, record.p_mag * record.dir,
+                              record.charge});
         }
     }
 

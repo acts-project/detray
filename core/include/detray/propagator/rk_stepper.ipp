@@ -415,6 +415,7 @@ DETRAY_HOST_DEVICE inline auto detray::rk_stepper<
         bvec2[1u] = bvec2_tmp[1u];
         bvec2[2u] = bvec2_tmp[2u];
 
+        assert(delta != 0.f);
         const vector3_type gradient = (bvec1 - bvec2) * (1.f / (2.f * delta));
 
         getter::element(dBdr, 0u, i) = gradient[0u];
@@ -475,6 +476,7 @@ DETRAY_HOST_DEVICE auto detray::rk_stepper<
         return 0.f;
     }
 
+    assert(qop != 0.f);
     const scalar_type q = this->particle_hypothesis().charge();
     const scalar_type p = q / qop;
     const scalar_type mass = this->particle_hypothesis().mass();
@@ -487,6 +489,7 @@ DETRAY_HOST_DEVICE auto detray::rk_stepper<
 
     // Assert that a momentum is a positive value
     assert(p >= 0.f);
+    assert(q != 0.f);
 
     // d(qop)ds, which is equal to (qop) * E * (-dE/ds) / p^2
     // or equal to (qop)^3 * E * (-dE/ds) / q^2
@@ -532,6 +535,8 @@ detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
 
     // Check Eq 3.12 of
     // (https://iopscience.iop.org/article/10.1088/1748-0221/4/04/P04016/meta)
+    assert(E2 != 0.f);
+    assert(g != 0.f);
     return dqopds * (1.f / qop * (3.f - p2 / E2) + 1.f / g * dgdqop);
 }
 
@@ -544,6 +549,10 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
                             inspector_t>::state& stepping,
          const detray::stepping::config& cfg, const bool do_reset,
          const material<scalar_type>* vol_mat_ptr) const {
+
+    // Check navigator and actor results
+    assert(dist_to_next != 0.f);
+    assert(!stepping().is_invalid());
 
     // Get stepper and navigator states
     auto& magnetic_field = stepping.m_magnetic_field;
@@ -568,6 +577,9 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
 
     // First Runge-Kutta point
     const auto bvec = magnetic_field.at(pos[0], pos[1], pos[2]);
+    assert(math::isfinite(bvec[0]));
+    assert(math::isfinite(bvec[1]));
+    assert(math::isfinite(bvec[2]));
     sd.b_first[0] = bvec[0];
     sd.b_first[1] = bvec[1];
     sd.b_first[2] = bvec[2];
@@ -581,6 +593,7 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
 
     /// RKN step trial and error estimation
     const auto estimate_error = [&](const scalar_type& h) {
+        assert(h != 0);
         // State the square and half of the step size
         const scalar_type h2{h * h};
         const scalar_type half_h{h * 0.5f};
@@ -591,6 +604,9 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
         const point3_type pos1 =
             pos + half_h * sd.t[0u] + h2 * 0.125f * sd.dtds[0u];
         const auto bvec1 = magnetic_field.at(pos1[0], pos1[1], pos1[2]);
+        assert(math::isfinite(bvec1[0]));
+        assert(math::isfinite(bvec1[1]));
+        assert(math::isfinite(bvec1[2]));
         sd.b_middle[0] = bvec1[0];
         sd.b_middle[1] = bvec1[1];
         sd.b_middle[2] = bvec1[2];
@@ -613,6 +629,9 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
         // Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
         const point3_type pos2 = pos + h * sd.t[0u] + h2 * 0.5f * sd.dtds[2u];
         const auto bvec2 = magnetic_field.at(pos2[0], pos2[1], pos2[2]);
+        assert(math::isfinite(bvec2[0]));
+        assert(math::isfinite(bvec2[1]));
+        assert(math::isfinite(bvec2[2]));
         sd.b_last[0] = bvec2[0];
         sd.b_last[1] = bvec2[1];
         sd.b_last[2] = bvec2[2];
@@ -624,8 +643,7 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
 
         // Compute and check the local integration error estimate
         // @Todo
-        constexpr const scalar_type one_sixth{
-            static_cast<scalar_type>(1. / 6.)};
+        constexpr auto one_sixth{static_cast<scalar_type>(1. / 6.)};
         const vector3_type err_vec =
             one_sixth * h2 *
             (sd.dtds[0u] - sd.dtds[1u] - sd.dtds[2u] + sd.dtds[3u]);
@@ -637,6 +655,7 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
     /// estimate @param err
     const auto step_size_scaling =
         [&cfg](const scalar_type& err) -> scalar_type {
+        assert(err != 0.f);
         return static_cast<scalar_type>(
             math::min(math::max(math::sqrt(math::sqrt(cfg.rk_error_tol / err)),
                                 static_cast<scalar_type>(0.25)),
@@ -653,6 +672,7 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
 
         error = math::max(estimate_error(stepping.step_size()),
                           static_cast<scalar_type>(1e-20));
+        assert(math::isfinite(error));
 
         // Error is small enough
         // ---> break and advance track
@@ -693,6 +713,7 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
 
     // Advance track state
     stepping.advance_track(sd, vol_mat_ptr);
+    assert(!stepping().is_invalid());
 
     // Advance jacobian transport
     if (cfg.do_covariance_transport) {

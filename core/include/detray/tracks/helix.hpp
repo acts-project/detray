@@ -110,7 +110,9 @@ class helix {
     helix(const free_track_parameters_type &track,
           const vector3_type &mag_field)
         : helix(track.pos(), track.time(), track.dir(), track.qop(),
-                mag_field) {}
+                mag_field) {
+        assert(!track.is_invalid());
+    }
 
     /// @TODO Add covfie field view concept
     template <typename field_view_t>
