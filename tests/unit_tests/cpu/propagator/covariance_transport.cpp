@@ -93,7 +93,7 @@ GTEST_TEST(detray_propagator, covariance_transport) {
     getter::element(bound_cov, e_bound_theta, e_bound_theta) = 0.f;
 
     // Bound track parameter
-    const bound_track_parameters<test_algebra> bound_param0(
+    const propagator_t::bound_track_parameters_type bound_param0(
         det.surface(0u).barcode(), bound_vector, bound_cov);
 
     propagation::config prop_cfg{};

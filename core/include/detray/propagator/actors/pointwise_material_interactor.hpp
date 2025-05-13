@@ -57,14 +57,14 @@ struct pointwise_material_interactor : actor {
 
         using state = typename pointwise_material_interactor::state;
 
-        template <typename mat_group_t, typename index_t>
+        template <typename mat_group_t, typename index_t,
+                  typename bound_track_parameters_t>
         DETRAY_HOST_DEVICE inline bool operator()(
             [[maybe_unused]] const mat_group_t &material_group,
             [[maybe_unused]] const index_t &mat_index,
             [[maybe_unused]] state &s,
             [[maybe_unused]] const pdg_particle<scalar_type> &ptc,
-            [[maybe_unused]] const bound_track_parameters<algebra_t>
-                &bound_params,
+            [[maybe_unused]] const bound_track_parameters_t &bound_params,
             [[maybe_unused]] const scalar_type cos_inc_angle,
             [[maybe_unused]] const scalar_type approach) const {
 
@@ -149,11 +149,12 @@ struct pointwise_material_interactor : actor {
     /// @param[out] interactor_state actor state
     /// @param[in]  nav_dir navigation direction
     /// @param[in]  sf the surface
-    template <typename context_t, typename surface_t>
+    template <typename context_t, typename surface_t,
+              typename bound_track_parameters_t>
     DETRAY_HOST_DEVICE inline void update(
         const context_t gctx, const pdg_particle<scalar_type> &ptc,
-        bound_track_parameters<algebra_t> &bound_params,
-        state &interactor_state, const int nav_dir, const surface_t &sf) const {
+        bound_track_parameters_t &bound_params, state &interactor_state,
+        const int nav_dir, const surface_t &sf) const {
 
         // Closest approach of the track to a line surface. Otherwise this is
         // ignored.
@@ -166,7 +167,7 @@ struct pointwise_material_interactor : actor {
 
         if (succeed) {
 
-            auto &covariance = bound_params.covariance();
+            auto covariance = bound_params.covariance();
 
             if (interactor_state.do_energy_loss) {
 
@@ -184,6 +185,8 @@ struct pointwise_material_interactor : actor {
                     covariance, bound_params.dir(),
                     interactor_state.projected_scattering_angle);
             }
+
+            bound_params.set_covariance(covariance);
         }
 
         assert(!bound_params.is_invalid());

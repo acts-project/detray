@@ -219,8 +219,12 @@ inline auto record_propagation(
                     bound_param[i], stddevs[i])(generator);
             }
 
-            getter::element(bound_param.covariance(), i, i) =
-                stddevs[i] * stddevs[i];
+            auto cov = matrix::zero<typename std::decay_t<decltype(
+                bound_param)>::covariance_type>();
+
+            getter::element(cov, i, i) = stddevs[i] * stddevs[i];
+
+            bound_param.set_covariance(cov);
         }
     }
 
