@@ -67,14 +67,14 @@ struct random_scatterer : actor {
     /// Material store visitor
     struct kernel {
 
-        template <typename mat_group_t, typename index_t>
+        template <typename mat_group_t, typename index_t,
+                  typename bound_track_parameters_t>
         DETRAY_HOST_DEVICE inline bool operator()(
             [[maybe_unused]] const mat_group_t& material_group,
             [[maybe_unused]] const index_t& mat_index,
             [[maybe_unused]] typename random_scatterer::state& s,
             [[maybe_unused]] const pdg_particle<scalar_type>& ptc,
-            [[maybe_unused]] const bound_track_parameters<algebra_t>&
-                bound_params,
+            [[maybe_unused]] const bound_track_parameters_t& bound_params,
             [[maybe_unused]] const scalar_type cos_inc_angle,
             [[maybe_unused]] const scalar_type approach) const {
 

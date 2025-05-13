@@ -46,7 +46,8 @@ class base_stepper {
     using scalar_type = dscalar<algebra_t>;
 
     using free_track_parameters_type = free_track_parameters<algebra_t>;
-    using bound_track_parameters_type = bound_track_parameters<algebra_t>;
+    using bound_track_parameters_type =
+        udu_decomposed_bound_track_parameters<algebra_t>;
     using free_matrix_type = free_matrix<algebra_t>;
     using bound_matrix_type = bound_matrix<algebra_t>;
 
