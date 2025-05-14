@@ -13,10 +13,10 @@
 #include "detray/core/detector.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/geometry/mask.hpp"
-#include "detray/test/framework/types.hpp"
+#include "detray/utils/type_list.hpp"
 
 // Detray test include(s)
-#include "detray/utils/type_list.hpp"
+#include "detray/test/framework/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>

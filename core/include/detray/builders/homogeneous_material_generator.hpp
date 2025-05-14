@@ -17,6 +17,7 @@
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/utils/log.hpp"
 #include "detray/utils/ranges.hpp"
+#include "detray/utils/type_registry.hpp"
 
 // System include(s)
 #include <sstream>

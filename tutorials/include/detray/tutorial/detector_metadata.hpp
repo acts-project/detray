@@ -18,7 +18,7 @@
 #include "detray/geometry/surface_descriptor.hpp"
 #include "detray/io/backend/detail/type_info.hpp"  // mask_info
 #include "detray/materials/material_slab.hpp"
-#include "detray/navigation/accelerators/brute_force_finder.hpp"
+#include "detray/navigation/accelerators/brute_force.hpp"
 
 // Linear algebra types
 #include "detray/tutorial/types.hpp"
@@ -141,11 +141,54 @@ struct my_metadata {
     // Acceleration structures
     //
 
+    /// Portals and passives in the brute froce search, sensitives in the grids
+    enum geo_objects : std::uint_least8_t {
+        e_portal = 0u,
+        e_passive = 0u,
+        e_sensitive = 1u,
+        e_volume = 2u,
+        e_size = 3u,
+        e_all = e_size,
+    };
+
+    DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
+                                                       geo_objects gobj) {
+
+        switch (gobj) {
+            case geo_objects::e_portal:
+                // e_passive has same value (0u)
+                os << "e_portal/e_passive";
+                break;
+            case geo_objects::e_sensitive:
+                os << "e_sensitive";
+                break;
+            case geo_objects::e_volume:
+                os << "e_volume";
+                break;
+            case geo_objects::e_size:
+                // e_all has same value (2u)
+                os << "e_size/e_all";
+                break;
+        }
+        return os;
+    }
+
+    /// Surface descriptor type used for sensitives, passives and portals
+    /// It holds the indices to the surface data in the detector data stores
+    /// that were defined above
+    using transform_link = typename transform_store<>::single_link;
+    using mask_link = typename mask_store<>::single_link;
+    using material_link = typename material_store<>::single_link;
+    using surface_type =
+        surface_descriptor<mask_link, material_link, transform_link, nav_link>;
+
     /// The acceleration data structures live in another tuple that needs to
     /// indexed correctly
     enum class accel_ids : std::uint_least8_t {
         e_brute_force = 0u,  //< test all surfaces in a volume (brute force)
+        e_volume_cylinder3_grid = 1u,
         e_default = e_brute_force,
+        e_default_volume_searcher = e_volume_cylinder3_grid,
     };
 
     friend std::ostream& operator<<(std::ostream& os, const accel_ids& id) {
@@ -160,55 +203,30 @@ struct my_metadata {
         return os;
     }
 
-    /// Surface descriptor type used for sensitives, passives and portals
-    /// It holds the indices to the surface data in the detector data stores
-    /// that were defined above
-    using transform_link = typename transform_store<>::link_type;
-    using mask_link = typename mask_store<>::single_link;
-    using material_link = typename material_store<>::single_link;
-    using surface_type =
-        surface_descriptor<mask_link, material_link, transform_link, nav_link>;
+    /// One link for portals/passives and one sensitive surfaces
+    using object_link_type =
+        dmulti_index<dtyped_index<accel_ids, dindex>, geo_objects::e_size>;
+
+    /// Data structure that allows to find the current detector volume from a
+    /// given position. Here: Uniform grid with a 3D cylindrical shape
+    template <typename container_t = host_container_types>
+    using volume_accelerator =
+        spatial_grid<algebra_type,
+                     axes<cylinder3D, axis::bounds::e_open, axis::irregular,
+                          axis::regular, axis::irregular>,
+                     bins::single<dindex>, simple_serializer, container_t,
+                     false>;
 
     /// The tuple store that hold the acceleration data structures for all
     /// volumes. Every collection of accelerationdata structures defines its
     /// own container and view type. Does not make use of conditions data
     /// ( @c empty_context )
+    /// How to store the acceleration data structures
     template <typename container_t = host_container_types>
     using accelerator_store =
         multi_store<accel_ids, empty_context, dtuple,
-                    brute_force_collection<surface_type, container_t>>;
-
-    //
-    // Volume descriptors
-    //
-
-    /// How to index the constituent objects in a volume
-    /// If they share the same index value here, they will be added into the
-    /// same acceleration data structure in every respective volume
-    enum geo_objects : std::uint_least8_t {
-        e_portal = 0u,   //< This detector keeps all surfaces in the same
-        e_passive = 0u,  //  acceleration data structure (id 0)
-        e_sensitive = 0u,
-        e_size = 1u,
-        e_all = e_size
-    };
-
-    /// How a volume finds its constituent objects in the detector containers
-    /// In this case: One range for sensitive/passive surfaces, oportals
-    using object_link_type = dmulti_index<dindex_range, geo_objects::e_size>;
-
-    //
-    // Volume acceleration structure
-    //
-
-    /// Data structure that allows to find the current detector volume from a
-    /// given position. Here: Uniform grid with a 3D cylindrical shape
-    template <typename container_t = host_container_types>
-    using volume_finder =
-        grid<algebra_type,
-             axes<cylinder3D, axis::bounds::e_open, axis::irregular,
-                  axis::regular, axis::irregular>,
-             bins::single<dindex>, simple_serializer, container_t>;
+                    brute_force_collection<surface_type, container_t>,
+                    grid_collection<volume_accelerator<container_t>>>;
 };
 
 }  // namespace tutorial
@@ -244,8 +262,8 @@ namespace detail {
 /// During the IO, check for a 2D square shape
 /*template <typename detector_t>
 struct mask_info<io::shape_id::square2, detector_t>
-    requires types::contains<typename detector_t::masks,
-                                      detray::tutorial::square>> {
+    requires detector_t::masks::template is_defined<
+                                      detray::tutorial::square>()> {
     using type = detray::tutorial::square::shape;
     // This mask id is defined in the metadat down below and determines the
     // position of the collection of square in the detector mask tuple (store)

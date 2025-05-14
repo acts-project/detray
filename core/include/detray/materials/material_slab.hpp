@@ -101,8 +101,8 @@ struct material_slab {
     friend std::ostream& operator<<(std::ostream& os,
                                     const material_slab& mat) {
         os << "slab: ";
-        os << mat.get_material().to_string();
-        os << " | thickness: " << mat.thickness() << "mm";
+        os << mat.get_material();
+        os << " | thickness = " << mat.thickness() << "mm";
 
         return os;
     }

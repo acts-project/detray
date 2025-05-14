@@ -115,6 +115,7 @@ auto test_detector_json_io(
     std::string geometry_file{names.get_detector_name() + "_geometry_2.json"};
     EXPECT_TRUE(compare_files(file_names["geometry"], geometry_file));
     std::filesystem::remove(geometry_file);
+    std::filesystem::remove(file_names["geometry"]);
 
     // Check a homogeneous material description, if present
     if (auto search = file_names.find("homogeneous_material");
@@ -124,6 +125,7 @@ auto test_detector_json_io(
         EXPECT_TRUE(
             compare_files(file_names["homogeneous_material"], hom_mat_file));
         std::filesystem::remove(hom_mat_file);
+        std::filesystem::remove(file_names["homogeneous_material"]);
     }
 
     // Check a material map description, if present
@@ -133,6 +135,7 @@ auto test_detector_json_io(
                                  "_material_maps_2.json"};
         EXPECT_TRUE(compare_files(file_names["material_maps"], mat_map_file));
         std::filesystem::remove(mat_map_file);
+        std::filesystem::remove(file_names["material_maps"]);
     }
 
     // Check a homogeneous material description, if present
@@ -142,6 +145,7 @@ auto test_detector_json_io(
                                "_surface_grids_2.json"};
         EXPECT_TRUE(compare_files(file_names["surface_grids"], grids_file));
         std::filesystem::remove(grids_file);
+        std::filesystem::remove(file_names["surface_grids"]);
     }
 
     return std::make_pair(std::move(det2), std::move(names2));

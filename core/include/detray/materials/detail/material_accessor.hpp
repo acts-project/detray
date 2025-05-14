@@ -41,7 +41,7 @@ DETRAY_HOST_DEVICE constexpr decltype(auto) get(
         &loc_point) noexcept {
 
     // Find the material slab (only one entry per bin)
-    return material_coll[idx].search(loc_point).ref();
+    return material_coll[idx].bin(loc_point).ref();
 }
 
 }  // namespace detray::detail::material_accessor

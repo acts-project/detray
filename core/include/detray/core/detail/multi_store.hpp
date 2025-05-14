@@ -14,7 +14,6 @@
 #include "detray/core/detail/tuple_container.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/indexing.hpp"
-#include "detray/utils/type_list.hpp"
 #include "detray/utils/type_registry.hpp"
 #include "detray/utils/type_traits.hpp"
 
@@ -29,13 +28,11 @@ namespace detray {
 /// @brief Wraps a vecmem enabled tuple and adds functionality to handle data
 /// collections @tparam Ts.
 ///
-/// @tparam An enum of type IDs that needs to match the value types of the
-/// @tparam Ts pack.
+/// @tparam An enum of type IDs that needs to match the value types of the Ts
+/// pack.
 /// @tparam context_t How to retrieve data according to e.g. conditions data
 /// @tparam tuple_t The type of the underlying tuple container.
-/// @tparam container_t The type of container to use for the respective
-///                     data collections.
-/// @tparam Ts the data types (value types of the collections)
+/// @tparam Ts the data collection types
 template <typename ID = std::size_t, typename context_t = empty_context,
           template <typename...> class tuple_t = dtuple, typename... Ts>
 class multi_store {
@@ -53,10 +50,8 @@ class multi_store {
     /// How to find and index a data collection in the store
     /// @{
     using ids = ID;
-    template <typename index_t>
-    using link_type = dtyped_index<ID, index_t>;
-    using single_link = link_type<dindex>;
-    using range_link = link_type<index_range_t>;
+    using single_link = dtyped_index<ID, dindex>;
+    using range_link = dtyped_index<ID, index_range_t>;
     /// @}
 
     /// Allow matching between IDs and collection value types
@@ -397,7 +392,7 @@ class multi_store {
     tuple_type m_tuple_container;
 };
 
-/// Helper type for a data store that uses a sinlge collection container
+/// Helper type for a data store that uses a single collection container
 template <typename ID, typename context_t, template <typename...> class tuple_t,
           template <typename...> class container_t, typename... Ts>
 using regular_multi_store =

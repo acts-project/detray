@@ -13,6 +13,7 @@
 #include "detray/definitions/indexing.hpp"
 
 // System include(s)
+#include <ostream>
 #include <utility>
 
 namespace detray {
@@ -52,8 +53,8 @@ class volume_descriptor {
     ///          surface store.
     ///
     /// E.g. a 'portal' can be found under @c ID::e_portal in this link,
-    /// and will then receive link to the @c brute_force_finder that holds the
-    /// portals (the accelerator structure's id and index).
+    /// and will then receive link to the @c brute_force acceleration structure
+    /// that holds the portals (the accelerator structure's id and index).
     using accel_link_type = dmulti_index<acc_link_t, ID::e_size>;
 
     /// How to link to the volume material, if any
@@ -67,6 +68,17 @@ class volume_descriptor {
     ///
     /// @param id id values that determines how to interpret the bounds.
     explicit constexpr volume_descriptor(const volume_id id) : m_id{id} {}
+
+    /// @returns true if the object ID corresponds to a surface
+    static consteval bool is_surface_id(const object_id id) {
+        return (id == object_id::e_portal || id == object_id::e_sensitive ||
+                id == object_id::e_passive);
+    }
+
+    /// @returns true if the object ID corresponds to a [daughter] volume
+    static consteval bool is_volume_id(const object_id id) {
+        return (id == object_id::e_volume);
+    }
 
     /// @returns the volume shape id, e.g. 'cylinder'
     DETRAY_HOST_DEVICE
@@ -283,7 +295,7 @@ class volume_descriptor {
     /// Set link for a type of surfaces ( @param obj_id ) from @param id
     /// and @param index of the acceleration data structure (e.g. type and
     /// index of a grid in the accelerator store)
-    DETRAY_HOST constexpr auto set_link(
+    DETRAY_HOST constexpr auto set_accel_link(
         const ID obj_id, const typename acc_link_t::id_type accel_id,
         const typename acc_link_t::index_type index) -> void {
         m_accel_links[obj_id] = acc_link_t{accel_id, index};
@@ -301,13 +313,14 @@ class volume_descriptor {
     /// @returns a string stream that prints the volume details
     DETRAY_HOST
     friend std::ostream& operator<<(std::ostream& os,
-                                    const volume_descriptor& vol) {
-        os << vol.m_index;
-        os << " | id: " << vol.m_id;
-        os << " | transf.: " << vol.m_transform;
-        os << " | sf idx.: " << vol.m_sf_links;
-        os << " | mat.: " << vol.m_mat_link;
-        os << " | accel.: " << vol.m_accel_links;
+                                    const volume_descriptor& v_desc) {
+        os << "id = " << v_desc.id() << "(" << static_cast<int>(v_desc.id())
+           << ")";
+        os << " | index = " << v_desc.index();
+        os << " | trf. = " << v_desc.transform();
+        os << " | acc link: " << v_desc.accel_link();
+        os << " | sf link: " << v_desc.sf_link();
+        os << " | mat link: " << v_desc.material();
         return os;
     }
 

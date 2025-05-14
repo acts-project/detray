@@ -16,6 +16,7 @@
 #include "detray/utils/grid/detail/concepts.hpp"
 #include "detray/utils/grid/grid.hpp"
 #include "detray/utils/type_list.hpp"
+#include "detray/utils/type_traits.hpp"
 
 // System include(s)
 #include <algorithm>
@@ -49,6 +50,27 @@ class grid_writer {
     }
 
     protected:
+    /// Convert a grid from a collection into its payload
+    ///
+    /// @param store the data store of grids (tuple of grid collections)
+    /// @param grid_link type and index of the grid
+    /// @param owner_idx inder of the owner of the grid (e.g. volume index)
+    /// @param grid_data the grid payload to be filled
+    /// @param converter callable that can convert a grid bin entry into its
+    /// respective IO payload (of type @tparam content_t)
+    template <typename store_t, typename content_t, typename grid_id_t,
+              typename converter_t>
+    static void to_payload(
+        const store_t& store, typename store_t::single_link grid_link,
+        dindex vol_idx, dindex owner_idx,
+        detector_grids_payload<content_t, grid_id_t>& grids_data,
+        converter_t converter) {
+
+        // If the accelerator is a grid, insert the payload
+        store.template visit<get_grid_payload>(grid_link, vol_idx, owner_idx,
+                                               grids_data, converter);
+    }
+
     /// Convert a grid @param gr of type @param type and index @param idx
     /// into its io payload, using @param converter for the bin content
     template <typename content_t, typename value_t, typename grid_id_t,
@@ -142,27 +164,6 @@ class grid_writer {
         return bin_data;
     }
 
-    /// Convert a grid from a collection into its payload
-    ///
-    /// @param store the data store of grids (tuple of grid collections)
-    /// @param grid_link type and index of the grid
-    /// @param owner_idx inder of the owner of the grid (e.g. volume index)
-    /// @param grid_data the grid payload to be filled
-    /// @param converter callable that can convert a grid bin entry into its
-    /// respective IO payload (of type @tparam content_t)
-    template <typename store_t, typename content_t, typename grid_id_t,
-              typename converter_t>
-    static void to_payload(
-        const store_t& store, typename store_t::single_link grid_link,
-        dindex vol_idx, dindex owner_idx,
-        detector_grids_payload<content_t, grid_id_t>& grids_data,
-        converter_t converter) {
-
-        // If the accelerator is a grid, insert the payload
-        store.template visit<get_grid_payload>(grid_link, vol_idx, owner_idx,
-                                               grids_data, converter);
-    }
-
     private:
     /// Retrieve a @c grid_payload from grid collection elements
     struct get_grid_payload {
@@ -179,10 +180,14 @@ class grid_writer {
             [[maybe_unused]] converter_t& converter) const {
 
             using coll_value_t = typename grid_group_t::value_type;
+            using value_t = detray::detail::get_value_t<coll_value_t>;
 
-            if constexpr (detray::concepts::grid<coll_value_t>) {
+            // Only try to convert grids that match the converter that was
+            // passed
+            constexpr bool is_convertible{std::invocable<converter_t, value_t>};
 
-                using value_t = typename coll_value_t::value_type;
+            if constexpr (detray::concepts::grid<coll_value_t> &&
+                          is_convertible) {
 
                 auto gr_pyload = to_payload<content_t, value_t>(
                     owner_link, io::detail::get_id<coll_value_t>(), index,

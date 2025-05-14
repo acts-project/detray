@@ -131,11 +131,6 @@ class detector {
         volume_descriptor<geo_obj_ids, accel_link, material_link>;
     using volume_container = vector_type<volume_type>;
 
-    /// Volume finder definition: Make volume index available from track
-    /// position
-    using volume_finder =
-        typename metadata::template volume_finder<container_t>;
-
     /// Detector view types
     /// @TODO: Switch to const_view_type always if possible
     using view_type = dmulti_view<dvector_view<volume_type>,
@@ -143,8 +138,7 @@ class detector {
                                   typename transform_container::view_type,
                                   typename mask_container::view_type,
                                   typename material_container::view_type,
-                                  typename accelerator_container::view_type,
-                                  typename volume_finder::view_type>;
+                                  typename accelerator_container::view_type>;
 
     static_assert(concepts::device_view<view_type>,
                   "Detector view type ill-formed");
@@ -155,8 +149,7 @@ class detector {
                     typename transform_container::const_view_type,
                     typename mask_container::const_view_type,
                     typename material_container::const_view_type,
-                    typename accelerator_container::const_view_type,
-                    typename volume_finder::const_view_type>;
+                    typename accelerator_container::const_view_type>;
 
     static_assert(concepts::device_view<const_view_type>,
                   "Detector const view type ill-formed");
@@ -168,8 +161,7 @@ class detector {
                       typename transform_container::buffer_type,
                       typename mask_container::buffer_type,
                       typename material_container::buffer_type,
-                      typename accelerator_container::buffer_type,
-                      typename volume_finder::buffer_type>;
+                      typename accelerator_container::buffer_type>;
 
     static_assert(concepts::device_buffer<buffer_type>,
                   "Detector buffer type ill-formed");
@@ -196,8 +188,7 @@ class detector {
           _transforms(resource),
           _masks(resource),
           _materials(resource),
-          _accelerators(resource),
-          _volume_finder(resource) {}
+          _accelerators(resource) {}
 
     /// Constructor from detector data view
     template <concepts::device_view detector_view_t>
@@ -207,8 +198,7 @@ class detector {
           _transforms(detray::detail::get<2>(det_data.m_view)),
           _masks(detray::detail::get<3>(det_data.m_view)),
           _materials(detray::detail::get<4>(det_data.m_view)),
-          _accelerators(detray::detail::get<5>(det_data.m_view)),
-          _volume_finder(detray::detail::get<6>(det_data.m_view)) {}
+          _accelerators(detray::detail::get<5>(det_data.m_view)) {}
     /// @}
 
     /// @returns a string that contains the detector name
@@ -238,13 +228,16 @@ class detector {
     /// @return the volume by global cartesian @param position - const access
     DETRAY_HOST_DEVICE
     inline const auto &volume(const point3_type &p) const {
-        // The 3D cylindrical volume search grid is concentric
-        const transform3_type identity{};
-        const auto loc_pos =
-            _volume_finder.project(identity, p, identity.translation());
+        // Allow to call the volume search data structure
+        // TODO: Add volume accelerator builder
+        volume_type v_desc{};
+        v_desc.template set_accel_link<geo_obj_ids::e_volume>(
+            accel::id::e_default_volume_searcher, 0u);
+        tracking_volume world{*this, v_desc};
 
-        // Only one entry per bin
-        dindex volume_index{_volume_finder.search(loc_pos).value()};
+        dindex volume_index{0u};
+        world.template visit_accelerator<geo_obj_ids::e_volume, volume_search>(
+            p, &volume_index);
         return _volumes[volume_index];
     }
 
@@ -294,43 +287,20 @@ class detector {
         return _accelerators;
     }
 
-    /// @returns the volume grid - const access
-    DETRAY_HOST_DEVICE
-    inline auto volume_search_grid() const -> const volume_finder & {
-        return _volume_finder;
-    }
-
     /// @returns view of a detector
     DETRAY_HOST auto get_data() -> view_type {
         return view_type{
-            detray::get_data(_volumes),      detray::get_data(_surfaces),
-            detray::get_data(_transforms),   detray::get_data(_masks),
-            detray::get_data(_materials),    detray::get_data(_accelerators),
-            detray::get_data(_volume_finder)};
+            detray::get_data(_volumes),    detray::get_data(_surfaces),
+            detray::get_data(_transforms), detray::get_data(_masks),
+            detray::get_data(_materials),  detray::get_data(_accelerators)};
     }
 
     /// @returns const view of a detector
     DETRAY_HOST auto get_data() const -> const_view_type {
         return const_view_type{
-            detray::get_data(_volumes),      detray::get_data(_surfaces),
-            detray::get_data(_transforms),   detray::get_data(_masks),
-            detray::get_data(_materials),    detray::get_data(_accelerators),
-            detray::get_data(_volume_finder)};
-    }
-    /// Add the volume grid - move semantics
-    ///
-    /// @param v_grid the volume grid to be added
-    DETRAY_HOST
-    inline auto set_volume_finder(volume_finder &&v_grid) -> void {
-        _volume_finder = std::move(v_grid);
-    }
-
-    /// Add the volume grid - copy semantics
-    ///
-    /// @param v_grid the volume grid to be added
-    DETRAY_HOST
-    inline auto set_volume_finder(const volume_finder &v_grid) -> void {
-        _volume_finder = v_grid;
+            detray::get_data(_volumes),    detray::get_data(_surfaces),
+            detray::get_data(_transforms), detray::get_data(_masks),
+            detray::get_data(_materials),  detray::get_data(_accelerators)};
     }
 
     private:
@@ -341,6 +311,28 @@ class detector {
         os << utils::print_detector(d) << std::endl;
         return os;
     }
+
+    /// Volume lookup in the volume acceleration data structures
+    struct volume_search {
+        ///@TODO: Move this to a volume search grid type
+        template <concepts::accelerator_collection accel_coll_t,
+                  typename accel_index_t>
+        DETRAY_HOST_DEVICE inline void operator()(const accel_coll_t &coll,
+                                                  const accel_index_t index,
+                                                  const point3_type &p,
+                                                  dindex *const result) const {
+
+            using accel_type = typename accel_coll_t::value_type;
+
+            if constexpr (concepts::volume_accelerator<accel_type>) {
+
+                const auto volume_accelerator = coll[index];
+
+                // Only one entry per bin
+                *result = volume_accelerator.search(p).value();
+            }
+        }
+    };
 
     /// Contains the detector sub-volumes.
     volume_container _volumes;
@@ -359,9 +351,6 @@ class detector {
 
     /// All surface finder data structures that are used in the detector volumes
     accelerator_container _accelerators;
-
-    /// Search structure for volumes
-    volume_finder _volume_finder;
 };
 
 }  // namespace detray

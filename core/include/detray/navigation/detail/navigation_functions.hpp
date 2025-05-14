@@ -64,6 +64,18 @@ struct candidate_search {
             nav_state, tangential, sf_descr, det.transform_store(), ctx,
             inter_cfg, nav_state.external_tol());
     }
+
+    /// Test the volume links
+    template <typename track_t, typename detector_t,
+              typename navigation_state_t>
+    DETRAY_HOST_DEVICE void operator()(
+        const dindex & /*vol_idx*/, const detector_t & /*det*/,
+        const typename detector_t::geometry_context & /*ctx*/,
+        const track_t & /*track*/, navigation_state_t & /*nav_state*/,
+        const intersection::config & /*inter_cfg*/) const {
+
+        // Do not search for daughter volumes
+    }
 };
 
 /// @brief Helper method that updates the intersection of a single candidate
@@ -198,8 +210,10 @@ DETRAY_HOST_DEVICE DETRAY_INLINE constexpr void local_navigation(
                                       : -cfg.intersection.path_tolerance;
 
     // Search for neighboring surfaces and fill candidates into cache
-    volume.template visit_neighborhood<candidate_search>(
-        track, cfg, ctx, det, ctx, track, navigation, intr_cfg);
+    using volume_t = typename std::remove_cvref_t<decltype(det)>::volume_type;
+    volume.template visit_neighborhood<volume_t::object_id::e_all,
+                                       candidate_search>(
+        track, cfg.search_window, ctx, det, ctx, track, navigation, intr_cfg);
 
     // Determine overall state of the navigation after updating the cache
     navigation::update_status(navigation, cfg);

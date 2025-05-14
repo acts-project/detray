@@ -104,8 +104,8 @@ struct material_rod {
     DETRAY_HOST
     friend std::ostream& operator<<(std::ostream& os, const material_rod& mat) {
         os << "rod: ";
-        os << mat.get_material().to_string();
-        os << " | radius: " << mat.radius() << "mm";
+        os << mat.get_material();
+        os << " | radius = " << mat.radius() << "mm";
 
         return os;
     }

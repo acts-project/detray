@@ -11,6 +11,7 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/navigation/accelerators/search_window.hpp"
 #include "detray/navigation/intersection/intersection_config.hpp"
 
 // System include(s)
@@ -24,7 +25,7 @@ struct config {
     intersection::config intersection{};
     /// Search window size for grid based acceleration structures
     /// (0, 0): only look at current bin
-    darray<dindex, 2> search_window = {0u, 0u};
+    detray::search_window<dindex, 2> search_window = {0u, 0u};
 
     // Actor configuration
 

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2024 CERN for the benefit of the ACTS project
+ * (c) 2022-2025 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -8,25 +8,11 @@
 #pragma once
 
 // Project include(s)
-#include "detray/core/detail/multi_store.hpp"
-#include "detray/core/detail/single_store.hpp"
-#include "detray/definitions/algebra.hpp"
-#include "detray/definitions/containers.hpp"
-#include "detray/definitions/indexing.hpp"
-#include "detray/geometry/mask.hpp"
-#include "detray/geometry/shapes/concentric_cylinder2D.hpp"
-#include "detray/geometry/shapes/rectangle2D.hpp"
-#include "detray/geometry/shapes/ring2D.hpp"
-#include "detray/geometry/shapes/trapezoid2D.hpp"
-#include "detray/geometry/surface_descriptor.hpp"
-#include "detray/materials/material_map.hpp"
-#include "detray/materials/material_slab.hpp"
-#include "detray/navigation/accelerators/brute_force_finder.hpp"
-#include "detray/navigation/accelerators/surface_grid.hpp"
+#include "detray/detectors/odd_metadata.hpp"
 
 namespace detray {
 
-/// Defines the data types needed for the toy detector
+/// Defines the data types needed for the toy detector (same as ODD)
 template <concepts::algebra algebra_t>
 struct toy_metadata {
 
@@ -80,6 +66,8 @@ struct toy_metadata {
             case mask_ids::e_portal_ring2:
                 os << "e_portal_ring2";
                 break;
+            default:
+                os << "invalid";
         }
         return os;
     }
@@ -130,6 +118,8 @@ struct toy_metadata {
             case material_ids::e_none:
                 os << "e_none";
                 break;
+            default:
+                os << "invalid";
         }
         return os;
     }
@@ -152,8 +142,8 @@ struct toy_metadata {
     // Surface grid definition: bin-content: darray<sf_descriptor, 1>
     template <typename axes_t, typename bin_entry_t, typename container_t>
     using surface_grid_t =
-        grid<algebra_type, axes_t, bins::static_array<bin_entry_t, 1>,
-             simple_serializer, container_t, false>;
+        spatial_grid<algebra_type, axes_t, bins::static_array<bin_entry_t, 1>,
+                     simple_serializer, container_t, false>;
 
     // cylindrical grid for the barrel layers
     template <typename bin_entry_t, typename container_t>
@@ -166,12 +156,60 @@ struct toy_metadata {
 
     /// @}
 
+    /// How to link to the entries in the data stores
+    using transform_link = typename transform_store<>::single_link;
+    using mask_link = typename mask_store<>::range_link;
+    using material_link = typename material_store<>::single_link;
+    /// Surface type used for sensitives, passives and portals
+    using surface_type =
+        surface_descriptor<mask_link, material_link, transform_link, nav_link>;
+
+    //
+    // Volume descriptors
+    //
+
+    /// Portals and passives in the brute froce search, sensitives in the grids
+    enum geo_objects : std::uint_least8_t {
+        e_portal = 0u,
+        e_passive = 0u,
+        e_sensitive = 1u,
+        e_volume = 2u,
+        e_size = 3u,
+        e_all = e_size,
+    };
+
+    DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
+                                                       geo_objects gobj) {
+
+        switch (gobj) {
+            case geo_objects::e_portal:
+                // e_passive has same value (0u)
+                os << "e_portal/e_passive";
+                break;
+            case geo_objects::e_sensitive:
+                os << "e_sensitive";
+                break;
+            case geo_objects::e_volume:
+                os << "e_volume";
+                break;
+            case geo_objects::e_size:
+                // e_all has same value (2u)
+                os << "e_size/e_all";
+                break;
+            default:
+                os << "invalid";
+        }
+        return os;
+    }
+
     /// Acceleration data structures
     enum class accel_ids : std::uint_least8_t {
         e_brute_force = 0u,     // test all surfaces in a volume (brute force)
         e_cylinder2_grid = 1u,  // barrel
         e_disc_grid = 2u,       // endcap
+        e_volume_cylinder3_grid = 3u,
         e_default = e_brute_force,
+        e_default_volume_searcher = e_volume_cylinder3_grid,
     };
 
     DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
@@ -188,54 +226,11 @@ struct toy_metadata {
             case accel_ids::e_disc_grid:
                 os << "e_disc_grid";
                 break;
-        }
-        return os;
-    }
-
-    /// How to link to the entries in the data stores
-    using transform_link = typename transform_store<>::link_type;
-    using mask_link = typename mask_store<>::range_link;
-    using material_link = typename material_store<>::single_link;
-    /// Surface type used for sensitives, passives and portals
-    using surface_type =
-        surface_descriptor<mask_link, material_link, transform_link, nav_link>;
-
-    /// How to store the acceleration data structures
-    template <typename container_t = host_container_types>
-    using accelerator_store = multi_store<
-        accel_ids, empty_context, dtuple,
-        brute_force_collection<surface_type, container_t>,
-        grid_collection<cylinder_sf_grid<surface_type, container_t>>,
-        grid_collection<disc_sf_grid<surface_type, container_t>>>;
-
-    //
-    // Volume descriptors
-    //
-
-    /// Portals and passives in the brute froce search, sensitives in the grids
-    enum geo_objects : std::uint_least8_t {
-        e_portal = 0u,
-        e_passive = 0u,
-        e_sensitive = 1u,
-        e_size = 2u,
-        e_all = e_size,
-    };
-
-    DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
-                                                       geo_objects gobj) {
-
-        switch (gobj) {
-            case geo_objects::e_portal:
-                // e_passive has same value (0u)
-                os << "e_portal/e_passive";
+            case accel_ids::e_volume_cylinder3_grid:
+                os << "e_volume_cylinder3_grid/e_default_volume_searcher";
                 break;
-            case geo_objects::e_sensitive:
-                os << "e_sensitive";
-                break;
-            case geo_objects::e_size:
-                // e_all has same value (2u)
-                os << "e_size/e_all";
-                break;
+            default:
+                os << "invalid";
         }
         return os;
     }
@@ -244,17 +239,22 @@ struct toy_metadata {
     using object_link_type =
         dmulti_index<dtyped_index<accel_ids, dindex>, geo_objects::e_size>;
 
-    //
-    // Volume acceleration structure
-    //
-
-    /// Volume search grid
     template <typename container_t = host_container_types>
-    using volume_finder =
-        grid<algebra_type,
-             axes<cylinder3D, axis::bounds::e_open, axis::irregular,
-                  axis::regular, axis::irregular>,
-             bins::single<dindex>, simple_serializer, container_t>;
+    using volume_accelerator =
+        spatial_grid<algebra_type,
+                     axes<cylinder3D, axis::bounds::e_open, axis::irregular,
+                          axis::regular, axis::irregular>,
+                     bins::single<dindex>, simple_serializer, container_t,
+                     false>;
+
+    /// How to store the acceleration data structures
+    template <typename container_t = host_container_types>
+    using accelerator_store = multi_store<
+        accel_ids, empty_context, dtuple,
+        brute_force_collection<surface_type, container_t>,
+        grid_collection<cylinder_sf_grid<surface_type, container_t>>,
+        grid_collection<disc_sf_grid<surface_type, container_t>>,
+        grid_collection<volume_accelerator<container_t>>>;
 };
 
 }  // namespace detray
