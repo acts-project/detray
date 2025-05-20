@@ -131,8 +131,18 @@ struct my_metadata {
     /// indexed correctly
     enum class accel_ids : std::uint_least8_t {
         e_brute_force = 0,  //< test all surfaces in a volume (brute force)
+        e_volume_accelerator = 1,
         e_default = e_brute_force,
     };
+
+    /// Data structure that allows to find the current detector volume from a
+    /// given position. Here: Uniform grid with a 3D cylindrical shape
+    template <typename container_t = host_container_types>
+    using volume_accelerator =
+        grid<algebra_type,
+             axes<cylinder3D, axis::bounds::e_open, axis::irregular,
+                  axis::regular, axis::irregular>,
+             bins::single<dindex>, simple_serializer, container_t>;
 
     /// The tuple store that hold the acceleration data structures for all
     /// volumes. Every collection of accelerationdata structures defines its
@@ -141,16 +151,8 @@ struct my_metadata {
     template <typename container_t = host_container_types>
     using accelerator_store =
         multi_store<accel_ids, empty_context, dtuple,
-                    brute_force_collection<surface_type, container_t>>;
-
-    /// Data structure that allows to find the current detector volume from a
-    /// given position. Here: Uniform grid with a 3D cylindrical shape
-    template <typename container_t = host_container_types>
-    using volume_finder =
-        grid<algebra_type,
-             axes<cylinder3D, axis::bounds::e_open, axis::irregular,
-                  axis::regular, axis::irregular>,
-             bins::single<dindex>, simple_serializer, container_t>;
+                    brute_force_collection<surface_type, container_t>,
+                    volume_accelerator<container_t>>;
 };
 
 }  // namespace tutorial

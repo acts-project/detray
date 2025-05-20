@@ -27,7 +27,7 @@ def add_wire_chamber_defaults(
     metadata.add_portal(Shape.RING)
 
     # Surface acceleration structure for the wires
-    metadata.add_accel_structure(SurfaceAccelerator.CONCENTRIC_CYLINDER_GRID2D)
+    metadata.add_accel_struct(SurfaceAccelerator.CONCENTRIC_CYLINDER_GRID2D)
 
     if use_mat_maps:
         # Sensitive material

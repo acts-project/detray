@@ -26,7 +26,7 @@ namespace detray {
 template <typename detector_t,
           template <typename...> class vector_type = dvector>
 void connect_cylindrical_volumes(
-    detector_t &d, const typename detector_t::volume_finder &volume_grid) {
+    detector_t &d, const typename detector_t::volume_accelerator &volume_grid) {
 
     using scalar_t = dscalar<typename detector_t::algebra_type>;
     typename detector_t::context default_context = {};
