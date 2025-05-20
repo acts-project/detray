@@ -13,12 +13,12 @@
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/indexing.hpp"
-#include "detray/geometry/surface_descriptor.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes/concentric_cylinder2D.hpp"
 #include "detray/geometry/shapes/rectangle2D.hpp"
 #include "detray/geometry/shapes/ring2D.hpp"
 #include "detray/geometry/shapes/trapezoid2D.hpp"
+#include "detray/geometry/surface_descriptor.hpp"
 #include "detray/materials/material_map.hpp"
 #include "detray/materials/material_slab.hpp"
 #include "detray/navigation/accelerators/brute_force_finder.hpp"
@@ -191,7 +191,7 @@ struct odd_metadata {
         }
         return os;
     }
-    
+
     /// Acceleration data structures
     enum class accel_ids : std::uint_least8_t {
         e_brute_force = 0,     // test all surfaces in a volume (brute force)
@@ -232,7 +232,7 @@ struct odd_metadata {
 
     /// Volume search grid
     template <typename container_t = host_container_types>
-    using volume_finder =
+    using volume_accelerator =
         grid<algebra_type,
              axes<cylinder3D, axis::bounds::e_open, axis::irregular,
                   axis::regular, axis::irregular>,

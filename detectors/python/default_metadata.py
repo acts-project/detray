@@ -26,8 +26,8 @@ def __main__():
     md = metadata("default_new")
 
     # Make sure all of the defaults are added
-    add_calorimeter_defaults(md, use_mat_maps=True, use_homogeneous_mat=True)
     add_silicon_tracker_defaults(md, use_mat_maps=True, use_homogeneous_mat=True)
+    add_calorimeter_defaults(md, use_mat_maps=True, use_homogeneous_mat=True)
     add_telescope_detector_defaults(md, use_mat_maps=True, use_homogeneous_mat=True)
     add_wire_chamber_defaults(md, use_mat_maps=True, use_homogeneous_mat=True)
 
@@ -48,8 +48,8 @@ def __main__():
     # md.add_material(Material.CYLINDER_MAP2D)
 
     # Add surface acceleration structures
-    # md.add_accel_structure(SurfaceAccelerator.CYLINDER_GRID3D)
-    # md.add_accel_structure(SurfaceAccelerator.CUBOID_GRID3D)
+    # md.add_accel_struct(SurfaceAccelerator.CYLINDER_GRID3D)
+    # md.add_accel_struct(SurfaceAccelerator.CUBOID_GRID3D)
 
     # Dump the metadata to header file
     metadata_generator(md)

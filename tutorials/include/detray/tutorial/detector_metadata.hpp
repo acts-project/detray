@@ -169,6 +169,23 @@ struct my_metadata {
     using surface_type =
         surface_descriptor<mask_link, material_link, transform_link, nav_link>;
 
+    /// The acceleration data structures live in another tuple that needs to
+    /// indexed correctly
+    enum class accel_ids : std::uint_least8_t {
+        e_brute_force = 0,  //< test all surfaces in a volume (brute force)
+        e_volume_accelerator = 1,
+        e_default = e_brute_force,
+    };
+
+    /// Data structure that allows to find the current detector volume from a
+    /// given position. Here: Uniform grid with a 3D cylindrical shape
+    template <typename container_t = host_container_types>
+    using volume_accelerator =
+        grid<algebra_type,
+             axes<cylinder3D, axis::bounds::e_open, axis::irregular,
+                  axis::regular, axis::irregular>,
+             bins::single<dindex>, simple_serializer, container_t>;
+
     /// The tuple store that hold the acceleration data structures for all
     /// volumes. Every collection of accelerationdata structures defines its
     /// own container and view type. Does not make use of conditions data
@@ -176,39 +193,8 @@ struct my_metadata {
     template <typename container_t = host_container_types>
     using accelerator_store =
         multi_store<accel_ids, empty_context, dtuple,
-                    brute_force_collection<surface_type, container_t>>;
-
-    //
-    // Volume descriptors
-    //
-
-    /// How to index the constituent objects in a volume
-    /// If they share the same index value here, they will be added into the
-    /// same acceleration data structure in every respective volume
-    enum geo_objects : std::uint_least8_t {
-        e_portal = 0u,   //< This detector keeps all surfaces in the same
-        e_passive = 0u,  //  acceleration data structure (id 0)
-        e_sensitive = 0u,
-        e_size = 1u,
-        e_all = e_size
-    };
-
-    /// How a volume finds its constituent objects in the detector containers
-    /// In this case: One range for sensitive/passive surfaces, oportals
-    using object_link_type = dmulti_index<dindex_range, geo_objects::e_size>;
-
-    //
-    // Volume acceleration structure
-    //
-
-    /// Data structure that allows to find the current detector volume from a
-    /// given position. Here: Uniform grid with a 3D cylindrical shape
-    template <typename container_t = host_container_types>
-    using volume_finder =
-        grid<algebra_type,
-             axes<cylinder3D, axis::bounds::e_open, axis::irregular,
-                  axis::regular, axis::irregular>,
-             bins::single<dindex>, simple_serializer, container_t>;
+                    brute_force_collection<surface_type, container_t>,
+                    volume_accelerator<container_t>>;
 };
 
 }  // namespace tutorial

@@ -140,9 +140,9 @@ class geometry_reader {
             }
         }
 
-        // @TODO: Implement volume finder IO
+        // @TODO: Implement voume finder IO
         DETRAY_DEBUG("Setting empty volume finder (no volume finder IO yet)");
-        det_builder.set_volume_finder();
+        det_builder.set_volume_accelerator();
     }
 
     /// @returns a surface transform from its io payload @param trf_data

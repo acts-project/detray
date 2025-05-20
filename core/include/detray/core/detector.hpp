@@ -133,8 +133,8 @@ class detector {
 
     /// Volume finder definition: Make volume index available from track
     /// position
-    using volume_finder =
-        typename metadata::template volume_finder<container_t>;
+    using volume_accelerator =
+        typename metadata::template volume_accelerator<container_t>;
 
     /// Detector view types
     /// @TODO: Switch to const_view_type always if possible
@@ -144,7 +144,7 @@ class detector {
                                   typename mask_container::view_type,
                                   typename material_container::view_type,
                                   typename accelerator_container::view_type,
-                                  typename volume_finder::view_type>;
+                                  typename volume_accelerator::view_type>;
 
     static_assert(concepts::device_view<view_type>,
                   "Detector view type ill-formed");
@@ -156,7 +156,7 @@ class detector {
                     typename mask_container::const_view_type,
                     typename material_container::const_view_type,
                     typename accelerator_container::const_view_type,
-                    typename volume_finder::const_view_type>;
+                    typename volume_accelerator::const_view_type>;
 
     static_assert(concepts::device_view<const_view_type>,
                   "Detector const view type ill-formed");
@@ -169,7 +169,7 @@ class detector {
                       typename mask_container::buffer_type,
                       typename material_container::buffer_type,
                       typename accelerator_container::buffer_type,
-                      typename volume_finder::buffer_type>;
+                      typename volume_accelerator::buffer_type>;
 
     static_assert(concepts::device_buffer<buffer_type>,
                   "Detector buffer type ill-formed");
@@ -197,7 +197,7 @@ class detector {
           _masks(resource),
           _materials(resource),
           _accelerators(resource),
-          _volume_finder(resource) {}
+          _volume_accelerator(resource) {}
 
     /// Constructor from detector data view
     template <concepts::device_view detector_view_t>
@@ -208,7 +208,7 @@ class detector {
           _masks(detray::detail::get<3>(det_data.m_view)),
           _materials(detray::detail::get<4>(det_data.m_view)),
           _accelerators(detray::detail::get<5>(det_data.m_view)),
-          _volume_finder(detray::detail::get<6>(det_data.m_view)) {}
+          _volume_accelerator(detray::detail::get<6>(det_data.m_view)) {}
     /// @}
 
     /// @returns a string that contains the detector name
@@ -234,10 +234,10 @@ class detector {
         // The 3D cylindrical volume search grid is concentric
         const transform3_type identity{};
         const auto loc_pos =
-            _volume_finder.project(identity, p, identity.translation());
+            _volume_accelerator.project(identity, p, identity.translation());
 
         // Only one entry per bin
-        dindex volume_index{_volume_finder.search(loc_pos).value()};
+        dindex volume_index{_volume_accelerator.search(loc_pos).value()};
         return _volumes[volume_index];
     }
 
@@ -289,41 +289,46 @@ class detector {
 
     /// @return the volume grid - const access
     DETRAY_HOST_DEVICE
-    inline auto volume_search_grid() const -> const volume_finder & {
-        return _volume_finder;
+    inline auto get_volume_accelerator() const -> const volume_accelerator & {
+        return _volume_accelerator;
     }
 
     /// @returns view of a detector
     DETRAY_HOST auto get_data() -> view_type {
-        return view_type{
-            detray::get_data(_volumes),      detray::get_data(_surfaces),
-            detray::get_data(_transforms),   detray::get_data(_masks),
-            detray::get_data(_materials),    detray::get_data(_accelerators),
-            detray::get_data(_volume_finder)};
+        return view_type{detray::get_data(_volumes),
+                         detray::get_data(_surfaces),
+                         detray::get_data(_transforms),
+                         detray::get_data(_masks),
+                         detray::get_data(_materials),
+                         detray::get_data(_accelerators),
+                         detray::get_data(_volume_accelerator)};
     }
 
     /// @returns const view of a detector
     DETRAY_HOST auto get_data() const -> const_view_type {
-        return const_view_type{
-            detray::get_data(_volumes),      detray::get_data(_surfaces),
-            detray::get_data(_transforms),   detray::get_data(_masks),
-            detray::get_data(_materials),    detray::get_data(_accelerators),
-            detray::get_data(_volume_finder)};
+        return const_view_type{detray::get_data(_volumes),
+                               detray::get_data(_surfaces),
+                               detray::get_data(_transforms),
+                               detray::get_data(_masks),
+                               detray::get_data(_materials),
+                               detray::get_data(_accelerators),
+                               detray::get_data(_volume_accelerator)};
     }
     /// Add the volume grid - move semantics
     ///
     /// @param v_grid the volume grid to be added
     DETRAY_HOST
-    inline auto set_volume_finder(volume_finder &&v_grid) -> void {
-        _volume_finder = std::move(v_grid);
+    inline auto set_volume_accelerator(volume_accelerator &&v_grid) -> void {
+        _volume_accelerator = std::move(v_grid);
     }
 
     /// Add the volume grid - copy semantics
     ///
     /// @param v_grid the volume grid to be added
     DETRAY_HOST
-    inline auto set_volume_finder(const volume_finder &v_grid) -> void {
-        _volume_finder = v_grid;
+    inline auto set_volume_accelerator(const volume_accelerator &v_grid)
+        -> void {
+        _volume_accelerator = v_grid;
     }
 
     private:
@@ -354,7 +359,7 @@ class detector {
     accelerator_container _accelerators;
 
     /// Search structure for volumes
-    volume_finder _volume_finder;
+    volume_accelerator _volume_accelerator;
 };
 
 }  // namespace detray

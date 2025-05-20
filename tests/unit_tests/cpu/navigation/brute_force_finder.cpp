@@ -105,6 +105,8 @@ GTEST_TEST(detray_navigation, brute_force_search) {
 
     using detector_t = decltype(det);
     using context_t = detector_t::geometry_context;
+    using object_id = typename detector_t::volume_type::object_id;
+
     context_t ctx{};
 
     struct navigation_cfg {
@@ -119,6 +121,6 @@ GTEST_TEST(detray_navigation, brute_force_search) {
     detail::ray<typename detector_t::algebra_type> trk({0.f, 0.f, 0.f}, 0.f,
                                                        {1.f, 0.f, 0.f}, -1.f);
 
-    vol.template visit_neighborhood<neighbor_visit_test>(trk, navigation_cfg{},
-                                                         ctx, test_vol_idx);
+    vol.template visit_neighborhood<object_id::e_all, neighbor_visit_test>(
+        trk, navigation_cfg{}, ctx, test_vol_idx);
 }
