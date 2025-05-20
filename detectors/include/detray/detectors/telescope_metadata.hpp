@@ -115,6 +115,7 @@ struct telescope_metadata {
     /// No grids/other acceleration data structure, everything is brute forced
     enum geo_objects : std::uint_least8_t {
         e_portal = 0,
+        e_passive = 0,
         e_sensitive = 1,
         e_size = 2,
         e_all = e_size,
@@ -138,7 +139,7 @@ struct telescope_metadata {
 
     /// Volume search (only one volume exists)
     template <typename container_t = host_container_types>
-    using volume_finder = brute_force_collection<dindex, container_t>;
+    using volume_accelerator = brute_force_collection<dindex, container_t>;
 };
 
 }  // namespace detray

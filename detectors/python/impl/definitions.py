@@ -33,6 +33,7 @@ class Type(StrEnum):
 
 
 class Algebra(StrEnum):
+    ANY = "concepts::algebra algebra_type"
     ARRAY = "detray::array"
     EIGEN = "detray::eigen"
     FASTOR = "detray::fastor"
@@ -47,25 +48,25 @@ class Algebra(StrEnum):
 class Shape:
     # ITk stereo annulus (r, phi)
     ANNULUS = cpp_class(specifier="detray::annulus2D")
-    # 2D cylinder, at the origin, no rotation
+    # 2D cylinder, at the origin, no rotation, single inters. sol. (r*phi, z)
     CONCENTRIC_CYLINDER = cpp_class(specifier="detray::concentric_cylinder2D")
     # 3D cubiod (x, y, z)
     CUBOID = cpp_class(specifier="detray::cuboid3D")
-    # 3D cylinder (r, phi, z)
-    CYLINDER2D = cpp_class(specifier="detray::cylinder2D")
     # 2D cylinder (r*phi, z)
+    CYLINDER2D = cpp_class(specifier="detray::cylinder2D")
+    # 3D cylinder (r, phi, z)
     CYLINDER3D = cpp_class(specifier="detray::cylinder3D")
     # line, square cross sec, (+-r, z)
-    DRIFT_CELL = cpp_class(specifier="detray::line_circular")
+    DRIFT_CELL = cpp_class(specifier="detray::line_square")
     # line, circular cross sec, (+-r, z)
-    STRAW_TUBE = cpp_class(specifier="detray::line_square")
+    STRAW_TUBE = cpp_class(specifier="detray::line_circular")
     # 2D rectangle (x, y)
     RECTANGLE = cpp_class(specifier="detray::rectangle2D")
     # 2D ring / disc (r, phi)
     RING = cpp_class(specifier="detray::ring2D")
     # 2D trapezoid (x, y)
     TRAPEZOID = cpp_class(specifier="detray::trapezoid2D")
-    # mask of any shape, always 'inside'= true
+    # Mask of any shape (to be added as 'param'), always 'inside'= true
     UNBOUNDED = cpp_class(specifier="detray::unbounded")
     # No shape
     UNMASKED = cpp_class(specifier="detray::unmasked")
@@ -75,9 +76,9 @@ class Shape:
 
 
 class Material:
-    # slab of material of given thickness
+    # Slab of material of given thickness
     SLAB = cpp_class(specifier="detray::slab")
-    # material with round cross sec, of given r
+    # Material with round cross sec, of given r
     ROD = cpp_class(specifier="detray::rod")
     # Homogeneous volume material
     VOLUME = cpp_class(specifier="detray::material")

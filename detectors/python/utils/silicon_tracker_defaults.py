@@ -20,13 +20,13 @@ def add_silicon_tracker_defaults(
 
     # Barrel Detector
     metadata.add_sensitive(Shape.RECTANGLE)
-    metadata.add_accel_structure(SurfaceAccelerator.CONCENTRIC_CYLINDER_GRID2D)
+    metadata.add_accel_struct(SurfaceAccelerator.CONCENTRIC_CYLINDER_GRID2D)
     if use_mat_maps:
         metadata.add_material(Material.CONCENTIRC_CYLINDER_MAP2D)
 
     # Endcap Detector
     metadata.add_sensitive(Shape.TRAPEZOID)
-    metadata.add_accel_structure(SurfaceAccelerator.DISC_GRID2D)
+    metadata.add_accel_struct(SurfaceAccelerator.DISC_GRID2D)
     if use_mat_maps:
         metadata.add_material(Material.DISC_MAP2D)
 

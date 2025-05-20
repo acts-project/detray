@@ -728,7 +728,8 @@ class navigator {
             use_path_tolerance_as_overstep_tolerance ? -cfg.path_tolerance
                                                      : cfg.overstep_tolerance;
 
-        volume.template visit_neighborhood<candidate_search>(
+        volume.template visit_neighborhood<volume_type::object_id::e_all,
+                                           candidate_search>(
             track, cfg, ctx, det, ctx, track, navigation,
             darray<scalar_type, 2u>{cfg.min_mask_tolerance,
                                     cfg.max_mask_tolerance},

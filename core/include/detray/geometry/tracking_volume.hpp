@@ -50,6 +50,7 @@ class tracking_volume {
     public:
     /// In case the geometry needs to be printed
     using name_map = dmap<dindex, std::string>;
+    using object_id = descr_t::object_id;
 
     /// Not allowed: always needs a detector and a descriptor.
     tracking_volume() = delete;
@@ -63,6 +64,11 @@ class tracking_volume {
     /// that detector.
     constexpr tracking_volume(const detector_t &det, const dindex vol_idx)
         : tracking_volume(det, det.volume(vol_idx)) {}
+
+    static consteval bool is_surface_id(const object_id id) {
+        return (id == object_id::e_portal || id == object_id::e_sensitive ||
+                id == object_id::e_passive);
+    }
 
     /// @returns access to the underlying detector
     DETRAY_HOST_DEVICE
@@ -133,16 +139,87 @@ class tracking_volume {
             m_desc.template sf_link<surface_id::e_portal>()};
     }
 
-    /// Apply a functor to all surfaces in the volume's acceleration structures
+    /// Apply a functor to all surfaces in one of the volume's acceleration
+    /// structures
+    ///
+    /// @tparam I type of object to retrieve (passive, portal, sensitive etc)
+    /// @tparam functor_t the prescription to be applied to the surfaces
+    /// @tparam Args      types of additional arguments to the functor
+    template <object_id I, typename functor_t, typename... Args>
+    DETRAY_HOST_DEVICE constexpr void visit_accelerator(Args &&... args) const {
+        static_assert(I < object_id::e_all);
+
+        if (const auto &link{m_desc.template accel_link<I>()};
+            !link.is_invalid()) {
+            if constexpr (tracking_volume::is_surface_id(I)) {
+                // Run over the surfaces in a single acceleration data structure
+                // and apply the functor to the resulting neighborhood
+                m_detector.accelerator_store().template visit<functor_t>(
+                    link, std::forward<Args>(args)...);
+            } else {
+                // TODO: Call volume accelerator to find daughter volumes
+                // [...]
+            }
+        }
+    }
+
+    /// Apply a functor to all acceleration structures of this volume.
+    ///
+    /// @tparam I type of object to retrieve (passive, portal, sensitive etc)
+    /// @tparam functor_t the prescription to be applied to the acc structure
+    /// @tparam Args      types of additional arguments to the functor
+    template <typename functor_t,
+              int I = static_cast<int>(object_id::e_all) - 1, typename... Args>
+    DETRAY_HOST_DEVICE constexpr void visit_accelerators(
+        Args &&... args) const {
+        // Get the acceleration data structures for this volume and only visit,
+        // if object type is contained in volume
+        visit_accelerator<static_cast<object_id>(I), functor_t>(
+            std::forward<Args>(args)...);
+        // Check the next surface type
+        if constexpr (I > 0) {
+            visit_accelerators<functor_t, I - 1, Args...>(
+                std::forward<Args>(args)...);
+        }
+    }
+
+    /// Apply a functor to all surfaces of a given surface id (portal, passive,
+    /// sensitive) in the volume
     ///
     /// @tparam functor_t the prescription to be applied to the surfaces
     /// @tparam Args      types of additional arguments to the functor
-    template <typename functor_t,
-              int I = static_cast<int>(descr_t::object_id::e_size) - 1,
-              typename... Args>
+    template <surface_id I, typename functor_t, typename... Args>
     DETRAY_HOST_DEVICE constexpr void visit_surfaces(Args &&... args) const {
-        visit_surfaces_impl<detail::surface_getter<functor_t>>(
-            std::forward<Args>(args)...);
+        using surface_getter_t = detail::surface_getter<functor_t>;
+
+        // Dispatch to the correct acceleration structure
+        switch (I) {
+            case surface_id::e_portal: {
+                visit_accelerator<object_id::e_portal, surface_getter_t>(
+                    std::forward<Args>(args)...);
+                break;
+            }
+            case surface_id::e_sensitive: {
+                visit_accelerator<object_id::e_sensitive, surface_getter_t>(
+                    std::forward<Args>(args)...);
+                break;
+            }
+            case surface_id::e_passive: {
+                visit_accelerator<object_id::e_passive, surface_getter_t>(
+                    std::forward<Args>(args)...);
+                break;
+            }
+            default: {
+                // Visit all surface types, but not other geomteric objects
+                // (e.g. daughter volumes)
+                visit_accelerator<object_id::e_portal, surface_getter_t>(
+                    std::forward<Args>(args)...);
+                visit_accelerator<object_id::e_sensitive, surface_getter_t>(
+                    std::forward<Args>(args)...);
+                visit_accelerator<object_id::e_passive, surface_getter_t>(
+                    std::forward<Args>(args)...);
+            }
+        }
     }
 
     /// Apply a functor to a neighborhood of surfaces around a track position
@@ -152,14 +229,20 @@ class tracking_volume {
     ///                   customization point for the navigation)
     /// @tparam track_t   the track around which to build up the neighborhood
     /// @tparam Args      types of additional arguments to the functor
-    template <typename functor_t,
-              int I = static_cast<int>(descr_t::object_id::e_size) - 1,
-              typename track_t, typename config_t, typename... Args>
+    template <object_id I, typename functor_t, typename track_t,
+              typename config_t, typename... Args>
     DETRAY_HOST_DEVICE constexpr void visit_neighborhood(
         const track_t &track, const config_t &cfg, const context_t &ctx,
         Args &&... args) const {
-        visit_surfaces_impl<detail::neighborhood_getter<functor_t>>(
-            m_detector, m_desc, track, cfg, ctx, std::forward<Args>(args)...);
+        if constexpr (I == object_id::e_all) {
+            visit_accelerators<detail::neighborhood_getter<functor_t>>(
+                m_detector, m_desc, track, cfg, ctx,
+                std::forward<Args>(args)...);
+        } else {
+            visit_accelerator<I, detail::neighborhood_getter<functor_t>>(
+                m_detector, m_desc, track, cfg, ctx,
+                std::forward<Args>(args)...);
+        }
     }
 
     /// Call a functor on the volume material with additional arguments.
@@ -298,32 +381,6 @@ class tracking_volume {
     }
 
     private:
-    /// Apply a functor to all acceleration structures of this volume.
-    ///
-    /// @tparam functor_t the prescription to be applied to the acc structure
-    /// @tparam Args      types of additional arguments to the functor
-    template <typename functor_t,
-              int I = static_cast<int>(descr_t::object_id::e_size) - 1,
-              typename... Args>
-    DETRAY_HOST_DEVICE constexpr void visit_surfaces_impl(
-        Args &&... args) const {
-        // Get the acceleration data structures for this volume and only visit,
-        // if object type is contained in volume
-        if (const auto &link{m_desc.template accel_link<
-                static_cast<typename descr_t::object_id>(I)>()};
-            !link.is_invalid()) {
-            // Run over the surfaces in a single acceleration data structure
-            // and apply the functor to the resulting neighborhood
-            m_detector.accelerator_store().template visit<functor_t>(
-                link, std::forward<Args>(args)...);
-        }
-        // Check the next surface type
-        if constexpr (I > 0) {
-            visit_surfaces_impl<functor_t, I - 1, Args...>(
-                std::forward<Args>(args)...);
-        }
-    }
-
     /// Access to the detector stores
     const detector_t &m_detector;
     /// Access to the descriptor

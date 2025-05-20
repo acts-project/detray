@@ -231,7 +231,7 @@ inline void check_empty(const detector_t &det, const bool verbose) {
     };
 
     // Check if there is at least one volume in the detector volume finder
-    auto find_volumes = [](const typename detector_t::volume_finder &vf) {
+    auto find_volumes = [](const typename detector_t::volume_accelerator &vf) {
         return std::ranges::any_of(vf.all(), [](const auto &v) {
             return !detail::is_invalid_value(v);
         });
@@ -279,7 +279,7 @@ inline void check_empty(const detector_t &det, const bool verbose) {
     }
 
     // Check volume search data structure
-    if (!find_volumes(det.volume_search_grid())) {
+    if (!find_volumes(det.get_volume_accelerator())) {
         std::cout << "WARNING: No entries in volume finder\n" << std::endl;
     }
 }
@@ -310,8 +310,8 @@ inline bool check_consistency(const detector_t &det, const bool verbose = false,
         }
 
         // Go through the acceleration data structures and check the surfaces
-        vol.template visit_surfaces<detail::surface_checker>(det, vol.index(),
-                                                             names);
+        vol.template visit_surfaces<surface_id::e_all, detail::surface_checker>(
+            det, vol.index(), names);
 
         // Check the volume material, if present
         if (vol.has_material()) {
@@ -345,7 +345,7 @@ inline bool check_consistency(const detector_t &det, const bool verbose = false,
         // brute force method)
         bool is_registered = false;
 
-        vol.template visit_surfaces<detail::surface_checker>(
+        vol.template visit_surfaces<surface_id::e_all, detail::surface_checker>(
             sf_desc, is_registered, det);
 
         if (!is_registered) {

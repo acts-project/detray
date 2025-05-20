@@ -88,7 +88,8 @@ class volume_graph {
             explicit node(const tracking_volume<detector_t> &volume)
                 : m_idx(volume.index()) {
                 // @TODO: Remove duplicates from multiple placements of surfaces
-                volume.template visit_surfaces<node_builder>(m_half_edges);
+                volume.template visit_surfaces<surface_id::e_all, node_builder>(
+                    m_half_edges);
             }
 
             /// @returns volume index of the node

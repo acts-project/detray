@@ -27,15 +27,22 @@ class metadata:
 
     def __init__(self, detector_name):
         self.det_name = detector_name
-        self.id_base = Type.UINT_8
+        self.algebra = Algebra.ANY
+        # Only relevant, if algebra type is not 'ANY'
+        self.precision = Type.SINGLE
+        self.id_base = Type.UINT_LEAST_8
         self.nav_link = link(link_type="single", data_type=Type.UINT_LEAST_16)
         self.mask_link = link(link_type="range", data_type=Type.UINT_32)
         self.material_link = link(link_type="single", data_type=Type.UINT_32)
         self.surface_types = []
         self.shapes = []
         self.materials = []
-        self.acceleration_structs = [SurfaceAccelerator.BRUTE_FORCE]
-        self.volume_finder = []
+        # Set brute force finder as default for portals and passives
+        self.acceleration_structs = {
+            "portal": [SurfaceAccelerator.BRUTE_FORCE],
+            "passive": [SurfaceAccelerator.BRUTE_FORCE],
+        }
+        self.volume_accelerator = []
 
     # Register a new geometric shape for a portal surface
     def add_portal(self, shape: Shape):
@@ -66,9 +73,11 @@ class metadata:
             self.materials.append(mat)
 
     # Register a new surface acceleration structure
-    def add_accel_structure(self, accel: SurfaceAccelerator):
-        if accel not in self.acceleration_structs:
-            self.acceleration_structs.append(accel)
+    def add_accel_struct(self, accel: SurfaceAccelerator, obj_type: str = "sensitive"):
+        if not obj_type in self.acceleration_structs.keys():
+            self.acceleration_structs[obj_type] = [accel]
+        elif not accel in self.acceleration_structs[obj_type]:
+            self.acceleration_structs[obj_type].append(accel)
 
 
 """ Class that accumulates detector type data and writes a metadat header """
@@ -81,7 +90,7 @@ class metadata_generator:
         md: metadata,
         log_level=logging.INFO,
     ):
-        # Internal state duriing header generation
+        # Internal state during header generation
         self.file = None
         self.logger = logging
         self.indent = 0
@@ -107,10 +116,17 @@ class metadata_generator:
         self.file = open(f"{src_dir}{md.det_name}_metadata.hpp", "w+")
 
         # Beginning of the header (copyright, includes etc.)
-        self.__preamble(md.det_name, md.shapes, md.materials, md.acceleration_structs)
+        self.__preamble(md)
 
         # Basic typedefs
-        self.__typedef("algebra_type", "algebra_t")
+        self.__typedef(
+            "algebra_type",
+            (
+                "algebra_t"
+                if md.algebra == Algebra.ANY
+                else f"{md.algebra}<{md.precision}>"
+            ),
+        )
         self.__typedef("scalar_t", "dscalar<algebra_type>")
         self.__lines(1)
         self.__typedef("nav_link", md.nav_link.data_type)
@@ -131,7 +147,7 @@ template <template <typename...> class vector_t = dvector>\n\
             self.__declare_mask(shape, "algebra_type", "nav_link", shape.param)
 
         self.__lines(2)
-        self.__make_type_enum("mask_id", self.shape_specifiers, md.id_base)
+        self.__declare_type_enum("mask_id", self.shape_specifiers, md.id_base)
         self.__lines(2)
 
         # Mask Store
@@ -145,7 +161,7 @@ template <template <typename...> class vector_t = dvector>\n\
 
             self.__lines(1)
             # Add an option for 'no material'
-            self.__make_type_enum(
+            self.__declare_type_enum(
                 "material_id", self.material_specifiers, md.id_base, ["none"]
             )
         self.__lines(2)
@@ -155,21 +171,62 @@ template <template <typename...> class vector_t = dvector>\n\
             "material_store", "material_id", self.material_specifiers, is_regular=False
         )
 
-        # Acceleration Structures (optional)
+        # Surface type to be used in surface accelerator types
+        self.__lines(2)
+        self.__declare_surface_descriptor(md)
+
+        # Acceleration Structures
+        assert (
+            md.acceleration_structs
+        ), "Define at least one default surface acceleration structure"
         if md.acceleration_structs:
             self.__lines(2)
-            for acc in md.acceleration_structs:
-                self.__declare_accel(acc, "algebra_type")
+            # Make sure an acceleration struct is declared only once,
+            # even if it is used for multiple surface types
+            unique_accel = []
+            for sf_type, accels in md.acceleration_structs.items():
+                for acc in accels:
+                    if not acc in unique_accel:
+                        self.__declare_accel(acc, "algebra_type")
+                        unique_accel.append(acc)
 
             self.__lines(1)
             # Add an option for 'no material'
-            self.__make_type_enum("accel_id", self.accel_specifiers, md.id_base)
+            self.__declare_type_enum(
+                "accel_id",
+                self.accel_specifiers,
+                md.id_base,
+                extra_items=[["default", "e_brute_force_finder"]],
+            )
         self.__lines(2)
 
         # Accelerator Store
         self.__declare_multi_store(
             "accelerator_store", "accel_id", self.accel_specifiers, is_regular=False
         )
+
+        # Volume definition
+        # Declare the surface types that are known to the volume
+        # (enum values link the sf type to the corresponding accel. struct)
+        self.__lines(2)
+        print(md.acceleration_structs)
+        self.__declare_type_enum(
+            "geo_objects",
+            md.surface_types,
+            md.id_base,
+            extra_items=[["size", f"{len(md.surface_types)}u"], ["all", "e_size"]],
+        )
+
+        # Add the surface acceleration struct link to the volume descriptor
+        self.__lines(2)
+        self.__put(
+            "using object_link_type = dmulti_index<dtyped_index<accel_ids, dindex>, geo_objects::e_size>;"
+        )
+
+        # Add the volume acceleration struct to the detector
+        self.__lines(2)
+        self.__put("template <typename container_t = host_container_types>\n")
+        self.__put("using volume_accelerator = ")
 
         self.__finish()
 
@@ -207,7 +264,7 @@ template <template <typename...> class vector_t = dvector>\n\
         return tokens[-1]
 
     # Beginning of the header
-    def __preamble(self, det_name, shapes, materials, accel_structs):
+    def __preamble(self, md: metadata):
         # Write the copyright statement
         year = datetime.now().year
         copy_right = f"\
@@ -219,13 +276,17 @@ template <template <typename...> class vector_t = dvector>\n\
  */"
         self.__put(copy_right)
         self.__lines(2)
-        self.__add_header_includes(shapes, materials, accel_structs)
+        self.__add_header_includes(md.shapes, md.materials, md.acceleration_structs)
         self.__lines(2)
         self.__put("namespace detray {")
         self.__lines(2)
         # Write the C++ metatdata struct definition
-        metadata_template_params = ["concepts::algeba algebra_type"]
-        struct_def = f"{self.__template_list(metadata_template_params)}\nstruct {det_name}_metadata {{"
+        template_params = (
+            f"{self.__template_list([md.algebra])}\n"
+            if md.algebra == Algebra.ANY
+            else ""
+        )
+        struct_def = f"{template_params}struct {md.det_name}_metadata {{"
         self.__put(struct_def)
         self.indent = self.indent + 1
         self.__lines(2)
@@ -236,6 +297,20 @@ template <template <typename...> class vector_t = dvector>\n\
         self.indent = self.indent - 1
         self.__put(f"}};\n\n}} // namespace detray")
         self.file.close()
+
+    # Declare the surface descriptor type with all links
+    def __declare_surface_descriptor(self, md: metadata):
+        self.__put("using transform_link = typename transform_store<>::link_type;\n")
+
+        mask_link = f"typename mask_store<>::{"single_link" if md.mask_link.link_type == "single" else "range_link"}"
+        self.__put(f"using mask_link = {mask_link};\n")
+
+        material_link = f"typename material_store<>::{"single_link" if md.material_link.link_type == "single" else "range_link"}"
+        self.__put(f"using material_link = {material_link};\n")
+
+        self.__put(
+            "using surface_type = surface_descriptor<mask_link, material_link, transform_link, nav_link>;"
+        )
 
     # Write a full mask type
     def __declare_mask(self, shape, algebra, link, shape_params={}):
@@ -294,14 +369,17 @@ template <template <typename...> class vector_t = dvector>\n\
         self.accel_specifiers.append(type_specifier)
 
     # Generate the shape IDs
-    def __make_type_enum(self, specifier, items, base_type, extra_items=[]):
+    def __declare_type_enum(self, specifier, items, base_type, extra_items=[]):
         self.__put(f"enum class {specifier} : {base_type} {{\n")
 
         self.indent = self.indent + 1
         for i, v in enumerate(items + extra_items):
+            # Special value was passed
+            item = v[0] if type(v) == list else v
+            value = v[1] if type(v) == list else f"{i}u"
             # Remove the trailing '_t' suffix
-            specifier = f"e_{v[:-2]}" if v.endswith("_t") else f"e_{v}"
-            self.__put(f"{specifier} = {i}u,\n")
+            specifier = f"e_{item[:-2]}" if item.endswith("_t") else f"e_{item}"
+            self.__put(f"{specifier} = {value},\n")
 
         self.indent = self.indent - 1
 
@@ -322,6 +400,18 @@ template <template <typename...> class vector_t = dvector>\n\
         # Shape class names
         shape_names = set(self.__name_from_specifier(s.specifier) for s in shapes)
 
+        # Correct the header name for the line surface
+        add_line = False
+        if "line_circular" in shape_names:
+            shape_names.remove("line_circular")
+            add_line = True
+        if "line_square" in shape_names:
+            shape_names.remove("line_square")
+            add_line = True
+
+        if add_line and not "line" in shape_names:
+            shape_names.add("line")
+
         # Material class names
         mat_names = set(self.__name_from_specifier(m.specifier) for m in materials)
         # Add shapes for material maps that have not been added, yet
@@ -337,7 +427,9 @@ template <template <typename...> class vector_t = dvector>\n\
 
         # Acceleration structure class names
         accel_names = set(
-            self.__name_from_specifier(a.specifier) for a in accel_structs
+            self.__name_from_specifier(a.specifier)
+            for accels in accel_structs.values()
+            for a in accels
         )
         if "grid" in accel_names:
             accel_names.remove("grid")
@@ -349,7 +441,8 @@ template <template <typename...> class vector_t = dvector>\n\
                     if a.param
                     else None
                 )
-                for a in accel_structs
+                for accels in accel_structs.values()
+                for a in accels
             )
 
         # Add the corresponding includes
