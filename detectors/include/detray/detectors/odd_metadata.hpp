@@ -158,7 +158,7 @@ struct odd_metadata {
 
     /// Volume search grid
     template <typename container_t = host_container_types>
-    using volume_finder =
+    using volume_accelerator =
         grid<algebra_type,
              axes<cylinder3D, axis::bounds::e_open, axis::irregular,
                   axis::regular, axis::irregular>,
