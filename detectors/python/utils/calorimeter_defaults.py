@@ -9,7 +9,7 @@
 # --------------------------------------------------------------------------
 
 from impl import metadata
-from impl import Shape, Material
+from impl import Shape, Material, Accelerator
 
 """ Types that are typically needed for calorimeters """
 
@@ -28,5 +28,9 @@ def add_calorimeter_defaults(
         metadata.add_material(Material.CYLINDER_MAP3D)
     if use_homogeneous_mat:
         metadata.add_material(Material.VOLUME)
+
+    # Acceleration Struct for portals and passives
+    metadata.add_accel_struct(Accelerator.BRUTE_FORCE, "portal")
+    metadata.add_accel_struct(Accelerator.BRUTE_FORCE, "passive")
 
     # TODO: Add acceleration structures (e.g. Frustum navigation)

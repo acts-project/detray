@@ -21,8 +21,8 @@
 #include "detray/geometry/shapes/ring2D.hpp"
 #include "detray/materials/material_map.hpp"
 #include "detray/materials/material_slab.hpp"
+#include "detray/navigation/accelerators/accelerator_grid.hpp"
 #include "detray/navigation/accelerators/brute_force_finder.hpp"
-#include "detray/navigation/accelerators/surface_grid.hpp"
 
 // Linear algebra types
 #include "detray/definitions/algebra.hpp"
@@ -140,6 +140,7 @@ struct itk_metadata {
         e_surface = 0u,  //< This detector keeps all surfaces in the same
         e_portal = 0u,   //  acceleration data structure (id 0)
         e_passive = 0u,
+        e_volume = 1u,
         e_size = 1u
     };
 
@@ -155,15 +156,6 @@ struct itk_metadata {
     using object_link_type =
         dmulti_index<dtyped_index<accel_ids, dindex>, geo_objects::e_size>;
 
-    /// The tuple store that hold the acceleration data structures for all
-    /// volumes. Every collection of accelerationdata structures defines its
-    /// own container and view type. Does not make use of conditions data
-    /// ( @c empty_context )
-    template <typename container_t = host_container_types>
-    using accelerator_store =
-        multi_store<accel_ids, empty_context, dtuple,
-                    brute_force_collection<surface_type, container_t>>;
-
     /// Data structure that allows to find the current detector volume from a
     /// given position. Here: Uniform grid with a 3D cylindrical shape
     template <typename container_t = host_container_types>
@@ -171,7 +163,17 @@ struct itk_metadata {
         grid<algebra_type,
              axes<cylinder3D, axis::bounds::e_open, axis::irregular,
                   axis::regular, axis::irregular>,
-             bins::single<dindex>, simple_serializer, container_t>;
+             bins::single<dindex>, simple_serializer, container_t, false>;
+
+    /// The tuple store that hold the acceleration data structures for all
+    /// volumes. Every collection of accelerationdata structures defines its
+    /// own container and view type. Does not make use of conditions data
+    /// ( @c empty_context )
+    template <typename container_t = host_container_types>
+    using accelerator_store =
+        multi_store<accel_ids, empty_context, dtuple,
+                    brute_force_collection<surface_type, container_t>,
+                    grid_collection<volume_accelerator<container_t>>>;
 };
 
 }  // namespace detray

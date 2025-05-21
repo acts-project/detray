@@ -131,15 +131,16 @@ struct telescope_metadata {
     using object_link_type =
         dmulti_index<dtyped_index<accel_ids, dindex>, geo_objects::e_size>;
 
+    /// Volume search (only one volume exists)
+    template <typename container_t = host_container_types>
+    using volume_accelerator = brute_force_collection<dindex, container_t>;
+
     /// How to store the brute force search data structure
     template <typename container_t = host_container_types>
     using accelerator_store =
         multi_store<accel_ids, empty_context, dtuple,
-                    brute_force_collection<surface_type, container_t>>;
-
-    /// Volume search (only one volume exists)
-    template <typename container_t = host_container_types>
-    using volume_accelerator = brute_force_collection<dindex, container_t>;
+                    brute_force_collection<surface_type, container_t>,
+                    volume_accelerator<container_t>>;
 };
 
 }  // namespace detray

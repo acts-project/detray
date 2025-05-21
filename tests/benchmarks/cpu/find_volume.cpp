@@ -39,7 +39,8 @@ void BM_FIND_VOLUMES(benchmark::State &state) {
 
     static const unsigned int itest = 10000u;
 
-    auto &volume_grid = d.get_volume_accelerator();
+    constexpr auto vol_grid_idx{decltype(d)::accel::id::e_volume_grid};
+    auto &volume_grid = d.accelerator_store().template get<vol_grid_idx>();
 
     const auto &axis_r = volume_grid.get_axis<axis::label::e_r>();
     const auto &axis_z = volume_grid.get_axis<axis::label::e_z>();

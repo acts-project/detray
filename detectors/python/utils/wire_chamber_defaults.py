@@ -9,7 +9,7 @@
 # --------------------------------------------------------------------------
 
 from impl import metadata
-from impl import Shape, Material, SurfaceAccelerator
+from impl import Shape, Material, Accelerator
 
 """ Types that are typically needed for wirechamber-like """
 
@@ -27,7 +27,7 @@ def add_wire_chamber_defaults(
     metadata.add_portal(Shape.RING)
 
     # Surface acceleration structure for the wires
-    metadata.add_accel_struct(SurfaceAccelerator.CONCENTRIC_CYLINDER_GRID2D)
+    metadata.add_accel_struct(Accelerator.CONCENTRIC_CYLINDER_GRID2D, "sensitive")
 
     if use_mat_maps:
         # Sensitive material
@@ -43,3 +43,10 @@ def add_wire_chamber_defaults(
         metadata.add_material(Material.ROD)
         # Model the gas content
         metadata.add_material(Material.VOLUME)
+
+    # Acceleration struct for portals and passives
+    metadata.add_accel_struct(Accelerator.BRUTE_FORCE, "portal")
+    metadata.add_accel_struct(Accelerator.BRUTE_FORCE, "passive")
+
+    # Volume accelerator for layered cylindrical detectors
+    metadata.add_accel_struct(Accelerator.CUBOID_GRID3D, "volume")

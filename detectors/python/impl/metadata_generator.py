@@ -11,8 +11,7 @@ from .definitions import (
     Algebra,
     Shape,
     Material,
-    SurfaceAccelerator,
-    VolumeAccelerator,
+    Accelerator,
 )
 
 # Python includes
@@ -39,10 +38,8 @@ class metadata:
         self.materials = []
         # Set brute force finder as default for portals and passives
         self.acceleration_structs = {
-            "portal": [SurfaceAccelerator.BRUTE_FORCE],
-            "passive": [SurfaceAccelerator.BRUTE_FORCE],
+            "portal": [Accelerator.BRUTE_FORCE],
         }
-        self.volume_accelerator = []
 
     # Register a new geometric shape for a portal surface
     def add_portal(self, shape: Shape):
@@ -73,7 +70,7 @@ class metadata:
             self.materials.append(mat)
 
     # Register a new surface acceleration structure
-    def add_accel_struct(self, accel: SurfaceAccelerator, obj_type: str = "sensitive"):
+    def add_accel_struct(self, accel: Accelerator, obj_type: str = "sensitive"):
         if not obj_type in self.acceleration_structs.keys():
             self.acceleration_structs[obj_type] = [accel]
         elif not accel in self.acceleration_structs[obj_type]:
@@ -208,14 +205,32 @@ template <template <typename...> class vector_t = dvector>\n\
         # Volume definition
         # Declare the surface types that are known to the volume
         # (enum values link the sf type to the corresponding accel. struct)
+
+        # Find which geometric objects go together into which accel. struct
+        accel_types = {}
+        for t, accels in md.acceleration_structs.items():
+            for a in accels:
+                specifier = f"{a.specifier}"
+
+                if not specifier in accel_types:
+                    accel_types[specifier] = set()
+
+                accel_types[specifier].add(t)
+
+        # Write the id enum for the accel. link entries
         self.__lines(2)
-        print(md.acceleration_structs)
-        self.__declare_type_enum(
-            "geo_objects",
-            md.surface_types,
-            md.id_base,
-            extra_items=[["size", f"{len(md.surface_types)}u"], ["all", "e_size"]],
-        )
+        self.__put(f"enum class geo_objects : {md.id_base} {{\n")
+
+        self.indent = self.indent + 1
+
+        print(accel_types)
+        for i, (accel, obj_set) in enumerate(accel_types.items()):
+            for geo_obj in obj_set:
+                self.__put(f"e_{geo_obj} = {i}u,\n")
+
+        self.indent = self.indent - 1
+
+        self.__put(f"}};")
 
         # Add the surface acceleration struct link to the volume descriptor
         self.__lines(2)
@@ -433,7 +448,7 @@ template <template <typename...> class vector_t = dvector>\n\
         )
         if "grid" in accel_names:
             accel_names.remove("grid")
-            accel_names.add("surface_grid")
+            accel_names.add("accelerator_grid")
             # Add shapes for surface grids that have not been added, yet
             shape_names.update(
                 (
