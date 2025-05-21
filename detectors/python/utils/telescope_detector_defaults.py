@@ -9,7 +9,7 @@
 # --------------------------------------------------------------------------
 
 from impl import metadata
-from impl import Shape, Material
+from impl import Shape, Material, Accelerator
 
 """ Types that are typically needed for telescope detectors """
 
@@ -29,3 +29,10 @@ def add_telescope_detector_defaults(
     # Sensitive material
     if use_homogeneous_mat:
         metadata.add_material(Material.SLAB)
+
+    # Acceleration struct for portals and passives
+    metadata.add_accel_struct(Accelerator.BRUTE_FORCE, "portal")
+    metadata.add_accel_struct(Accelerator.BRUTE_FORCE, "passive")
+
+    # Acceleration struct for telescope detector volumes
+    metadata.add_accel_struct(Accelerator.BRUTE_FORCE, "volume")

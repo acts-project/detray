@@ -116,10 +116,10 @@ class Material:
     )
 
 
-""" Available surface acceleration structure types """
+""" Available surface/volume acceleration structure types """
 
 
-class SurfaceAccelerator:
+class Accelerator:
     # Test all registered surfaces
     BRUTE_FORCE = cpp_class(specifier="detray::brute_force_finder")
     # Surface grid, cylindrical 2D (barrel)
@@ -141,26 +141,4 @@ class SurfaceAccelerator:
         specifier="detray::grid", param={"shape": Shape.RECTANGLE}
     )
     # Surface grid, cuboid 3D (telescope)
-    CUBOID_GRID3D = cpp_class(specifier="detray::grid", param={"shape": Shape.CUBOID})
-
-
-""" Available volume acceleration structure types """
-
-
-class VolumeAccelerator:
-    # Test all registered volumes
-    BRUTE_FORCE = cpp_class(specifier="detray::brute_force_finder")
-    # Cylindrical detector, mult. vol. per bin
-    CYLINDER_GRID2D = cpp_class(
-        specifier="detray::grid", param={"shape": Shape.CYLINDER2D}
-    )
-    # Cylindrical detector, one vol. per bin
-    CYLINDER_GRID3D = cpp_class(
-        specifier="detray::grid", param={"shape": Shape.CYLINDER3D}
-    )
-    # Telescope detector
-    RECTANGLE_GRID2D = cpp_class(
-        specifier="detray::grid", param={"shape": Shape.RECTANGLE}
-    )
-    # Telescope detector
     CUBOID_GRID3D = cpp_class(specifier="detray::grid", param={"shape": Shape.CUBOID})

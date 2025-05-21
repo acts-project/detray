@@ -65,9 +65,15 @@ class tracking_volume {
     constexpr tracking_volume(const detector_t &det, const dindex vol_idx)
         : tracking_volume(det, det.volume(vol_idx)) {}
 
+    /// @returns true if the object ID corresponds to a surface
     static consteval bool is_surface_id(const object_id id) {
         return (id == object_id::e_portal || id == object_id::e_sensitive ||
                 id == object_id::e_passive);
+    }
+
+    /// @returns true if the object ID corresponds to a [daughter] volume
+    static consteval bool is_volume_id(const object_id id) {
+        return (id == object_id::e_volume);
     }
 
     /// @returns access to the underlying detector

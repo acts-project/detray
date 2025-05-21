@@ -14,6 +14,7 @@
 #include "detray/materials/detail/concepts.hpp"
 #include "detray/materials/detail/material_accessor.hpp"
 #include "detray/materials/material.hpp"
+#include "detray/navigation/concepts.hpp"
 
 namespace detray::detail {
 
@@ -43,20 +44,44 @@ struct get_material_params {
     }
 };
 
-/// A functor to access the surfaces of a volume
+/// A functor to access the surfaces of a volume in a particular acceleration
+/// structure
 template <typename functor_t>
 struct surface_getter {
 
-    /// Call operator that forwards the neighborhood search call in a volume
-    /// to a surface finder data structure
+    /// Call operator that forwards the functor to all contained surfaces
     template <typename accel_group_t, typename accel_index_t, typename... Args>
     DETRAY_HOST_DEVICE inline void operator()(const accel_group_t &group,
                                               const accel_index_t index,
                                               Args &&... args) const {
 
-        // Run over the surfaces in a single acceleration data structure
-        for (const auto &sf : group[index].all()) {
-            functor_t{}(sf, std::forward<Args>(args)...);
+        using accel_type = typename accel_group_t::value_type;
+
+        if constexpr (concepts::surface_accelerator<accel_type>) {
+            // Run over the surfaces in a single acceleration data structure
+            for (const auto &sf : group[index].all()) {
+                functor_t{}(sf, std::forward<Args>(args)...);
+            }
+        }
+    }
+};
+
+/// A functor to access the daughter volumes of a volume
+template <typename functor_t>
+struct daughter_volume_getter {
+
+    /// Call operator that forwards the functor call to all contained daughter
+    /// volumes
+    template <typename accel_group_t, typename accel_index_t, typename... Args>
+    DETRAY_HOST_DEVICE inline void operator()(const accel_group_t &group,
+                                              const accel_index_t index,
+                                              Args &&... args) const {
+
+        using accel_type = typename accel_group_t::value_type;
+
+        if constexpr (concepts::volume_accelerator<accel_type>) {
+            // Run over all the daughter volumes
+            // TODO: Implement e.g. BVH
         }
     }
 };

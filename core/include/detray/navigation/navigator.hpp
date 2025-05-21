@@ -694,6 +694,18 @@ class navigator {
                 sf.is_portal() ? darray<scalar_type, 2>{0.f, 0.f} : mask_tol,
                 mask_tol_scalor, overstep_tol);
         }
+
+        /// Test the volume links
+        template <typename track_t>
+        DETRAY_HOST_DEVICE void operator()(
+            const dindex & /*vol_idx*/, const detector_type & /*det*/,
+            const context_type & /*ctx*/, const track_t & /*track*/,
+            state & /*nav_state*/, const darray<scalar_type, 2> /*mask_tol*/,
+            const scalar_type /*mask_tol_scalor*/,
+            const scalar_type /*overstep_tol*/) const {
+
+            // Do not search for daughter volumes
+        }
     };
 
     public:

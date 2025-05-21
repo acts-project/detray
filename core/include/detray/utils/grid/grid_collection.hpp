@@ -31,15 +31,15 @@ class grid_collection {};
 /// Specialization for @c detray::grid
 ///
 /// @todo refactor this, grid_data and grid_view as detray::ranges::grid_view
-template <typename axes_t, typename bin_t,
-          template <std::size_t> class serializer_t>
-requires(!detray::grid_impl<axes_t, bin_t, serializer_t>::
-             is_owning) class grid_collection<detray::grid_impl<axes_t, bin_t,
-                                                                serializer_t>> {
+template <
+    template <typename, typename, template <std::size_t> class> class grid_t,
+    typename axes_t, typename bin_t, template <std::size_t> class serializer_t>
+requires(!grid_t<axes_t, bin_t, serializer_t>::is_owning) class grid_collection<
+    grid_t<axes_t, bin_t, serializer_t>> {
 
-    using grid_type = detray::grid_impl<axes_t, bin_t, serializer_t>;
+    using grid_type = grid_t<axes_t, bin_t, serializer_t>;
     using const_grid_type =
-        const detray::grid_impl<const axes_t, const bin_t, serializer_t>;
+        const grid_t<const axes_t, const bin_t, serializer_t>;
     using multi_axis_t = typename grid_type::axes_type;
 
     public:

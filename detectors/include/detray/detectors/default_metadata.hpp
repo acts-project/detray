@@ -21,8 +21,8 @@
 #include "detray/materials/material_map.hpp"
 #include "detray/materials/material_rod.hpp"
 #include "detray/materials/material_slab.hpp"
+#include "detray/navigation/accelerators/accelerator_grid.hpp"
 #include "detray/navigation/accelerators/brute_force_finder.hpp"
-#include "detray/navigation/accelerators/surface_grid.hpp"
 
 namespace detray {
 
@@ -110,8 +110,8 @@ struct default_metadata {
     // surface grid definition: bin-content: darray<surface_type, 9>
     template <typename axes_t, typename bin_entry_t, typename container_t>
     using surface_grid_t =
-        grid<algebra_type, axes_t, bins::dynamic_array<bin_entry_t>,
-             simple_serializer, container_t, false>;
+        accelerator_grid<algebra_type, axes_t, bins::dynamic_array<bin_entry_t>,
+                         simple_serializer, container_t, false>;
 
     // 2D cylindrical grid for the barrel layers
     template <typename bin_entry_t, typename container_t>
@@ -254,8 +254,10 @@ unbounded_cell, unmasked_plane*/>;
         e_cylinder2_grid = 2,  // e.g. barrel layers
         e_irr_disc_grid = 3,
         e_irr_cylinder2_grid = 4,
-        // e_cylinder3_grid = 5,
-        // e_irr_cylinder3_grid = 6,
+        e_volume_brute_force = 5,
+        e_volume_cylinder3_grid = 6,
+        // e_cylinder3_grid = 7,
+        // e_irr_cylinder3_grid = 8,
         // ... e.g. frustum navigation types
         e_default = e_brute_force,
     };
@@ -264,6 +266,15 @@ unbounded_cell, unmasked_plane*/>;
     /// In this case: One link for portals/passives and one sensitive surfaces
     using object_link_type =
         dmulti_index<dtyped_index<accel_ids, dindex>, geo_objects::e_size>;
+
+    /// Volume search grid
+    template <typename container_t = host_container_types>
+    using volume_accelerator =
+        accelerator_grid<algebra_type,
+                         axes<cylinder3D, axis::bounds::e_open, axis::irregular,
+                              axis::regular, axis::irregular>,
+                         bins::single<dindex>, simple_serializer, container_t,
+                         false>;
 
     /// How to store the acceleration data structures
     template <typename container_t = host_container_types>
@@ -275,20 +286,13 @@ unbounded_cell, unmasked_plane*/>;
                         cylinder2D_sf_grid<surface_type, container_t>>,
                     grid_collection<
                         irr_disc_sf_grid<surface_type, container_t>>,
-                    grid_collection<irr_cylinder2D_sf_grid<
-                        surface_type, container_t>> /*,
+                    grid_collection<
+                        irr_cylinder2D_sf_grid<surface_type, container_t>>,
+                    grid_collection<volume_accelerator<container_t>> /*,
 grid_collection<cylinder3D_sf_grid<surface_type,
 container_t>>,
 grid_collection<irr_cylinder3D_sf_grid<surface_type,
 container_t>>*/>;
-
-    /// Volume search grid
-    template <typename container_t = host_container_types>
-    using volume_accelerator =
-        grid<algebra_type,
-             axes<cylinder3D, axis::bounds::e_open, axis::irregular,
-                  axis::regular, axis::irregular>,
-             bins::single<dindex>, simple_serializer, container_t>;
 };
 
 }  // namespace detray

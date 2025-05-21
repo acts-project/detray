@@ -261,9 +261,9 @@ inline auto build_telescope_detector(
     // (!) The portals must be added after the modules to fit them correctly
     vm_builder->add_surfaces(portal_generator);
 
-    det_builder.set_volume_accelerator(resource);
-    det_builder.get_volume_accelerator().push_back(
-        std::vector<dindex>{vm_builder->vol_index()});
+    /*det_builder.set_volume_accelerator(resource);
+    det_builder.volume_accelerator().push_back(
+        std::vector<dindex>{vm_builder->vol_index()});*/
 
     // If requested, add homogeneous volume material
     if (cfg.volume_material() != detray::vacuum<scalar_t>{}) {

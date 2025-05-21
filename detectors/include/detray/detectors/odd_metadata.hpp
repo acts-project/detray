@@ -21,8 +21,8 @@
 #include "detray/geometry/shapes/trapezoid2D.hpp"
 #include "detray/materials/material_map.hpp"
 #include "detray/materials/material_slab.hpp"
+#include "detray/navigation/accelerators/accelerator_grid.hpp"
 #include "detray/navigation/accelerators/brute_force_finder.hpp"
-#include "detray/navigation/accelerators/surface_grid.hpp"
 
 namespace detray {
 
@@ -129,10 +129,11 @@ struct odd_metadata {
 
     /// Portals and passives in the brute froce search, sensitives in the grids
     enum geo_objects : std::uint_least8_t {
-        e_portal = 0,
-        e_passive = 0,
-        e_sensitive = 1,
-        e_size = 2,
+        e_portal = 0u,
+        e_passive = 0u,
+        e_sensitive = 1u,
+        e_volume = 2u,
+        e_size = 3u,
         e_all = e_size,
     };
 
@@ -141,6 +142,7 @@ struct odd_metadata {
         e_brute_force = 0,     // test all surfaces in a volume (brute force)
         e_disc_grid = 1,       // endcap
         e_cylinder2_grid = 2,  // barrel
+        e_volume_cylinder3_grid = 3,
         e_default = e_brute_force,
     };
 
@@ -148,21 +150,22 @@ struct odd_metadata {
     using object_link_type =
         dmulti_index<dtyped_index<accel_ids, dindex>, geo_objects::e_size>;
 
-    /// How to store the acceleration data structures
-    template <typename container_t = host_container_types>
-    using accelerator_store = multi_store<
-        accel_ids, empty_context, dtuple,
-        brute_force_collection<surface_type, container_t>,
-        grid_collection<disc_sf_grid<surface_type, container_t>>,
-        grid_collection<cylinder_sf_grid<surface_type, container_t>>>;
-
     /// Volume search grid
     template <typename container_t = host_container_types>
     using volume_accelerator =
         grid<algebra_type,
              axes<cylinder3D, axis::bounds::e_open, axis::irregular,
                   axis::regular, axis::irregular>,
-             bins::single<dindex>, simple_serializer, container_t>;
+             bins::single<dindex>, simple_serializer, container_t, false>;
+
+    /// How to store the acceleration data structures
+    template <typename container_t = host_container_types>
+    using accelerator_store = multi_store<
+        accel_ids, empty_context, dtuple,
+        brute_force_collection<surface_type, container_t>,
+        grid_collection<disc_sf_grid<surface_type, container_t>>,
+        grid_collection<cylinder_sf_grid<surface_type, container_t>>,
+        grid_collection<volume_accelerator<container_t>>>;
 };
 
 }  // namespace detray

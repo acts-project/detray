@@ -5,7 +5,7 @@
 # Mozilla Public License Version 2.0
 
 from impl import metadata, metadata_generator
-from impl import Shape, Material, SurfaceAccelerator
+from impl import Shape, Material, Accelerator
 from utils import (
     add_calorimeter_defaults,
     add_silicon_tracker_defaults,
@@ -48,8 +48,8 @@ def __main__():
     # md.add_material(Material.CYLINDER_MAP2D)
 
     # Add surface acceleration structures
-    # md.add_accel_struct(SurfaceAccelerator.CYLINDER_GRID3D)
-    # md.add_accel_struct(SurfaceAccelerator.CUBOID_GRID3D)
+    # md.add_accel_struct(Accelerator.CYLINDER_GRID3D)
+    # md.add_accel_struct(Accelerator.CUBOID_GRID3D)
 
     # Dump the metadata to header file
     metadata_generator(md)

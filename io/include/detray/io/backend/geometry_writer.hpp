@@ -190,7 +190,7 @@ class geometry_writer {
         }
     };
 
-    /// Retrieve @c acc_links_payload from surface_tore collection
+    /// Retrieve @c acc_links_payload from accelerator_store collection
     struct get_acc_link_payload {
         template <typename acc_group_t, typename index_t>
         constexpr auto operator()(const acc_group_t&,
