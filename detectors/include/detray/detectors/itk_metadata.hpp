@@ -21,8 +21,8 @@
 #include "detray/geometry/surface_descriptor.hpp"
 #include "detray/materials/material_map.hpp"
 #include "detray/materials/material_slab.hpp"
-#include "detray/navigation/accelerators/accelerator_grid.hpp"
-#include "detray/navigation/accelerators/brute_force_finder.hpp"
+#include "detray/navigation/accelerators/brute_force_searcher.hpp"
+#include "detray/navigation/accelerators/grid_searcher.hpp"
 
 // Linear algebra types
 #include "detray/definitions/algebra.hpp"
@@ -264,10 +264,11 @@ struct itk_metadata {
     /// given position. Here: Uniform grid with a 3D cylindrical shape
     template <typename container_t = host_container_types>
     using volume_accelerator =
-        grid<algebra_type,
-             axes<cylinder3D, axis::bounds::e_open, axis::irregular,
-                  axis::regular, axis::irregular>,
-             bins::single<dindex>, simple_serializer, container_t, false>;
+        grid_searcher<algebra_type,
+                      axes<cylinder3D, axis::bounds::e_open, axis::irregular,
+                           axis::regular, axis::irregular>,
+                      bins::single<dindex>, simple_serializer, container_t,
+                      false>;
 
     /// The tuple store that hold the acceleration data structures for all
     /// volumes. Every collection of accelerationdata structures defines its

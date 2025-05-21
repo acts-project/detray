@@ -50,16 +50,17 @@ template <typename functor_t>
 struct surface_getter {
 
     /// Call operator that forwards the functor to all contained surfaces
-    template <typename accel_group_t, typename accel_index_t, typename... Args>
-    DETRAY_HOST_DEVICE inline void operator()(const accel_group_t &group,
+    template <concepts::accelerator_collection accel_coll_t,
+              typename accel_index_t, typename... Args>
+    DETRAY_HOST_DEVICE inline void operator()(const accel_coll_t &coll,
                                               const accel_index_t index,
                                               Args &&...args) const {
 
-        using accel_type = typename accel_group_t::value_type;
+        using accel_type = typename accel_coll_t::value_type;
 
         if constexpr (concepts::surface_accelerator<accel_type>) {
             // Run over the surfaces in a single acceleration data structure
-            for (const auto &sf : group[index].all()) {
+            for (const auto &sf : coll[index].all()) {
                 functor_t{}(sf, std::forward<Args>(args)...);
             }
         }
@@ -68,16 +69,17 @@ struct surface_getter {
 
 /// A functor to access the daughter volumes of a volume
 template <typename functor_t>
-struct daughter_volume_getter {
+struct volume_getter {
 
     /// Call operator that forwards the functor call to all contained daughter
     /// volumes
-    template <typename accel_group_t, typename accel_index_t, typename... Args>
-    DETRAY_HOST_DEVICE inline void operator()(const accel_group_t &group,
-                                              const accel_index_t index,
-                                              Args &&...args) const {
+    template <concepts::accelerator_collection accel_coll_t,
+              typename accel_index_t, typename... Args>
+    DETRAY_HOST_DEVICE inline void operator()(const accel_coll_t &,
+                                              const accel_index_t,
+                                              Args &&...) const {
 
-        using accel_type = typename accel_group_t::value_type;
+        using accel_type = typename accel_coll_t::value_type;
 
         if constexpr (concepts::volume_accelerator<accel_type>) {
             // Run over all the daughter volumes
@@ -92,17 +94,17 @@ struct neighborhood_getter {
 
     /// Call operator that forwards the neighborhood search call in a volume
     /// to a surface finder data structure
-    template <typename accel_group_t, typename accel_index_t,
-              typename detector_t, typename track_t, typename config_t,
-              typename... Args>
+    template <concepts::accelerator_collection accel_coll_t,
+              typename accel_index_t, typename detector_t, typename track_t,
+              typename config_t, typename... Args>
     DETRAY_HOST_DEVICE inline void operator()(
-        const accel_group_t &group, const accel_index_t index,
+        const accel_coll_t &coll, const accel_index_t index,
         const detector_t &det, const typename detector_t::volume_type &volume,
         const track_t &track, const config_t &cfg,
         const typename detector_t::geometry_context &ctx,
         Args &&...args) const {
 
-        decltype(auto) accel = group[index];
+        decltype(auto) accel = coll[index];
 
         // Run over the surfaces in a single acceleration data structure
         for (const auto &sf : accel.search(det, volume, track, cfg, ctx)) {
@@ -113,10 +115,11 @@ struct neighborhood_getter {
 
 /// Query the maximal number of candidates from the acceleration
 struct n_candidates_getter {
-    template <typename accel_group_t, typename accel_index_t>
-    DETRAY_HOST_DEVICE inline auto operator()(const accel_group_t &group,
+    template <concepts::accelerator_collection accel_coll_t,
+              typename accel_index_t>
+    DETRAY_HOST_DEVICE inline auto operator()(const accel_coll_t &coll,
                                               const accel_index_t index) const {
-        return group[index].n_max_candidates();
+        return coll[index].n_max_candidates();
     }
 };
 
