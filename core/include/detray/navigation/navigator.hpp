@@ -700,6 +700,18 @@ class navigator {
                 sf.is_portal() ? darray<scalar_type, 2>{0.f, 0.f} : mask_tol,
                 mask_tol_scalor, overstep_tol);
         }
+
+        /// Test the volume links
+        template <typename track_t>
+        DETRAY_HOST_DEVICE void operator()(
+            const dindex & /*vol_idx*/, const detector_type & /*det*/,
+            const context_type & /*ctx*/, const track_t & /*track*/,
+            state & /*nav_state*/, const darray<scalar_type, 2> /*mask_tol*/,
+            const scalar_type /*mask_tol_scalor*/,
+            const scalar_type /*overstep_tol*/) const {
+
+            // Do not search for daughter volumes
+        }
     };
 
     public:
@@ -735,7 +747,8 @@ class navigator {
             use_path_tolerance_as_overstep_tolerance ? -cfg.path_tolerance
                                                      : cfg.overstep_tolerance;
 
-        volume.template visit_neighborhood<candidate_search>(
+        volume.template visit_neighborhood<volume_type::object_id::e_all,
+                                           candidate_search>(
             track, cfg, ctx, det, ctx, track, navigation,
             darray<scalar_type, 2u>{cfg.min_mask_tolerance,
                                     cfg.max_mask_tolerance},
