@@ -115,7 +115,7 @@ class detector_builder {
             vol_builder->build(det);
         }
 
-        det.set_volume_accelerator(std::move(m_vol_finder));
+        // TODO: Make fully generic for more volume accelerator types
 
         // TODO: Add sorting, data deduplication etc. here later...
 
@@ -142,7 +142,7 @@ class detector_builder {
     }
 
     /// Put the volumes into a search data structure
-    template <typename... Args>
+    /*template <typename... Args>
     DETRAY_HOST void set_volume_accelerator([[maybe_unused]] Args&&... args) {
 
         using vol_finder_t = typename detector_type::volume_accelerator;
@@ -173,13 +173,7 @@ class detector_builder {
         } else {
             m_vol_finder = vol_finder_t{args...};
         }
-    }
-
-    /// @returns access to the volume finder
-    DETRAY_HOST typename detector_type::volume_accelerator&
-    get_volume_accelerator() {
-        return m_vol_finder;
-    }
+    }*/
 
     private:
     /// Name of the new detector
@@ -188,7 +182,7 @@ class detector_builder {
     volume_data_t<std::unique_ptr<volume_builder_interface<detector_type>>>
         m_volumes{};
     /// Data structure to find volumes
-    typename detector_type::volume_accelerator m_vol_finder{};
+    // typename detector_type::volume_accelerator m_vol_finder{};
 };
 
 }  // namespace detray
