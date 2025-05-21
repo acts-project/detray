@@ -179,7 +179,12 @@ class grid_writer {
 
             using coll_value_t = typename grid_group_t::value_type;
 
-            if constexpr (detray::concepts::grid<coll_value_t>) {
+            // Only try convert grids that match the converter that was passed
+            constexpr bool is_convertible{
+                std::invocable<converter_t, content_t>};
+
+            if constexpr (detray::concepts::grid<coll_value_t> &&
+                          is_convertible) {
 
                 using value_t = typename coll_value_t::value_type;
 

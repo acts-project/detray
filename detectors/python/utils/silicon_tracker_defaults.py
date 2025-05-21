@@ -9,7 +9,7 @@
 # --------------------------------------------------------------------------
 
 from impl import metadata
-from impl import Shape, Material, SurfaceAccelerator
+from impl import Shape, Material, Accelerator
 
 """ Types that are typically needed for silicon tracker detectors """
 
@@ -20,13 +20,13 @@ def add_silicon_tracker_defaults(
 
     # Barrel Detector
     metadata.add_sensitive(Shape.RECTANGLE)
-    metadata.add_accel_struct(SurfaceAccelerator.CONCENTRIC_CYLINDER_GRID2D)
+    metadata.add_accel_struct(Accelerator.CONCENTRIC_CYLINDER_GRID2D, "sensitive")
     if use_mat_maps:
         metadata.add_material(Material.CONCENTIRC_CYLINDER_MAP2D)
 
     # Endcap Detector
     metadata.add_sensitive(Shape.TRAPEZOID)
-    metadata.add_accel_struct(SurfaceAccelerator.DISC_GRID2D)
+    metadata.add_accel_struct(Accelerator.DISC_GRID2D, "sensitive")
     if use_mat_maps:
         metadata.add_material(Material.DISC_MAP2D)
 
@@ -37,3 +37,10 @@ def add_silicon_tracker_defaults(
     # Cylindrical volume portals (barrel and endcap)
     metadata.add_portal(Shape.CONCENTRIC_CYLINDER)
     metadata.add_portal(Shape.RING)
+
+    # Acceleration struct for portals and passives
+    metadata.add_accel_struct(Accelerator.BRUTE_FORCE, "portal")
+    metadata.add_accel_struct(Accelerator.BRUTE_FORCE, "passive")
+
+    # Volume accelerator for layered cylindrical detectors
+    metadata.add_accel_struct(Accelerator.CYLINDER_GRID3D, "volume")

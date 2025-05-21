@@ -13,6 +13,7 @@
 #include "detray/definitions/grid_axis.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/utils/concepts.hpp"
+#include "detray/utils/ranges/ranges.hpp"
 
 // System include(s)
 #include <concepts>
@@ -49,7 +50,8 @@ concept axis = requires(const A ax) {
         ax.bin_edges(dindex())
     } -> std::same_as<darray<typename A::scalar_type, 2>>;
 
-    { ax.bin_edges() } -> concepts::range_of<typename A::scalar_type>;
+    { ax.bin_edges() }
+    ->detray::ranges::range_of<typename A::scalar_type>;
 
     { ax.span() } -> std::same_as<darray<typename A::scalar_type, 2>>;
 
@@ -89,7 +91,8 @@ concept grid = viewable<G> && bufferable<G> && requires(const G g) {
         g.serialize(typename G::loc_bin_index())
     } -> std::same_as<typename G::glob_bin_index>;
 
-    { g.bins() } -> concepts::range_of<typename G::bin_type>;
+    { g.bins() }
+    ->detray::ranges::range_of<typename G::bin_type>;
 
     {
         g.bin(typename G::glob_bin_index())
