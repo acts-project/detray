@@ -68,17 +68,6 @@ class tracking_volume {
     constexpr tracking_volume(const detector_t &det, const dindex vol_idx)
         : tracking_volume(det, det.volume(vol_idx)) {}
 
-    /// @returns true if the object ID corresponds to a surface
-    static consteval bool is_surface_id(const object_id id) {
-        return (id == object_id::e_portal || id == object_id::e_sensitive ||
-                id == object_id::e_passive);
-    }
-
-    /// @returns true if the object ID corresponds to a [daughter] volume
-    static consteval bool is_volume_id(const object_id id) {
-        return (id == object_id::e_volume);
-    }
-
     /// @returns access to the underlying detector
     DETRAY_HOST_DEVICE
     auto detector() const -> const detector_t & { return m_detector; }
@@ -160,21 +149,16 @@ class tracking_volume {
 
         if (const auto &link{m_desc.template accel_link<I>()};
             !link.is_invalid()) {
-            if constexpr (tracking_volume::is_surface_id(I)) {
-                // Run over the surfaces in a single acceleration data structure
-                // and apply the functor to the resulting neighborhood
-                m_detector.accelerator_store().template visit<functor_t>(
-                    link, std::forward<Args>(args)...);
-            } else {
-                // TODO: Call volume accelerator to find daughter volumes
-                // [...]
-            }
+            // Run over the surfaces in a single acceleration data structure
+            // and apply the functor to the resulting neighborhood
+            m_detector.accelerator_store().template visit<functor_t>(
+                link, std::forward<Args>(args)...);
         }
     }
 
     /// Apply a functor to all acceleration structures of this volume.
     ///
-    /// @tparam I type of object to retrieve (passive, portal, sensitive etc)
+    /// @tparam I type of object to retrieve (surface types, daughters etc)
     /// @tparam functor_t the prescription to be applied to the acc structure
     /// @tparam Args      types of additional arguments to the functor
     template <typename functor_t,
@@ -194,6 +178,8 @@ class tracking_volume {
 
     /// Apply a functor to all surfaces of a given surface id (portal, passive,
     /// sensitive) in the volume
+    ///
+    /// Translates the detray surface type id to the volume geometry object id
     ///
     /// @tparam functor_t the prescription to be applied to the surfaces
     /// @tparam Args      types of additional arguments to the functor
@@ -231,8 +217,25 @@ class tracking_volume {
         }
     }
 
-    /// Apply a functor to a neighborhood of surfaces around a track position
-    /// in the volume.
+    /// Apply a functor to all daughter volumes
+    ///
+    /// @tparam functor_t the prescription to be applied to the daughter volumes
+    /// @tparam Args      types of additional arguments to the functor
+    template <surface_id I, typename functor_t, typename... Args>
+    DETRAY_HOST_DEVICE constexpr void visit_daughter_volumes(
+        Args &&... args) const {
+        using volume_getter_t = detail::volume_getter<functor_t>;
+
+        visit_accelerator<object_id::e_volume, volume_getter_t>(
+            std::forward<Args>(args)...);
+    }
+
+    /// Apply a functor to a neighborhood of geometric objects around a
+    /// track position in the volume.
+    ///
+    /// @note: The acceleration structures in the volume might return different
+    /// geometric objects (e.g. surfaces vs. volumes). The passed functor must
+    /// provide corresponding overloads of the call operator.
     ///
     /// @tparam functor_t the prescription to be applied to the surfaces (
     ///                   customization point for the navigation)
