@@ -152,24 +152,6 @@ struct telescope_metadata {
     // Acceleration structures
     //
 
-    /// Acceleration data structures
-    enum class accel_ids {
-        e_brute_force = 0u,  // test all surfaces in a volume (brute force)
-        e_default = e_brute_force,
-    };
-
-    DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
-                                                       accel_ids aid) {
-
-        switch (aid) {
-            case accel_ids::e_brute_force:
-                // e_default has same value (0u)
-                os << "e_brute_force/e_default";
-                break;
-        }
-        return os;
-    }
-
     /// How to link to the entries in the data stores
     using transform_link = typename transform_store<>::link_type;
     using mask_link = typename mask_store<>::single_link;
@@ -177,12 +159,6 @@ struct telescope_metadata {
     /// Surface type used for sensitives, passives and portals
     using surface_type =
         surface_descriptor<mask_link, material_link, transform_link, nav_link>;
-
-    /// How to store the brute force search data structure
-    template <typename container_t = host_container_types>
-    using accelerator_store =
-        multi_store<accel_ids, empty_context, dtuple,
-                    brute_force_collection<surface_type, container_t>>;
 
     //
     // Volume descriptors
@@ -215,17 +191,38 @@ struct telescope_metadata {
         return os;
     }
 
+    /// Acceleration data structures
+    enum class accel_ids {
+        e_brute_force = 0u,  // test all surfaces in a volume (brute force)
+        e_default = e_brute_force,
+    };
+
+    DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
+                                                       accel_ids aid) {
+
+        switch (aid) {
+            case accel_ids::e_brute_force:
+                // e_default has same value (0u)
+                os << "e_brute_force/e_default";
+                break;
+        }
+        return os;
+    }
+
     /// One link for all surfaces (in the brute force method)
     using object_link_type =
         dmulti_index<dtyped_index<accel_ids, dindex>, geo_objects::e_size>;
 
-    //
-    // Volume acceleration structure
-    //
-
     /// Volume search (only one volume exists)
     template <typename container_t = host_container_types>
     using volume_accelerator = brute_force_collection<dindex, container_t>;
+
+    /// How to store the brute force search data structure
+    template <typename container_t = host_container_types>
+    using accelerator_store =
+        multi_store<accel_ids, empty_context, dtuple,
+                    brute_force_collection<surface_type, container_t>,
+                    volume_accelerator<container_t>>;
 };
 
 }  // namespace detray

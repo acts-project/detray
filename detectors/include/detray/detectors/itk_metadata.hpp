@@ -21,8 +21,8 @@
 #include "detray/geometry/surface_descriptor.hpp"
 #include "detray/materials/material_map.hpp"
 #include "detray/materials/material_slab.hpp"
+#include "detray/navigation/accelerators/accelerator_grid.hpp"
 #include "detray/navigation/accelerators/brute_force_finder.hpp"
-#include "detray/navigation/accelerators/surface_grid.hpp"
 
 // Linear algebra types
 #include "detray/definitions/algebra.hpp"
@@ -169,33 +169,6 @@ struct itk_metadata {
     template <typename bin_entry_t, typename container_t>
     using disc_sf_grid = surface_grid_t<axes<ring2D>, bin_entry_t, container_t>;
 
-    /// The acceleration data structures live in another tuple that needs to be
-    /// indexed correctly:
-    enum class accel_ids : std::uint_least8_t {
-        e_brute_force = 0u,     // test all surfaces in a volume (brute force)
-        e_cylinder2_grid = 1u,  // barrel
-        e_disc_grid = 2u,       // endcap
-        e_default = e_brute_force,
-    };
-
-    DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
-                                                       accel_ids aid) {
-
-        switch (aid) {
-            case accel_ids::e_brute_force:
-                // e_default has same value (0u)
-                os << "e_brute_force/e_default";
-                break;
-            case accel_ids::e_cylinder2_grid:
-                os << "e_cylinder2_grid";
-                break;
-            case accel_ids::e_disc_grid:
-                os << "e_disc_grid";
-                break;
-        }
-        return os;
-    }
-
     /// Surface descriptor type used for sensitives, passives and portals
     /// It holds the indices to the surface data in the detector data stores
     /// that were defined above
@@ -228,8 +201,8 @@ struct itk_metadata {
         e_portal = 0u,
         e_passive = 0u,
         e_sensitive = 1u,
-        e_size = 2u,
-        e_all = e_size,
+        e_volume = 2u,
+        e_size = 3u
     };
 
     DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
@@ -251,6 +224,33 @@ struct itk_metadata {
         return os;
     }
 
+    /// The acceleration data structures live in another tuple that needs to be
+    /// indexed correctly:
+    enum class accel_ids : std::uint_least8_t {
+        e_brute_force = 0u,     // test all surfaces in a volume (brute force)
+        e_cylinder2_grid = 1u,  // barrel
+        e_disc_grid = 2u,       // endcap
+        e_default = e_brute_force,
+    };
+
+    DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
+                                                       accel_ids aid) {
+
+        switch (aid) {
+            case accel_ids::e_brute_force:
+                // e_default has same value (0u)
+                os << "e_brute_force/e_default";
+                break;
+            case accel_ids::e_cylinder2_grid:
+                os << "e_cylinder2_grid";
+                break;
+            case accel_ids::e_disc_grid:
+                os << "e_disc_grid";
+                break;
+        }
+        return os;
+    }
+
     /// How a volume finds its constituent objects in the detector containers
     /// In this case: One range for sensitive/passive surfaces, one for portals
     using object_link_type =
@@ -267,7 +267,19 @@ struct itk_metadata {
         grid<algebra_type,
              axes<cylinder3D, axis::bounds::e_open, axis::irregular,
                   axis::regular, axis::irregular>,
-             bins::single<dindex>, simple_serializer, container_t>;
+             bins::single<dindex>, simple_serializer, container_t, false>;
+
+    /// The tuple store that hold the acceleration data structures for all
+    /// volumes. Every collection of accelerationdata structures defines its
+    /// own container and view type. Does not make use of conditions data
+    /// ( @c empty_context )
+    template <typename container_t = host_container_types>
+    using accelerator_store = multi_store<
+        accel_ids, empty_context, dtuple,
+        brute_force_collection<surface_type, container_t>,
+        grid_collection<cylinder2D_sf_grid<surface_type, container_t>>,
+        grid_collection<disc_sf_grid<surface_type, container_t>>,
+        grid_collection<volume_accelerator<container_t>>>;
 };
 
 }  // namespace detray
