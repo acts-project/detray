@@ -220,7 +220,8 @@ class detector {
     inline const auto &volume(const point3_type &p) const {
         volume_type v_desc{};
         // Allow to call the volume search data structure
-        v_desc.set_accel_link(geo_obj_ids::e_volume, 0u);
+        v_desc.template set_accel_link<geo_obj_ids::e_volume>(
+            accel::id::e_volume_brute_force, 0u);
         tracking_volume world{v_desc, *this};
 
         const dindex volume_index =
@@ -328,12 +329,13 @@ class detector {
     /// Volume lookup in the volume acceleration data structures
     struct volume_search {
         ///@TODO: Move this to a volume search grid type
-        template <typename accel_group_t, typename accel_index_t>
+        template <concepts::accelerator_collection accel_coll_t,
+                  typename accel_index_t>
         DETRAY_HOST_DEVICE inline dindex operator()(
-            const accel_group_t &group, const accel_index_t index,
+            const accel_coll_t &coll, const accel_index_t index,
             const point3_type &p) const {
 
-            const auto volume_accelerator = group[index];
+            const auto volume_accelerator = coll[index];
 
             // The 3D cylindrical volume search grid is concentric
             const transform3_type identity{};

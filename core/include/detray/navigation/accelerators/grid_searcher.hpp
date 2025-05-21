@@ -10,24 +10,22 @@
 // Project include(s)
 #include "detray/geometry/detail/surface_descriptor.hpp"
 #include "detray/utils/grid/detail/axis_helpers.hpp"
-#include "detray/utils/grid/detail/grid_bins.hpp"
 #include "detray/utils/grid/detail/bin_view.hpp"
+#include "detray/utils/grid/detail/grid_bins.hpp"
 #include "detray/utils/grid/grid.hpp"
 #include "detray/utils/grid/grid_collection.hpp"
 
 namespace detray {
 
 /// @brief An N-dimensional spacial grid for geometry object searches.
-///
-/// @tparam value_t Type of values contained in the grid
 template <typename axes_t, typename bin_t,
           template <std::size_t> class serializer_t = simple_serializer>
-class accelerator_grid_impl : public grid_impl<axes_t, bin_t, serializer_t> {
+class grid_searcher_impl : public grid_impl<axes_t, bin_t, serializer_t> {
 
     using base_grid = grid_impl<axes_t, bin_t, serializer_t>;
 
     public:
-    /// Adopt type definitions and static variables
+    /// Adopt type definitions and static variables of the underlying grid
     /// @{
     template <typename neighbor_t>
     using neighborhood_type = darray<neighbor_t, base_grid::dim>;
@@ -56,8 +54,8 @@ class accelerator_grid_impl : public grid_impl<axes_t, bin_t, serializer_t> {
 
     /// Find the corresponding (non-)owning grid type
     template <bool owning>
-    using type =
-        accelerator_grid_impl<typename axes_t::template type<owning>, bin_t, serializer_t>;
+    using type = grid_searcher_impl<typename axes_t::template type<owning>,
+                                    bin_t, serializer_t>;
     /// @}
 
     /// Use all of the grid constructors
@@ -117,12 +115,11 @@ class accelerator_grid_impl : public grid_impl<axes_t, bin_t, serializer_t> {
     }
 };
 
-/// Type alias for easier construction
 template <concepts::algebra algebra_t, typename axes_t, typename bin_t,
           template <std::size_t> class serializer_t = simple_serializer,
           typename containers = host_container_types, bool ownership = true>
-using accelerator_grid =
-    accelerator_grid_impl<coordinate_axes<axes_t, algebra_t, ownership, containers>, bin_t,
-              simple_serializer>;
+using grid_searcher = grid_searcher_impl<
+    coordinate_axes<axes_t, algebra_t, ownership, containers>, bin_t,
+    simple_serializer>;
 
 }  // namespace detray

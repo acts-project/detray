@@ -45,6 +45,7 @@ class brute_force_collection {
         : public detray::ranges::subrange<const vector_type<value_t>> {
 
         using base = detray::ranges::subrange<const vector_type<value_t>>;
+        using value_type = value_t;
 
         /// Default constructor
         brute_forcer() = default;

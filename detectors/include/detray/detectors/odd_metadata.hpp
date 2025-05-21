@@ -21,8 +21,8 @@
 #include "detray/geometry/shapes/trapezoid2D.hpp"
 #include "detray/materials/material_map.hpp"
 #include "detray/materials/material_slab.hpp"
-#include "detray/navigation/accelerators/accelerator_grid.hpp"
-#include "detray/navigation/accelerators/brute_force_finder.hpp"
+#include "detray/navigation/accelerators/brute_force_searcher.hpp"
+#include "detray/navigation/accelerators/grid_searcher.hpp"
 
 namespace detray {
 
@@ -67,8 +67,8 @@ struct odd_metadata {
     // Surface grid definition: bin-content: darray<sf_descriptor, 1>
     template <typename axes_t, typename bin_entry_t, typename container_t>
     using surface_grid_t =
-        grid<algebra_type, axes_t, bins::static_array<bin_entry_t, 1>,
-             simple_serializer, container_t, false>;
+        grid_searcher<algebra_type, axes_t, bins::static_array<bin_entry_t, 1>,
+                      simple_serializer, container_t, false>;
 
     // cylindrical grid for the barrel layers
     template <typename bin_entry_t, typename container_t>
@@ -153,10 +153,11 @@ struct odd_metadata {
     /// Volume search grid
     template <typename container_t = host_container_types>
     using volume_accelerator =
-        grid<algebra_type,
-             axes<cylinder3D, axis::bounds::e_open, axis::irregular,
-                  axis::regular, axis::irregular>,
-             bins::single<dindex>, simple_serializer, container_t, false>;
+        grid_searcher<algebra_type,
+                      axes<cylinder3D, axis::bounds::e_open, axis::irregular,
+                           axis::regular, axis::irregular>,
+                      bins::single<dindex>, simple_serializer, container_t,
+                      false>;
 
     /// How to store the acceleration data structures
     template <typename container_t = host_container_types>
