@@ -8,6 +8,8 @@
 #pragma once
 
 // Project include(s)
+#include "detray/core/detail/container_buffers.hpp"
+#include "detray/core/detail/container_views.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/geometry/surface_descriptor.hpp"
 #include "detray/utils/concepts.hpp"
@@ -27,7 +29,23 @@ concept accelerator = requires(const A acc) {
 
     // Iterate through all contained geometry objects
     { acc.all() }
-    ->detray::ranges::range_of<typename A::value_type>;
+    ->ranges::range_of<typename A::value_type>;
+
+    // TODO: In order to require the search method, we need to pass a detector
+    // which is auto-deduced
+};
+
+/// Concept for a collection of accelerator (data) that can be stored in the
+/// detector
+template <class AC>
+concept accelerator_collection = viewable<AC>&& bufferable<AC>&& requires(
+    const AC accel_coll, unsigned int idx) {
+
+    typename AC::size_type;
+    requires concepts::accelerator<typename AC::value_type>;
+
+    { accel_coll[idx] }
+    ->concepts::accelerator;
 };
 
 /// Acceleration structure that contains surfaces (surface descriptors)
@@ -48,11 +66,11 @@ concept volume_accelerator =
 /// Brute force acceleration structures
 /// @{
 template <class A>
-concept brute_force_surface_finder =
+concept brute_force_surface_searcher =
     !concepts::grid<A> && concepts::volume_accelerator<A>;
 
 template <class A>
-concept brute_force_volume_finder =
+concept brute_force_volume_searcher =
     !concepts::grid<A> && concepts::surface_accelerator<A>;
 /// @}
 
