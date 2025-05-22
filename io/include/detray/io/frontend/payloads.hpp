@@ -209,7 +209,8 @@ struct grid_payload {
 template <typename bin_content_t = std::size_t,
           typename grid_id_t = io::accel_id>
 struct detector_grids_payload {
-    // A collection of grids per index
+    // A collection of grids (can be the surface search grid, volume or surface
+    // material grids) per volume index (not all volumes may contain grids)
     std::map<std::size_t, std::vector<grid_payload<bin_content_t, grid_id_t>>>
         grids = {};
 };

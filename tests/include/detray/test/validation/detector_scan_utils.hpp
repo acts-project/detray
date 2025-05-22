@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021-2024 CERN for the benefit of the ACTS project
+ * (c) 2021-2025 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -21,6 +21,8 @@
 #include <functional>
 #include <iostream>
 #include <iterator>
+#include <map>
+#include <ranges>
 #include <set>
 #include <sstream>
 #include <string>
@@ -31,6 +33,135 @@
 #include <vector>
 
 namespace detray::detector_scanner {
+
+/// @brief Filter the intersection trace for overlapping surfaces and
+/// remove duplicates
+///
+/// ACTS geometries can produce multiple overlapping portals, since some portals
+/// are larger than the volumes they belong to. This leads to duplicate
+/// intersections in the traces.
+template <typename record_container>
+inline dindex_range overlaps_removal(record_container &intersection_records,
+                                     const float tol = 0.5f * unit<float>::um) {
+
+    // Document any overlaps on the range
+    constexpr auto inv_idx{detray::detail::invalid_value<dindex>()};
+    dindex_range overlap_idx{inv_idx, inv_idx};
+
+    const std::size_t n_rec{intersection_records.size()};
+    std::size_t n_eq_intrs{1u};  //< Number of consecutive overlapping inters.
+    for (std::size_t i = 0u; i < n_rec - 1u; ++i) {
+        const auto &rec = intersection_records.at(i);
+        const auto &next_rec = intersection_records.at(i + 1u);
+
+        // This record and the following are overlapping: Count until we reach
+        // the end of the overlapping surfaces or end of trace
+        if (math::fabs(next_rec.intersection.path - rec.intersection.path) <
+                tol &&
+            i != (n_rec - 2u)) {
+            ++n_eq_intrs;
+            continue;
+        }
+
+        // No overlap: continue
+        if (n_eq_intrs == 1u) {
+            continue;
+        }
+        // Found two overlapping surfaces
+        if (n_eq_intrs == 2u) {
+            const auto &prev_rec = intersection_records.at(i - 1u);
+
+            // Two overlapping portals form a valid, connected volume boundary
+            if (!(rec.intersection.sf_desc.is_portal() &&
+                  prev_rec.intersection.sf_desc.is_portal())) {
+                auto prev_sf_desc = prev_rec.intersection.sf_desc;
+                auto sf_desc = rec.intersection.sf_desc;
+
+                // Other types of surfaces must not overlap!
+                std::stringstream err_stream;
+                err_stream << "The following surfaces overlap at\n"
+                           << "POS:\n"
+                           << "glob: " << prev_rec.track_param.pos()
+                           << ", loc: " << prev_rec.intersection.local
+                           << "\nvs.\nglob: " << rec.track_param.pos()
+                           << ", loc: " << rec.intersection.local << std::endl;
+                err_stream << "SURFACES:\n -> " << prev_sf_desc << std::endl;
+                err_stream << " -> " << sf_desc << std::endl;
+
+                // TODO: Fix wire_chamber geometry
+                // throw std::invalid_argument(err_stream.str());
+                std::cout << "ERROR: " << err_stream.str() << std::endl;
+                overlap_idx = {static_cast<dindex>(i - 1u),
+                               static_cast<dindex>(i)};
+            }
+            // Reset to find the next range
+            n_eq_intrs = 1u;
+            continue;
+        }
+
+        // Found more than two overlapping surfaces: Remove oversized portal
+        // intersections
+        std::size_t first{(i - (n_eq_intrs - 1u))};
+        std::size_t last{i};
+
+        // Map of the volume index the portals link to and the portal
+        // intersection indices in the intersection trace
+        std::multimap<std::size_t, std::size_t> pt_buckets{};
+
+        bool is_all_portals{true};
+        for (std::size_t j = first; j <= last; ++j) {
+            const auto &intr = intersection_records.at(j).intersection;
+            if (!intr.sf_desc.is_portal()) {
+                is_all_portals = false;
+            }
+            pt_buckets.insert({static_cast<std::size_t>(intr.volume_link), j});
+        }
+
+        // Remove buckets that contain only one portal: This is the valid exit
+        // portal that the overlapping portals need to be matched against
+        auto exit_idx{std::numeric_limits<std::size_t>::max()};
+        const auto n_erased = std::erase_if(
+            pt_buckets, [&pt_buckets, &exit_idx](const auto &item) {
+                const auto &[vol_link, rec_idx] = item;
+                if (pt_buckets.count(vol_link) == 1u) {
+                    exit_idx = rec_idx;
+                    return true;
+                }
+                return false;
+            });
+
+        // This is not a case of oversized portals, treat as actual overlaps
+        if (n_erased != 1u || pt_buckets.empty() || !is_all_portals) {
+            std::cout
+                << "ERROR: Could not resolve exit portal in overlap correction"
+                << std::endl;
+
+            overlap_idx = {static_cast<dindex>(first),
+                           static_cast<dindex>(last)};
+        } else {
+            // Keep only the portal that forms the correct volume crossing
+            // with the portal intersection at 'exit_idx'
+            const auto &exit_rec = intersection_records.at(exit_idx);
+            auto itr = intersection_records.cbegin();
+
+            // Remove elements indiceated by ordered map with higher index first
+            for (const auto &[v_link, idx] : pt_buckets | std::views::reverse) {
+                // All these portals link against the exit portal
+                assert(v_link == exit_rec.vol_idx);
+
+                auto test_elem = std::next(itr, static_cast<int>(idx));
+                if (exit_rec.intersection.volume_link != test_elem->vol_idx) {
+                    intersection_records.erase(test_elem);
+                }
+            }
+        }
+
+        // Reset
+        n_eq_intrs = 1u;
+    }
+
+    return overlap_idx;
+}
 
 /// Check if a set of volume indices from portal intersections from a path
 /// (works even if the pairs are not sorted). That the volume links of the
@@ -291,12 +422,11 @@ inline auto trace_intersections(const record_container &intersection_records,
 
             return std::make_tuple(portal_trace, module_trace, error_code);
         }
-        e
     }
 
     // Go through recorded intersection (two at a time)
     dindex current_vol = start_volume;
-    // The first entry is the dummy record that preserve initial track
+    // The first entry is the dummy record that preserves initial track
     // parameters, skip it
     const std::size_t start_idx{
         record{intersection_records.at(0)}.is_invalid() ? 1u : 0u};
@@ -411,7 +541,10 @@ inline auto trace_intersections(const record_container &intersection_records,
                        << current_rec.inters() << " <-> " << next_rec.inters()
                        << std::endl;
 
-            const record rec_front{intersection_records.front()};
+            const record rec_front{
+                record{intersection_records.front()}.is_invalid()
+                    ? intersection_records[1u]
+                    : intersection_records.front()};
             const record rec_back{intersection_records.back()};
             err_stream << "Start volume : " << start_volume << std::endl;
             err_stream << "- first recorded intersection: (sf id:"
@@ -580,7 +713,8 @@ inline bool check_trace(const std::vector<record_t> &intersection_trace,
                         std::unordered_set<dindex> &obj_hashes) {
 
     using nav_link_t = typename detector_t::surface_type::navigation_link;
-    static constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
+    static constexpr auto leaving_world{
+        detray::detail::invalid_value<nav_link_t>()};
 
     // Create a trace of the volume indices that were encountered
     // and check that portal intersections are connected
@@ -621,7 +755,10 @@ inline void display_error(
     const trajectory_t &test_track, const truth_trace_t &truth_trace,
     const detray::svgtools::styling::style &svg_style,
     const std::size_t i_track, const std::size_t n_tracks,
-    const recorded_trace_t &recorded_trace = {}, const bool verbose = true) {
+    const recorded_trace_t &recorded_trace = {},
+    const dindex_range overlap_idx = {detray::detail::invalid_value<dindex>(),
+                                      detray::detail::invalid_value<dindex>()},
+    const bool verbose = true) {
 
     // Creating the svg generator for the detector.
     detray::svgtools::illustrator il{det, vol_names, svg_style};
@@ -646,9 +783,10 @@ inline void display_error(
                   << test_track;
     }
 
-    detail::svg_display(gctx, il, truth_trace, test_track,
-                        track_type + "_" + std::to_string(i_track), test_name,
-                        recorded_trace, verbose);
+    detray::detail::svg_display(gctx, il, truth_trace, test_track,
+                                track_type + "_" + std::to_string(i_track),
+                                test_name, recorded_trace, overlap_idx,
+                                verbose);
 }
 
 /// Print an intersection trace

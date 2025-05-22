@@ -113,13 +113,30 @@ class detector_scan : public test::fixture_base<> {
 
             const auto j{static_cast<std::size_t>(i)};
 
-            const auto &intersection_trace = detector_scan_traces[j];
+            auto &intersection_trace = detector_scan_traces[j];
             assert((intersection_trace.size() > 0) &&
                    "Invalid intersection trace");
 
             // Retrieve the test trajectory
             const auto &trck_param = intersection_trace.front().track_param;
             trajectory_type test_traj = get_parametrized_trajectory(trck_param);
+
+            // Run overlaps check on the trace and remove certain
+            // allowed duplication (oversized portals from ACTS)
+            if (m_cfg.overlaps_removal()) {
+                const dindex_range overlap_idx =
+                    detector_scanner::overlaps_removal(intersection_trace);
+
+                // Drop an svg of the trajectory where the overlap was found
+                if (overlap_idx[1] - overlap_idx[0] != 0u) {
+                    constexpr bool verbose{false};
+                    detector_scanner::display_error(
+                        m_gctx, m_det, m_names, "OVERLAP_" + m_cfg.name(),
+                        test_traj, intersection_trace, m_cfg.svg_style(),
+                        n_tracks, n_helices, intersection_trace_t{},
+                        overlap_idx, verbose);
+                }
+            }
 
             // Run consistency checks on the trace
             bool success = detector_scanner::check_trace<detector_t>(

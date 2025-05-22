@@ -44,6 +44,8 @@ struct detector_scan_config
                      2.f * unit<scalar_type>::T};
     /// Configuration of the ray generator
     trk_gen_config_t m_trk_gen_cfg{};
+    /// Perform overlaps removal (needed for detector converted from ACTS)
+    bool m_overlaps_removal{true};
     /// Write intersection points for plotting
     bool m_write_inters{false};
     /// Visualization style to be applied to the svgs
@@ -60,6 +62,7 @@ struct detector_scan_config
     bool write_intersections() const { return m_write_inters; }
     trk_gen_config_t &track_generator() { return m_trk_gen_cfg; }
     const trk_gen_config_t &track_generator() const { return m_trk_gen_cfg; }
+    bool overlaps_removal() const { return m_overlaps_removal; }
     const auto &svg_style() const { return m_style; }
     /// @}
 
@@ -88,6 +91,10 @@ struct detector_scan_config
     detector_scan_config &B_vector(const scalar_type B0, const scalar_type B1,
                                    const scalar_type B2) {
         m_B = vector3_type{B0, B1, B2};
+        return *this;
+    }
+    detector_scan_config &overlaps_removal(const bool o) {
+        m_overlaps_removal = o;
         return *this;
     }
     detector_scan_config &write_intersections(const bool do_write) {

@@ -260,7 +260,7 @@ class helix {
     friend std::ostream &operator<<(std::ostream &os, const helix &h) {
         os << "helix: ";
         os << "ori = " << h._pos;
-        os << "dir = " << h._t0 << std::endl;
+        os << ", dir = " << h._t0 << std::endl;
 
         return os;
     }

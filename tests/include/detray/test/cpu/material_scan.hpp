@@ -19,6 +19,7 @@
 #include "detray/test/framework/fixture_base.hpp"
 #include "detray/test/framework/types.hpp"
 #include "detray/test/framework/whiteboard.hpp"
+#include "detray/test/validation/detector_scan_utils.hpp"
 #include "detray/test/validation/detector_scanner.hpp"
 #include "detray/test/validation/material_validation_utils.hpp"
 
@@ -50,6 +51,8 @@ class material_scan : public test::fixture_base<> {
 
         std::string m_name{"material_scan"};
         trk_gen_config_t m_trk_gen_cfg{};
+        /// Perform overlaps removal (needed for detector converted from ACTS)
+        bool m_overlaps_removal{true};
 
         /// Getters
         /// @{
@@ -58,12 +61,17 @@ class material_scan : public test::fixture_base<> {
         const trk_gen_config_t &track_generator() const {
             return m_trk_gen_cfg;
         }
+        bool overlaps_removal() const { return m_overlaps_removal; }
         /// @}
 
         /// Setters
         /// @{
         config &name(const std::string n) {
             m_name = n;
+            return *this;
+        }
+        config &overlaps_removal(const bool o) {
+            m_overlaps_removal = o;
             return *this;
         }
         /// @}
@@ -107,8 +115,13 @@ class material_scan : public test::fixture_base<> {
         for (const auto ray : ray_generator) {
 
             // Record all intersections and surfaces along the ray
-            const auto intersection_record =
+            auto intersection_record =
                 detector_scanner::run<detray::ray_scan>(m_gctx, m_det, ray);
+
+            // Remove certain allowed duplications
+            if (m_cfg.overlaps_removal()) {
+                detector_scanner::overlaps_removal(intersection_record);
+            }
 
             if (intersection_record.empty()) {
                 std::cout << "ERROR: Intersection trace empty for ray "

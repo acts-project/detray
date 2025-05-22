@@ -62,6 +62,8 @@ int main(int argc, char **argv) {
     cfg_ray_scan.name("wire_chamber_ray_scan");
     cfg_ray_scan.track_generator().seed(42u);
     cfg_ray_scan.track_generator().n_tracks(10000u);
+    // TODO: Fix overlaps in wire chamber
+    cfg_ray_scan.overlaps_removal(false);
 
     test::register_checks<test::ray_scan>(det, names, cfg_ray_scan, ctx,
                                           white_board);
@@ -91,6 +93,8 @@ int main(int argc, char **argv) {
     cfg_hel_scan.track_generator().eta_range(-1.f, 1.f);
     // TODO: Fails for smaller momenta
     cfg_hel_scan.track_generator().p_T(4.f * unit<scalar>::GeV);
+    // TODO: Fix overlaps in wire chamber
+    cfg_hel_scan.overlaps_removal(false);
 
     test::register_checks<test::helix_scan>(det, names, cfg_hel_scan, ctx,
                                             white_board);
@@ -110,6 +114,8 @@ int main(int argc, char **argv) {
     mat_scan_cfg.name("wire_chamber_material_scan");
     mat_scan_cfg.track_generator().uniform_eta(true).eta_range(-1.f, 1.f);
     mat_scan_cfg.track_generator().phi_steps(100).eta_steps(100);
+    // TODO: Fix overlaps in wire chamber
+    mat_scan_cfg.overlaps_removal(false);
 
     // Record the material using a ray scan
     test::register_checks<test::material_scan>(det, names, mat_scan_cfg, ctx,
