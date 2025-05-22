@@ -70,7 +70,7 @@ macro(detray_add_cpu_test algebra)
        "navigation/intersection/intersection2D.cpp"
        "navigation/intersection/line_intersector.cpp"
        "navigation/intersection/plane_intersector.cpp"
-       "navigation/brute_force_finder.cpp"
+       "navigation/brute_force_searcher.cpp"
        "navigation/volume_graph.cpp"
        "navigation/navigator.cpp"
        "propagator/actor_chain.cpp"

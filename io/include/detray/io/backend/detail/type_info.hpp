@@ -111,6 +111,30 @@ constexpr io::accel_id get_id() {
     }
 }
 
+/// Infer the grid id from its coordinate system
+template <detray::concepts::volume_grid grid_t>
+constexpr io::accel_id get_id() {
+
+    using frame_t = typename grid_t::local_frame_type;
+    using algebra_t = typename frame_t::algebra_type;
+
+    /// Register the grid shapes to the @c accel_id enum
+    /// @note the first type corresponds to a non-grid type in the enum
+    /// (brute force)
+    using frame_registry =
+        type_registry<io::accel_id, void, cartesian2D<algebra_t>,
+                      cartesian3D<algebra_t>, polar2D<algebra_t>,
+                      concentric_cylindrical2D<algebra_t>,
+                      cylindrical2D<algebra_t>, cylindrical3D<algebra_t>>;
+
+    // Find the correct grid shape IO id;
+    if constexpr (frame_registry::is_defined(frame_t{})) {
+        return frame_registry::get_id(frame_t{});
+    } else {
+        return io::accel_id::unknown;
+    }
+}
+
 /// Determine the type and id of a shape of a mask without triggering a compiler
 /// error (sfinae) if the detector does not know the type / enum entry
 /// @{
