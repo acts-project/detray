@@ -17,7 +17,9 @@
 #include "detray/geometry/barcode.hpp"
 
 // System include(s)
+#include <condition_variable>
 #include <ostream>
+#include <variant>
 
 namespace detray {
 
@@ -270,9 +272,80 @@ struct bound_parameters_vector {
 /// Combine the bound track parameter vector with the covariance and associated
 /// surface
 template <concepts::algebra algebra_t>
-struct bound_track_parameters : public bound_parameters_vector<algebra_t> {
+struct bound_track_parameters_base : public bound_parameters_vector<algebra_t> {
 
     using base_type = bound_parameters_vector<algebra_t>;
+
+    /// @name Type definitions for the struct
+    /// @{
+    using algebra_type = algebra_t;
+    using scalar_type = dscalar<algebra_t>;
+    using point2_type = dpoint2D<algebra_t>;
+    using vector3_type = dvector3D<algebra_t>;
+
+    // Shorthand vector/matrix types related to bound track parameters.
+    using parameter_vector_type = bound_parameters_vector<algebra_t>;
+    using covariance_type = bound_matrix<algebra_t>;
+
+    /// @}
+
+    /// Default constructor sets the covaraicne to zero
+    bound_track_parameters_base() = default;
+
+    DETRAY_HOST_DEVICE bound_track_parameters_base(
+        const geometry::barcode sf_idx, const parameter_vector_type& vec)
+        : base_type(vec), m_barcode(sf_idx) {}
+
+    /// @param rhs is the left hand side params for comparison
+    DETRAY_HOST_DEVICE
+    bool operator==(const bound_track_parameters_base& rhs) const {
+        if (m_barcode != rhs.surface_link()) {
+            return false;
+        }
+
+        if (!base_type::operator==(rhs)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /// @returns the barcode of the associated surface
+    DETRAY_HOST_DEVICE
+    const geometry::barcode& surface_link() const { return m_barcode; }
+
+    /// Set the barcode of the associated surface
+    DETRAY_HOST_DEVICE
+    void set_surface_link(geometry::barcode link) { m_barcode = link; }
+
+    /// Set the track parameter vector
+    DETRAY_HOST_DEVICE
+    void set_parameter_vector(const parameter_vector_type& v,
+                              const bool skip_check = false) {
+        this->set_vector(v.vector(), skip_check);
+    }
+
+    /// @param do_check toggle checking (e.g. don't trigger assertions for
+    /// documented errors)
+    /// @returns true if the parameter vector contains invalid elements
+    DETRAY_HOST_DEVICE
+    constexpr bool is_invalid(const bool do_check = true) const {
+        if (!do_check) {
+            return false;
+        }
+        return base_type::is_invalid();
+    }
+
+    private:
+    geometry::barcode m_barcode{};
+};
+
+/// Combine the bound track parameter vector with the covariance and associated
+/// surface
+template <concepts::algebra algebra_t>
+struct bound_track_parameters : public bound_track_parameters_base<algebra_t> {
+
+    using base_type = bound_track_parameters_base<algebra_t>;
 
     /// @name Type definitions for the struct
     /// @{
@@ -294,15 +367,11 @@ struct bound_track_parameters : public bound_parameters_vector<algebra_t> {
     bound_track_parameters(const geometry::barcode sf_idx,
                            const parameter_vector_type& vec,
                            const covariance_type& cov)
-        : base_type(vec), m_covariance(cov), m_barcode(sf_idx) {}
+        : base_type(sf_idx, vec), m_covariance(cov) {}
 
     /// @param rhs is the left hand side params for comparison
     DETRAY_HOST_DEVICE
     bool operator==(const bound_track_parameters& rhs) const {
-        if (m_barcode != rhs.surface_link()) {
-            return false;
-        }
-
         if (!base_type::operator==(rhs)) {
             return false;
         }
@@ -322,25 +391,6 @@ struct bound_track_parameters : public bound_parameters_vector<algebra_t> {
         return true;
     }
 
-    /// @returns the barcode of the associated surface
-    DETRAY_HOST_DEVICE
-    const geometry::barcode& surface_link() const { return m_barcode; }
-
-    /// Set the barcode of the associated surface
-    DETRAY_HOST_DEVICE
-    void set_surface_link(geometry::barcode link) { m_barcode = link; }
-
-    /// Set the track parameter vector
-    DETRAY_HOST_DEVICE
-    void set_parameter_vector(const parameter_vector_type& v,
-                              const bool skip_check = false) {
-        this->set_vector(v.vector(), skip_check);
-    }
-
-    /// @returns the track parameter covariance - non-const
-    DETRAY_HOST_DEVICE
-    covariance_type& covariance() { return m_covariance; }
-
     /// @returns the track parameter covariance - const
     DETRAY_HOST_DEVICE
     const covariance_type& covariance() const { return m_covariance; }
@@ -348,6 +398,11 @@ struct bound_track_parameters : public bound_parameters_vector<algebra_t> {
     /// Set the track parameter covariance
     DETRAY_HOST_DEVICE
     void set_covariance(const covariance_type& c) { m_covariance = c; }
+
+    DETRAY_HOST_DEVICE
+    void update_covariance(const bound_matrix<algebra_t>& jac) {
+        m_covariance = m_covariance * jac;
+    }
 
     /// @param do_check toggle checking (e.g. don't trigger assertions for
     /// documented errors)
@@ -379,7 +434,6 @@ struct bound_track_parameters : public bound_parameters_vector<algebra_t> {
     }
 
     covariance_type m_covariance = matrix::zero<covariance_type>();
-    geometry::barcode m_barcode{};
 };
 
 }  // namespace detray
