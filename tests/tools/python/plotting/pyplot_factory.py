@@ -268,7 +268,7 @@ class pyplot_factory:
         if x_axis.log_scale is not None:
             ax.set_xscale("log", base=x_axis.log_scale)
         if y_axis.log_scale is not None:
-            ax.set_yscale("log", base=x_axis.log_scale)
+            ax.set_yscale("log", base=y_axis.log_scale)
 
         # Leave x-axis with default formatter for 1D histograms
         ax.xaxis.set_major_formatter(ticker.ScalarFormatter())

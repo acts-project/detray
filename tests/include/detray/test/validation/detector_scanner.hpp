@@ -22,6 +22,7 @@
 
 // System include(s)
 #include <algorithm>
+#include <map>
 #include <sstream>
 #include <stdexcept>
 #include <type_traits>
@@ -118,6 +119,7 @@ struct brute_force_scan {
             stream << "No intersections found for traj: " << traj << std::endl;
             throw std::runtime_error(stream.str());
         }
+
         // Save initial track position as dummy intersection record
         const auto &first_record = intersection_trace.front();
         intersection_t start_intersection{};
