@@ -53,6 +53,8 @@ class material_scan : public test::fixture_base<> {
         trk_gen_config_t m_trk_gen_cfg{};
         /// Perform overlaps removal (needed for detector converted from ACTS)
         bool m_overlaps_removal{true};
+        /// Tolerance for overlaps
+        float m_overlaps_tol{1e-4f * unit<float>::mm};
 
         /// Getters
         /// @{
@@ -62,6 +64,7 @@ class material_scan : public test::fixture_base<> {
             return m_trk_gen_cfg;
         }
         bool overlaps_removal() const { return m_overlaps_removal; }
+        float overlaps_tol() const { return m_overlaps_tol; }
         /// @}
 
         /// Setters
@@ -72,6 +75,10 @@ class material_scan : public test::fixture_base<> {
         }
         config &overlaps_removal(const bool o) {
             m_overlaps_removal = o;
+            return *this;
+        }
+        config &overlaps_tol(const scalar_t tol) {
+            m_overlaps_tol = static_cast<float>(tol);
             return *this;
         }
         /// @}
@@ -120,7 +127,8 @@ class material_scan : public test::fixture_base<> {
 
             // Remove certain allowed duplications
             if (m_cfg.overlaps_removal()) {
-                detector_scanner::overlaps_removal(intersection_record);
+                detector_scanner::overlaps_removal(intersection_record,
+                                                   m_cfg.overlaps_tol());
             }
 
             if (intersection_record.empty()) {

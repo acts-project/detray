@@ -58,9 +58,11 @@ int main(int argc, char** argv) {
     desc.add_options()("write_volume_graph", "Write the volume graph to file")(
         "write_scan_data", "Write the ray/helix scan data to file")(
         "data_dir",
-        boost::program_options::value<std::string>()->default_value(
-            "./validation_data"),
-        "Directory that contains the data files");
+        po::value<std::string>()->default_value("./validation_data"),
+        "Directory that contains the data files")(
+        "overlaps_tol",
+        po::value<float>()->default_value(stepping::config{}.min_stepsize),
+        "Tolerance for considering surfaces to be overlapping [mm]");
 
     // Configs to be filled
     detray::io::detector_reader_config reader_cfg{};
@@ -83,6 +85,10 @@ int main(int argc, char** argv) {
     if (vm.count("write_scan_data")) {
         ray_scan_cfg.write_intersections(true);
         hel_scan_cfg.write_intersections(true);
+    }
+    if (vm.count("overlaps_tol")) {
+        ray_scan_cfg.overlaps_tol(vm["overlaps_tol"].as<float>());
+        hel_scan_cfg.overlaps_tol(vm["overlaps_tol"].as<float>());
     }
     const auto data_dir{vm["data_dir"].as<std::string>()};
 

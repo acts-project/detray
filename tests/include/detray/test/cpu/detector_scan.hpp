@@ -125,7 +125,8 @@ class detector_scan : public test::fixture_base<> {
             // allowed duplication (oversized portals from ACTS)
             if (m_cfg.overlaps_removal()) {
                 const dindex_range overlap_idx =
-                    detector_scanner::overlaps_removal(intersection_trace);
+                    detector_scanner::overlaps_removal(intersection_trace,
+                                                       m_cfg.overlaps_tol());
 
                 // Drop an svg of the trajectory where the overlap was found
                 if (overlap_idx[1] - overlap_idx[0] != 0u) {

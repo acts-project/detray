@@ -107,7 +107,7 @@ struct intersection2D<surface_descr_t, algebra_t, false> {
     friend std::ostream &operator<<(std::ostream &out_stream,
                                     const intersection2D &is) {
         out_stream << "dist:" << is.path
-                   << "\tsurface: " << is.sf_desc.barcode()
+                   << ", surface: " << is.sf_desc.barcode()
                    << ", type: " << static_cast<int>(is.sf_desc.mask().id())
                    << ", links to vol:" << is.volume_link << ")";
 
@@ -121,7 +121,6 @@ struct intersection2D<surface_descr_t, algebra_t, false> {
             out_stream << ", direction: " << is.direction;
         }
 
-        out_stream << std::endl;
         return out_stream;
     }
 };

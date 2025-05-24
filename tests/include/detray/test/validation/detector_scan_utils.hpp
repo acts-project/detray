@@ -42,7 +42,8 @@ namespace detray::detector_scanner {
 /// intersections in the traces.
 template <typename record_container>
 inline dindex_range overlaps_removal(record_container &intersection_records,
-                                     const float tol = 0.5f * unit<float>::um) {
+                                     const float tol = 1e-4f *
+                                                       unit<float>::mm) {
 
     // Document any overlaps on the range
     constexpr auto inv_idx{detray::detail::invalid_value<dindex>()};

@@ -211,7 +211,7 @@ inline void svg_display(
         {zr_axis, vol_zr_svg, svg_traj});
 
     if (verbose) {
-        std::cout << "INFO: Wrote svgs for debugging in: " << path << "\n"
+        std::cout << "\nINFO: Wrote svgs for debugging in: " << path << "\n"
                   << std::endl;
     }
 }

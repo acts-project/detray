@@ -58,7 +58,10 @@ int main(int argc, char** argv) {
         "data_dir",
         boost::program_options::value<std::string>()->default_value(
             "./validation_data"),
-        "Directory that contains the data files");
+        "Directory that contains the data files")(
+        "overlaps_tol",
+        po::value<float>()->default_value(stepping::config{}.min_stepsize),
+        "Tolerance for considering surfaces to be overlapping [mm]");
 
     // Configs to be filled
     detray::io::detector_reader_config reader_cfg{};
@@ -73,6 +76,11 @@ int main(int argc, char** argv) {
         hel_nav_cfg.propagation());
 
     const auto data_dir{vm["data_dir"].as<std::string>()};
+
+    if (vm.count("overlaps_tol")) {
+        ray_scan_cfg.overlaps_tol(vm["overlaps_tol"].as<float>());
+        hel_scan_cfg.overlaps_tol(vm["overlaps_tol"].as<float>());
+    }
 
     // For now: Copy the options to the other tests
     ray_scan_cfg.track_generator() = hel_scan_cfg.track_generator();

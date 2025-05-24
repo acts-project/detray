@@ -56,10 +56,17 @@ def __main__():
         type=str,
     )
     parser.add_argument(
-        "--tolerance",
-        "-t",
+        "--material_tol",
+        "-mt",
         help=("Tolerance for material comparisons [%]"),
         default=1,
+        type=float,
+    )
+    parser.add_argument(
+        "--overlaps_tol",
+        "-ot",
+        help=("Tolerance for considering surfaces to be overlapping [mm]"),
+        default=0.0001,
         type=float,
     )
     parser.add_argument(
@@ -94,8 +101,10 @@ def __main__():
 
     # Pass on the options for the validation tools
     args_list = [
-        "--tol",
-        str(args.tolerance),
+        "--material_tol",
+        str(args.material_tol),
+        "--overlaps_tol",
+        str(args.overlaps_tol),
     ]
 
     # Add parsed options to argument list
