@@ -14,7 +14,7 @@
 #include "detray/utils/grid/detail/concepts.hpp"
 
 // Detray test include(s)
-#include "detray/test/utils/types.hpp"
+#include "detray/test/framework/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/containers/device_vector.hpp>

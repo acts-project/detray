@@ -11,7 +11,7 @@
 #include "detray/geometry/mask.hpp"
 
 // Detray test include(s)
-#include "detray/test/utils/types.hpp"
+#include "detray/test/framework/types.hpp"
 
 // GTest include
 #include <gtest/gtest.h>

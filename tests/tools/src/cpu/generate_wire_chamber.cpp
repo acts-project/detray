@@ -17,8 +17,8 @@
 #include "detray/options/detector_io_options.hpp"
 #include "detray/options/parse_options.hpp"
 #include "detray/options/wire_chamber_options.hpp"
-#include "detray/test/utils/detectors/build_wire_chamber.hpp"
-#include "detray/test/utils/types.hpp"
+#include "detray/test/common/build_wire_chamber.hpp"
+#include "detray/test/framework/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>

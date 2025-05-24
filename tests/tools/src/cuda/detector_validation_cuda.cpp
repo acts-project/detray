@@ -17,10 +17,10 @@
 #include "detray/options/parse_options.hpp"
 #include "detray/options/propagation_options.hpp"
 #include "detray/options/track_generator_options.hpp"
-#include "detray/test/common/detail/register_checks.hpp"
-#include "detray/test/common/detail/whiteboard.hpp"
 #include "detray/test/cpu/detector_scan.hpp"
 #include "detray/test/device/cuda/navigation_validation.hpp"
+#include "detray/test/framework/register_checks.hpp"
+#include "detray/test/framework/whiteboard.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -89,24 +89,19 @@ int main(int argc, char** argv) {
     auto white_board = std::make_shared<test::whiteboard>();
     const std::string file_prefix{data_dir + "/" + det_name};
     ray_scan_cfg.name(det_name + "_ray_scan_for_cuda");
-    ray_scan_cfg.whiteboard(white_board);
     ray_scan_cfg.intersection_file(file_prefix + "_ray_scan_intersections");
     ray_scan_cfg.track_param_file(file_prefix + "_ray_scan_track_parameters");
 
     hel_scan_cfg.name(det_name + "_helix_scan_for_cuda");
-    hel_scan_cfg.whiteboard(white_board);
     // Let the Newton algorithm dynamically choose tol. based on approx. error
     hel_scan_cfg.mask_tolerance({detray::detail::invalid_value<scalar>(),
                                  detray::detail::invalid_value<scalar>()});
     hel_scan_cfg.intersection_file(file_prefix + "_helix_scan_intersections");
     hel_scan_cfg.track_param_file(file_prefix + "_helix_scan_track_parameters");
 
-    str_nav_cfg.whiteboard(white_board);
-    hel_nav_cfg.whiteboard(white_board);
-
     // Navigation link consistency, discovered by ray intersection
-    detray::detail::register_checks<detray::test::ray_scan>(det, names,
-                                                            ray_scan_cfg, ctx);
+    detray::test::register_checks<detray::test::ray_scan>(
+        det, names, ray_scan_cfg, ctx, white_board);
 
     // Comparison of straight line navigation with ray scan
     str_nav_cfg.name(det_name + "_straight_line_navigation_cuda");
@@ -121,12 +116,12 @@ int main(int argc, char** argv) {
     str_nav_cfg.intersection_file(ray_scan_cfg.intersection_file());
     str_nav_cfg.track_param_file(ray_scan_cfg.track_param_file());
 
-    detray::detail::register_checks<detray::cuda::straight_line_navigation>(
-        det, names, str_nav_cfg, ctx);
+    detray::test::register_checks<detray::cuda::straight_line_navigation>(
+        det, names, str_nav_cfg, ctx, white_board);
 
     // Navigation link consistency, discovered by helix intersection
-    detray::detail::register_checks<detray::test::helix_scan>(
-        det, names, hel_scan_cfg, ctx);
+    detray::test::register_checks<detray::test::helix_scan>(
+        det, names, hel_scan_cfg, ctx, white_board);
 
     // Comparison of navigation in a constant B-field with helix
     hel_nav_cfg.name(det_name + "_helix_navigation_cuda");
@@ -135,8 +130,8 @@ int main(int argc, char** argv) {
     hel_nav_cfg.intersection_file(hel_scan_cfg.intersection_file());
     hel_nav_cfg.track_param_file(hel_scan_cfg.track_param_file());
 
-    detray::detail::register_checks<detray::cuda::helix_navigation>(
-        det, names, hel_nav_cfg, ctx);
+    detray::test::register_checks<detray::cuda::helix_navigation>(
+        det, names, hel_nav_cfg, ctx, white_board);
 
     // Run the checks
     return RUN_ALL_TESTS();

@@ -20,7 +20,7 @@ file(
 detray_add_library( detray_detectors detectors ${_detray_detectors_headers})
 target_link_libraries(
     detray_detectors
-    INTERFACE covfie::core vecmem::core detray::core detray::io
+    INTERFACE vecmem::core detray::core detray::io
 )
 
 unset(_detray_detector_headers)

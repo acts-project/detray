@@ -13,7 +13,7 @@
 #include "detray/core/detector.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/geometry/mask.hpp"
-#include "detray/test/utils/types.hpp"
+#include "detray/test/framework/types.hpp"
 
 // Detray test include(s)
 #include "detray/utils/type_list.hpp"

@@ -21,7 +21,7 @@ detray_add_tutorial( detector_construction_cuda
    "detector_construction.hpp"
    "detector_construction.cu"
    LINK_LIBRARIES vecmem::cuda detray::core_array detray::tutorial
-                  detray::test_utils
+                  detray::test_common
 )
 target_compile_definitions(
     detray_tutorial_detector_construction_cuda
@@ -33,6 +33,6 @@ detray_add_tutorial( propagation_cuda
    "propagation.hpp"
    "propagation_kernel.cu"
    LINK_LIBRARIES vecmem::cuda detray::core_array covfie::core covfie::cuda
-                  detray::tutorial detray::test_utils
+                  detray::tutorial detray::test_common
 )
 target_compile_definitions(detray_tutorial_propagation_cuda PRIVATE array=array)

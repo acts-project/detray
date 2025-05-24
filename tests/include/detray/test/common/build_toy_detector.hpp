@@ -29,8 +29,8 @@
 #include "detray/utils/ranges.hpp"
 
 // Detray test include(s)
-#include "detray/test/utils/detectors/factories/barrel_generator.hpp"
-#include "detray/test/utils/detectors/factories/endcap_generator.hpp"
+#include "detray/test/common/factories/barrel_generator.hpp"
+#include "detray/test/common/factories/endcap_generator.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>

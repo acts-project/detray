@@ -9,8 +9,8 @@
 #include "detray/utils/consistency_checker.hpp"
 
 // Detray test include(s)
-#include "detray/test/utils/detectors/build_wire_chamber.hpp"
-#include "detray/test/utils/types.hpp"
+#include "detray/test/common/build_wire_chamber.hpp"
+#include "detray/test/framework/types.hpp"
 
 // VecMem include(s).
 #include <vecmem/memory/host_memory_resource.hpp>

@@ -12,7 +12,7 @@
 #include "detray/definitions/algebra.hpp"
 
 // Detray test inclue(s)
-#include "detray/test/utils/types.hpp"
+#include "detray/test/framework/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/containers/device_vector.hpp>

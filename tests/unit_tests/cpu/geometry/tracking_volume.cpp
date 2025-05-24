@@ -10,8 +10,8 @@
 #include "detray/geometry/detail/volume_descriptor.hpp"
 
 // Detray test include(s)
-#include "detray/test/utils/detectors/build_toy_detector.hpp"
-#include "detray/test/utils/types.hpp"
+#include "detray/test/common/build_toy_detector.hpp"
+#include "detray/test/framework/types.hpp"
 
 // GTest include(s)
 #include <gtest/gtest.h>

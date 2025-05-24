@@ -264,7 +264,14 @@ if(DETRAY_SETUP_BENCHMARK)
 endif()
 
 # Set up covfie.
-option(DETRAY_SETUP_COVFIE "Set up the covfie target(s) explicitly" TRUE)
+if(DETRAY_BUILD_TESTING OR DETRAY_BUILD_BENCHMARKS OR DETRAY_BUILD_CLI_TOOLS)
+    set(DETRAY_BUILD_COVFIE ON)
+endif()
+option(
+    DETRAY_SETUP_COVFIE
+    "Set up the covfie target(s) explicitly"
+    ${DETRAY_BUILD_COVFIE}
+)
 option(
     DETRAY_USE_SYSTEM_COVFIE
     "Pick up an existing installation of covfie from the build environment"

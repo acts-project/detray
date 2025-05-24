@@ -14,8 +14,8 @@
 #include "detray/grids/populator.hpp"
 #include "detray/grids/serializer2.hpp"
 
-// Detray test include(s).
-#include "detray/test/utils/types.hpp"
+// Detray benchmark include(s)
+#include "detray/benchmarks/types.hpp"
 
 // VecMem include(s).
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -35,7 +35,7 @@ namespace {
 
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
 /// Test point for printouts
-const auto tp = test::point2{12.f, 30.f};
+const auto tp = benchmarks::point2{12.f, 30.f};
 #endif
 
 /// Prepare test points
@@ -46,7 +46,7 @@ auto make_random_points() {
     std::uniform_real_distribution<scalar> dist1(0.f, 24.f);
     std::uniform_real_distribution<scalar> dist2(0.f, 59.f);
 
-    std::vector<test::point2> points{};
+    std::vector<benchmarks::point2> points{};
     for (unsigned int itest = 0u; itest < 1000000u; ++itest) {
         points.push_back({dist1(gen), dist2(gen)});
     }

@@ -23,8 +23,8 @@
 #include "detray/utils/unit_vectors.hpp"
 
 // Detray test include(s)
-#include "detray/test/utils/simulation/landau_distribution.hpp"
-#include "detray/test/utils/simulation/scattering_helper.hpp"
+#include "detray/test/utils/landau_distribution.hpp"
+#include "detray/test/utils/scattering_helper.hpp"
 
 // System include(s).
 #include <random>

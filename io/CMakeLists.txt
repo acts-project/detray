@@ -23,7 +23,6 @@ file(
     RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
     "include/detray/io/backend/*.hpp"
     "include/detray/io/backend/detail/*.hpp"
-    "include/detray/io/covfie/*.hpp"
     "include/detray/io/frontend/*.hpp"
     "include/detray/io/frontend/detail/*.hpp"
     "include/detray/io/frontend/impl/*.hpp"
@@ -38,7 +37,6 @@ target_link_libraries(
     INTERFACE
         nlohmann_json::nlohmann_json
         vecmem::core
-        covfie::core
         detray::core
         detray::io_utils
 )

@@ -23,8 +23,8 @@
 #include "detray/utils/axis_rotation.hpp"
 
 // Detray test include(s)
-#include "detray/test/utils/detectors/build_telescope_detector.hpp"
-#include "detray/test/utils/types.hpp"
+#include "detray/test/common/build_telescope_detector.hpp"
+#include "detray/test/framework/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>

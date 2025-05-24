@@ -8,8 +8,8 @@
 // Project include(s)
 #include "propagation.hpp"
 
-#include "detray/test/utils/detectors/build_toy_detector.hpp"
-#include "detray/test/utils/simulation/event_generator/track_generators.hpp"
+#include "detray/test/common/build_toy_detector.hpp"
+#include "detray/test/common/track_generators.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/cuda/device_memory_resource.hpp>
@@ -25,8 +25,7 @@ int main() {
     vecmem::cuda::managed_memory_resource mng_mr;
 
     // Create the host bfield
-    auto bfield =
-        detray::bfield::create_inhom_field<detray::tutorial::scalar>();
+    auto bfield = detray::create_inhom_field<detray::tutorial::scalar>();
 
     // Create the toy geometry
     auto [det, names] =

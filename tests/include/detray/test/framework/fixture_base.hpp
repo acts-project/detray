@@ -12,8 +12,9 @@
 #include "detray/definitions/units.hpp"
 #include "detray/propagator/propagator.hpp"
 
-// Detray test include(s).
-#include "detray/test/utils/types.hpp"
+// Detray test include(s)
+#include "detray/test/common/test_configuration.hpp"
+#include "detray/test/framework/types.hpp"
 
 // GTest include(s)
 #include <gtest/gtest.h>
@@ -39,52 +40,7 @@ class fixture_base : public scope {
     using transform3 = test::transform3;
     /// @}
 
-    /// Local configuration type
-    struct configuration {
-        /// General testing
-        /// @{
-        /// Tolerance to compare two floating point values
-        scalar m_tolerance{std::numeric_limits<scalar>::epsilon()};
-        /// Shorthand for infinity
-        scalar inf{std::numeric_limits<scalar>::infinity()};
-        /// Shorthand for the floating point epsilon
-        scalar epsilon{std::numeric_limits<scalar>::epsilon()};
-        /// @}
-
-        /// Propagation
-        /// @{
-        propagation::config m_prop_cfg{};
-        /// @}
-
-        /// Setters
-        /// @{
-        configuration& tol(scalar t) {
-            m_tolerance = t;
-            return *this;
-        }
-        /// @}
-
-        /// Getters
-        /// @{
-        scalar tol() const { return m_tolerance; }
-        propagation::config& propagation() { return m_prop_cfg; }
-        const propagation::config& propagation() const { return m_prop_cfg; }
-        /// @}
-
-        /// Print configuration
-        std::ostream& operator<<(std::ostream& os) {
-            os << " -> test tolerance:  \t " << tol() << std::endl;
-            os << " -> trk path limit:  \t "
-               << propagation().stepping.path_limit << std::endl;
-            os << " -> overstepping tol:\t "
-               << propagation().navigation.overstep_tolerance << std::endl;
-            os << " -> step constraint:  \t "
-               << propagation().stepping.step_constraint << std::endl;
-            os << std::endl;
-
-            return os;
-        }
-    };
+    using configuration = detray::test::configuration<scalar>;
 
     /// Constructor
     explicit fixture_base(const configuration& cfg = {})

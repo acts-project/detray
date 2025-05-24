@@ -20,10 +20,12 @@
 #include "detray/navigation/intersection/ray_intersector.hpp"
 #include "detray/tracks/ray.hpp"
 
-// Detray test include(s).
+// Detray benchmark include(s)
+#include "detray/benchmarks/types.hpp"
+
+// Detray test include(s)
+#include "detray/test/common/track_generators.hpp"
 #include "detray/test/utils/planes_along_direction.hpp"
-#include "detray/test/utils/simulation/event_generator/track_generators.hpp"
-#include "detray/test/utils/types.hpp"
 
 // Google Benchmark include(s)
 #include <benchmark/benchmark.h>
@@ -38,12 +40,12 @@ static constexpr unsigned int phi_steps{2000u};
 static constexpr unsigned int n_surfaces{16u};
 
 /// Linear algebra implementation using SoA memory layout
-using algebra_v = detray::vc_soa<test::scalar>;
+using algebra_v = detray::vc_soa<benchmarks::scalar>;
 
 /// Linear algebra implementation using AoS memory layout
-// using algebra_array = detray::array<test::scalar>;
-using algebra_vc_aos = detray::vc_aos<test::scalar>;
-// using algebra_eigen = detray::eigen<test::scalar>;
+// using algebra_array = detray::array<benchmarks::scalar>;
+using algebra_vc_aos = detray::vc_aos<benchmarks::scalar>;
+// using algebra_eigen = detray::eigen<benchmarks::scalar>;
 
 using algebra_s = algebra_vc_aos;
 
@@ -91,7 +93,7 @@ dvector<dscalar<algebra_t>> get_dists(std::size_t n) {
 
     using scalar_t = dscalar<algebra_t>;
 
-    dvector<test::scalar> dists;
+    dvector<benchmarks::scalar> dists;
 
     for (std::size_t i = 1u; i <= n; ++i) {
         dists.push_back(static_cast<scalar_t>(i));

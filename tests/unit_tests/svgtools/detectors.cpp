@@ -13,8 +13,8 @@
 #include "detray/plugins/svgtools/writer.hpp"
 
 // Detray test include(s)
-#include "detray/test/utils/detectors/build_toy_detector.hpp"
-#include "detray/test/utils/types.hpp"
+#include "detray/test/common/build_toy_detector.hpp"
+#include "detray/test/framework/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>

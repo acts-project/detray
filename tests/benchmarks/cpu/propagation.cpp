@@ -6,7 +6,6 @@
  */
 
 // Project include(s)
-#include "detray/detectors/bfield.hpp"
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actors.hpp"
 #include "detray/propagator/rk_stepper.hpp"
@@ -14,12 +13,13 @@
 
 // Detray benchmark include(s)
 #include "detray/benchmarks/cpu/propagation_benchmark.hpp"
+#include "detray/benchmarks/types.hpp"
 
-// Detray test include(s).
-#include "detray/test/utils/detectors/build_toy_detector.hpp"
-#include "detray/test/utils/detectors/build_wire_chamber.hpp"
-#include "detray/test/utils/simulation/event_generator/track_generators.hpp"
-#include "detray/test/utils/types.hpp"
+// Detray test include(s)
+#include "detray/test/common/bfield.hpp"
+#include "detray/test/common/build_toy_detector.hpp"
+#include "detray/test/common/build_wire_chamber.hpp"
+#include "detray/test/common/track_generators.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -32,24 +32,24 @@ using namespace detray;
 
 int main(int argc, char** argv) {
 
-    using toy_detector_t = detector<test::toy_metadata>;
-    using test_algebra = typename toy_detector_t::algebra_type;
-    using scalar = dscalar<test_algebra>;
-    using vector3 = dvector3D<test_algebra>;
+    using toy_detector_t = detector<benchmarks::toy_metadata>;
+    using bench_algebra = typename toy_detector_t::algebra_type;
+    using scalar = dscalar<bench_algebra>;
+    using vector3 = dvector3D<bench_algebra>;
 
-    using free_track_parameters_t = free_track_parameters<test_algebra>;
+    using free_track_parameters_t = free_track_parameters<bench_algebra>;
     using uniform_gen_t =
         detail::random_numbers<scalar, std::uniform_real_distribution<scalar>>;
     using track_generator_t =
         random_track_generator<free_track_parameters_t, uniform_gen_t>;
 
     using field_t = bfield::const_field_t<scalar>;
-    using stepper_t = rk_stepper<typename field_t::view_t, test_algebra>;
+    using stepper_t = rk_stepper<typename field_t::view_t, bench_algebra>;
     using empty_chain_t = actor_chain<>;
     using default_chain =
-        actor_chain<parameter_transporter<test_algebra>,
-                    pointwise_material_interactor<test_algebra>,
-                    parameter_resetter<test_algebra>>;
+        actor_chain<parameter_transporter<bench_algebra>,
+                    pointwise_material_interactor<bench_algebra>,
+                    parameter_resetter<bench_algebra>>;
 
     vecmem::host_memory_resource host_mr;
 
@@ -104,15 +104,15 @@ int main(int argc, char** argv) {
             &host_mr, n_tracks, trk_cfg);
 
     const auto [toy_det, names] =
-        build_toy_detector<test_algebra>(host_mr, toy_cfg);
+        build_toy_detector<bench_algebra>(host_mr, toy_cfg);
     const auto [wire_chamber, _] =
-        build_wire_chamber<test_algebra>(host_mr, wire_chamber_cfg);
+        build_wire_chamber<bench_algebra>(host_mr, wire_chamber_cfg);
 
-    auto bfield = bfield::create_const_field<scalar>(B);
+    auto bfield = create_const_field<scalar>(B);
 
     dtuple<> empty_state{};
 
-    pointwise_material_interactor<test_algebra>::state interactor_state{};
+    pointwise_material_interactor<bench_algebra>::state interactor_state{};
 
     auto actor_states = detail::make_tuple<dtuple>(interactor_state);
 

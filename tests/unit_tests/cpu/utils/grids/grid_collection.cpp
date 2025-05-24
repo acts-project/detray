@@ -15,7 +15,7 @@
 #include "detray/utils/grid/serializers.hpp"
 
 // Detray test include(s)
-#include "detray/test/utils/types.hpp"
+#include "detray/test/framework/types.hpp"
 
 // System include(s)
 #include <algorithm>

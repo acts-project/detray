@@ -61,7 +61,7 @@ class whiteboard {
 
     private:
     /// Backend storage
-    std::unordered_map<std::string, std::any> m_store;
+    std::unordered_map<std::string, std::any> m_store{};
 };
 
 template <typename T>

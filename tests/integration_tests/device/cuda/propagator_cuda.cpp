@@ -5,11 +5,9 @@
  * Mozilla Public License Version 2.0
  */
 
-// Project include(s)
-#include "detray/detectors/bfield.hpp"
-
 // Detray test include(s)
-#include "detray/test/utils/detectors/build_toy_detector.hpp"
+#include "detray/test/common/bfield.hpp"
+#include "detray/test/common/build_toy_detector.hpp"
 #include "propagator_cuda_kernel.hpp"
 
 // Vecmem include(s)
@@ -44,7 +42,7 @@ TEST_P(CudaPropConstBFieldMng, propagator) {
 
     // Get the magnetic field
     const vector3 B = std::get<2>(GetParam());
-    auto field = bfield::create_const_field<scalar>(B);
+    auto field = create_const_field<scalar>(B);
 
     // Create the toy geometry
     auto [det, names] = build_toy_detector<test_algebra>(mng_mr);
@@ -78,7 +76,7 @@ TEST_P(CudaPropConstBFieldCpy, propagator) {
 
     // Get the magnetic field
     const vector3 B = std::get<2>(GetParam());
-    auto field = bfield::create_const_field<scalar>(B);
+    auto field = create_const_field<scalar>(B);
 
     // Create the toy geometry
     auto [det, names] = build_toy_detector<test_algebra>(host_mr);
@@ -171,7 +169,7 @@ TEST(CudaPropagatorValidation9, inhomogeneous_bfield_cpy) {
     cfg.propagation.navigation.search_window = {3u, 3u};
 
     // Get the magnetic field
-    auto field = bfield::create_inhom_field<scalar>();
+    auto field = create_inhom_field<scalar>();
 
     // Create the toy geometry with inhomogeneous bfield from file
     auto [det, names] = build_toy_detector<test_algebra>(host_mr);

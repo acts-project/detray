@@ -403,7 +403,7 @@ class grid_reader {
                     }
                     entry.set_volume(volume_idx);
                     entry.set_index(static_cast<dindex>(c));
-                    vgr_builder->get().template populate<attach<>>(mbin, entry);
+                    grid.template populate<attach<>>(mbin, entry);
                 }
             }
         } else {
