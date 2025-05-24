@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/geometry/surface.hpp"
+#include "detray/utils/invalid_values.hpp"
 
 // Plugin include(s)
 #include "detray/plugins/svgtools/conversion/landmark.hpp"
@@ -25,6 +26,9 @@ inline auto intersection(const detector_t& detector,
                          const std::vector<intersection_t>& intersections,
                          const typename detector_t::vector3_type& dir = {},
                          const typename detector_t::geometry_context& gctx = {},
+                         const dindex_range highlight_idx =
+                             {detray::detail::invalid_value<dindex>(),
+                              detray::detail::invalid_value<dindex>()},
                          const styling::landmark_style& style =
                              styling::svg_default::intersection_style) {
 
@@ -48,6 +52,19 @@ inline auto intersection(const detector_t& detector,
     }
 
     svgtools::styling::apply_style(p_ir, style);
+
+    // Place highlights
+    assert(highlight_idx[0] <= highlight_idx[1]);
+    if (highlight_idx[1] - highlight_idx[0] != 0u) {
+        styling::landmark_style highlight_style{style};
+
+        constexpr actsvg::scalar opacity{1.f};
+        highlight_style._fill_color = {styling::colors::red, opacity};
+
+        for (std::size_t i = highlight_idx[0]; i <= highlight_idx[1]; ++i) {
+            styling::apply_style(p_ir._landmarks[i], highlight_style);
+        }
+    }
 
     return p_ir;
 }

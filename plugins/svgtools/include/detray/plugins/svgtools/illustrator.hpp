@@ -440,10 +440,13 @@ class illustrator {
         const std::string& prefix,
         const std::vector<intersection_t>& intersections,
         const typename detector_t::vector3_type dir, const view_t& view,
+        const dindex_range highlight_idx = {detail::invalid_value<dindex>(),
+                                            detail::invalid_value<dindex>()},
         const typename detector_t::geometry_context& gctx = {}) const {
 
         auto p_ir = svgtools::conversion::intersection(
-            _detector, intersections, dir, gctx, _style._intersection_style);
+            _detector, intersections, dir, gctx, highlight_idx,
+            _style._intersection_style);
 
         return svgtools::meta::display::intersection(prefix, p_ir, view);
     }
@@ -505,6 +508,8 @@ class illustrator {
         const std::vector<intersection_t>& intersections,
         const trajectory_t& trajectory, const view_t& view,
         typename detector_t::scalar_type max_path = 500.f,
+        const dindex_range highlight_idx = {detail::invalid_value<dindex>(),
+                                            detail::invalid_value<dindex>()},
         const typename detector_t::geometry_context& gctx = {}) const {
 
         actsvg::svg::object ret;
@@ -516,7 +521,7 @@ class illustrator {
             // Draw intersections with landmark style
             auto p_ir = svgtools::conversion::intersection(
                 _detector, intersections, trajectory.dir(0.f), gctx,
-                _style._landmark_style);
+                highlight_idx, _style._landmark_style);
 
             ret.add_object(svgtools::meta::display::intersection(
                 prefix + "_record", p_ir, view));

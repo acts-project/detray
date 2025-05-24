@@ -32,6 +32,194 @@
 
 namespace detray::detector_scanner {
 
+namespace detail {
+
+/// Retrieve all of the boundary values for the mask
+struct get_boundary_values;
+
+}  // namespace detail
+
+/// @brief Filter the intersection trace for overlapping surfaces and
+/// remove duplicates
+///
+/// ACTS geometries can produce multiple overlapping portals, since some portals
+/// are larger than the volumes they belong to. This leads to duplicate
+/// intersections in the traces.
+template <typename detector_t, typename record_container>
+inline dindex_range overlaps_removal(
+    const detector_t &det, record_container &intersection_records,
+    const typename detector_t::scalar_type tol = 0.5f * unit<float>::um) {
+
+    // Check only the default context due to possible misalignment
+    const typename detector_t::geometry_context ctx{};
+
+    // Document any overlaps on the range
+    constexpr auto inv_idx{detray::detail::invalid_value<dindex>()};
+    dindex_range overlap_idx{inv_idx, inv_idx};
+
+    const std::size_t n_rec{intersection_records.size()};
+    std::size_t n_eq_intrs{1u};  //< Number of consecutive overlapping inters.
+    for (std::size_t i = 0u; i < n_rec - 1u; ++i) {
+        const auto &rec = intersection_records.at(i);
+        const auto &next_rec = intersection_records.at(i + 1u);
+
+        // This record and the following are overlapping: Count until we reach
+        // the end of the overlapping surfaces or end of trace
+        if (math::fabs(next_rec.intersection.path - rec.intersection.path) <
+                tol &&
+            i != (n_rec - 2u)) {
+            ++n_eq_intrs;
+            continue;
+        }
+
+        // Check for surfaces that are geometrically identical (are, however,
+        // allowed to e.g. be of different type, i.e. passive vs sensitive, or
+        // registered in different volumes)
+        using sf_desc_t = decltype(rec.intersection.sf_desc);
+        const auto &is_duplicate_surface =
+            [&det, &ctx](const sf_desc_t sf_desc1, const sf_desc_t sf_desc2) {
+                // If mask and transform are identical, the surface is
+                // duplicated
+                geometry::surface sf1{det, sf_desc1};
+                geometry::surface sf2{det, sf_desc2};
+
+                if (sf1.transform(ctx) != sf2.transform(ctx)) {
+                    return false;
+                }
+                // Differnt shape
+                if (sf_desc1.mask().id() != sf_desc2.mask().id()) {
+                    return false;
+                }
+                // Identical mask link
+                if (sf_desc1.mask() == sf_desc2.mask()) {
+                    return true;
+                }
+                // Shape identical, index different: check the boundary values
+                auto bounds1 =
+                    sf1.template visit_mask<detail::get_boundary_values>();
+                auto bounds2 =
+                    sf2.template visit_mask<detail::get_boundary_values>();
+
+                return (bounds1 == bounds2);
+            };
+
+        // No overlap: continue
+        if (n_eq_intrs == 1u) {
+            continue;
+        }
+        // Found two overlapping surfaces
+        if (n_eq_intrs == 2u) {
+            const auto &prev_rec = intersection_records.at(i - 1u);
+
+            // Two overlapping portals form a valid, connected volume boundary
+            if (!(rec.intersection.sf_desc.is_portal() &&
+                  prev_rec.intersection.sf_desc.is_portal())) {
+                auto prev_sf_desc = prev_rec.intersection.sf_desc;
+                auto sf_desc = rec.intersection.sf_desc;
+
+                // Other types of surfaces must not overlap!
+                std::stringstream err_stream;
+                err_stream << "The following surfaces overlap at\n"
+                           << "POS:\n"
+                           << "glob: " << prev_rec.track_param.pos()
+                           << ", loc: " << prev_rec.intersection.local
+                           << "\nvs.\nglob: " << rec.track_param.pos()
+                           << ", loc: " << rec.intersection.local << std::endl;
+                err_stream << "SURFACES:\n -> " << prev_sf_desc << std::endl;
+                err_stream << " -> " << sf_desc << std::endl;
+
+                // Check if the same surface exists twice
+                if (is_duplicate_surface(prev_sf_desc, sf_desc)) {
+                    err_stream << "Duplicate surface!" << std::endl;
+                }
+
+                // TODO: Fix wire_chamber geometry
+                // throw std::invalid_argument(err_stream.str());
+                std::cout << "ERROR: " << err_stream.str() << std::endl;
+                overlap_idx = {static_cast<dindex>(i - 1u),
+                               static_cast<dindex>(i)};
+            }
+            // Reset to find the next range
+            n_eq_intrs = 1u;
+            continue;
+        }
+
+        // Found more than two overlapping surfaces: Check if they are
+        // identical surfaces or just overlapping in a single point (or both)
+        std::size_t first{(i - (n_eq_intrs - 1u))};
+        std::size_t last{i};
+
+        std::unordered_map<sf_desc_t, std::vector<std::size_t>> desc_buckets{};
+        desc_buckets.insert(
+            {intersection_records.at(first).intersection.sf_desc,
+             std::vector<std::size_t>{first}});
+
+        // Sort the surfaces into buckets of duplicate surfaces
+        for (std::size_t j = first + 1u; j <= last; ++j) {
+            const sf_desc_t desc{
+                intersection_records.at(j).intersection.sf_desc};
+
+            bool is_contained = false;
+            for (const auto &[key, val] : desc_buckets) {
+                if (is_duplicate_surface(key, desc)) {
+                    is_contained = true;
+                    desc_buckets.at(key).push_back(j);
+                }
+            }
+            if (!is_contained) {
+                desc_buckets.insert({desc, std::vector<std::size_t>{j}});
+            }
+        }
+
+        // Remove buckets that contain only one surface and sort indices
+        // in buckets that contain the indices of intersections to be removed
+        auto exit_pt{std::numeric_limits<std::size_t>::max()};
+        for (auto itr = desc_buckets.cbegin(); itr != desc_buckets.cend();) {
+            const auto &[desc, coll] = *itr;
+            if (coll.size() == 1u) {
+                exit_pt = desc_buckets.at(desc).front();
+                itr = desc_buckets.erase(itr);
+            } else {
+                ++itr;
+                // Remove elements from the back
+                std::ranges::sort(desc_buckets.at(desc),
+                                  std::ranges::greater{});
+            }
+        }
+
+        // Find the correct one among the truly duplicated surfaces
+        if (exit_pt == std::numeric_limits<std::size_t>::max() ||
+            desc_buckets.empty()) {
+            std::cout
+                << "ERROR: Could not resolve exit portal in overlap correction"
+                << std::endl;
+
+            overlap_idx = {static_cast<dindex>(first),
+                           static_cast<dindex>(last)};
+        } else {
+            // Keep only the portal that forms the correct volume crossing
+            // with 'exit_pt'
+            const auto vol_link{
+                intersection_records.at(exit_pt).intersection.volume_link};
+
+            for (const auto &[desc, coll] : desc_buckets) {
+                for (const std::size_t k : coll) {
+                    auto test_elem =
+                        std::next(intersection_records.cbegin(), k);
+                    if (vol_link != test_elem->vol_idx) {
+                        intersection_records.erase(test_elem);
+                    }
+                }
+            }
+        }
+
+        // Reset
+        n_eq_intrs = 1u;
+    }
+
+    return overlap_idx;
+}
+
 /// Check if a set of volume indices from portal intersections from a path
 /// (works even if the pairs are not sorted). That the volume links of the
 /// portals at a single boundary crossing match was already checked by the
@@ -223,6 +411,9 @@ inline auto trace_intersections(const record_container &intersection_records,
 
         /// getter
         /// @{
+        inline bool is_invalid() const {
+            return entry.intersection.sf_desc.barcode().is_invalid();
+        }
         inline auto surface_idx() const {
             return entry.intersection.sf_desc.index();
         }
@@ -258,7 +449,7 @@ inline auto trace_intersections(const record_container &intersection_records,
 
     // No intersections found by ray
     if (intersection_records.empty()) {
-        err_stream << "No surfaces found!";
+        err_stream << "No surfaces found in detector!";
         print_err(err_stream);
 
         return std::make_tuple(portal_trace, module_trace, error_code);
@@ -271,14 +462,20 @@ inline auto trace_intersections(const record_container &intersection_records,
 
         // No exit potal
         if (!rec.is_portal()) {
-            const std::string sf_type{rec.is_sensitive() ? "sensitive"
-                                                         : "passive"};
+            if (rec.is_invalid()) {
+                err_stream << "No surfaces found in detector!";
+                print_err(err_stream);
+            } else {
+                const std::string sf_type{rec.is_sensitive() ? "sensitive"
+                                                             : "passive"};
 
-            err_stream << "We don't leave the detector by portal!" << std::endl;
-            err_stream << "Only found single " << sf_type
-                       << " surface: portal(s) missing!";
+                err_stream << "We don't leave the detector by portal!"
+                           << std::endl;
+                err_stream << "Only found single " << sf_type
+                           << " surface: portal(s) missing!";
 
-            print_err(err_stream);
+                print_err(err_stream);
+            }
 
             return std::make_tuple(portal_trace, module_trace, error_code);
         }
@@ -286,7 +483,12 @@ inline auto trace_intersections(const record_container &intersection_records,
 
     // Go through recorded intersection (two at a time)
     dindex current_vol = start_volume;
-    for (std::size_t rec = 0u; rec < (intersection_records.size() - 1u);) {
+    // The first entry is the dummy record that preserve initial track
+    // parameters, skip it
+    const std::size_t start_idx{
+        record{intersection_records.at(0)}.is_invalid() ? 1u : 0u};
+    for (std::size_t rec = start_idx;
+         rec < (intersection_records.size() - 1u);) {
 
         const record current_rec = record{intersection_records.at(rec)};
         const record next_rec = record{intersection_records.at(rec + 1u)};
@@ -565,7 +767,8 @@ inline bool check_trace(const std::vector<record_t> &intersection_trace,
                         std::unordered_set<dindex> &obj_hashes) {
 
     using nav_link_t = typename detector_t::surface_type::navigation_link;
-    static constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
+    static constexpr auto leaving_world{
+        detray::detail::invalid_value<nav_link_t>()};
 
     // Create a trace of the volume indices that were encountered
     // and check that portal intersections are connected
@@ -606,7 +809,10 @@ inline void display_error(
     const trajectory_t &test_track, const truth_trace_t &truth_trace,
     const detray::svgtools::styling::style &svg_style,
     const std::size_t i_track, const std::size_t n_tracks,
-    const recorded_trace_t &recorded_trace = {}, const bool verbose = true) {
+    const recorded_trace_t &recorded_trace = {},
+    const dindex_range overlap_idx = {detray::detail::invalid_value<dindex>(),
+                                      detray::detail::invalid_value<dindex>()},
+    const bool verbose = true) {
 
     // Creating the svg generator for the detector.
     detray::svgtools::illustrator il{det, vol_names, svg_style};
@@ -631,9 +837,10 @@ inline void display_error(
                   << test_track;
     }
 
-    detail::svg_display(gctx, il, truth_trace, test_track,
-                        track_type + "_" + std::to_string(i_track), test_name,
-                        recorded_trace, verbose);
+    detray::detail::svg_display(gctx, il, truth_trace, test_track,
+                                track_type + "_" + std::to_string(i_track),
+                                test_name, recorded_trace, overlap_idx,
+                                verbose);
 }
 
 /// Print an intersection trace
@@ -691,5 +898,24 @@ inline std::string print_adj(const dvector<dindex> &adjacency_matrix) {
 
     return out_stream.str();
 }
+
+namespace detail {
+
+/// Retrieve all of the boundary values for the mask
+struct get_boundary_values {
+    template <typename mask_group_t, typename index_t>
+    auto operator()(const mask_group_t &group, const index_t &index) const {
+        using mask_t = typename mask_group_t::value_type;
+
+        // Host-only
+        dvector<typename mask_t::scalar_type> bounds(
+            mask_t::boundaries::e_size);
+        std::ranges::copy(group[index].values(), std::back_inserter(bounds));
+
+        return bounds;
+    }
+};
+
+}  // namespace detail
 
 }  // namespace detray::detector_scanner
