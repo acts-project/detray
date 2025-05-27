@@ -177,7 +177,7 @@ class endcap_generator final : public surface_factory_interface<detector_t> {
                     typename detector_t::transform_container &transforms,
                     typename detector_t::mask_container &masks,
                     typename detector_t::geometry_context ctx = {})
-        -> dindex_range override {
+        -> dvector<dindex> override {
 
         using surface_t = typename detector_t::surface_type;
         using nav_link_t = typename surface_t::navigation_link;

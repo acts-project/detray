@@ -85,7 +85,7 @@ class cuboid_portal_generator final
                     typename detector_t::transform_container &transforms,
                     typename detector_t::mask_container &masks,
                     typename detector_t::geometry_context ctx = {})
-        -> dindex_range override {
+        -> dvector<dindex> override {
 
         using point3_t = dpoint3D<algebra_type>;
         using vector3_t = dvector3D<algebra_type>;

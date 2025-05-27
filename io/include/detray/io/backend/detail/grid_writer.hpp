@@ -145,7 +145,9 @@ class grid_writer {
     ///
     /// @param store the data store of grids (tuple of grid collections)
     /// @param grid_link type and index of the grid
-    /// @param owner_idx inder of the owner of the grid (e.g. volume index)
+    /// @param vol_idx type and index of volume the grid belongs to
+    /// @param owner_idx inder of the owner of the grid (can be identical to
+    /// vol_idx or volume-local surface index)
     /// @param grid_data the grid payload to be filled
     /// @param converter callable that can convert a grid bin entry into its
     /// respective IO payload (of type @tparam content_t)
@@ -171,8 +173,8 @@ class grid_writer {
         inline void operator()(
             [[maybe_unused]] const grid_group_t& coll,
             [[maybe_unused]] const index_t& index,
-            [[maybe_unused]] std::size_t vol_link,
-            [[maybe_unused]] std::size_t owner_link,
+            [[maybe_unused]] std::size_t vol_idx,
+            [[maybe_unused]] std::size_t owner_idx,
             [[maybe_unused]] detector_grids_payload<content_t, grid_id_t>&
                 grids_data,
             [[maybe_unused]] converter_t& converter) const {
@@ -184,15 +186,15 @@ class grid_writer {
                 using value_t = typename coll_value_t::value_type;
 
                 auto gr_pyload = to_payload<content_t, value_t>(
-                    owner_link, io::detail::get_id<coll_value_t>(), index,
+                    owner_idx, io::detail::get_id<coll_value_t>(), index,
                     coll[index], converter);
 
                 auto& grids_map = grids_data.grids;
-                auto search = grids_map.find(vol_link);
+                auto search = grids_map.find(vol_idx);
                 if (search != grids_map.end()) {
-                    grids_map.at(vol_link).push_back(std::move(gr_pyload));
+                    grids_map.at(vol_idx).push_back(std::move(gr_pyload));
                 } else {
-                    grids_map[vol_link] = {std::move(gr_pyload)};
+                    grids_map[vol_idx] = {std::move(gr_pyload)};
                 }
             }
         }

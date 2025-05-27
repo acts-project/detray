@@ -39,21 +39,33 @@ class material_data {
         const std::size_t sf_idx = detail::invalid_value<std::size_t>())
         : m_sf_index{sf_idx} {}
 
-    /// Construct from a predefined material
+    /// Construct from a predefined material, without specific surface index.
+    /// Material will be appended to the surfaces at the end of the container
     ///
     /// @param mat predefined material, see
     ///            'detray/materials/predefined_materials.hpp'
     /// @param thickness of the material slab/rod
-    /// @param sf_idx the index of the surface this material belongs to, needs
-    ///               to be passed only if a special oredering must be observed
     DETRAY_HOST
-    constexpr material_data(
-        const scalar_t thickness, const material<scalar_t> &mat,
-        const std::size_t sf_idx = detail::invalid_value<std::size_t>())
+    constexpr material_data(const scalar_t thickness,
+                            const material<scalar_t> &mat)
+        : material_data{detail::invalid_value<std::size_t>(), thickness, mat} {}
+
+    /// Construct from a predefined material
+    ///
+    /// @param sf_idx the volume-local index of the surface this material
+    /// belongs to
+    /// @param mat predefined material, see
+    ///            'detray/materials/predefined_materials.hpp'
+    /// @param thickness of the material slab/rod
+    DETRAY_HOST
+    constexpr material_data(const std::size_t sf_idx, const scalar_t thickness,
+                            const material<scalar_t> &mat)
         : m_sf_index{sf_idx}, m_mat{mat}, m_thickness{thickness} {}
 
     /// Construct from all parameters:
     ///
+    /// @param sf_idx the volume-local index of the surface this material
+    /// belongs to
     /// @param thickness of the material slab/rod
     /// @param material_paramters0 x0 is the radiation length
     /// @param material_paramters1 l0 is the nuclear interaction length
@@ -61,14 +73,11 @@ class material_data {
     /// @param material_paramters3 z is the nuclear charge number
     /// @param material_paramters4 molarRho is the molar density
     /// @param state of the material (liquid, solid etc.)
-    /// @param sf_idx the index of the surface this material belongs to, needs
-    ///               to be passed only if a special oredering must be observed
     DETRAY_HOST
     constexpr material_data(
-        const scalar_t thickness,
+        const std::size_t sf_idx, const scalar_t thickness,
         const std::vector<scalar_t> &material_paramters,
-        const material_state state = material_state::e_solid,
-        const std::size_t sf_idx = detail::invalid_value<std::size_t>())
+        const material_state state = material_state::e_solid)
         : m_sf_index{sf_idx},
           m_mat{material<scalar_t>{material_paramters[0], material_paramters[1],
                                    material_paramters[2], material_paramters[3],
@@ -172,7 +181,6 @@ class homogeneous_material_factory final
 
         // Need exactly one material per surface
         assert(m_indices.empty() || (m_indices.size() == n_surfaces));
-        assert(m_links.size() == n_surfaces);
         assert(m_materials.size() == n_surfaces);
         assert(m_thickness.size() == n_surfaces);
 
@@ -181,17 +189,20 @@ class homogeneous_material_factory final
 
     /// @returns the material links to the surfaces (counted for this volume)
     DETRAY_HOST
-    auto links() const -> const std::vector<material_id> & { return m_links; }
+    auto links() const -> const std::map<std::size_t, material_id> & {
+        return m_links;
+    }
 
     /// @returns the raw materials that are currently in the factory
     DETRAY_HOST
-    auto materials() const -> const std::vector<material<scalar_type>> & {
+    auto materials() const
+        -> const std::map<std::size_t, material<scalar_type>> & {
         return m_materials;
     }
 
     /// @returns the material thickness currently held by the factory
     DETRAY_HOST
-    auto thickness() const -> const std::vector<scalar_type> & {
+    auto thickness() const -> const std::map<std::size_t, scalar_type> & {
         return m_thickness;
     }
 
@@ -208,10 +219,16 @@ class homogeneous_material_factory final
         assert(mat.size() == 1u);
         assert(thickness.size() == 1u);
 
-        m_links.push_back(std::make_pair(id, static_cast<dindex>(index)));
-        m_indices.push_back(sf_index);
-        m_materials.push_back(mat[0]);
-        m_thickness.push_back(thickness[0]);
+        // Save the material data either at the surface index or append it for
+        // the next surface
+        const std::size_t i{detail::is_invalid_value<std::size_t>(sf_index)
+                                ? m_links.size()
+                                : sf_index};
+
+        m_indices.push_back(i);
+        m_links.emplace(i, std::make_pair(id, static_cast<dindex>(index)));
+        m_materials.emplace(i, mat[0]);
+        m_thickness.emplace(i, thickness[0]);
     }
 
     /// Add all necessary compontents to the factory for multiple material slabs
@@ -236,6 +253,28 @@ class homogeneous_material_factory final
         m_links.clear();
         m_materials.clear();
         m_thickness.clear();
+    }
+
+    /// Call the underlying surface factory and record the surface range that
+    /// was produced
+    ///
+    /// @param volume the volume the portals need to be added to.
+    /// @param surfaces the surface collection to wrap and to add the portals to
+    /// @param transforms the transforms of the surfaces.
+    /// @param masks the masks of the surfaces.
+    /// @param ctx the geometry context (not needed for portals).
+    DETRAY_HOST
+    auto operator()(typename detector_t::volume_type &volume,
+                    typename detector_t::surface_lookup_container &surfaces,
+                    typename detector_t::transform_container &transforms,
+                    typename detector_t::mask_container &masks,
+                    typename detector_t::geometry_context ctx = {})
+        -> dvector<dindex> override {
+
+        m_surface_indices =
+            (*this->get_factory())(volume, surfaces, transforms, masks, ctx);
+
+        return m_surface_indices;
     }
 
     /// @brief Add material to the containers of a volume builder.
@@ -265,10 +304,12 @@ class homogeneous_material_factory final
 
         // Check that the surfaces were set up correctly
         const std::size_t n_materials{this->n_materials()};
-        assert(surfaces.size() >= n_materials);
+        assert(m_surface_indices.size() >= n_materials);
+        assert(surfaces.size() >= m_surface_indices.size());
 
         // If no concrete surface ordering was passed, use index sequence
         // and add the materials to the trailing elements in the surfaces cont.
+        std::size_t sf_offset{0u};
         if (m_indices.empty() ||
             std::ranges::find(m_indices,
                               detail::invalid_value<std::size_t>()) !=
@@ -276,14 +317,30 @@ class homogeneous_material_factory final
             m_indices.resize(n_materials);
             std::iota(std::begin(m_indices), std::end(m_indices),
                       surfaces.size() - n_materials);
+
+            // Check that the underlying surface factory produced a contiguous
+            // range of surfaces. Otherwise the @c material_data has to be
+            // constructed with the matching surface indices
+            std::stringstream err_stream{
+                "ERROR: Given material does not match the produced surfaces. "
+                "Use explicit surface with the material data."};
+            if (m_indices.size() != m_surface_indices.size()) {
+                throw std::invalid_argument(err_stream.str());
+            }
+            for (std::size_t j = 0u; j < m_surface_indices.size(); ++j) {
+                if (m_indices[j] != m_surface_indices[j]) {
+                    throw std::invalid_argument(err_stream.str());
+                }
+            }
+
+            // Correctly index the data in this factory
+            sf_offset = *std::ranges::min_element(m_indices);
         }
 
-        // Correctly index the data in this factory
-        std::size_t sf_offset{*std::ranges::min_element(m_indices)};
-
         // Add the material to the surfaces that the data links against
-        for (auto [i, sf] : detray::views::pick(surfaces, m_indices)) {
-            std::size_t sf_idx{i - sf_offset};
+        for (const std::size_t i : m_indices) {
+            const auto sf_idx{i - sf_offset};
+
             const material<scalar_type> &mat = m_materials.at(sf_idx);
             scalar_type t = m_thickness.at(sf_idx);
 
@@ -292,8 +349,8 @@ class homogeneous_material_factory final
                 auto &mat_coll = materials.template get<material_id::e_slab>();
 
                 material_slab<scalar_type> mat_slab{mat, t};
-                mat_idx = this->insert_in_container(mat_coll, mat_slab,
-                                                    m_links.at(sf_idx).second);
+                mat_idx = this->insert_into_container(
+                    mat_coll, mat_slab, m_links.at(sf_idx).second);
             }
             if constexpr (detector_t::materials::template is_defined<
                               material_rod<scalar_type>>()) {
@@ -302,27 +359,29 @@ class homogeneous_material_factory final
                         materials.template get<material_id::e_rod>();
 
                     material_rod<scalar_type> mat_rod{mat, t};
-                    mat_idx = this->insert_in_container(mat_coll, mat_rod,
-                                                        m_links[sf_idx].second);
+                    mat_idx = this->insert_into_container(
+                        mat_coll, mat_rod, m_links.at(sf_idx).second);
                 }
             }
 
             // Set the initial surface material link (will be updated when
             // added to the detector)
-            surfaces.at(static_cast<dindex>(i)).material() =
-                link_t{m_links[sf_idx].first, mat_idx};
+            surfaces.at(static_cast<dindex>(sf_idx)).material() =
+                link_t{m_links.at(sf_idx).first, mat_idx};
         }
     }
 
     private:
+    /// Range of surface indices for which to generate material
+    dvector<dindex> m_surface_indices{};
     /// Material links of surfaces
-    std::vector<std::pair<material_id, dindex>> m_links{};
-    /// Position of the material in the detector material collection
+    std::map<std::size_t, std::pair<material_id, dindex>> m_links{};
+    /// Index of the surface the material belongs to (volume local)
     std::vector<std::size_t> m_indices{};
     /// Material thickness
-    std::vector<scalar_type> m_thickness{};
+    std::map<std::size_t, scalar_type> m_thickness{};
     /// The pre-computed material to be wrapped in a slab or rod
-    std::vector<material<scalar_type>> m_materials{};
+    std::map<std::size_t, material<scalar_type>> m_materials{};
 };
 
 }  // namespace detray

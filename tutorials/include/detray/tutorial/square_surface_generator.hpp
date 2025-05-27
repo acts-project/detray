@@ -67,7 +67,7 @@ class square_surface_generator final
                     typename detector_t::transform_container &transforms,
                     typename detector_t::mask_container &masks,
                     typename detector_t::geometry_context ctx = {})
-        -> dindex_range override {
+        -> dvector<dindex> override {
         using surface_t = typename detector_t::surface_type;
         using mask_link_t = typename surface_t::mask_link;
         using material_link_t = typename surface_t::material_link;

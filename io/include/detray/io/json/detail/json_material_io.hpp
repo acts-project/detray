@@ -43,11 +43,13 @@ inline void from_json(const nlohmann::ordered_json& j,
     }
 }
 
-inline void to_json(nlohmann::ordered_json& j, const material_payload& m) {
+inline void to_json(nlohmann::ordered_json& j,
+                    const material_param_payload& m) {
     j["params"] = m.params;
 }
 
-inline void from_json(const nlohmann::ordered_json& j, material_payload& m) {
+inline void from_json(const nlohmann::ordered_json& j,
+                      material_param_payload& m) {
     m.params = j["params"].get<std::array<real_io, 7>>();
 }
 
@@ -76,19 +78,12 @@ inline void to_json(nlohmann::ordered_json& j,
                     const material_volume_payload& mv) {
     j["volume_link"] = mv.volume_link;
 
-    if (!mv.mat_slabs.empty()) {
+    if (!mv.surface_mat.empty()) {
         nlohmann::ordered_json jmats;
-        for (const auto& m : mv.mat_slabs) {
+        for (const auto& m : mv.surface_mat) {
             jmats.push_back(m);
         }
-        j["material_slabs"] = jmats;
-    }
-    if (mv.mat_rods.has_value() && !mv.mat_rods->empty()) {
-        nlohmann::ordered_json jmats;
-        for (const auto& m : mv.mat_rods.value()) {
-            jmats.push_back(m);
-        }
-        j["material_rods"] = jmats;
+        j["surface_material"] = jmats;
     }
 }
 
@@ -96,17 +91,10 @@ inline void from_json(const nlohmann::ordered_json& j,
                       material_volume_payload& mv) {
     mv.volume_link = j["volume_link"];
 
-    if (j.find("material_slabs") != j.end()) {
-        for (auto jmats : j["material_slabs"]) {
+    if (j.find("surface_material") != j.end()) {
+        for (auto jmats : j["surface_material"]) {
             material_slab_payload mslp = jmats;
-            mv.mat_slabs.push_back(mslp);
-        }
-    }
-    if (j.find("material_rods") != j.end()) {
-        mv.mat_rods.emplace();
-        for (auto jmats : j["material_rods"]) {
-            material_slab_payload mslp = jmats;
-            mv.mat_rods->push_back(mslp);
+            mv.surface_mat.push_back(mslp);
         }
     }
 }

@@ -393,6 +393,7 @@ class grid_reader {
                 }
 
                 // For now assume surfaces ids as the only grid input
+                // TODO: Write bin content converter
                 for (const auto c : bin_data.content) {
                     if (detray::detail::is_invalid_value(
                             static_cast<dindex>(c))) {
