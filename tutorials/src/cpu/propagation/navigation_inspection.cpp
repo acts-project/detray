@@ -67,6 +67,9 @@ int main() {
     using propagator_t =
         detray::propagator<stepper_t, navigator_t, detray::actor_chain<>>;
 
+    std::cout << "Navigation Instepction "
+                 "Tutorial\n===============================\n\n";
+
     vecmem::host_memory_resource host_mr;
 
     const auto [det, names] = detray::build_toy_detector<algebra_t>(host_mr);
@@ -76,6 +79,8 @@ int main() {
     // Build the propagator
     detray::propagation::config prop_cfg{};
     propagator_t prop{prop_cfg};
+
+    std::cout << prop_cfg;
 
     // Track generation config
     // Trivial example: Single track escapes through beampipe
@@ -105,18 +110,21 @@ int main() {
         auto &obj_tracer = inspector.template get<object_tracer_t>();
         auto &debug_printer = inspector.template get<nav_print_inspector_t>();
 
-        std::cout << debug_printer.to_string();
+        std::cout
+            << "\nNavigation Debug Output:\n----------------------------\n\n"
+            << debug_printer.to_string();
 
         // Compare ray trace to object tracer
         std::stringstream debug_stream;
-        for (std::size_t intr_idx = 0; intr_idx < intersection_trace.size();
+        for (std::size_t intr_idx = 1u; intr_idx < intersection_trace.size();
              ++intr_idx) {
             debug_stream << "-------Intersection trace\n"
-                         << "ray gun: "
-                         << "found in vol: "
-                         << intersection_trace[intr_idx].vol_idx << ",\n\t"
+                         << "Volume: " << intersection_trace[intr_idx].vol_idx
+                         << "\n\nray gun: "
                          << intersection_trace[intr_idx].intersection;
-            debug_stream << "\nnavig.:\t" << obj_tracer[intr_idx].intersection;
+            // Object tracer does not save extra intersection at origin
+            debug_stream << "\n\nnavig.:  "
+                         << obj_tracer[intr_idx - 1u].intersection;
         }
         std::cout << debug_stream.str() << std::endl;
 

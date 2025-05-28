@@ -12,6 +12,8 @@
 
 // System include(s)
 #include <memory>
+#include <string>
+#include <string_view>
 
 namespace detray {
 
@@ -46,6 +48,14 @@ class volume_builder_interface {
     /// @returns whether sensitive surfaces are added to the brute force method
     DETRAY_HOST
     virtual bool has_accel() const = 0;
+
+    /// Sets the name @param volume_name for the volume
+    DETRAY_HOST
+    virtual void set_name(std::string volume_name) = 0;
+
+    /// @returns the name of the volume
+    DETRAY_HOST
+    virtual std::string_view name() = 0;
 
     /// @returns reading access to the volume
     DETRAY_HOST
@@ -130,6 +140,13 @@ class volume_decorator : public volume_builder_interface<detector_t> {
 
     DETRAY_HOST
     bool has_accel() const override { return m_builder->has_accel(); }
+
+    DETRAY_HOST
+    void set_name(std::string volume_name) override {
+        return m_builder->set_name(volume_name);
+    }
+
+    DETRAY_HOST std::string_view name() override { return m_builder->name(); }
 
     DETRAY_HOST
     auto build(detector_t &det,

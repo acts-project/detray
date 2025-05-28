@@ -155,9 +155,8 @@ inline auto build_wire_chamber(
 
     // Wire chamber detector builder
     builder_t det_builder;
+    det_builder.set_name("wire_chamber");
 
-    // Detector and volume names
-    typename detector_t::name_map name_map = {{0u, "wire_chamber"}};
     // Geometry context object
     typename detector_t::geometry_context gctx{};
 
@@ -197,7 +196,7 @@ inline auto build_wire_chamber(
     auto inner_v_builder = det_builder.new_volume(volume_id::e_cylinder);
     inner_v_builder->add_volume_placement(/*identity*/);
     const dindex inner_vol_idx{inner_v_builder->vol_index()};
-    name_map[1u] = "inner_vol_" + std::to_string(inner_vol_idx);
+    inner_v_builder->set_name("inner_vol_" + std::to_string(inner_vol_idx));
 
     // Configure the portal factory
     // TODO: Add material maps that model the silicon detector budget
@@ -239,7 +238,7 @@ inline auto build_wire_chamber(
                     v_builder);
 
         const dindex vol_idx{vm_builder->vol_index()};
-        name_map[vol_idx + 1u] = "layer_vol_" + std::to_string(vol_idx);
+        vm_builder->set_name("layer_vol_" + std::to_string(vol_idx));
 
         // The barrel volumes are centered at the origin
         vm_builder->add_volume_placement(/*identity*/);
@@ -313,8 +312,9 @@ inline auto build_wire_chamber(
                                capacities);
     }
 
-    // Build and return the detector
-    auto det = det_builder.build(resource);
+    // Build and return the detector and fill name map
+    typename detector_t::name_map name_map{};
+    auto det = det_builder.build(resource, name_map);
 
     if (cfg.do_check()) {
         const bool verbose_check{false};

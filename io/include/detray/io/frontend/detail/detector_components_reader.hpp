@@ -38,13 +38,13 @@ class detector_components_reader final {
     /// Create a new reader of type @tparam reader_t
     template <class reader_t>
     requires std::is_base_of_v<reader_interface<detector_t>, reader_t> void add(
-        const std::string& name) {
-        add(std::make_unique<reader_t>(), name);
+        const std::string& file_name) {
+        add(std::make_unique<reader_t>(), file_name);
     }
 
     /// Attach an existing reader via @param r_ptr to the readers
-    void add(reader_ptr_t&& r_ptr, const std::string& name) {
-        m_readers[name] = std::move(r_ptr);
+    void add(reader_ptr_t&& r_ptr, const std::string& file_name) {
+        m_readers[file_name] = std::move(r_ptr);
     }
 
     /// @returns the number of readers that are registered
@@ -59,19 +59,18 @@ class detector_components_reader final {
     /// Reads the full detector into @param det by calling the readers, while
     /// using the name map @param volume_names for to write the volume names.
     void read(detector_builder<typename detector_t::metadata, volume_builder>&
-                  det_builder,
-              typename detector_t::name_map& volume_names) {
+                  det_builder) {
 
         // We have to at least read a geometry
         assert(size() != 0u &&
                "No readers registered! Need at least a geometry reader");
 
         // Set the detector name in the name map
-        volume_names.emplace(0u, m_det_name);
+        det_builder.set_name(m_det_name);
 
         // Call the read method on all readers
-        for (const auto& [name, reader] : m_readers) {
-            reader->read(det_builder, volume_names, name);
+        for (const auto& [file_name, reader] : m_readers) {
+            reader->read(det_builder, file_name);
         }
     }
 

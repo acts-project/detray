@@ -1,17 +1,15 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023-2024 CERN for the benefit of the ACTS project
+ * (c) 2023-2025 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
-// TODO: Remove this when gcc fixes their false positives.
-#if defined(__GNUC__) && !defined(__clang__)
-#pragma GCC diagnostic warning "-Warray-bounds"
-#endif
-
 // Project include(s)
 #include "detray/builders/cuboid_portal_generator.hpp"
+#include "detray/builders/detector_builder.hpp"
+#include "detray/builders/homogeneous_material_builder.hpp"
+#include "detray/builders/homogeneous_material_generator.hpp"
 #include "detray/builders/surface_factory.hpp"
 #include "detray/builders/volume_builder.hpp"
 #include "detray/core/detector.hpp"
@@ -28,6 +26,7 @@
 #include <vecmem/memory/host_memory_resource.hpp>
 
 // System include(s)
+#include <iostream>
 #include <limits>
 #include <memory>
 
@@ -36,17 +35,28 @@ int main() {
 
     using scalar = detray::tutorial::scalar;
 
-    // The new detector type
-    using detector_t = detray::detector<detray::tutorial::my_metadata>;
+    // Detector builder for the tutorial detector type
+    using detector_builder_t =
+        detray::detector_builder<detray::tutorial::my_metadata>;
+    using detector_t = detector_builder_t::detector_type;
 
-    // First, create an empty detector in in host memory to be filled
+    std::cout
+        << "Detector Construction Tutorial\n==============================\n";
+
+    // Host memory resouce for container allocations
     vecmem::host_memory_resource host_mr;
-    detector_t det{host_mr};
 
-    // Now fill the detector
+    detector_builder_t det_builder{};
+    det_builder.set_name("tutorial_detector");
 
-    // Get a generic volume builder first and decorate it later
-    detray::volume_builder<detector_t> vbuilder{detray::volume_id::e_cuboid};
+    // Add a cuboid volume to the detector (index 0)
+    auto v_builder_0 = det_builder.new_volume(detray::volume_id::e_cuboid);
+    v_builder_0->set_name("cuboid_volume_0");
+    v_builder_0->add_volume_placement(/*identity*/);
+
+    // Optional: Add homogeneous material construction to the volume
+    auto vm_builder_0 = det_builder.template decorate<
+        detray::homogeneous_material_builder<detector_t>>(v_builder_0);
 
     // Fill some squares into the volume
     using square_factory_t =
@@ -65,8 +75,24 @@ int main() {
 
     // Add some programmatically generated square surfaces
     auto sq_generator =
-        std::make_shared<detray::tutorial::square_surface_generator>(
+        std::make_unique<detray::tutorial::square_surface_generator>(
             10, 10.f * detray::unit<scalar>::mm);
+
+    // Generate some homogeneous material for the square surfaces
+
+    // Configure the homogeneous material generation
+    detray::hom_material_config<scalar> mat_cfg{};
+
+    // Only build material on sensitive surfaces
+    mat_cfg.passive_material(detray::vacuum<scalar>{});
+    mat_cfg.sensitive_material(detray::tungsten<scalar>{})
+        .thickness(1.5f * detray::unit<scalar>::mm);
+
+    // The generator will automatically put material on all fitting surfaces
+    // when the factory is added to the volume builder
+    auto sq_mat_generator =
+        std::make_shared<detray::homogeneous_material_generator<detector_t>>(
+            std::move(sq_generator), mat_cfg);
 
     // Add a portal box around the cuboid volume with a min distance of 'env'
     constexpr auto env{0.1f * detray::unit<scalar>::mm};
@@ -74,15 +100,20 @@ int main() {
         std::make_shared<detray::cuboid_portal_generator<detector_t>>(env);
 
     // Add surfaces to volume and add the volume to the detector
-    vbuilder.add_surfaces(sq_factory);
-    vbuilder.add_surfaces(sq_generator);
-    vbuilder.add_surfaces(portal_generator);
+    vm_builder_0->add_surfaces(sq_factory);
+    vm_builder_0->add_surfaces(sq_mat_generator);
+    vm_builder_0->add_surfaces(portal_generator);
 
-    vbuilder.build(det);
+    // Optional: Empty name map to be filled
+    detector_t::name_map name_map{};
+    const auto det = det_builder.build(host_mr, name_map);
 
     // Write the detector to file
     auto writer_cfg = detray::io::detector_writer_config{}
                           .format(detray::io::format::json)
                           .replace_files(true);
-    detray::io::write_detector(det, {{0u, "example_detector"}}, writer_cfg);
+
+    std::cout << writer_cfg << std::endl;
+
+    detray::io::write_detector(det, name_map, writer_cfg);
 }

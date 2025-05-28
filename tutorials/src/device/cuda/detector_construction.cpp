@@ -35,6 +35,9 @@ int main() {
     // Helper object for performing memory copies to CUDA devices
     vecmem::cuda::copy cuda_cpy;
 
+    std::cout
+        << "Detector Device Construction Tutorial\n====================\n\n";
+
     //
     // Managed Memory
     //

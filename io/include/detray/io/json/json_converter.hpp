@@ -49,7 +49,6 @@ requires concepts::reader_backend<detector_t, backend_t> class json_converter<
     /// Writes the geometry to file with a given name
     void read(detector_builder<typename detector_t::metadata, volume_builder>&
                   det_builder,
-              typename detector_t::name_map& name_map,
               const std::string& file_name) override {
 
         // Read json from file
@@ -61,7 +60,7 @@ requires concepts::reader_backend<detector_t, backend_t> class json_converter<
         *file >> in_json;
 
         // Add the data from the payload to the detray detector builder
-        io_backend::template from_payload<detector_t>(det_builder, name_map,
+        io_backend::template from_payload<detector_t>(det_builder,
                                                       in_json["data"]);
     }
 };

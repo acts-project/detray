@@ -47,7 +47,7 @@ class square2D {
     ///
     /// @note the point is expected to be given in local coordinates by the
     /// caller. For the conversion from global cartesian coordinates, the
-    /// nested @c shape struct can be used.
+    /// nested @c local_frame_type struct can be used.
     ///
     /// @param bounds the boundary values for this shape
     /// @param loc_p the point to be checked in the local coordinate system

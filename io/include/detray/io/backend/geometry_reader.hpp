@@ -55,11 +55,9 @@ class geometry_reader {
     using payload_type = detector_payload;
 
     /// Convert a detector @param det from its io payload @param det_data
-    /// and add the volume names to @param name_map
     template <class detector_t>
     static void from_payload(detector_builder<typename detector_t::metadata,
                                               volume_builder>& det_builder,
-                             typename detector_t::name_map& name_map,
                              const payload_type& det_data) {
 
         // Can hold all types of surface fatory needed for the detector
@@ -72,7 +70,7 @@ class geometry_reader {
             auto vbuilder = det_builder.new_volume(vol_data.type);
 
             // Set the volume name
-            name_map[vbuilder->vol_index() + 1u] = vol_data.name;
+            vbuilder->set_name(vol_data.name);
 
             // Volume placement
             vbuilder->add_volume_placement(

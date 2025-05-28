@@ -46,7 +46,6 @@ class surface_grid_reader
     template <typename detector_t>
     static void from_payload(detector_builder<typename detector_t::metadata,
                                               volume_builder> &det_builder,
-                             typename detector_t::name_map &,
                              const payload_type &grids_data) {
 
         grid_reader_t::template from_payload<detector_t>(det_builder,

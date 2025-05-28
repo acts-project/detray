@@ -20,6 +20,8 @@
 /// Write a dector using the json IO
 int main() {
 
+    std::cout << "Detector IO Tutorial\n====================\n\n";
+
     // First, create an example detector in in host memory to be written to disk
     vecmem::host_memory_resource host_mr;
     const auto [det, names] =
@@ -31,6 +33,8 @@ int main() {
     auto writer_cfg = detray::io::detector_writer_config{}
                           .format(detray::io::format::json)
                           .replace_files(true);
+
+    std::cout << writer_cfg << std::endl;
 
     // Takes the detector 'det', a volume name map (only entry here the
     // detector name) and the writer config

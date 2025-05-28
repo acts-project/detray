@@ -47,7 +47,7 @@ struct print_actor : detray::actor {
     }
 };
 
-/// Example actor that couts the number of elements in its buffer
+/// Example actor that counts the number of elements in its buffer
 template <template <typename...> class vector_t>
 struct example_actor : detray::actor {
 
@@ -89,6 +89,8 @@ int main() {
     // Implements example_actor with two print observers
     using composite =
         detray::composite_actor<example_actor_t, print_actor, print_actor>;
+
+    std::cout << "Actor Definition Tutorial\n=========================\n";
 
     example_actor_t::state example_state{};
     print_actor::state printer_state{};

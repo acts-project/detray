@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2025 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -17,14 +17,12 @@ inline constexpr scalar path_limit{2.f * detray::unit<scalar>::m};
 __global__ void propagation_kernel(
     typename detray::tutorial::detector_host_t::view_type det_data,
     typename detray::tutorial::device_field_t::view_t field_data,
-    const vecmem::data::vector_view<detray::free_track_parameters<algebra_t>>
-        tracks_data) {
+    const vecmem::data::vector_view<detray::tutorial::track_t> tracks_data) {
 
     int gid = threadIdx.x + blockIdx.x * blockDim.x;
 
     // Setup device-side track collection
-    vecmem::device_vector<detray::free_track_parameters<algebra_t>> tracks(
-        tracks_data);
+    vecmem::device_vector<detray::tutorial::track_t> tracks(tracks_data);
 
     if (gid >= tracks.size()) {
         return;
@@ -51,11 +49,9 @@ __global__ void propagation_kernel(
     p.propagate(state, actor_states);
 }
 
-void propagation(
-    typename detray::tutorial::detector_host_t::view_type det_data,
-    typename detray::tutorial::device_field_t::view_t field_data,
-    const vecmem::data::vector_view<detray::free_track_parameters<algebra_t>>
-        tracks_data) {
+void propagation(typename detray::tutorial::detector_host_t::view_type det_data,
+                 typename detray::tutorial::device_field_t::view_t field_data,
+                 const vecmem::data::vector_view<track_t> tracks_data) {
 
     int thread_dim = 2 * WARP_SIZE;
     int block_dim = tracks_data.size() / thread_dim + 1;
