@@ -183,3 +183,22 @@ class surface_descriptor {
 };
 
 }  // namespace detray
+
+namespace std {
+
+// Specialize std::hash so surface descriptors can be used in STL containers
+template <typename mask_link_t, typename material_link_t,
+          typename transform_link_t, typename navigation_link_t>
+struct hash<detray::surface_descriptor<mask_link_t, material_link_t,
+                                       transform_link_t, navigation_link_t>> {
+    using descr_t =
+        detray::surface_descriptor<mask_link_t, material_link_t,
+                                   transform_link_t, navigation_link_t>;
+
+    auto operator()(const descr_t sf_desc) const noexcept {
+        return std::hash<detray::geometry::barcode::value_t>()(
+            sf_desc.barcode().value());
+    }
+};
+
+}  // namespace std

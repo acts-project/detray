@@ -53,9 +53,11 @@ int main(int argc, char **argv) {
     // Specific options for this test
     po::options_description desc("\ndetray material validation options");
 
-    desc.add_options()(
-        "tol", boost::program_options::value<float>()->default_value(1.f),
-        "Tolerance for comparing the material traces [%]");
+    desc.add_options()("material_tol", po::value<float>()->default_value(1.f),
+                       "Tolerance for comparing the material traces [%]")(
+        "overlaps_tol",
+        po::value<float>()->default_value(stepping::config{}.min_stepsize),
+        "Tolerance for considering surfaces to be overlapping [mm]");
 
     // Configs to be filled
     detray::io::detector_reader_config reader_cfg{};
@@ -67,8 +69,11 @@ int main(int argc, char **argv) {
         mat_val_cfg.propagation());
 
     // General options
-    if (vm.count("tol")) {
-        mat_val_cfg.relative_error(vm["tol"].as<float>() / 100.f);
+    if (vm.count("material_tol")) {
+        mat_val_cfg.relative_error(vm["material_tol"].as<float>() / 100.f);
+    }
+    if (vm.count("overlaps_tol")) {
+        mat_scan_cfg.overlaps_tol(vm["overlaps_tol"].as<float>());
     }
 
     vecmem::host_memory_resource host_mr;

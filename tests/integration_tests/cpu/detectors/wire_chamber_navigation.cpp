@@ -41,6 +41,9 @@ int main(int argc, char **argv) {
     using test_algebra = metadata_t::algebra_type;
     using scalar = dscalar<test_algebra>;
 
+    /// Set a consistent minimum step size accross all tests
+    const float min_stepsize{stepping::config{}.min_stepsize};
+
     wire_chamber_config<scalar> wire_chamber_cfg{};
     wire_chamber_cfg.half_z(500.f * unit<scalar>::mm);
 
@@ -62,6 +65,7 @@ int main(int argc, char **argv) {
     cfg_ray_scan.name("wire_chamber_ray_scan");
     cfg_ray_scan.track_generator().seed(42u);
     cfg_ray_scan.track_generator().n_tracks(10000u);
+    cfg_ray_scan.overlaps_tol(min_stepsize);
 
     test::register_checks<test::ray_scan>(det, names, cfg_ray_scan, ctx,
                                           white_board);
@@ -70,6 +74,7 @@ int main(int argc, char **argv) {
     test::straight_line_navigation<wire_chamber_t>::config cfg_str_nav{};
     cfg_str_nav.name("wire_chamber_straight_line_navigation");
     cfg_str_nav.n_tracks(cfg_ray_scan.track_generator().n_tracks());
+    cfg_str_nav.propagation().stepping.min_stepsize = min_stepsize;
     cfg_str_nav.propagation().navigation.search_window = {3u, 3u};
     auto mask_tolerance = cfg_ray_scan.mask_tolerance();
     cfg_str_nav.propagation().navigation.min_mask_tolerance =
@@ -91,6 +96,7 @@ int main(int argc, char **argv) {
     cfg_hel_scan.track_generator().eta_range(-1.f, 1.f);
     // TODO: Fails for smaller momenta
     cfg_hel_scan.track_generator().p_T(4.f * unit<scalar>::GeV);
+    cfg_hel_scan.overlaps_tol(min_stepsize);
 
     test::register_checks<test::helix_scan>(det, names, cfg_hel_scan, ctx,
                                             white_board);
@@ -99,6 +105,7 @@ int main(int argc, char **argv) {
     test::helix_navigation<wire_chamber_t>::config cfg_hel_nav{};
     cfg_hel_nav.name("wire_chamber_helix_navigation");
     cfg_hel_nav.n_tracks(cfg_hel_scan.track_generator().n_tracks());
+    cfg_hel_nav.propagation().stepping.min_stepsize = min_stepsize;
     cfg_hel_nav.propagation().navigation.min_mask_tolerance *= 12.f;
     cfg_hel_nav.propagation().navigation.search_window = {3u, 3u};
 
@@ -110,6 +117,7 @@ int main(int argc, char **argv) {
     mat_scan_cfg.name("wire_chamber_material_scan");
     mat_scan_cfg.track_generator().uniform_eta(true).eta_range(-1.f, 1.f);
     mat_scan_cfg.track_generator().phi_steps(100).eta_steps(100);
+    mat_scan_cfg.overlaps_tol(min_stepsize);
 
     // Record the material using a ray scan
     test::register_checks<test::material_scan>(det, names, mat_scan_cfg, ctx,
@@ -123,6 +131,7 @@ int main(int argc, char **argv) {
         mat_val_cfg.relative_error(130.f);
     }
     mat_val_cfg.propagation() = cfg_str_nav.propagation();
+    mat_val_cfg.propagation().stepping.min_stepsize = min_stepsize;
 
     test::register_checks<test::material_validation>(det, names, mat_val_cfg,
                                                      ctx, white_board);

@@ -22,7 +22,7 @@ plt_data = namedtuple(
 axis_options = namedtuple(
     "axis_options",
     "label min max log_scale tick_positions label_format",
-    defaults=["x", None, None, False, None, None],
+    defaults=["x", None, None, None, None, None],
 )
 
 """ Configuration for plot legends """

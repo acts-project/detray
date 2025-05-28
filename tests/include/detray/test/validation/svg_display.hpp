@@ -118,17 +118,26 @@ auto draw_intersection_and_traj_svg(
     detray::svgtools::illustrator<detector_t> &il,
     const truth_trace_t &truth_trace, const traj_t &traj,
     const std::string &traj_name, const recorded_trace_t &recorded_trace,
-    const view_t &view) {
+    const view_t &view,
+    dindex_range highlight_idx = {detail::invalid_value<dindex>(),
+                                  detail::invalid_value<dindex>()}) {
 
     // Get only the intersections from the traces
     auto truth_intersections = transcribe_intersections(truth_trace);
     auto recorded_intersections = transcribe_intersections(recorded_trace);
 
+    // Was a dummy record removed before printing?
+    if (truth_intersections.size() < truth_trace.size()) {
+        highlight_idx[0] -= 1u;
+        highlight_idx[1] -= 1u;
+    }
+
     // Draw the truth intersections as black crosses
     actsvg::svg::object svg_traj;
     if (!truth_intersections.empty()) {
-        svg_traj = il.draw_intersections("truth_trace", truth_intersections,
-                                         traj.dir(0.f), view, gctx);
+        svg_traj =
+            il.draw_intersections("truth_trace", truth_intersections,
+                                  traj.dir(0.f), view, highlight_idx, gctx);
     }
 
     // Draw an approximation of the trajectory with the recorded intersections
@@ -136,7 +145,8 @@ auto draw_intersection_and_traj_svg(
                               math::fabs(truth_intersections.back().path))};
     if (!recorded_intersections.empty()) {
         svg_traj.add_object(il.draw_intersections_and_trajectory(
-            traj_name, recorded_intersections, traj, view, path, gctx));
+            traj_name, recorded_intersections, traj, view, path, highlight_idx,
+            gctx));
     } else {
         svg_traj.add_object(il.draw_trajectory(traj_name, traj, path, view));
     }
@@ -147,14 +157,16 @@ auto draw_intersection_and_traj_svg(
 /// Display the geometry, intersection and track data via @c svgtools
 template <typename detector_t, typename truth_trace_t, class traj_t,
           typename recorded_trace_t>
-inline void svg_display(const typename detector_t::geometry_context gctx,
-                        detray::svgtools::illustrator<detector_t> &il,
-                        const truth_trace_t &truth_trace, const traj_t &traj,
-                        const std::string &traj_name,
-                        const std::string &outfile = "detector_display",
-                        const recorded_trace_t &recorded_trace = {},
-                        const bool verbose = true,
-                        const std::string &outdir = "./plots/") {
+inline void svg_display(
+    const typename detector_t::geometry_context gctx,
+    detray::svgtools::illustrator<detector_t> &il,
+    const truth_trace_t &truth_trace, const traj_t &traj,
+    const std::string &traj_name,
+    const std::string &outfile = "detector_display",
+    const recorded_trace_t &recorded_trace = {},
+    dindex_range highlight_idx = {detail::invalid_value<dindex>(),
+                                  detail::invalid_value<dindex>()},
+    const bool verbose = true, const std::string &outdir = "./plots/") {
 
     // Gather all volumes that need to be displayed
     auto volumes = get_volume_indices(truth_trace);
@@ -179,8 +191,9 @@ inline void svg_display(const typename detector_t::geometry_context gctx,
     const actsvg::views::z_r zr{};
 
     // xy - view
-    auto svg_traj = draw_intersection_and_traj_svg(
-        gctx, il, truth_trace, traj, traj_name, recorded_trace, xy);
+    auto svg_traj =
+        draw_intersection_and_traj_svg(gctx, il, truth_trace, traj, traj_name,
+                                       recorded_trace, xy, highlight_idx);
 
     const auto [vol_xy_svg, _] = il.draw_volumes(volumes, xy, gctx);
     detray::svgtools::write_svg(
@@ -188,8 +201,9 @@ inline void svg_display(const typename detector_t::geometry_context gctx,
         {xy_axis, vol_xy_svg, svg_traj});
 
     // zr - view
-    svg_traj = draw_intersection_and_traj_svg(gctx, il, truth_trace, traj,
-                                              traj_name, recorded_trace, zr);
+    svg_traj =
+        draw_intersection_and_traj_svg(gctx, il, truth_trace, traj, traj_name,
+                                       recorded_trace, zr, highlight_idx);
 
     const auto vol_zr_svg = il.draw_detector(zr, gctx);
     detray::svgtools::write_svg(
@@ -197,7 +211,7 @@ inline void svg_display(const typename detector_t::geometry_context gctx,
         {zr_axis, vol_zr_svg, svg_traj});
 
     if (verbose) {
-        std::cout << "INFO: Wrote svgs for debugging in: " << path << "\n"
+        std::cout << "\nINFO: Wrote svgs for debugging in: " << path << "\n"
                   << std::endl;
     }
 }

@@ -118,6 +118,7 @@ struct brute_force_scan {
             stream << "No intersections found for traj: " << traj << std::endl;
             throw std::runtime_error(stream.str());
         }
+
         // Save initial track position as dummy intersection record
         const auto &first_record = intersection_trace.front();
         intersection_t start_intersection{};
@@ -158,6 +159,7 @@ inline auto run(const typename detector_t::geometry_context gctx,
                 Args &&... args) {
 
     using algebra_t = typename detector_t::algebra_type;
+    using nav_link_t = typename detector_t::surface_type::navigation_link;
 
     auto intersection_record = scan_type<algebra_t>{}(
         gctx, detector, traj, std::forward<Args>(args)...);
@@ -174,8 +176,7 @@ inline auto run(const typename detector_t::geometry_context gctx,
     // Make sure the intersection record terminates at world portals
     auto is_world_exit = [](const record_t &r) {
         return r.intersection.volume_link ==
-               detray::detail::invalid_value<decltype(
-                   r.intersection.volume_link)>();
+               detray::detail::invalid_value<nav_link_t>();
     };
 
     if (auto it = std::ranges::find_if(intersection_record, is_world_exit);

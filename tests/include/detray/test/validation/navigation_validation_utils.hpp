@@ -659,10 +659,11 @@ auto compare_traces(
                     << missed_stats_tr.n_total() << " extra surface(s).";
 
     // Fill the debug stream with the final information from both traces
+    debug_stream << std::left;
     for (std::size_t intr_idx = 0u; intr_idx < max_entries; ++intr_idx) {
         debug_stream << "-------Intersection ( " << intr_idx << " )\n";
         if (intr_idx < truth_trace.size()) {
-            debug_stream << "\nReference: "
+            debug_stream << std::setw(20) << "\nReference: "
                          << truth_trace[intr_idx].intersection << ", vol id: "
                          << truth_trace[intr_idx].intersection.sf_desc.volume()
                          << std::endl;
@@ -670,7 +671,7 @@ auto compare_traces(
             debug_stream << "\nnReference: -" << std::endl;
         }
         if (intr_idx < recorded_trace.size()) {
-            debug_stream << "\nDetray navigator:    "
+            debug_stream << std::setw(20) << "\nDetray navigator: "
                          << recorded_trace[intr_idx].intersection << std::endl
                          << std::endl;
         } else {
@@ -684,9 +685,7 @@ auto compare_traces(
 
     // Print debugging information if anything went wrong
     if (any_error && cfg.verbose()) {
-        std::cout << "\n--------\n"
-                  << "Track no. " << trk_no << "/" << cfg.n_tracks() << ":\n"
-                  << traj << matching_stream.str() << "\n--------";
+        std::cout << "--------\n" << matching_stream.str() << std::endl;
         if (debug_file) {
             *debug_file << "\n>>>>>>>>>>>>>>>>>>\nFAILURE\n<<<<<<<<<<<<<<<<<<\n"
                         << "\nSUMMARY:\n--------\n"

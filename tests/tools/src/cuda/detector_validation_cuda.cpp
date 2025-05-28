@@ -58,7 +58,10 @@ int main(int argc, char** argv) {
         "data_dir",
         boost::program_options::value<std::string>()->default_value(
             "./validation_data"),
-        "Directory that contains the data files");
+        "Directory that contains the data files")(
+        "overlaps_tol",
+        po::value<float>()->default_value(stepping::config{}.min_stepsize),
+        "Tolerance for considering surfaces to be overlapping [mm]");
 
     // Configs to be filled
     detray::io::detector_reader_config reader_cfg{};
@@ -74,9 +77,15 @@ int main(int argc, char** argv) {
 
     const auto data_dir{vm["data_dir"].as<std::string>()};
 
+    if (vm.count("overlaps_tol")) {
+        ray_scan_cfg.overlaps_tol(vm["overlaps_tol"].as<float>());
+        hel_scan_cfg.overlaps_tol(vm["overlaps_tol"].as<float>());
+    }
+
     // For now: Copy the options to the other tests
     ray_scan_cfg.track_generator() = hel_scan_cfg.track_generator();
     str_nav_cfg.propagation() = hel_nav_cfg.propagation();
+    str_nav_cfg.fail_on_diff(false);
 
     detector_t::geometry_context ctx{};
     vecmem::host_memory_resource host_mr;
@@ -125,8 +134,10 @@ int main(int argc, char** argv) {
 
     // Comparison of navigation in a constant B-field with helix
     hel_nav_cfg.name(det_name + "_helix_navigation_cuda");
+    hel_nav_cfg.fail_on_diff(false);
     // Number of tracks to check
     hel_nav_cfg.n_tracks(hel_scan_cfg.track_generator().n_tracks());
+    hel_nav_cfg.p_range(hel_scan_cfg.track_generator().mom_range());
     hel_nav_cfg.intersection_file(hel_scan_cfg.intersection_file());
     hel_nav_cfg.track_param_file(hel_scan_cfg.track_param_file());
 

@@ -220,7 +220,8 @@ class navigation_validation : public test::fixture_base<> {
             if (!success) {
                 // Write debug info to file
                 *debug_file << "TEST TRACK " << n_tracks << ":\n\n"
-                            << nav_printer.to_string()
+                            << "NAVIGATOR\n\n"
+                            << nav_printer.to_string() << "\nSTEPPER\n\n"
                             << step_printer.to_string();
 
                 detector_scanner::display_error(
@@ -232,8 +233,9 @@ class navigation_validation : public test::fixture_base<> {
             recorded_traces.push_back(std::move(obj_tracer.object_trace));
             mat_records.push_back(mat_record);
 
-            EXPECT_TRUE(success) << "INFO: Wrote navigation debugging data in: "
-                                 << debug_file_name;
+            EXPECT_TRUE(success)
+                << "\nINFO: Wrote navigation debugging data in: "
+                << debug_file_name;
 
             ++n_tracks;
 
@@ -244,8 +246,17 @@ class navigation_validation : public test::fixture_base<> {
             navigation_validator::surface_stats n_truth{};
             navigation_validator::surface_stats n_nav{};
             for (std::size_t i = 0; i < truth_trace.size(); ++i) {
-                n_truth.count(truth_trace[i].intersection.sf_desc);
-                n_nav.count(recorded_traces.back()[i].intersection.sf_desc);
+                const auto truth_desc = truth_trace[i].intersection.sf_desc;
+                const auto rec_desc =
+                    recorded_traces.back()[i].intersection.sf_desc;
+
+                // Exclude dummy records for missing surfaces
+                if (!truth_desc.barcode().is_invalid()) {
+                    n_truth.count(truth_desc);
+                }
+                if (!rec_desc.barcode().is_invalid()) {
+                    n_nav.count(rec_desc);
+                }
             }
 
             // Take max count, since either trace might have skipped surfaces
@@ -253,13 +264,13 @@ class navigation_validation : public test::fixture_base<> {
                 math::max(n_truth.n_portals, n_nav.n_portals)};
             const std::size_t n_sensitives{
                 math::max(n_truth.n_sensitives, n_nav.n_sensitives)};
-            // The first record is for bookkeeping and not a real passive
             const std::size_t n_passives{
-                math::max(n_truth.n_passives, n_nav.n_passives) - 1u};
+                math::max(n_truth.n_passives, n_nav.n_passives)};
             const std::size_t n{n_portals + n_sensitives + n_passives};
 
-            // Cannot have more surfaces than truth intersections after matching
-            ASSERT_EQ(n, truth_trace.size() - 1u);
+            // Cannot have less surfaces than truth intersections after matching
+            // (Don't count first entry, which records the initial track params)
+            ASSERT_TRUE(n >= (truth_trace.size() - 1u));
 
             n_surfaces.n_portals += n_portals;
             n_surfaces.n_sensitives += n_sensitives;

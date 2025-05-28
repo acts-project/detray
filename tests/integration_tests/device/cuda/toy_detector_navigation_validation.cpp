@@ -40,6 +40,9 @@ int main(int argc, char **argv) {
     using test_algebra = typename toy_detector_t::algebra_type;
     using scalar = dscalar<test_algebra>;
 
+    /// Set a consistent minimum step size accross all tests
+    const float min_stepsize{stepping::config{}.min_stepsize};
+
     /// Vecmem memory resource for the device allocations
     vecmem::cuda::device_memory_resource dev_mr{};
 
@@ -61,6 +64,7 @@ int main(int argc, char **argv) {
     test::ray_scan<toy_detector_t>::config cfg_ray_scan{};
     cfg_ray_scan.name("toy_detector_ray_scan_for_cuda");
     cfg_ray_scan.track_generator().n_tracks(1000u);
+    cfg_ray_scan.overlaps_tol(min_stepsize);
 
     test::register_checks<test::ray_scan>(toy_det, toy_names, cfg_ray_scan, ctx,
                                           white_board);
@@ -70,6 +74,7 @@ int main(int argc, char **argv) {
         cfg_str_nav{};
     cfg_str_nav.name("toy_detector_straight_line_navigation_cuda");
     cfg_str_nav.n_tracks(cfg_ray_scan.track_generator().n_tracks());
+    cfg_str_nav.propagation().stepping.min_stepsize = min_stepsize;
     cfg_str_nav.propagation().navigation.search_window = {3u, 3u};
     auto mask_tolerance = cfg_ray_scan.mask_tolerance();
     cfg_str_nav.propagation().navigation.min_mask_tolerance =
@@ -87,6 +92,7 @@ int main(int argc, char **argv) {
     cfg_hel_scan.mask_tolerance({detray::detail::invalid_value<scalar>(),
                                  detray::detail::invalid_value<scalar>()});
     cfg_hel_scan.track_generator().n_tracks(1000u);
+    cfg_hel_scan.overlaps_tol(min_stepsize);
     cfg_hel_scan.track_generator().eta_range(-4.f, 4.f);
     cfg_hel_scan.track_generator().p_T(1.f * unit<scalar>::GeV);
 
@@ -97,6 +103,7 @@ int main(int argc, char **argv) {
     detray::cuda::helix_navigation<toy_detector_t>::config cfg_hel_nav{};
     cfg_hel_nav.name("toy_detector_helix_navigation_cuda");
     cfg_hel_nav.n_tracks(cfg_hel_scan.track_generator().n_tracks());
+    cfg_hel_nav.propagation().stepping.min_stepsize = min_stepsize;
     cfg_hel_nav.propagation().navigation.search_window = {3u, 3u};
 
     test::register_checks<detray::cuda::helix_navigation>(
@@ -107,6 +114,7 @@ int main(int argc, char **argv) {
     mat_scan_cfg.name("toy_detector_material_scan_for_cuda");
     mat_scan_cfg.track_generator().uniform_eta(true).eta_range(-4.f, 4.f);
     mat_scan_cfg.track_generator().phi_steps(100).eta_steps(100);
+    mat_scan_cfg.overlaps_tol(min_stepsize);
 
     // Record the material using a ray scan
     test::register_checks<test::material_scan>(toy_det, toy_names, mat_scan_cfg,
@@ -118,6 +126,7 @@ int main(int argc, char **argv) {
     mat_val_cfg.device_mr(&dev_mr);
     mat_val_cfg.tol(1e-6f);  // < Reduce tolerance for single precision tests
     mat_val_cfg.propagation() = cfg_str_nav.propagation();
+    mat_val_cfg.propagation().stepping.min_stepsize = min_stepsize;
 
     test::register_checks<detray::cuda::material_validation>(
         toy_det, toy_names, mat_val_cfg, ctx, white_board);
