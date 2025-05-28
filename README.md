@@ -129,7 +129,7 @@ detray-build/bin/detray_propagation_benchmark_<backend>_<algebra> \
 ```
 For every algebra-plugin that was built, a corresponding benchmark executable will be present. The CPU-backend benchmark is built by default and the CUDA-backend benchmark will be available if detray was built with CUDA enabled (`-DDETRAY_BUILD_CUDA=ON`). This executable can additionally be configured with any arguments targeted at [google benchmark](https://github.com/google/benchmark/blob/main/docs/user_guide.md).
 
-If the data is dumped into json files using the options `--benchmark_repetitions=N` (N standing for the number of repitions), `--benchmark_display_aggregates_only=true`, as well as `--benchmark_out_format=json` and `--benchmark_out=<some_file_name>.json`, it can afterwards be plotted with e.g.:
+If the data is dumped into json files using the options `--benchmark_repetitions=N` (N standing for the number of repetitions), `--benchmark_display_aggregates_only=true`, as well as `--benchmark_out_format=json` and `--benchmark_out=<some_file_name>.json`, it can afterwards be plotted with e.g.:
 ```shell
 python3 detray/tests/tools/python/propagation_benchmarks.py \
     --geometry_file ./toy_detector/toy_detector_geometry.json \

@@ -208,7 +208,7 @@ class surface_factory : public surface_factory_interface<detector_t> {
                 mask_link_t mask_link{mask_id,
                                       masks.template size<mask_id>() - 1u};
                 // If material is present, it is added in a later step
-                material_link_t material_link{no_material, 0u};
+                material_link_t material_link{no_material, dindex_invalid};
 
                 // Add the surface descriptor at the position given by 'sf_idx'
                 this->insert_in_container(

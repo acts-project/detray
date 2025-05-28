@@ -107,6 +107,11 @@ class illustrator {
         const dindex index, const view_t& view,
         const typename detector_t::geometry_context& gctx = {}) const {
 
+        if (index >= _detector.surfaces().size()) {
+            throw std::invalid_argument("Surface index too large: " +
+                                        std::to_string(index));
+        }
+
         const auto surface =
             detray::geometry::surface<detector_t>{_detector, index};
 
@@ -207,6 +212,11 @@ class illustrator {
     inline auto draw_surface_material(const dindex index,
                                       const view_t& view) const {
 
+        if (index >= _detector.surfaces().size()) {
+            throw std::invalid_argument("Surface index too large: " +
+                                        std::to_string(index));
+        }
+
         const auto surface =
             detray::geometry::surface<detector_t>{_detector, index};
 
@@ -286,6 +296,11 @@ class illustrator {
     inline auto draw_volume(
         const dindex index, const view_t& view,
         const typename detector_t::geometry_context& gctx = {}) const {
+
+        if (index >= _detector.volumes().size()) {
+            throw std::invalid_argument("Volume index too large: " +
+                                        std::to_string(index));
+        }
 
         const auto d_volume = tracking_volume{_detector, index};
 
