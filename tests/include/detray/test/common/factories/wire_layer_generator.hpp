@@ -164,7 +164,8 @@ class wire_layer_generator final
             // Mask link for the cell
             mask_link_t mask_link{mask_id, masks.template size<mask_id>()};
             // The material will be added in a later step
-            material_link_t material_link{surface_t::material_id::e_none, 0u};
+            material_link_t material_link{surface_t::material_id::e_none,
+                                          dindex_invalid};
             // Link the placement transform to the surface
             const auto trf_index = transforms.size(ctx);
 

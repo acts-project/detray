@@ -232,7 +232,7 @@ auto surface(const typename detector_t::geometry_context& context,
 
     svgtools::styling::apply_style(p_surface, style);
 
-    if (!hide_material) {
+    if (!hide_material && d_surface.has_material()) {
         p_surface._material = svgtools::conversion::surface_material(
             detector, d_surface, view, style._material_style);
     }

@@ -145,7 +145,7 @@ inline bool toy_detector_test(
 
     // Link to outer world (leaving detector)
     constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
-    constexpr auto inv_link{0u};
+    constexpr auto inv_link{detail::invalid_value<dindex>()};
     const bool has_grids =
         (accel.template size<accel_ids::e_cylinder2_grid>() != 0u) ||
         (accel.template size<accel_ids::e_disc_grid>() != 0u);
