@@ -425,7 +425,6 @@ std::shared_ptr<surface_factory_interface<detector_t>> decorate_material(
 /// Add the cylinder and disc portals for a volume from explicit parameters
 ///
 /// @param v_builder the volume builder to add the portals to
-/// @param names name map for volumes of the detector under construction
 /// @param cfg config for the toy detector
 /// @param vol_z half length of the cylinder
 /// @param h_z half length of the cylinder
@@ -438,7 +437,6 @@ std::shared_ptr<surface_factory_interface<detector_t>> decorate_material(
 /// @param add_material decorate material maps to portals
 template <typename detector_t>
 void add_cylinder_portals(volume_builder_interface<detector_t> *v_builder,
-                          typename detector_t::name_map &names,
                           toy_det_config<typename detector_t::scalar_type> &cfg,
                           const typename detector_t::scalar_type lower_z,
                           const typename detector_t::scalar_type upper_z,
@@ -501,7 +499,7 @@ void add_cylinder_portals(volume_builder_interface<detector_t> *v_builder,
     v_builder->add_surfaces(pt_cyl_factory);
     v_builder->add_surfaces(pt_disc_factory);
 
-    names[vol_idx + 1u] = "gap_" + std::to_string(vol_idx);
+    v_builder->set_name("gap_" + std::to_string(vol_idx));
 }
 
 /// Helper method for creating the barrel surface grids.
@@ -623,7 +621,6 @@ inline void get_volume_extent(
 /// @param det_builder detector builder the barrel section should be added to
 /// @param gctx geometry context
 /// @param cfg config for the toy detector
-/// @param names name map for volumes of the detector under construction
 /// @param beampipe_idx index of the beampipe outermost volume
 ///
 /// @returns the radial extents of the barrel module layers and gap volumes
@@ -633,7 +630,6 @@ inline auto add_barrel_detector(
     typename detector_builder_t::detector_type::geometry_context &gctx,
     toy_det_config<typename detector_builder_t::detector_type::scalar_type>
         &cfg,
-    typename detector_builder_t::detector_type::name_map &names,
     dindex beampipe_idx) {
 
     using detector_t = typename detector_builder_t::detector_type;
@@ -690,7 +686,7 @@ inline auto add_barrel_detector(
             // The first time a gap is built, it needs to link to the beampipe
             link_south = (i == 1u) ? beampipe_idx : link_south;
 
-            detail::add_cylinder_portals(vm_builder, names, cfg, -h_z, h_z,
+            detail::add_cylinder_portals(vm_builder, cfg, -h_z, h_z,
                                          gap_inner_r, vol_bounds.inner_radius,
                                          link_north, link_south, link_east,
                                          link_west);
@@ -700,7 +696,7 @@ inline auto add_barrel_detector(
             // Set the inner gap radius for the next gap volume
             gap_inner_r = vol_bounds.outer_radius;
 
-            names[vol_idx + 1u] = "gap_" + std::to_string(vol_idx);
+            vm_builder->set_name("gap_" + std::to_string(vol_idx));
 
         } else {
             // Limit to maximum valid link
@@ -752,7 +748,7 @@ inline auto add_barrel_detector(
             volume_sizes.push_back(
                 {vol_idx, {vol_bounds.inner_radius, vol_bounds.outer_radius}});
 
-            names[vol_idx + 1u] = "barrel_" + std::to_string(vol_idx);
+            vm_builder->set_name("barrel_" + std::to_string(vol_idx));
 
             // Add a cylinder grid to every barrel module layer
             add_cylinder_grid(det_builder, cfg, vol_idx);
@@ -765,12 +761,12 @@ inline auto add_barrel_detector(
     v_builder->add_volume_placement(identity);
 
     detail::add_cylinder_portals(
-        v_builder, names, cfg, -h_z, h_z, vol_bounds.outer_radius,
-        cfg.outer_radius(), end_of_world, vol_idx - 2u, link_east, link_west);
+        v_builder, cfg, -h_z, h_z, vol_bounds.outer_radius, cfg.outer_radius(),
+        end_of_world, vol_idx - 2u, link_east, link_west);
     volume_sizes.push_back(
         {vol_idx, {vol_bounds.outer_radius, cfg.outer_radius()}});
 
-    names[vol_idx + 1u] = "gap_" + std::to_string(vol_idx);
+    v_builder->set_name("gap_" + std::to_string(vol_idx));
 
     return volume_sizes;
 }
@@ -780,7 +776,6 @@ inline auto add_barrel_detector(
 /// @param det_builder detector builder the barrel section should be added to
 /// @param gctx geometry context
 /// @param cfg config for the toy detector
-/// @param names name map for volumes of the detector under construction
 /// @param beampipe_idx index of the beampipe outermost volume
 ///
 /// @returns the z extents of the endcap module layers and gap volumes
@@ -790,7 +785,6 @@ inline auto add_endcap_detector(
     typename detector_builder_t::detector_type::geometry_context &gctx,
     toy_det_config<typename detector_builder_t::detector_type::scalar_type>
         &cfg,
-    typename detector_builder_t::detector_type::name_map &names,
     dindex beampipe_idx) {
 
     using detector_t = typename detector_builder_t::detector_type;
@@ -844,8 +838,6 @@ inline auto add_endcap_detector(
             gap_east_z = sign * std::max(std::abs(vol_bounds.upper_z),
                                          std::abs(vol_bounds.lower_z));
 
-            names[vol_idx + 1u] = "connector_gap_" + std::to_string(vol_idx);
-
             is_gap = !is_gap;
             continue;
         }
@@ -867,7 +859,7 @@ inline auto add_endcap_detector(
             vm_builder->add_volume_placement({gap_center});
 
             detail::add_cylinder_portals(
-                vm_builder, names, cfg, gap_west_z, gap_east_z, inner_radius,
+                vm_builder, cfg, gap_west_z, gap_east_z, inner_radius,
                 outer_radius, link_north, link_south, link_east, link_west);
 
             volume_sizes.push_back({vol_idx, {gap_east_z, gap_west_z}});
@@ -876,7 +868,7 @@ inline auto add_endcap_detector(
             gap_east_z = sign * std::max(std::abs(vol_bounds.upper_z),
                                          std::abs(vol_bounds.lower_z));
 
-            names[vol_idx + 1u] = "gap_" + std::to_string(vol_idx);
+            vm_builder->set_name("gap_" + std::to_string(vol_idx));
 
         } else {
             const dindex j{i / 2u};
@@ -954,7 +946,7 @@ inline auto add_endcap_detector(
             volume_sizes.push_back(
                 {vol_idx, {vol_bounds.lower_z, vol_bounds.upper_z}});
 
-            names[vol_idx + 1u] = "endcap_" + std::to_string(vol_idx);
+            vm_builder->set_name("endcap_" + std::to_string(vol_idx));
 
             // Add a disc grid to every endcap module layer
             add_disc_grid(det_builder, cfg, vol_idx);
@@ -1029,6 +1021,8 @@ inline void add_connector_portals(
     volume_builder_interface<detector_t> *connector_builder =
         det_builder[connector_gap_idx];
 
+    connector_builder->set_name("connector_gap_" +
+                                std::to_string(connector_gap_idx));
     connector_builder->add_volume_placement({gap_center});
 
     // Go over all volume extends and build the corresponding disc portal
@@ -1256,9 +1250,8 @@ inline auto build_toy_detector(vecmem::memory_resource &resource,
 
     // Toy detector builder
     builder_t det_builder;
+    det_builder.set_name("toy_detector");
 
-    // Detector and volume names
-    typename detector_t::name_map name_map = {{0u, "toy_detector"}};
     // Geometry context object
     typename detector_t::geometry_context gctx{};
 
@@ -1269,7 +1262,7 @@ inline auto build_toy_detector(vecmem::memory_resource &resource,
 
     const dindex beampipe_idx{beampipe_builder->vol_index()};
     beampipe_builder->add_volume_placement(transform3_t{});
-    name_map[beampipe_idx + 1u] = "beampipe_" + std::to_string(beampipe_idx);
+    beampipe_builder->set_name("beampipe_" + std::to_string(beampipe_idx));
 
     // Add the beampipe as a passive material surface
     auto beampipe_factory = detail::decorate_material<detector_t>(
@@ -1292,8 +1285,8 @@ inline auto build_toy_detector(vecmem::memory_resource &resource,
     if (cfg.n_edc_layers() > 0u) {
         cfg.endcap_config().side(-1);
 
-        neg_edc_vol_extents = detail::add_endcap_detector(
-            det_builder, gctx, cfg, name_map, beampipe_idx);
+        neg_edc_vol_extents =
+            detail::add_endcap_detector(det_builder, gctx, cfg, beampipe_idx);
 
         // Add the beampipe volume portals for the negative endcap section
         detail::add_beampipe_portals(beampipe_builder, cfg,
@@ -1303,8 +1296,8 @@ inline auto build_toy_detector(vecmem::memory_resource &resource,
     vol_extent_container_t brl_vol_extents;
     if (cfg.n_brl_layers() > 0u) {
 
-        brl_vol_extents = detail::add_barrel_detector(det_builder, gctx, cfg,
-                                                      name_map, beampipe_idx);
+        brl_vol_extents =
+            detail::add_barrel_detector(det_builder, gctx, cfg, beampipe_idx);
     }
     // Add the beampipe volume portals for the barrel section
     detail::add_beampipe_portals(beampipe_builder, cfg);
@@ -1314,8 +1307,8 @@ inline auto build_toy_detector(vecmem::memory_resource &resource,
     if (cfg.n_edc_layers() > 0u) {
         cfg.endcap_config().side(1);
 
-        pos_edc_vol_extents = detail::add_endcap_detector(
-            det_builder, gctx, cfg, name_map, beampipe_idx);
+        pos_edc_vol_extents =
+            detail::add_endcap_detector(det_builder, gctx, cfg, beampipe_idx);
 
         // Add the beampipe volume portals for the positive endcap section
         detail::add_beampipe_portals(beampipe_builder, cfg,
@@ -1330,8 +1323,9 @@ inline auto build_toy_detector(vecmem::memory_resource &resource,
                               pos_edc_vol_extents, brl_vol_extents);
     }
 
-    // Build and return the detector
-    auto det = det_builder.build(resource);
+    // Build and return the detector and fill the name map
+    typename detector_t::name_map name_map{};
+    auto det = det_builder.build(resource, name_map);
 
     if (cfg.do_check()) {
         const bool verbose_check{false};

@@ -50,7 +50,6 @@ class material_map_reader {
     template <typename detector_t>
     static void from_payload(detector_builder<typename detector_t::metadata,
                                               volume_builder> &det_builder,
-                             typename detector_t::name_map &,
                              payload_type &&grids_data) {
 
         using scalar_t = dscalar<typename detector_t::algebra_type>;

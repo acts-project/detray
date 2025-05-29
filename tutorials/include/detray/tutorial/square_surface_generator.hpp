@@ -23,7 +23,7 @@
 
 namespace detray::tutorial {
 
-/// @brief Generates a sequence of square surfaces for the example detector
+/// @brief Generates a sequence of square surfaces for the tutorial detector
 class square_surface_generator final
     : public surface_factory_interface<detector<tutorial::my_metadata>> {
 
@@ -40,6 +40,8 @@ class square_surface_generator final
     DETRAY_HOST
     auto size() const -> dindex override { return m_n_squares; }
 
+    /// Generator, does not aggregate any data
+    /// @{
     DETRAY_HOST
     void clear() override{/*Do nothing*/};
 
@@ -50,11 +52,12 @@ class square_surface_generator final
     auto push_back(std::vector<surface_data<detector_t>> &&)
         -> void override { /*Do nothing*/
     }
+    /// @}
 
     /// Generate the surfaces and add them to given data collections.
     ///
-    /// @param volume the volume they will be added to in the detector.
-    /// @param surfaces the resulting surface objects.
+    /// @param volume the volume that will be added to the detector.
+    /// @param surfaces the resulting surface descriptors.
     /// @param transforms the transforms of the surfaces.
     /// @param masks the masks of the surfaces (all of the same shape).
     /// @param ctx the geometry context.
@@ -69,13 +72,13 @@ class square_surface_generator final
         using mask_link_t = typename surface_t::mask_link;
         using material_link_t = typename surface_t::material_link;
 
-        // Position in the tuple for square surface masks
+        // Position in the detector mask tuple for square surface masks
         constexpr auto mask_id{detector_t::masks::id::e_square2};
         // The material will be added in a later step
         constexpr auto no_material = surface_t::material_id::e_none;
         // In case the surfaces container is prefilled with other surfaces
         auto surfaces_offset = static_cast<dindex>(surfaces.size());
-
+        // No ACTS source surface
         constexpr auto invalid_src_link{detail::invalid_value<std::uint64_t>()};
 
         // Produce a series of square surfaces,
@@ -93,15 +96,18 @@ class square_surface_generator final
             masks.template emplace_back<mask_id>(empty_context{},
                                                  volume.index(), m_half_length);
 
-            // Add surface with all links set (relative to the given containers)
+            // Add surface descriptor with all links set (relative to the given
+            // containers)
             mask_link_t mask_link{mask_id, masks.template size<mask_id>() - 1u};
             material_link_t material_link{no_material, dindex_invalid};
+
             surfaces.push_back(
                 {transforms.size(ctx) - 1u, mask_link, material_link,
                  volume.index(), surface_id::e_sensitive},
                 invalid_src_link);
         }
 
+        // The range of surfaces that was added to the volume builder
         return {surfaces_offset, static_cast<dindex>(surfaces.size())};
     }
 

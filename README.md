@@ -75,6 +75,15 @@ The following cmake options are available and can also be specified explicitly f
 | DETRAY_VC_SOA_PLUGIN | Build Vc based SoA math plugin (currently only supports the ray-surface intersectors) | OFF |
 | DETRAY_SVG_DISPLAY | Build ActSVG display module | OFF |
 
+## Tutorials
+
+In the `tutorials` folder of the repository, there are a number of standalone executables that showcase different tasks:
+- Building a detector (either a predefined one or designing a detector from scatch)
+- Detector file IO
+- Additional debugging options, like performing a ray scan or obtaining
+extra navigation tracing information
+- Moving a detector to device
+- Host and device track propagation
 
 ## Detector Validation
 

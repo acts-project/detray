@@ -47,7 +47,6 @@ class homogeneous_material_reader {
     template <class detector_t>
     static void from_payload(detector_builder<typename detector_t::metadata,
                                               volume_builder>& det_builder,
-                             typename detector_t::name_map& /*name_map*/,
                              const payload_type& det_mat_data) {
 
         using scalar_t = dscalar<typename detector_t::algebra_type>;

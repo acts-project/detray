@@ -29,12 +29,10 @@ namespace detray::io {
 ///
 /// @param file_names list of files to be read
 /// @param det_builder detector builder to be filled
-/// @param name_map detector and volume name map
 template <class detector_t, std::size_t CAP = 0u, std::size_t DIM = 2u>
 void read_components_from_file(const std::vector<std::string>& file_names,
                                detector_builder<typename detector_t::metadata,
-                                                volume_builder>& det_builder,
-                               typename detector_t::name_map& name_map) {
+                                                volume_builder>& det_builder) {
     // Hold all required readers (one for every component)
     detail::detector_components_reader<detector_t> readers;
 
@@ -52,7 +50,7 @@ void read_components_from_file(const std::vector<std::string>& file_names,
     }
 
     // Read the data into the detector builder
-    readers.read(det_builder, name_map);
+    readers.read(det_builder);
 }
 
 /// @brief Reader function for detray detectors.
@@ -80,11 +78,10 @@ auto read_detector(vecmem::memory_resource& resc,
 
     // Register readers for the respective detector component and file format
     // and read the data into the detector_builder
-    read_components_from_file<detector_t, CAP, DIM>(cfg.files(), det_builder,
-                                                    names);
+    read_components_from_file<detector_t, CAP, DIM>(cfg.files(), det_builder);
 
     // Build and return the detector
-    auto det = det_builder.build(resc);
+    auto det = det_builder.build(resc, names);
 
     if (cfg.do_check()) {
         // This will throw an exception in case of inconsistencies

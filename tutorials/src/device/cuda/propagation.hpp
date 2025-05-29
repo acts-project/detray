@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2025 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -45,7 +45,6 @@ using inhom_bknd_t = covfie::backend::affine<covfie::backend::linear<
 
 // Navigator
 using navigator_t = navigator<detector_device_t>;
-using intersection_t = navigator_t::intersection_type;
 
 // Stepper
 using host_field_t = covfie::field<detray::bfield::inhom_bknd_t<scalar>>;
@@ -61,6 +60,9 @@ using actor_chain_t =
 
 // Propagator
 using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
+
+// Free track parameters
+using track_t = detray::free_track_parameters<detray::tutorial::algebra_t>;
 
 /// Propagation tutorial function
 void propagation(

@@ -8,7 +8,6 @@
 // Project include(s)
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/mask.hpp"
-#include "detray/materials/predefined_materials.hpp"
 #include "detray/navigation/volume_graph.hpp"
 #include "detray/test/common/build_telescope_detector.hpp"
 #include "detray/test/common/build_toy_detector.hpp"
@@ -29,12 +28,13 @@
 ///
 /// Toy detector: Pixel section of the ACTS Generic detector (TrackML).
 ///
-/// Telescope detector: Array of surfaces of a given type in a bounding portal
-///                     box.
+/// Telescope detector: Array of surfaces of a given type in a portal box.
 int main(int argc, char** argv) {
 
     using algebra_t = detray::tutorial::algebra_t;
     using scalar = detray::tutorial::scalar;
+
+    std::cout << "Detector Tutorial\n=================\n\n";
 
     // Memory resource to allocate the detector data stores
     vecmem::host_memory_resource host_mr;
@@ -76,19 +76,9 @@ int main(int argc, char** argv) {
     // distances. The world portals are constructed from a bounding box around
     // the test surfaces (the envelope is configurable).
 
-    // Mask with a rectangular shape (20x20 mm)
-
-    detray::mask<detray::rectangle2D, algebra_t> rectangle{
-        0u, 20.f * detray::unit<scalar>::mm, 20.f * detray::unit<scalar>::mm};
-
-    // Mask with a trapezoid shape
-    using trapezoid_t = detray::mask<detray::trapezoid2D, algebra_t>;
-
-    constexpr scalar hx_min_y{10.f * detray::unit<scalar>::mm};
-    constexpr scalar hx_max_y{30.f * detray::unit<scalar>::mm};
-    constexpr scalar hy{20.f * detray::unit<scalar>::mm};
-    constexpr scalar divisor{10.f / (20.f * hy)};
-    trapezoid_t trapezoid{0u, hx_min_y, hx_max_y, hy, divisor};
+    // Volume link of the sensitive mask that is resolved during navigation:
+    // belongs to volume zero
+    constexpr detray::dindex vol_nav_link{0u};
 
     // Build from given module positions (places 11 surfaces)
     std::vector<scalar> positions = {
@@ -114,6 +104,16 @@ int main(int argc, char** argv) {
     //
     // Case 2: Straight telescope in z-direction, 15 trapezoid surfaces, 2000mm
     //         in length, modules evenly spaced, silicon material (80mm)
+
+    // Mask with a trapezoid shape
+    using trapezoid_t = detray::mask<detray::trapezoid2D, algebra_t>;
+
+    constexpr scalar hx_min_y{10.f * detray::unit<scalar>::mm};
+    constexpr scalar hx_max_y{30.f * detray::unit<scalar>::mm};
+    constexpr scalar hy{20.f * detray::unit<scalar>::mm};
+    constexpr scalar divisor{10.f / (20.f * hy)};
+    trapezoid_t trapezoid{vol_nav_link, hx_min_y, hx_max_y, hy, divisor};
+
     detray::tel_det_config trp_cfg{trapezoid};
     trp_cfg.n_surfaces(15).length(2000.f * detray::unit<scalar>::mm);
 
@@ -128,6 +128,11 @@ int main(int argc, char** argv) {
     // Case 3: Straight telescope in x-direction, 11 rectangle surfaces, 2000mm
     //         in length, modules places according to 'positions',
     //         silicon material (80mm)
+
+    // Mask with a rectangular shape (20x20 mm)
+    detray::mask<detray::rectangle2D, algebra_t> rectangle{
+        vol_nav_link, 20.f * detray::unit<scalar>::mm,
+        20.f * detray::unit<scalar>::mm};
 
     // Pilot trajectory in x-direction
     detray::detail::ray<algebra_t> x_track{

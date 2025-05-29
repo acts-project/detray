@@ -1199,7 +1199,7 @@ auto compare_to_navigation(
         static_cast<double>(trk_stats.n_max_extra_per_trk)};
 
     // Self check
-    if (n_holes > n_tracks_w_holes) {
+    if (static_cast<double>(n_holes) > n_tracks_w_holes) {
         throw std::runtime_error(
             "Number of tracks with holes is underestimated!");
     }

@@ -204,8 +204,8 @@ GTEST_TEST(io, json_toy_geometry) {
     // Read the detector back in
     detector_builder<metadata_t> toy_builder;
     io::json_converter<detector_t, io::geometry_reader> geo_reader;
-    geo_reader.read(toy_builder, volume_name_map, file_name);
-    auto det = toy_builder.build(host_mr);
+    geo_reader.read(toy_builder, file_name);
+    auto det = toy_builder.build(host_mr, volume_name_map);
 
     // @TODO: Will only work again after IO can perform data deduplication
     // EXPECT_TRUE(toy_detector_test(det, volume_name_map));
@@ -215,8 +215,8 @@ GTEST_TEST(io, json_toy_geometry) {
     detector_builder<default_metadata_t> comp_builder;
     io::json_converter<detector<default_metadata_t>, io::geometry_reader>
         comp_geo_reader;
-    comp_geo_reader.read(comp_builder, volume_name_map, file_name);
-    auto comp_det = comp_builder.build(host_mr);
+    comp_geo_reader.read(comp_builder, file_name);
+    auto comp_det = comp_builder.build(host_mr, volume_name_map);
 
     using mask_id = detector<default_metadata_t>::masks::id;
     const auto& masks = comp_det.mask_store();

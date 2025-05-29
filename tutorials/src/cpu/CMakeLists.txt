@@ -22,6 +22,7 @@ set(source_files
     "detector/track_geometry_changes.cpp"
     "detector/write_detector_to_file.cpp"
     "propagation/navigation_inspection.cpp"
+    "propagation/propagation.cpp"
 )
 
 foreach(file ${source_files})

@@ -25,6 +25,8 @@
 /// json geometry reader directly.
 int main(int argc, char** argv) {
 
+    std::cout << "Detector IO Tutorial\n====================\n";
+
     // Input data file
     auto reader_cfg = detray::io::detector_reader_config{};
     if (argc == 2) {
@@ -32,6 +34,8 @@ int main(int argc, char** argv) {
     } else {
         throw std::runtime_error("Please specify an input file name!");
     }
+
+    std::cout << reader_cfg << std::endl;
 
     // Read a toy detector
     using metadata_t = detray::tutorial::default_metadata;

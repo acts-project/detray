@@ -19,18 +19,14 @@ namespace detray::io::concepts {
 /// Concept for detray io reader backends
 template <typename D, typename R>
 concept reader_backend =
-    requires(const R rb, detector_builder<typename D::metadata> det_builder,
-             typename D::name_map names) {
+    requires(const R rb, detector_builder<typename D::metadata> det_builder) {
 
     typename R::payload_type;
 
     { R::tag }
     ->std::same_as<const std::string_view&>;
 
-    {
-        R::template from_payload<D>(det_builder, names,
-                                    typename R::payload_type())
-    }
+    { R::template from_payload<D>(det_builder, typename R::payload_type()) }
     ->std::same_as<void>;
 };
 

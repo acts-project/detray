@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2025 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -21,6 +21,8 @@
 /// Prepare the data and move it to device
 int main() {
 
+    std::cout << "Device Propagation Tutorial\n====================\n\n";
+
     // VecMem memory resource(s)
     vecmem::cuda::managed_memory_resource mng_mr;
 
@@ -32,8 +34,7 @@ int main() {
         detray::build_toy_detector<detray::tutorial::algebra_t>(mng_mr);
 
     // Create the vector of initial track parameters
-    vecmem::vector<detray::free_track_parameters<detray::tutorial::algebra_t>>
-        tracks(&mng_mr);
+    vecmem::vector<detray::tutorial::track_t> tracks(&mng_mr);
 
     // Track directions to be generated
     constexpr unsigned int theta_steps{10u};
@@ -43,8 +44,8 @@ int main() {
         10.f * detray::unit<detray::tutorial::scalar>::GeV};
 
     // Genrate the tracks
-    for (auto track : detray::uniform_track_generator<
-             detray::free_track_parameters<detray::tutorial::algebra_t>>(
+    for (auto track :
+         detray::uniform_track_generator<detray::tutorial::track_t>(
              phi_steps, theta_steps, p_mag)) {
         // Put it into vector of tracks
         tracks.push_back(track);

@@ -199,14 +199,12 @@ inline auto build_telescope_detector(
     using builder_t = detector_builder<metadata_t, volume_builder>;
     using detector_t = typename builder_t::detector_type;
 
-    // Detector and volume names
-    typename detector_t::name_map name_map = {{0u, "telescope_detector"},
-                                              {1u, "telescope_world_0"}};
-
     builder_t det_builder;
+    det_builder.set_name("telescope_detector");
 
     // Create an empty cuboid volume
     auto v_builder = det_builder.new_volume(volume_id::e_cuboid);
+    v_builder->set_name("telescope_world_0");
 
     // Identity transform (volume is centered at origin)
     v_builder->add_volume_placement();
@@ -277,8 +275,9 @@ inline auto build_telescope_detector(
         }
     }
 
-    // Build and return the detector
-    auto det = det_builder.build(resource);
+    // Build and return the detector and fill the name map
+    typename detector_t::name_map name_map{};
+    auto det = det_builder.build(resource, name_map);
 
     if (cfg.do_check()) {
         const bool verbose_check{false};

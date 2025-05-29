@@ -42,6 +42,8 @@ int main() {
     // Can also be performed with helices
     using ray_t = detray::detail::ray<algebra_t>;
 
+    std::cout << "Ray Scan Tutorial\n=================\n\n";
+
     // Build the geometry
     vecmem::host_memory_resource host_mr;
     const auto [det, names] = detray::build_toy_detector<algebra_t>(host_mr);
@@ -50,11 +52,11 @@ int main() {
     using detector_t = decltype(det);
     const detector_t::geometry_context gctx{};
 
-    // Visualization style to be applied to the svgs
+    // Visualization style to be applied to the SVGs
     detray::svgtools::styling::style svg_style =
         detray::svgtools::styling::tableau_colorblind::style;
 
-    // Get the volume adjaceny matrix from ray scan
+    // Optional: get the volume adjaceny matrix from ray scan
     detray::volume_graph graph(det);
     const auto &adj_mat = graph.adjacency_matrix();  // < need this for the size
     detray::dvector<detray::dindex> adj_mat_scan(adj_mat.size(), 0);

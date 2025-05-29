@@ -54,12 +54,6 @@ class volume_builder : public volume_builder_interface<detector_t> {
             detector_t::accel::id::e_default, 0);
     };
 
-    /// Adds the @param name of the volume to a @param name_map
-    template <typename name_map>
-    DETRAY_HOST void add_name(const name_map& names, std::string&& name) {
-        names.at(vol_index()) = std::move(name);
-    }
-
     /// @returns the volume index in the detector volume container
     DETRAY_HOST
     auto vol_index() const -> dindex override { return m_volume.index(); }
@@ -71,6 +65,20 @@ class volume_builder : public volume_builder_interface<detector_t> {
     /// @returns whether sensitive surfaces are added to the brute force method
     DETRAY_HOST
     bool has_accel() const override { return m_has_accel; }
+
+    /// Sets the name @param volume_name for the volume
+    DETRAY_HOST void set_name(std::string volume_name) override {
+        m_volume_name = std::move(volume_name);
+    }
+
+    /// @returns the name of the volume
+    DETRAY_HOST std::string_view name() override {
+        if (m_volume_name.empty()) {
+            // Consistent default after volume index is known
+            m_volume_name = "volume_" + std::to_string(vol_index());
+        }
+        return m_volume_name;
+    }
 
     /// Access to the volume under construction - const
     DETRAY_HOST
@@ -269,6 +277,9 @@ class volume_builder : public volume_builder_interface<detector_t> {
     private:
     /// Whether the volume will get an acceleration structure
     bool m_has_accel{false};
+
+    /// The name of the volume
+    std::string m_volume_name{};
 
     /// Volume descriptor of the volume under construction
     typename detector_t::volume_type m_volume{};

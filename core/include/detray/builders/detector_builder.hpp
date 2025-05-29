@@ -21,6 +21,8 @@
 
 // System include(s)
 #include <memory>
+#include <string>
+#include <string_view>
 #include <vector>
 
 namespace detray {
@@ -40,6 +42,14 @@ class detector_builder {
     using detector_type = detector<metadata, host_container_types>;
     using algebra_type = typename detector_type::algebra_type;
     using scalar_type = dscalar<algebra_type>;
+
+    /// Set the name of the detector under construction to @param det_name
+    DETRAY_HOST void set_name(std::string det_name) {
+        m_detector_name = std::move(det_name);
+    }
+
+    /// @returns the name of the detector under construction
+    DETRAY_HOST std::string_view name() const { return m_detector_name; }
 
     /// Add a new volume builder that will build a volume of the shape given by
     /// @param id
@@ -113,6 +123,25 @@ class detector_builder {
         return det;
     }
 
+    /// Assembles the final detector and fill an externally provided name map
+    /// @param name_map
+    DETRAY_HOST
+    auto build(vecmem::memory_resource& resource,
+               typename detector_type::name_map& name_map) -> detector_type {
+
+        assert(name_map.empty());
+
+        // By convention the name of the detector is at position 0
+        name_map.emplace(0u, m_detector_name);
+
+        for (auto& vol_builder : m_volumes) {
+            name_map.emplace(vol_builder->vol_index() + 1u,
+                             vol_builder->name());
+        }
+
+        return build(resource);
+    }
+
     /// Put the volumes into a search data structure
     template <typename... Args>
     DETRAY_HOST void set_volume_finder([[maybe_unused]] Args&&... args) {
@@ -153,6 +182,8 @@ class detector_builder {
     }
 
     private:
+    /// Name of the new detector
+    std::string m_detector_name{"detray_detector"};
     /// Data structure that holds a volume builder for every detector volume
     volume_data_t<std::unique_ptr<volume_builder_interface<detector_type>>>
         m_volumes{};

@@ -7,8 +7,11 @@
 
 // Project include(s)
 #include "detray/core/detector.hpp"
-#include "detray/io/frontend/detector_reader.hpp"
 #include "detray/navigation/volume_graph.hpp"
+
+// Detray IO inlcude(s)
+#include "detray/io/frontend/detector_reader.hpp"
+#include "detray/io/utils/file_handle.hpp"
 
 // Example linear algebra plugin: std::array
 #include "detray/tutorial/types.hpp"
@@ -17,13 +20,16 @@
 #include <vecmem/memory/host_memory_resource.hpp>
 
 // System include(s)
+#include <ios>
 #include <iostream>
 #include <stdexcept>
 #include <string>
 
-/// Read a detector from file. For now: Read in the geometry by calling the
-/// json geometry reader directly.
+/// Read a detector from file and transform its volumes and navigation links to
+/// a graph in dot format
 int main(int argc, char** argv) {
+
+    std::cout << "Detector Graph Tutorial\n=======================\n";
 
     // Input data file
     auto reader_cfg = detray::io::detector_reader_config{};
@@ -32,6 +38,8 @@ int main(int argc, char** argv) {
     } else {
         throw std::runtime_error("Please specify an input file name!");
     }
+
+    std::cout << reader_cfg << std::endl;
 
     // Read a toy detector
     using metadata_t = detray::tutorial::toy_metadata;
@@ -46,5 +54,12 @@ int main(int argc, char** argv) {
 
     // Display the detector volume graph
     detray::volume_graph graph(det);
-    std::cout << graph.to_dot_string() << std::endl;
+
+    const std::string file_stem{det.name(names) + "_dot"};
+    const std::ios_base::openmode io_mode{std::ios::out | std::ios::trunc};
+    detray::io::file_handle out_file{file_stem, ".txt", io_mode};
+
+    *out_file << graph.to_dot_string() << std::endl;
+
+    std::cout << "\nWrote file: " << file_stem + ".txt" << std::endl;
 }

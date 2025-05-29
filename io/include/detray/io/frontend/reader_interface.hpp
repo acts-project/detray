@@ -40,7 +40,7 @@ class reader_interface {
     /// filled.
     virtual void read(
         detector_builder<typename detector_t::metadata, volume_builder>&,
-        typename detector_t::name_map&, const std::string&) = 0;
+        const std::string&) = 0;
 
     private:
     /// Extension that matches the file format of the respective reader
