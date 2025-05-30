@@ -213,7 +213,7 @@ GTEST_TEST(io, json_surface_payload) {
     mat.index = 2u;
 
     s.transform = t;
-    s.mask = m;
+    s.masks = std::vector{m};
     s.type = detray::surface_id::e_passive;
     s.material = mat;
 
@@ -225,9 +225,11 @@ GTEST_TEST(io, json_surface_payload) {
     EXPECT_EQ(s.transform.tr, ps.transform.tr);
     EXPECT_EQ(s.transform.rot, ps.transform.rot);
 
-    EXPECT_EQ(s.mask.shape, ps.mask.shape);
-    EXPECT_EQ(s.mask.volume_link.link, ps.mask.volume_link.link);
-    EXPECT_EQ(s.mask.boundaries, ps.mask.boundaries);
+    const auto& mask = s.masks.front();
+    const auto& pmask = ps.masks.front();
+    EXPECT_EQ(mask.shape, pmask.shape);
+    EXPECT_EQ(mask.volume_link.link, pmask.volume_link.link);
+    EXPECT_EQ(mask.boundaries, pmask.boundaries);
 
     EXPECT_EQ(s.type, ps.type);
 
@@ -278,7 +280,7 @@ GTEST_TEST(io, json_volume_payload) {
     mat.index = 2u;
 
     s.transform = t;
-    s.mask = m;
+    s.masks = {m};
     s.type = detray::surface_id::e_portal;
     s.material = mat;
 

@@ -1026,18 +1026,23 @@ inline void add_connector_portals(
     connector_builder->add_volume_placement({gap_center});
 
     // Go over all volume extends and build the corresponding disc portal
+    std::vector<std::vector<scalar_t>> boundaries{};
+    std::vector<nav_link_t> vol_links{};
     for (const auto &e : brl_vol_extents) {
 
         const scalar_t min_r{math::min(e.second.lower, e.second.upper)};
         const scalar_t max_r{math::max(e.second.lower, e.second.upper)};
 
-        // Barrel-facing disc portal
-        pt_disc_factory->push_back(
-            {surface_id::e_portal,
-             transform3_t{point3_t{0.f, 0.f, (side < 0.f) ? max_z : min_z}},
-             static_cast<nav_link_t>(e.first),
-             std::vector<scalar_t>{min_r, max_r}});
+        boundaries.push_back(std::vector<scalar_t>{min_r, max_r});
+        vol_links.push_back(static_cast<nav_link_t>(e.first));
     }
+    assert(boundaries.size() == vol_links.size());
+
+    // Barrel-facing disc portal
+    pt_disc_factory->push_back(
+        {surface_id::e_portal,
+         transform3_t{point3_t{0.f, 0.f, (side < 0.f) ? max_z : min_z}},
+         vol_links, boundaries});
 
     // Outward-facing disc portal
     pt_disc_factory->push_back(
@@ -1055,7 +1060,7 @@ inline void add_connector_portals(
     pt_cyl_factory->push_back({surface_id::e_portal, identity, end_of_world,
                                std::vector<scalar_t>{outer_r, min_z, max_z}});
 
-    // Add all portals to the beampipe volume
+    // Add all portals to the connector gap volume
     connector_builder->add_surfaces(pt_disc_factory);
     connector_builder->add_surfaces(pt_cyl_factory);
 }
@@ -1133,7 +1138,7 @@ inline void add_beampipe_portals(
     beampipe_builder->add_surfaces(pt_cyl_factory);
 }
 
-/// Helper method for creating the portals of one of endcap sections of the
+/// Helper method for creating the portals of one of the endcap sections of the
 /// beampipe volume.
 ///
 /// @param beampipe_builder volume builder for the beampipe volume
@@ -1178,7 +1183,9 @@ inline void add_beampipe_portals(
     const scalar_t outer_r{cfg.beampipe_vol_radius()};
     scalar_t disc_pos_z{-side * std::numeric_limits<scalar_t>::max()};
 
-    // Go over all volume extends and build the corresponding cylinder portal
+    // Go over all volume extends and build the corresponding cylinder portals
+    std::vector<std::vector<scalar_t>> boundaries{};
+    std::vector<nav_link_t> vol_links{};
     for (const auto &e : edc_lay_sizes) {
 
         const scalar_t min_z{math::min(e.second.lower, e.second.upper)};
@@ -1190,11 +1197,13 @@ inline void add_beampipe_portals(
             disc_pos_z = (disc_pos_z < max_z) ? max_z : disc_pos_z;
         }
 
-        pt_cyl_factory->push_back(
-            {surface_id::e_portal, transform3_t{},
-             static_cast<nav_link_t>(e.first),
-             std::vector<scalar_t>{outer_r, min_z, max_z}});
+        boundaries.push_back(std::vector<scalar_t>{outer_r, min_z, max_z});
+        vol_links.push_back(static_cast<nav_link_t>(e.first));
     }
+    assert(boundaries.size() == vol_links.size());
+
+    pt_cyl_factory->push_back(
+        {surface_id::e_portal, transform3_t{}, vol_links, boundaries});
 
     // Outward-facing disc portal
     pt_disc_factory->push_back(

@@ -127,6 +127,29 @@ class cuboid3D {
                (bounds[e_max_z] - bounds[e_min_z]);
     }
 
+    /// @brief Merge two 3D cuboid shapes
+    ///
+    /// @param bounds the boundary values for this shape
+    /// @param o_bounds the boundary values for the other shape
+    ///
+    /// @returns merged bound values
+    template <concepts::scalar scalar_t>
+    DETRAY_HOST_DEVICE constexpr bounds_type<scalar_t> merge(
+        const bounds_type<scalar_t> &bounds,
+        const bounds_type<scalar_t> &o_bounds) const {
+
+        bounds_type<scalar_t> new_bounds{};
+
+        new_bounds[e_min_x] = math::min(bounds[e_min_x], o_bounds[e_min_x]);
+        new_bounds[e_min_y] = math::min(bounds[e_min_y], o_bounds[e_min_y]);
+        new_bounds[e_min_z] = math::min(bounds[e_min_z], o_bounds[e_min_z]);
+        new_bounds[e_max_x] = math::max(bounds[e_max_x], o_bounds[e_max_x]);
+        new_bounds[e_max_y] = math::max(bounds[e_max_y], o_bounds[e_max_y]);
+        new_bounds[e_max_z] = math::max(bounds[e_max_z], o_bounds[e_max_z]);
+
+        return new_bounds;
+    }
+
     /// @brief Lower and upper point for minimal axis aligned bounding box.
     ///
     /// Computes the min and max vertices in a local cartesian frame.

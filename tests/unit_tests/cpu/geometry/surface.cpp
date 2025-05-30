@@ -194,13 +194,13 @@ GTEST_TEST(detray_geometry, surface_toy_detector) {
     //
     // Rectangle
     //
-    const auto rec_descr = toy_det.surfaces()[604u];
+    const auto rec_descr = toy_det.surfaces()[586u];
     const auto rec = geometry::surface{toy_det, rec_descr};
 
     // IDs
     ASSERT_EQ(rec.barcode(), rec_descr.barcode());
     ASSERT_EQ(rec.volume(), 9u);
-    ASSERT_EQ(rec.index(), 604u);
+    ASSERT_EQ(rec.index(), 586u);
     ASSERT_EQ(rec.id(), surface_id::e_sensitive);
     ASSERT_EQ(rec.shape_id(), detector_t::masks::id::e_rectangle2);
     ASSERT_TRUE(rec.is_sensitive());
@@ -267,13 +267,13 @@ GTEST_TEST(detray_geometry, surface_toy_detector) {
     //
     // Concentric Cylinder
     //
-    const auto cyl_descr = toy_det.surfaces()[8u];
+    const auto cyl_descr = toy_det.surfaces()[3u];
     const auto cyl = geometry::surface{toy_det, cyl_descr};
 
     // IDs
     ASSERT_EQ(cyl.barcode(), cyl_descr.barcode());
     ASSERT_EQ(cyl.volume(), 0u);
-    ASSERT_EQ(cyl.index(), 8u);
+    ASSERT_EQ(cyl.index(), 3u);
     ASSERT_EQ(cyl.id(), surface_id::e_portal);
     ASSERT_EQ(cyl.shape_id(), detector_t::masks::id::e_portal_cylinder2);
     ASSERT_FALSE(cyl.is_sensitive());

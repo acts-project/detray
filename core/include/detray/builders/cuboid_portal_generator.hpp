@@ -16,6 +16,7 @@
 #include "detray/definitions/math.hpp"
 #include "detray/geometry/shapes/cuboid3D.hpp"
 #include "detray/utils/bounding_volume.hpp"
+#include "detray/utils/ranges.hpp"
 
 // System include(s)
 #include <cassert>
@@ -39,15 +40,20 @@ class cuboid_portal_generator final
 
         using aabb_t = axis_aligned_bounding_volume<cuboid3D, algebra_type>;
 
-        template <typename mask_group_t, typename index_t>
+        template <typename mask_group_t, typename idx_range_t>
         DETRAY_HOST_DEVICE inline void operator()(
-            const mask_group_t &mask_group, const index_t &index,
+            const mask_group_t &mask_group, const idx_range_t &idx_range,
             const scalar_type envelope, const transform3_type &trf,
             std::vector<aabb_t> &boxes) const {
-            // Local minimum bounding box
-            aabb_t box{mask_group.at(index), boxes.size(), envelope};
-            // Bounding box in global coordinates (might no longer be minimum)
-            boxes.push_back(box.transform(trf));
+
+            for (const auto &mask :
+                 detray::ranges::subrange(mask_group, idx_range)) {
+                // Local minimum bounding box
+                aabb_t box{mask, boxes.size(), envelope};
+                // Bounding box in global coordinates (might no longer be
+                // minimum)
+                boxes.push_back(box.transform(trf));
+            }
         }
     };
 
@@ -154,8 +160,15 @@ class cuboid_portal_generator final
         // ... x-y plane
         //
         // Only one rectangle needed for both surfaces
-        mask_link_t mask_link{rectangle_id,
-                              masks.template size<rectangle_id>()};
+        mask_link_t mask_link{};
+        mask_link.set_id(rectangle_id);
+        const auto mask_idx{
+            static_cast<dindex>(masks.template size<rectangle_id>())};
+        if constexpr (concepts::interval<typename mask_link_t::index_type>) {
+            mask_link.set_index({mask_idx, 1u});
+        } else {
+            mask_link.set_index(mask_idx);
+        }
         masks.template emplace_back<rectangle_id>(empty_context{}, volume_link,
                                                   h_x, h_y);
 
@@ -178,7 +191,7 @@ class cuboid_portal_generator final
         //
         // ... x-z plane
         //
-        ++mask_link;
+        mask_link.shift(1u);
         masks.template emplace_back<rectangle_id>(empty_context{}, volume_link,
                                                   h_x, h_z);
 
@@ -202,7 +215,7 @@ class cuboid_portal_generator final
         //
         // ... y-z plane
         //
-        ++mask_link;
+        mask_link.shift(1u);
         masks.template emplace_back<rectangle_id>(empty_context{}, volume_link,
                                                   h_z, h_y);
 

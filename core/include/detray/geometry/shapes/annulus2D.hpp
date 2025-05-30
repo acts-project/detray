@@ -95,7 +95,9 @@ class annulus2D {
         // Go to beam frame to check r boundaries. Use the origin
         // shift in polar coordinates for that
         // TODO: Put shift in r-phi into the bounds?
-        const point_t shift_xy = {-bounds[e_shift_x], -bounds[e_shift_y], 0.f};
+        point_t shift_xy;
+        shift_xy[0u] = -bounds[e_shift_x];
+        shift_xy[1u] = -bounds[e_shift_y];
         const scalar_t shift_r = vector::perp(shift_xy);
         const scalar_t shift_phi = vector::phi(shift_xy);
 
@@ -201,6 +203,36 @@ class annulus2D {
     DETRAY_HOST_DEVICE constexpr scalar_t area(
         const bounds_type<scalar_t> &) const {
         return detail::invalid_value<scalar_t>();
+    }
+
+    /// @brief Merge two annulus shapes
+    ///
+    /// @param bounds the boundary values for this shape
+    /// @param o_bounds the boundary values for the other shape
+    ///
+    /// @returns merged bound values
+    template <concepts::scalar scalar_t>
+    DETRAY_HOST_DEVICE constexpr bounds_type<scalar_t> merge(
+        const bounds_type<scalar_t> &bounds,
+        const bounds_type<scalar_t> &o_bounds) const {
+
+        assert(bounds[e_average_phi] == o_bounds[e_average_phi]);
+        assert(bounds[e_shift_x] == o_bounds[e_shift_x]);
+        assert(bounds[e_shift_y] == o_bounds[e_shift_y]);
+
+        bounds_type<scalar_t> new_bounds{};
+
+        new_bounds[e_min_r] = math::min(bounds[e_min_r], o_bounds[e_min_r]);
+        new_bounds[e_max_r] = math::max(bounds[e_max_r], o_bounds[e_max_r]);
+        new_bounds[e_min_phi_rel] =
+            math::min(bounds[e_min_phi_rel], o_bounds[e_min_phi_rel]);
+        new_bounds[e_max_phi_rel] =
+            math::max(bounds[e_max_phi_rel], o_bounds[e_max_phi_rel]);
+        new_bounds[e_average_phi] = bounds[e_average_phi];
+        new_bounds[e_shift_x] = bounds[e_shift_x];
+        new_bounds[e_shift_y] = bounds[e_shift_y];
+
+        return new_bounds;
     }
 
     /// @brief Lower and upper point for minimal axis aligned bounding box.

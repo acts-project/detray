@@ -111,13 +111,15 @@ GTEST_TEST(detray_core, tuple_container) {
 
 GTEST_TEST(detray_core, vector_multi_store) {
 
+    using container_t =
+        regular_multi_store<std::size_t, empty_context, std::tuple,
+                            vecmem::vector, std::size_t, float, double>;
+
     // Vecmem memory resource
     vecmem::host_memory_resource resource;
 
     // Create tuple vector container
-    regular_multi_store<std::size_t, empty_context, std::tuple, vecmem::vector,
-                        std::size_t, float, double>
-        vector_store(resource);
+    container_t vector_store(resource);
 
     // Base container function check
     EXPECT_EQ(vector_store.n_collections(), 3u);
@@ -173,7 +175,10 @@ GTEST_TEST(detray_core, vector_multi_store) {
     EXPECT_NEAR(vector_store.get<2>()[3], 7.6, tol_double);
 
     // call functor
-    EXPECT_EQ(vector_store.visit<test_func>(std::make_pair(0u, 0u)), 5u);
-    EXPECT_EQ(vector_store.visit<test_func>(std::make_pair(1u, 0u)), 3u);
-    EXPECT_EQ(vector_store.visit<test_func>(std::make_pair(2u, 0u)), 4u);
+    container_t::single_link l0{0u, 0u};
+    container_t::single_link l1{1u, 0u};
+    container_t::single_link l2{2u, 0u};
+    EXPECT_EQ(vector_store.visit<test_func>(l0), 5u);
+    EXPECT_EQ(vector_store.visit<test_func>(l1), 3u);
+    EXPECT_EQ(vector_store.visit<test_func>(l2), 4u);
 }

@@ -71,11 +71,12 @@ auto volume(const typename detector_t::geometry_context& context,
 
         if (sf.is_portal()) {
             if (!hide_portals) {
-                auto p_portal = svgtools::conversion::portal(
+                auto p_portals = svgtools::conversion::portal(
                     context, detector, sf, view, style._portal_style, false,
                     hide_material);
 
-                p_volume._portals.push_back(p_portal);
+                std::ranges::copy(p_portals,
+                                  std::back_inserter(p_volume._portals));
             }
         } else if (!(sf.is_passive() && hide_passives)) {
 
@@ -83,18 +84,24 @@ auto volume(const typename detector_t::geometry_context& context,
                                        ? style._sensitive_surface_style
                                        : style._passive_surface_style;
 
-            auto& p_surface =
-                p_volume._v_surfaces.emplace_back(svgtools::conversion::surface(
-                    context, detector, sf, view, sf_style, hide_material));
+            auto p_surfaces = svgtools::conversion::surface(
+                context, detector, sf, view, sf_style, hide_material);
+            assert(p_surfaces.size() == sf.n_masks());
 
-            std::string sf_info{"* index " + std::to_string(sf.index())};
+            for (std::size_t i = 0u; i < p_surfaces.size(); ++i) {
+                auto& p_surface =
+                    p_volume._v_surfaces.emplace_back(p_surfaces[i]);
 
-            p_surface._aux_info["module_info"] = {sf_info};
-            p_surface._aux_info["grid_info"] = {sf_info};
+                std::string sf_info{"* index " + std::to_string(sf.index()) +
+                                    "* mask " + std::to_string(i)};
 
-            // Put the sensitive surfaces in the module/grid sheets
-            if (sf.is_sensitive()) {
-                p_sensitves.push_back(p_surface);
+                p_surface._aux_info["module_info"] = {sf_info};
+                p_surface._aux_info["grid_info"] = {sf_info};
+
+                // Put the sensitive surfaces in the module/grid sheets
+                if (sf.is_sensitive()) {
+                    p_sensitves.push_back(p_surface);
+                }
             }
         }
     }

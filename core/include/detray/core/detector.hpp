@@ -19,7 +19,7 @@
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
-#include "detray/geometry/detail/volume_descriptor.hpp"
+#include "detray/geometry/volume_descriptor.hpp"
 #include "detray/utils/concepts.hpp"
 
 // Vecmem include(s)

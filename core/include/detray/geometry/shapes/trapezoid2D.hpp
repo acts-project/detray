@@ -127,6 +127,32 @@ class trapezoid2D {
                bounds[e_half_length_2];
     }
 
+    /// @brief Merge two trapezoid shapes
+    ///
+    /// @param bounds the boundary values for this shape
+    /// @param o_bounds the boundary values for the other shape
+    ///
+    /// @returns merged bound values
+    template <concepts::scalar scalar_t>
+    DETRAY_HOST_DEVICE constexpr bounds_type<scalar_t> merge(
+        const bounds_type<scalar_t> &bounds,
+        const bounds_type<scalar_t> &o_bounds) const {
+
+        bounds_type<scalar_t> new_bounds{};
+
+        new_bounds[e_half_length_0] =
+            math::max(bounds[e_half_length_0], o_bounds[e_half_length_0]);
+        new_bounds[e_half_length_1] =
+            math::max(bounds[e_half_length_1], o_bounds[e_half_length_1]);
+        new_bounds[e_half_length_2] =
+            math::max(bounds[e_half_length_2], o_bounds[e_half_length_2]);
+
+        // Recalculate the memoized divisor
+        new_bounds[e_divisor] = 1.f / (2.f * new_bounds[e_half_length_2]);
+
+        return new_bounds;
+    }
+
     /// @brief Lower and upper point for minimal axis aligned bounding box.
     ///
     /// Computes the min and max vertices in a local cartesian frame.

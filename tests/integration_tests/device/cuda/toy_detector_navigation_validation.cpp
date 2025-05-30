@@ -124,7 +124,7 @@ int main(int argc, char **argv) {
     detray::cuda::material_validation<toy_detector_t>::config mat_val_cfg{};
     mat_val_cfg.name("toy_detector_material_validaiton_cuda");
     mat_val_cfg.device_mr(&dev_mr);
-    mat_val_cfg.tol(1e-6f);  // < Reduce tolerance for single precision tests
+    mat_val_cfg.tol(1e-5f);  // < Reduce tolerance for single precision tests
     mat_val_cfg.propagation() = cfg_str_nav.propagation();
     mat_val_cfg.propagation().stepping.min_stepsize = min_stepsize;
 

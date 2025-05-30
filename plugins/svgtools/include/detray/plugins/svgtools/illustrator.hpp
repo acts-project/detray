@@ -120,33 +120,41 @@ class illustrator {
         const auto& style = _style._detector_style._volume_style;
 
         if (surface.is_portal()) {
-            auto p_portal = svgtools::conversion::portal(
+            auto p_portals = svgtools::conversion::portal(
                 gctx, _detector, surface, view, style._portal_style, false,
                 _hide_material);
 
-            // Draw the portal directly
-            std::string id = p_portal._name + "_" + svg_id(view);
-            ret = actsvg::display::portal(std::move(id), p_portal, view);
+            for (auto& p_portal : p_portals) {
+                std::string id = p_portal._name + "_" + svg_id(view);
+                ret.add_object(
+                    actsvg::display::portal(std::move(id), p_portal, view));
+            }
 
-            if (!_hide_material) {
+            if (!_hide_material && surface.has_material()) {
+                std::string id_0 = p_portals.at(0)._name + "_" + svg_id(view);
                 material = actsvg::display::surface_material(
-                    id + "_material_map", p_portal._surface._material);
+                    id_0 + "_material_map", p_portals.at(0)._surface._material);
             }
         } else {
             const auto& sf_style = surface.is_sensitive()
                                        ? style._sensitive_surface_style
                                        : style._passive_surface_style;
 
-            auto p_surface = svgtools::conversion::surface(
+            auto p_surfaces = svgtools::conversion::surface(
                 gctx, _detector, surface, view, sf_style, _hide_material);
 
-            // Draw the surface directly
-            std::string id = p_surface._name + "_" + svg_id(view);
-            ret = actsvg::display::surface(std::move(id), p_surface, view);
+            // Draw the surfaces directly
+            for (auto& p_surface : p_surfaces) {
+                std::string id = p_surface._name + "_" + svg_id(view);
+                ret.add_object(
+                    actsvg::display::surface(std::move(id), p_surface, view));
+            }
 
-            if (!_hide_material) {
+            // The surface links to only one material for all masks
+            if (!_hide_material && surface.has_material()) {
+                std::string id_0 = p_surfaces.at(0)._name + "_" + svg_id(view);
                 material = actsvg::display::surface_material(
-                    id + "_material_map", p_surface._material);
+                    id_0 + "_material_map", p_surfaces.at(0)._material);
             }
         }
         // Add an optional info box

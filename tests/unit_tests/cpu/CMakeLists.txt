@@ -7,7 +7,7 @@
 # Set up the test(s) that are algebra agnostic.
 detray_add_unit_test(cpu
    "core/containers.cpp"
-   "core/typed_index.cpp"
+   "core/indexing.cpp"
    "geometry/barcode.cpp"
    "grid2/populator.cpp"
    "utils/find_bounds.cpp"

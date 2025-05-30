@@ -83,7 +83,7 @@ class geometry_reader {
             // Add the surfaces to the factories
             for (const auto& sf_data : vol_data.surfaces) {
 
-                const mask_payload& mask_data = sf_data.mask;
+                const std::vector<mask_payload>& mask_data = sf_data.masks;
 
                 // Get a reference to the correct factory colleciton
                 auto& factories{sf_data.type == surface_id::e_portal
@@ -91,9 +91,9 @@ class geometry_reader {
                                     : sf_factories};
 
                 // @TODO use portal cylinders until intersectors are fixed
-                auto shape_id{mask_data.shape == io_shape_id::cylinder2
+                auto shape_id{mask_data.front().shape == io_shape_id::cylinder2
                                   ? io_shape_id::portal_cylinder2
-                                  : mask_data.shape};
+                                  : mask_data.front().shape};
 
                 // Check if a fitting factory already exists. If not, add it
                 // dynamically
@@ -157,9 +157,12 @@ class geometry_reader {
         using scalar_t = dscalar<typename detector_t::algebra_type>;
 
         // Transcribe mask boundaries onto correct vector type
-        std::vector<scalar_t> mask_boundaries;
-        std::ranges::copy(sf_data.mask.boundaries,
-                          std::back_inserter(mask_boundaries));
+        std::vector<std::vector<scalar_t>> mask_boundaries{};
+        for (const auto& mask_data : sf_data.masks) {
+            std::vector<scalar_t>& boundaries = mask_boundaries.emplace_back();
+            std::ranges::copy(mask_data.boundaries,
+                              std::back_inserter(boundaries));
+        }
 
         // If the concentric cylinder is shifted in z, discard the shift
         // and put it in the mask boundaries instead. Everything else
@@ -167,13 +170,15 @@ class geometry_reader {
         // @TODO: Remove this for cylinders again once 2 solution intersection
         // work
         auto trf = from_payload<detector_t>(sf_data.transform);
-        if (sf_data.mask.shape == io_shape_id::portal_cylinder2 ||
-            sf_data.mask.shape == io_shape_id::cylinder2) {
+        if (sf_data.masks.front().shape == io_shape_id::portal_cylinder2 ||
+            sf_data.masks.front().shape == io_shape_id::cylinder2) {
 
             const auto z_shift{static_cast<scalar_t>(trf.translation()[2])};
 
-            mask_boundaries[concentric_cylinder2D::e_lower_z] += z_shift;
-            mask_boundaries[concentric_cylinder2D::e_upper_z] += z_shift;
+            for (auto& mask_boundary : mask_boundaries) {
+                mask_boundary[concentric_cylinder2D::e_lower_z] += z_shift;
+                mask_boundary[concentric_cylinder2D::e_upper_z] += z_shift;
+            }
 
             // Set the transform to identity afterwards
             trf = decltype(trf){};
@@ -184,10 +189,18 @@ class geometry_reader {
                 ? *(sf_data.index_in_coll)
                 : detray::detail::invalid_value<std::size_t>()};
 
+        std::vector<nav_link_t> vol_links{};
+        vol_links.reserve(sf_data.masks.size());
+        for (const auto& mask_pl : sf_data.masks) {
+            vol_links.push_back(static_cast<nav_link_t>(
+                detail::basic_converter::from_payload(mask_pl.volume_link)));
+        }
+
+        assert(mask_boundaries.size() == vol_links.size());
+
         return {sf_data.type,
                 trf,
-                static_cast<nav_link_t>(detail::basic_converter::from_payload(
-                    sf_data.mask.volume_link)),
+                std::move(vol_links),
                 std::move(mask_boundaries),
                 static_cast<dindex>(sf_idx),
                 sf_data.source};

@@ -28,6 +28,7 @@ struct intersection2D {
     unsigned int transform_index = 0u;
     unsigned int mask_id = 0u;
     unsigned int mask_index = 0u;
+    unsigned int n_masks = 1u;
     unsigned int material_id = 0u;
     unsigned int material_index = 0u;
     double l0 = 0.;
@@ -75,8 +76,15 @@ inline auto read_intersection2D(const std::string &file_name) {
         // Read the intersection
         intersection_t inters{};
 
-        mask_link_t mask_link{static_cast<mask_id_t>(inters_data.mask_id),
-                              inters_data.mask_index};
+        mask_link_t mask_link{};
+        mask_link.set_id(static_cast<mask_id_t>(inters_data.mask_id));
+        if constexpr (detray::concepts::interval<
+                          typename mask_link_t::index_type>) {
+            mask_link.set_index({inters_data.mask_index, inters_data.n_masks});
+        } else {
+            mask_link.set_index(inters_data.mask_index);
+        }
+
         material_link_t material_link{
             static_cast<material_id_t>(inters_data.material_id),
             inters_data.material_index};
@@ -110,6 +118,9 @@ inline void write_intersection2D(
     const std::vector<std::vector<intersection_t>> &intersections_per_track,
     const bool replace = true) {
 
+    using sf_desc_t = decltype(intersections_per_track.at(0).at(0).sf_desc);
+    using mask_link_t = typename sf_desc_t::mask_link;
+
     // Don't write over existing data
     std::string inters_file_name{file_name};
     if (!replace && io::file_exists(file_name)) {
@@ -140,7 +151,17 @@ inline void write_intersection2D(
             inters_data.transform_index = inters.sf_desc.transform();
             inters_data.mask_id =
                 static_cast<unsigned int>(inters.sf_desc.mask().id());
-            inters_data.mask_index = inters.sf_desc.mask().index();
+            const auto mask_index = inters.sf_desc.mask().index();
+            if constexpr (detray::concepts::interval<
+                              typename mask_link_t::index_type>) {
+                inters_data.mask_index =
+                    static_cast<unsigned int>(mask_index.lower());
+                inters_data.n_masks =
+                    static_cast<unsigned int>(mask_index.size());
+            } else {
+                inters_data.mask_index = static_cast<unsigned int>(mask_index);
+                inters_data.n_masks = 1u;
+            }
             inters_data.material_id =
                 static_cast<unsigned int>(inters.sf_desc.material().id());
             inters_data.material_index = inters.sf_desc.material().index();

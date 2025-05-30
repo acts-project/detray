@@ -38,21 +38,34 @@ auto portal(const typename detector_t::geometry_context& context,
     using p_portal_t = actsvg::proto::portal<point3_container_t>;
     using p_surface_t = actsvg::proto::surface<point3_container_t>;
 
-    p_portal_t p_portal;
-    p_portal._name = "portal_" + std::to_string(d_portal.index());
-    p_portal._surface._sf_type = p_surface_t::sf_type::e_portal;
-
-    if (!hide_links && svgtools::utils::is_not_world_portal(d_portal)) {
-        p_portal._volume_links = {
-            svgtools::conversion::link(context, detector, d_portal)};
-    }
-
-    p_portal._surface = svgtools::conversion::surface(
+    const auto p_surfaces = svgtools::conversion::surface(
         context, detector, d_portal, view, style._surface_style, hide_material);
 
-    svgtools::styling::apply_style(p_portal, style);
+    std::vector<typename p_portal_t::link> pt_links{};
+    const bool display_links{!hide_links &&
+                             svgtools::utils::is_not_world_portal(d_portal)};
+    if (display_links) {
+        pt_links = svgtools::conversion::links(context, detector, d_portal);
+    }
 
-    return p_portal;
+    std::vector<p_portal_t> p_portals{};
+    for (std::size_t i = 0u; i < p_surfaces.size(); ++i) {
+        const auto& p_sub_portal = p_surfaces.at(i);
+
+        auto& p_portal = p_portals.emplace_back();
+        p_portal._name = "portal_" + std::to_string(d_portal.index()) + "_" +
+                         std::to_string(i);
+        p_portal._surface = p_sub_portal;
+        p_portal._surface._sf_type = p_surface_t::sf_type::e_portal;
+
+        if (display_links) {
+            p_portal._volume_links = {pt_links.at(i)};
+        }
+
+        svgtools::styling::apply_style(p_portal, style);
+    }
+
+    return p_portals;
 }
 
 }  // namespace detray::svgtools::conversion

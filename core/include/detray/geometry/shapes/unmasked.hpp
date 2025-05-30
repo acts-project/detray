@@ -108,6 +108,19 @@ class unmasked {
         return std::numeric_limits<scalar_t>::max();
     }
 
+    /// @brief Merge two unmasked shapes
+    ///
+    /// @param bounds the boundary values for this shape
+    /// @param o_bounds the boundary values for the other shape
+    ///
+    /// @returns merged bound values
+    template <concepts::scalar scalar_t>
+    DETRAY_HOST_DEVICE constexpr bounds_type<scalar_t> merge(
+        const bounds_type<scalar_t>& /*bounds*/,
+        const bounds_type<scalar_t>& /*o_bounds*/) const {
+        return {};
+    }
+
     /// @brief Lower and upper point for minimal axis aligned bounding box.
     ///
     /// Computes the min and max vertices in a local cartesian frame.

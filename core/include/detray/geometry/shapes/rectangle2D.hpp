@@ -105,6 +105,25 @@ class rectangle2D {
         return 4.f * bounds[e_half_x] * bounds[e_half_y];
     }
 
+    /// @brief Merge two rectangle shapes
+    ///
+    /// @param bounds the boundary values for this shape
+    /// @param o_bounds the boundary values for the other shape
+    ///
+    /// @returns merged bound values
+    template <concepts::scalar scalar_t>
+    DETRAY_HOST_DEVICE constexpr bounds_type<scalar_t> merge(
+        const bounds_type<scalar_t> &bounds,
+        const bounds_type<scalar_t> &o_bounds) const {
+
+        bounds_type<scalar_t> new_bounds{};
+
+        new_bounds[e_half_x] = math::max(bounds[e_half_x], o_bounds[e_half_x]);
+        new_bounds[e_half_y] = math::max(bounds[e_half_y], o_bounds[e_half_y]);
+
+        return new_bounds;
+    }
+
     /// @brief Lower and upper point for minimal axis aligned bounding box.
     ///
     /// Computes the min and max vertices in a local cartesian frame.

@@ -142,52 +142,51 @@ class material_map_builder final : public volume_decorator<detector_t> {
 
     private:
     /// Check whether a surface with a given index @param sf_idx should receive
-    /// material
-    bool surface_has_map(const dindex sf_idx) {
-        auto search = m_bin_data.find(sf_idx);
-        return search != m_bin_data.end();
+    /// material from this builder
+    bool surface_has_map(const dindex sf_idx) const {
+        return m_bin_data.contains(sf_idx);
     }
 
     /// Set the correct global surface material link for this detector
     void update_material_links(const detector_t& det) {
 
-        // Count the number of different material types to get the indices
+        // The total number of surfaces that will be built by this builder
+        const dindex n_surfaces{static_cast<dindex>(this->surfaces().size())};
+
+        // Count the number of maps per material type to get the correct indices
         std::map<typename materials_t::id, dindex> mat_type_count;
 
-        dindex sf_idx{0u};
-        for (auto& sf_desc : this->surfaces()) {
+        for (dindex sf_idx = 0u; sf_idx < n_surfaces; ++sf_idx) {
             if (!surface_has_map(sf_idx)) {
-                sf_idx++;
                 continue;
             }
 
-            auto id{sf_desc.material().id()};
-            if (auto search = mat_type_count.find(id);
-                search == mat_type_count.end()) {
-                mat_type_count[id] = 0u;
+            auto& sf_desc = this->surfaces().at(sf_idx);
+
+            const auto id{sf_desc.material().id()};
+            if (!mat_type_count.contains(id)) {
+                mat_type_count.emplace(id, 0u);
             } else {
                 mat_type_count.at(id)++;
             }
 
             sf_desc.material().set_index(mat_type_count.at(id));
-            sf_idx++;
         }
 
-        // Current sizes of the material stores
+        // Current sizes of the material stores to get global index offsets
         std::map<std::size_t, dindex> size_map;
         det._materials.template apply<detail::material_coll_size>(
             size_map, std::make_index_sequence<materials_t::n_types>{});
 
         // Update the counts with the detector offset
-        sf_idx = 0u;
-        for (auto& sf_desc : this->surfaces()) {
+        for (dindex sf_idx = 0u; sf_idx < n_surfaces; ++sf_idx) {
             if (!surface_has_map(sf_idx)) {
-                sf_idx++;
                 continue;
             }
+            auto& sf_desc = this->surfaces().at(sf_idx);
+
             auto coll_idx{static_cast<std::size_t>(sf_desc.material().id())};
             sf_desc.material() += size_map.at(coll_idx);
-            sf_idx++;
         }
     }
 
@@ -218,19 +217,20 @@ struct material_coll_size {
 template <typename materials_t>
 struct add_sf_material_map {
 
-    template <typename coll_t, typename index_t, typename mat_factory_t,
-              typename bin_data_t, std::size_t DIM, typename material_store_t,
-              concepts::scalar scalar_t>
+    template <typename mask_coll_t, typename index_range_t,
+              typename mat_factory_t, typename bin_data_t, std::size_t DIM,
+              typename material_store_t, concepts::scalar scalar_t>
     DETRAY_HOST inline std::pair<typename materials_t::id, dindex> operator()(
-        [[maybe_unused]] const coll_t& coll,
-        [[maybe_unused]] const index_t& index,
+        [[maybe_unused]] const mask_coll_t& mask_coll,
+        [[maybe_unused]] const index_range_t& index,
         [[maybe_unused]] const mat_factory_t& mat_factory,
         [[maybe_unused]] std::vector<bin_data_t>& bin_data,
         [[maybe_unused]] const darray<std::size_t, DIM>& n_bins,
         [[maybe_unused]] const darray<std::vector<scalar_t>, DIM>& axis_spans,
         [[maybe_unused]] material_store_t& mat_store) const {
 
-        using mask_shape_t = typename coll_t::value_type::shape;
+        using mask_t = typename mask_coll_t::value_type;
+        using mask_shape_t = typename mask_t::shape;
 
         constexpr bool is_line{
             std::is_same_v<mask_shape_t, detray::line_square> ||
@@ -238,8 +238,30 @@ struct add_sf_material_map {
 
         // No material maps for line surfaces
         if constexpr (!is_line && mask_shape_t::dim == DIM) {
-            // Map a grid onto the surface mask
-            const auto& sf_mask = coll[index];
+            // Map a grid onto the surface mask (the boundaries are taken from
+            // the @c axis_spans variable, if it is not empty)
+            mask_t sf_mask = {};
+            if constexpr (concepts::interval<index_range_t>) {
+                using index_t = typename index_range_t::index_type;
+
+                // Find the true surface extent over all masks
+                sf_mask = mask_coll.at(index.lower());
+
+                if (index.size() > 1u) {
+                    const index_range_t other_masks{
+                        index.lower() + 1u,
+                        static_cast<index_t>(index.size() - 1u)};
+
+                    // Merge sub-masks
+                    for (const auto& sub_mask :
+                         detray::ranges::subrange(mask_coll, other_masks)) {
+                        sf_mask = sf_mask + sub_mask;
+                    }
+                }
+            } else {
+                sf_mask = mask_coll.at(index);
+            }
+
             auto mat_grid =
                 mat_factory.new_grid(sf_mask, n_bins, {}, {}, axis_spans);
 

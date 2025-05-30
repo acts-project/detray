@@ -6,7 +6,7 @@
 
 Detray is part of the [ACTS project](https://github.com/acts-project/acts) (R&D line for parallelization).
 
-This is a modern, C++20 header-only library providing a GPU-friendly tracking detector description using different [linear algebra](https://github.com/acts-project/algebra-plugins) libraries. It follows the navigation and propagation concept of ACTS, implementing a geometry using a flat memory layout and no abstract interfaces (virtual functions). A detray detector can therefore be constructed on the host and copied to an accelerator device in a straight-forward way.
+This is a modern, C++20 header-only library providing a GPU-friendly tracking detector description using different [linear algebra](https://github.com/acts-project/algebra-plugins) libraries. It follows the navigation and propagation concept of ACTS, but implementing a geometry using a flat memory layout and no abstract interfaces (virtual functions). A detray detector can therefore be constructed on the host and copied to an accelerator device in a straight-forward way.
 
 With the geometry description comes a fully featured, GPU-ready track state propagation implementation in inhomogeneous magnetic fields (vector field description using [covfie](https://github.com/acts-project/covfie)), with track parameter covariance transport including material interactions.
 
@@ -104,7 +104,7 @@ The tool can also display single volumes or surfaces, as well as the navigation 
 
 In order to validate that the navigation works correctly in a given detector geometry, run the detector validation tool. It will first perform a consistency check on the detector, followed by a "ray scan" of the detector. The scan result will be compared to a full straight-line navigation run for every ray. After that, the navigation in a constant magnetic field of 2T is being tested in a similar fashion, using parameterized helix trajectories and a Newton-Raphson/Bisection algorithm to generate the truth intersections. For example:
 ```shell
-detray-build/bin/detray_detector_validation \
+detray-build/bin/detray_navigation_validation \
     --geometry_file ./toy_detector/toy_detector_geometry.json \
     --grid_file ./toy_detector/toy_detector_surface_grids.json \
     --search_window 3 3 --n_tracks 100 --pT_range 0.5 100

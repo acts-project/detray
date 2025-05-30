@@ -73,11 +73,15 @@ struct surface_checker {
         }
 
         // Does the mask link to an existing volume?
-        if (!detail::is_invalid_value(sf.volume_link()) &&
-            (sf.volume_link() >= det.volumes().size())) {
-            err_stream << "ERROR: Incorrect volume link to non-existent volume "
-                       << sf.volume_link();
-            throw std::invalid_argument(err_stream.str());
+        const auto vol_links = sf.volume_links();
+        for (const auto vol_link : vol_links) {
+            if (!detail::is_invalid_value(vol_link) &&
+                (vol_link >= det.volumes().size())) {
+                err_stream
+                    << "ERROR: Incorrect volume link to non-existent volume "
+                    << vol_link;
+                throw std::invalid_argument(err_stream.str());
+            }
         }
 
         // A passive surface should have material, if the detector was
