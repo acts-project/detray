@@ -87,7 +87,7 @@ struct material_map_config {
         dindex map_id{dindex_invalid};
         /// Number of bins for material maps
         darray<std::size_t, 2> n_bins{20u, 20u};
-        /// Along which of the two axes to scale the material
+        /// Along which of the two axes to scale the material thickness
         std::size_t axis_index{0u};
         /// Material to be filled into the maps
         material<scalar_t> mapped_material{silicon_tml<scalar_t>()};
@@ -172,14 +172,12 @@ class material_map_generator final : public factory_decorator<detector_t> {
                     typename detector_t::transform_container &transforms,
                     typename detector_t::mask_container &masks,
                     typename detector_t::geometry_context ctx = {})
-        -> dindex_range override {
+        -> dvector<dindex> override {
 
-        auto [lower, upper] =
+        m_surface_indices =
             (*this->get_factory())(volume, surfaces, transforms, masks, ctx);
 
-        m_surface_range = {lower, upper};
-
-        return {lower, upper};
+        return m_surface_indices;
     }
 
     /// Create material maps for all surfaces that the undelying surface
@@ -205,12 +203,12 @@ class material_map_generator final : public factory_decorator<detector_t> {
         using mask_id = typename detector_t::masks::id;
         using material_id = typename detector_t::materials::id;
 
-        assert(surfaces.size() >= (m_surface_range[1] - m_surface_range[0]));
+        // Make sure enough surfaces are present after surface factory ran
+        assert(surfaces.size() >= m_surface_indices.size());
 
         // Add the material only to those surfaces that the data links against
-        for (const auto &[i, sf] : detray::views::enumerate(
-                 detray::ranges::subrange(surfaces, m_surface_range))) {
-            const auto sf_idx{m_surface_range[0] + i};
+        for (dindex sf_idx : m_surface_indices) {
+            auto &sf = surfaces.at(sf_idx);
 
             // Skip line surfaces, if any are defined
             if constexpr (detector_t::materials::template is_defined<
@@ -231,12 +229,12 @@ class material_map_generator final : public factory_decorator<detector_t> {
 
             // Copy the number of bins to the builder
             assert(map_cfg.n_bins.size() == N);
-            n_bins[sf_idx] = {};
+            n_bins.emplace(sf_idx, darray<std::size_t, N>{});
             std::ranges::copy_n(map_cfg.n_bins.begin(), N,
                                 n_bins.at(sf_idx).begin());
 
             // Scale material thickness either over e.g. r- or z-bins
-            const std::size_t bins = map_cfg.n_bins[map_cfg.axis_index];
+            const std::size_t bins = map_cfg.n_bins.at(map_cfg.axis_index);
 
             using sf_kernels =
                 detail::surface_kernels<typename detector_t::algebra_type>;
@@ -257,11 +255,12 @@ class material_map_generator final : public factory_decorator<detector_t> {
 
                     bin_data_t data{
                         axis::multi_bin<N>{bin0, bin1},
-                        material[(map_cfg.axis_index == 0u) ? bin0 : bin1]};
+                        material.at((map_cfg.axis_index == 0u) ? bin0 : bin1)};
 
                     auto search = material_map.find(sf_idx);
                     if (search == material_map.end()) {
-                        material_map[sf_idx] = std::vector<bin_data_t>{data};
+                        material_map.emplace(sf_idx,
+                                             std::vector<bin_data_t>{data});
                     } else {
                         search->second.push_back(data);
                     }
@@ -270,8 +269,8 @@ class material_map_generator final : public factory_decorator<detector_t> {
 
             // Set the initial surface material link (will be updated when
             // added to the detector)
-            surfaces[sf_idx].material() = link_t{
-                static_cast<material_id>(map_cfg.map_id), dindex_invalid};
+            sf.material() = link_t{static_cast<material_id>(map_cfg.map_id),
+                                   dindex_invalid};
         }
     }
 
@@ -279,7 +278,7 @@ class material_map_generator final : public factory_decorator<detector_t> {
     /// Material generator configuration
     material_map_config<scalar_t> m_cfg;
     /// Range of surface indices for which to generate material
-    dindex_range m_surface_range{};
+    dvector<dindex> m_surface_indices{};
 };
 
 }  // namespace detray

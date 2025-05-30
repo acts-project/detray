@@ -121,13 +121,10 @@ class homogeneous_material_writer {
                         : material_slab_payload{};
                 mslp.type == material_type::slab) {
                 mslp.index_in_coll = slab_idx++;
-                mv_data.mat_slabs.push_back(mslp);
+                mv_data.surface_mat.push_back(mslp);
             } else if (mslp.type == material_type::rod) {
-                if (!mv_data.mat_rods.has_value()) {
-                    mv_data.mat_rods.emplace();
-                }
                 mslp.index_in_coll = rod_idx++;
-                mv_data.mat_rods->push_back(mslp);
+                mv_data.surface_mat.push_back(mslp);
             } else { /* material maps are handled by another writer */
             }
             ++sf_idx;
@@ -138,8 +135,8 @@ class homogeneous_material_writer {
 
     /// Convert surface material @param mat into its io payload
     template <class scalar_t>
-    static material_payload to_payload(const material<scalar_t>& mat) {
-        material_payload mat_data;
+    static material_param_payload to_payload(const material<scalar_t>& mat) {
+        material_param_payload mat_data;
 
         mat_data.params = {mat.X0(),
                            mat.L0(),

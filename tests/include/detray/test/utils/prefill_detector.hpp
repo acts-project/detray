@@ -58,7 +58,8 @@ void prefill_detector(detector_t& d,
                                   vol_link, std::vector<scalar_t>{-3.f, 3.f}});
     rectangle_factory->add_material(
         material_id::e_slab,
-        {3.f * unit<scalar_t>::mm, detray::gold<scalar_t>()});
+        {0u, 3.f * unit<scalar_t>::mm, detray::gold<scalar_t>()});
+
     // Surface 1
     auto annulus_factory =
         std::make_shared<homogeneous_material_factory<detector_t>>(
@@ -69,7 +70,7 @@ void prefill_detector(detector_t& d,
          vol_link, std::vector<scalar_t>{1.f, 2.f, 3.f, 4.f, 5.f, 6.f, 7.f}});
     annulus_factory->add_material(
         material_id::e_slab,
-        {12.f * unit<scalar_t>::mm, detray::tungsten<scalar_t>()});
+        {1u, 12.f * unit<scalar_t>::mm, detray::tungsten<scalar_t>()});
 
     // Surface 2
     auto trapezoid_factory =
@@ -81,7 +82,7 @@ void prefill_detector(detector_t& d,
          vol_link, std::vector<scalar_t>{1.f, 2.f, 3.f, 1.f / 6.f}});
     trapezoid_factory->add_material(
         material_id::e_rod,
-        {4.f * unit<scalar_t>::mm, detray::aluminium<scalar_t>()});
+        {2u, 4.f * unit<scalar_t>::mm, detray::aluminium<scalar_t>()});
 
     // Build the volume with three surfaces and homogenenous material
     v_mat_builder.add_surfaces(rectangle_factory, ctx);

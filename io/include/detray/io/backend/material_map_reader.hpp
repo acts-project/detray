@@ -117,7 +117,7 @@ class material_map_reader {
                     }
                     loc_bins.push_back(std::move(mbin));
 
-                    // For now assume surfaces ids as the only grid input
+                    // Add the material slab per bin
                     for (const auto &slab_data : bin_data.content) {
                         mat_data.append(
                             material_reader_t::template from_payload<scalar_t>(

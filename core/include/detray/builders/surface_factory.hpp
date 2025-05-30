@@ -149,10 +149,13 @@ class surface_factory : public surface_factory_interface<detector_t> {
                     [[maybe_unused]] typename detector_t::mask_container &masks,
                     [[maybe_unused]]
                     typename detector_t::geometry_context ctx = {})
-        -> dindex_range override {
+        -> dvector<dindex> override {
 
         // In case the surfaces container is prefilled with other surfaces
         const auto surfaces_offset{static_cast<dindex>(surfaces.size())};
+        // Save the indices of the generated surfaces for decorating factories
+        dvector<dindex> surface_indices{};
+        surface_indices.reserve(this->size());
 
         // Nothing to construct
         if (size() == 0u) {
@@ -186,8 +189,8 @@ class surface_factory : public surface_factory_interface<detector_t> {
                                         ? dindex_invalid
                                         : m_indices[idx]};
 
-                // Add transform
-                const dindex trf_idx = this->insert_in_container(
+                // Add transform (same ordering as surfaces)
+                const dindex trf_idx = this->insert_into_container(
                     transforms, m_transforms[idx], sf_idx, ctx);
 
                 // Masks are simply appended, since they are distributed onto
@@ -211,16 +214,19 @@ class surface_factory : public surface_factory_interface<detector_t> {
                 material_link_t material_link{no_material, dindex_invalid};
 
                 // Add the surface descriptor at the position given by 'sf_idx'
-                this->insert_in_container(
+                const dindex final_idx = this->insert_into_container(
                     surfaces,
                     {surface_t{trf_idx, mask_link, material_link,
                                volume.index(), m_types[idx]},
                      m_sources[idx]},
                     sf_idx);
+
+                surface_indices.push_back(final_idx);
             }
         }
+        assert(!surface_indices.empty());
 
-        return {surfaces_offset, static_cast<dindex>(surfaces.size())};
+        return surface_indices;
     }
 
     private:

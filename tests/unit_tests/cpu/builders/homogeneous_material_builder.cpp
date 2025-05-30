@@ -65,36 +65,44 @@ TEST(detray_builders, homogeneous_material_factory) {
     EXPECT_TRUE(mat_factory->materials().empty());
     EXPECT_TRUE(mat_factory->thickness().empty());
 
-    // Add material for a few rectangle surfaces
+    // Add some rectangle surfaces
     mat_factory->push_back({surface_id::e_sensitive,
                             transform3(point3{0.f, 0.f, -1.f}), 1u,
                             std::vector<scalar>{10.f, 8.f}});
-    mat_factory->add_material(material_id::e_slab,
-                              {1.f * unit<scalar>::mm, silicon<scalar>()});
     mat_factory->push_back({surface_id::e_sensitive,
                             transform3(point3{0.f, 0.f, 1.f}), 1u,
                             std::vector<scalar>{20.f, 16.f}});
+    mat_factory->push_back({surface_id::e_sensitive,
+                            transform3(point3{0.f, 0.f, 10.f}), 1u,
+                            std::vector<scalar>{20.f, 16.f}});
+    mat_factory->push_back({surface_id::e_passive,
+                            transform3(point3{0.f, 0.f, 20.f}), 1u,
+                            std::vector<scalar>{20.f, 16.f}});
+    mat_factory->push_back({surface_id::e_sensitive,
+                            transform3(point3{0.f, 0.f, 50.f}), 1u,
+                            std::vector<scalar>{20.f, 16.f}});
+
+    // Add material for a few rectangle surfaces
     mat_factory->add_material(material_id::e_slab,
-                              {10.f * unit<scalar>::mm, tungsten<scalar>()});
+                              {0u, 1.f * unit<scalar>::mm, silicon<scalar>()});
+    mat_factory->add_material(
+        material_id::e_slab, {3u, 10.f * unit<scalar>::mm, tungsten<scalar>()});
     // Pass the parameters for 'gold'
-    mat_factory->push_back({surface_id::e_sensitive,
-                            transform3(point3{0.f, 0.f, 1.f}), 1u,
-                            std::vector<scalar>{20.f, 16.f}});
     mat_factory->add_material(
         material_id::e_rod,
-        {0.1f * unit<scalar>::mm,
+        {4u, 0.1f * unit<scalar>::mm,
          std::vector<scalar>{
              3.344f * unit<scalar>::mm, 101.6f * unit<scalar>::mm, 196.97f, 79,
              19.32f * unit<scalar>::g / (1.f * unit<scalar>::cm3)},
          material_state::e_solid});
 
-    EXPECT_EQ(mat_factory->size(), 3u);
+    EXPECT_EQ(mat_factory->size(), 5u);
 
     // Test the material data
-    EXPECT_NEAR(mat_factory->thickness()[0], 1.f * unit<scalar>::mm, tol);
-    EXPECT_NEAR(mat_factory->thickness()[1], 10.f * unit<scalar>::mm, tol);
-    EXPECT_NEAR(mat_factory->thickness()[2], 0.1f * unit<scalar>::mm, tol);
-    EXPECT_EQ(mat_factory->materials()[0], silicon<scalar>());
-    EXPECT_EQ(mat_factory->materials()[1], tungsten<scalar>());
-    EXPECT_EQ(mat_factory->materials()[2], gold<scalar>());
+    EXPECT_NEAR(mat_factory->thickness().at(0), 1.f * unit<scalar>::mm, tol);
+    EXPECT_NEAR(mat_factory->thickness().at(3), 10.f * unit<scalar>::mm, tol);
+    EXPECT_NEAR(mat_factory->thickness().at(4), 0.1f * unit<scalar>::mm, tol);
+    EXPECT_EQ(mat_factory->materials().at(0), silicon<scalar>());
+    EXPECT_EQ(mat_factory->materials().at(3), tungsten<scalar>());
+    EXPECT_EQ(mat_factory->materials().at(4), gold<scalar>());
 }

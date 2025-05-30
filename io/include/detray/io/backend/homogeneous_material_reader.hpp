@@ -74,32 +74,24 @@ class homogeneous_material_reader {
             auto mat_factory =
                 std::make_shared<homogeneous_material_factory<detector_t>>();
 
-            for (const auto& slab_data : mv_data.mat_slabs) {
-                assert(slab_data.type == io::material_id::slab);
+            for (const auto& mat_data : mv_data.surface_mat) {
+                // Determine the material type id
+                auto mat_type{mat_id::e_slab};
+                if constexpr (detray::concepts::has_material_rods<detector_t>) {
+                    mat_type = mat_data.type == io::material_id::slab
+                                   ? mat_id::e_slab
+                                   : mat_id::e_rod;
+                } else {
+                    assert(mat_data.type == io::material_id::slab);
+                }
 
-                const auto sf_link{
-                    slab_data.index_in_coll.has_value()
-                        ? slab_data.index_in_coll.value()
+                const auto mat_idx{
+                    mat_data.index_in_coll.has_value()
+                        ? mat_data.index_in_coll.value()
                         : detray::detail::invalid_value<std::size_t>()};
 
                 mat_factory->add_material(
-                    mat_id::e_slab, from_payload<scalar_t>(slab_data), sf_link);
-            }
-            if constexpr (detray::concepts::has_material_rods<detector_t>) {
-                if (mv_data.mat_rods.has_value()) {
-                    for (const auto& rod_data : *(mv_data.mat_rods)) {
-                        assert(rod_data.type == io::material_id::rod);
-
-                        const auto sf_link{
-                            rod_data.index_in_coll.has_value()
-                                ? rod_data.index_in_coll.value()
-                                : detray::detail::invalid_value<std::size_t>()};
-
-                        mat_factory->add_material(
-                            mat_id::e_rod, from_payload<scalar_t>(rod_data),
-                            sf_link);
-                    }
-                }
+                    mat_type, from_payload<scalar_t>(mat_data), mat_idx);
             }
 
             // Add the material to the volume
@@ -113,14 +105,14 @@ class homogeneous_material_reader {
     static material_data<scalar_t> from_payload(
         const material_slab_payload& slab_data) {
 
-        return {static_cast<scalar_t>(slab_data.thickness),
-                from_payload<scalar_t>(slab_data.mat),
-                detail::basic_converter::from_payload(slab_data.surface)};
+        return {detail::basic_converter::from_payload(slab_data.surface),
+                static_cast<scalar_t>(slab_data.thickness),
+                from_payload<scalar_t>(slab_data.mat)};
     }
 
     /// @returns the material from its IO payload @param mat_data
     template <detray::concepts::scalar scalar_t>
-    static auto from_payload(const material_payload& mat_data) {
+    static auto from_payload(const material_param_payload& mat_data) {
 
         return material<scalar_t>{
             static_cast<scalar_t>(mat_data.params[0]),
@@ -128,7 +120,7 @@ class homogeneous_material_reader {
             static_cast<scalar_t>(mat_data.params[2]),
             static_cast<scalar_t>(mat_data.params[3]),
             static_cast<scalar_t>(mat_data.params[4]),
-            // The molar density is calculated on the fly
+            // The molar density (params[5]) is calculated on the fly
             static_cast<material_state>(mat_data.params[6])};
     }
 };

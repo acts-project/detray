@@ -104,14 +104,12 @@ class homogeneous_material_generator final
                     typename detector_t::transform_container &transforms,
                     typename detector_t::mask_container &masks,
                     typename detector_t::geometry_context ctx = {})
-        -> dindex_range override {
+        -> dvector<dindex> override {
 
-        auto [lower, upper] =
+        m_surface_indices =
             (*this->get_factory())(volume, surfaces, transforms, masks, ctx);
 
-        m_surface_range = {lower, upper};
-
-        return {lower, upper};
+        return m_surface_indices;
     }
 
     /// Create material slabs or rods for all surfaces that the undelying
@@ -128,10 +126,12 @@ class homogeneous_material_generator final
         using material_id = typename detector_t::materials::id;
         using link_t = typename detector_t::surface_type::material_link;
 
-        assert(surfaces.size() >= (m_surface_range[1] - m_surface_range[0]));
+        // Make sure enough surfaces are present after surface factory ran
+        assert(surfaces.size() >= m_surface_indices.size());
 
         // Add the material to the surfaces that the data links against
-        for (auto &sf : detray::ranges::subrange(surfaces, m_surface_range)) {
+        for (dindex sf_idx : m_surface_indices) {
+            auto &sf = surfaces.at(sf_idx);
 
             const material<scalar_t> *mat_ptr{nullptr};
 
@@ -216,7 +216,7 @@ class homogeneous_material_generator final
     /// Material generator configuration
     hom_material_config<scalar_t> m_cfg;
     /// Range of surface indices for which to generate material
-    dindex_range m_surface_range{};
+    dvector<dindex> m_surface_indices{};
 };
 
 }  // namespace detray
