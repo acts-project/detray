@@ -83,9 +83,15 @@ GTEST_TEST(detray_simulation, detector_scanner) {
         EXPECT_EQ(expected[n_tracks].size(), intersection_trace.size())
             << test_helix;
 
+        // Feedback if not the same number of intersections was found
+        const std::size_t n_ray_inters{expected[n_tracks].size()};
+        const std::size_t n_helix_inters{intersection_trace.size()};
+        EXPECT_EQ(n_ray_inters, n_helix_inters)
+            << "Ray scan: " << n_ray_inters
+            << ", helix scan: " << n_helix_inters << std::endl;
+
         // Check every single recorded intersection
-        for (std::size_t i = 0u;
-             i < std::min(expected[n_tracks].size(), intersection_trace.size());
+        for (std::size_t i = 0u; i < std::min(n_ray_inters, n_helix_inters);
              ++i) {
             if (expected[n_tracks][i].vol_idx !=
                 intersection_trace[i].vol_idx) {

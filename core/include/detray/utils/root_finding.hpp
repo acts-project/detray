@@ -200,8 +200,9 @@ DETRAY_HOST_DEVICE inline std::pair<scalar_t, scalar_t> newton_raphson_safe(
         } else {
             // No intersection can be found if dividing by zero
             if (!is_bracketed && math::fabs(df_s) == 0.f) {
-                std::cout << "WARNING: Encountered invalid derivative "
-                          << std::endl;
+                std::cout
+                    << "WARNING: Encountered invalid derivative - skipping"
+                    << std::endl;
 
                 return std::make_pair(inv, inv);
             }
@@ -222,8 +223,9 @@ DETRAY_HOST_DEVICE inline std::pair<scalar_t, scalar_t> newton_raphson_safe(
             ((a < -max_path && b < -max_path) ||
              (a > max_path && b > max_path))) {
 #ifndef NDEBUG
-            std::cout << "WARNING: Root finding left the search space"
-                      << std::endl;
+            std::cout
+                << "WARNING: Root finding left the search space - skipping"
+                << std::endl;
 #endif
             return std::make_pair(inv, inv);
         }
@@ -243,7 +245,7 @@ DETRAY_HOST_DEVICE inline std::pair<scalar_t, scalar_t> newton_raphson_safe(
 #ifndef NDEBUG
                 std::cout << "WARNING: Helix intersector did not "
                              "converge after "
-                          << n_tries << " steps unbracketed search"
+                          << n_tries << " steps unbracketed search - skipping"
                           << std::endl;
 #endif
             }
