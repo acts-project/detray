@@ -314,6 +314,11 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
         propagation = propagation_cpy;
     }
 
+    std::cout << detray::navigation::print_state(navigation) << std::endl;
+    std::cout << detray::navigation::print_candidates(navigation, nav_cfg,
+                                                      traj.pos(), traj.dir())
+              << std::endl;
+
     // Leave for debugging
     // std::cout << navigation.inspector().to_string() << std::endl;
     ASSERT_TRUE(navigation.is_complete()) << navigation.inspector().to_string();
@@ -493,6 +498,11 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
         // Update the propagation state with current step (test assignment op)
         propagation = propagation_cpy;
     }
+
+    std::cout << detray::navigation::print_state(navigation) << std::endl;
+    std::cout << detray::navigation::print_candidates(navigation, nav_cfg,
+                                                      traj.pos(), traj.dir())
+              << std::endl;
 
     // Leave for debugging
     // std::cout << navigation.inspector().to_string() << std::endl;
