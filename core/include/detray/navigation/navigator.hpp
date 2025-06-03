@@ -27,21 +27,6 @@ namespace detray {
 
 namespace navigation {
 
-/// @enum NavigationDirection
-/// The navigation direction is always with
-/// respect to a given momentum or direction
-enum class direction : std::int_least8_t { e_backward = -1, e_forward = 1 };
-
-/// Navigation status flags
-enum class status : std::int_least8_t {
-    e_abort = -3,          ///< error ocurred, propagation will be aborted
-    e_on_target = -2,      ///< navigation exited successfully
-    e_unknown = -1,        ///< unknown state/not initialized
-    e_towards_object = 0,  ///< move towards next object
-    e_on_module = 1,       ///< reached module surface
-    e_on_portal = 2,       ///< reached portal surface
-};
-
 static constexpr std::size_t default_cache_size{10u};
 
 /// A void inpector that does nothing.
