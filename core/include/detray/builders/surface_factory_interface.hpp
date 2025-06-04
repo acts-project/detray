@@ -122,7 +122,7 @@ class surface_factory_interface {
         typename detector_t::surface_lookup_container &surfaces,
         typename detector_t::transform_container &transforms,
         typename detector_t::mask_container &masks,
-        typename detector_t::geometry_context ctx = {}) -> dindex_range = 0;
+        typename detector_t::geometry_context ctx = {}) -> dvector<dindex> = 0;
 
     protected:
     /// Insert a value in a container at a specific index
@@ -134,7 +134,7 @@ class surface_factory_interface {
     ///
     /// @returns the position where the value has been copied.
     template <typename container_t, typename... Args>
-    DETRAY_HOST dindex insert_in_container(
+    DETRAY_HOST dindex insert_into_container(
         container_t &cont, const typename container_t::value_type value,
         const dindex idx, Args &&... args) const {
         // If no valid position is given, perform push back
@@ -203,7 +203,7 @@ class factory_decorator : public surface_factory_interface<detector_t> {
                     typename detector_t::transform_container &transforms,
                     typename detector_t::mask_container &masks,
                     typename detector_t::geometry_context ctx = {})
-        -> dindex_range override {
+        -> dvector<dindex> override {
         return (*m_factory)(volume, surfaces, transforms, masks, ctx);
     }
     /// @}

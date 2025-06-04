@@ -182,7 +182,7 @@ class cylinder_portal_generator final
                     typename detector_t::transform_container &transforms,
                     typename detector_t::mask_container &masks,
                     typename detector_t::geometry_context ctx = {})
-        -> dindex_range override {
+        -> dvector<dindex> override {
 
         using aabb_t = axis_aligned_bounding_volume<cuboid3D, algebra_t>;
 

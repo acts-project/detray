@@ -87,10 +87,6 @@ inline void to_json(nlohmann::ordered_json& j,
         jbins.push_back(bin);
     }
     j["bins"] = jbins;
-
-    if (g.transform.has_value()) {
-        j["transform"] = g.transform.value();
-    }
 }
 
 template <typename content_t, typename grid_id_t>
@@ -109,11 +105,6 @@ inline void from_json(const nlohmann::ordered_json& j,
     for (auto jbin : jbins) {
         grid_bin_payload<content_t> b = jbin;
         g.bins.push_back(std::move(b));
-    }
-
-    if (j.find("transform") != j.end()) {
-        g.transform.emplace();
-        g.transform = j["transform"];
     }
 }
 

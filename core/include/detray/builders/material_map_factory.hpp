@@ -110,11 +110,13 @@ class material_map_factory final : public factory_decorator<detector_t> {
 
         auto [sf_index, mat, thickness] = std::move(mat_data).get_data();
 
-        m_links[sf_index] = std::make_pair(id, std::move(indices));
-        m_n_bins[sf_index] = std::move(n_bins);
-        m_axis_spans[sf_index] = std::move(axis_spans);
-        m_materials[sf_index] = std::move(mat);
-        m_thickness[sf_index] = std::move(thickness);
+        assert(!detail::is_invalid_value(sf_index));
+
+        m_links.emplace(sf_index, std::make_pair(id, std::move(indices)));
+        m_n_bins.emplace(sf_index, std::move(n_bins));
+        m_axis_spans.emplace(sf_index, std::move(axis_spans));
+        m_materials.emplace(sf_index, std::move(mat));
+        m_thickness.emplace(sf_index, std::move(thickness));
     }
 
     /// Clear old data
@@ -163,12 +165,12 @@ class material_map_factory final : public factory_decorator<detector_t> {
 
             // Copy the number of bins to the builder
             assert(m_n_bins.at(sf_idx).size() == N);
-            n_bins[sf_idx] = {};
+            n_bins.emplace(sf_idx, darray<std::size_t, N>{});
             std::ranges::copy_n(m_n_bins.at(sf_idx).begin(), N,
                                 n_bins.at(sf_idx).begin());
 
             // Copy the axis spans to the builder (if present)
-            axis_spans[sf_idx] = darray<std::vector<scalar_type>, N>{};
+            axis_spans.at(sf_idx) = darray<std::vector<scalar_type>, N>{};
             for (std::size_t in = 0; in < N; ++in) {
                 if (m_axis_spans.at(sf_idx).size() > in) {
                     axis_spans.at(sf_idx).at(in) =
@@ -187,14 +189,14 @@ class material_map_factory final : public factory_decorator<detector_t> {
 
                 auto search = material_map.find(sf_idx);
                 if (search == material_map.end()) {
-                    material_map[sf_idx] = std::vector<bin_data_t>{data};
+                    material_map.emplace(sf_idx, std::vector<bin_data_t>{data});
                 } else {
                     search->second.push_back(data);
                 }
             }
 
             auto map_id{m_links.at(sf_idx).first};
-            surfaces[sf_idx].material() = link_t{map_id, dindex_invalid};
+            surfaces.at(sf_idx).material() = link_t{map_id, dindex_invalid};
         }
     }
 
