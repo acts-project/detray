@@ -125,3 +125,8 @@ if(DETRAY_VC_SOA_PLUGIN)
     # detray_add_soa_benchmark( eigen )
     # detray_add_soa_benchmark( vc_aos )
 endif()
+
+# Build the Fastor benchmark executable.
+if(DETRAY_FASTOR_PLUGIN)
+    detray_add_cpu_benchmark( fastor )
+endif()
