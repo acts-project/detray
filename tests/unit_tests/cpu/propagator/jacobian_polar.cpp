@@ -32,7 +32,8 @@ const scalar isclose{1e-5f};
 // This test polar2D coordinate
 GTEST_TEST(detray_propagator, jacobian_polar2D) {
 
-    using jac_engine = detail::jacobian_engine<polar2D<test_algebra>>;
+    using jac_engine = detail::jacobian_engine<test_algebra>;
+    using frame_type = polar2D<test_algebra>;
 
     // Preparation work
     const vector3 z = {0.f, 0.f, 1.f};
@@ -71,8 +72,8 @@ GTEST_TEST(detray_propagator, jacobian_polar2D) {
 
     // Test Jacobian transformation
     const bound_matrix<test_algebra> J =
-        jac_engine::free_to_bound_jacobian(trf, free_params) *
-        jac_engine::bound_to_free_jacobian(trf, rng, bound_vec);
+        jac_engine::free_to_bound_jacobian<frame_type>(trf, free_params) *
+        jac_engine::bound_to_free_jacobian<frame_type>(trf, rng, bound_vec);
 
     for (unsigned int i = 0u; i < 6u; i++) {
         for (unsigned int j = 0u; j < 6u; j++) {
