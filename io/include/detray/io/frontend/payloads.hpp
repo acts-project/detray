@@ -95,7 +95,7 @@ struct mask_payload {
 struct surface_payload {
     std::optional<std::size_t> index_in_coll;
     transform_payload transform{};
-    mask_payload mask{};
+    std::vector<mask_payload> masks{};
     std::optional<material_link_payload> material;
     std::uint64_t source{};
     // Write the surface barcode as an additional information

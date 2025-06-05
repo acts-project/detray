@@ -65,7 +65,11 @@ inline void to_json(nlohmann::ordered_json& j, const surface_payload& s) {
     j["type"] = static_cast<unsigned int>(s.type);
     j["source"] = s.source;
     j["transform"] = s.transform;
-    j["mask"] = s.mask;
+    nlohmann::ordered_json mjson;
+    for (const auto& m : s.masks) {
+        mjson.push_back(m);
+    }
+    j["masks"] = mjson;
     if (s.material.has_value()) {
         j["material"] = s.material.value();
     }
@@ -81,7 +85,19 @@ inline void from_json(const nlohmann::ordered_json& j, surface_payload& s) {
     s.type = static_cast<detray::surface_id>(j["type"]);
     s.source = j["source"];
     s.transform = j["transform"];
-    s.mask = j["mask"];
+    // Allow the reading of old files for a while (single mask field)
+    if (j.find("mask") != j.end()) {
+        mask_payload m = j["mask"];
+        s.masks.push_back(m);
+    } else if (j.find("masks") != j.end()) {
+        for (auto js : j["masks"]) {
+            mask_payload m = js;
+            s.masks.push_back(m);
+        }
+    } else {
+        throw std::invalid_argument(
+            "ERROR: Surface payload without mask (json)");
+    }
     if (j.find("material") != j.end()) {
         s.material = j["material"];
     }

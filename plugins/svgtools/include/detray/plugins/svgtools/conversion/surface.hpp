@@ -191,13 +191,24 @@ namespace {
 /// @brief A functor to set the proto surfaces type and bounds to be equivalent
 /// to the mask.
 struct surface_converter {
-    template <typename mask_group_t, typename index_t,
+    template <typename mask_group_t, concepts::index index_t,
               concepts::transform3D transform3_t>
     DETRAY_HOST inline auto operator()(const mask_group_t& mask_group,
                                        const index_t& index,
-                                       const transform3_t& transform) const {
-
+                                       const transform3_t& transform,
+                                       const std::size_t = 0u) const {
         return svgtools::conversion::surface(transform, mask_group[index]);
+    }
+
+    template <typename mask_group_t, concepts::interval idx_range_t,
+              concepts::transform3D transform3_t>
+    DETRAY_HOST inline auto operator()(const mask_group_t& mask_group,
+                                       const idx_range_t& idx_range,
+                                       const transform3_t& transform,
+                                       const std::size_t mask_idx) const {
+        assert(mask_idx < idx_range.size());
+        return svgtools::conversion::surface(
+            transform, mask_group[idx_range.lower() + mask_idx]);
     }
 };
 }  // namespace
@@ -220,24 +231,34 @@ auto surface(const typename detector_t::geometry_context& context,
                  styling::tableau_colorblind::surface_style_sensitive,
              bool hide_material = false) {
 
-    auto p_surface = d_surface.template visit_mask<surface_converter>(
-        d_surface.transform(context));
+    using point3_t = typename detector_t::point3_type;
+    using proto_surface_t = actsvg::proto::surface<std::vector<point3_t>>;
 
-    p_surface._name = "surface_" + std::to_string(d_surface.index());
+    std::vector<proto_surface_t> p_surfaces{};
+    p_surfaces.reserve(d_surface.n_masks());
 
-    using proto_surface_t = decltype(p_surface);
-    p_surface._sf_type = d_surface.is_sensitive()
-                             ? proto_surface_t::sf_type::e_sensitive
-                             : proto_surface_t::sf_type::e_passive;
+    for (std::size_t i = 0u; i < d_surface.n_masks(); ++i) {
+        auto p_surface = d_surface.template visit_mask<surface_converter>(
+            d_surface.transform(context), i);
 
-    svgtools::styling::apply_style(p_surface, style);
+        p_surface._name = "surface_" + std::to_string(d_surface.index()) +
+                          "_mask_" + std::to_string(i);
+        p_surface._sf_type = d_surface.is_sensitive()
+                                 ? proto_surface_t::sf_type::e_sensitive
+                                 : proto_surface_t::sf_type::e_passive;
 
+        svgtools::styling::apply_style(p_surface, style);
+
+        p_surfaces.push_back(p_surface);
+    }
+
+    // Add the surface material only once
     if (!hide_material && d_surface.has_material()) {
-        p_surface._material = svgtools::conversion::surface_material(
+        p_surfaces.at(0)._material = svgtools::conversion::surface_material(
             detector, d_surface, view, style._material_style);
     }
 
-    return p_surface;
+    return p_surfaces;
 }
 
 }  // namespace detray::svgtools::conversion

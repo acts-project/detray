@@ -13,12 +13,12 @@
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/indexing.hpp"
-#include "detray/geometry/detail/surface_descriptor.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes/concentric_cylinder2D.hpp"
 #include "detray/geometry/shapes/rectangle2D.hpp"
 #include "detray/geometry/shapes/ring2D.hpp"
 #include "detray/geometry/shapes/trapezoid2D.hpp"
+#include "detray/geometry/surface_descriptor.hpp"
 #include "detray/materials/material_map.hpp"
 #include "detray/materials/material_slab.hpp"
 #include "detray/navigation/accelerators/brute_force_finder.hpp"
@@ -121,7 +121,7 @@ struct toy_metadata {
 
     /// How to link to the entries in the data stores
     using transform_link = typename transform_store<>::link_type;
-    using mask_link = typename mask_store<>::single_link;
+    using mask_link = typename mask_store<>::range_link;
     using material_link = typename material_store<>::single_link;
     /// Surface type used for sensitives, passives and portals
     using surface_type =

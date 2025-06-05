@@ -53,7 +53,7 @@ using cylinder_axes = multi_axis<
 GTEST_TEST(detray_grid, serializer2D) {
 
     // Offsets into edges container and #bins for all axes
-    vecmem::vector<dindex_range> edge_ranges = {{0u, 6u}, {2u, 12u}};
+    vecmem::vector<dsized_index_range> edge_ranges = {{0u, 6u}, {2u, 12u}};
     // Not needed for serializer test
     vecmem::vector<scalar> bin_edges{};
 
@@ -85,7 +85,8 @@ GTEST_TEST(detray_grid, serializer2D) {
 GTEST_TEST(detray_grid, serializer3D) {
 
     // Offsets into edges container and #bins for all axes
-    vecmem::vector<dindex_range> edge_ranges = {{0u, 4u}, {2u, 2u}, {4u, 2u}};
+    vecmem::vector<dsized_index_range> edge_ranges = {
+        {0u, 4u}, {2u, 2u}, {4u, 2u}};
     // Not needed for serializer test
     vecmem::vector<scalar> bin_edges{};
 

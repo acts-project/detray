@@ -64,9 +64,9 @@ TEST(grids_cuda, grid3_replace_populator) {
     typename axes_t::edges_container_type bin_edges(&mng_mr);
 
     axis_data.reserve(3);
-    axis_data.insert(
-        axis_data.begin(),
-        {dindex_range{0u, 3u}, dindex_range{2u, 6u}, dindex_range{4u, 10u}});
+    axis_data.insert(axis_data.begin(),
+                     {dsized_index_range{0u, 3u}, dsized_index_range{2u, 6u},
+                      dsized_index_range{4u, 10u}});
     bin_edges.reserve(6);
     bin_edges.insert(bin_edges.begin(), {-1.f, 2.f, 0.f, 6.f, -5.f, 5.f});
 
@@ -131,7 +131,7 @@ TEST(grids_cuda, grid2_replace_populator_ci) {
 
     axis_data.reserve(2u);
     axis_data.insert(axis_data.end(),
-                     {dindex_range{0u, 4u}, dindex_range{5u, 2u}});
+                     {dsized_index_range{0u, 4u}, dsized_index_range{5u, 2u}});
     bin_edges.reserve(7u);
     bin_edges.insert(bin_edges.end(), {1.f, 3.f, 9.f, 27.f, 81.f, -2.f, 4.f});
 
@@ -192,7 +192,7 @@ TEST(grids_cuda, grid2_complete_populator) {
 
     axis_data.reserve(2u);
     axis_data.insert(axis_data.begin(),
-                     {dindex_range{0u, 3u}, dindex_range{2u, 7u}});
+                     {dsized_index_range{0u, 3u}, dsized_index_range{2u, 7u}});
     bin_edges.reserve(4);
     bin_edges.insert(bin_edges.begin(), {0.f, 3.f, -1.f, 6.f});
 
@@ -268,7 +268,7 @@ TEST(grids_cuda, grid2_attach_populator) {
 
     axis_data.reserve(2);
     axis_data.insert(axis_data.begin(),
-                     {dindex_range{0u, 2u}, dindex_range{2u, 65u}});
+                     {dsized_index_range{0u, 2u}, dsized_index_range{2u, 65u}});
     bin_edges.reserve(4);
     bin_edges.insert(bin_edges.begin(),
                      {0.f, 6.f, -constant<scalar>::pi, constant<scalar>::pi});
@@ -348,7 +348,7 @@ TEST(grids_cuda, grid2_dynamic_attach_populator) {
 
     axis_data.reserve(2);
     axis_data.insert(axis_data.begin(),
-                     {dindex_range{0u, 2u}, dindex_range{2u, 65u}});
+                     {dsized_index_range{0u, 2u}, dsized_index_range{2u, 65u}});
     bin_edges.reserve(4);
     bin_edges.insert(bin_edges.begin(),
                      {0.f, 6.f, -constant<scalar>::pi, constant<scalar>::pi});
@@ -464,9 +464,11 @@ TEST(grids_cuda, cylindrical3D_collection) {
     edge_ranges.reserve(9u);
     edge_ranges.insert(
         edge_ranges.begin(),
-        {dindex_range{0u, 2u}, dindex_range{2u, 4u}, dindex_range{4u, 6u},
-         dindex_range{6u, 1u}, dindex_range{8u, 3u}, dindex_range{10u, 8u},
-         dindex_range{12u, 5u}, dindex_range{14u, 5u}, dindex_range{16u, 5u}});
+        {dsized_index_range{0u, 2u}, dsized_index_range{2u, 4u},
+         dsized_index_range{4u, 6u}, dsized_index_range{6u, 1u},
+         dsized_index_range{8u, 3u}, dsized_index_range{10u, 8u},
+         dsized_index_range{12u, 5u}, dsized_index_range{14u, 5u},
+         dsized_index_range{16u, 5u}});
 
     // Bin edges for all axes (two boundaries for regular binned axes)
     bin_edges.reserve(18u);

@@ -34,9 +34,10 @@ namespace detray {
 template <typename detector_t>
 class surface_data {
     public:
+    using boundary_coll_type = std::vector<typename detector_t::scalar_type>;
     using navigation_link = typename detector_t::surface_type::navigation_link;
 
-    /// Parametrized constructor
+    /// Parametrized constructor - surface with only one mask
     ///
     /// @param type the surface type (portal|sensitive|passive)
     /// @param trf the surface placement transformation
@@ -47,8 +48,29 @@ class surface_data {
     DETRAY_HOST
     surface_data(
         const surface_id type, const typename detector_t::transform3_type &trf,
-        navigation_link volume_link,
-        const std::vector<typename detector_t::scalar_type> &mask_boundaries,
+        navigation_link volume_link, const boundary_coll_type &mask_boundaries,
+        const dindex idx = dindex_invalid,
+        const std::uint64_t source = detail::invalid_value<std::uint64_t>())
+        : m_type{type},
+          m_volume_link{std::vector{volume_link}},
+          m_index{idx},
+          m_source{source},
+          m_boundaries{std::vector{mask_boundaries}},
+          m_transform{trf} {}
+
+    /// Parametrized constructor
+    ///
+    /// @param type the surface type (portal|sensitive|passive)
+    /// @param trf the surface placement transformation
+    /// @param volume_link the volume link of each mask (used for navigation)
+    /// @param mask_boundaries define the extent of each mask of the surface
+    /// @param idx the index of the surface in the global detector lookup, needs
+    ///            to be passed only if a special ordering should be observed
+    DETRAY_HOST
+    surface_data(
+        const surface_id type, const typename detector_t::transform3_type &trf,
+        std::vector<navigation_link> volume_link,
+        const std::vector<boundary_coll_type> &mask_boundaries,
         const dindex idx = dindex_invalid,
         const std::uint64_t source = detail::invalid_value<std::uint64_t>())
         : m_type{type},
@@ -61,9 +83,8 @@ class surface_data {
     /// Access the contained data through structured binding
     DETRAY_HOST
     auto get_data()
-        -> std::tuple<surface_id &, navigation_link &, dindex &,
-                      std::uint64_t &,
-                      std::vector<typename detector_t::scalar_type> &,
+        -> std::tuple<surface_id &, std::vector<navigation_link> &, dindex &,
+                      std::uint64_t &, std::vector<boundary_coll_type> &,
                       typename detector_t::transform3_type &> {
         return std::tie(m_type, m_volume_link, m_index, m_source, m_boundaries,
                         m_transform);
@@ -72,15 +93,15 @@ class surface_data {
     private:
     /// Surface type
     surface_id m_type;
-    /// The index of the volume that this surface links to
-    navigation_link m_volume_link;
+    /// The index of the volume that this surface links to (per mask)
+    std::vector<navigation_link> m_volume_link;
     /// The position of the surface in the detector containers, used to match
     /// the surface to e.g. its material
     dindex m_index;
     /// Source link (ACTS geoID)
     std::uint64_t m_source;
-    /// Vector of mask boundary values
-    std::vector<typename detector_t::scalar_type> m_boundaries;
+    /// Vector of mask boundary value collections
+    std::vector<boundary_coll_type> m_boundaries;
     /// The surface placement
     typename detector_t::transform3_type m_transform;
 };

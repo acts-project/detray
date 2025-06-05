@@ -59,11 +59,12 @@ class surface_descriptor {
     constexpr surface_descriptor(const transform_link trf, const mask_link mask,
                                  const material_link material,
                                  const dindex volume, const surface_id sf_id)
-        : m_mask(mask), m_material(material) {
-        m_barcode =
-            geometry::barcode{}.set_volume(volume).set_id(sf_id).set_transform(
-                trf);
-    }
+        : m_barcode{geometry::barcode{}
+                        .set_volume(volume)
+                        .set_id(sf_id)
+                        .set_transform(trf)},
+          m_mask(mask),
+          m_material(material) {}
 
     /// Equality operator
     ///
@@ -126,7 +127,7 @@ class surface_descriptor {
     ///
     /// @param offset update the position when move into new collection
     DETRAY_HOST
-    auto update_mask(dindex offset) -> void { m_mask += offset; }
+    auto update_mask(dindex offset) -> void { m_mask.shift(offset); }
 
     /// @return the mask link
     DETRAY_HOST_DEVICE
@@ -136,7 +137,7 @@ class surface_descriptor {
     ///
     /// @param offset update the position when move into new collection
     DETRAY_HOST
-    auto update_material(dindex offset) -> void { m_material += offset; }
+    auto update_material(dindex offset) -> void { m_material.shift(offset); }
 
     /// Access to the material
     DETRAY_HOST_DEVICE

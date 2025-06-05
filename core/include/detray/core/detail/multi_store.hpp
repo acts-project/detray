@@ -40,6 +40,12 @@ template <typename ID = std::size_t, typename context_t = empty_context,
           template <typename...> class tuple_t = dtuple, typename... Ts>
 class multi_store {
 
+    /// Index range type that can be used with a typed index
+    /// (i.e. leaves enough bits in the front unencoded for the type id)
+    using index_range_t =
+        detail::index_range<dindex, detail::sized_index_range,
+                            std::uint_least32_t, 0x0fffff00, 0x000000ff>;
+
     public:
     using size_type = typename detail::first_t<Ts...>::size_type;
     using context_type = context_t;
@@ -50,7 +56,7 @@ class multi_store {
     template <typename index_t>
     using link_type = dtyped_index<ID, index_t>;
     using single_link = link_type<dindex>;
-    using range_link = link_type<dindex_range>;
+    using range_link = link_type<index_range_t>;
     /// @}
 
     /// Allow matching between IDs and collection value types
@@ -352,8 +358,9 @@ class multi_store {
     ///
     /// @return the functor output
     template <typename functor_t, typename link_t, typename... Args>
-    DETRAY_HOST_DEVICE decltype(auto) visit(const link_t link,
-                                            Args &&... args) const {
+    requires(std::same_as<link_t, single_link> ||
+             std::same_as<link_t, range_link>) DETRAY_HOST_DEVICE decltype(auto)
+        visit(const link_t link, Args &&... args) const {
         return m_tuple_container.template visit<functor_t>(
             static_cast<std::size_t>(detail::get<0>(link)),
             detail::get<1>(link), std::forward<Args>(args)...);

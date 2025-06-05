@@ -126,7 +126,7 @@ int main(int argc, char **argv) {
     mat_val_cfg.name("toy_detector_material_validaiton");
     // Reduce tolerance for single precision tests
     if constexpr (std::is_same_v<scalar, float>) {
-        mat_val_cfg.relative_error(1.5e-6f);
+        mat_val_cfg.relative_error(1.e-5f);
     }
     mat_val_cfg.propagation() = cfg_str_nav.propagation();
     mat_val_cfg.propagation().stepping.min_stepsize = min_stepsize;

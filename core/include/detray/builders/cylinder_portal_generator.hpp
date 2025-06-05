@@ -117,20 +117,31 @@ class cylinder_portal_generator final
     using vector3_t = dvector3D<algebra_t>;
     using transform3_t = dtransform3D<algebra_t>;
 
+    using surface_type = typename detector_t::surface_type;
+    using mask_id = typename detector_t::masks::id;
+    using mask_link_t = typename surface_type::mask_link;
+    using material_id = typename detector_t::materials::id;
+    using material_link_t = typename surface_type::material_link;
+
     /// A functor to construct global bounding boxes around masks
     struct bounding_box_creator {
 
         using aabb_t = axis_aligned_bounding_volume<cuboid3D, algebra_t>;
 
-        template <typename mask_group_t, typename index_t>
+        template <typename mask_group_t, typename idx_range_t>
         DETRAY_HOST_DEVICE inline void operator()(
-            const mask_group_t &mask_group, const index_t &index,
+            const mask_group_t &mask_group, const idx_range_t &idx_range,
             const scalar_t envelope, const transform3_t &trf,
             std::vector<aabb_t> &boxes) const {
-            // Local minimum bounding box
-            aabb_t box{mask_group.at(index), boxes.size(), envelope};
-            // Bounding box in global coordinates (might no longer be minimum)
-            boxes.push_back(box.transform(trf));
+
+            for (const auto &mask :
+                 detray::ranges::subrange(mask_group, idx_range)) {
+                // Local minimum bounding box
+                aabb_t box{mask, boxes.size(), envelope};
+                // Bounding box in global coordinates (might no longer be
+                // minimum)
+                boxes.push_back(box.transform(trf));
+            }
         }
     };
 
@@ -283,12 +294,6 @@ class cylinder_portal_generator final
         dindex vol_link, const scalar_t r, const scalar_t lower_z,
         const scalar_t upper_z) const {
 
-        using surface_type = typename detector_t::surface_type;
-        using mask_id = typename detector_t::masks::id;
-        using mask_link_t = typename surface_type::mask_link;
-        using material_id = typename detector_t::materials::id;
-        using material_link_t = typename surface_type::material_link;
-
         constexpr auto invalid_src_link{detail::invalid_value<std::uint64_t>()};
 
         const scalar_t min_z{math::min(lower_z, upper_z)};
@@ -303,9 +308,11 @@ class cylinder_portal_generator final
             empty_context{}, vol_link, r, min_z, max_z);
 
         // Add surface links
-        mask_link_t mask_link{
-            mask_id::e_portal_cylinder2,
-            masks.template size<mask_id::e_portal_cylinder2>() - 1u};
+        mask_link_t mask_link{};
+        const auto mask_idx{static_cast<dindex>(
+            masks.template size<mask_id::e_portal_cylinder2>() - 1u)};
+        set_mask_link(mask_link, mask_id::e_portal_cylinder2, mask_idx);
+
         material_link_t material_link{material_id::e_none, dindex_invalid};
 
         surfaces.push_back(
@@ -323,12 +330,6 @@ class cylinder_portal_generator final
         dindex vol_link, const scalar_t inner_r, const scalar_t outer_r,
         const scalar_t z) const {
 
-        using surface_type = typename detector_t::surface_type;
-        using mask_id = typename detector_t::masks::id;
-        using mask_link_t = typename surface_type::mask_link;
-        using material_id = typename detector_t::materials::id;
-        using material_link_t = typename surface_type::material_link;
-
         constexpr auto invalid_src_link{detail::invalid_value<std::uint64_t>()};
 
         const scalar_t min_r{math::min(inner_r, outer_r)};
@@ -343,9 +344,11 @@ class cylinder_portal_generator final
             empty_context{}, vol_link, min_r, max_r);
 
         // Add surface links
-        mask_link_t mask_link{
-            mask_id::e_portal_ring2,
-            masks.template size<mask_id::e_portal_ring2>() - 1u};
+        mask_link_t mask_link{};
+        const auto mask_idx{static_cast<dindex>(
+            masks.template size<mask_id::e_portal_ring2>() - 1u)};
+        set_mask_link(mask_link, mask_id::e_portal_ring2, mask_idx);
+
         material_link_t material_link{material_id::e_none, dindex_invalid};
 
         surfaces.push_back(
@@ -368,6 +371,17 @@ class cylinder_portal_generator final
 
         return static_cast<scalar_t>(mean /
                                      static_cast<double>(surfaces.size()));
+    }
+
+    /// Set the mask link for a single portal, either range or single index
+    void set_mask_link(mask_link_t &mask_link, const mask_id id,
+                       const dindex lower_idx) const {
+        mask_link.set_id(id);
+        if constexpr (concepts::interval<typename mask_link_t::index_type>) {
+            mask_link.set_index({lower_idx, 1u});
+        } else {
+            mask_link.set_index(lower_idx);
+        }
     }
 
     /// Portal generator configuration

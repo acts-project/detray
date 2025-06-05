@@ -56,7 +56,7 @@ GTEST_TEST(detray_grid, open_regular_axis) {
     // the max and min bin are -3 and 7 => stepsize is (7 - (-3)) / 10 = 1
     // ... -3, -2, -1,  0,  1,  2,  3,  4,  5,  6,  7 ...
     //   [0] [1] [2] [3] [4] [5] [6] [7] [8] [9] [10] [11]
-    const dindex_range edge_range = {2u, 10u};
+    const dsized_index_range edge_range = {2u, 10u};
 
     // An open regular x-axis
     using x_axis_t = single_axis<open<label::e_x>, regular<scalar>>;
@@ -71,6 +71,7 @@ GTEST_TEST(detray_grid, open_regular_axis) {
 
     // N bins
     EXPECT_EQ(or_axis.nbins(), 10u + 2u);
+    EXPECT_EQ(or_axis.m_binning.nbins(), 10u);
     EXPECT_NEAR(or_axis.span()[0], -3.f, tol);
     EXPECT_NEAR(or_axis.span()[1], 7.f, tol);
     // Axis bin access
@@ -78,6 +79,9 @@ GTEST_TEST(detray_grid, open_regular_axis) {
     // which is (-inf, -3]
     EXPECT_EQ(or_axis.bin(-4.f), 0u);
     EXPECT_EQ(or_axis.bin(2.5f), 6u);
+    EXPECT_EQ(or_axis.bin(1.5f), 5u);
+    EXPECT_EQ(or_axis.bin(7.5f), 11u);
+    EXPECT_EQ(or_axis.bin(-3.5f), 0u);
     // Axis is open: Every value greater than 7 is mapped into bin 11:
     // which is [7, inf)
     EXPECT_EQ(or_axis.bin(8.f), 11u);
@@ -132,7 +136,7 @@ GTEST_TEST(detray_grid, closed_regular_axis) {
     // the max and min bin are -3 and 7 => stepsize is (7 - (-3)) / 10 = 1
     // -3, -2, -1,  0,  1,  2,  3,  4,  5,  6,  7
     //   [0] [1] [2] [3] [4] [5] [6] [7] [8] [9]
-    const dindex_range edge_range = {2u, 10u};
+    const dsized_index_range edge_range = {2u, 10u};
 
     // A closed regular r-axis
     using r_axis_t = single_axis<closed<label::e_r>, regular<scalar>>;
@@ -210,7 +214,7 @@ GTEST_TEST(detray_grid, circular_regular_axis) {
     vecmem::vector<scalar> bin_edges = {-10.f, phi_min, phi_max, 56.f};
     // Regular axis: first entry is the offset in the bin edges vector (1), the
     // second entry is the number of bins (36)
-    const dindex_range edge_range = {1u, 36u};
+    const dsized_index_range edge_range = {1u, 36u};
 
     // A closed regular x-axis
     using axis_t = single_axis<circular<>, regular<scalar>>;
@@ -291,7 +295,7 @@ GTEST_TEST(detray_grid, closed_irregular_axis) {
     vecmem::vector<scalar> bin_edges = {-100.f, -3.f, 1.f,  2.f, 4.f,
                                         8.f,    12.f, 15.f, 18.f};
     // Index offset and number of bins for the bin edges [-3, 15]
-    dindex_range edge_range = {1u, 6u};
+    dsized_index_range edge_range = {1u, 6u};
 
     // A closed irregular z-axis
     single_axis<closed<label::e_z>, irregular<scalar>> cir_axis(edge_range,
@@ -361,9 +365,9 @@ void test_axis(const axis_type& /*unused*/) {
     // 10 = 1
     // ... -3, -2, -1,  0,  1,  2,  3,  4,  5,  6,  7 ...
     //   [0] [1] [2] [3] [4] [5] [6] [7] [8] [9] [10] [11]
-    const dindex_range edge_range = {2u, 10u};
+    const dsized_index_range edge_range = {2u, 10u};
 
-    const dindex_range different_edge_range = {2u, 8u};
+    const dsized_index_range different_edge_range = {2u, 8u};
 
     axis_type t_axis{edge_range, &bin_edges};
 
@@ -411,7 +415,7 @@ GTEST_TEST(detray_grid, multi_axis) {
     // Lower bin edges for all axes
     vecmem::vector<scalar> bin_edges = {-10.f, 10.f, -20.f, 20.f, 0.f, 100.f};
     // Offsets into edges container and #bins for all axes
-    vecmem::vector<dindex_range> edge_ranges = {
+    vecmem::vector<dsized_index_range> edge_ranges = {
         {0u, 20u}, {2u, 40u}, {4u, 50u}};
 
     // Non-owning multi axis test
@@ -484,7 +488,7 @@ GTEST_TEST(detray_grid, multi_axis) {
     // Owning multi axis test
     vecmem::vector<scalar> bin_edges_cp(bin_edges);
     // Offsets into edges container and #bins for all axes
-    vecmem::vector<dindex_range> edge_ranges_cp(edge_ranges);
+    vecmem::vector<dsized_index_range> edge_ranges_cp(edge_ranges);
 
     cartesian_3D<is_owning, host_container_types> axes_own(
         std::move(edge_ranges_cp), std::move(bin_edges_cp));
@@ -523,11 +527,11 @@ GTEST_TEST(detray_grid, multi_axis_comparison) {
                                              20.f,  0.f,  100.f};
 
     // Offsets into edges container and #bins for all axes
-    vecmem::vector<dindex_range> edge_ranges = {
+    vecmem::vector<dsized_index_range> edge_ranges = {
         {0u, 20u}, {2u, 40u}, {4u, 50u}};
 
     // Offsets into edges container and #bins for all axes
-    vecmem::vector<dindex_range> diff_edge_ranges = {
+    vecmem::vector<dsized_index_range> diff_edge_ranges = {
         {0u, 20u}, {3u, 40u}, {4u, 50u}};
 
     // Non-owning multi axis test : reference
@@ -562,13 +566,13 @@ GTEST_TEST(detray_grid, multi_axis_comparison) {
     vecmem::vector<scalar> bin_same_o_edges = {-10.f, 10.f, -20.f,
                                                20.f,  0.f,  100.f};
 
-    vecmem::vector<dindex_range> edge_ref_o_ranges = {
+    vecmem::vector<dsized_index_range> edge_ref_o_ranges = {
         {0u, 20u}, {2u, 40u}, {4u, 50u}};
 
-    vecmem::vector<dindex_range> edge_diff_o_ranges = {
+    vecmem::vector<dsized_index_range> edge_diff_o_ranges = {
         {0u, 20u}, {2u, 39u}, {4u, 50u}};
 
-    vecmem::vector<dindex_range> edge_same_o_ranges = {
+    vecmem::vector<dsized_index_range> edge_same_o_ranges = {
         {0u, 20u}, {2u, 40u}, {4u, 50u}};
 
     vecmem::vector<scalar> bin_test_o_edges = {-10.f, 10.f, -20.f,
@@ -580,7 +584,7 @@ GTEST_TEST(detray_grid, multi_axis_comparison) {
     vecmem::vector<scalar> diff_test_o_edges = {-10.f, 11.f, -20.f,
                                                 20.f,  0.f,  100.f};
 
-    vecmem::vector<dindex_range> edge_test_o_ranges = {
+    vecmem::vector<dsized_index_range> edge_test_o_ranges = {
         {0u, 20u}, {2u, 40u}, {4u, 50u}};
 
     // Non-owning multi axis test : reference

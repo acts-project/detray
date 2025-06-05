@@ -220,7 +220,7 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
 
     // Now step onto the beampipe (idx 0)
     step_and_check(nav, stepper, propagation, nav_cfg, step_cfg, 0u, 1u, 0u,
-                   8u);
+                   3u);
     // New target: Distance to the beampipe volume cylinder portal
     ASSERT_NEAR(navigation(), 6.f, tol);
 
@@ -244,27 +244,27 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
     std::vector<std::pair<dindex, std::vector<dindex>>> sf_sequences;
 
     // gap 1
-    sf_sequences.emplace_back(8u, std::vector<dindex>{600u, 601u});
+    sf_sequences.emplace_back(8u, std::vector<dindex>{582u, 583u});
     // layer 1
     sf_sequences.emplace_back(
-        7u, std::vector<dindex>{596u, 493u, 477u, 494u, 478u, 597u});
+        7u, std::vector<dindex>{578u, 475u, 459u, 476u, 460u, 579u});
     // gap 2
-    sf_sequences.emplace_back(10u, std::vector<dindex>{1056u, 1057u});
+    sf_sequences.emplace_back(10u, std::vector<dindex>{1038u, 1039u});
     // layer 2
     sf_sequences.emplace_back(
-        9u, std::vector<dindex>{1052u, 847u, 815u, 848u, 816u, 1053u});
+        9u, std::vector<dindex>{1034u, 829u, 797u, 830u, 798u, 1035u});
     // gap 3
-    sf_sequences.emplace_back(12u, std::vector<dindex>{1792u, 1793u});
+    sf_sequences.emplace_back(12u, std::vector<dindex>{1774u, 1775u});
     // layer 3
     sf_sequences.emplace_back(11u,
-                              std::vector<dindex>{1788u, 1456u, 1404u, 1789u});
+                              std::vector<dindex>{1770u, 1438u, 1386u, 1771u});
     // gap 4
-    sf_sequences.emplace_back(14u, std::vector<dindex>{2892u, 2893u});
+    sf_sequences.emplace_back(14u, std::vector<dindex>{2874u, 2875u});
     // layer 4
     sf_sequences.emplace_back(13u,
-                              std::vector<dindex>{2888u, 2390u, 2312u, 2889u});
+                              std::vector<dindex>{2870u, 2372u, 2294u, 2871u});
     // gap 5
-    sf_sequences.emplace_back(last_vol_id, std::vector<dindex>{2896u, 2897u});
+    sf_sequences.emplace_back(last_vol_id, std::vector<dindex>{2878u, 2879u});
 
     // Every iteration steps through one barrel layer
     for (const auto &[vol_id, sf_seq] : sf_sequences) {

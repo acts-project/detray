@@ -73,7 +73,8 @@ struct material_converter {
 
         std::vector<std::vector<actsvg::proto::material_slab>> m_matrix;
 
-        if constexpr (concepts::grid<material_t>) {
+        if constexpr (concepts::surface_material<material_t> &&
+                      concepts::material_map<material_t>) {
 
             using loc_bin_idx_t = typename material_t::loc_bin_index;
             using algebra_t =
