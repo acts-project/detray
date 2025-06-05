@@ -83,8 +83,8 @@ struct material_converter {
             const auto material_map = mat_coll[index];
 
             // Create the bin associations
-            auto edges0 = material_map.template get_axis<0>().bin_edges();
-            auto edges1 = material_map.template get_axis<1>().bin_edges();
+            dindex edges0 = material_map.template get_axis<0>().nbins();
+            dindex edges1 = material_map.template get_axis<1>().nbins();
 
             // In the svg convention the phi axis has to be the second axis to
             // loop over
@@ -94,18 +94,20 @@ struct material_converter {
                 std::is_same_v<typename material_t::local_frame_type,
                                detray::concentric_cylindrical2D<algebra_t>>};
             if constexpr (is_cyl) {
-                edges0.swap(edges1);
+                dindex tmp = edges0;
+                edges0 = edges1;
+                edges1 = tmp;
             }
 
-            m_matrix.reserve(edges1.size());
+            m_matrix.reserve(edges1);
 
             // Material map is always 2-dimensional
-            for (dindex j = 0u; j < edges1.size(); ++j) {
+            for (dindex j = 0u; j < edges1; ++j) {
 
                 std::vector<actsvg::proto::material_slab> m_matrix_row;
-                m_matrix_row.reserve(edges1.size());
+                m_matrix_row.reserve(edges1);
 
-                for (dindex i = 0u; i < edges0.size(); ++i) {
+                for (dindex i = 0u; i < edges0; ++i) {
 
                     loc_bin_idx_t bin_idx{i, j};
                     if constexpr (is_cyl) {
