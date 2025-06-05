@@ -29,44 +29,29 @@ struct parameter_transporter : actor {
     using bound_matrix_t = bound_matrix<algebra_t>;
     // Matrix type for bound to free jacobian
     using bound_to_free_matrix_t = bound_to_free_matrix<algebra_t>;
+    // Matrix type for free to bound jacobian
+    using free_to_bound_matrix_t = free_to_bound_matrix<algebra_t>;
     /// @}
 
-    struct get_full_jacobian_kernel {
-
+    struct get_free_to_bound_jacobian_kernel {
         template <typename mask_group_t, typename index_t,
                   typename stepper_state_t>
-        DETRAY_HOST_DEVICE inline bound_matrix_t operator()(
+        DETRAY_HOST_DEVICE inline free_to_bound_matrix_t operator()(
             const mask_group_t& /*mask_group*/, const index_t& /*index*/,
             const transform3_type& trf3,
-            const bound_to_free_matrix_t& bound_to_free_jacobian,
-            const material<scalar_type>* vol_mat_ptr,
             const stepper_state_t& stepping) const {
-
             using frame_t = typename mask_group_t::value_type::shape::
                 template local_frame_type<algebra_t>;
 
-            using jacobian_engine_t = detail::jacobian_engine<frame_t>;
+            // Declare jacobian for bound to free coordinate transform
+            free_to_bound_matrix_t jac_to_local =
+                matrix::zero<free_to_bound_matrix_t>();
 
-            using free_matrix_t = free_matrix<algebra_t>;
-            using free_to_bound_matrix_t =
-                typename jacobian_engine_t::free_to_bound_matrix_type;
+            detail::jacobian_engine<algebra_t>::
+                template free_to_bound_jacobian_step_1<frame_t>(
+                    jac_to_local, trf3, stepping().pos(), stepping().dir());
 
-            // Free to bound jacobian at the destination surface
-            const free_to_bound_matrix_t free_to_bound_jacobian =
-                jacobian_engine_t::free_to_bound_jacobian(trf3, stepping());
-
-            // Path correction factor
-            const free_matrix_t path_correction =
-                jacobian_engine_t::path_correction(
-                    stepping().pos(), stepping().dir(), stepping.dtds(),
-                    stepping.dqopds(vol_mat_ptr), trf3);
-
-            const free_matrix_t correction_term =
-                matrix::identity<free_matrix_t>() + path_correction;
-
-            return free_to_bound_jacobian *
-                   (correction_term *
-                    (stepping.transport_jacobian() * bound_to_free_jacobian));
+            return jac_to_local;
         }
     };
 
@@ -143,9 +128,30 @@ struct parameter_transporter : actor {
                                      ? vol.material_parameters(stepping().pos())
                                      : nullptr;
 
-        return sf.template visit_mask<get_full_jacobian_kernel>(
-            sf.transform(gctx), bound_to_free_jacobian, vol_mat_ptr,
-            propagation._stepping);
+        auto free_to_bound_jacobian =
+            sf.template visit_mask<get_free_to_bound_jacobian_kernel>(
+                sf.transform(gctx), propagation._stepping);
+
+        detail::jacobian_engine<algebra_t>::free_to_bound_jacobian_step_2(
+            free_to_bound_jacobian, stepping().dir());
+
+        const auto path_to_free_derivative =
+            detail::jacobian_engine<algebra_t>::path_to_free_derivative(
+                stepping().dir(), stepping.dtds(),
+                stepping.dqopds(vol_mat_ptr));
+
+        const auto free_to_path_derivative = sf.free_to_path_derivative(
+            gctx, stepping().pos(), stepping().dir(), stepping.dtds());
+
+        const auto path_correction =
+            path_to_free_derivative * free_to_path_derivative;
+
+        const auto correction_term =
+            matrix::identity<free_matrix<algebra_t>>() + path_correction;
+
+        return free_to_bound_jacobian *
+               (correction_term *
+                (stepping.transport_jacobian() * bound_to_free_jacobian));
     }
 
 };  // namespace detray

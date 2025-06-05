@@ -100,6 +100,17 @@ class tracking_surface : public geometry::surface<detector_t> {
         return this->template visit_mask<typename kernels::path_correction>(
             this->transform(ctx), pos, dir, dtds, dqopds);
     }
+
+    /// @returns the free to path derivative
+    DETRAY_HOST_DEVICE
+    constexpr auto free_to_path_derivative(const context &ctx,
+                                           const vector3_type &pos,
+                                           const vector3_type &dir,
+                                           const vector3_type &dtds) const {
+        return this
+            ->template visit_mask<typename kernels::free_to_path_derivative>(
+                this->transform(ctx), pos, dir, dtds);
+    }
 };
 
 template <typename detector_t, typename descr_t>

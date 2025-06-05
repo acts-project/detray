@@ -36,7 +36,8 @@ const mask<line<>, test_algebra> ln{0u, r, hz};
 
 GTEST_TEST(detray_propagator, jacobian_line2D_case1) {
 
-    using jac_engine = detail::jacobian_engine<line2D<test_algebra>>;
+    using jac_engine = detail::jacobian_engine<test_algebra>;
+    using frame_type = line2D<test_algebra>;
 
     // Preparation work
     vector3 z = {1.f, 1.f, 1.f};
@@ -75,8 +76,8 @@ GTEST_TEST(detray_propagator, jacobian_line2D_case1) {
 
     // Test Jacobian transformation
     const bound_matrix<test_algebra> J =
-        jac_engine::free_to_bound_jacobian(trf, free_params) *
-        jac_engine::bound_to_free_jacobian(trf, ln, bound_vec);
+        jac_engine::free_to_bound_jacobian<frame_type>(trf, free_params) *
+        jac_engine::bound_to_free_jacobian<frame_type>(trf, ln, bound_vec);
 
     for (unsigned int i = 0u; i < 6u; i++) {
         for (unsigned int j = 0u; j < 6u; j++) {
@@ -91,7 +92,8 @@ GTEST_TEST(detray_propagator, jacobian_line2D_case1) {
 
 GTEST_TEST(detray_coordinates, jacobian_line2D_case2) {
 
-    using jac_engine = detail::jacobian_engine<line2D<test_algebra>>;
+    using jac_engine = detail::jacobian_engine<test_algebra>;
+    using frame_type = line2D<test_algebra>;
 
     // Preparation work
     vector3 z = {1.f, 2.f, 3.f};
@@ -118,8 +120,8 @@ GTEST_TEST(detray_coordinates, jacobian_line2D_case2) {
 
     // Test Jacobian transformation
     const bound_matrix<test_algebra> J =
-        jac_engine::free_to_bound_jacobian(trf, free_params) *
-        jac_engine::bound_to_free_jacobian(trf, ln, bound_vec);
+        jac_engine::free_to_bound_jacobian<frame_type>(trf, free_params) *
+        jac_engine::bound_to_free_jacobian<frame_type>(trf, ln, bound_vec);
 
     for (unsigned int i = 0u; i < 6u; i++) {
         for (unsigned int j = 0u; j < 6u; j++) {

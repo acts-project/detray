@@ -32,7 +32,8 @@ const scalar isclose{1e-5f};
 // This test cartesian2D coordinate
 GTEST_TEST(detray_propagator, jacobian_cartesian2D) {
 
-    using jac_engine = detail::jacobian_engine<cartesian2D<test_algebra>>;
+    using jac_engine = detail::jacobian_engine<test_algebra>;
+    using frame_type = cartesian2D<test_algebra>;
 
     // Preparation work
     const vector3 z = {0.f, 0.f, 1.f};
@@ -72,8 +73,8 @@ GTEST_TEST(detray_propagator, jacobian_cartesian2D) {
 
     // Test Jacobian transformation
     const bound_matrix<test_algebra> J =
-        jac_engine::free_to_bound_jacobian(trf, free_params) *
-        jac_engine::bound_to_free_jacobian(trf, rect, bound_vec);
+        jac_engine::free_to_bound_jacobian<frame_type>(trf, free_params) *
+        jac_engine::bound_to_free_jacobian<frame_type>(trf, rect, bound_vec);
 
     for (unsigned int i = 0u; i < 6u; i++) {
         for (unsigned int j = 0u; j < 6u; j++) {
