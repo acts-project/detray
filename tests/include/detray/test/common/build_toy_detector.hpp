@@ -89,13 +89,13 @@ struct toy_det_config {
         m_beampipe_map_cfg.mat_generator =
             detray::detail::generate_cyl_mat<scalar_t>;
 
-        m_disc_map_cfg.n_bins = {3u, 20u};
+        m_disc_map_cfg.n_bins = {5u, 20u};
         m_disc_map_cfg.axis_index = 0u;
         m_disc_map_cfg.mapped_material =
             mixture<scalar_t, silicon_tml<scalar_t, std::ratio<9, 10>>,
                     aluminium<scalar_t, std::ratio<1, 10>>>{};
         m_disc_map_cfg.thickness = 1.f * unit<scalar_t>::mm;
-        m_disc_map_cfg.scalor = 1e-6f;
+        m_disc_map_cfg.scalor = 1e-4f;
         m_disc_map_cfg.mat_generator =
             detray::detail::generate_disc_mat<scalar_t>;
 
