@@ -49,9 +49,9 @@ inline std::vector<material_slab<scalar_t>> generate_cyl_mat(
         z_upper = math::max(z_upper, bounds[cylinder2D::e_upper_z]);
     }
 
-    // Make sure the cylinder bounds are centered around zero
+    // Generate material steps (quadratic with distance to origin)
     const scalar_t length{math::fabs(z_upper - z_lower)};
-    scalar_t z{-0.5f * length};
+    scalar_t z{z_lower};
     const scalar_t z_step{length / static_cast<scalar_t>(nbins - 1u)};
     for (std::size_t n = 0u; n < nbins; ++n) {
         ts.emplace_back(mat, static_cast<scalar_t>(scalor * z * z) + t);

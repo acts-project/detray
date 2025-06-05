@@ -71,15 +71,15 @@ test_mat_map(const mat_map_t& mat_map, const bool is_cyl) {
                         mat_slab.get_material() == beryllium_tml<scalar_t>{});
         }
     } else {
-        EXPECT_EQ(mat_map.nbins(), 60u);
-        EXPECT_EQ(mat_map.size(), 60u);
+        EXPECT_EQ(mat_map.nbins(), 100u);
+        EXPECT_EQ(mat_map.size(), 100u);
 
         auto n_bins = mat_map.axes().nbins_per_axis();
-        EXPECT_EQ(n_bins[0], 3u);
+        EXPECT_EQ(n_bins[0], 5u);
         EXPECT_EQ(n_bins[1], 20u);
 
         auto r_axis = mat_map.template get_axis<axis::label::e_r>();
-        EXPECT_EQ(r_axis.nbins(), 3u);
+        EXPECT_EQ(r_axis.nbins(), 5u);
         auto z_axis = mat_map.template get_axis<axis::label::e_phi>();
         EXPECT_EQ(z_axis.nbins(), 20u);
 
