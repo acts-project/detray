@@ -79,33 +79,34 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, do_debug> {
 
         // Check if we divided by zero
         const auto check_sum = is.path.sum();
-        if (!std::isnan(check_sum) && !std::isinf(check_sum)) {
+        if (!std::isnan(check_sum) && !std::isinf(check_sum))
+            [[likely]] {
 
-            const point3_type p3 = ro + is.path * rd;
-            const auto loc = mask_t::to_local_frame(trf, p3, rd);
-            if constexpr (intersection_type<surface_descr_t>::is_debug()) {
-                is.local = loc;
+                const point3_type p3 = ro + is.path * rd;
+                const auto loc = mask_t::to_local_frame(trf, p3, rd);
+                if constexpr (intersection_type<surface_descr_t>::is_debug()) {
+                    is.local = loc;
+                }
+                is.status = mask.is_inside(
+                    loc, math::max(
+                             mask_tolerance[0],
+                             math::min(mask_tolerance[1],
+                                       mask_tol_scalor * math::fabs(is.path))));
+
+                // Early return, if no intersection was found
+                if (detray::detail::none_of(is.status)) {
+                    return is;
+                }
+
+                is.sf_desc = sf;
+                is.direction = !math::signbit(is.path);
+                is.volume_link = mask.volume_link();
+
+                // Mask the values where the overstepping tolerance was not met
+                is.status &= (is.path >= overstep_tol);
             }
-            is.status = mask.is_inside(
-                loc,
-                math::max(mask_tolerance[0],
-                          math::min(mask_tolerance[1],
-                                    mask_tol_scalor * math::fabs(is.path))));
-
-            // Early return, if no intersection was found
-            if (detray::detail::none_of(is.status)) {
-                return is;
-            }
-
-            is.sf_desc = sf;
-            is.direction = !math::signbit(is.path);
-            is.volume_link = mask.volume_link();
-
-            // Mask the values where the overstepping tolerance was not met
-            is.status &= (is.path >= overstep_tol);
-        } else {
-            is.status = decltype(is.status)(false);
-        }
+        else
+            [[unlikely]] { is.status = decltype(is.status)(false); }
 
         return is;
     }
