@@ -58,7 +58,7 @@ auto volume(const typename detector_t::geometry_context& context,
     actsvg::proto::volume<point3_container_t> p_volume;
     p_volume._index = d_volume.index();
 
-    // Prepare surfaces to be displayed in module/grid sheets
+    // Prepare surfaces to be displayed in grids
     std::vector<actsvg::proto::surface<point3_container_t>> p_sensitves;
 
     // Convert grid, if present
@@ -98,7 +98,7 @@ auto volume(const typename detector_t::geometry_context& context,
                 p_surface._aux_info["module_info"] = {sf_info};
                 p_surface._aux_info["grid_info"] = {sf_info};
 
-                // Put the sensitive surfaces in the module/grid sheets
+                // Put the sensitive surfaces in the grids
                 if (sf.is_sensitive()) {
                     p_sensitves.push_back(p_surface);
                 }
