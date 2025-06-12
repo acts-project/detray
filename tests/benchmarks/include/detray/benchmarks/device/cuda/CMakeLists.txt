@@ -28,6 +28,8 @@ foreach(algebra ${algebra_plugins})
         STATIC
         "propagation_benchmark.hpp"
         "propagation_benchmark.cu"
+        "propagator.hpp"
+        "propagator.cu"
     )
 
     add_library(
@@ -42,5 +44,10 @@ foreach(algebra ${algebra_plugins})
             detray::benchmarks
             detray::test_common
             detray::core_${algebra}
+    )
+
+    set_property(
+        TARGET detray_benchmark_cuda_${algebra}
+        PROPERTY CUDA_ARCHITECTURES 75
     )
 endforeach()
