@@ -14,6 +14,9 @@
 #include "detray/propagator/propagator.hpp"
 #include "detray/tracks/tracks.hpp"
 
+// Detray benchmark include(s)
+#include "detray/benchmarks/benchmark_base.hpp"
+
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>
 
