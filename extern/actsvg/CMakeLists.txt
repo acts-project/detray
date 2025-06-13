@@ -22,7 +22,7 @@ set(DETRAY_ACTSVG_GIT_REPOSITORY
     CACHE STRING
     "Git repository to take actsvg from"
 )
-set(DETRAY_ACTSVG_GIT_TAG "v0.4.45" CACHE STRING "Version of actsvg to build")
+set(DETRAY_ACTSVG_GIT_TAG "v0.4.57" CACHE STRING "Version of actsvg to build")
 mark_as_advanced(DETRAY_ACTSVG_GIT_REPOSITORY DETRAY_ACTSVG_GIT_TAG)
 
 # Mark the import as a system library on modern CMake versions

@@ -65,11 +65,11 @@ GTEST_TEST(svgtools, groups) {
     // Visualisation of a group of volumes.
     const std::array volume_group_indices{3u, 5u};
 
-    const auto [vol_group_xy, sh1] = il.draw_volumes(volume_group_indices, xy);
+    const auto vol_group_xy = il.draw_volumes(volume_group_indices, xy);
     detray::svgtools::write_svg("test_svgtools_volume_group_xy",
                                 {axes, vol_group_xy});
 
-    const auto [vol_group_zr, sh2] = il.draw_volumes(volume_group_indices, zr);
+    const auto vol_group_zr = il.draw_volumes(volume_group_indices, zr);
     detray::svgtools::write_svg("test_svgtools_volume_group_zr",
                                 {axes, vol_group_zr});
 
