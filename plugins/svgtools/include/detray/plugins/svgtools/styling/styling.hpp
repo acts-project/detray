@@ -218,7 +218,7 @@ const styling::surface_material_style material_style{
     {colors::black, 1.f},
     1.f,
     colors::gradient::viridis_scale,
-    20u,
+    8u,
     {{colors::black, 1.f}, 0.4f}};
 
 // Surface styles
