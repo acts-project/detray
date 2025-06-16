@@ -47,11 +47,10 @@ def plot_track_params(opts, detector, track_type, plot_factory, out_format, df):
         colspacing=0.8,
         handletextpad=0.005,
         horiz_anchor=1.02,
-        vert_anchor=1.245,
+        vert_anchor=1.12,
     )
 
     # Configure the y axes for all hists
-    # y_axis_opts = plotting.axis_options(label="", label_format="{x:3.1f}")
     y_axis_opts = plotting.axis_options(label="")
 
     # Plot the track data
@@ -62,6 +61,7 @@ def plot_track_params(opts, detector, track_type, plot_factory, out_format, df):
             x_axis=x_axis,
             y_axis=y_axis,
             lgd_ops=lgd_ops,
+            show_stats=False,
             figsize=fig_size,
         )
 
