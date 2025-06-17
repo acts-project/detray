@@ -89,14 +89,12 @@ struct intersection_initialize {
     DETRAY_HOST_DEVICE bool place_in_collection(
         darray<typename is_container_t::value_type, 2> &&solutions,
         is_container_t &intersections) const {
-        bool is_valid = false;
         for (auto &sfi : std::move(solutions)) {
             if (sfi.status) {
                 insert_sorted(sfi, intersections);
             }
-            is_valid |= sfi.status;
         }
-        return is_valid;
+        return false;
     }
 
     template <typename is_container_t>
