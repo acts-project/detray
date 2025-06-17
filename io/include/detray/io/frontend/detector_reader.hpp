@@ -42,7 +42,7 @@ void read_components_from_file(const std::vector<std::string>& file_names,
     // Make sure that all files will be read
     if (readers.size() != file_names.size()) {
         std::cout << "WARNING: Not all files were registered to a reader. "
-                  << "Registered files: ";
+                  << "Registered files: " << std::endl;
 
         for (const auto& [file_name, reader] : readers.readers_map()) {
             std::cout << "\t" << file_name << std::endl;
