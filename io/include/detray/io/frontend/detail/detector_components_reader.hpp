@@ -47,8 +47,17 @@ class detector_components_reader final {
         m_readers[file_name] = std::move(r_ptr);
     }
 
+    /// Create a new geometry reader of type @tparam reader_t
+    template <class reader_t>
+    void add_geometry_reader(const std::string& file_name) {
+        m_geo_file_name = file_name;
+        m_geo_reader = std::make_unique<reader_t>();
+    }
+
     /// @returns the number of readers that are registered
-    std::size_t size() const { return m_readers.size(); }
+    std::size_t size() const {
+        return m_readers.size() + (m_geo_reader == nullptr ? 0u : 1u);
+    }
 
     /// @returns access to the readers map - const
     const auto& readers_map() const { return m_readers; }
@@ -68,6 +77,11 @@ class detector_components_reader final {
         // Set the detector name in the name map
         det_builder.set_name(m_det_name);
 
+        if (m_geo_reader == nullptr) {
+            throw std::runtime_error("No geometry reader registered!");
+        }
+        m_geo_reader->read(det_builder, m_geo_file_name);
+
         // Call the read method on all readers
         for (const auto& [file_name, reader] : m_readers) {
             reader->read(det_builder, file_name);
@@ -77,9 +91,12 @@ class detector_components_reader final {
     private:
     /// Name of the detector
     std::string m_det_name;
-    /// The readers registered for the detector: geometry (mandatory!) plus
-    /// e.g. material, grids...)
-    std::map<std::string, reader_ptr_t> m_readers;
+    /// Geometry file name
+    std::string m_geo_file_name;
+    /// Geometry reader
+    reader_ptr_t m_geo_reader;
+    /// The readers registered for the detector: e.g. material, grids...
+    std::unordered_map<std::string, reader_ptr_t> m_readers;
 };
 
 }  // namespace detray::io::detail
