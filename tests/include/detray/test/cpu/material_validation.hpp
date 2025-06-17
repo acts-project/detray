@@ -178,20 +178,16 @@ class material_validation_impl : public test::fixture_base<> {
                 }
             };
 
-            EXPECT_TRUE(get_rel_error(truth_mat.sX0, recorded_mat.sX0) <
-                        rel_error)
+            EXPECT_LT(get_rel_error(truth_mat.sX0, recorded_mat.sX0), rel_error)
                 << "Track " << n_tracks << " (X0 / path): Truth "
                 << truth_mat.sX0 << ", Nav. " << recorded_mat.sX0;
-            EXPECT_TRUE(get_rel_error(truth_mat.tX0, recorded_mat.tX0) <
-                        rel_error)
+            EXPECT_LT(get_rel_error(truth_mat.tX0, recorded_mat.tX0), rel_error)
                 << "Track " << n_tracks << " (X0 / thickness): Truth "
                 << truth_mat.tX0 << ", Nav. " << recorded_mat.tX0;
-            EXPECT_TRUE(get_rel_error(truth_mat.sL0, recorded_mat.sL0) <
-                        rel_error)
+            EXPECT_LT(get_rel_error(truth_mat.sL0, recorded_mat.sL0), rel_error)
                 << "Track " << n_tracks << " (L0 / path): Truth "
                 << truth_mat.sL0 << ", Nav. " << recorded_mat.sL0;
-            EXPECT_TRUE(get_rel_error(truth_mat.tL0, recorded_mat.tL0) <
-                        rel_error)
+            EXPECT_LT(get_rel_error(truth_mat.tL0, recorded_mat.tL0), rel_error)
                 << "Track " << n_tracks << " (L0 / thickness): Truth "
                 << truth_mat.tL0 << ", Nav. " << recorded_mat.tL0;
 
