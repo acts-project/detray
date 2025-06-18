@@ -385,6 +385,22 @@ class grid_impl {
         return true;
     }
 
+    /// @returns a string stream that prints the grid details
+    DETRAY_HOST
+    friend std::ostream &operator<<(std::ostream &os, const grid_impl &gr) {
+        os << "axes: \n" << gr.axes();
+
+        for (glob_bin_index gbin = 0; gbin < gr.nbins(); ++gbin) {
+            os << "bin " << gbin << ": ";
+            for (const auto &bin_content : gr.bin(gbin)) {
+                os << bin_content << ", ";
+            }
+            os << std::endl;
+        }
+
+        return os;
+    }
+
     private:
     /// Struct that contains the grid's data state
     bin_storage m_bins{};

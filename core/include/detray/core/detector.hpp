@@ -211,7 +211,9 @@ class detector {
     /// @}
 
     /// @returns a string that contains the detector name
-    const std::string &name(const name_map &names) const { return names.at(0); }
+    std::string name(const name_map &names) const {
+        return names.empty() ? "" : names.at(0);
+    }
 
     /// @return the sub-volumes of the detector - const access
     DETRAY_HOST_DEVICE
@@ -307,40 +309,6 @@ class detector {
             detray::get_data(_materials),    detray::get_data(_accelerators),
             detray::get_data(_volume_finder)};
     }
-
-    /// @param names maps a volume to its string representation.
-    /// @returns a string representation of the detector.
-    DETRAY_HOST
-    auto to_string(const name_map &names) const -> std::string {
-        std::stringstream ss;
-
-        ss << "[>] Detector '" << names.at(0) << "' has " << _volumes.size()
-           << " volumes." << std::endl;
-
-        for (const auto [i, v] : detray::views::enumerate(_volumes)) {
-            ss << "[>>] Volume at index " << i << ": " << std::endl;
-            ss << " - name: '" << names.at(v.index() + 1u) << "'" << std::endl;
-
-            ss << "     contains    "
-               << v.template n_objects<geo_obj_ids::e_sensitive>()
-               << " sensitive surfaces " << std::endl;
-
-            ss << "                 "
-               << v.template n_objects<geo_obj_ids::e_portal>() << " portals "
-               << std::endl;
-
-            ss << "                 " << _accelerators.n_collections()
-               << " surface finders " << std::endl;
-
-            if (v.accel_index() != dindex_invalid) {
-                ss << "  sf finder id " << v.accel_type() << "  sf finders idx "
-                   << v.accel_index() << std::endl;
-            }
-        }
-
-        return ss.str();
-    }
-
     /// Add the volume grid - move semantics
     ///
     /// @param v_grid the volume grid to be added
