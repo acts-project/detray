@@ -180,6 +180,20 @@ struct single_axis {
     /// @returns the axis span [min, max).
     DETRAY_HOST_DEVICE
     scalar_type max() const { return m_binning.span()[1]; }
+
+    /// @returns a string stream that prints the single axis details
+    DETRAY_HOST
+    friend std::ostream &operator<<(std::ostream &os, const single_axis &ax) {
+
+        os << "label: " << static_cast<unsigned int>(ax.label()) << std::endl;
+        os << "bounds: " << static_cast<unsigned int>(ax.bounds()) << std::endl;
+        os << "binning: " << static_cast<unsigned int>(ax.binning())
+           << std::endl;
+        os << "n-bins: " << ax.nbins() << std::endl;
+        os << "min: " << ax.min() << ", max: " << ax.max() << std::endl;
+
+        return os;
+    }
 };
 
 /// @brief An N-dimensional collection of single axes.
@@ -431,6 +445,22 @@ class multi_axis {
                    *m_edges == *rhs.m_edges;
         }
         return false;
+    }
+
+    /// @returns a string stream that prints the multi axis details
+    DETRAY_HOST
+    friend std::ostream &operator<<(std::ostream &os, const multi_axis &ax) {
+
+        os << ax.template get_axis<0>() << std::endl;
+
+        if constexpr (multi_axis::dim > 1) {
+            os << ax.template get_axis<1>() << std::endl;
+        }
+        if constexpr (multi_axis::dim > 2) {
+            os << ax.template get_axis<2>() << std::endl;
+        }
+
+        return os;
     }
 
     private:

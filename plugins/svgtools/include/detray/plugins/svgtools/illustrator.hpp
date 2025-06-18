@@ -93,7 +93,7 @@ class illustrator {
         _search_window = window;
     }
     /// @returns the detector name
-    const std::string& det_name() const { return _detector.name(_name_map); }
+    std::string det_name() const { return _detector.name(_name_map); }
 
     /// @brief Converts a single detray surface of the detector to an svg.
     ///
