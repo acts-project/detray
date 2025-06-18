@@ -78,6 +78,17 @@ class brute_force_collection {
 
         /// @returns an iterator over all surfaces in the data structure
         DETRAY_HOST_DEVICE auto all() { return *this; }
+
+        /// @returns a string stream that prints the brute forcer details
+        DETRAY_HOST
+        friend std::ostream& operator<<(std::ostream& os,
+                                        const brute_forcer& bf) {
+            for (const auto& entry : bf.all()) {
+                os << entry << std::endl;
+            }
+
+            return os;
+        }
     };
 
     using value_type = brute_forcer;
