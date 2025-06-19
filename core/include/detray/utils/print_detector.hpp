@@ -8,11 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/core/detector.hpp"
-#include "detray/definitions/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
-#include "detray/definitions/math.hpp"
-#include "detray/definitions/units.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/geometry/tracking_volume.hpp"
 
@@ -34,9 +30,9 @@ struct accelerator_printer {
     /// @param idx the specific grid to be checked
     /// @param id type id of the material grid collection
     template <typename accel_coll_t, typename index_t>
-    DETRAY_HOST_DEVICE void operator()(const accel_coll_t &accel_coll,
-                                       const index_t idx,
-                                       std::stringstream &os) const {
+    DETRAY_HOST void operator()(const accel_coll_t &accel_coll,
+                                const index_t idx,
+                                std::stringstream &os) const {
         os << accel_coll[idx];
     }
 };
@@ -50,9 +46,9 @@ struct material_printer {
     /// @param idx the specific grid to be checked
     /// @param id type id of the material grid collection
     template <typename material_coll_t, typename index_t>
-    DETRAY_HOST_DEVICE void operator()(const material_coll_t &material_coll,
-                                       const index_t idx,
-                                       std::stringstream &os) const {
+    DETRAY_HOST void operator()(const material_coll_t &material_coll,
+                                const index_t idx,
+                                std::stringstream &os) const {
         os << material_coll[idx];
     }
 };
