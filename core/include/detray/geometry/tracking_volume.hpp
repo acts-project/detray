@@ -282,7 +282,7 @@ class tracking_volume {
 
     /// @returns the volume name (add an offset for the detector name).
     DETRAY_HOST_DEVICE
-    constexpr auto name(const name_map &names) const -> std::string {
+    auto name(const name_map &names) const -> std::string {
         return names.empty() ? "" : names.at(m_desc.index() + 1u);
     }
 

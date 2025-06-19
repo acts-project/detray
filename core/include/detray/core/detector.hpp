@@ -21,6 +21,7 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/geometry/volume_descriptor.hpp"
 #include "detray/utils/concepts.hpp"
+#include "detray/utils/print_detector.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>
@@ -326,6 +327,14 @@ class detector {
     }
 
     private:
+    /// @returns a string stream that prints the detector details (but without
+    /// volumes names)
+    DETRAY_HOST
+    friend std::ostream &operator<<(std::ostream &os, const detector &d) {
+        os << utils::print_detector(d) << std::endl;
+        return os;
+    }
+
     /// Contains the detector sub-volumes.
     volume_container _volumes;
 

@@ -262,7 +262,7 @@ inline void check_empty(const detector_t &det, const bool verbose) {
 
     // Check the material description
     if (det.material_store().all_empty()) {
-        std::cout << "WARNING: No material in detector\n" << std::endl;
+        std::cout << "WARNING: No material in detector" << std::endl;
     } else if (verbose) {
         // Check for empty material collections
         detail::report_empty(
@@ -284,7 +284,7 @@ inline void check_empty(const detector_t &det, const bool verbose) {
 
     // Check volume search data structure
     if (!find_volumes(det.volume_search_grid())) {
-        std::cout << "WARNING: No entries in volume finder\n" << std::endl;
+        std::cout << "WARNING: No entries in volume finder" << std::endl;
     }
 }
 
@@ -292,6 +292,9 @@ inline void check_empty(const detector_t &det, const bool verbose) {
 template <typename detector_t>
 inline bool check_consistency(const detector_t &det, const bool verbose = false,
                               const typename detector_t::name_map &names = {}) {
+
+    std::cout << "INFO: Checking detector consistency..." << std::endl;
+
     check_empty(det, verbose);
 
     std::stringstream err_stream{};
@@ -365,6 +368,8 @@ inline bool check_consistency(const detector_t &det, const bool verbose = false,
                 sf_desc.material().id());
         }
     }
+
+    std::cout << "INFO: Detector check: OK" << std::endl;
 
     return true;
 }
