@@ -49,8 +49,9 @@ inline constexpr bool sized_index_range{true};
 /// @tparam value_t underlying bit encoded value type
 /// @tparam lower_mask how many bist to use for the lower index
 template <typename index_t, bool contains_size = !sized_index_range,
-          typename value_t = std::uint_least32_t,
-          value_t lower_mask = 0xffff0000, value_t upper_mask = ~lower_mask>
+          typename value_t = std::uint_least64_t,
+          value_t lower_mask = 0xffffffff00000000,
+          value_t upper_mask = ~lower_mask>
 requires std::convertible_to<index_t, value_t> struct index_range {
     using index_type = index_t;
     using encoder = detail::bit_encoder<value_t>;
@@ -320,10 +321,6 @@ struct multi_index {
     /// Print operator
     DETRAY_HOST
     friend std::ostream& operator<<(std::ostream& os, const multi_index& mi) {
-        if (mi.is_invalid()) {
-            return (os << "undefined");
-        }
-
         os << "[";
         bool writeSeparator = false;
         for (auto i = 0u; i < N; ++i) {

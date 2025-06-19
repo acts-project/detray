@@ -33,7 +33,7 @@ GTEST_TEST(detray_core, index_range) {
 
     using index_t = detail::index_range<unsigned int>;
     constexpr auto inv_idx{
-        static_cast<unsigned int>(std::numeric_limits<std::uint16_t>::max())};
+        static_cast<unsigned int>(std::numeric_limits<std::uint32_t>::max())};
 
     static_assert(concepts::interval<index_t>);
 
@@ -119,7 +119,7 @@ GTEST_TEST(detray_core, sized_index_range) {
     using index_t =
         detail::index_range<unsigned int, detail::sized_index_range>;
     constexpr auto inv_idx{
-        static_cast<unsigned int>(std::numeric_limits<std::uint16_t>::max())};
+        static_cast<unsigned int>(std::numeric_limits<std::uint32_t>::max())};
 
     static_assert(concepts::interval<index_t>);
 
