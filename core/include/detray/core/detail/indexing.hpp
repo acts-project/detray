@@ -56,11 +56,11 @@ requires std::convertible_to<index_t, value_t> struct index_range {
     using index_type = index_t;
     using encoder = detail::bit_encoder<value_t>;
 
-    constexpr index_range() = default;
+    constexpr index_range() { set_zeros(); }
 
     /// Construct around encoded value @param v
     DETRAY_HOST_DEVICE
-    explicit constexpr index_range(value_t v) : m_value{v} {}
+    explicit constexpr index_range(value_t v) : m_value{v} { set_zeros(); }
 
     /// Construct from a lower and an upper index/number of elements
     DETRAY_HOST_DEVICE
@@ -69,6 +69,7 @@ requires std::convertible_to<index_t, value_t> struct index_range {
                                                static_cast<value_t>(l));
         encoder::template set_bits<upper_mask>(m_value,
                                                static_cast<value_t>(u));
+        set_zeros();
     }
 
     /// Explicit conversion to underlying value type
@@ -248,6 +249,16 @@ requires std::convertible_to<index_t, value_t> struct index_range {
     /// @}
 
     private:
+    /// Set bits that are not covered by the masks to zero, so that the
+    /// assertion in the bit_encoder works (does nothing if the lower and upper
+    /// masks cover all of the bits in the value_t)
+    constexpr void set_zeros() {
+        constexpr value_t uncovered_mask{~(lower_mask | upper_mask)};
+        if constexpr (uncovered_mask != 0u) {
+            encoder::template set_bits<uncovered_mask>(m_value, 0u);
+        }
+    }
+
     /// Print operator
     DETRAY_HOST
     friend std::ostream& operator<<(std::ostream& os, const index_range& ir) {
