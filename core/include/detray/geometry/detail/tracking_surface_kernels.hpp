@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/definitions/track_parametrization.hpp"
 #include "detray/geometry/detail/surface_kernels.hpp"
 #include "detray/propagator/detail/jacobian_engine.hpp"
 #include "detray/tracks/detail/transform_track_parameters.hpp"
@@ -28,6 +29,7 @@ struct tracking_surface_kernels : public surface_kernels<algebra_t> {
     using bound_param_vector_type = bound_parameters_vector<algebra_t>;
     using free_param_vector_type = free_parameters_vector<algebra_t>;
     using free_matrix_type = free_matrix<algebra_t>;
+    using free_to_path_matrix_type = free_to_path_matrix<algebra_t>;
 
     /// A functor to get from a free to a bound vector
     struct free_to_bound_vector {
@@ -81,8 +83,9 @@ struct tracking_surface_kernels : public surface_kernels<algebra_t> {
 
             using frame_t = typename mask_group_t::value_type::local_frame;
 
-            return detail::jacobian_engine<frame_t>::free_to_bound_jacobian(
-                trf3, free_vec);
+            return detail::jacobian_engine<
+                algebra_t>::template free_to_bound_jacobian<frame_t>(trf3,
+                                                                     free_vec);
         }
     };
 
@@ -97,8 +100,9 @@ struct tracking_surface_kernels : public surface_kernels<algebra_t> {
 
             using frame_t = typename mask_group_t::value_type::local_frame;
 
-            return detail::jacobian_engine<frame_t>::bound_to_free_jacobian(
-                trf3, mask_group[index], bound_vec);
+            return detail::jacobian_engine<algebra_t>::
+                template bound_to_free_jacobian<frame_t>(
+                    trf3, mask_group[index], bound_vec);
         }
 
         template <typename mask_group_t, concepts::interval idx_range_t>
@@ -109,8 +113,9 @@ struct tracking_surface_kernels : public surface_kernels<algebra_t> {
 
             using frame_t = typename mask_group_t::value_type::local_frame;
 
-            return detail::jacobian_engine<frame_t>::bound_to_free_jacobian(
-                trf3, mask_group[idx_range.lower()], bound_vec);
+            return detail::jacobian_engine<algebra_t>::
+                template bound_to_free_jacobian<frame_t>(
+                    trf3, mask_group[idx_range.lower()], bound_vec);
         }
     };
 
@@ -127,10 +132,27 @@ struct tracking_surface_kernels : public surface_kernels<algebra_t> {
 
             using frame_t = typename mask_group_t::value_type::local_frame;
 
-            return detail::jacobian_engine<frame_t>::path_correction(
-                pos, dir, dtds, dqopds, trf3);
+            return detail::jacobian_engine<algebra_t>::template path_correction<
+                frame_t>(pos, dir, dtds, dqopds, trf3);
+        }
+    };
+
+    /// A function object to get the free to path derivative
+    struct free_to_path_derivative {
+
+        template <typename mask_group_t, typename index_t>
+        DETRAY_HOST_DEVICE inline free_to_path_matrix_type operator()(
+            const mask_group_t& /*mask_group*/, const index_t& /*index*/,
+            const transform3_type& trf3, const vector3_type& pos,
+            const vector3_type& dir, const vector3_type& dtds) const {
+
+            using frame_t = typename mask_group_t::value_type::local_frame;
+
+            return detail::jacobian_engine<
+                algebra_t>::template free_to_path_derivative<frame_t>(pos, dir,
+                                                                      dtds,
+                                                                      trf3);
         }
     };
 };
-
 }  // namespace detray::detail

@@ -162,10 +162,7 @@ class detray_propagation_HelixCovarianceTransportValidation
         using departure_frame = typename departure_mask_type::local_frame;
         using destination_frame = typename destination_mask_type::local_frame;
 
-        using departure_jacobian_engine =
-            detail::jacobian_engine<departure_frame>;
-        using destination_jacobian_engine =
-            detail::jacobian_engine<destination_frame>;
+        using jacobian_engine = detail::jacobian_engine<algebra_type>;
 
         const bound_param_vector_t& bound_vec_0 = bound_params;
         const bound_matrix_t& bound_cov_0 = bound_params.covariance();
@@ -179,8 +176,8 @@ class detray_propagation_HelixCovarianceTransportValidation
 
         // Bound-to-free jacobian at the departure surface
         const bound_to_free_matrix_t bound_to_free_jacobi =
-            departure_jacobian_engine::bound_to_free_jacobian(trf_0, mask_0,
-                                                              bound_vec_0);
+            jacobian_engine::template bound_to_free_jacobian<departure_frame>(
+                trf_0, mask_0, bound_vec_0);
 
         // Get the intersection on the next surface
         helix_intersector<typename destination_mask_type::shape, algebra_type>
@@ -222,8 +219,8 @@ class detray_propagation_HelixCovarianceTransportValidation
 
         // Path correction
         const free_matrix_t path_correction =
-            destination_jacobian_engine::path_correction(r, t, dtds, dqopds,
-                                                         trf_1);
+            jacobian_engine::template path_correction<destination_frame>(
+                r, t, dtds, dqopds, trf_1);
 
         // Correction term for the path variation
         const free_matrix_t correction_term =
@@ -231,8 +228,8 @@ class detray_propagation_HelixCovarianceTransportValidation
 
         // Free-to-bound jacobian at the destination surface
         const free_to_bound_matrix_t free_to_bound_jacobi =
-            destination_jacobian_engine::free_to_bound_jacobian(trf_1,
-                                                                free_trk_1);
+            jacobian_engine::template free_to_bound_jacobian<destination_frame>(
+                trf_1, free_trk_1);
 
         // Bound vector at the destination surface
         const bound_param_vector_t bound_vec_1 =

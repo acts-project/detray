@@ -27,8 +27,7 @@ struct curvilinear_frame {
     using unit_vectors_type = unit_vectors<vector3>;
     using bound_to_free_matrix_type = bound_to_free_matrix<algebra_t>;
     using bound_vector_type = bound_parameters_vector<algebra_t>;
-    using jacobian_engine_type =
-        detail::jacobian_engine<cartesian2D<algebra_t>>;
+    using jacobian_engine_type = detail::jacobian_engine<algebra_t>;
     using free_track_parameters_type = free_track_parameters<algebra_t>;
 
     DETRAY_HOST_DEVICE
@@ -47,8 +46,9 @@ struct curvilinear_frame {
 
     DETRAY_HOST_DEVICE
     bound_to_free_matrix_type bound_to_free_jacobian() const {
-        return jacobian_engine_type().bound_to_free_jacobian(
-            m_trf, mask<rectangle2D, algebra_t>{}, m_bound_vec);
+        return jacobian_engine_type()
+            .template bound_to_free_jacobian<cartesian2D<algebra_t>>(
+                m_trf, mask<rectangle2D, algebra_t>{}, m_bound_vec);
     }
 
     transform3_type m_trf{};
