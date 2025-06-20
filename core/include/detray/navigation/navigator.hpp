@@ -771,71 +771,107 @@ class navigator {
 
         assert(!track.is_invalid());
 
-        // Candidates are re-evaluated based on the current trust level.
-        // Should result in 'full trust'
-        bool is_init = update_kernel(track, navigation, cfg, ctx);
+        bool is_init = false;
 
-        // Update was completely successful (most likely case)
-        if (navigation.trust_level() == navigation::trust_level::e_full) {
-            return is_init;
+        auto local_cfg{cfg};
+
+        unsigned int max_attempts = 2;
+
+        bool update_failed = false;
+
+        if (navigation.trust_level() != navigation::trust_level::e_full) {
+            update_failed = update_kernel(track, navigation, cfg, ctx);
         }
-        // Otherwise: did we run into a portal?
-        else if (navigation.is_on_portal()) {
-            // Navigation reached the end of the detector world
-            if (detail::is_invalid_value(navigation.current().volume_link)) {
-                navigation.exit();
-                return is_init;
-            }
 
-            // Set volume index to the next volume provided by the portal
-            navigation.set_volume(navigation.current().volume_link);
+        for (unsigned int i = 0;
+             navigation.trust_level() != navigation::trust_level::e_full &&
+             i < max_attempts;
+             ++i) {
+            bool use_path_tolerance_as_overstep_tolerance = true;
+            bool run_init = false;
 
-            // Either end of world or valid volume index
-            assert(detail::is_invalid_value(navigation.volume()) ||
-                   navigation.volume() <
-                       navigation.detector().volumes().size());
+            if (i == 0) {
+                // Use overstep tolerance instead of path tolerance
+                use_path_tolerance_as_overstep_tolerance = false;
 
-            // Run inspection when needed (keep for debugging)
-            // navigation.run_inspector(cfg, track.pos(), track.dir(), "Volume
-            // switch: ");
+                // Candidates are re-evaluated based on the current trust level.
+                // Should result in 'full trust'
+                // Actor flagged cache as broken (other cases of 'no trust' are
+                // handeled after volume switch was checked in 'update()')
+                if (!update_failed && navigation.trust_level() ==
+                                          navigation::trust_level::e_no_trust) {
+                    run_init = true;
+                }
+            } else if (i == 1) {
+                run_init = true;
 
-            init(track, navigation, cfg, ctx);
-            is_init = true;
+                if (navigation.is_on_portal()) {
+                    use_path_tolerance_as_overstep_tolerance = true;
 
-            // Fresh initialization, reset trust and hearbeat even though we are
-            // on inner portal
-            navigation.m_trust_level = navigation::trust_level::e_full;
-            navigation.m_heartbeat = true;
-        }
-        // If no trust could be restored for the current state, (local)
-        // navigation might be exhausted: re-initialize volume
-        else {
-            // Use overstep tolerance instead of path tolerance
-            const bool use_path_tolerance_as_overstep_tolerance = false;
+                    // Navigation reached the end of the detector world
+                    if (detail::is_invalid_value(
+                            navigation.current().volume_link)) {
+                        navigation.exit();
+                        return is_init;
+                    }
 
-            init(track, navigation, cfg, ctx,
-                 use_path_tolerance_as_overstep_tolerance);
-            is_init = true;
+                    // Set volume index to the next volume provided by the
+                    // portal
+                    navigation.set_volume(navigation.current().volume_link);
 
-            // Sanity check: Should never be the case after complete update call
-            if (navigation.trust_level() != navigation::trust_level::e_full) {
-                // Try to save the navigation flow: Look further behind the
-                // track
-                auto loose_cfg{cfg};
-                // Use the max mask tolerance in case a track leaves the volume
-                // when a sf is 'sticking' out of the portals due to the tol
-                loose_cfg.overstep_tolerance =
+                    // Either end of world or valid volume index
+                    assert(detail::is_invalid_value(navigation.volume()) ||
+                           navigation.volume() <
+                               navigation.detector().volumes().size());
+
+                }
+                // If no trust could be restored for the current state,
+                // (local) navigation might be exhausted: re-initialize
+                // volume
+                else {
+                    use_path_tolerance_as_overstep_tolerance = false;
+                    max_attempts++;
+                }
+            } else if (i == 2) {
+                run_init = true;
+
+                // Try to save the navigation flow: Look further behind
+                // the track. Should never be the case after complete
+                // update call.
+                // Use the max mask tolerance in case a track leaves the
+                // volume when a sf is 'sticking' out of the portals due
+                // to the tol
+                local_cfg.overstep_tolerance =
                     math::min(100.f * cfg.overstep_tolerance,
                               -10.f * cfg.max_mask_tolerance);
+            }
 
-                init(track, navigation, loose_cfg, ctx,
+            if (run_init) {
+                init(track, navigation, local_cfg, ctx,
                      use_path_tolerance_as_overstep_tolerance);
+                is_init = true;
             }
         }
-        // Unrecoverable
-        if (navigation.trust_level() != navigation::trust_level::e_full ||
-            navigation.is_exhausted()) {
-            navigation.abort("Navigator: No reachable surfaces");
+
+        // If the update was not completely succesful, we might have ran
+        // into a portal.
+        if (navigation.trust_level() != navigation::trust_level::e_full) {
+            if (navigation.is_on_portal()) {
+                // Run inspection when needed (keep for debugging)
+                // navigation.run_inspector(cfg, track.pos(), track.dir(),
+                // "Volume switch: ");
+
+                // Fresh initialization, reset trust and hearbeat even though we
+                // are on inner portal
+                navigation.m_trust_level = navigation::trust_level::e_full;
+                navigation.m_heartbeat = true;
+            }
+
+            // Unrecoverable
+            if (navigation.trust_level() != navigation::trust_level::e_full ||
+                navigation.is_exhausted()) {
+                navigation.abort("Navigator: No reachable surfaces");
+            }
         }
 
         return is_init;
@@ -857,11 +893,6 @@ class navigator {
         const context_type &ctx) const {
 
         const auto &det = navigation.detector();
-
-        // Current candidates are up to date, nothing left to do
-        if (navigation.trust_level() == navigation::trust_level::e_full) {
-            return false;
-        }
 
         // Update only the current candidate and the corresponding next target
         // - do this only when the navigation state is still coherent
@@ -885,7 +916,7 @@ class navigator {
                         navigation::status::e_towards_object ||
                     navigation.trust_level() ==
                         navigation::trust_level::e_no_trust) {
-                    return false;
+                    return true;
                 }
 
                 // Else: Track is on module.
@@ -893,7 +924,7 @@ class navigator {
                 if (update_candidate(navigation.direction(),
                                      navigation.target(), track, det, cfg,
                                      ctx)) {
-                    return false;
+                    return true;
                 }
 
                 // If next candidate is not reachable, don't 'return', but
@@ -928,19 +959,8 @@ class navigator {
                                      "Update complete: fair trust: ");
 
             if (!navigation.is_exhausted()) {
-                return false;
+                return true;
             }
-        }
-
-        // Actor flagged cache as broken (other cases of 'no trust' are
-        // handeled after volume switch was checked in 'update()')
-        if (navigation.trust_level() == navigation::trust_level::e_no_trust) {
-            // Use overstep tolerance instead of path tolerance
-            const bool use_path_tolerance_as_overstep_tolerance = false;
-
-            init(track, navigation, cfg, ctx,
-                 use_path_tolerance_as_overstep_tolerance);
-            return true;
         }
 
         return false;
