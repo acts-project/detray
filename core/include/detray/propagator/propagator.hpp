@@ -185,19 +185,19 @@ struct propagator {
         propagation._heartbeat = true;
     }
 
-    /// Propagate method init: Initialize a propagation state
+    /// Propagate method: Coordinates the calls of the stepper, navigator and
+    /// all registered actors.
     ///
     /// @param propagation the state of a propagation flow
     /// @param actor_state_refs tuple containing refences to the actor states
     ///
-    /// @return The heartbeat at the end of the initialization.
-    ///
-    /// @note If the return value of this function is true, a propagation step
-    /// can be taken afterwards.
+    /// @return propagation success.
     template <typename actor_states_t>
     requires concepts::is_state_of<actor_states_t, actor_chain_type>
-        DETRAY_HOST_DEVICE void propagate_init(
-            state &propagation, actor_states_t actor_state_refs) const {
+        DETRAY_HOST_DEVICE bool propagate(
+            state &propagation,
+            actor_states_t actor_state_refs = dtuple<>{}) const {
+
         auto &navigation = propagation._navigation;
         auto &stepping = propagation._stepping;
         auto &context = propagation._context;
@@ -212,89 +212,66 @@ struct propagator {
         run_actors(actor_state_refs, propagation);
         assert(!track.is_invalid());
 
-        // Find next candidate
-        m_navigator.update(track, navigation, m_cfg.navigation, context);
-        propagation._heartbeat &= navigation.is_alive();
-    }
+        bool is_init;
 
-    /// Propagate method step: Perform a single propagation step.
-    ///
-    /// @param propagation the state of a propagation flow
-    /// @param actor_state_refs tuple containing refences to the actor states
-    ///
-    /// @return The heartbeat at the end of the step.
-    ///
-    /// @note If the return value of this function is true, another step can
-    /// be taken afterwards.
-    template <typename actor_states_t>
-    requires concepts::is_state_of<actor_states_t, actor_chain_type>
-        DETRAY_HOST_DEVICE bool propagate_step(
-            state &propagation, bool is_init,
-            actor_states_t actor_state_refs) const {
-        auto &navigation = propagation._navigation;
-        auto &stepping = propagation._stepping;
-        auto &context = propagation._context;
-        const auto &track = stepping();
-        assert(!track.is_invalid());
+        // Run while there is a heartbeat. In order to help the compiler
+        // optimize this, and in order to make the code more GPU-friendly,
+        // this code is run as a flat loop, but this loop has a defined
+        // structure. Indeed, the structure is always to run the update
+        // once at the start, and then run it twice every time with the
+        // actors in between which gives rise to the following structure:
+        //
+        // A = actors
+        // N = navigation update
+        // S = propagation step
+        //
+        // NASNANSNANSNANSNANSNANS...
+        //   ^ Note the missing navigation update here.
+        for (unsigned int i = 0; propagation.is_alive(); ++i) {
+            if (i == 0 || i % 2 == 1) {
+                is_init = false;
+            }
 
-        // Set access to the volume material for the stepper
-        auto vol = navigation.get_volume();
-        const material<scalar_type> *vol_mat_ptr =
-            vol.has_material() ? vol.material_parameters(track.pos()) : nullptr;
+            // Find next candidate
+            is_init |= m_navigator.update(track, navigation, m_cfg.navigation,
+                                          context);
+            propagation._heartbeat &= navigation.is_alive();
 
-        // Break automatic step size scaling by the stepper when a surface
-        // was reached and whenever the navigation is (re-)initialized
-        const bool reset_stepsize{navigation.is_on_surface() || is_init};
-        // Take the step
-        propagation._heartbeat &=
-            m_stepper.step(navigation(), stepping, m_cfg.stepping,
-                           reset_stepsize, vol_mat_ptr);
-
-        // Reduce navigation trust level according to stepper update
-        typename stepper_t::policy_type{}(stepping.policy_state(), propagation);
-
-        // Find next candidate
-        is_init =
-            m_navigator.update(track, navigation, m_cfg.navigation, context);
-        propagation._heartbeat &= navigation.is_alive();
-
-        // Run all registered actors/aborters after update
-        run_actors(actor_state_refs, propagation);
-        assert(!track.is_invalid());
-
-        // And check the status
-        is_init |= m_navigator.update(track, navigation, m_cfg.navigation,
-                                      context, false);
-        propagation._heartbeat &= navigation.is_alive();
+            if (i % 2 == 0) {
+                // Run all registered actors/aborters after update
+                run_actors(actor_state_refs, propagation);
+                assert(!track.is_invalid());
+            }
 
 #if defined(__NO_DEVICE__)
-        if (propagation.do_debug) {
-            inspect(propagation);
-        }
+            if (propagation.do_debug) {
+                inspect(propagation);
+            }
 #endif
 
-        return is_init;
-    }
+            if (i % 2 == 0 && propagation.is_alive()) {
+                assert(!track.is_invalid());
 
-    /// Propagate method: Coordinates the calls of the stepper, navigator and
-    /// all registered actors.
-    ///
-    /// @param propagation the state of a propagation flow
-    /// @param actor_state_refs tuple containing refences to the actor states
-    ///
-    /// @return propagation success.
-    template <typename actor_states_t>
-    requires concepts::is_state_of<actor_states_t, actor_chain_type>
-        DETRAY_HOST_DEVICE bool propagate(
-            state &propagation,
-            actor_states_t actor_state_refs = dtuple<>{}) const {
+                // Set access to the volume material for the stepper
+                auto vol = navigation.get_volume();
+                const material<scalar_type> *vol_mat_ptr =
+                    vol.has_material() ? vol.material_parameters(track.pos())
+                                       : nullptr;
 
-        propagate_init(propagation, actor_state_refs);
-        bool is_init = true;
+                // Break automatic step size scaling by the stepper when a
+                // surface was reached and whenever the navigation is
+                // (re-)initialized
+                const bool reset_stepsize{navigation.is_on_surface() ||
+                                          is_init};
+                // Take the step
+                propagation._heartbeat &=
+                    m_stepper.step(navigation(), stepping, m_cfg.stepping,
+                                   reset_stepsize, vol_mat_ptr);
 
-        // Run while there is a heartbeat
-        while (propagation.is_alive()) {
-            is_init = propagate_step(propagation, is_init, actor_state_refs);
+                // Reduce navigation trust level according to stepper update
+                typename stepper_t::policy_type{}(stepping.policy_state(),
+                                                  propagation);
+            }
         }
 
         // Pass on the whether the propagation was successful
@@ -326,13 +303,25 @@ struct propagator {
         DETRAY_HOST_DEVICE bool propagate_sync(
             state &propagation, actor_states_t actor_state_refs) const {
 
-        propagate_init(propagation, actor_state_refs);
-        bool is_init = true;
-
         auto &navigation = propagation._navigation;
         auto &stepping = propagation._stepping;
         auto &context = propagation._context;
         const auto &track = stepping();
+        assert(!track.is_invalid());
+
+        // Initialize the navigation
+        m_navigator.init(track, navigation, m_cfg.navigation, context);
+        propagation._heartbeat = navigation.is_alive();
+
+        // Run all registered actors/aborters after init
+        run_actors(actor_state_refs, propagation);
+        assert(!track.is_invalid());
+
+        // Find next candidate
+        m_navigator.update(track, navigation, m_cfg.navigation, context);
+        propagation._heartbeat &= navigation.is_alive();
+
+        bool is_init = true;
 
         while (propagation.is_alive()) {
 
