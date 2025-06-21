@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/geometry/surface.hpp"
 #include "detray/tracks/ray.hpp"
+#include "detray/utils/print_detector.hpp"
 
 // Detray IO include(s)
 #include "detray/io/utils/file_handle.hpp"
@@ -119,6 +120,8 @@ class material_scan : public test::fixture_base<> {
         dvector<material_record_t> mat_records{};
         mat_records.reserve(ray_generator.size());
 
+        std::cout << utils::print_detector(m_det, m_names) << std::endl;
+
         for (const auto ray : ray_generator) {
 
             // Record all intersections and surfaces along the ray
@@ -181,6 +184,7 @@ class material_scan : public test::fixture_base<> {
                     geometry::surface{m_det, record.intersection.sf_desc};
 
                 if (!sf.has_material()) {
+                    // std::cout << record.intersection.sf_desc << std::endl;
                     continue;
                 }
 
