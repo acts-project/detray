@@ -49,17 +49,18 @@ inline constexpr bool sized_index_range{true};
 /// @tparam value_t underlying bit encoded value type
 /// @tparam lower_mask how many bist to use for the lower index
 template <typename index_t, bool contains_size = !sized_index_range,
-          typename value_t = std::uint_least32_t,
-          value_t lower_mask = 0xffff0000, value_t upper_mask = ~lower_mask>
+          typename value_t = std::uint_least64_t,
+          value_t lower_mask = 0xffffffff00000000,
+          value_t upper_mask = ~lower_mask>
 requires std::convertible_to<index_t, value_t> struct index_range {
     using index_type = index_t;
     using encoder = detail::bit_encoder<value_t>;
 
-    constexpr index_range() = default;
+    constexpr index_range() { set_zeros(); }
 
     /// Construct around encoded value @param v
     DETRAY_HOST_DEVICE
-    explicit constexpr index_range(value_t v) : m_value{v} {}
+    explicit constexpr index_range(value_t v) : m_value{v} { set_zeros(); }
 
     /// Construct from a lower and an upper index/number of elements
     DETRAY_HOST_DEVICE
@@ -68,6 +69,7 @@ requires std::convertible_to<index_t, value_t> struct index_range {
                                                static_cast<value_t>(l));
         encoder::template set_bits<upper_mask>(m_value,
                                                static_cast<value_t>(u));
+        set_zeros();
     }
 
     /// Explicit conversion to underlying value type
@@ -247,6 +249,16 @@ requires std::convertible_to<index_t, value_t> struct index_range {
     /// @}
 
     private:
+    /// Set bits that are not covered by the masks to zero, so that the
+    /// assertion in the bit_encoder works (does nothing if the lower and upper
+    /// masks cover all of the bits in the value_t)
+    constexpr void set_zeros() {
+        constexpr value_t uncovered_mask{~(lower_mask | upper_mask)};
+        if constexpr (uncovered_mask != 0u) {
+            encoder::template set_bits<uncovered_mask>(m_value, 0u);
+        }
+    }
+
     /// Print operator
     DETRAY_HOST
     friend std::ostream& operator<<(std::ostream& os, const index_range& ir) {
@@ -320,10 +332,6 @@ struct multi_index {
     /// Print operator
     DETRAY_HOST
     friend std::ostream& operator<<(std::ostream& os, const multi_index& mi) {
-        if (mi.is_invalid()) {
-            return (os << "undefined");
-        }
-
         os << "[";
         bool writeSeparator = false;
         for (auto i = 0u; i < N; ++i) {

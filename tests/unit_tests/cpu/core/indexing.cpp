@@ -22,7 +22,7 @@ using namespace detray;
 namespace {
 
 /// Define mask types
-enum class mask_ids : unsigned int {
+enum class mask_ids : std::uint8_t {
     e_unmasked = 0u,
 };
 
@@ -32,8 +32,7 @@ enum class mask_ids : unsigned int {
 GTEST_TEST(detray_core, index_range) {
 
     using index_t = detail::index_range<unsigned int>;
-    constexpr auto inv_idx{
-        static_cast<unsigned int>(std::numeric_limits<std::uint16_t>::max())};
+    constexpr auto inv_idx{std::numeric_limits<std::uint32_t>::max()};
 
     static_assert(concepts::interval<index_t>);
 
@@ -118,8 +117,7 @@ GTEST_TEST(detray_core, sized_index_range) {
     // Index range that contains lower index and number of elements
     using index_t =
         detail::index_range<unsigned int, detail::sized_index_range>;
-    constexpr auto inv_idx{
-        static_cast<unsigned int>(std::numeric_limits<std::uint16_t>::max())};
+    constexpr auto inv_idx{std::numeric_limits<std::uint32_t>::max()};
 
     static_assert(concepts::interval<index_t>);
 
@@ -264,7 +262,7 @@ GTEST_TEST(detray_core, typed_index) {
     EXPECT_TRUE(ti.is_invalid());
     ti.set_id(mask_ids::e_unmasked);
     EXPECT_FALSE(ti.is_invalid());
-    ti.set_index((1u << 30) - 1u);
+    ti.set_index((1u << 28) - 1u);
     EXPECT_TRUE(ti.is_invalid());
     ti.set_index(21u);
     EXPECT_FALSE(ti.is_invalid());
