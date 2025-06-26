@@ -31,3 +31,8 @@ from .plot_track_params import (
     plot_track_pos_dist,
     plot_track_pos_res,
 )
+from .detector_data_conversion import (
+    merge_surfaces,
+    update_grids,
+    update_material,
+)
