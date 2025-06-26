@@ -331,7 +331,8 @@ DETRAY_HOST_DEVICE inline void detray::rk_stepper<
     getter::set_block(D, dFdqop, 0u, 7u);
     getter::set_block(D, dGdqop, 4u, 7u);
 
-    this->set_transport_jacobian(D * this->transport_jacobian());
+    algebra::generic::math::set_inplace_product_left(this->transport_jacobian(),
+                                                     D);
 }
 
 template <typename magnetic_field_t, detray::concepts::algebra algebra_t,

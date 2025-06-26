@@ -191,6 +191,12 @@ class base_stepper {
 
         /// @returns the current transport Jacbian.
         DETRAY_HOST_DEVICE
+        inline free_matrix_type &transport_jacobian() {
+            return m_jac_transport;
+        }
+
+        /// @returns the current transport Jacbian.
+        DETRAY_HOST_DEVICE
         inline const free_matrix_type &transport_jacobian() const {
             return m_jac_transport;
         }
