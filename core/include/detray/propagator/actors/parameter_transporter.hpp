@@ -85,11 +85,10 @@ struct parameter_transporter : actor {
             const auto full_jacobian = get_full_jacobian(propagation);
 
             // Calculate surface-to-surface covariance transport
-            const bound_matrix_t new_cov = full_jacobian *
-                                           bound_params.covariance() *
-                                           matrix::transpose(full_jacobian);
-
-            stepping.bound_params().set_covariance(new_cov);
+            algebra::generic::math::set_inplace_product_left(
+                bound_params.covariance(), full_jacobian);
+            algebra::generic::math::set_inplace_product_right_transpose(
+                bound_params.covariance(), full_jacobian);
         }
 
         // Convert free to bound vector
@@ -150,9 +149,9 @@ struct parameter_transporter : actor {
             matrix::identity<free_matrix_t>() +
             (path_to_free_derivative * free_to_path_derivative);
 
-        return free_to_bound_jacobian *
-               (correction_term *
-                (stepping.transport_jacobian() * bound_to_free_jacobian));
+        const auto m1 = free_to_bound_jacobian * correction_term;
+        const auto m2 = m1 * stepping.transport_jacobian();
+        return m2 * bound_to_free_jacobian;
     }
 
 };  // namespace detray
