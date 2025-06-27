@@ -367,7 +367,7 @@ def plot_track_pos_res(
     hist_data = plot_factory.hist1D(
         x=filtered_res,
         figsize=(9, 9),
-        bins=100,
+        bins=75,
         x_axis=plotting.axis_options(
             label=r"$\mathrm{res}" + rf"\,{var}" + r"\,\mathrm{[mm]}$"
         ),
