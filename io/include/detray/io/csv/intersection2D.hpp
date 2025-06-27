@@ -31,16 +31,16 @@ struct intersection2D {
     unsigned int n_masks = 1u;
     unsigned int material_id = 0u;
     unsigned int material_index = 0u;
-    double l0 = 0.;
-    double l1 = 0.;
+    double loc_0 = 0.;
+    double loc_1 = 0.;
     double path = 0.;
     unsigned int volume_link = 0u;
     int direction = 0;
     int status = 0;
 
     DFE_NAMEDTUPLE(intersection2D, track_id, identifier, type, transform_index,
-                   mask_id, mask_index, material_id, material_index, l0, l1,
-                   path, volume_link, direction, status);
+                   mask_id, mask_index, material_id, material_index, loc_0,
+                   loc_1, path, volume_link, direction, status);
 };
 
 /// Read intersections from csv file
@@ -91,8 +91,8 @@ inline auto read_intersection2D(const std::string &file_name) {
         inters.sf_desc = {inters_data.transform_index, mask_link, material_link,
                           dindex_invalid, surface_id::e_unknown};
         inters.sf_desc.set_barcode(geometry::barcode{inters_data.identifier});
-        inters.local = {static_cast<scalar_t>(inters_data.l0),
-                        static_cast<scalar_t>(inters_data.l1), 0.f};
+        inters.local = {static_cast<scalar_t>(inters_data.loc_0),
+                        static_cast<scalar_t>(inters_data.loc_1), 0.f};
         inters.path = static_cast<scalar_t>(inters_data.path);
         inters.volume_link = static_cast<nav_link_t>(inters_data.volume_link);
         inters.direction = static_cast<bool>(inters_data.direction);
@@ -165,8 +165,8 @@ inline void write_intersection2D(
             inters_data.material_id =
                 static_cast<unsigned int>(inters.sf_desc.material().id());
             inters_data.material_index = inters.sf_desc.material().index();
-            inters_data.l0 = inters.local[0];
-            inters_data.l1 = inters.local[1];
+            inters_data.loc_0 = inters.local[0];
+            inters_data.loc_1 = inters.local[1];
             inters_data.path = inters.path;
             inters_data.volume_link = inters.volume_link;
             inters_data.direction = static_cast<int>(inters.direction);
