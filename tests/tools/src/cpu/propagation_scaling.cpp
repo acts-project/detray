@@ -88,7 +88,7 @@ int main(int argc, char** argv) {
     /// set per benchmark case as strong_sc_sample_size/#threads)
     constexpr int max_chunk_size{detail::invalid_value<int>()};
     /// Strong scaling sample size
-    constexpr std::size_t strong_sc_sample_size{51'200u};
+    constexpr std::size_t strong_sc_sample_size{76'800u};
 
     // Host memory resource
     vecmem::host_memory_resource host_mr;
