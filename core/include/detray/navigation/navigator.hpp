@@ -776,16 +776,16 @@ class navigator {
         bool is_init = update_kernel(track, navigation, cfg, ctx);
 
         // Update was completely successful (most likely case)
-        if (navigation.trust_level() == navigation::trust_level::e_full) {
-            return is_init;
-        }
+        if (navigation.trust_level() == navigation::trust_level::e_full)
+            [[likely]] { return is_init; }
         // Otherwise: did we run into a portal?
         else if (navigation.is_on_portal()) {
             // Navigation reached the end of the detector world
-            if (detail::is_invalid_value(navigation.current().volume_link)) {
-                navigation.exit();
-                return is_init;
-            }
+            if (detail::is_invalid_value(navigation.current().volume_link))
+                [[unlikely]] {
+                    navigation.exit();
+                    return is_init;
+                }
 
             // Set volume index to the next volume provided by the portal
             navigation.set_volume(navigation.current().volume_link);
@@ -809,34 +809,50 @@ class navigator {
         }
         // If no trust could be restored for the current state, (local)
         // navigation might be exhausted: re-initialize volume
-        else {
-            // Use overstep tolerance instead of path tolerance
-            const bool use_path_tolerance_as_overstep_tolerance = false;
+        else
+            [[unlikely]] {
+                // Use overstep tolerance instead of path tolerance
+                const bool use_path_tolerance_as_overstep_tolerance = false;
 
-            init(track, navigation, cfg, ctx,
-                 use_path_tolerance_as_overstep_tolerance);
-            is_init = true;
-
-            // Sanity check: Should never be the case after complete update call
-            if (navigation.trust_level() != navigation::trust_level::e_full) {
-                // Try to save the navigation flow: Look further behind the
-                // track
-                auto loose_cfg{cfg};
-                // Use the max mask tolerance in case a track leaves the volume
-                // when a sf is 'sticking' out of the portals due to the tol
-                loose_cfg.overstep_tolerance =
-                    math::min(100.f * cfg.overstep_tolerance,
-                              -10.f * cfg.max_mask_tolerance);
-
-                init(track, navigation, loose_cfg, ctx,
+                init(track, navigation, cfg, ctx,
                      use_path_tolerance_as_overstep_tolerance);
+                is_init = true;
+
+                // Sanity check: Should never be the case after complete update
+                // call
+                if (navigation.trust_level() !=
+                    navigation::trust_level::e_full) {
+                    // Try to save the navigation flow: Look further behind the
+                    // track
+                    auto loose_cfg{cfg};
+                    // Use the max mask tolerance in case a track leaves the
+                    // volume when a sf is 'sticking' out of the portals due to
+                    // the tol
+                    loose_cfg.overstep_tolerance =
+                        math::min(100.f * cfg.overstep_tolerance,
+                                  -10.f * cfg.max_mask_tolerance);
+
+                    init(track, navigation, loose_cfg, ctx,
+                         use_path_tolerance_as_overstep_tolerance);
+
+                    // Unrecoverable
+                    if (navigation.trust_level() !=
+                        navigation::trust_level::e_full)
+                        [[unlikely]] { navigation.abort(); }
+                }
+                // Unrecoverable
+                if (navigation.trust_level() !=
+                        navigation::trust_level::e_full ||
+                    navigation.is_exhausted()) {
+                    navigation.abort();
+                }
             }
-        }
         // Unrecoverable
         if (navigation.trust_level() != navigation::trust_level::e_full ||
-            navigation.is_exhausted()) {
-            navigation.abort("Navigator: No reachable surfaces");
-        }
+            navigation.is_exhausted())
+            [[unlikely]] {
+                navigation.abort("Navigator: No reachable surfaces");
+            }
 
         return is_init;
     }
@@ -868,39 +884,43 @@ class navigator {
         if (navigation.trust_level() == navigation::trust_level::e_high) {
             // Update next candidate: If not reachable, 'high trust' is broken
             if (!update_candidate(navigation.direction(), navigation.target(),
-                                  track, det, cfg, ctx)) {
-                navigation.m_status = navigation::status::e_unknown;
-                navigation.set_fair_trust();
-            } else {
-
-                // Update navigation flow on the new candidate information
-                update_navigation_state(navigation, cfg);
-
-                navigation.run_inspector(cfg, track.pos(), track.dir(),
-                                         "Update complete: high trust: ");
-
-                // The work is done if: the track has not reached a surface yet
-                // or trust is gone (portal was reached or the cache is broken).
-                if (navigation.status() ==
-                        navigation::status::e_towards_object ||
-                    navigation.trust_level() ==
-                        navigation::trust_level::e_no_trust) {
-                    return false;
+                                  track, det, cfg, ctx))
+                [[unlikely]] {
+                    navigation.m_status = navigation::status::e_unknown;
+                    navigation.set_fair_trust();
                 }
+            else
+                [[likely]] {
 
-                // Else: Track is on module.
-                // Ready the next candidate after the current module
-                if (update_candidate(navigation.direction(),
-                                     navigation.target(), track, det, cfg,
-                                     ctx)) {
-                    return false;
+                    // Update navigation flow on the new candidate information
+                    update_navigation_state(navigation, cfg);
+
+                    navigation.run_inspector(cfg, track.pos(), track.dir(),
+                                             "Update complete: high trust: ");
+
+                    // The work is done if: the track has not reached a surface
+                    // yet or trust is gone (portal was reached or the cache is
+                    // broken).
+                    if (navigation.status() ==
+                            navigation::status::e_towards_object ||
+                        navigation.trust_level() ==
+                            navigation::trust_level::e_no_trust) {
+                        return false;
+                    }
+
+                    // Else: Track is on module.
+                    // Ready the next candidate after the current module
+                    if (update_candidate(navigation.direction(),
+                                         navigation.target(), track, det, cfg,
+                                         ctx)) {
+                        return false;
+                    }
+
+                    // If next candidate is not reachable, don't 'return', but
+                    // escalate the trust level.
+                    // This will run into the fair trust case below.
+                    navigation.set_fair_trust();
                 }
-
-                // If next candidate is not reachable, don't 'return', but
-                // escalate the trust level.
-                // This will run into the fair trust case below.
-                navigation.set_fair_trust();
-            }
         }
 
         // Re-evaluate all currently available candidates and sort again
@@ -927,9 +947,8 @@ class navigator {
             navigation.run_inspector(cfg, track.pos(), track.dir(),
                                      "Update complete: fair trust: ");
 
-            if (!navigation.is_exhausted()) {
-                return false;
-            }
+            if (!navigation.is_exhausted())
+                [[likely]] { return false; }
         }
 
         // Actor flagged cache as broken (other cases of 'no trust' are
@@ -1001,9 +1020,8 @@ class navigator {
         const track_t &track, const detector_type &det,
         const navigation::config &cfg, const context_type &ctx) const {
 
-        if (candidate.sf_desc.barcode().is_invalid()) {
-            return false;
-        }
+        if (candidate.sf_desc.barcode().is_invalid())
+            [[unlikely]] { return false; }
 
         const auto sf = geometry::surface{det, candidate.sf_desc};
 
@@ -1034,6 +1052,6 @@ class navigator {
         return detray::find_if(candidates.begin(), candidates.end(),
                                not_reachable);
     }
-};
+};  // namespace detray
 
 }  // namespace detray
