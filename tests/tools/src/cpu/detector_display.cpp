@@ -139,21 +139,15 @@ int main(int argc, char** argv) {
 
     // Display the volumes
     if (!volumes.empty()) {
-        const auto [vol_xy_svg, xy_sheets] = il.draw_volumes(volumes, xy, gctx);
+        const auto vol_xy_svg = il.draw_volumes(volumes, xy, gctx);
         detray::svgtools::write_svg(path / vol_xy_svg._id,
                                     {xy_axis, vol_xy_svg});
-        for (const auto& sheet : xy_sheets) {
-            detray::svgtools::write_svg(path / sheet._id, sheet);
-        }
 
-        const auto [vol_zr_svg, _sh] = il.draw_volumes(volumes, zr, gctx);
+        const auto vol_zr_svg = il.draw_volumes(volumes, zr, gctx);
         detray::svgtools::write_svg(path / vol_zr_svg._id,
                                     {zr_axis, vol_zr_svg});
 
-        const auto [_vol, zphi_sheets] = il.draw_volumes(volumes, zphi, gctx);
-        for (const auto& sheet : zphi_sheets) {
-            detray::svgtools::write_svg(path / sheet._id, sheet);
-        }
+        const auto _vol = il.draw_volumes(volumes, zphi, gctx);
     }
 
     // Display the surfaces
