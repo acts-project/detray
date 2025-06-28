@@ -7,8 +7,11 @@ from .plot_benchmark_results import (
 )
 from .plot_navigation_validation import (
     read_scan_data,
-    read_navigation_data,
-    plot_navigation_data,
+    read_navigation_intersection_data,
+    read_navigation_track_data,
+    plot_detector_scan_data,
+    plot_navigation_intersection_data,
+    plot_navigation_track_data,
 )
 from .plot_material_scan import (
     read_material_data,
@@ -17,11 +20,12 @@ from .plot_material_scan import (
     X0_vs_eta,
     L0_vs_eta,
 )
-from .plot_ray_scan import (
-    read_ray_scan_data,
+from .plot_detector_scan import (
+    read_detector_scan_data,
+    read_intersection_data,
     plot_intersection_points_xy,
     plot_intersection_points_rz,
-    plot_detector_scan_data,
+    plot_intersection_pos_res,
 )
 from .plot_track_params import (
     read_track_data,

@@ -4,10 +4,12 @@
 #
 # Mozilla Public License Version 2.0
 
-from .plot_ray_scan import (
-    read_ray_scan_data,
+from .plot_detector_scan import (
+    read_detector_scan_data,
+    read_intersection_data,
     plot_intersection_points_xy,
     plot_intersection_points_rz,
+    plot_intersection_pos_res,
 )
 from .plot_track_params import (
     read_track_data,
@@ -26,7 +28,7 @@ import os
 
 
 def __comp_filename(filename, det_name, file_stem, p_min="", p_max=""):
-    check_file_stem = f"{det_name}_{file_stem}_" in filename
+    check_file_stem = f"{det_name}_{file_stem}" in filename
     check_p_min = f"_{p_min}" in filename
     check_p_max = f"_{p_max}" in filename
 
@@ -62,12 +64,12 @@ def read_scan_data(logging, inputdir, det_name, p_min, p_max):
             helix_scan_track_param_file = inputdir + "/" + filename
 
     # Read ray scan data
-    ray_scan_df = read_ray_scan_data(
+    ray_scan_df = read_detector_scan_data(
         ray_scan_intersections_file, ray_scan_track_param_file, logging
     )
 
     # Read helix scan data
-    helix_scan_df = read_ray_scan_data(
+    helix_scan_df = read_detector_scan_data(
         helix_scan_intersections_file, helix_scan_track_param_file, logging
     )
 
@@ -77,7 +79,58 @@ def read_scan_data(logging, inputdir, det_name, p_min, p_max):
 """ Read the recorded track positions from files and prepare data frames """
 
 
-def read_navigation_data(logging, inputdir, det_name, p_min, p_max, read_cuda):
+def read_navigation_intersection_data(
+    logging, inputdir, det_name, p_min, p_max, read_cuda
+):
+
+    # Input data directory
+    data_dir = os.fsencode(inputdir)
+
+    ray_truth_file = ray_data_file = ray_data_cuda_file = ""
+    helix_truth_file = helix_data_file = helix_data_cuda_file = ""
+
+    # Find the data files by naming convention
+    for file in os.listdir(data_dir):
+        filename = os.fsdecode(file)
+
+        if read_cuda and __comp_filename(
+            filename, det_name, "ray_navigation_intersections_cuda"
+        ):
+            ray_data_cuda_file = inputdir + "/" + filename
+        elif __comp_filename(filename, det_name, "ray_navigation_intersections"):
+            ray_data_file = inputdir + "/" + filename
+        elif __comp_filename(filename, det_name, "ray_truth_intersections"):
+            ray_truth_file = inputdir + "/" + filename
+        elif read_cuda and __comp_filename(
+            filename, det_name, "helix_navigation_intersections_cuda", p_min, p_max
+        ):
+            helix_data_cuda_file = inputdir + "/" + filename
+        elif __comp_filename(
+            filename, det_name, "helix_navigation_intersections", p_min, p_max
+        ):
+            helix_data_file = inputdir + "/" + filename
+        elif __comp_filename(
+            filename, det_name, "helix_truth_intersections", p_min, p_max
+        ):
+            helix_truth_file = inputdir + "/" + filename
+
+    ray_df = read_intersection_data(ray_data_file, logging)
+    ray_truth_df = read_intersection_data(ray_truth_file, logging)
+    helix_df = read_intersection_data(helix_data_file, logging)
+    helix_truth_df = read_intersection_data(helix_truth_file, logging)
+
+    ray_cuda_df = helix_cuda_df = pd.DataFrame({})
+    if read_cuda:
+        ray_cuda_df = read_intersection_data(ray_data_cuda_file, logging)
+        helix_cuda_df = read_intersection_data(helix_data_cuda_file, logging)
+
+    return ray_df, ray_truth_df, ray_cuda_df, helix_df, helix_truth_df, helix_cuda_df
+
+
+""" Read the recorded track positions from files and prepare data frames """
+
+
+def read_navigation_track_data(logging, inputdir, det_name, p_min, p_max, read_cuda):
 
     # Input data directory
     data_dir = os.fsencode(inputdir)
@@ -123,10 +176,59 @@ def read_navigation_data(logging, inputdir, det_name, p_min, p_max, read_cuda):
     return ray_df, ray_truth_df, ray_cuda_df, helix_df, helix_truth_df, helix_cuda_df
 
 
-""" Plot the data gathered during the navigaiton validation """
+""" Plot the intersection data gathered during the detector scan """
 
 
-def plot_navigation_data(
+def plot_detector_scan_data(
+    args, det_name, plot_factory, data_type, df_scan, out_format="png"
+):
+
+    # Plot truth scan
+    plot_intersection_points_xy(
+        args, df_scan, det_name, data_type, plot_factory, out_format
+    )
+    plot_intersection_points_rz(
+        args, df_scan, det_name, data_type, plot_factory, out_format
+    )
+
+
+""" Plot the intersection data gathered during the navigaiton validation """
+
+
+def plot_navigation_intersection_data(
+    args, det_name, plot_factory, data_type, df_scan, df_nav, label, out_format="png"
+):
+    # Plot the residuals in local 0 and local 1
+    plot_intersection_pos_res(
+        args,
+        det_name,
+        plot_factory,
+        data_type,
+        df_scan,
+        "truth",
+        df_nav,
+        label,
+        "loc_0",
+        out_format,
+    )
+    plot_intersection_pos_res(
+        args,
+        det_name,
+        plot_factory,
+        data_type,
+        df_scan,
+        "truth",
+        df_nav,
+        label,
+        "loc_1",
+        out_format,
+    )
+
+
+""" Plot the track data gathered during the navigaiton validation """
+
+
+def plot_navigation_track_data(
     args,
     det_name,
     plot_factory,
