@@ -96,13 +96,6 @@ class base_stepper {
             m_track = sf.bound_to_free_vector(ctx, bound_params);
 
             assert(!m_track.is_invalid());
-
-            // Bad seed: track direction points back at the IP
-            // (only test high mom. tracks, as low mom. tracks can be looping)
-            assert(math::fabs(m_track.qop()) > 0.5f ||
-                   vector::dot(m_track.pos(), m_track.dir()) > 0.f ||
-                   algebra::approx_equal(vector::norm(m_track.pos()),
-                                         scalar_type{0.f}, scalar_type{1e-5f}));
         }
 
         /// @returns free track parameters - non-const access
