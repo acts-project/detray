@@ -76,18 +76,26 @@ auto read_detector(vecmem::memory_resource& resc,
     detector_builder<typename detector_t::metadata, volume_builder_t>
         det_builder;
 
+    std::cout << "INFO: Reading detector files... ";
+
     // Register readers for the respective detector component and file format
     // and read the data into the detector_builder
     read_components_from_file<detector_t, CAP, DIM>(cfg.files(), det_builder);
 
+    std::cout << "Done" << std::endl;
+    std::cout << "INFO: Building detector: " << det_builder.name() << "... ";
+
     // Build and return the detector
     auto det = det_builder.build(resc, names);
+
+    std::cout << "Done" << std::endl;
 
     if (cfg.do_check()) {
         // This will throw an exception in case of inconsistencies
         detray::detail::check_consistency(det, cfg.verbose_check(), names);
-        std::cout << "Detector check: OK" << std::endl;
     }
+
+    std::cout << "INFO: Host detector construction complete" << std::endl;
 
     return std::make_pair(std::move(det), std::move(names));
 }
