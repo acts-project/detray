@@ -17,7 +17,6 @@ import os
 import pandas as pd
 import sys
 
-
 # Plot types for benchmarks
 benchmark_plots = namedtuple(
     "benchmark_plots",
@@ -186,7 +185,7 @@ def plot_benchmark_case(
             label=label,
             lgd_ops=lgd_ops,
             marker=marker,
-            figsize=(15, 8),
+            figsize=(18, 8),
         )
     else:
         # Add new data to exiting plot
@@ -307,11 +306,9 @@ def plot_scaling_data(
     title,
     plot_factory,
     out_format,
+    n_threads,
+    n_cores,
 ):
-    # TODO: Hard-coded for now
-    # Number of threads per benchmark case
-    n_threads = [1, 2, 4, 8, 16, 32, 64, 128, 256]
-
     # Cylce through marker styles per plot
     marker_styles = ["o", "x", "*", "v", "s", "^", "<", ">"]
     marker_style_cycle = itertools.cycle(marker_styles)
@@ -423,6 +420,14 @@ def plot_scaling_data(
         label="ideal scaling",
     )
 
+    plot_factory.vertical_line(
+        plot_data=plots.weak_scaling,
+        x=n_cores,
+        y=2 * min(weak_sc_efficiency),
+        color="black",
+        label="no. cores",
+    )
+
     # Ideal strong scaling
     plot_factory.add_graph(
         plot=plots.strong_scaling,
@@ -431,6 +436,10 @@ def plot_scaling_data(
         marker="",
         color="r",
         label="ideal scaling",
+    )
+
+    plot_factory.vertical_line(
+        plot_data=plots.strong_scaling, x=n_cores, color="black", label="no. cores"
     )
 
     # Write to disk
