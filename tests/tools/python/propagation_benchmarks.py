@@ -71,8 +71,11 @@ def __read_context_metadata(logging, input_dir, data_file):
     bknd_name = __compactify_bknd_name(context["Backend Name"])
     algebra = context["Algebra-plugin"]
     setup = context["Detector Setup"]
+    cores = 0
+    if "Max no. Threads" in context:
+        cores = int(context["Max no. Threads"]) / 2  # Adjust for hyperthreading
 
-    return bknd, bknd_name, algebra, setup
+    return bknd, bknd_name, algebra, setup, cores
 
 
 # Parse and check the user provided input data files
@@ -86,7 +89,7 @@ def __parse_input_data_files(args, logging):
         _, file_extension = os.path.splitext(file)
 
         if file_extension != ".json":
-            logging.error("Wrong file extension. Should be '.json': " + format_msg)
+            logging.error("Wrong file extension. Should be '.json': " + file)
             sys.exit(1)
 
         input_data_files.append(file)
@@ -108,8 +111,8 @@ def __generate_benchmark_dict(
     # Bundle benchmark metadata
     benchmark_metadata = namedtuple(
         "benchmark_metadata",
-        "name algebra setup bin file",
-        defaults=["Unknown", "Unknown Algebra", "", None, None],
+        "name algebra setup bin file cores",
+        defaults=["Unknown", "Unknown Algebra", "", None, None, 0],
     )
 
     # Resulting dictionary
@@ -129,7 +132,7 @@ def __generate_benchmark_dict(
         # Add file to benchmark dict
         input_dir = os.path.dirname(f)
         file_name = os.path.basename(f)
-        bknd, bknd_name, algebra, setup = __read_context_metadata(
+        bknd, bknd_name, algebra, setup, cores = __read_context_metadata(
             logging, input_dir, file_name
         )
 
@@ -142,7 +145,9 @@ def __generate_benchmark_dict(
         context, _ = read_benchmark_data(logging, input_dir, file_name)
         if bench_type in context["executable"]:
             benchmarks[bknd][bknd_name].append(
-                benchmark_metadata(name=bknd_name, algebra=algebra, setup=setup, file=f)
+                benchmark_metadata(
+                    name=bknd_name, algebra=algebra, setup=setup, file=f, cores=cores
+                )
             )
 
     # Register benchmarks to be run
@@ -212,9 +217,14 @@ def __generate_benchmark_dict(
             file_setup = file_setup.replace(",", "")
             file_setup = file_setup.replace(".", "")
             data_file = f"{det_name}_{bench_type}_{bknd.lower()}_{file_bknd_name}_{algebra}_{file_setup}.json"
+            cores = os.cpu_count() / 2  # Correct for logical cores
 
             metadata = benchmark_metadata(
-                name=bknd_name, algebra=algebra, setup=setup, file=data_file
+                name=bknd_name,
+                algebra=algebra,
+                setup=setup,
+                file=data_file,
+                cores=cores,
             )
 
             # If the results should not be read from file, run the benchmark
@@ -439,7 +449,7 @@ def __main__():
                 for metadata in metadata_list:
                     if algebra == metadata.algebra:
                         data_files_per_plugin.append(metadata.file)
-                        label = make_label(f"{bknd}: {bknd_name}", metadata.setup)
+                        label = make_label(f"{bknd_name}", metadata.setup)
                         plot_labels.append(label)
 
         plot_benchmark_data(
@@ -474,6 +484,8 @@ def __main__():
                     f"hardware backend: {bknd} ({bknd_name})",
                     plot_factory,
                     out_format,
+                    [1, 2, 4, 8, 16, 24, 32, 48, 64, 96, 128, 256],
+                    metadata.cores,
                 )
 
 

@@ -204,11 +204,36 @@ inline auto write_intersections(
     // Split data
     for (const auto &trace : intersection_traces) {
 
-        intersections.push_back({});
-        intersections.back().reserve(trace.size());
+        auto &intrs = intersections.emplace_back();
+        intrs.reserve(trace.size());
 
         for (const auto &record : trace) {
-            intersections.back().push_back(record.intersection);
+            intrs.push_back(record.intersection);
+        }
+    }
+
+    // Write to file
+    io::csv::write_intersection2D(intersection_file_name, intersections);
+}
+
+/// Write the @param intersection_traces to file
+template <typename record_t>
+inline auto write_intersections(
+    const std::string &intersection_file_name,
+    const dvector<dvector<record_t>> &intersection_traces) {
+
+    using intersection_t = typename record_t::intersection_type;
+
+    std::vector<std::vector<intersection_t>> intersections{};
+
+    // Split data
+    for (const auto &trace : intersection_traces) {
+
+        auto &intrs = intersections.emplace_back();
+        intrs.reserve(trace.size());
+
+        for (const auto &record : trace) {
+            intrs.push_back(record.intersection);
         }
     }
 
