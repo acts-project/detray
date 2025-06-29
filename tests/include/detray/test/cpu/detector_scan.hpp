@@ -98,8 +98,8 @@ class detector_scan : public test::fixture_base<> {
                 m_cfg.name());
 
         const std::string det_name{m_det.name(m_names)};
-        const std::string prefix{k_use_rays ? det_name + "_ray_"
-                                            : det_name + "_helix_"};
+        const std::string prefix{k_use_rays ? det_name + "_ray"
+                                            : det_name + "_helix"};
         std::ios_base::openmode io_mode = std::ios::trunc | std::ios::out;
         detray::io::file_handle debug_file{prefix + "_detector_scan.txt",
                                            io_mode};
@@ -202,6 +202,7 @@ class detector_scan : public test::fixture_base<> {
             const auto pT_range = m_cfg.track_generator().mom_range();
             // Remove floating point imprecisions
             momentum_str =
+                "_" +
                 std::to_string(
                     std::floor(10. * static_cast<double>(pT_range[0])) / 10.) +
                 "_" +
@@ -210,10 +211,10 @@ class detector_scan : public test::fixture_base<> {
                 "_GeV";
         }
 
-        std::string track_param_file_name{m_cfg.track_param_file() + "_" +
+        std::string track_param_file_name{m_cfg.track_param_file() +
                                           momentum_str + ".csv"};
 
-        std::string intersection_file_name{m_cfg.intersection_file() + "_" +
+        std::string intersection_file_name{m_cfg.intersection_file() +
                                            momentum_str + ".csv"};
 
         const bool data_files_exist{io::file_exists(intersection_file_name) &&

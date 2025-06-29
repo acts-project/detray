@@ -7,6 +7,7 @@
 
 // Project include(s)
 #include "detray/core/detector.hpp"
+#include "detray/definitions/units.hpp"
 #include "detray/navigation/volume_graph.hpp"
 
 // Detray IO include(s)
@@ -59,6 +60,12 @@ int main(int argc, char** argv) {
     desc.add_options()("outdir", po::value<std::string>(),
                        "Output directory for plots")(
         "context", po::value<dindex>(), "Number of the geometry context")(
+        "r_axis", po::value<float>()->default_value(1100.f * unit<float>::mm),
+        "Length of the radial axis")("x_axis", po::value<float>(),
+                                     "Length of the x axis")(
+        "y_axis", po::value<float>(), "Length of the y axis")(
+        "z_axis", po::value<float>()->default_value(3100.f * unit<float>::mm),
+        "Length of the z axis")(
         "search_window", po::value<std::vector<dindex>>(&window)->multitoken(),
         "Size of the grid surface search window")(
         "volumes", po::value<std::vector<dindex>>(&volumes)->multitoken(),
@@ -83,6 +90,17 @@ int main(int argc, char** argv) {
     std::string outdir{vm.count("outdir") ? vm["outdir"].as<std::string>()
                                           : "./plots/"};
     auto path = detray::io::create_path(outdir);
+
+    float r_axis{vm["r_axis"].as<float>()};
+    float x_axis{r_axis};
+    float y_axis{r_axis};
+    if (vm.count("x_axis")) {
+        x_axis = vm["x_axis"].as<float>();
+    }
+    if (vm.count("y_axis")) {
+        y_axis = vm["y_axis"].as<float>();
+    }
+    const float z_axis{vm["z_axis"].as<float>()};
 
     // The geometry context to be displayed
     detector_t::geometry_context gctx;
@@ -122,14 +140,16 @@ int main(int argc, char** argv) {
     axis_font._size = 35u;
 
     // x-y axis.
-    auto xy_axis = actsvg::draw::x_y_axes("axes", {-1100, 1100}, {-1100, 1100},
-                                          stroke_black, "x", "y", axis_font);
+    auto xy_axis =
+        actsvg::draw::x_y_axes("axes", {-x_axis, x_axis}, {-y_axis, y_axis},
+                               stroke_black, "x", "y", axis_font);
     // z-r axis.
-    auto zr_axis = actsvg::draw::x_y_axes("axes", {-3100, 3100}, {-5, 1100},
-                                          stroke_black, "z", "r", axis_font);
+    auto zr_axis =
+        actsvg::draw::x_y_axes("axes", {-z_axis, z_axis}, {-5, r_axis},
+                               stroke_black, "z", "r", axis_font);
     // z-phi axis.
     auto zphi_axis =
-        actsvg::draw::x_y_axes("axes", {-3100, 3100}, {-1000, 1000},
+        actsvg::draw::x_y_axes("axes", {-z_axis, z_axis}, {-r_axis, r_axis},
                                stroke_black, "z", "phi", axis_font);
 
     // Creating the views.
@@ -180,7 +200,7 @@ int main(int argc, char** argv) {
         detray::svgtools::write_svg(path / det_xy_svg._id,
                                     {xy_axis, det_xy_svg});
 
-        const auto det_zr_svg = il.draw_detector(zr, gctx);
+        const auto det_zr_svg = il.draw_detector(zr, gctx, r_axis, z_axis);
         detray::svgtools::write_svg(path / det_zr_svg._id,
                                     {zr_axis, det_zr_svg});
     }
