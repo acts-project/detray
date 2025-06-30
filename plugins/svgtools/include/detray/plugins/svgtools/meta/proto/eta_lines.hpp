@@ -21,9 +21,9 @@ struct eta_lines {
     actsvg::scalar _z{800.f};
 
     // Main eta lines
-    std::vector<actsvg::scalar> _values_main = {1.f, 2.f, 3.f, 4.f, 5.f};
+    std::vector<actsvg::scalar> _values_main = {1.f, 2.f, 3.f, 4.f};
     // Intermediate eta lines
-    std::vector<actsvg::scalar> _values_half = {0.5f, 1.5f, 2.5f, 3.5f, 4.5f};
+    std::vector<actsvg::scalar> _values_half = {0.5f, 1.5f, 2.5f, 3.5f};
 
     actsvg::style::stroke _stroke_main;
     actsvg::style::stroke _stroke_half;

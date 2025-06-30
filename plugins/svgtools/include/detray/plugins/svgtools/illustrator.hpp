@@ -376,7 +376,8 @@ class illustrator {
     template <typename view_t>
     inline auto draw_detector(
         const view_t& view,
-        const typename detector_t::geometry_context& gctx = {}) const {
+        const typename detector_t::geometry_context& gctx = {},
+        const float r_length = 1100.f, const float z_length = 3100.f) const {
 
         auto p_detector = svgtools::conversion::detector(
             gctx, _detector, view, _style._detector_style, _hide_portals,
@@ -396,8 +397,8 @@ class illustrator {
                                                _style._eta_lines_style);
 
                 // Hardcoded until we find a way to scale axes automatically
-                p_eta_lines._r = 1100.f;
-                p_eta_lines._z = 3100.f;
+                p_eta_lines._r = r_length;
+                p_eta_lines._z = z_length;
 
                 det_svg.add_object(svgtools::meta::display::eta_lines(
                     "eta_lines_", p_eta_lines));

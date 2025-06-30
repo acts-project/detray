@@ -7,6 +7,7 @@
 
 // Project include(s)
 #include "detray/core/detector.hpp"
+#include "detray/definitions/units.hpp"
 #include "detray/navigation/volume_graph.hpp"
 
 // Detray IO include(s)
@@ -59,6 +60,14 @@ int main(int argc, char** argv) {
     desc.add_options()("outdir", po::value<std::string>(),
                        "Output directory for plots")(
         "context", po::value<dindex>(), "Number of the geometry context")(
+        "r_axis", po::value<float>()->default_value(1100.f * unit<float>::mm),
+        "Length of the radial axis")("x_axis", po::value<float>(),
+                                     "Length of the x axis")(
+        "y_axis", po::value<float>(), "Length of the y axis")(
+        "z_axis", po::value<float>()->default_value(3100.f * unit<float>::mm),
+        "Length of the z axis")("font_size",
+                                po::value<unsigned int>()->default_value(35u),
+                                "Font size")(
         "search_window", po::value<std::vector<dindex>>(&window)->multitoken(),
         "Size of the grid surface search window")(
         "volumes", po::value<std::vector<dindex>>(&volumes)->multitoken(),
@@ -84,6 +93,17 @@ int main(int argc, char** argv) {
                                           : "./plots/"};
     auto path = detray::io::create_path(outdir);
 
+    float r_axis{vm["r_axis"].as<float>()};
+    float x_axis{r_axis};
+    float y_axis{r_axis};
+    if (vm.count("x_axis")) {
+        x_axis = vm["x_axis"].as<float>();
+    }
+    if (vm.count("y_axis")) {
+        y_axis = vm["y_axis"].as<float>();
+    }
+    const float z_axis{vm["z_axis"].as<float>()};
+
     // The geometry context to be displayed
     detector_t::geometry_context gctx;
     if (vm.count("context")) {
@@ -107,6 +127,14 @@ int main(int argc, char** argv) {
     const auto [det, names] =
         detray::io::read_detector<detector_t>(host_mr, reader_cfg);
 
+    // Style settings for the Illustrator
+    const unsigned int font_size{vm["font_size"].as<unsigned int>()};
+    auto& vol_style = style._detector_style._volume_style;
+    vol_style._sensitive_surface_style._font_size = font_size;
+    vol_style._passive_surface_style._font_size = font_size;
+    vol_style._portal_style._surface_style._font_size = font_size;
+    style._eta_lines_style._font_size = font_size;
+
     // Creating the svg generator for the detector.
     detray::svgtools::illustrator il{det, names, style};
     il.show_info(vm.count("show_info"));
@@ -119,17 +147,19 @@ int main(int argc, char** argv) {
 
     actsvg::style::stroke stroke_black = actsvg::style::stroke();
     actsvg::style::font axis_font = actsvg::style::font();
-    axis_font._size = 35u;
+    axis_font._size = font_size;
 
     // x-y axis.
-    auto xy_axis = actsvg::draw::x_y_axes("axes", {-1100, 1100}, {-1100, 1100},
-                                          stroke_black, "x", "y", axis_font);
+    auto xy_axis =
+        actsvg::draw::x_y_axes("axes", {-x_axis, x_axis}, {-y_axis, y_axis},
+                               stroke_black, "x", "y", axis_font);
     // z-r axis.
-    auto zr_axis = actsvg::draw::x_y_axes("axes", {-3100, 3100}, {-5, 1100},
-                                          stroke_black, "z", "r", axis_font);
+    auto zr_axis =
+        actsvg::draw::x_y_axes("axes", {-z_axis, z_axis}, {-5, r_axis},
+                               stroke_black, "z", "r", axis_font);
     // z-phi axis.
     auto zphi_axis =
-        actsvg::draw::x_y_axes("axes", {-3100, 3100}, {-1000, 1000},
+        actsvg::draw::x_y_axes("axes", {-z_axis, z_axis}, {-r_axis, r_axis},
                                stroke_black, "z", "phi", axis_font);
 
     // Creating the views.
@@ -174,7 +204,7 @@ int main(int argc, char** argv) {
         detray::svgtools::write_svg(path / det_xy_svg._id,
                                     {xy_axis, det_xy_svg});
 
-        const auto det_zr_svg = il.draw_detector(zr, gctx);
+        const auto det_zr_svg = il.draw_detector(zr, gctx, r_axis, z_axis);
         detray::svgtools::write_svg(path / det_zr_svg._id,
                                     {zr_axis, det_zr_svg});
     }
