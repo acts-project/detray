@@ -738,6 +738,22 @@ class pyplot_factory:
 
         return None, None
 
+    """ Draw a vertical line in a given plot"""
+
+    def vertical_line(self, plot_data, x, y=None, color="b", label=""):
+
+        plot_data.axes.axvline(x=x, color=color, linestyle="--")
+
+        ymin, ymax = plot_data.axes.get_ylim()
+        plot_data.axes.text(
+            x,
+            ymin + (ymax - ymin) / 2 if y is None else y,
+            label,
+            ha="center",
+            va="center",
+            backgroundcolor="white",
+        )
+
     """ Write a plot to disk """
 
     def write_plot(

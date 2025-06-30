@@ -239,12 +239,13 @@ def plot_intersection_pos_res(
     )
 
     # Plot the residuals as a histogram and fit a gaussian to it
+    var_for_label = var.replace("_", "\,")
     hist_data = plot_factory.hist1D(
         x=filtered_res,
         figsize=(9, 9),
         bins=100,
         x_axis=plotting.axis_options(
-            label=r"$\mathrm{res}" + rf"~{var.replace("_", "\,")}" + r"\,\mathrm{[mm]}$"
+            label=r"$\mathrm{res}" + rf"~{var_for_label}" + r"\,\mathrm{[mm]}$"
         ),
         lgd_ops=lgd_ops,
         u_outlier=u_out,

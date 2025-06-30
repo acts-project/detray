@@ -74,7 +74,7 @@ int main(int argc, char** argv) {
     // omp_sched_monotonic = 0x80000000u
     constexpr int sched_policy{1};
     /// Number of host threads
-    std::vector<int> n_threads{1, 2, 4, 8, 16, 32, 64, 128, 256};
+    std::vector<int> n_threads{1, 2, 4, 8, 16, 24, 32, 48, 64, 96, 128, 256};
 
     /// Number of tracks per thread in weak scaling
     constexpr int chunk_size{1000};
