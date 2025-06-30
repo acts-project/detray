@@ -10,13 +10,17 @@ import plotting
 # python includes
 import numpy as np
 import pandas as pd
+import math
 import os
+import sys
 
+# Common options
+lgd_loc = "upper right"
 
 """ Read the detector scan data from files and prepare data frames """
 
 
-def read_ray_scan_data(intersection_file, track_param_file, logging):
+def read_detector_scan_data(intersection_file, track_param_file, logging):
     if intersection_file:
         inters_df = pd.read_csv(intersection_file, float_precision="round_trip")
         trk_param_df = pd.read_csv(track_param_file, float_precision="round_trip")
@@ -28,6 +32,21 @@ def read_ray_scan_data(intersection_file, track_param_file, logging):
         scan_df = pd.DataFrame({})
 
     return scan_df
+
+
+""" Read intersection data """
+
+
+def read_intersection_data(file, logging):
+    if file:
+        # Preserve floating point precision
+        df = pd.read_csv(file, float_precision="round_trip")
+        logging.debug(df)
+
+        return df
+    else:
+        logging.error("Could not find intersection data file: " + file)
+        sys.exit(1)
 
 
 """ Plot the intersection points of the detector with the rays - xy view """
@@ -172,13 +191,74 @@ def plot_intersection_points_rz(
     )
 
 
-""" Plot the data gathered during the navigaiton validation """
+""" Plot the intersection local position residual for the given variable """
 
 
-def plot_detector_scan_data(
-    args, det_name, plot_factory, data_type, df, out_format="png"
+def plot_intersection_pos_res(
+    opts, detector, plot_factory, scan_type, df1, label1, df2, label2, var, out_format
 ):
 
-    # Plot truth scan
-    plot_intersection_points_xy(args, df, det_name, data_type, plot_factory, out_format)
-    plot_intersection_points_rz(args, df, det_name, data_type, plot_factory, out_format)
+    tracks = "rays" if scan_type == "ray" else "helices"
+
+    # Filter the relevant data from the frame (sensitive = 1, hole = 15)
+    is_sensitive = lambda data_frame: (
+        (data_frame["type"] == 1) | (data_frame["type"] == 15)
+    )
+
+    var_truth, track_ids = plotting.filter_data(
+        data=df1, filter=is_sensitive, variables=[var, "track_id"]
+    )
+    var_nav = plotting.filter_data(data=df2, filter=is_sensitive, variables=[var])
+
+    assert len(var_truth) == len(var_nav)
+    res = var_truth - var_nav
+
+    # Remove outliers (happens when comparing a hole with a valid intersection)
+    filter_res = np.absolute(res) < opts.outlier
+    filtered_res = res[filter_res]
+
+    u_out = o_out = int(0)
+    if not np.all(filter_res == True):
+        print(f"\nRemoved outliers ({var}):")
+        for i, r in enumerate(res):
+            if math.fabs(r) > opts.outlier:
+                print(f"track {track_ids[i]}: {var_truth[i]} - {var_nav[i]} = {r}")
+
+                if r < 0.0:
+                    u_out = u_out + 1
+                else:
+                    o_out = o_out + 1
+
+    lgd_ops = plotting.legend_options(
+        loc=lgd_loc,
+        ncol=4,
+        colspacing=0.01,
+        handletextpad=0.0005,
+        horiz_anchor=1.02,
+        vert_anchor=1.28,
+    )
+
+    # Plot the residuals as a histogram and fit a gaussian to it
+    hist_data = plot_factory.hist1D(
+        x=filtered_res,
+        figsize=(9, 9),
+        bins=100,
+        x_axis=plotting.axis_options(
+            label=r"$\mathrm{res}" + rf"~{var.replace("_", "\,")}" + r"\,\mathrm{[mm]}$"
+        ),
+        lgd_ops=lgd_ops,
+        u_outlier=u_out,
+        o_outlier=o_out,
+    )
+
+    mu, sig = plot_factory.fit_gaussian(hist_data)
+    if mu is None or sig is None:
+        print(rf"WARNING: fit failed (res ({tracks}): {label1} - {label2} )")
+
+    detector_name = detector.replace(" ", "_")
+    l1 = label1.replace(" ", "_").replace("(", "").replace(")", "")
+    l2 = label2.replace(" ", "_").replace("(", "").replace(")", "")
+
+    plot_factory.write_plot(
+        hist_data, f"{detector_name}_{scan_type}_intr_res_{var}_{l1}_{l2}", out_format
+    )

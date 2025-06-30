@@ -260,7 +260,9 @@ inline void DsvWriter<Delimiter>::append(Arg0&& arg0, Args&&... args) {
     std::stringstream line;
     unsigned written_columns[] = {
         write(std::forward<Arg0>(arg0), line),
-        (line << Delimiter, write(std::forward<Args>(args), line))...,
+        (line << std::setprecision(std::numeric_limits<double>::max_digits10)
+              << Delimiter,
+         write(std::forward<Args>(args), line))...,
     };
     line << '\n';
     unsigned total_columns = 0;

@@ -5,9 +5,17 @@
 # Mozilla Public License Version 2.0
 
 # detray imports
-from impl import read_scan_data, read_navigation_data, plot_navigation_data
+from impl import (
+    read_scan_data,
+    read_navigation_intersection_data,
+    read_navigation_track_data,
+)
+from impl import (
+    plot_detector_scan_data,
+    plot_navigation_intersection_data,
+    plot_navigation_track_data,
+)
 from impl import plot_track_params
-from impl import plot_detector_scan_data, plot_track_pos_dist, plot_track_pos_res
 from options import (
     common_options,
     detector_io_options,
@@ -181,12 +189,74 @@ def __main__():
         logging, datadir, det_name, p_min, p_max
     )
 
+    # Plot detector scan data
     plot_detector_scan_data(
         args, det_name, plot_factory, "ray", ray_scan_df, out_format
     )
     plot_detector_scan_data(
         args, det_name, plot_factory, "helix", helix_scan_df, out_format
     )
+
+    # Read the recorded intersection data
+    (
+        ray_nav_intr_df,
+        ray_nav_intr_truth_df,
+        ray_nav_intr_cuda_df,
+        helix_nav_intr_df,
+        helix_nav_intr_truth_df,
+        helix_nav_intr_cuda_df,
+    ) = read_navigation_intersection_data(
+        logging, datadir, det_name, p_min, p_max, args.cuda
+    )
+
+    # Plot intersection data
+    label_cpu = "navigation (CPU)"
+    label_cuda = "navigation (CUDA)"
+
+    plot_navigation_intersection_data(
+        args,
+        det_name,
+        plot_factory,
+        "ray",
+        ray_nav_intr_truth_df,
+        ray_nav_intr_df,
+        label_cpu,
+        out_format,
+    )
+
+    plot_navigation_intersection_data(
+        args,
+        det_name,
+        plot_factory,
+        "helix",
+        helix_nav_intr_truth_df,
+        helix_nav_intr_df,
+        label_cpu,
+        out_format,
+    )
+
+    if args.cuda:
+        plot_navigation_intersection_data(
+            args,
+            det_name,
+            plot_factory,
+            "ray",
+            ray_nav_intr_truth_df,
+            ray_nav_intr_cuda_df,
+            label_cuda,
+            out_format,
+        )
+
+        plot_navigation_intersection_data(
+            args,
+            det_name,
+            plot_factory,
+            "helix",
+            helix_nav_intr_truth_df,
+            helix_nav_intr_cuda_df,
+            label_cuda,
+            out_format,
+        )
 
     # Plot distributions of track parameter values
     # Only take initial track parameters from generator
@@ -199,7 +269,7 @@ def __main__():
         args, det_name, "ray", plot_factory, out_format, ray_intial_trk_df
     )
 
-    # Read the recorded data
+    # Read the recorded track data
     (
         ray_nav_df,
         ray_truth_df,
@@ -207,13 +277,10 @@ def __main__():
         helix_nav_df,
         helix_truth_df,
         helix_nav_cuda_df,
-    ) = read_navigation_data(logging, datadir, det_name, p_min, p_max, args.cuda)
+    ) = read_navigation_track_data(logging, datadir, det_name, p_min, p_max, args.cuda)
 
-    # Plot
-    label_cpu = "navigation (CPU)"
-    label_cuda = "navigation (CUDA)"
-
-    plot_navigation_data(
+    # Plot track data
+    plot_navigation_track_data(
         args,
         det_name,
         plot_factory,
@@ -225,7 +292,7 @@ def __main__():
         out_format,
     )
 
-    plot_navigation_data(
+    plot_navigation_track_data(
         args,
         det_name,
         plot_factory,
@@ -239,7 +306,7 @@ def __main__():
 
     if args.cuda:
         # Truth vs. Device
-        plot_navigation_data(
+        plot_navigation_track_data(
             args,
             det_name,
             plot_factory,
@@ -251,7 +318,7 @@ def __main__():
             out_format,
         )
 
-        plot_navigation_data(
+        plot_navigation_track_data(
             args,
             det_name,
             plot_factory,
@@ -264,7 +331,7 @@ def __main__():
         )
 
         # Host vs. Device
-        plot_navigation_data(
+        plot_navigation_track_data(
             args,
             det_name,
             plot_factory,
@@ -276,7 +343,7 @@ def __main__():
             out_format,
         )
 
-        plot_navigation_data(
+        plot_navigation_track_data(
             args,
             det_name,
             plot_factory,
