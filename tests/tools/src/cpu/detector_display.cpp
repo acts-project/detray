@@ -135,6 +135,16 @@ int main(int argc, char** argv) {
     vol_style._portal_style._surface_style._font_size = font_size;
     style._eta_lines_style._font_size = font_size;
 
+    // Material gradient box position
+    std::array<actsvg::scalar, 2u> grad_pos{};
+    grad_pos[0] = vm.count("x_axis") ? x_axis + 100.f : z_axis + 100.f;
+    grad_pos[1] = -200.f;  // default to align with major axis
+
+    vol_style._sensitive_surface_style._material_style._gradient_pos = grad_pos;
+    vol_style._passive_surface_style._material_style._gradient_pos = grad_pos;
+    vol_style._portal_style._surface_style._material_style._gradient_pos =
+        grad_pos;
+
     // Creating the svg generator for the detector.
     detray::svgtools::illustrator il{det, names, style};
     il.show_info(vm.count("show_info"));
