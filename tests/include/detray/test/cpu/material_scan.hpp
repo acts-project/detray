@@ -51,6 +51,8 @@ class material_scan : public test::fixture_base<> {
 
         std::string m_name{"material_scan"};
         trk_gen_config_t m_trk_gen_cfg{};
+        /// Name of the output file, containing the complete ray material traces
+        std::string m_material_file{"material_scan"};
         /// Perform overlaps removal (needed for detector converted from ACTS)
         bool m_overlaps_removal{true};
         /// Tolerance for overlaps
@@ -63,6 +65,7 @@ class material_scan : public test::fixture_base<> {
         const trk_gen_config_t &track_generator() const {
             return m_trk_gen_cfg;
         }
+        const std::string &material_file() const { return m_material_file; }
         bool overlaps_removal() const { return m_overlaps_removal; }
         float overlaps_tol() const { return m_overlaps_tol; }
         /// @}
@@ -71,6 +74,10 @@ class material_scan : public test::fixture_base<> {
         /// @{
         config &name(const std::string n) {
             m_name = n;
+            return *this;
+        }
+        config &material_file(const std::string &f) {
+            m_material_file = f;
             return *this;
         }
         config &overlaps_removal(const bool o) {
@@ -228,12 +235,17 @@ class material_scan : public test::fixture_base<> {
                   << std::endl;
 
         // Write recorded material to csv file
-        std::string coll_name{m_det.name(m_names) + "_material_scan"};
-        material_validator::write_material(coll_name + ".csv", mat_records);
+        const std::string det_name{m_det.name(m_names)};
+        const auto material_path{std::filesystem::path{m_cfg.material_file()}};
+        const auto data_path{material_path.parent_path()};
+
+        std::string file_name{det_name + "_" + material_path.stem().string() +
+                              ".csv"};
+        material_validator::write_material(data_path / file_name, mat_records);
 
         // Pin data to whiteboard
-        m_whiteboard->add(coll_name, std::move(mat_records));
-        m_whiteboard->add(m_det.name(m_names) + "_material_scan_tracks",
+        m_whiteboard->add(det_name + "_material_scan", std::move(mat_records));
+        m_whiteboard->add(det_name + "_material_scan_tracks",
                           std::move(tracks));
     }
 

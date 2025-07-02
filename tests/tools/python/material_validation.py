@@ -56,6 +56,13 @@ def __main__():
         type=str,
     )
     parser.add_argument(
+        "--datadir",
+        "-data",
+        help=("Directoy containing the data files"),
+        default="./validation_data/material",
+        type=str,
+    )
+    parser.add_argument(
         "--material_tol",
         "-mt",
         help=("Tolerance for material comparisons [%]"),
@@ -86,7 +93,10 @@ def __main__():
 
     logging = parse_common_options(args, descr)
     parse_detector_io_options(args, logging)
-    in_dir, out_dir, out_format = parse_plotting_options(args, logging)
+    _, out_dir, out_format = parse_plotting_options(args, logging)
+
+    # IO path for data files
+    datadir = args.datadir.strip("/")
 
     # Check bin path
     bindir = args.bindir.strip("/")
@@ -101,6 +111,8 @@ def __main__():
 
     # Pass on the options for the validation tools
     args_list = [
+        "--data_dir",
+        datadir,
         "--material_tol",
         str(args.material_tol),
         "--overlaps_tol",
@@ -142,7 +154,12 @@ def __main__():
     det_name = read_detector_name(args.geometry_file, logging)
     logging.debug("Detector: " + det_name)
 
-    df_scan, df_cpu, df_cuda = read_material_data(in_dir, logging, det_name, args.cuda)
+    # Check the data path (should have been created when running the validation)
+    if not os.path.isdir(datadir):
+        logging.error(f"Data directory was not found! ({args.datadir})")
+        sys.exit(1)
+
+    df_scan, df_cpu, df_cuda = read_material_data(datadir, logging, det_name, args.cuda)
 
     plot_factory = plt_factory(out_dir, logging)
 

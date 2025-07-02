@@ -100,9 +100,16 @@ class detector_scan : public test::fixture_base<> {
         const std::string det_name{m_det.name(m_names)};
         const std::string prefix{k_use_rays ? det_name + "_ray"
                                             : det_name + "_helix"};
+
+        const auto data_path{
+            std::filesystem::path{m_cfg.track_param_file()}.parent_path()};
+
+        // Make sure the output directories exit
+        io::create_path(data_path);
+
         std::ios_base::openmode io_mode = std::ios::trunc | std::ios::out;
-        detray::io::file_handle debug_file{prefix + "_detector_scan.txt",
-                                           io_mode};
+        detray::io::file_handle debug_file{
+            data_path / (prefix + "_detector_scan.txt"), io_mode};
 
         std::cout << "\nINFO: Checking trace data...\n" << std::endl;
 

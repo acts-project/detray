@@ -127,10 +127,23 @@ class navigation_validation : public test::fixture_base<> {
                   << "...\n"
                   << std::endl;
 
+        std::string momentum_str{""};
         const std::string prefix{k_use_rays ? det_name + "_ray_"
                                             : det_name + "_helix_"};
+
+        const auto data_path{
+            std::filesystem::path{m_cfg.track_param_file()}.parent_path()};
+
+        // Create an output file path
+        auto make_path = [&data_path, &prefix, &momentum_str](
+                             const std::string &name,
+                             const std::string extension = ".csv") {
+            return data_path / (prefix + name + momentum_str + extension);
+        };
+
         std::ios_base::openmode io_mode = std::ios::trunc | std::ios::out;
-        const std::string debug_file_name{prefix + "navigation_validation.txt"};
+        const std::string debug_file_name{
+            make_path(prefix + "navigation_validation", ".txt")};
         detray::io::file_handle debug_file{debug_file_name, io_mode};
 
         // Keep a record of track positions and material along the track
@@ -284,7 +297,6 @@ class navigation_validation : public test::fixture_base<> {
                                                n_matching_error);
 
         // Print track positions for plotting
-        std::string momentum_str{""};
         if constexpr (!k_use_rays) {
             momentum_str =
                 "_" +
@@ -295,15 +307,6 @@ class navigation_validation : public test::fixture_base<> {
                                10.) +
                 "_GeV";
         }
-
-        const auto data_path{
-            std::filesystem::path{m_cfg.track_param_file()}.parent_path()};
-
-        // Create an output file path
-        auto make_path = [&data_path, &prefix,
-                          &momentum_str](const std::string &name) {
-            return data_path / (prefix + name + momentum_str + ".csv");
-        };
 
         const auto truth_trk_path{make_path("truth_track_params")};
         const auto trk_path{make_path("navigation_track_params")};

@@ -53,8 +53,12 @@ int main(int argc, char **argv) {
     // Specific options for this test
     po::options_description desc("\ndetray material validation options");
 
-    desc.add_options()("material_tol", po::value<float>()->default_value(1.f),
-                       "Tolerance for comparing the material traces [%]")(
+    desc.add_options()(
+        "data_dir",
+        po::value<std::string>()->default_value("./validation_data/material"),
+        "Directory that contains the data files")(
+        "material_tol", po::value<float>()->default_value(1.f),
+        "Tolerance for comparing the material traces [%]")(
         "overlaps_tol",
         po::value<float>()->default_value(stepping::config{}.min_stepsize),
         "Tolerance for considering surfaces to be overlapping [mm]");
@@ -75,6 +79,7 @@ int main(int argc, char **argv) {
     if (vm.count("overlaps_tol")) {
         mat_scan_cfg.overlaps_tol(vm["overlaps_tol"].as<float>());
     }
+    const auto data_dir{vm["data_dir"].as<std::string>()};
 
     vecmem::host_memory_resource host_mr;
 
@@ -86,10 +91,14 @@ int main(int argc, char **argv) {
 
     // Print the detector's material as recorded by a ray scan
     mat_scan_cfg.track_generator().uniform_eta(true);
+    mat_scan_cfg.material_file(data_dir + "/material_scan");
+
     detray::test::register_checks<test::material_scan>(det, names, mat_scan_cfg,
                                                        ctx, white_board);
 
     // Now trace the material during navigation and compare
+    mat_val_cfg.material_file(data_dir + "/navigation_material_trace");
+
     test::register_checks<detray::test::material_validation>(
         det, names, mat_val_cfg, ctx, white_board);
 
