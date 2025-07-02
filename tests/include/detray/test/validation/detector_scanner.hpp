@@ -122,9 +122,11 @@ struct brute_force_scan {
         // Save initial track position as dummy intersection record
         const auto &first_record = intersection_trace.front();
         intersection_t start_intersection{};
+        // Must not be invalid, since it will otherwise throw the navigation
+        // validation off
         start_intersection.sf_desc = first_record.intersection.sf_desc;
         start_intersection.sf_desc.set_id(surface_id::e_passive);
-        start_intersection.sf_desc.set_index(dindex_invalid);
+        start_intersection.sf_desc.set_index(0);
         start_intersection.sf_desc.material()
             .set_id(detector_t::materials::id::e_none)
             .set_index(dindex_invalid);

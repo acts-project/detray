@@ -387,13 +387,13 @@ auto compare_traces(
         const bool nav_has_next = (idx < recorded_trace.size());
         detray::geometry::barcode nav_inters{};
         if (nav_has_next) {
-            nav_inters = recorded_trace[idx].intersection.sf_desc.barcode();
+            nav_inters = recorded_trace.at(idx).intersection.sf_desc.barcode();
         }
 
         const bool truth_has_next = (idx < truth_trace.size());
         detray::geometry::barcode truth_inters{};
         if (truth_has_next) {
-            truth_inters = truth_trace[idx].intersection.sf_desc.barcode();
+            truth_inters = truth_trace.at(idx).intersection.sf_desc.barcode();
         }
 
         // Check if size of traces is still in sync and records match
@@ -426,14 +426,15 @@ auto compare_traces(
                     next_idx < recorded_trace.size()) {
 
                     const auto &current_nav_inters =
-                        recorded_trace[idx_j].intersection.sf_desc.barcode();
+                        recorded_trace.at(idx_j).intersection.sf_desc.barcode();
                     const auto &current_truth_inters =
-                        truth_trace[idx_j].intersection.sf_desc.barcode();
+                        truth_trace.at(idx_j).intersection.sf_desc.barcode();
 
                     const auto &next_nav_inters =
-                        recorded_trace[next_idx].intersection.sf_desc.barcode();
+                        recorded_trace.at(next_idx)
+                            .intersection.sf_desc.barcode();
                     const auto &next_truth_inters =
-                        truth_trace[next_idx].intersection.sf_desc.barcode();
+                        truth_trace.at(next_idx).intersection.sf_desc.barcode();
 
                     return ((current_nav_inters == next_truth_inters) &&
                             (next_nav_inters == current_truth_inters));
@@ -488,7 +489,7 @@ auto compare_traces(
                     // records until traces align again
                     for (long j = i; j < i + n_check; ++j) {
                         const auto &sfi =
-                            trace[static_cast<std::size_t>(j)].intersection;
+                            trace.at(static_cast<std::size_t>(j)).intersection;
 
                         // Portals may be swapped and wrongfully included in the
                         // range of missed surfaces - skip them
@@ -670,16 +671,19 @@ auto compare_traces(
     for (std::size_t intr_idx = 0u; intr_idx < max_entries; ++intr_idx) {
         debug_stream << "-------Intersection ( " << intr_idx << " )\n";
         if (intr_idx < truth_trace.size()) {
-            debug_stream << std::setw(20) << "\nReference: "
-                         << truth_trace[intr_idx].intersection << ", vol id: "
-                         << truth_trace[intr_idx].intersection.sf_desc.volume()
-                         << std::endl;
+            debug_stream
+                << std::setw(20)
+                << "\nReference: " << truth_trace.at(intr_idx).intersection
+                << ", vol id: "
+                << truth_trace.at(intr_idx).intersection.sf_desc.volume()
+                << std::endl;
         } else {
             debug_stream << "\nnReference: -" << std::endl;
         }
         if (intr_idx < recorded_trace.size()) {
             debug_stream << std::setw(20) << "\nDetray navigator: "
-                         << recorded_trace[intr_idx].intersection << std::endl
+                         << recorded_trace.at(intr_idx).intersection
+                         << std::endl
                          << std::endl;
         } else {
             debug_stream << "\nDetray navigator: -\n" << std::endl;
@@ -758,14 +762,18 @@ auto compare_traces(
         std::size_t n_miss_truth{0u};
         std::size_t n_miss_nav{0u};
         for (std::size_t i = 0u; i < truth_trace.size(); ++i) {
-            const auto truth_desc{truth_trace[i].intersection.sf_desc};
-            const auto nav_desc{recorded_trace[i].intersection.sf_desc};
+            const auto truth_desc{truth_trace.at(i).intersection.sf_desc};
+            const auto nav_desc{recorded_trace.at(i).intersection.sf_desc};
 
             if (truth_desc.barcode().is_invalid()) {
                 n_miss_truth++;
-            } else if (nav_desc.barcode().is_invalid()) {
+            }
+            if (nav_desc.barcode().is_invalid()) {
                 n_miss_nav++;
-            } else if (truth_desc.barcode() != nav_desc.barcode()) {
+            }
+            if (truth_desc.barcode() != nav_desc.barcode() &&
+                !(truth_desc.barcode().is_invalid() ||
+                  nav_desc.barcode().is_invalid())) {
                 n_miss_truth++;
                 n_miss_nav++;
             }
