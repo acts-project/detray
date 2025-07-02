@@ -201,13 +201,14 @@ class material_validation_impl : public test::fixture_base<> {
 
         // Print accumulated material per track
         std::filesystem::path mat_path{m_cfg.material_file()};
-        auto file_name{m_det.name(m_names) + "_" +
-                       std::string(material_validator_t::name) + "_" +
-                       mat_path.stem().string() +
-                       mat_path.extension().string()};
+        const auto data_path{mat_path.parent_path()};
 
-        material_validator::write_material(mat_path.replace_filename(file_name),
-                                           mat_records);
+        auto file_name{data_path /
+                       (m_det.name(m_names) + "_" + mat_path.stem().string() +
+                        "_" + std::string(material_validator_t::name) +
+                        ".csv")};
+
+        material_validator::write_material(file_name.string(), mat_records);
     }
 
     private:

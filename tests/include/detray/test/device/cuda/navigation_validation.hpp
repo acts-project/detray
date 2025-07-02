@@ -256,6 +256,7 @@ class navigation_validation : public test::fixture_base<> {
                   << std::endl;
 
         std::string momentum_str{""};
+        const std::string det_name{m_det.name(m_names)};
         const std::string prefix{k_use_rays ? det_name + "_ray_"
                                             : det_name + "_helix_"};
 
@@ -268,8 +269,6 @@ class navigation_validation : public test::fixture_base<> {
                              const std::string extension = ".csv") {
             return data_path / (prefix + name + momentum_str + extension);
         };
-
-        const std::string det_name{m_det.name(m_names)};
 
         std::ios_base::openmode io_mode = std::ios::trunc | std::ios::out;
         const std::string debug_file_name{

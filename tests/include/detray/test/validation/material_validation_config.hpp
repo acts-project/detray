@@ -34,7 +34,7 @@ struct material_validation_config
     /// Vecmem memory resource for the device allocations
     vecmem::memory_resource *m_dev_mr{nullptr};
     /// Name of the output file, containing the complete ray material traces
-    std::string m_material_file{"navigation_material_trace.csv"};
+    std::string m_material_file{"navigation_material_trace"};
     /// The maximal number of test tracks to run
     std::size_t m_n_tracks{detray::detail::invalid_value<std::size_t>()};
     /// Allowed relative discrepancy between truth and navigation material
