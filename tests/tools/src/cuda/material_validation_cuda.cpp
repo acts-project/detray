@@ -52,8 +52,12 @@ int main(int argc, char **argv) {
     // Specific options for this test
     po::options_description desc("\ndetray CUDA material validation options");
 
-    desc.add_options()("material_tol", po::value<float>()->default_value(1.f),
-                       "Tolerance for comparing the material traces [%]")(
+    desc.add_options()(
+        "data_dir",
+        po::value<std::string>()->default_value("./validation_data/material"),
+        "Directory that contains the data files")(
+        "material_tol", po::value<float>()->default_value(1.f),
+        "Tolerance for comparing the material traces [%]")(
         "overlaps_tol",
         po::value<float>()->default_value(stepping::config{}.min_stepsize),
         "Tolerance for considering surfaces to be overlapping [mm]");
@@ -74,6 +78,7 @@ int main(int argc, char **argv) {
     if (vm.count("overlaps_tol")) {
         mat_scan_cfg.overlaps_tol(vm["overlaps_tol"].as<float>());
     }
+    const auto data_dir{vm["data_dir"].as<std::string>()};
 
     /// Vecmem memory resource for the device allocations
     vecmem::cuda::device_memory_resource dev_mr{};
@@ -86,13 +91,15 @@ int main(int argc, char **argv) {
     detector_t::geometry_context ctx{};
 
     // Print the detector's material as recorded by a ray scan
-    mat_val_cfg.name("material_validation_for_cuda");
+    mat_scan_cfg.name("material_scan_for_cuda");
     mat_scan_cfg.track_generator().uniform_eta(true);
+    mat_scan_cfg.material_file(data_dir + "/material_scan_for_cuda");
     detray::test::register_checks<test::material_scan>(det, names, mat_scan_cfg,
                                                        ctx, white_board);
 
     // Now trace the material during navigation and compare
     mat_val_cfg.name("material_validation_cuda");
+    mat_val_cfg.material_file(data_dir + "/navigation_material_trace");
     mat_val_cfg.device_mr(&dev_mr);
 
     test::register_checks<detray::cuda::material_validation>(

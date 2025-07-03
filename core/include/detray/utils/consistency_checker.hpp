@@ -369,7 +369,7 @@ inline bool check_consistency(const detector_t &det, const bool verbose = false,
         }
     }
 
-    std::cout << "INFO: Detector check: OK" << std::endl;
+    std::cout << "INFO: Consistency check: OK" << std::endl;
 
     return true;
 }
