@@ -231,7 +231,7 @@ struct uniform_track_generator_config {
         const auto& phi_range = cfg.phi_range();
 
         // General
-        out << "\nUnform track generator\n"
+        out << "\nUniform track generator\n"
             << "----------------------------\n"
             << "  Random seed           : " << cfg.seed() << "\n"
             << "  No. tracks            : " << cfg.n_tracks() << "\n"

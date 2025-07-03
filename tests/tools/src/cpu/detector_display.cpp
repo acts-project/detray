@@ -52,7 +52,7 @@ int main(int argc, char** argv) {
     auto style = detray::svgtools::styling::tableau_colorblind::style;
 
     // Specific options for this test
-    po::options_description desc("\ndetray detector validation options");
+    po::options_description desc("\ndetray detector display options");
 
     std::vector<dindex> volumes;
     std::vector<dindex> surfaces;
