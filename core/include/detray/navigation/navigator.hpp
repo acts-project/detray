@@ -764,10 +764,14 @@ class navigator {
     ///
     /// @returns a heartbeat to indicate if the navigation is still alive
     template <typename track_t>
-    DETRAY_HOST_DEVICE inline bool update(
-        const track_t &track, state &navigation, const navigation::config &cfg,
-        const context_type &ctx = {},
-        const bool /*is_before_actor*/ = true) const {
+    DETRAY_HOST_DEVICE
+#ifdef __CUDA_ARCH__
+        __attribute__((always_inline))
+#endif
+        inline bool
+        update(const track_t &track, state &navigation,
+               const navigation::config &cfg, const context_type &ctx = {},
+               const bool /*is_before_actor*/ = true) const {
 
         assert(!track.is_invalid());
 
