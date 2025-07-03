@@ -62,9 +62,7 @@ GTEST_TEST(svgtools, volumes) {
     for (detray::dindex i : indices) {
         std::string name = "test_svgtools_volume" + std::to_string(i);
         // Visualization of volume i:
-        const auto [vol_svg_xy, xy_sheets] = il.draw_volume(i, xy);
-        detray::svgtools::write_svg(name + "_xy", {axes, vol_svg_xy});
-        const auto [vol_svg_zr, _] = il.draw_volume(i, zr);
-        detray::svgtools::write_svg(name + "_zr", {axes, vol_svg_zr});
+        const auto vol_svg_xy = il.draw_volume(i, xy);
+        const auto vol_svg_zr = il.draw_volume(i, zr);
     }
 }

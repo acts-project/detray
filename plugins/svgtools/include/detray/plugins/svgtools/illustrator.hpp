@@ -93,7 +93,7 @@ class illustrator {
         _search_window = window;
     }
     /// @returns the detector name
-    const std::string& det_name() const { return _detector.name(_name_map); }
+    std::string det_name() const { return _detector.name(_name_map); }
 
     /// @brief Converts a single detray surface of the detector to an svg.
     ///
@@ -322,12 +322,6 @@ class illustrator {
         std::string id = p_volume._name + "_" + svg_id(view);
         auto vol_svg = svgtools::utils::group(id);
 
-        [[maybe_unused]] auto display_mode =
-            _hide_grids ? actsvg::display::e_module_info
-                        : actsvg::display::e_grid_info;
-
-        actsvg::svg::object sheet;
-
         // zr and xy - views of volume including the portals
         if constexpr (!std::is_same_v<view_t, actsvg::views::z_phi>) {
 
@@ -338,25 +332,9 @@ class illustrator {
                     actsvg::display::grid(id + "_grid", p_volume._surface_grid);
                 vol_svg.add_object(grid_svg);
             }
-
-            // Display the surfaces connected to the grid: in zphi-view for
-            // barrel, and xy-view for endcaps
-        } else if (gr_type == conversion::detail::grid_type::e_barrel) {
-            p_volume._name = det_name() + "_" + p_volume._name;
-            sheet = actsvg::display::barrel_sheet(
-                p_volume._name + "_sheet_zphi", p_volume, {800, 800},
-                display_mode);
-        }
-        if constexpr (std::is_same_v<view_t, actsvg::views::x_y>) {
-            if (gr_type == conversion::detail::grid_type::e_endcap) {
-                p_volume._name = det_name() + "_" + p_volume._name;
-                sheet = actsvg::display::endcap_sheet(
-                    p_volume._name + "_sheet_xy", p_volume, {800, 800},
-                    display_mode);
-            }
         }
 
-        return std::tuple{vol_svg, sheet};
+        return vol_svg;
     }
 
     /// @brief Converts multiple detray volumes of the detector to an svg.
@@ -375,21 +353,18 @@ class illustrator {
         // Overlay the volume svgs
         auto vol_group =
             svgtools::utils::group(det_name() + "_volumes_" + svg_id(view));
-        // The surface[grid] sheets per volume
-        std::vector<actsvg::svg::object> sheets;
 
         for (const auto index : indices) {
 
-            auto [vol_svg, sheet] = draw_volume(index, view, gctx);
+            auto vol_svg = draw_volume(index, view, gctx);
 
             // The general volume display
             if constexpr (!std::is_same_v<view_t, actsvg::views::z_phi>) {
                 vol_group.add_object(vol_svg);
             }
-            sheets.push_back(std::move(sheet));
         }
 
-        return std::tuple(vol_group, sheets);
+        return vol_group;
     }
 
     /// @brief Converts a detray detector to an svg.
@@ -401,7 +376,8 @@ class illustrator {
     template <typename view_t>
     inline auto draw_detector(
         const view_t& view,
-        const typename detector_t::geometry_context& gctx = {}) const {
+        const typename detector_t::geometry_context& gctx = {},
+        const float r_length = 1100.f, const float z_length = 3100.f) const {
 
         auto p_detector = svgtools::conversion::detector(
             gctx, _detector, view, _style._detector_style, _hide_portals,
@@ -421,8 +397,8 @@ class illustrator {
                                                _style._eta_lines_style);
 
                 // Hardcoded until we find a way to scale axes automatically
-                p_eta_lines._r = 1100.f;
-                p_eta_lines._z = 3100.f;
+                p_eta_lines._r = r_length;
+                p_eta_lines._z = z_length;
 
                 det_svg.add_object(svgtools::meta::display::eta_lines(
                     "eta_lines_", p_eta_lines));

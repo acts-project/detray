@@ -50,11 +50,10 @@ struct bin_association_getter {
             using scalar_t = typename transform3_t::scalar_type;
             using point2_t = typename transform3_t::point2;
 
-            // The sheet display only works for 2-dimensional grids
+            // The actsvg display only works for 2-dimensional grids
             if constexpr (accel_t::dim != 2u) {
-                std::cout
-                    << "WARNIGN: Only 2D grids can be displayed as actvg sheets"
-                    << std::endl;
+                std::cout << "WARNIGN: Only 2D grids can be displayed in actvg"
+                          << std::endl;
                 return {};
             }
 

@@ -133,7 +133,7 @@ inline bool toy_detector_test(
 
     // Link to outer world (leaving detector)
     constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
-    constexpr auto inv_link{detail::invalid_value<dindex>()};
+    constexpr auto inv_link{dindex_invalid};
     const bool has_grids =
         (accel.template size<accel_ids::e_cylinder2_grid>() != 0u) ||
         (accel.template size<accel_ids::e_disc_grid>() != 0u);
@@ -272,7 +272,8 @@ inline bool toy_detector_test(
             ++sf_itr;
             ++trf_index;
             mask_link.shift(1u);
-            if (sf_itr->material().id() != material_ids::e_none) {
+            if (sf_itr->material().id() != material_ids::e_none &&
+                !material_index.is_invalid()) {
                 ++material_index;
             }
         }

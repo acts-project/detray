@@ -71,7 +71,8 @@ void add_options<detray::io::detector_writer_config>(
         "Output directory for detector files")("compactify_json",
                                                "not implemented")(
         "write_material", "toggle material output")("write_grids",
-                                                    "toggle grid output");
+                                                    "toggle grid output")(
+        "replace_files", "whether to replace existing files");
 }
 
 /// Configure the detray detector writer
@@ -86,6 +87,7 @@ void configure_options<detray::io::detector_writer_config>(
     cfg.compactify_json(vm.count("compactify_json"));
     cfg.write_material(vm.count("write_material"));
     cfg.write_grids(vm.count("write_grids"));
+    cfg.replace_files(vm.count("replace_files"));
 }
 
 }  // namespace detray::options

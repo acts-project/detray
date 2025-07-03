@@ -255,13 +255,24 @@ class navigation_validation : public test::fixture_base<> {
                   << m_det.name(m_names) << "...\n"
                   << std::endl;
 
+        std::string momentum_str{""};
         const std::string det_name{m_det.name(m_names)};
         const std::string prefix{k_use_rays ? det_name + "_ray_"
                                             : det_name + "_helix_"};
 
+        const auto data_path{
+            std::filesystem::path{m_cfg.track_param_file()}.parent_path()};
+
+        // Create an output file path
+        auto make_path = [&data_path, &prefix, &momentum_str](
+                             const std::string &name,
+                             const std::string extension = ".csv") {
+            return data_path / (prefix + name + momentum_str + extension);
+        };
+
         std::ios_base::openmode io_mode = std::ios::trunc | std::ios::out;
-        const std::string debug_file_name{prefix +
-                                          "navigation_validation_cuda.txt"};
+        const std::string debug_file_name{
+            make_path(prefix + "navigation_validation_cuda", ".txt")};
         detray::io::file_handle debug_file{debug_file_name, io_mode};
 
         // Run the propagation on device and record the navigation data
@@ -406,9 +417,9 @@ class navigation_validation : public test::fixture_base<> {
                                                n_matching_error);
 
         // Print track positions for plotting
-        std::string momentum_str{""};
         if constexpr (!k_use_rays) {
             momentum_str =
+                "_" +
                 std::to_string(std::floor(10. * static_cast<double>(min_pT)) /
                                10.) +
                 "_" +
@@ -417,19 +428,12 @@ class navigation_validation : public test::fixture_base<> {
                 "_GeV";
         }
 
-        const auto data_path{
-            std::filesystem::path{m_cfg.track_param_file()}.parent_path()};
-        const auto truth_trk_path{
-            data_path /
-            (prefix + "truth_track_params_cuda_" + momentum_str + ".csv")};
-        const auto trk_path{
-            data_path /
-            (prefix + "navigation_track_params_cuda_" + momentum_str + ".csv")};
-        const auto mat_path{data_path / (prefix + "accumulated_material_cuda_" +
-                                         momentum_str + ".csv")};
-        const auto missed_path{data_path /
-                               (prefix + "missed_intersections_dists_cuda_" +
-                                momentum_str + ".csv")};
+        const auto truth_trk_path{make_path("truth_track_params_cuda")};
+        const auto trk_path{make_path("navigation_track_params_cuda")};
+        const auto truth_intr_path{make_path("truth_intersections_cuda")};
+        const auto intr_path{make_path("navigation_intersections_cuda")};
+        const auto mat_path{make_path("accumulated_material_cuda")};
+        const auto missed_path{make_path("missed_intersections_dists_cuda")};
 
         // Write the distance of the missed intersection local position
         // to the surface boundaries to file for plotting
@@ -439,12 +443,20 @@ class navigation_validation : public test::fixture_base<> {
                                        truth_intersection_traces);
         navigation_validator::write_tracks(trk_path.string(),
                                            recorded_intersections);
+        detector_scanner::write_intersections(truth_intr_path.string(),
+                                              truth_intersection_traces);
+        detector_scanner::write_intersections(intr_path.string(),
+                                              recorded_intersections);
         material_validator::write_material(mat_path.string(), mat_records);
 
         std::cout
             << "INFO: Wrote distance to boundary of missed intersections to: "
             << missed_path << std::endl;
         std::cout << "INFO: Wrote track states in: " << trk_path << std::endl;
+        std::cout << "INFO: Wrote truth intersections in: " << truth_intr_path
+                  << std::endl;
+        std::cout << "INFO: Wrote track intersections in: " << intr_path
+                  << std::endl;
         std::cout << "INFO: Wrote accumulated material in: " << mat_path
                   << std::endl;
     }

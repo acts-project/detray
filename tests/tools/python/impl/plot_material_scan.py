@@ -40,11 +40,11 @@ def read_material_data(inputdir, logging, det_name, read_cuda):
 
         if filename.find(det_name + "_material_scan") != -1:
             material_scan_file = inputdir + "/" + filename
-        elif filename.find(det_name + "_cpu_navigation_material_trace") != -1:
+        elif filename.find(det_name + "_navigation_material_trace_cpu") != -1:
             cpu_material_trace_file = inputdir + "/" + filename
         elif (
             read_cuda
-            and filename.find(det_name + "_cuda_navigation_material_trace") != -1
+            and filename.find(det_name + "_navigation_material_trace_cuda") != -1
         ):
             cuda_material_trace_file = inputdir + "/" + filename
 

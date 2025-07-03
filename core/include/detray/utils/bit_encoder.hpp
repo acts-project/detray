@@ -53,6 +53,14 @@ class bit_encoder {
         static constexpr void set_bits(value_t& v, const value_t id) noexcept {
         // Use integral constant to enforce compile time evaluation of shift
         v = (v & ~mask) | ((id << extract_shift(mask)) & mask);
+
+        // Make sure, the value 'id' can be safely encoded with the bits
+        // specified by 'mask' (unless it is an invalid value which has all bits
+        // set to 1)
+        assert(((id == ~static_cast<value_t>(0)) ||
+                (id == static_cast<value_t>(~static_cast<unsigned int>(0))) ||
+                (get_bits<mask>(v) == id)) &&
+               "Not enough bits in mask to encode value");
     }
 
     private:

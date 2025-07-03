@@ -48,11 +48,10 @@ GTEST_TEST(svgtools, grids) {
     for (const detray::dindex i : indices) {
         // Draw volume i.
         il.hide_grids(false);
-        const auto [volume_svg, sheet] = il.draw_volume(i, view);
+        const auto volume_svg = il.draw_volume(i, view);
 
         // Write volume i and its grid
         detray::svgtools::write_svg("test_svgtools_volume_" + volume_svg._id,
                                     volume_svg);
-        detray::svgtools::write_svg("test_svgtools_grid_" + sheet._id, sheet);
     }
 }

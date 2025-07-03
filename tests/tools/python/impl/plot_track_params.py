@@ -79,7 +79,7 @@ def plot_track_params(opts, detector, track_type, plot_factory, out_format, df):
 
     __create_plot(
         x=p,
-        bins=100,
+        bins=1 if np.std(p) < 1e-10 else 100,
         x_axis=x_axis_opts,
         y_axis=y_axis_opts._replace(log_scale=10),
         suffix="p_dist",
@@ -89,7 +89,12 @@ def plot_track_params(opts, detector, track_type, plot_factory, out_format, df):
     pT = np.sqrt(np.square(df["px"]) + np.square(df["py"]))
     x_axis_opts = plotting.axis_options(label=r"$p_{T}\,\mathrm{[GeV]}$")
 
-    __create_plot(x=pT, bins=100, x_axis=x_axis_opts, suffix="pT_dist")
+    __create_plot(
+        x=pT,
+        bins=1 if np.std(pT) < 1e-10 else 100,
+        x_axis=x_axis_opts,
+        suffix="pT_dist",
+    )
 
     # Plot the x-origin
     x_axis_opts = plotting.axis_options(label=r"$x\,\mathrm{[mm]}$")
@@ -329,6 +334,7 @@ def plot_track_pos_res(
 
     tracks = "rays" if scan_type == "ray" else "helices"
 
+    assert len(df1[var]) == len(df2[var])
     res = df1[var] - df2[var]
 
     # Remove outliers
@@ -357,7 +363,7 @@ def plot_track_pos_res(
         vert_anchor=1.28,
     )
 
-    # Plot the xy coordinates of the filtered intersections points
+    # Plot the residuals as a histogram and fit a gaussian to it
     hist_data = plot_factory.hist1D(
         x=filtered_res,
         figsize=(9, 9),
@@ -379,5 +385,5 @@ def plot_track_pos_res(
     l2 = label2.replace(" ", "_").replace("(", "").replace(")", "")
 
     plot_factory.write_plot(
-        hist_data, f"{detector_name}_{scan_type}_res_{var}_{l1}_{l2}", out_format
+        hist_data, f"{detector_name}_{scan_type}_track_res_{var}_{l1}_{l2}", out_format
     )
