@@ -37,6 +37,15 @@ struct default_metadata {
     /// Mask-to-(next)-volume link (potentially switchable for SoA)
     using nav_link = std::uint_least16_t;
 
+    /// How to store coordinate transform matrices
+    template <template <typename...> class vector_t = dvector>
+    using transform_store =
+        single_store<dtransform3D<algebra_type>, vector_t, geometry_context>;
+
+    //
+    // Surface Primitives
+    //
+
     /// Mask types
     /// @TODO: Need to duplicate for pixel/strip measurement dimensions?
     using rectangle = mask<rectangle2D, algebra_type, nav_link>;
@@ -67,9 +76,51 @@ struct default_metadata {
         mask<unbounded<line_square>, algebra_type, nav_link>;
     using unmasked_plane = mask<unmasked<>, algebra_type, nav_link>;
 
-    /// Material types
+    /// Give your mask types a name (needs to be consecutive and has to match
+    /// the types position in the mask store!)
+    enum class mask_ids : std::uint_least8_t {
+        e_rectangle2 = 0u,
+        e_portal_rectangle2 = 0u,
+        e_trapezoid2 = 1u,
+        e_annulus2 = 2u,
+        e_cylinder2 = 3u,
+        e_portal_cylinder2 = 4u,
+        e_ring2 = 5u,
+        e_portal_ring2 = 5u,
+        e_straw_tube = 6u,
+        e_drift_cell = 7u,
+        /*e_single1 = 8u,
+        e_single2 = 9u,
+        e_single3 = 10u,
+        e_unbounded_rectangle2 = 11u,
+        e_unbounded_trapezoid2 = 12u,
+        e_unbounded_annulus2 = 13u,
+        e_unbounded_cylinder2 = 14u,
+        e_unbounded_disc2 = 15u,
+        e_unbounded_line_circular2 = 16u,
+        e_unbounded_cell2 = 17u,
+        e_unmasked2 = 18u,*/
+    };
+
+    /// How to store masks
+    template <template <typename...> class vector_t = dvector>
+    using mask_store = regular_multi_store<mask_ids, empty_context, dtuple,
+                                           vector_t, rectangle, trapezoid,
+                                           annulus, cylinder, cylinder_portal,
+                                           disc, straw_tube, drift_cell /*,
+single_1, single_2, single_3, unbounded_rectangle, unbounded_trapezoid,
+unbounded_annulus, unbounded_cylinder, unbounded_disc, unbounded_straw_tube,
+unbounded_cell, unmasked_plane*/>;
+
+    //
+    // Material Description
+    //
+
+    /// Homogeneous material description
+    /// @{
     using slab = material_slab<scalar_t>;
     using rod = material_rod<scalar_t>;
+    /// @}
 
     /// Material grid types (default: closed bounds, regular binning)
     /// @{
@@ -101,6 +152,46 @@ struct default_metadata {
     using cylinder3_map_t = material_map<algebra_type, cylinder3D, container_t>;
 
     /// @}
+
+    /// Give your material types a name (needs to be consecutive and has to
+    /// match the types position in the mask store!)
+    enum class material_ids : std::uint_least8_t {
+        // Material texture (grid) shapes
+        e_concentric_cylinder2_map = 0u,
+        e_disc2_map = 1u,
+        e_cylinder2_map = 2u,
+        e_rectangle2_map = 3u,
+        e_trapezoid2_map = 3u,
+        e_annulus2_map = 1u,
+        e_drift_cell_map = 5u,
+        e_straw_tube_map = 5u,
+        // Volume material
+        e_cuboid3_map = 7,
+        e_cylinder3_map = 8u,
+        // Homogeneous mapetrial
+        e_slab = 4u,
+        e_rod = 5u,
+        e_raw_material = 6u,
+        e_none = 9u,
+    };
+
+    /// How to store materials
+    template <typename container_t = host_container_types>
+    using material_store = multi_store<
+        material_ids, empty_context, dtuple,
+        grid_collection<concentric_cylinder2_map_t<container_t>>,
+        grid_collection<disc_map_t<container_t>>,
+        grid_collection<cylinder2_map_t<container_t>>,
+        grid_collection<rectangular_map_t<container_t>>,
+        typename container_t::template vector_type<slab>,
+        typename container_t::template vector_type<rod>,
+        typename container_t::template vector_type<material<scalar_t>>,
+        grid_collection<cuboid_map_t<container_t>>,
+        grid_collection<cylinder3_map_t<container_t>>>;
+
+    //
+    // Acceleration structures
+    //
 
     /// surface grid types (default boundaries: closed binning)
     /// @TODO: Will we need the types for all grid configurations (binnning,
@@ -151,82 +242,18 @@ struct default_metadata {
 
     /// @}
 
-    /// How to store coordinate transform matrices
-    template <template <typename...> class vector_t = dvector>
-    using transform_store =
-        single_store<dtransform3D<algebra_type>, vector_t, geometry_context>;
-
-    /// Give your mask types a name (needs to be consecutive and has to match
-    /// the types position in the mask store!)
-    enum class mask_ids : std::uint_least8_t {
-        e_rectangle2 = 0,
-        e_portal_rectangle2 = 0,
-        e_trapezoid2 = 1,
-        e_annulus2 = 2,
-        e_cylinder2 = 3,
-        e_portal_cylinder2 = 4,
-        e_ring2 = 5,
-        e_portal_ring2 = 5,
-        e_straw_tube = 6,
-        e_drift_cell = 7,
-        /*e_single1 = 8,
-        e_single2 = 9,
-        e_single3 = 10,
-        e_unbounded_rectangle2 = 11,
-        e_unbounded_trapezoid2 = 12,
-        e_unbounded_annulus2 = 13,
-        e_unbounded_cylinder2 = 14,
-        e_unbounded_disc2 = 15,
-        e_unbounded_line_circular2 = 16,
-        e_unbounded_cell2 = 17,
-        e_unmasked2 = 18,*/
+    /// Acceleration data structures
+    enum class accel_ids : std::uint_least8_t {
+        e_brute_force = 0u,     // test all surfaces in a volume (brute force)
+        e_cylinder2_grid = 1u,  // e.g. barrel layers
+        e_disc_grid = 2u,       // e.g. endcap layers
+        e_irr_cylinder2_grid = 3u,
+        e_irr_disc_grid = 4u,
+        // e_cylinder3_grid = 5u,
+        // e_irr_cylinder3_grid = 6u,
+        // ... e.g. frustum navigation types
+        e_default = e_brute_force,
     };
-
-    /// How to store masks
-    template <template <typename...> class vector_t = dvector>
-    using mask_store = regular_multi_store<mask_ids, empty_context, dtuple,
-                                           vector_t, rectangle, trapezoid,
-                                           annulus, cylinder, cylinder_portal,
-                                           disc, straw_tube, drift_cell /*,
-single_1, single_2, single_3, unbounded_rectangle, unbounded_trapezoid,
-unbounded_annulus, unbounded_cylinder, unbounded_disc, unbounded_straw_tube,
-unbounded_cell, unmasked_plane*/>;
-
-    /// Give your material types a name (needs to be consecutive and has to
-    /// match the types position in the mask store!)
-    enum class material_ids : std::uint_least8_t {
-        // Material texture (grid) shapes
-        e_disc2_map = 0u,
-        e_concentric_cylinder2_map = 1u,
-        e_cylinder2_map = 2u,
-        e_rectangle2_map = 3u,
-        e_trapezoid2_map = 3u,
-        e_annulus2_map = 0u,
-        e_drift_cell_map = 5u,
-        e_straw_tube_map = 5u,
-        // Volume material
-        e_cuboid3_map = 7,
-        e_cylinder3_map = 8u,
-        // Homogeneous mapetrial
-        e_slab = 4u,
-        e_rod = 5u,
-        e_raw_material = 6u,
-        e_none = 9u,
-    };
-
-    /// How to store materials
-    template <typename container_t = host_container_types>
-    using material_store = multi_store<
-        material_ids, empty_context, dtuple,
-        grid_collection<disc_map_t<container_t>>,
-        grid_collection<concentric_cylinder2_map_t<container_t>>,
-        grid_collection<cylinder2_map_t<container_t>>,
-        grid_collection<rectangular_map_t<container_t>>,
-        typename container_t::template vector_type<slab>,
-        typename container_t::template vector_type<rod>,
-        typename container_t::template vector_type<material<scalar_t>>,
-        grid_collection<cuboid_map_t<container_t>>,
-        grid_collection<cylinder3_map_t<container_t>>>;
 
     /// How to link to the entries in the data stores
     using transform_link = typename transform_store<>::link_type;
@@ -236,28 +263,36 @@ unbounded_cell, unmasked_plane*/>;
     using surface_type =
         surface_descriptor<mask_link, material_link, transform_link, nav_link>;
 
+    /// How to store the acceleration data structures
+    template <typename container_t = host_container_types>
+    using accelerator_store =
+        multi_store<accel_ids, empty_context, dtuple,
+                    brute_force_collection<surface_type, container_t>,
+                    grid_collection<
+                        cylinder2D_sf_grid<surface_type, container_t>>,
+                    grid_collection<disc_sf_grid<surface_type, container_t>>,
+                    grid_collection<
+                        irr_cylinder2D_sf_grid<surface_type, container_t>>,
+                    grid_collection<
+                        irr_disc_sf_grid<surface_type, container_t>> /*,
+grid_collection<cylinder3D_sf_grid<surface_type,
+container_t>>,
+grid_collection<irr_cylinder3D_sf_grid<surface_type,
+container_t>>*/>;
+
+    //
+    // Volume descriptors
+    //
+
     /// How to index the constituent objects (surfaces) in a volume
     /// If they share the same index value here, they will be added into the
     /// same acceleration data structure (brute force is always at 0)
     enum geo_objects : std::uint_least8_t {
-        e_portal = 0,     // Brute force search
-        e_sensitive = 1,  // Grid accelerated search (can be different types)
-        e_passive = 0,    // Brute force search
-        e_size = 2,       // Every volume holds two acceleration data structures
-        e_all = e_size,   // i.e. the brute force method and one grid type
-    };
-
-    /// Acceleration data structures
-    enum class accel_ids : std::uint_least8_t {
-        e_brute_force = 0,     // test all surfaces in a volume (brute force)
-        e_disc_grid = 1,       // e.g. endcap layers
-        e_cylinder2_grid = 2,  // e.g. barrel layers
-        e_irr_disc_grid = 3,
-        e_irr_cylinder2_grid = 4,
-        // e_cylinder3_grid = 5,
-        // e_irr_cylinder3_grid = 6,
-        // ... e.g. frustum navigation types
-        e_default = e_brute_force,
+        e_portal = 0u,     // Brute force search
+        e_sensitive = 1u,  // Grid accelerated search (can be different types)
+        e_passive = 0u,    // Brute force search
+        e_size = 2u,     // Every volume holds two acceleration data structures
+        e_all = e_size,  // i.e. the brute force method and one grid type
     };
 
     /// How a volume links to the accelration data structures
@@ -265,22 +300,9 @@ unbounded_cell, unmasked_plane*/>;
     using object_link_type =
         dmulti_index<dtyped_index<accel_ids, dindex>, geo_objects::e_size>;
 
-    /// How to store the acceleration data structures
-    template <typename container_t = host_container_types>
-    using accelerator_store =
-        multi_store<accel_ids, empty_context, dtuple,
-                    brute_force_collection<surface_type, container_t>,
-                    grid_collection<disc_sf_grid<surface_type, container_t>>,
-                    grid_collection<
-                        cylinder2D_sf_grid<surface_type, container_t>>,
-                    grid_collection<
-                        irr_disc_sf_grid<surface_type, container_t>>,
-                    grid_collection<irr_cylinder2D_sf_grid<
-                        surface_type, container_t>> /*,
-grid_collection<cylinder3D_sf_grid<surface_type,
-container_t>>,
-grid_collection<irr_cylinder3D_sf_grid<surface_type,
-container_t>>*/>;
+    //
+    // Volume acceleration structure
+    //
 
     /// Volume search grid
     template <typename container_t = host_container_types>
