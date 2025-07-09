@@ -586,14 +586,6 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
                 static_cast<float>(track.p(q)) * 0.0002f);
             ASSERT_TRUE(direct_backward_state._stepping.bound_params().p(q) >
                         direct_forward_state._stepping.bound_params().p(q));
-
-            const auto& bw_nav_state = direct_backward_state._navigation;
-            std::cout << detray::navigation::print_state(bw_nav_state)
-                      << std::endl;
-            std::cout << detray::navigation::print_candidates(
-                             bw_nav_state, direct_cfg.navigation, track.pos(),
-                             track.dir())
-                      << std::endl;
         }
     }
 }
