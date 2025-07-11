@@ -1148,7 +1148,7 @@ auto compare_to_navigation(
                     detray::detector_scanner::display_error(
                         ctx, det, names, cfg.name(), ideal_traj, truth_trace,
                         cfg.svg_style(), i, n_samples, recorded_trace,
-                        cfg.verbose());
+                        {dindex_invalid, dindex_invalid}, cfg.verbose());
                 }
             }
         }
