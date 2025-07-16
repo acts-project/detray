@@ -15,6 +15,9 @@ set(CMAKE_CUDA_STANDARD 20 CACHE STRING "The (CUDA) C++ standard to use")
 set(CMAKE_CUDA_EXTENSIONS FALSE CACHE BOOL "Disable (CUDA) C++ extensions")
 set(CMAKE_SYCL_STANDARD 20 CACHE STRING "The (SYCL) C++ standard to use")
 
+set(CMAKE_HIP_STANDARD 20 CACHE STRING "The (HIP) C++ standard to use")
+set(CMAKE_HIP_EXTENSIONS FALSE CACHE BOOL "Disable (HIP) C++ extensions")
+
 if(${CMAKE_CXX_STANDARD} LESS 20)
     message(
         SEND_ERROR
@@ -61,6 +64,14 @@ if(CMAKE_CUDA_COMPILER)
     set(DETRAY_BUILD_CUDA_DEFAULT TRUE)
 endif()
 
+#check if HIP is available 
+include(CheckLanguage)
+check_language(HIP)
+set(DETRAY_BUILD_HIP_DEFAULT FALSE)
+if(CMAKE_HIP_COMPILER)
+    set(DETRAY_BUILD_HIP_DEFAULT TRUE)
+endif()
+
 # Flags controlling which parts of Detray to build.
 option(DETRAY_EIGEN_PLUGIN "Build Eigen math plugin" OFF)
 option(DETRAY_SMATRIX_PLUGIN "Build ROOT/SMatrix math plugin" OFF)
@@ -73,11 +84,18 @@ option(
     "Build the CUDA sources included in detray"
     ${DETRAY_BUILD_CUDA_DEFAULT}
 )
+# ! hip
+option(DETRAY_BUILD_HIP "Build the CUDA sources included in detray" OFF)
+#option(
+#    DETRAY_BUILD_HIP
+#    "Build the HIP sources included in detray"
+#    ${DETRAY_BUILD_HIP_DEFAULT}
+#)
 cmake_dependent_option(
     DETRAY_BUILD_HOST
     "Build the host sources included in detray"
     ON
-    "DETRAY_BUILD_CUDA OR DETRAY_BUILD_SYCL"
+    "DETRAY_BUILD_CUDA OR DETRAY_BUILD_SYCL OR DETRAY_BUILD_HIP"
     ON
 )
 option(DETRAY_BUILD_TEST_UTILS "Build the test utility library of Detray" OFF)
@@ -135,8 +153,8 @@ endif()
 
 # Clean up.
 unset(DETRAY_BUILD_CUDA_DEFAULT)
-
-# Check CUDA and SYCL C++ standards
+#unset(DETRAY_BUILD_HIP_DEFAULT)
+# Check CUDA and SYCL and HIP C++ standards
 if(${DETRAY_BUILD_CUDA} AND ${CMAKE_CUDA_STANDARD} LESS 20)
     message(
         SEND_ERROR
@@ -151,6 +169,12 @@ if(${DETRAY_BUILD_SYCL} AND ${CMAKE_SYCL_STANDARD} LESS 20)
     )
 endif()
 
+if(${DETRAY_BUILD_HIP} AND ${CMAKE_HIP_STANDARD} LESS 20)
+    message(
+        SEND_ERROR
+        "CMAKE_HIP_STANDARD=${CMAKE_HIP_STANDARD}, but detray requires C++>=20"
+    )
+endif()
 # Set up VecMem.
 option(DETRAY_SETUP_VECMEM "Set up the VecMem target(s) explicitly" TRUE)
 option(
