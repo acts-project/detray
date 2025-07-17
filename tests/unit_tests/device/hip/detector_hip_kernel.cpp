@@ -5,15 +5,22 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "detray/definitions/detail/cuda_definitions.hpp"
+
+
+
+#include <hip/hip_runtime.h>
+#include <iostream>
+
+#include "../../core/include/detray/definitions/detail/hip_definitions.hpp"  //---------!!!!!!!!!!!!!! to be completed 
 #include "detray/geometry/tracking_surface.hpp"
 
 // Detray test include(s)
-#include "detector_cuda_kernel.hpp"
+#include "detector_hip_kernel.hpp"
 
-namespace detray {
 
-// cuda kernel to copy sub-detector objects
+namespace detray{
+
+    // hip kernel to copy sub-detector objects
 __global__ void detector_test_kernel(
     typename detector_host_t::view_type det_data,
     vecmem::data::vector_view<det_volume_t> volumes_data,
@@ -83,8 +90,8 @@ __global__ void detector_test_kernel(
                 }
             }
         }
-    }*/
-}
+    } */
+} 
 
 /// implementation of the test function for detector
 void detector_test(typename detector_host_t::view_type det_data,
@@ -99,16 +106,18 @@ void detector_test(typename detector_host_t::view_type det_data,
     constexpr int thread_dim = 1u;
 
     // run the test kernel
-    detector_test_kernel<<<block_dim, thread_dim>>>(
+    // ------------------------------------------------------->   2
+    hipLaunchKernelGGL(detector_test_kernel , dim3(block_dim), dim3(thread_dim) , 0, 0 ,
         det_data, volumes_data, surfaces_data, transforms_data, rectangles_data,
         discs_data, cylinders_data);
 
-    // cuda error check
-    DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
-    DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
+    // HIP error check
+    DETRAY_HIP_ERROR_CHECK(hipGetLastError()); // !!!!!!!!!
+    DETRAY_HIP_ERROR_CHECK(hipDeviceSynchronize()); ///!!!!!!!!!!!!!!!!!!!!!!!
 }
 
-// cuda kernel to extract surface transforms from two detector views - static
+/*
+// hip kernel to extract surface transforms from two detector views - static
 // and misaligned - and to copy them into vectors
 __global__ void detector_alignment_test_kernel(
     typename detector_host_t::view_type det_data_static,
@@ -143,6 +152,8 @@ __global__ void detector_alignment_test_kernel(
 }
 
 /// implementation of the alignment test function for detector
+
+
 void detector_alignment_test(
     typename detector_host_t::view_type det_data_static,
     typename detector_host_t::view_type det_data_aligned,
@@ -152,13 +163,14 @@ void detector_alignment_test(
     constexpr int thread_dim = 1u;
 
     // run the test kernel
-    detector_alignment_test_kernel<<<block_dim, thread_dim>>>(
+    hipLaunchKernelGGL( detector_alignment_test_kernel , dim3(block_dim), dim3(thread_dim),
         det_data_static, det_data_aligned, surfacexf_data_static,
         surfacexf_data_aligned);
 
-    // cuda error check
-    DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
-    DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
+    // hip error check
+    DETRAY_HIP_ERROR_CHECK(hipGetLastError());
+    DETRAY_hip_ERROR_CHECK(hipDeviceSynchronize());
 }
 
-}  // namespace detray
+*/
+}

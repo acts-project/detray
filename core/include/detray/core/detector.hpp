@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/builders/grid_builder.hpp"
+#include "../builders/grid_builder.hpp"
 #include "detray/builders/homogeneous_material_builder.hpp"
 #include "detray/builders/homogeneous_volume_material_builder.hpp"
 #include "detray/builders/material_map_builder.hpp"
