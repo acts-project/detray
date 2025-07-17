@@ -46,7 +46,7 @@ target_link_libraries(detray_build
 target_include_directories(detray_build PRIVATE
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/core/include
-    ${CMAKE_SOURCE_DIR}/plugins/algebra/array/include # ← ajuste selon ton arbo
+    ${CMAKE_SOURCE_DIR}/plugins/algebra/array/include
 )
 
 # Optional: include HIP headers via module
