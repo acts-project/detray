@@ -31,7 +31,9 @@
 #include "detray/utils/ranges.hpp"
 
 // Vecmem include(s)
+#ifndef DETRAY_COMPILE_VITIS
 #include <vecmem/memory/memory_resource.hpp>
+#endif // DETRAY_COMPILE_VITIS
 
 // System include(s)
 #include <limits>

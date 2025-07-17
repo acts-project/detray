@@ -16,7 +16,9 @@
 #include "detray/utils/type_traits.hpp"
 
 // Vecmem include(s)
+#ifndef DETRAY_COMPILE_VITIS
 #include <vecmem/memory/memory_resource.hpp>
+#endif // DETRAY_COMPILE_VITIS
 
 // System include(s)
 #include <memory>
@@ -53,13 +55,16 @@ class tuple_container {
 
     /// Construct with a specific vecmem memory resource @param resource
     /// (host-side only)
+#ifndef DETRAY_COMPILE_VITIS
     template <typename allocator_t = vecmem::memory_resource,
               std::enable_if_t<not is_device_view_v<allocator_t>, bool> = true>
     DETRAY_HOST explicit tuple_container(allocator_t &resource)
         : _tuple(Ts(&resource)...) {}
+#endif // DETRAY_COMPILE_VITIS
 
     /// Copy Construct with a specific (vecmem) memory resource @param resource
     /// (host-side only)
+#ifndef DETRAY_COMPILE_VITIS
     template <
         typename allocator_t = vecmem::memory_resource,
         typename T = tuple_t<Ts...>,
@@ -67,6 +72,7 @@ class tuple_container {
     DETRAY_HOST explicit tuple_container(allocator_t &resource,
                                          const Ts &... args)
         : _tuple(std::allocator_arg, resource, args...) {}
+#endif // DETRAY_COMPILE_VITIS
 
     /// Construct from the container @param view type. Mainly used device-side.
     template <typename tuple_view_t,
@@ -106,14 +112,18 @@ class tuple_container {
     }
 
     /// @returns a tuple of the views of all elements - non-const
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST auto get_data() -> view_type {
         return get_data(std::make_index_sequence<sizeof...(Ts)>{});
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns a tuple of the views of all elements - const
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST auto get_data() const -> const_view_type {
         return get_data(std::make_index_sequence<sizeof...(Ts)>{});
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Calls a functor with a all elements as parameters.
     ///
@@ -140,19 +150,23 @@ class tuple_container {
 
     private:
     /// @returns the view for all contained types.
+#ifndef DETRAY_COMPILE_VITIS
     template <bool all_viewable = std::conjunction_v<detail::has_view<Ts>...>,
               std::size_t... I, std::enable_if_t<all_viewable, bool> = true>
     DETRAY_HOST view_type get_data(std::index_sequence<I...> /*seq*/) noexcept {
         return view_type{detray::get_data(detail::get<I>(_tuple))...};
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns the const view for all contained types.
+#ifndef DETRAY_COMPILE_VITIS
     template <bool all_viewable = std::conjunction_v<detail::has_view<Ts>...>,
               std::size_t... I, std::enable_if_t<all_viewable, bool> = true>
     DETRAY_HOST const_view_type
     get_data(std::index_sequence<I...> /*seq*/) const noexcept {
         return const_view_type{detray::get_data(detail::get<I>(_tuple))...};
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns a tuple constructed from the elements @param view s.
     template <typename tuple_view_t, std::size_t... I,

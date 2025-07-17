@@ -14,7 +14,9 @@
 
 // VecMem include(s).
 #include <vecmem/containers/data/buffer_type.hpp>
+#ifndef DETRAY_COMPILE_VITIS
 #include <vecmem/memory/memory_resource.hpp>
+#endif // DETRAY_COMPILE_VITIS
 
 namespace detray {
 
@@ -62,6 +64,7 @@ class grid2 {
 
     grid2() = default;
 
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     grid2(vecmem::memory_resource &mr,
           const bare_value m_invalid = detail::invalid_value<bare_value>())
@@ -69,6 +72,7 @@ class grid2 {
           _axis_p1(mr),
           _data_serialized(&mr),
           _populator(m_invalid) {}
+#endif // DETRAY_COMPILE_VITIS
 
     /** Constructor from axes - copy semantics
      *
@@ -76,6 +80,7 @@ class grid2 {
      * @param axis_p1 is the axis in the second coordinate
      *
      **/
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     grid2(const axis_p0_type &axis_p0, const axis_p1_type &axis_p1,
           vecmem::memory_resource &mr,
@@ -87,6 +92,7 @@ class grid2 {
         _data_serialized = serialized_storage(_axis_p0.bins() * _axis_p1.bins(),
                                               _populator.init());
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /** Constructor from axes - move semantics
      *
@@ -94,6 +100,7 @@ class grid2 {
      * @param axis_p1 is the axis in the second coordinate
      *
      **/
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     grid2(axis_p0_type &&axis_p0, axis_p1_type &&axis_p1,
           vecmem::memory_resource &mr,
@@ -105,6 +112,7 @@ class grid2 {
         _data_serialized = serialized_storage(_axis_p0.bins() * _axis_p1.bins(),
                                               _populator.init());
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /** Constructor from grid data
      **/
@@ -375,22 +383,27 @@ class grid2 {
 };
 
 /// Helper function creating a @c vecmem::data::vector_view object
+#ifndef DETRAY_COMPILE_VITIS
 template <typename TYPE, typename ALLOC>
 DETRAY_HOST vecmem::data::vector_view<TYPE> get_data(
     std::vector<TYPE, ALLOC> &vec, vecmem::memory_resource &) {
 
     return vecmem::get_data(vec);
 }
+#endif // DETRAY_COMPILE_VITIS
 
 /// Helper function creating a @c vecmem::data::vector_view object
+#ifndef DETRAY_COMPILE_VITIS
 template <typename TYPE, typename ALLOC>
 DETRAY_HOST vecmem::data::vector_view<const TYPE> get_data(
     const std::vector<TYPE, ALLOC> &vec, vecmem::memory_resource &) {
 
     return vecmem::get_data(vec);
 }
+#endif // DETRAY_COMPILE_VITIS
 
 /// Helper function creating a @c vecmem::data::jagged_vector_data object
+#ifndef DETRAY_COMPILE_VITIS
 template <typename TYPE, typename ALLOC1, typename ALLOC2>
 DETRAY_HOST vecmem::data::jagged_vector_data<TYPE> get_data(
     std::vector<std::vector<TYPE, ALLOC1>, ALLOC2> &vec,
@@ -398,8 +411,10 @@ DETRAY_HOST vecmem::data::jagged_vector_data<TYPE> get_data(
 
     return vecmem::get_data(vec, &resource);
 }
+#endif // DETRAY_COMPILE_VITIS
 
 /// Helper function creating a @c vecmem::data::vector_view object
+#ifndef DETRAY_COMPILE_VITIS
 template <typename TYPE, typename ALLOC1, typename ALLOC2>
 DETRAY_HOST vecmem::data::jagged_vector_data<const TYPE> get_data(
     const std::vector<std::vector<TYPE, ALLOC1>, ALLOC2> &vec,
@@ -407,6 +422,7 @@ DETRAY_HOST vecmem::data::jagged_vector_data<const TYPE> get_data(
 
     return vecmem::get_data(vec, &resource);
 }
+#endif // DETRAY_COMPILE_VITIS
 
 /** A two-dimensional (non-const) grid view for gpu device usage
  **/

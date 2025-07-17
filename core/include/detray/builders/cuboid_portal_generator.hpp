@@ -52,23 +52,33 @@ class cuboid_portal_generator final
 
     public:
     /// Use @param env as portal envelope
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     explicit cuboid_portal_generator(const scalar_type env) : m_envelope{env} {}
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns the number of rectangle portals this factory will produce
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto size() const -> dindex override { return 6u; }
+#endif // DETRAY_COMPILE_VITIS
 
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     void clear() override{/*Do nothing*/};
+#endif // DETRAY_COMPILE_VITIS
 
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     void push_back(surface_data<detector_t> &&) override { /*Do nothing*/
     }
+#endif // DETRAY_COMPILE_VITIS
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto push_back(std::vector<surface_data<detector_t>> &&)
         -> void override { /*Do nothing*/
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Create minimum aabbs around all surfaces that are passed and then
     /// construct world portals from the global bounding box.
@@ -78,6 +88,7 @@ class cuboid_portal_generator final
     /// @param transforms the transforms of the surfaces.
     /// @param masks the masks of the surfaces.
     /// @param ctx the geometry context (not needed for portals).
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto operator()(typename detector_t::volume_type &volume,
                     typename detector_t::surface_lookup_container &surfaces,
@@ -224,6 +235,7 @@ class cuboid_portal_generator final
 
         return {surfaces_offset, static_cast<dindex>(surfaces.size())};
     }
+#endif // DETRAY_COMPILE_VITIS
 
     private:
     /// Portal envelope (min distance between portals and volume surfaces)

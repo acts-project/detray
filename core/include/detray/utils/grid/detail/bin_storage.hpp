@@ -57,9 +57,11 @@ class bin_storage : public detray::ranges::view_interface<
     bin_storage& operator=(bin_storage&&) = default;
 
     /// Construct containers using a memory resources
+#ifndef DETRAY_COMPILE_VITIS
     template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
     DETRAY_HOST bin_storage(vecmem::memory_resource& resource)
         : m_bin_data(&resource) {}
+#endif // DETRAY_COMPILE_VITIS
 
     /// Construct grid data from containers - move
     template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
@@ -99,16 +101,20 @@ class bin_storage : public detray::ranges::view_interface<
     /// @}
 
     /// @returns the vecmem view of the bin storage
+#ifndef DETRAY_COMPILE_VITIS
     template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
     DETRAY_HOST auto get_data() -> view_type {
         return detray::get_data(m_bin_data);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns the vecmem view of the bin storage - const
+#ifndef DETRAY_COMPILE_VITIS
     template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
     DETRAY_HOST auto get_data() const -> const_view_type {
         return detray::get_data(m_bin_data);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     private:
     /// Container that holds all bin data when owning or a view into an
@@ -141,9 +147,11 @@ struct dynamic_bin_container {
                       dvector_buffer<typename bin_t::entry_type>>;
 
     constexpr dynamic_bin_container() = default;
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     dynamic_bin_container(vecmem::memory_resource* resource)
         : bins{resource}, entries{resource} {}
+#endif // DETRAY_COMPILE_VITIS
     dynamic_bin_container(const dynamic_bin_container& other) = default;
     dynamic_bin_container(dynamic_bin_container&& other) = default;
 
@@ -159,6 +167,7 @@ struct dynamic_bin_container {
           entries(detail::get<1>(view.m_view)) {}
 
     /// Insert bin data at the end
+#ifndef DETRAY_COMPILE_VITIS
     template <typename grid_bin_range_t>
     DETRAY_HOST void append(const grid_bin_range_t& grid_bins) {
 
@@ -177,29 +186,36 @@ struct dynamic_bin_container {
 
         entries.insert(entries.end(), g_entries.begin(), g_entries.end());
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns a vecmem view on the bin data - non-const
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST auto get_data() -> view_type {
         return view_type{detray::get_data(bins), detray::get_data(entries)};
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns a vecmem view on the bin data - const
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto get_data() const -> const_view_type {
         return const_view_type{detray::get_data(bins),
                                detray::get_data(entries)};
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns the number of bins
     DETRAY_HOST_DEVICE
     std::size_t size() const { return bins.size(); }
 
     /// Clear out all data
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     void clear() {
         bins.clear();
         entries.clear();
     }
+#endif // DETRAY_COMPILE_VITIS
 };
 
 /// @brief bin data state of a grid with dynamic bin capacities
@@ -329,9 +345,11 @@ class bin_storage<is_owning, detray::bins::dynamic_array<entry_t>, containers>
     bin_storage(bin_storage&&) = default;
 
     /// Construct containers using a memory resources
+#ifndef DETRAY_COMPILE_VITIS
     template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
     DETRAY_HOST bin_storage(vecmem::memory_resource& resource)
         : m_bin_data(&resource), m_entry_data(&resource) {}
+#endif // DETRAY_COMPILE_VITIS
 
     /// Construct grid data from containers - move
     template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
@@ -390,18 +408,22 @@ class bin_storage<is_owning, detray::bins::dynamic_array<entry_t>, containers>
     /// @}
 
     /// @returns the vecmem view of the bin storage
+#ifndef DETRAY_COMPILE_VITIS
     template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
     DETRAY_HOST auto get_data() -> view_type {
         return view_type{detray::get_data(m_bin_data),
                          detray::get_data(m_entry_data)};
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns the vecmem view of the bin storage - const
+#ifndef DETRAY_COMPILE_VITIS
     template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
     DETRAY_HOST auto get_data() const -> const_view_type {
         return const_view_type{detray::get_data(m_bin_data),
                                detray::get_data(m_entry_data)};
     }
+#endif // DETRAY_COMPILE_VITIS
 
     private:
     /// Container that holds all bin data when owning or a view into an

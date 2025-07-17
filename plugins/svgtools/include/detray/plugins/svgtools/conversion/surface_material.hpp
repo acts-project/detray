@@ -61,6 +61,7 @@ namespace {
 /// @brief A functor to fill the material proto grid with proto material slabs
 struct material_converter {
 
+#ifndef DETRAY_COMPILE_VITIS
     template <typename mat_coll_t, typename index_t, typename transform_t>
     DETRAY_HOST inline auto operator()(const mat_coll_t& mat_coll,
                                        const index_t& index,
@@ -128,6 +129,7 @@ struct material_converter {
 
         return m_matrix;
     }
+#endif // DETRAY_COMPILE_VITIS
 };
 
 }  // namespace

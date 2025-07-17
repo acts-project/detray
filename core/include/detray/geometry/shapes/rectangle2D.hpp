@@ -139,6 +139,7 @@ class rectangle2D {
     /// @param n_seg is the number of line segments
     ///
     /// @return a generated list of vertices
+#ifndef DETRAY_COMPILE_VITIS
     template <typename algebra_t>
     DETRAY_HOST dvector<dpoint3D<algebra_t>> vertices(
         const bounds_type<dscalar<algebra_t>> &bounds,
@@ -158,6 +159,7 @@ class rectangle2D {
         // Return the confining vertices
         return {lh_lc, rh_lc, rh_uc, lh_uc};
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @brief Check consistency of boundary values.
     ///
@@ -165,6 +167,7 @@ class rectangle2D {
     /// @param os output stream for error messages
     ///
     /// @return true if the bounds are consistent.
+#ifndef DETRAY_COMPILE_VITIS
     template <typename scalar_t>
     DETRAY_HOST constexpr bool check_consistency(
         const bounds_type<scalar_t> &bounds, std::ostream &os) const {
@@ -179,6 +182,7 @@ class rectangle2D {
 
         return true;
     }
+#endif // DETRAY_COMPILE_VITIS
 };
 
 }  // namespace detray

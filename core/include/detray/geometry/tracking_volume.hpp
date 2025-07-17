@@ -204,6 +204,7 @@ class tracking_volume {
     /// @param os output stream for error messages.
     ///
     /// @returns true if the volume is consistent
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST bool self_check(std::ostream &os) const {
         if (id() == volume_id::e_unknown) {
             os << "ERROR: Unknown volume shape type in volume:\n"
@@ -302,6 +303,7 @@ class tracking_volume {
 
         return true;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns the volume name (add an offset for the detector name).
     DETRAY_HOST_DEVICE
@@ -310,6 +312,7 @@ class tracking_volume {
     }
 
     /// @returns a string stream that prints the volume details
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     friend std::ostream &operator<<(std::ostream &os,
                                     const tracking_volume &v) {
@@ -322,6 +325,7 @@ class tracking_volume {
 
         return os;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     private:
     /// Apply a functor to all acceleration structures of this volume.

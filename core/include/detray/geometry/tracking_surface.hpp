@@ -155,10 +155,12 @@ class tracking_surface {
     }
 
     /// @returns the mask shape name
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     std::string shape_name() const {
         return visit_mask<typename kernels::get_shape_name>();
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns the coordinate transform matrix of the surface
     DETRAY_HOST_DEVICE
@@ -314,13 +316,16 @@ class tracking_surface {
 
     /// @returns the vertices in local frame with @param n_seg the number of
     /// segments used along acrs
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     constexpr auto local_vertices(const dindex n_seg) const {
         return visit_mask<typename kernels::vertices>(n_seg);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns the vertices in global frame with @param n_seg the number of
     /// segments used along acrs
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     constexpr auto global_vertices(const context &ctx,
                                    const dindex n_seg) const {
@@ -330,25 +335,30 @@ class tracking_surface {
         }
         return vertices;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns the vertices in local frame with @param n_seg the number of
     /// segments used along acrs
     /// @note the point has to be inside the surface mask
+#ifndef DETRAY_COMPILE_VITIS
     template <typename point_t>
     DETRAY_HOST constexpr auto min_dist_to_boundary(
         const point_t &loc_p) const {
         return visit_mask<typename kernels::min_dist_to_boundary>(loc_p);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @brief Lower and upper point for minimal axis aligned bounding box.
     ///
     /// Computes the min and max vertices in a local cartesian frame.
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     constexpr auto local_min_bounds(
         const scalar_type env =
             std::numeric_limits<scalar_type>::epsilon()) const {
         return visit_mask<typename kernels::local_min_bounds>(env);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Call a functor on the surfaces mask with additional arguments.
     ///
@@ -379,6 +389,7 @@ class tracking_surface {
     /// @param os output stream for error messages.
     ///
     /// @returns true if the surface is consistent
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST bool self_check(std::ostream &os) const {
         if (barcode().is_invalid()) {
             os << "ERROR: Invalid barcode for surface:\n" << *this << std::endl;
@@ -440,14 +451,17 @@ class tracking_surface {
 
         return true;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns a string stream that prints the surface details
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     friend std::ostream &operator<<(std::ostream &os,
                                     const tracking_surface &sf) {
         os << sf.m_desc;
         return os;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     private:
     /// Access to the detector stores

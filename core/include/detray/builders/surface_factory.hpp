@@ -52,39 +52,52 @@ class surface_factory : public surface_factory_interface<detector_t> {
     using sf_data_collection = std::vector<surface_data_t>;
 
     /// Empty factory.
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     surface_factory() = default;
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns the current number of surfaces that will be built by this
     /// factory
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto size() const -> dindex override {
         check();
         return static_cast<dindex>(m_bounds.size());
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns the surface types
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto types() const -> const std::vector<surface_id> & { return m_types; }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns the mask boundaries currently held by the factory
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto bounds() const -> const std::vector<std::vector<scalar_t>> & {
         return m_bounds;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns the transforms currently held by the factory
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto transforms() const
         -> const std::vector<typename detector_t::transform3_type> & {
         return m_transforms;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns the volume link(s) currently held by the factory
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     const auto &volume_links() const { return m_volume_link; }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Add all necessary compontents to the factory for a single surface
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     void push_back(surface_data_t &&sf_data) override {
 
@@ -99,9 +112,11 @@ class surface_factory : public surface_factory_interface<detector_t> {
         m_bounds.push_back(std::move(bounds));
         m_transforms.push_back(trf);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Add all necessary compontents to the factory from bundled surface
     /// data in @param surface_data .
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto push_back(sf_data_collection &&surface_data) -> void override {
         const auto n_surfaces{
@@ -118,8 +133,10 @@ class surface_factory : public surface_factory_interface<detector_t> {
             push_back(std::move(sf_data));
         }
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Clear old data
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto clear() -> void override {
         m_types.clear();
@@ -129,6 +146,7 @@ class surface_factory : public surface_factory_interface<detector_t> {
         m_bounds.clear();
         m_transforms.clear();
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Generate the surfaces and add them to given data collections.
     ///
@@ -139,6 +157,7 @@ class surface_factory : public surface_factory_interface<detector_t> {
     /// @param ctx the geometry context.
     ///
     /// @returns index range of inserted surfaces in @param surfaces container
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto operator()([[maybe_unused]] typename detector_t::volume_type &volume,
                     [[maybe_unused]]
@@ -221,9 +240,11 @@ class surface_factory : public surface_factory_interface<detector_t> {
 
         return {surfaces_offset, static_cast<dindex>(surfaces.size())};
     }
+#endif // DETRAY_COMPILE_VITIS
 
     private:
     /// Run internal consistency check of surface data in the builder
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     void check() const {
         // This should not happend (need same number and ordering of data)
@@ -233,6 +254,7 @@ class surface_factory : public surface_factory_interface<detector_t> {
         assert(m_bounds.size() == m_sources.size());
         assert(m_bounds.size() == m_transforms.size());
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Types of the surface (portal|sensitive|passive)
     std::vector<surface_id> m_types{};

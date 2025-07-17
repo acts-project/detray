@@ -8,8 +8,11 @@
 #pragma once
 
 // Project include(s)
+#ifndef DETRAY_COMPILE_VITIS
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#endif // DETRAY_COMPILE_VITIS
+
 #include "detray/utils/type_list.hpp"
 
 // System include(s)

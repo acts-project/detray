@@ -131,6 +131,7 @@ struct random_scatterer : actor {
         }
     };
 
+#ifndef DETRAY_COMPILE_VITIS
     template <typename propagator_state_t>
     DETRAY_HOST inline void operator()(state& simulator_state,
                                        propagator_state_t& prop_state) const {
@@ -179,8 +180,10 @@ struct random_scatterer : actor {
         // Flag renavigation of the current candidate
         prop_state._navigation.set_high_trust();
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @brief Get the new momentum from the landau distribution
+#ifndef DETRAY_COMPILE_VITIS
     template <typename generator_t>
     DETRAY_HOST inline scalar_type attenuate(const scalar_type mpv,
                                              const scalar_type sigma,
@@ -207,6 +210,7 @@ struct random_scatterer : actor {
         // p = sqrt(E^2 - m^2)
         return math::sqrt(p2);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @brief Scatter the direction with projected scattering angle
     ///
@@ -214,6 +218,7 @@ struct random_scatterer : actor {
     /// @param projected_scattering_angle  projected scattering angle
     /// @param generator random generator
     /// @returns the new direction from random scattering
+#ifndef DETRAY_COMPILE_VITIS
     template <typename generator_t>
     DETRAY_HOST inline vector3_type scatter(
         const vector3_type& dir, const scalar_type projected_scattering_angle,
@@ -225,6 +230,7 @@ struct random_scatterer : actor {
 
         return scattering_helper<algebra_t>()(dir, scattering_angle, generator);
     }
+#endif // DETRAY_COMPILE_VITIS
 };
 
 }  // namespace detray

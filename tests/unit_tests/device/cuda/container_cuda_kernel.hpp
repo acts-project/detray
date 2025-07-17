@@ -56,16 +56,20 @@ struct test {
     using buffer_type =
         dmulti_buffer<dvector_buffer<int>, dvector_buffer<double>>;
 
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST test(vecmem::memory_resource* mr) : first(mr), second(mr) {}
+#endif // DETRAY_COMPILE_VITIS
 
     template <typename view_t,
               std::enable_if_t<detail::is_device_view_v<view_t>, bool> = true>
     DETRAY_HOST_DEVICE test(view_t v)
         : first(detail::get<0>(v.m_view)), second(detail::get<1>(v.m_view)) {}
 
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST view_type get_data() {
         return view_type{vecmem::get_data(first), vecmem::get_data(second)};
     }
+#endif // DETRAY_COMPILE_VITIS
 
     vector_t<int> first;
     vector_t<double> second;

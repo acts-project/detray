@@ -8,17 +8,22 @@
 #pragma once
 
 // Detray include(s)
+#ifndef DETRAY_COMPILE_VITIS
 #include "detray/core/detail/container_buffers.hpp"
 #include "detray/core/detail/container_views.hpp"
-#include "detray/core/detail/data_context.hpp"
-#include "detray/core/detail/tuple_container.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/utils/type_list.hpp"
+#endif // DETRAY_COMPILE_VITIS
+       
 #include "detray/utils/type_registry.hpp"
+#include "detray/core/detail/tuple_container.hpp"
+#include "detray/core/detail/data_context.hpp"
 
 // Vecmem include(s)
+#ifndef DETRAY_COMPILE_VITIS
 #include <vecmem/memory/memory_resource.hpp>
+#endif // DETRAY_COMPILE_VITIS
 
 // System include(s)
 #include <type_traits>
@@ -81,20 +86,24 @@ class multi_store {
 
     /// Construct with a specific vecmem memory resource @param resource
     /// (host-side only)
+#ifndef DETRAY_COMPILE_VITIS
     template <typename allocator_t = vecmem::memory_resource,
               std::enable_if_t<not detail::is_device_view_v<allocator_t>,
                                bool> = true>
     DETRAY_HOST explicit multi_store(allocator_t &resource)
         : m_tuple_container(resource) {}
+#endif // DETRAY_COMPILE_VITIS
 
     /// Copy Construct with a specific (vecmem) memory resource @param resource
     /// (host-side only)
+#ifndef DETRAY_COMPILE_VITIS
     template <
         typename allocator_t = vecmem::memory_resource,
         typename T = tuple_t<Ts...>,
         std::enable_if_t<std::is_same_v<T, std::tuple<Ts...>>, bool> = true>
     DETRAY_HOST explicit multi_store(allocator_t &resource, const Ts &... args)
         : m_tuple_container(resource, args...) {}
+#endif // DETRAY_COMPILE_VITIS
 
     /// Construct from the container @param view . Mainly used device-side.
     template <
@@ -192,12 +201,15 @@ class multi_store {
     }
 
     /// Removes and destructs all elements in a specific collection.
+#ifndef DETRAY_COMPILE_VITIS
     template <ID id>
     DETRAY_HOST void clear(const context_type & /*ctx*/) {
         detail::get<value_types::to_index(id)>(m_tuple_container).clear();
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Removes and destructs all elements in the container.
+#ifndef DETRAY_COMPILE_VITIS
     template <std::size_t current_idx = 0>
     DETRAY_HOST void clear_all(const context_type &ctx = {}) {
         clear<value_types::to_id(current_idx)>(ctx);
@@ -206,19 +218,24 @@ class multi_store {
             clear_all<current_idx + 1>(ctx);
         }
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Reserve memory of size @param n for a collection given by @tparam id
+#ifndef DETRAY_COMPILE_VITIS
     template <ID id>
     DETRAY_HOST void reserve(std::size_t n, const context_type & /*ctx*/) {
         detail::get<value_types::to_index(id)>(m_tuple_container).reserve(n);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Resize the underlying container to @param n for a collection given by
     /// @tparam id
+#ifndef DETRAY_COMPILE_VITIS
     template <ID id>
     DETRAY_HOST void resize(std::size_t n, const context_type & /*ctx*/) {
         detail::get<value_types::to_index(id)>(m_tuple_container).resize(n);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Add a new element to a collection
     ///
@@ -228,6 +245,7 @@ class multi_store {
     /// @param args is the list of constructor arguments
     ///
     /// @note in general can throw an exception
+#ifndef DETRAY_COMPILE_VITIS
     template <ID id, typename T>
     DETRAY_HOST constexpr auto push_back(
         const T &arg, const context_type & /*ctx*/ = {}) noexcept(false)
@@ -235,6 +253,7 @@ class multi_store {
         auto &coll = detail::get<value_types::to_index(id)>(m_tuple_container);
         return coll.push_back(arg);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Add a new element to a collection in place
     ///
@@ -244,12 +263,14 @@ class multi_store {
     /// @param args is the list of constructor arguments
     ///
     /// @note in general can throw an exception
+#ifndef DETRAY_COMPILE_VITIS
     template <ID id, typename... Args>
     DETRAY_HOST constexpr decltype(auto) emplace_back(
         const context_type & /*ctx*/ = {}, Args &&... args) noexcept(false) {
         auto &coll = detail::get<value_types::to_index(id)>(m_tuple_container);
         return coll.emplace_back(std::forward<Args>(args)...);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Add a collection - copy
     ///
@@ -258,6 +279,7 @@ class multi_store {
     /// @param new_data is the new collection to be added
     ///
     /// @note in general can throw an exception
+#ifndef DETRAY_COMPILE_VITIS
     template <typename collection_t>
     DETRAY_HOST auto insert(collection_t &new_data,
                             const context_type & /*ctx*/ = {}) noexcept(false)
@@ -272,6 +294,7 @@ class multi_store {
         coll.reserve(coll.size() + new_data.size());
         coll.insert(coll.end(), new_data.begin(), new_data.end());
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Add a new collection - move
     ///
@@ -280,6 +303,7 @@ class multi_store {
     /// @param new_data is the new collection to be added
     ///
     /// @note in general can throw an exception
+#ifndef DETRAY_COMPILE_VITIS
     template <typename collection_t>
     DETRAY_HOST auto insert(collection_t &&new_data,
                             const context_type & /*ctx*/ = {}) noexcept(false)
@@ -294,6 +318,7 @@ class multi_store {
         coll.insert(coll.end(), std::make_move_iterator(new_data.begin()),
                     std::make_move_iterator(new_data.end()));
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Append another store to the current one
     ///
@@ -302,6 +327,7 @@ class multi_store {
     /// @param other The other store
     ///
     /// @note in general can throw an exception
+#ifndef DETRAY_COMPILE_VITIS
     template <std::size_t current_idx = 0>
     DETRAY_HOST void append(multi_store &other,
                             const context_type &ctx = {}) noexcept(false) {
@@ -312,6 +338,7 @@ class multi_store {
             append<current_idx + 1>(std::move(other));
         }
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Append another store to the current one - move
     ///
@@ -320,6 +347,7 @@ class multi_store {
     /// @param other The other store
     ///
     /// @note in general can throw an exception
+#ifndef DETRAY_COMPILE_VITIS
     template <std::size_t current_idx = 0>
     DETRAY_HOST void append(multi_store &&other,
                             const context_type &ctx = {}) noexcept(false) {
@@ -330,6 +358,7 @@ class multi_store {
             append<current_idx + 1>(std::move(other));
         }
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Calls a functor with a every data collection as parameter.
     ///
@@ -379,20 +408,26 @@ class multi_store {
     }
 
     /// Print the types that are in the store
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     static constexpr void print() {
         types::print<types::list<detail::get_value_t<Ts>...>>();
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @return the view on this tuple container - non-const
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST auto get_data() -> view_type {
         return m_tuple_container.get_data();
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @return the view on this tuple container - const
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST auto get_data() const -> const_view_type {
         return m_tuple_container.get_data();
     }
+#endif // DETRAY_COMPILE_VITIS
 
     private:
     /// The underlying tuple container implementation

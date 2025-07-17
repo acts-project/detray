@@ -18,7 +18,9 @@
 // Vecmem include(s)
 #include <vecmem/memory/cuda/device_memory_resource.hpp>
 #include <vecmem/memory/host_memory_resource.hpp>
+#ifndef DETRAY_COMPILE_VITIS
 #include <vecmem/memory/memory_resource.hpp>
+#endif // DETRAY_COMPILE_VITIS
 #include <vecmem/utils/cuda/copy.hpp>
 
 // System include

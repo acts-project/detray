@@ -60,16 +60,19 @@ class axis_aligned_bounding_volume {
     }
 
     /// Construct from mask boundary vector
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST axis_aligned_bounding_volume(
         const std::vector<scalar_t>& values, std::size_t box_id)
         : m_mask(values, box_id) {
         assert(values.size() == shape::boundaries::e_size &&
                " Given number of boundaries does not match mask shape.");
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Construct a bounding box around a set of boxes
     /// @note the given bounding volumes need to be defnined in the same
     /// local coordinate system!
+#ifndef DETRAY_COMPILE_VITIS
     template <typename other_shape_t, typename other_scalar_t,
               typename std::enable_if_t<
                   std::is_same_v<
@@ -107,6 +110,7 @@ class axis_aligned_bounding_volume {
                                           min_z - env, max_x + env, max_y + env,
                                           max_z + env};
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Subscript operator @returns a single box boundary.
     DETRAY_HOST_DEVICE
@@ -336,11 +340,13 @@ class axis_aligned_bounding_volume {
     mask<shape, std::size_t> m_mask;
 };
 
+#ifndef DETRAY_COMPILE_VITIS
 template <typename shape_t, typename scalar_t = scalar>
 DETRAY_HOST std::ostream& operator<<(
     std::ostream& os,
     const axis_aligned_bounding_volume<shape_t, scalar_t>& aabb) {
     return os << aabb.bounds().to_string();
 }
+#endif // DETRAY_COMPILE_VITIS
 
 }  // namespace detray

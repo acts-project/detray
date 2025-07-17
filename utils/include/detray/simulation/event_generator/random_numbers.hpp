@@ -32,25 +32,34 @@ struct random_numbers {
     engine_t m_engine;
 
     /// Default seed
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     random_numbers()
         : m_seeds{random_numbers::default_seed()}, m_engine{m_seeds} {}
+#endif // DETRAY_COMPILE_VITIS
 
     /// Different seed @param s for every instance
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     random_numbers(seed_type s) : m_seeds{s}, m_engine{m_seeds} {}
+#endif // DETRAY_COMPILE_VITIS
 
     /// More entropy in seeds from collection @param s
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     random_numbers(const std::vector<seed_type>& s)
         : m_seeds{s.begin(), s.end()}, m_engine{m_seeds} {}
+#endif // DETRAY_COMPILE_VITIS
 
     /// Copy constructor
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     random_numbers(random_numbers&& other)
         : m_engine(std::move(other.m_engine)) {}
+#endif // DETRAY_COMPILE_VITIS
 
     /// Generate random numbers in a given range
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST auto operator()(const std::array<scalar_t, 2> range = {
                                     -std::numeric_limits<scalar_t>::max(),
                                     std::numeric_limits<scalar_t>::max()}) {
@@ -71,16 +80,21 @@ struct random_numbers {
             return distribution_t(mu, 0.5f / 3.0f * (max - min))(m_engine);
         }
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Explicit normal distribution around a @param mean and @param stddev
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST auto normal(const scalar_t mean, const scalar_t stddev) {
         return std::normal_distribution<scalar_t>(mean, stddev)(m_engine);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// 50:50 coin toss
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST std::uint8_t coin_toss() {
         return std::uniform_int_distribution<std::uint8_t>(0u, 1u)(m_engine);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Get the default seed of the engine
     static constexpr seed_type default_seed() { return engine_t::default_seed; }

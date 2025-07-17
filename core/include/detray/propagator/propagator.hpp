@@ -272,6 +272,7 @@ struct propagator {
         return propagation._navigation.is_complete();
     }
 
+#ifndef DETRAY_COMPILE_VITIS
     template <typename state_t>
     DETRAY_HOST void inspect(state_t &propagation) {
         const auto &navigation = propagation._navigation;
@@ -321,6 +322,7 @@ struct propagator {
                                  << detail::ray<algebra_type>(stepping())
                                  << std::endl;
     }
+#endif // DETRAY_COMPILE_VITIS
 };
 
 }  // namespace detray

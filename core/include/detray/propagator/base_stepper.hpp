@@ -183,8 +183,10 @@ class base_stepper {
         inline scalar_type path_length() const { return _path_length; }
 
         /// @returns the stepping inspector
+#ifndef DETRAY_COMPILE_VITIS
         DETRAY_HOST
         inline constexpr auto &inspector() { return _inspector; }
+#endif // DETRAY_COMPILE_VITIS
 
         /// Call the stepping inspector
         DETRAY_HOST_DEVICE

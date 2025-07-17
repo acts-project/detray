@@ -81,6 +81,7 @@ struct intersection2D {
     constexpr bool is_inside() const { return detail::any_of(this->status); }
 
     /// Transform to a string for output debugging
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     friend std::ostream &operator<<(std::ostream &out_stream,
                                     const intersection2D &is) {
@@ -104,6 +105,7 @@ struct intersection2D {
         out_stream << std::endl;
         return out_stream;
     }
+#endif // DETRAY_COMPILE_VITIS
 };
 
 }  // namespace detray

@@ -29,7 +29,9 @@
 
 // vecmem include(s)
 #include <vecmem/containers/data/jagged_vector_buffer.hpp>
+#ifndef DETRAY_COMPILE_VITIS
 #include <vecmem/memory/memory_resource.hpp>
+#endif // DETRAY_COMPILE_VITIS
 
 namespace detray {
 
@@ -182,9 +184,11 @@ class navigator {
         state(const detector_type &det) : m_detector(&det) {}
 
         /// Constructor with memory resource
+#ifndef DETRAY_COMPILE_VITIS
         DETRAY_HOST
         state(const detector_type &det, vecmem::memory_resource &resource)
             : m_detector(&det), m_candidates(&resource) {}
+#endif // DETRAY_COMPILE_VITIS
 
         /// Constructor from candidates vector
         DETRAY_HOST_DEVICE state(const detector_type &det,
@@ -259,8 +263,10 @@ class navigator {
         inline auto last() const -> const_candidate_itr_t { return m_last; }
 
         /// @returns the navigation inspector
+#ifndef DETRAY_COMPILE_VITIS
         DETRAY_HOST
         inline auto &inspector() { return m_inspector; }
+#endif // DETRAY_COMPILE_VITIS
 
         /// @returns current volume (index) - const
         DETRAY_HOST_DEVICE
@@ -817,6 +823,7 @@ class navigator {
 // TODO: det.get_n_max_objects_per_volume() is way too many for
 // candidates size allocation. With the local navigation, the size can be
 // restricted to much smaller value
+#ifndef DETRAY_COMPILE_VITIS
 template <typename detector_t>
 DETRAY_HOST vecmem::data::jagged_vector_buffer<intersection2D<
     typename detector_t::surface_type, typename detector_t::algebra_type>>
@@ -831,5 +838,6 @@ create_candidates_buffer(
         device_resource, host_access_resource,
         vecmem::data::buffer_type::resizable);
 }
+#endif // DETRAY_COMPILE_VITIS
 
 }  // namespace detray

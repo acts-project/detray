@@ -19,7 +19,9 @@
 #include "detray/utils/ranges.hpp"
 
 // VecMem include(s).
+#ifndef DETRAY_COMPILE_VITIS
 #include <vecmem/memory/memory_resource.hpp>
+#endif // DETRAY_COMPILE_VITIS
 
 // System include(s).
 #include <array>
@@ -89,9 +91,11 @@ class grid_impl {
     grid_impl() = default;
 
     /// Create empty grid with empty axes from specific vecmem memory resource
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     explicit grid_impl(vecmem::memory_resource &resource)
         : m_bins(resource), m_axes(resource) {}
+#endif // DETRAY_COMPILE_VITIS
 
     /// Create grid with well defined @param axes and @param bins_data - move
     DETRAY_HOST_DEVICE
@@ -353,19 +357,23 @@ class grid_impl {
     /// @returns view of a grid, including the grids multi_axis. Also valid if
     /// the value type of the grid is cv qualified (then value_t propagates
     /// quialifiers) - non-const
+#ifndef DETRAY_COMPILE_VITIS
     template <bool owning = is_owning, std::enable_if_t<owning, bool> = true>
     DETRAY_HOST auto get_data() -> view_type {
         return view_type{detray::get_data(m_bins), detray::get_data(m_axes)};
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns view of a grid, including the grids multi_axis. Also valid if
     /// the value type of the grid is cv qualified (then value_t propagates
     /// quialifiers) - const
+#ifndef DETRAY_COMPILE_VITIS
     template <bool owning = is_owning, std::enable_if_t<owning, bool> = true>
     DETRAY_HOST auto get_data() const -> const_view_type {
         return const_view_type{detray::get_data(m_bins),
                                detray::get_data(m_axes)};
     }
+#endif // DETRAY_COMPILE_VITIS
 
     private:
     /// Struct that contains the grid's data state

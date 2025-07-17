@@ -41,10 +41,13 @@ class grid_builder : public volume_decorator<detector_t> {
     using value_type = typename detector_type::surface_type;
 
     /// Use the grid builder stand-alone
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     grid_builder() : volume_decorator<detector_t>(nullptr) {}
+#endif // DETRAY_COMPILE_VITIS
 
     /// Decorate a volume with a grid
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     grid_builder(
         std::unique_ptr<volume_builder_interface<detector_t>> vol_builder)
@@ -55,6 +58,7 @@ class grid_builder : public volume_decorator<detector_t> {
             this->m_builder->has_accel(true);
         }
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Should the passive surfaces be added to the grid ?
     void set_add_passives(bool is_add_passive = true) {
@@ -79,6 +83,7 @@ class grid_builder : public volume_decorator<detector_t> {
     }
 
     /// Delegate init call depending on @param span type
+#ifndef DETRAY_COMPILE_VITIS
     template <typename grid_shape_t>
     DETRAY_HOST void init_grid(
         const mask<grid_shape_t> &m,
@@ -97,8 +102,10 @@ class grid_builder : public volume_decorator<detector_t> {
         m_grid = m_factory.template new_grid<grid_t>(m, n_bins, bin_capacities,
                                                      ax_bin_edges);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Build the empty grid from axis parameters
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST void init_grid(
         const std::vector<scalar_type> &spans,
         const std::vector<std::size_t> &n_bins,
@@ -109,9 +116,11 @@ class grid_builder : public volume_decorator<detector_t> {
         m_grid = m_factory.template new_grid<grid_t>(
             spans, n_bins, bin_capacities, ax_bin_edges);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Fill grid from existing volume using a bin filling strategy
     /// This can also be called without a volume builder
+#ifndef DETRAY_COMPILE_VITIS
     template <typename volume_type, typename... Args>
     DETRAY_HOST void fill_grid(
         const detector_t &det, const volume_type &vol,
@@ -120,9 +129,11 @@ class grid_builder : public volume_decorator<detector_t> {
 
         bin_filler(m_grid, det, vol, ctx, args...);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Fill grid from externally provided surfaces - temporary solution until
     /// the volume builders can be deployed in the toy detector
+#ifndef DETRAY_COMPILE_VITIS
     template <typename volume_type, typename surface_container_t,
               typename transform_container_t, typename mask_container_t,
               typename... Args>
@@ -134,8 +145,10 @@ class grid_builder : public volume_decorator<detector_t> {
 
         bin_filler(m_grid, vol, surfaces, transforms, masks, ctx, args...);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Add the volume and the grid to the detector @param det
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto build(detector_t &det, typename detector_t::geometry_context ctx = {})
         -> typename detector_t::volume_type * override {
@@ -192,10 +205,13 @@ class grid_builder : public volume_decorator<detector_t> {
 
         return vol_ptr;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns access to the new grid
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto &get() { return m_grid; }
+#endif // DETRAY_COMPILE_VITIS
 
     protected:
     link_id_t m_id{link_id_t::e_sensitive};

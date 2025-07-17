@@ -17,7 +17,9 @@
 #include "detray/utils/type_traits.hpp"
 
 // Vecmem include(s)
+#ifndef DETRAY_COMPILE_VITIS
 #include <vecmem/memory/memory_resource.hpp>
+#endif // DETRAY_COMPILE_VITIS
 
 // System include(s)
 #include <memory>
@@ -41,6 +43,7 @@ class detector_builder {
 
     /// Add a new volume builder that will build a volume of the shape given by
     /// @param id
+#ifndef DETRAY_COMPILE_VITIS
     template <typename... Args>
     DETRAY_HOST auto new_volume(const volume_id id, Args&&... args)
         -> volume_builder_interface<detector_type>* {
@@ -51,20 +54,26 @@ class detector_builder {
 
         return m_volumes.back().get();
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns the number of volumes currently registered in the builder
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST auto n_volumes() const -> dindex {
         return static_cast<dindex>(m_volumes.size());
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns 'true' if there is a volume builder registered for
     /// the volume with index @param volume_idx
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST bool has_volume(const std::size_t volume_idx) const {
         return volume_idx < m_volumes.size();
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Decorate a volume builder at position @param volume_idx with more
     /// functionality
+#ifndef DETRAY_COMPILE_VITIS
     template <class builder_t>
     DETRAY_HOST auto decorate(dindex volume_idx) -> builder_t* {
 
@@ -74,8 +83,10 @@ class detector_builder {
         // Always works, we set it as this type in the line above
         return dynamic_cast<builder_t*>(m_volumes[volume_idx].get());
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Decorate a volume builder @param v_builder with more functionality
+#ifndef DETRAY_COMPILE_VITIS
     template <class builder_t>
     DETRAY_HOST auto decorate(
         const volume_builder_interface<detector_type>* v_builder)
@@ -83,16 +94,20 @@ class detector_builder {
 
         return decorate<builder_t>(v_builder->vol_index());
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Access a particular volume builder by volume index @param volume_idx
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto operator[](dindex volume_idx)
         -> volume_builder_interface<detector_type>* {
         return m_volumes[volume_idx].get();
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Assembles the final detector from the volumes builders and allocates
     /// the detector containers with the memory resource @param resource
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto build(vecmem::memory_resource& resource) -> detector_type {
 
@@ -108,8 +123,10 @@ class detector_builder {
 
         return det;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Put the volumes into a search data structure
+#ifndef DETRAY_COMPILE_VITIS
     template <typename... Args>
     DETRAY_HOST void set_volume_finder([[maybe_unused]] Args&&... args) {
 
@@ -141,11 +158,14 @@ class detector_builder {
             m_vol_finder = vol_finder_t{args...};
         }
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns access to the volume finder
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST typename detector_type::volume_finder& volume_finder() {
         return m_vol_finder;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     protected:
     /// Data structure that holds a volume builder for every detector volume

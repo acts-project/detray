@@ -8,19 +8,21 @@
 #pragma once
 
 // Project include(s)
+#include "detray/core/detector_metadata.hpp"
+#include "detray/core/detail/surface_lookup.hpp"
+#include "detray/geometry/detail/volume_descriptor.hpp"
+
+// Vecmem include(s)
+#ifndef DETRAY_COMPILE_VITIS
+#include <vecmem/memory/memory_resource.hpp>
 #include "detray/builders/volume_builder.hpp"  // @TODO remove
 #include "detray/core/detail/container_buffers.hpp"
 #include "detray/core/detail/container_views.hpp"
-#include "detray/core/detail/surface_lookup.hpp"
-#include "detray/core/detector_metadata.hpp"
-#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/containers.hpp"
-#include "detray/definitions/detail/qualifiers.hpp"
-#include "detray/geometry/detail/volume_descriptor.hpp"
 #include "detray/utils/ranges.hpp"  // @TODO remove
-
-// Vecmem include(s)
-#include <vecmem/memory/memory_resource.hpp>
+#include "detray/definitions/detail/algebra.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
+#endif // DETRAY_COMPILE_VITIS
 
 // System include(s)
 #include <algorithm>
@@ -173,6 +175,7 @@ class detector {
 
     /// Default construction
     /// @param resource memory resource for the allocation of members
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     explicit detector(vecmem::memory_resource &resource)
         : _volumes(&resource),
@@ -183,6 +186,7 @@ class detector {
           _accelerators(resource),
           _volume_finder(resource),
           _resource(&resource) {}
+#endif // DETRAY_COMPILE_VITIS
 
     /// Constructor from detector data view
     template <typename detector_view_t,
@@ -268,6 +272,7 @@ class detector {
     }
 
     /// @returns view of a detector
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST auto get_data() -> view_type {
         return view_type{
             detray::get_data(_volumes),      detray::get_data(_surfaces),
@@ -275,8 +280,10 @@ class detector {
             detray::get_data(_materials),    detray::get_data(_accelerators),
             detray::get_data(_volume_finder)};
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns const view of a detector
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST auto get_data() const -> const_view_type {
         return const_view_type{
             detray::get_data(_volumes),      detray::get_data(_surfaces),
@@ -284,9 +291,11 @@ class detector {
             detray::get_data(_materials),    detray::get_data(_accelerators),
             detray::get_data(_volume_finder)};
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @param names maps a volume to its string representation.
     /// @returns a string representation of the detector.
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto to_string(const name_map &names) const -> std::string {
         std::stringstream ss;
@@ -317,14 +326,19 @@ class detector {
 
         return ss.str();
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @return the pointer of memoery resource - non-const access
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto *resource() { return _resource; }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @return the pointer of memoery resource
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     const auto *resource() const { return _resource; }
+#endif // DETRAY_COMPILE_VITIS
 
     ///------------------------------------------------------------------------
     /// @TODO Make the following methods private or remove them once all of the
@@ -336,11 +350,13 @@ class detector {
     inline auto volumes() -> vector_type<volume_type> & { return _volumes; }
 
     /// Append new portals(surfaces) to the detector
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     inline void append_portals(surface_container &&new_surfaces) {
         _accelerators.template push_back<accel::id::e_brute_force>(
             std::move(new_surfaces));
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns all portals - const
     /// @note Depending on the detector type, this can also contain other
@@ -367,6 +383,7 @@ class detector {
     }
 
     /// Append new portals(surfaces) to the detector
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     inline void append_portals(surface_lookup_container &&new_surfaces) {
         surface_container descriptors;
@@ -379,6 +396,7 @@ class detector {
         _accelerators.template push_back<accel::id::e_brute_force>(
             std::move(descriptors));
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @return the sub-volumes of the detector - non-const access
     DETRAY_HOST_DEVICE
@@ -391,31 +409,37 @@ class detector {
     }
 
     /// Append a new transform store to the detector
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     inline void append_transforms(transform_container &&new_transforms,
                                   const geometry_context ctx = {}) {
         _transforms.append(std::move(new_transforms), ctx);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @return all surface/portal masks in the geometry - non-const access
     DETRAY_HOST_DEVICE
     inline auto mask_store() -> mask_container & { return _masks; }
 
     /// Append a new mask store to the detector
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     inline void append_masks(mask_container &&new_masks) {
         _masks.append(std::move(new_masks));
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @return all materials in the geometry - non-const access
     DETRAY_HOST_DEVICE
     inline auto material_store() -> material_container & { return _materials; }
 
     /// Append a new material store to the detector
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     inline void append_materials(material_container &&new_materials) {
         _materials.append(std::move(new_materials));
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns access to the surface finder container
     DETRAY_HOST_DEVICE
@@ -426,18 +450,22 @@ class detector {
     /// Add the volume grid - move semantics
     ///
     /// @param v_grid the volume grid to be added
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     inline auto set_volume_finder(volume_finder &&v_grid) -> void {
         _volume_finder = std::move(v_grid);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Add the volume grid - copy semantics
     ///
     /// @param v_grid the volume grid to be added
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     inline auto set_volume_finder(const volume_finder &v_grid) -> void {
         _volume_finder = v_grid;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns const access to the detector's volume search structure
     DETRAY_HOST_DEVICE
@@ -456,6 +484,7 @@ class detector {
     /// @param acc_link of the volume, where to entry the surface finder
     ///
     /// @return non-const reference to the new volume
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     volume_type &new_volume(
         const volume_id id,
@@ -467,6 +496,7 @@ class detector {
 
         return cvolume;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Add a new full set of detector components (e.g. transforms or volumes)
     /// according to given geometry_context.
@@ -480,6 +510,7 @@ class detector {
     ///
     /// @note can throw an exception if input data is inconsistent
     // TODO: Provide volume builder structure separate from the detector
+#ifndef DETRAY_COMPILE_VITIS
     template <geo_obj_ids surface_id = static_cast<geo_obj_ids>(0)>
     DETRAY_HOST auto add_objects_per_volume(
         const geometry_context ctx, volume_type &vol,
@@ -516,6 +547,7 @@ class detector {
         // Append mask and material container
         _masks.append(std::move(masks_per_vol));
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Add a new full set of detector components (e.g. transforms or volumes)
     /// according to given geometry_context.
@@ -529,6 +561,7 @@ class detector {
     ///
     /// @note can throw an exception if input data is inconsistent
     // TODO: Provide volume builder structure separate from the detector
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto add_objects_per_volume(
         const geometry_context ctx, volume_type &vol,
@@ -546,11 +579,13 @@ class detector {
         add_objects_per_volume(ctx, vol, surfaces_per_vol, masks_per_vol,
                                trfs_per_vol);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     ///------------------------------------------------------------------------
 
     /// @returns the maximum number of surface candidates that any volume may
     /// return.
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     inline auto n_max_candidates() const -> std::size_t {
         std::vector<std::size_t> n_candidates;
@@ -561,6 +596,7 @@ class detector {
         }
         return *std::max_element(n_candidates.begin(), n_candidates.end());
     }
+#endif // DETRAY_COMPILE_VITIS
 
     private:
     /// Contains the detector sub-volumes.

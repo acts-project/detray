@@ -16,7 +16,9 @@
 
 // Vecmem include(s)
 #include <vecmem/containers/data/vector_buffer.hpp>
+#ifndef DETRAY_COMPILE_VITIS
 #include <vecmem/memory/memory_resource.hpp>
+#endif // DETRAY_COMPILE_VITIS
 #include <vecmem/utils/copy.hpp>
 
 // System include(s)
@@ -65,9 +67,11 @@ struct dmulti_buffer_helper<true, buffer_ts...> : public dbase_buffer {
     dmulti_buffer_helper() = default;
 
     /// Tie multiple buffers together
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     explicit dmulti_buffer_helper(buffer_ts&&... buffers)
         : m_buffer(std::move(buffers)...) {}
+#endif // DETRAY_COMPILE_VITIS
 };
 
 /// Helper trait to determine if a type can be interpreted as a (composite)

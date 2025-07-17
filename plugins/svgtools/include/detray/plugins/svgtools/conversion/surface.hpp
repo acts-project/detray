@@ -186,6 +186,7 @@ namespace {
 /// @brief A functor to set the proto surfaces type and bounds to be equivalent
 /// to the mask.
 struct surface_converter {
+#ifndef DETRAY_COMPILE_VITIS
     template <typename mask_group_t, typename index_t, typename transform_t>
     DETRAY_HOST inline auto operator()(const mask_group_t& mask_group,
                                        const index_t& index,
@@ -193,6 +194,7 @@ struct surface_converter {
 
         return svgtools::conversion::surface(transform, mask_group[index]);
     }
+#endif // DETRAY_COMPILE_VITIS
 };
 }  // namespace
 
