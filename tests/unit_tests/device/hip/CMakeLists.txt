@@ -43,11 +43,7 @@ target_link_libraries(detray_build
 )
 
 # Add project headers
-target_include_directories(detray_build PRIVATE
-    ${CMAKE_SOURCE_DIR}/include
-    ${CMAKE_SOURCE_DIR}/core/include
-    ${CMAKE_SOURCE_DIR}/plugins/algebra/array/include
-)
+
 
 # Optional: include HIP headers via module
 if(DEFINED ENV{HIP_PATH})
