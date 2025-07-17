@@ -5,7 +5,10 @@
  * Mozilla Public License Version 2.0
  */
 
+
 #pragma once
+#include <hip/hip_runtime.h>
+#include <iostream>
 
 // Projetc include(s)
 #include "detray/core/detector.hpp"

@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s).
-#include "detray/builders/bin_fillers.hpp"
+#include "bin_fillers.hpp"
 #include "detray/builders/grid_factory.hpp"
 #include "detray/builders/surface_factory_interface.hpp"
 #include "detray/builders/volume_builder.hpp"
