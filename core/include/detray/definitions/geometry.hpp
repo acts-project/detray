@@ -9,6 +9,8 @@
 
 // System include(s)
 #include <cstdint>
+#include <detray/definitions/detail/qualifiers.hpp>
+#include <ostream>
 
 namespace detray {
 
@@ -28,6 +30,25 @@ enum class volume_id : std::uint_least8_t {
     e_unknown = 5u
 };
 
+#define _enum_print(x) \
+    case x:            \
+        os << #x;      \
+        break
+
+DETRAY_HOST inline std::ostream& operator<<(std::ostream& os, volume_id vid) {
+
+    switch (vid) {
+        using enum volume_id;
+        _enum_print(e_cylinder);
+        _enum_print(e_rectangle);
+        _enum_print(e_trapezoid);
+        _enum_print(e_cone);
+        _enum_print(e_cuboid);
+        _enum_print(e_unknown);
+    }
+    return os;
+}
+
 /// surface type, resolved during navigation.
 ///
 /// sensitive: can provide measurements and have material.
@@ -41,4 +62,17 @@ enum class surface_id : std::uint_least8_t {
     e_all = e_unknown
 };
 
+DETRAY_HOST inline std::ostream& operator<<(std::ostream& os, surface_id sid) {
+
+    switch (sid) {
+        using enum surface_id;
+        _enum_print(e_portal);
+        _enum_print(e_sensitive);
+        _enum_print(e_passive);
+        _enum_print(e_unknown);
+    }
+    return os;
+}
+
+#undef _enum_print
 }  // namespace detray
