@@ -41,6 +41,11 @@ detray_add_library( detray_core core
 )
 target_link_libraries(detray_core INTERFACE vecmem::core)
 
+if(DETRAY_ENABLE_LOGGING)
+    message(STATUS "Enabling debug logging output")
+    target_compile_definitions(detray_core INTERFACE DETRAY_ENABLE_LOGGING)
+endif()
+
 # Generate a version header for the project.
 configure_file(
     "cmake/version.hpp.in"
