@@ -16,6 +16,7 @@
 // System include(s)
 #include <array>
 #include <cstdint>
+#include <iomanip>
 #include <limits>
 #include <map>
 #include <optional>
@@ -81,6 +82,28 @@ struct transform_payload {
     // Column major
     std::array<real_io, 9u> rot{};
 };
+
+DETRAY_HOST inline std::ostream& operator<<(
+    std::ostream& os, const transform_payload& transform) {
+    const auto& rot = transform.rot;
+    os << "rot: ";
+    os << std::fixed << std::setw(4);
+    auto line = [&](std::size_t i) {
+        os << rot[i] << " " << rot[i + 3] << " " << rot[i + 6];
+    };
+    line(0);
+    os << "\n     ";
+    line(1);
+    os << "\n     ";
+    line(2);
+    os << "\n";
+
+    const auto& tr = transform.tr;
+
+    os << "tr:  ";
+    os << tr[0] << " " << tr[1] << " " << tr[2];
+    return os;
+}
 
 /// @brief A payload object for surface masks
 struct mask_payload {
