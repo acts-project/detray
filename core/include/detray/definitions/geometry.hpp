@@ -69,7 +69,10 @@ DETRAY_HOST inline std::ostream& operator<<(std::ostream& os, surface_id sid) {
         _enum_print(e_portal);
         _enum_print(e_sensitive);
         _enum_print(e_passive);
-        _enum_print(e_unknown);
+        case e_unknown:
+            // e_all has same value (3u)
+            os << "e_unknown/e_all";
+            break;
     }
     return os;
 }

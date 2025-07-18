@@ -20,6 +20,7 @@
 #include <limits>
 #include <map>
 #include <optional>
+#include <ostream>
 #include <string>
 #include <vector>
 
@@ -207,6 +208,21 @@ struct axis_payload {
     std::size_t bins{0u};
     std::vector<real_io> edges{};
 };
+
+DETRAY_HOST inline std::ostream& operator<<(std::ostream& os,
+                                            const axis_payload& axis) {
+    os << "axis_payload{binning: " << axis.binning
+       << ", bounds: " << axis.bounds << ", label: " << axis.label
+       << ", bins: " << axis.bins << ", edges: [";
+    for (std::size_t i = 0; i < axis.edges.size(); ++i) {
+        if (i > 0) {
+            os << ", ";
+        }
+        os << axis.edges[i];
+    }
+    os << "]}";
+    return os;
+}
 
 /// @brief A payload for a grid bin
 template <typename content_t = std::size_t>
