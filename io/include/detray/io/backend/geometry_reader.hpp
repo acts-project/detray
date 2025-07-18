@@ -60,18 +60,26 @@ class geometry_reader {
                                               volume_builder>& det_builder,
                              const payload_type& det_data) {
 
+        DETRAY_DEBUG("Geometry reader from_payload");
+
         // Can hold all types of surface fatory needed for the detector
         using sf_factory_ptr_t =
             std::shared_ptr<surface_factory_interface<detector_t>>;
 
+        DETRAY_DEBUG("Have " << det_data.volumes.size() << " input volumes");
+
         // Convert the volumes one-by-one
         for (const auto& vol_data : det_data.volumes) {
             // Get a generic volume builder first and decorate it later
+            DETRAY_DEBUG("Configuring detector builder with new volume '"
+                         << vol_data.name << "' of type " << vol_data.type);
             auto vbuilder = det_builder.new_volume(vol_data.type);
 
             // Set the volume name
             vbuilder->set_name(vol_data.name);
 
+            DETRAY_DEBUG("Volume placement for " << vol_data.name << " is\n"
+                                                 << vol_data.transform);
             // Volume placement
             vbuilder->add_volume_placement(
                 from_payload<detector_t>(vol_data.transform));
