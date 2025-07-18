@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <detray/definitions/detail/qualifiers.hpp>
+#include <ostream>
 namespace detray {
 
 using real_io = double;
@@ -66,6 +68,78 @@ enum class accel_id : unsigned int {
     n_accel = 7u,
     unknown = n_accel
 };
+
+#define _enum_print(x) \
+    case x:            \
+        os << #x;      \
+        break
+
+DETRAY_HOST inline std::ostream& operator<<(std::ostream& os, shape_id sid) {
+    switch (sid) {
+        using enum shape_id;
+        _enum_print(annulus2);
+        _enum_print(cuboid3);
+        _enum_print(cylinder2);
+        _enum_print(cylinder3);
+        _enum_print(portal_cylinder2);
+        _enum_print(rectangle2);
+        _enum_print(ring2);
+        _enum_print(trapezoid2);
+        _enum_print(drift_cell);
+        _enum_print(straw_tube);
+        _enum_print(single1);
+        _enum_print(single2);
+        _enum_print(single3);
+        case unknown:
+            // n_shapes has same value (13u)
+            os << "unknown/n_shapes";
+            break;
+    }
+    return os;
+}
+
+DETRAY_HOST inline std::ostream& operator<<(std::ostream& os, material_id mid) {
+    switch (mid) {
+        using enum material_id;
+        case annulus2_map:
+            // ring2_map has same value (0u)
+            os << "annulus2_map/ring2_map";
+            break;
+        case rectangle2_map:
+            // trapezoid2_map has same value (1u)
+            os << "rectangle2_map/trapezoid2_map";
+            break;
+            _enum_print(cuboid3_map);
+            _enum_print(concentric_cylinder2_map);
+            _enum_print(cylinder2_map);
+            _enum_print(cylinder3_map);
+            _enum_print(slab);
+            _enum_print(rod);
+            _enum_print(raw_material);
+        case unknown:
+            // n_mats has same value (9u)
+            os << "unknown/n_mats";
+            break;
+    }
+    return os;
+}
+
+DETRAY_HOST inline std::ostream& operator<<(std::ostream& os, accel_id aid) {
+    switch (aid) {
+        using enum accel_id;
+        _enum_print(brute_force);
+        _enum_print(cartesian2_grid);
+        _enum_print(cuboid3_grid);
+        _enum_print(polar2_grid);
+        _enum_print(concentric_cylinder2_grid);
+        _enum_print(cylinder2_grid);
+        _enum_print(cylinder3_grid);
+        _enum_print(unknown);
+    }
+    return os;
+}
+
+#undef _enum_print
 
 }  // namespace io
 
