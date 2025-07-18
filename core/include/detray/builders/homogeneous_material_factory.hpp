@@ -20,6 +20,7 @@
 #include <cassert>
 #include <memory>
 #include <numeric>
+#include <ostream>
 #include <tuple>
 #include <type_traits>
 #include <vector>
@@ -121,6 +122,33 @@ class material_data {
             material_paramters[0], material_paramters[1], material_paramters[2],
             material_paramters[3], material_paramters[4], state});
         m_thickness.push_back(thickness);
+    }
+
+    /// Output stream operator for material_data
+    DETRAY_HOST friend std::ostream &operator<<(std::ostream &os,
+                                                const material_data &mat_data) {
+        os << "material_data{sf_index: ";
+        if (mat_data.m_sf_index == detail::invalid_value<std::size_t>()) {
+            os << "invalid";
+        } else {
+            os << mat_data.m_sf_index;
+        }
+        os << ", materials: [";
+        for (std::size_t i = 0; i < mat_data.m_mat.size(); ++i) {
+            if (i > 0) {
+                os << ", ";
+            }
+            os << mat_data.m_mat[i];
+        }
+        os << "], thickness: [";
+        for (std::size_t i = 0; i < mat_data.m_thickness.size(); ++i) {
+            if (i > 0) {
+                os << ", ";
+            }
+            os << mat_data.m_thickness[i];
+        }
+        os << "]}";
+        return os;
     }
 
     private:
