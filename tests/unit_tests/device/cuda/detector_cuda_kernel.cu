@@ -110,6 +110,7 @@ void detector_test(typename detector_host_t::view_type det_data,
 
 // cuda kernel to extract surface transforms from two detector views - static
 // and misaligned - and to copy them into vectors
+
 __global__ void detector_alignment_test_kernel(
     typename detector_host_t::view_type det_data_static,
     typename detector_host_t::view_type det_data_aligned,

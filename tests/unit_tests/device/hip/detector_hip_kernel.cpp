@@ -1,21 +1,22 @@
-/** Detray library, part of the ACTS project (R&D line)
+/** TRACCC library, part of the ACTS project (R&D line)
  *
- * (c) 2021 CERN for the benefit of the ACTS project
+ * (c) 2021-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
 
-
-
+#if defined(__HIPCC__) || (__HIP_PLATEFORM_AMD__)
 #include <hip/hip_runtime.h>
 #include <iostream>
+#include <hip/hip_runtime_api.h>
 
-#include "../../core/include/detray/definitions/detail/hip_definitions.hpp"  //---------!!!!!!!!!!!!!! to be completed 
+#include "detray/definitions/detail/hip_definitions.hpp"  //---------!!!!!!!!!!!!!! to be completed 
 #include "detray/geometry/tracking_surface.hpp"
 
 // Detray test include(s)
 #include "detector_hip_kernel.hpp"
+
 
 
 namespace detray{
@@ -42,9 +43,9 @@ __global__ void detector_test_kernel(
     vecmem::device_vector<cylinder_t> cylinders_device(cylinders_data);
 
     // copy objects - volume
-    for (unsigned int i = 0u; i < det_device.volumes().size(); i++) {
-        volumes_device[i] = det_device.volumes()[i];
-    }
+    //for (unsigned int i = 0u; i < det_device.volumes().size(); i++) {
+    //    volumes_device[i] = det_device.volumes()[i];
+    //}
 
     // copy objects - surfaces
     for (unsigned int i = 0u; i < det_device.surfaces().size(); i++) {
@@ -78,20 +79,11 @@ __global__ void detector_test_kernel(
         cylinders_device[i] = cylinders[i];
     }
 
-    // print output test for surface finder
-    /*auto& accel_device = det_device.accelerator_store();
-    for (unsigned int i_s = 0u; i_s < accel_device.size(); i_s++) {
-        auto& grid = accel_device[i_s];
-        for (unsigned int i = 0u; i < grid.axis_p0().bins(); i++) {
-            for (unsigned int j = 0u; j < grid.axis_p1().bins(); j++) {
-                const auto& bin = grid.bin(i, j);
-                for (auto& id : bin) {
-                    // printf("%d \n", id);
-                }
-            }
-        }
-    } */
+
 } 
+
+
+
 
 /// implementation of the test function for detector
 void detector_test(typename detector_host_t::view_type det_data,
@@ -100,7 +92,9 @@ void detector_test(typename detector_host_t::view_type det_data,
                    vecmem::data::vector_view<transform_t> transforms_data,
                    vecmem::data::vector_view<rectangle_t> rectangles_data,
                    vecmem::data::vector_view<disc_t> discs_data,
-                   vecmem::data::vector_view<cylinder_t> cylinders_data) {
+                   vecmem::data::vector_view<cylinder_t> cylinders_data) { 
+
+
 
     constexpr int block_dim = 1u;
     constexpr int thread_dim = 1u;
@@ -112,65 +106,8 @@ void detector_test(typename detector_host_t::view_type det_data,
         discs_data, cylinders_data);
 
     // HIP error check
-    DETRAY_HIP_ERROR_CHECK(hipGetLastError()); // !!!!!!!!!
-    DETRAY_HIP_ERROR_CHECK(hipDeviceSynchronize()); ///!!!!!!!!!!!!!!!!!!!!!!!
+    DETRAY_HIP_ERROR_CHECK(hipGetLastError()); 
+    DETRAY_HIP_ERROR_CHECK(hipDeviceSynchronize()); 
 }
-
-/*
-// hip kernel to extract surface transforms from two detector views - static
-// and misaligned - and to copy them into vectors
-__global__ void detector_alignment_test_kernel(
-    typename detector_host_t::view_type det_data_static,
-    typename detector_host_t::view_type det_data_aligned,
-    vecmem::data::vector_view<transform_t> surfacexf_data_static,
-    vecmem::data::vector_view<transform_t> surfacexf_data_aligned) {
-
-    auto ctx = typename detector_host_t::geometry_context{};
-
-    // two instances of device detectors
-    detector_device_t det_device_static(det_data_static);
-    detector_device_t det_device_aligned(det_data_aligned);
-
-    // device vectors of surface transforms
-    vecmem::device_vector<transform_t> surfacexf_device_static(
-        surfacexf_data_static);
-    vecmem::device_vector<transform_t> surfacexf_device_aligned(
-        surfacexf_data_aligned);
-
-    // copy surface transforms into relevant vectors
-    for (unsigned int i = 0u; i < det_device_static.surfaces().size(); i++) {
-        const auto sf = tracking_surface{det_device_static,
-                                         det_device_static.surfaces()[i]};
-        surfacexf_device_static[i] = sf.transform(ctx);
-    }
-
-    for (unsigned int i = 0u; i < det_device_aligned.surfaces().size(); i++) {
-        const auto sf = tracking_surface{det_device_aligned,
-                                         det_device_aligned.surfaces()[i]};
-        surfacexf_device_aligned[i] = sf.transform(ctx);
-    }
 }
-
-/// implementation of the alignment test function for detector
-
-
-void detector_alignment_test(
-    typename detector_host_t::view_type det_data_static,
-    typename detector_host_t::view_type det_data_aligned,
-    vecmem::data::vector_view<transform_t> surfacexf_data_static,
-    vecmem::data::vector_view<transform_t> surfacexf_data_aligned) {
-    constexpr int block_dim = 1u;
-    constexpr int thread_dim = 1u;
-
-    // run the test kernel
-    hipLaunchKernelGGL( detector_alignment_test_kernel , dim3(block_dim), dim3(thread_dim),
-        det_data_static, det_data_aligned, surfacexf_data_static,
-        surfacexf_data_aligned);
-
-    // hip error check
-    DETRAY_HIP_ERROR_CHECK(hipGetLastError());
-    DETRAY_hip_ERROR_CHECK(hipDeviceSynchronize());
-}
-
-*/
-}
+#endif

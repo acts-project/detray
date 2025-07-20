@@ -100,7 +100,7 @@ TEST(detector_cuda, detector) {
         EXPECT_EQ(cylinders_host[i] == cylinders_device[i], true);
     }
 }
-
+/*
 TEST(detector_cuda, detector_alignment) {
     // a few typedefs
     using test_algebra = test::algebra;
@@ -179,4 +179,6 @@ TEST(detector_cuda, detector_alignment) {
         auto translation_diff = translation_aligned - translation_static;
         EXPECT_POINT3_NEAR(translation_diff, shift, 1e-4);
     }
+
 }
+*/

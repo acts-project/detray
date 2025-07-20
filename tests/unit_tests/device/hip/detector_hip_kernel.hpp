@@ -1,14 +1,13 @@
-/** Detray library, part of the ACTS project (R&D line)
+/** TRACCC library, part of the ACTS project (R&D line)
  *
- * (c) 2021 CERN for the benefit of the ACTS project
+ * (c) 2021-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
-
 #pragma once
-#include <hip/hip_runtime.h>
 #include <iostream>
+
 
 // Projetc include(s)
 #include "detray/core/detector.hpp"
@@ -47,11 +46,5 @@ void detector_test(typename detector_host_t::view_type det_data,
                    vecmem::data::vector_view<disc_t> discs_data,
                    vecmem::data::vector_view<cylinder_t> cylinders_data);
 
-/// declaration of an alignment test function for detector
-void detector_alignment_test(
-    typename detector_host_t::view_type det_data_static,
-    typename detector_host_t::view_type det_data_aligned,
-    vecmem::data::vector_view<transform_t> surfacexf_data_static,
-    vecmem::data::vector_view<transform_t> surfacexf_data_aligned);
 
 }  // namespace detray

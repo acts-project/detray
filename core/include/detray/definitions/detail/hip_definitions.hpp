@@ -5,13 +5,15 @@
  * Mozilla Public License Version 2.0
  */
 
+#include <hip/hip_runtime.h>
+#include <iostream>
+#include <hip/hip_runtime_api.h>   // for hipDeviceSynchronize, hipGetLastError
+
 #pragma once
 
 
-#if defined(__HIPCC__)
+#if defined(__HIPCC__) || (__HIP_PLATEFORM_AMD__)
 
-#include <hip/hip_runtime.h> 
-#include <iostream>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,7 +22,7 @@
 /// Number of threads per Warp
 #define WARP_SIZE 32
 
-/// Helper macro used for checking @c hipError_t type return values.
+/// Helper macro used for checking  , type return values.
         
 #define DETRAY_HIP_ERROR_CHECK(ans) \
     { hipAssert((ans) , __FILE__ , __LINE__); }

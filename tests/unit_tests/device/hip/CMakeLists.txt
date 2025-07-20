@@ -7,8 +7,8 @@
 message (STATUS "Building detray HIP unit tests")
 
 cmake_minimum_required(VERSION 3.21) # HIP langauge support requires minimum 3.21 
-cmake_policy(VERSION 3.21.3...3.27)
-find_package(hip REQUIRED)
+#cmake_policy(VERSION 3.21.3...3.27)
+#find_package(hip REQUIRED)
 
 # Enable HIP as a language.
 enable_language(HIP)
@@ -16,17 +16,29 @@ enable_language(HIP)
 
 # Set the HIP build flags.
 include(detray-compiler-options-hip)
+set_source_files_properties(detector_hip.cpp PROPERTIES LANGUAGE HIP)
 
+set_source_files_properties(detector_hip_kernel.cpp PROPERTIES LANGUAGE HIP)
 
-add_executable(detray_build 
-    ../../../../core/include/detray/definitions/detail/hip_definitions.hpp
-    detector_hip_kernel.cpp
+add_executable(detray_build
     detector_hip.cpp
+    detector_hip_kernel.cpp
+)
+
+target_sources(detray_build PRIVATE
+    detector_hip.cpp
+    detector_hip_kernel.cpp
 )
 
 
+#target_include_directories(detray_build PRIVATE
+#  ${CMAKE_CURRENT_SOURCE_DIR}
+#  ${HIP_PATH}/include
+#)
+
 # Define the HIP platform
 target_compile_definitions(detray_build PRIVATE __HIP_PLATFORM_AMD__)
+
 
 # Define the algebra plugin explicitly (ex: array)
 target_compile_definitions(detray_build PRIVATE DETRAY_USE_ALGEBRA_ARRAY)
@@ -43,33 +55,12 @@ target_link_libraries(detray_build
 )
 
 # Add project headers
-target_include_directories(detray_build PRIVATE
-    ${CMAKE_SOURCE_DIR}/include
-    ${CMAKE_SOURCE_DIR}/core/include
-    ${CMAKE_SOURCE_DIR}/plugins/algebra/array/include # ← ajuste selon ton arbo
-)
+
 
 # Optional: include HIP headers via module
 if(DEFINED ENV{HIP_PATH})
     target_include_directories(detray_build PRIVATE $ENV{HIP_PATH}/include)
 endif()
-
-
-
-# --------------------
-
-
-
-
-target_compile_definitions(detray_build PRIVATE __HIP_PLATFORM_AMD__)
-
-
-
-# Ajoute le chemin des headers ROCm à l'aide de la variable HIP_PATH
-if(DEFINED ENV{HIP_PATH})
-    target_include_directories(detray_build PRIVATE $ENV{HIP_PATH}/include)
-endif()
-
 
 
 
@@ -83,11 +74,14 @@ endif()
 
 foreach(algebra ${algebras})
     # Unit tests for the selected algebra.
+    #detray_add_unit_test(hip_${algebra}
+    #   "detector_hip_kernel.hpp"
+    #   "detector_hip.cpp"
+    #   "detector_hip_kernel.cpp"
     detray_add_unit_test(hip_${algebra}
        "detector_hip_kernel.hpp"
        "detector_hip.cpp"
        "detector_hip_kernel.cpp"
-       
        LINK_LIBRARIES GTest::gtest_main vecmem::hip  detray::core 
        detray::algebra_${algebra} detray::test_common detray::test_utils
     )
@@ -98,12 +92,6 @@ foreach(algebra ${algebras})
         PRIVATE ${algebra}=${algebra} __HIP_PLATFORM_AMD__
     )
 
-    # Ajout du include path HIP
-    if(DEFINED ENV{HIP_PATH})
-        target_include_directories(detray_unit_test_hip_${algebra} PRIVATE $ENV{HIP_PATH}/include)
-    endif()
+
 
 endforeach()
-
-
-
