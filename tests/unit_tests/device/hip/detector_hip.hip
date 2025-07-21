@@ -10,7 +10,6 @@
 
 // Detray test include(s)
 #include "detector_hip_kernel.hpp"
-#include "detector_hip_kernel.cpp"
 //#include "detray/core/detail/alignment.hpp"
 #include "detray/definitions/algebra.hpp"
 #include "detray/test/common/build_toy_detector.hpp"
@@ -35,6 +34,7 @@ using namespace detray;
 TEST(detector_hip, detector) {
     // memory resource
     vecmem::hip::managed_memory_resource mng_mr; //an instance of the memory resources manager - hip one 
+    
 
     // create toy geometry
     auto [toy_det, names] = build_toy_detector<test::algebra>(mng_mr);
@@ -75,9 +75,10 @@ TEST(detector_hip, detector) {
     // run the test code to copy the objects
     /* ---------- >>>>>>>> error while compiling wit cake --build detray_build -j 48 
     ------> error : undefined reference to detray::detector_test
+    */
     detector_test(toy_det_data, volumes_data, surfaces_data, transforms_data,
                   rectangles_data, discs_data, cylinders_data);
-    */
+    
     // check if the same volume objects are copied
     for (unsigned int i = 0u; i < volumes_host.size(); i++) {
         EXPECT_EQ(volumes_host[i] == volumes_device[i], true);

@@ -6,7 +6,7 @@
  */
 
 
-#if defined(__HIPCC__) || (__HIP_PLATEFORM_AMD__)
+
 #include <hip/hip_runtime.h>
 #include <iostream>
 #include <hip/hip_runtime_api.h>
@@ -43,9 +43,9 @@ __global__ void detector_test_kernel(
     vecmem::device_vector<cylinder_t> cylinders_device(cylinders_data);
 
     // copy objects - volume
-    //for (unsigned int i = 0u; i < det_device.volumes().size(); i++) {
-    //    volumes_device[i] = det_device.volumes()[i];
-    //}
+    for (unsigned int i = 0u; i < det_device.volumes().size(); i++) {
+        volumes_device[i] = det_device.volumes()[i];
+    }
 
     // copy objects - surfaces
     for (unsigned int i = 0u; i < det_device.surfaces().size(); i++) {
@@ -110,4 +110,3 @@ void detector_test(typename detector_host_t::view_type det_data,
     DETRAY_HIP_ERROR_CHECK(hipDeviceSynchronize()); 
 }
 }
-#endif

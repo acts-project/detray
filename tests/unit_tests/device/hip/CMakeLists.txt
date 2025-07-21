@@ -16,18 +16,18 @@ enable_language(HIP)
 
 # Set the HIP build flags.
 include(detray-compiler-options-hip)
-set_source_files_properties(detector_hip.cpp PROPERTIES LANGUAGE HIP)
+set_source_files_properties(detector_hip.hip PROPERTIES LANGUAGE HIP)
 
-set_source_files_properties(detector_hip_kernel.cpp PROPERTIES LANGUAGE HIP)
+set_source_files_properties(detector_hip_kernel.hip PROPERTIES LANGUAGE HIP)
 
 add_executable(detray_build
-    detector_hip.cpp
-    detector_hip_kernel.cpp
+    detector_hip.hip
+    detector_hip_kernel.hip
 )
 
 target_sources(detray_build PRIVATE
-    detector_hip.cpp
-    detector_hip_kernel.cpp
+    detector_hip.hip
+    detector_hip_kernel.hip
 )
 
 
@@ -79,17 +79,21 @@ foreach(algebra ${algebras})
     #   "detector_hip.cpp"
     #   "detector_hip_kernel.cpp"
     detray_add_unit_test(hip_${algebra}
-       "detector_hip_kernel.hpp"
-       "detector_hip.cpp"
-       "detector_hip_kernel.cpp"
+       "detector_hip.hip"
+       "detector_hip_kernel.hip"
        LINK_LIBRARIES GTest::gtest_main vecmem::hip  detray::core 
        detray::algebra_${algebra} detray::test_common detray::test_utils
     )
+    # pour l'erreur de detector_test not found -> maybe problem of linking (edition des liens)
+    # so i will add it explicitly 
+
+    target_sources(detray_unit_test_hip_${algebra} PRIVATE detector_hip_kernel.hip)
+
 
     # Ajout des définitions pour HIP + algebra
     target_compile_definitions(
         detray_unit_test_hip_${algebra}
-        PRIVATE ${algebra}=${algebra} __HIP_PLATFORM_AMD__
+        PRIVATE ${algebra}=${algebra}
     )
 
 
