@@ -10,7 +10,15 @@
 #include <iostream>
 
 #ifdef DETRAY_ENABLE_LOGGING
-#define DETRAY_DEBUG(x) std::cout << "DETRAY: " << x << std::endl;
+#define __FILENAME__ \
+    (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
+// #define DETRAY_DEBUG(lvl, x) std::cout << lvl<< ": " << x << std::endl;
+#define DETRAY_LOG(lvl, x)                                                  \
+    std::cout << __FILENAME__ << ":" << __LINE__ << " " << lvl << ": " << x \
+              << std::endl;
 #else
 #define DETRAY_DEBUG(x)
 #endif
+
+#define DETRAY_DEBUG(x) DETRAY_LOG("DEBUG", x)
+#define DETRAY_ERROR(x) DETRAY_LOG("ERROR", x)
