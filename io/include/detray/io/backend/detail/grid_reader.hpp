@@ -60,15 +60,23 @@ class grid_reader {
             &det_builder,
         const detector_grids_payload<content_t, grid_id_t> &grids_data) {
 
+        DETRAY_DEBUG("Generic grid reader from_payload");
+
         // Convert the grids volume by volume
+        DETRAY_DEBUG("Converting grids for " << grids_data.grids.size()
+                                             << " volumes");
         for (const auto &[_, grid_data_coll] : grids_data.grids) {
             for (const auto &[i, grid_data] :
                  detray::views::enumerate(grid_data_coll)) {
 
+                DETRAY_DEBUG("- volume #" << i);
+
                 std::queue<axis::bounds> bounds;
                 std::queue<axis::binning> binnings;
 
-                for (const auto &axis_data : grid_data.axes) {
+                for (const auto &[j, axis_data] :
+                     detray::views::enumerate(grid_data.axes)) {
+                    DETRAY_DEBUG("--> axis " << j << " " << axis_data);
                     bounds.push(axis_data.bounds);
                     binnings.push(axis_data.binning);
                 }
@@ -95,6 +103,8 @@ class grid_reader {
     static void from_payload(std::queue<axis::bounds> &bound_ids,
                              std::queue<axis::binning> &binning_ids,
                              Ts &&... data) {
+        DETRAY_DEBUG("Converting axis");
+
         using namespace axis;
 
         constexpr std::size_t n_bounds_types{types::size<bounds_ts>};
