@@ -118,7 +118,7 @@ struct surface_kernels {
 
             using material_t = typename mat_group_t::value_type;
 
-            if constexpr (detail::is_surface_material_v<material_t>) {
+            if constexpr (detail::is_surface_material<material_t>::value ) {
                 return &(detail::material_accessor::get(mat_group, idx, loc_p)
                              .get_material());
             } else {

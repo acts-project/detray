@@ -59,7 +59,7 @@ struct tel_det_config {
     /// Construct from mask parameters (except volume link, which is not needed)
     template <
         typename... Args,
-        std::enable_if_t<(std::is_same_v<Args, scalar> || ...), bool> = true>
+        std::enable_if_t<(std::is_same<Args, scalar>::value  || ...), bool> = true>
     tel_det_config(Args &&... args)
         : tel_det_config(mask<mask_shape_t>{0u, std::forward<Args>(args)...}) {}
 

@@ -352,8 +352,8 @@ class grid_reader {
                 capacities{};
 
             // If the grid has dynamic bin capacities, find them
-            if constexpr (std::is_same_v<typename grid_t::bin_type,
-                                         bins::dynamic_array<value_t>>) {
+            if constexpr (std::is_same<typename grid_t::bin_type,
+                                         bins::dynamic_array<value_t>>::value ) {
                 axis::multi_bin<dim> mbin;
                 for (const auto &bin_data : grid_data.bins) {
                     assert(

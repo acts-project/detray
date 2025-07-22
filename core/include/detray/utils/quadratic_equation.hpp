@@ -30,7 +30,7 @@ class quadratic_equation {};
 /// the larger value is undefined.
 template <typename scalar_t>
 class quadratic_equation<
-    scalar_t, std::enable_if_t<std::is_arithmetic_v<scalar_t>, void>> {
+    scalar_t, std::enable_if_t<std::is_arithmetic<scalar_t>::value , void>> {
     public:
     quadratic_equation() = delete;
 
@@ -97,7 +97,7 @@ class quadratic_equation<
 /// solution, the larger value is undefined.
 template <typename scalar_t>
 class quadratic_equation<
-    scalar_t, std::enable_if_t<!std::is_arithmetic_v<scalar_t>, void>> {
+    scalar_t, std::enable_if_t<!std::is_arithmetic<scalar_t>::value , void>> {
     public:
     quadratic_equation() = delete;
 

@@ -28,8 +28,8 @@ struct tuple<T, Ts...> {
 
     template <
         typename U, typename... Us,
-        std::enable_if_t<std::is_constructible_v<T, U &&> &&
-                             std::is_constructible_v<tuple<Ts...>, Us &&...>,
+        std::enable_if_t<std::is_constructible<T, U &&>::value  &&
+                             std::is_constructible<tuple<Ts...>, Us &&...>::value ,
                          bool> = true>
     DETRAY_HOST_DEVICE constexpr tuple(U &&_v, Us &&... _r)
         : v(std::forward<U>(_v)), r(std::forward<Us>(_r)...) {}

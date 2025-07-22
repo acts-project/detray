@@ -152,8 +152,8 @@ struct material_checker {
     /// @param idx the specific grid to be checked
     /// @param id type id of the material grid collection
     template <typename material_coll_t, typename index_t, typename id_t,
-              std::enable_if_t<detail::is_material_map_v<
-                                   typename material_coll_t::value_type>,
+              std::enable_if_t<detail::is_material_map<
+                                   typename material_coll_t::value_type>::value ,
                                bool> = true>
     DETRAY_HOST_DEVICE void operator()(const material_coll_t &material_coll,
                                        const index_t idx, const id_t id) const {
@@ -185,8 +185,8 @@ struct material_checker {
     /// @param material_coll collection of material slabs/rods/raw mat
     /// @param idx the specific instance to be checked
     template <typename material_coll_t, typename index_t, typename id_t,
-              std::enable_if_t<detail::is_hom_material_v<
-                                   typename material_coll_t::value_type>,
+              std::enable_if_t<detail::is_hom_material<
+                                   typename material_coll_t::value_type>::value ,
                                bool> = true>
     DETRAY_HOST_DEVICE void operator()(const material_coll_t &material_coll,
                                        const index_t idx, const id_t) const {
@@ -197,7 +197,7 @@ struct material_checker {
         const material_t &mat = material_coll.at(idx);
 
         // Homogeneous volume material
-        if constexpr (std::is_same_v<material_t, material<scalar_t>>) {
+        if constexpr (std::is_same<material_t, material<scalar_t>>::value ) {
 
             if (mat == detray::vacuum<scalar_t>{}) {
                 throw_material_error("homogeneous volume material", idx, mat);

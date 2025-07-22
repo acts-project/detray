@@ -84,8 +84,8 @@ struct is_buffer : public std::false_type {};
 template <typename T>
 struct is_buffer<
     T, std::enable_if_t<
-           std::is_base_of_v<detray::detail::dbase_buffer,
-                             std::remove_reference_t<std::remove_cv_t<T>>>,
+           std::is_base_of<detray::detail::dbase_buffer,
+                             std::remove_reference_t<std::remove_cv_t<T>>>::value ,
            void>> : public std::true_type {};
 
 /// Specialization of @c is_buffer for @c vecmem::data::vector_buffer containers
@@ -113,7 +113,7 @@ struct has_buffer : public std::false_type {
 
 template <class T>
 struct has_buffer<
-    T, std::enable_if_t<detray::detail::is_buffer_v<typename T::buffer_type>,
+    T, std::enable_if_t<detray::detail::is_buffer<typename T::buffer_type>::value ,
                         void>> : public std::true_type {
     using type = typename T::buffer_type;
 };
@@ -160,7 +160,7 @@ using dvector_buffer = vecmem::data::vector_buffer<T>;
 /// derive from @c dbase_buffer.
 template <typename... buffer_ts>
 using dmulti_buffer = detray::detail::dmulti_buffer_helper<
-    std::conjunction_v<detail::is_buffer<buffer_ts>...>, buffer_ts...>;
+    std::conjunction<detail::is_buffer<buffer_ts>...>::value , buffer_ts...>;
 
 /// @brief Get the buffer representation of a vecmem vector - non-const
 template <class T>
@@ -207,7 +207,7 @@ auto get_buffer(
 /// @note This does not pick up the vecmem types.
 template <
     typename... Ts, std::size_t... I,
-    std::enable_if_t<detail::is_device_view_v<dmulti_view<Ts...>>, bool> = true>
+    std::enable_if_t<detail::is_device_view<dmulti_view<Ts...>>::value , bool> = true>
 auto get_buffer(const dmulti_view<Ts...>& data_view,
                 vecmem::memory_resource& mr, vecmem::copy& cpy,
                 std::index_sequence<I...> /*seq*/,
@@ -231,14 +231,14 @@ auto get_buffer(const dmulti_view<Ts...>& data_view,
     return detray::get_buffer(
         data_view, mr, cpy,
         std::make_index_sequence<
-            detail::tuple_size_v<decltype(data_view.m_view)>>{},
+            detail::tuple_size<decltype(data_view.m_view)>::value >{},
         cpy_type, buff_type);
 }
 
 /// @brief Get the buffer representation of a composite object - non-const
 template <
     class T,
-    std::enable_if_t<detail::is_buffer_v<typename T::buffer_type>, bool> = true>
+    std::enable_if_t<detail::is_buffer<typename T::buffer_type>::value , bool> = true>
 typename T::buffer_type get_buffer(T& bufferable, vecmem::memory_resource& mr,
                                    vecmem::copy& cpy,
                                    detray::copy cpy_type = detray::copy::sync,

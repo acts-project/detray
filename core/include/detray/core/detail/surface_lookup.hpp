@@ -32,7 +32,7 @@ struct default_searcher {
     auto operator()(const source_link_contianer_t &sf_container) {
         // Check that this searcher can be used on the passed surface container
         static_assert(
-            std::is_same_v<decltype(sf_container[0].source), std::uint64_t>,
+            std::is_same<decltype(sf_container[0].source), std::uint64_t>::value ,
             "Source link searcher not compatible with detector");
 
         // Cannot assume any sorting
@@ -93,7 +93,7 @@ class surface_lookup {
     /// (host-side only)
 #ifndef DETRAY_COMPILE_VITIS
     template <typename allocator_t = vecmem::memory_resource,
-              std::enable_if_t<not detail::is_device_view_v<allocator_t>,
+              std::enable_if_t<not detail::is_device_view<allocator_t>::value ,
                                bool> = true>
     DETRAY_HOST explicit surface_lookup(allocator_t &resource)
         : m_container(&resource) {}
@@ -105,7 +105,7 @@ class surface_lookup {
     template <
         typename allocator_t = vecmem::memory_resource,
         typename C = container_t<source_link<sf_desc_t>>,
-        std::enable_if_t<std::is_same_v<C, std::vector<source_link<sf_desc_t>>>,
+        std::enable_if_t<std::is_same<C, std::vector<source_link<sf_desc_t>>>::value ,
                          bool> = true>
     DETRAY_HOST explicit surface_lookup(allocator_t &resource,
                                         const source_link<sf_desc_t> &arg)
@@ -114,7 +114,7 @@ class surface_lookup {
 
     /// Construct from the container @param view . Mainly used device-side.
     template <typename container_view_t,
-              std::enable_if_t<detail::is_device_view_v<container_view_t>,
+              std::enable_if_t<detail::is_device_view<container_view_t>::value ,
                                bool> = true>
     DETRAY_HOST_DEVICE surface_lookup(container_view_t &view)
         : m_container(view) {}

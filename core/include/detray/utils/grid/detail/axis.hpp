@@ -277,7 +277,7 @@ class multi_axis {
     /// @param view vecmem view on the axes data
     template <typename view_t,
               typename std::enable_if_t<
-                  detray::detail::is_device_view_v<view_t>, bool> = true>
+                  detray::detail::is_device_view<view_t>::value , bool> = true>
     DETRAY_HOST_DEVICE multi_axis(const view_t &view)
         : m_edge_offsets(detray::detail::get<0>(view.m_view)),
           m_edges(detray::detail::get<1>(view.m_view)) {}

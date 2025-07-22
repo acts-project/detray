@@ -118,8 +118,8 @@ class grid2 {
      **/
     template <typename grid_view_t,
               std::enable_if_t<
-                  !std::is_same_v<grid2, grid_view_t> &&
-                      !std::is_base_of_v<vecmem::memory_resource, grid_view_t>,
+                  !std::is_same<grid2, grid_view_t>::value  &&
+                      !std::is_base_of<vecmem::memory_resource, grid_view_t>::value ,
                   bool> = true>
     DETRAY_HOST_DEVICE grid2(
         const grid_view_t &grid_data,
@@ -218,7 +218,7 @@ class grid2 {
      * @return the const reference to the value in this bin
      **/
     template <typename point2_t,
-              std::enable_if_t<!std::is_scalar_v<point2_t>, bool> = true>
+              std::enable_if_t<!std::is_scalar<point2_t>::value , bool> = true>
     DETRAY_HOST_DEVICE typename serialized_storage::const_reference bin(
         const point2_t &p2) const {
         return _data_serialized[_serializer.template serialize<axis_p0_type,
@@ -233,7 +233,7 @@ class grid2 {
      * @return the const reference to the value in this bin
      **/
     template <typename point2_t,
-              std::enable_if_t<!std::is_scalar_v<point2_t>, bool> = true>
+              std::enable_if_t<!std::is_scalar<point2_t>::value , bool> = true>
     DETRAY_HOST_DEVICE typename serialized_storage::reference bin(
         const point2_t &p2) {
         return _data_serialized[_serializer.template serialize<axis_p0_type,
@@ -263,8 +263,8 @@ class grid2 {
         vector_t<typename populator_type::bare_value> zone;
 
         // Specialization for bare value equal to store value
-        if constexpr (std::is_same_v<typename populator_type::bare_value,
-                                     typename populator_type::store_value>) {
+        if constexpr (std::is_same<typename populator_type::bare_value,
+                                     typename populator_type::store_value>::value ) {
             unsigned int iz = 0u;
             zone = vector_t<typename populator_type::bare_value>(
                 zone0.size() * zone1.size(), {});

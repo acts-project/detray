@@ -198,7 +198,7 @@ class navigator {
         /// Constructor from candidates vector_view
         template <
             typename view_t,
-            std::enable_if_t<detail::is_device_view_v<view_t>, bool> = true>
+            std::enable_if_t<detail::is_device_view<view_t>::value , bool> = true>
         DETRAY_HOST_DEVICE state(const detector_type &det,
                                  std::size_t track_idx, view_t view)
             : m_detector(&det),
@@ -466,8 +466,8 @@ class navigator {
             [[maybe_unused]] const point3_type &track_pos,
             [[maybe_unused]] const vector3_type &track_dir,
             [[maybe_unused]] const char *message) {
-            if constexpr (not std::is_same_v<inspector_t,
-                                             navigation::void_inspector>) {
+            if constexpr (not std::is_same<inspector_t,
+                                             navigation::void_inspector>::value ) {
                 m_inspector(*this, cfg, track_pos, track_dir, message);
             }
         }

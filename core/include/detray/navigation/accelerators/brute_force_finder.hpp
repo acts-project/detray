@@ -123,7 +123,7 @@ class brute_force_collection {
 
     /// Device-side construction from a vecmem based view type
     template <typename coll_view_t,
-              typename std::enable_if_t<detail::is_device_view_v<coll_view_t>,
+              typename std::enable_if_t<detail::is_device_view<coll_view_t>::value ,
                                         bool> = true>
     DETRAY_HOST_DEVICE brute_force_collection(coll_view_t& view)
         : m_offsets(detail::get<0>(view.m_view)),
@@ -175,10 +175,10 @@ class brute_force_collection {
     /// Add a new surface collection
 #ifndef DETRAY_COMPILE_VITIS
     template <typename sf_container_t,
-              typename std::enable_if_t<detray::ranges::range_v<sf_container_t>,
+              typename std::enable_if_t<detray::ranges::range<sf_container_t>::value ,
                                         bool> = true,
               typename std::enable_if_t<
-                  std::is_same_v<typename sf_container_t::value_type, value_t>,
+                  std::is_same<typename sf_container_t::value_type, value_t>::value ,
                   bool> = true>
     DETRAY_HOST auto push_back(const sf_container_t& surfaces) noexcept(false)
         -> void {

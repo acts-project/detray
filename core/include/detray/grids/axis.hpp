@@ -77,7 +77,7 @@ struct regular {
     /** Constructor with axis_data **/
     template <
         typename axis_data_t,
-        std::enable_if_t<!std::is_same_v<regular, axis_data_t>, bool> = true>
+        std::enable_if_t<!std::is_same<regular, axis_data_t>::value , bool> = true>
     DETRAY_HOST_DEVICE regular(const axis_data_t &axis_data)
         : n_bins(axis_data.n_bins), min(axis_data.min), max(axis_data.max) {}
 
@@ -268,7 +268,7 @@ struct circular {
     /** Constructor with axis_data **/
     template <
         typename axis_data_t,
-        std::enable_if_t<!std::is_same_v<circular, axis_data_t>, bool> = true>
+        std::enable_if_t<!std::is_same<circular, axis_data_t>::value , bool> = true>
     DETRAY_HOST_DEVICE circular(const axis_data_t &axis_data)
         : n_bins(axis_data.n_bins), min(axis_data.min), max(axis_data.max) {}
 
@@ -501,7 +501,7 @@ struct irregular {
     /** Constructor with axis_data **/
     template <
         typename axis_data_t,
-        std::enable_if_t<!std::is_same_v<irregular, axis_data_t>, bool> = true>
+        std::enable_if_t<!std::is_same<irregular, axis_data_t>::value , bool> = true>
     DETRAY_HOST_DEVICE irregular(const axis_data_t &axis_data)
         : n_bins(axis_data.n_bins),
           min(axis_data.min),

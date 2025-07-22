@@ -201,7 +201,7 @@ template <typename axes_t, bool is_owning, typename containers,
           typename algebra_t>
 struct get_coordinate_axes_type<
     axes_t, is_owning, containers, algebra_t,
-    std::enable_if_t<std::is_same_v<typename axes_t::bounds, void>, void>> {
+    std::enable_if_t<std::is_same<typename axes_t::bounds, void>::value , void>> {
     using type = typename axis::detail::multi_axis_assembler<
         is_owning, containers,
         typename axes_t::template type<algebra_t>::template frame<algebra_t>,
@@ -215,7 +215,7 @@ template <typename axes_t, bool is_owning, typename containers,
           typename algebra_t>
 struct get_coordinate_axes_type<
     axes_t, is_owning, containers, algebra_t,
-    std::enable_if_t<std::is_object_v<typename axes_t::bounds>, void>> {
+    std::enable_if_t<std::is_object<typename axes_t::bounds>::value , void>> {
     using type = axes_t;
 };
 

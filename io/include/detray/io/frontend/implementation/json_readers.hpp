@@ -90,8 +90,8 @@ inline void add_json_readers(
             reader.template add<json_geometry_reader>(file_name);
 
         } else if (header.tag == "homogeneous_material") {
-            if constexpr (detray::detail::has_homogeneous_material_v<
-                              detector_t>) {
+            if constexpr (detray::detail::has_homogeneous_material<
+                              detector_t>::value ) {
                 using json_hom_material_reader =
                     json_reader<detector_t, homogeneous_material_reader>;
 
@@ -100,7 +100,7 @@ inline void add_json_readers(
                 print_type_warning<detector_t>(header.tag);
             }
         } else if (header.tag == "material_maps") {
-            if constexpr (detray::detail::has_material_grids_v<detector_t>) {
+            if constexpr (detray::detail::has_material_grids<detector_t>::value ) {
                 using json_material_map_reader =
                     json_reader<detector_t,
                                 material_map_reader<
@@ -111,7 +111,7 @@ inline void add_json_readers(
                 print_type_warning<detector_t>(header.tag);
             }
         } else if (header.tag == "surface_grids") {
-            if constexpr (detray::detail::has_surface_grids_v<detector_t>) {
+            if constexpr (detray::detail::has_surface_grids<detector_t>::value ) {
                 using json_surface_grid_reader =
                     json_reader<detector_t,
                                 surface_grid_reader<

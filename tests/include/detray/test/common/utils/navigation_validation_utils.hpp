@@ -75,7 +75,7 @@ inline auto record_propagation(
     auto actor_states = std::tie(pathlimit_aborter_state, mat_tracer_state);
 
     std::unique_ptr<typename propagator_t::state> propagation{nullptr};
-    if constexpr (std::is_same_v<bfield_t, empty_bfield>) {
+    if constexpr (std::is_same<bfield_t, empty_bfield>::value ) {
         propagation =
             std::make_unique<typename propagator_t::state>(track, det);
     } else {

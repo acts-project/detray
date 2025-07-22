@@ -61,7 +61,7 @@ struct test {
 #endif // DETRAY_COMPILE_VITIS
 
     template <typename view_t,
-              std::enable_if_t<detail::is_device_view_v<view_t>, bool> = true>
+              std::enable_if_t<detail::is_device_view<view_t>::value , bool> = true>
     DETRAY_HOST_DEVICE test(view_t v)
         : first(detail::get<0>(v.m_view)), second(detail::get<1>(v.m_view)) {}
 

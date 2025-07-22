@@ -70,8 +70,8 @@ auto inline surface(const transform_t& transform, const mask_t& m) {
 
 /// @brief Returns the proto surface for 2D cylinders.
 template <typename transform_t, typename shape_t,
-          std::enable_if_t<std::is_same_v<shape_t, cylinder2D> ||
-                               std::is_same_v<shape_t, concentric_cylinder2D>,
+          std::enable_if_t<std::is_same<shape_t, cylinder2D>::value  ||
+                               std::is_same<shape_t, concentric_cylinder2D>::value ,
                            bool> = true>
 auto inline surface(const transform_t& transform, const mask<shape_t>& m) {
 

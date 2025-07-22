@@ -88,7 +88,7 @@ class multi_store {
     /// (host-side only)
 #ifndef DETRAY_COMPILE_VITIS
     template <typename allocator_t = vecmem::memory_resource,
-              std::enable_if_t<not detail::is_device_view_v<allocator_t>,
+              std::enable_if_t<not detail::is_device_view<allocator_t>::value ,
                                bool> = true>
     DETRAY_HOST explicit multi_store(allocator_t &resource)
         : m_tuple_container(resource) {}
@@ -100,7 +100,7 @@ class multi_store {
     template <
         typename allocator_t = vecmem::memory_resource,
         typename T = tuple_t<Ts...>,
-        std::enable_if_t<std::is_same_v<T, std::tuple<Ts...>>, bool> = true>
+        std::enable_if_t<std::is_same<T, std::tuple<Ts...>>::value , bool> = true>
     DETRAY_HOST explicit multi_store(allocator_t &resource, const Ts &... args)
         : m_tuple_container(resource, args...) {}
 #endif // DETRAY_COMPILE_VITIS
@@ -108,7 +108,7 @@ class multi_store {
     /// Construct from the container @param view . Mainly used device-side.
     template <
         typename tuple_view_t,
-        std::enable_if_t<detail::is_device_view_v<tuple_view_t>, bool> = true>
+        std::enable_if_t<detail::is_device_view<tuple_view_t>::value , bool> = true>
     DETRAY_HOST_DEVICE multi_store(tuple_view_t &view)
         : m_tuple_container(view) {}
 
@@ -285,7 +285,7 @@ class multi_store {
                             const context_type & /*ctx*/ = {}) noexcept(false)
         -> void {
 
-        static_assert((std::is_same_v<collection_t, Ts> || ...) == true,
+        static_assert((std::is_same<collection_t, Ts>::value  || ...) == true,
                       "The type is not included in the parameter pack.");
 
         auto &coll = const_cast<collection_t &>(
@@ -309,7 +309,7 @@ class multi_store {
                             const context_type & /*ctx*/ = {}) noexcept(false)
         -> void {
 
-        static_assert((std::is_same_v<collection_t, Ts> || ...) == true,
+        static_assert((std::is_same<collection_t, Ts>::value  || ...) == true,
                       "The type is not included in the parameter pack.");
 
         auto &coll = detail::get<collection_t>(m_tuple_container);

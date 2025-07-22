@@ -133,7 +133,7 @@ class detector_builder {
         using vol_finder_t = typename detector_type::volume_finder;
 
         // Add dummy volume grid for now
-        if constexpr (detail::is_grid_v<vol_finder_t>) {
+        if constexpr (detail::is_grid<vol_finder_t>::value ) {
 
             // TODO: Construct it correctly with the grid builder
             mask<cylinder3D> vgrid_dims{0u,      0.f,   -constant<scalar>::pi,

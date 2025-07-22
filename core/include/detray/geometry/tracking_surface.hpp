@@ -74,7 +74,7 @@ class tracking_surface {
 
     /// Conversion to surface interface around constant detector type
     template <typename detector_type = detector_t,
-              std::enable_if_t<!std::is_const_v<detector_type>, bool> = true>
+              std::enable_if_t<!std::is_const<detector_type>::value , bool> = true>
     DETRAY_HOST_DEVICE constexpr
     operator tracking_surface<const detector_type>() const {
         return tracking_surface<const detector_type>{this->m_detector,
@@ -171,8 +171,8 @@ class tracking_surface {
 
     /// @returns the mask volume link
     template <typename point_t = point2_type,
-              std::enable_if_t<std::is_same_v<point_t, point3_type> or
-                                   std::is_same_v<point_t, point2_type>,
+              std::enable_if_t<std::is_same<point_t, point3_type>::value  or
+                                   std::is_same<point_t, point2_type>::value ,
                                bool> = true>
     DETRAY_HOST_DEVICE constexpr bool is_inside(const point_t &loc_p,
                                                 const scalar_type tol) const {
@@ -202,8 +202,8 @@ class tracking_surface {
     /// @returns the surface normal in global coordinates at a given bound/local
     /// position @param p
     template <typename point_t = point2_type,
-              std::enable_if_t<std::is_same_v<point_t, point3_type> or
-                                   std::is_same_v<point_t, point2_type>,
+              std::enable_if_t<std::is_same<point_t, point3_type>::value  or
+                                   std::is_same<point_t, point2_type>::value ,
                                bool> = true>
     DETRAY_HOST_DEVICE constexpr auto normal(const context &ctx,
                                              const point_t &p) const
@@ -215,8 +215,8 @@ class tracking_surface {
     /// @param p and a global direction @param dir
     /// @note The direction has to be normalized
     template <typename point_t = point2_type,
-              std::enable_if_t<std::is_same_v<point_t, point3_type> or
-                                   std::is_same_v<point_t, point2_type>,
+              std::enable_if_t<std::is_same<point_t, point3_type>::value  or
+                                   std::is_same<point_t, point2_type>::value ,
                                bool> = true>
     DETRAY_HOST_DEVICE constexpr auto cos_angle(const context &ctx,
                                                 const vector3_type &dir,

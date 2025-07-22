@@ -232,8 +232,8 @@ struct link_end_getter {
     template <
         typename detector_t, typename point3_t, typename vector3_t,
         typename shape_t,
-        std::enable_if_t<std::is_same_v<shape_t, cylinder2D> ||
-                             std::is_same_v<shape_t, concentric_cylinder2D>,
+        std::enable_if_t<std::is_same<shape_t, cylinder2D>::value  ||
+                             std::is_same<shape_t, concentric_cylinder2D>::value ,
                          bool> = true>
     inline auto link_dir(const detray::mask<shape_t>& mask,
                          const detector_t& detector,

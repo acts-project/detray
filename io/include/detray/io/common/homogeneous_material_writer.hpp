@@ -43,12 +43,12 @@ class homogeneous_material_writer {
 
         header_data.sub_header.emplace();
         auto& mat_sub_header = header_data.sub_header.value();
-        if constexpr (detray::detail::has_material_slabs_v<detector_t>) {
+        if constexpr (detray::detail::has_material_slabs<detector_t>::value ) {
             mat_sub_header.n_slabs =
                 materials.template size<detector_t::materials::id::e_slab>();
         }
         mat_sub_header.n_rods = 0u;
-        if constexpr (detray::detail::has_material_rods_v<detector_t>) {
+        if constexpr (detray::detail::has_material_rods<detector_t>::value ) {
             mat_sub_header.n_rods =
                 materials.template size<detector_t::materials::id::e_rod>();
         }
@@ -89,7 +89,7 @@ class homogeneous_material_writer {
         // If this reader is called, the detector has at least material slabs
         if (det.material_store().template empty<mat_id::e_slab>()) {
             // Check for material rods that are present in e.g. wire chambers
-            if constexpr (detray::detail::has_material_rods_v<detector_t>) {
+            if constexpr (detray::detail::has_material_rods<detector_t>::value ) {
                 if (det.material_store().template empty<mat_id::e_rod>()) {
                     return mv_data;
                 }
@@ -165,9 +165,9 @@ class homogeneous_material_writer {
             using scalar_t = typename material_t::scalar_type;
 
             constexpr bool is_slab =
-                std::is_same_v<material_t, material_slab<scalar_t>>;
+                std::is_same<material_t, material_slab<scalar_t>>::value ;
             constexpr bool is_rod =
-                std::is_same_v<material_t, material_rod<scalar_t>>;
+                std::is_same<material_t, material_rod<scalar_t>>::value ;
 
             if constexpr (is_slab or is_rod) {
                 return homogeneous_material_writer::convert(

@@ -331,7 +331,7 @@ struct material_index_update {
         [[maybe_unused]] const group_t& group,
         [[maybe_unused]] const index_t& /*index*/,
         [[maybe_unused]] surface_t& sf) const {
-        if constexpr (!detail::is_grid_v<typename group_t::value_type>) {
+        if constexpr (!detail::is_grid<typename group_t::value_type>::value ) {
             sf.update_material(static_cast<dindex>(group.size()));
         }
     }

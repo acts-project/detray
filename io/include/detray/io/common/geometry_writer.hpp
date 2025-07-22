@@ -85,7 +85,7 @@ class geometry_writer {
 
     /// Convert a surface mask @param m into its io payload
     template <typename mask_t,
-              std::enable_if_t<!std::is_same_v<typename mask_t::shape, void>,
+              std::enable_if_t<!std::is_same<typename mask_t::shape, void>::value ,
                                bool> = true>
     static mask_payload convert(const mask_t& m) {
         mask_payload mask_data;
@@ -196,7 +196,7 @@ class geometry_writer {
             auto id{acc_links_payload::type_id::unknown};
 
             // Only convert grids
-            if constexpr (detray::detail::is_grid_v<accel_t>) {
+            if constexpr (detray::detail::is_grid<accel_t>::value ) {
                 id = io::detail::get_id<accel_t>();
             }
 

@@ -94,9 +94,9 @@ class grid_builder : public volume_decorator<detector_t> {
             {{}}) {
 
         static_assert(
-            std::is_same_v<typename grid_shape_t::template local_frame_type<
+            std::is_same<typename grid_shape_t::template local_frame_type<
                                typename detector_t::algebra_type>,
-                           typename grid_t::local_frame_type>,
+                           typename grid_t::local_frame_type>::value ,
             "Mask has incorrect shape");
 
         m_grid = m_factory.template new_grid<grid_t>(m, n_bins, bin_capacities,

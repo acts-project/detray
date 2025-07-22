@@ -23,9 +23,9 @@ struct get_material_params {
                                               const point_t &loc_p) const {
         using material_t = typename mat_group_t::value_type;
 
-        if constexpr (detail::is_volume_material_v<material_t>) {
+        if constexpr (detail::is_volume_material<material_t>::value ) {
 
-            if constexpr (detail::is_hom_material_v<material_t>) {
+            if constexpr (detail::is_hom_material<material_t>::value ) {
                 // Homogeneous volume material
                 return &(detail::material_accessor::get(mat_group, idx, loc_p));
             } else {

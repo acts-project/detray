@@ -84,7 +84,7 @@ class bin_storage : public detray::ranges::view_interface<
 
     /// Construct bin storage from its vecmem view
     template <typename view_t,
-              typename std::enable_if_t<detail::is_device_view_v<view_t>,
+              typename std::enable_if_t<detail::is_device_view<view_t>::value ,
                                         bool> = true>
     DETRAY_HOST_DEVICE bin_storage(const view_t& view) : m_bin_data(view) {}
 
@@ -160,7 +160,7 @@ struct dynamic_bin_container {
 
     /// Device-side construction from a vecmem based view type
     template <typename view_t,
-              typename std::enable_if_t<detail::is_device_view_v<view_t>,
+              typename std::enable_if_t<detail::is_device_view<view_t>::value ,
                                         bool> = true>
     DETRAY_HOST_DEVICE dynamic_bin_container(view_t& view)
         : bins(detail::get<0>(view.m_view)),
@@ -255,7 +255,7 @@ class bin_storage<is_owning, detray::bins::dynamic_array<entry_t>, containers>
             typename std::iterator_traits<bin_itr_t>::iterator_category;
 
         using data_ptr_t =
-            std::conditional_t<std::is_same_v<bin_itr_t, const_bin_iterator_t>,
+            std::conditional_t<std::is_same<bin_itr_t, const_bin_iterator_t>::value ,
                                const entry_t*, entry_t*>;
 
         DETRAY_HOST_DEVICE
@@ -369,7 +369,7 @@ class bin_storage<is_owning, detray::bins::dynamic_array<entry_t>, containers>
 
     /// Construct bin storage from its vecmem view
     template <typename view_t,
-              typename std::enable_if_t<detail::is_device_view_v<view_t>,
+              typename std::enable_if_t<detail::is_device_view<view_t>::value ,
                                         bool> = true>
     DETRAY_HOST_DEVICE bin_storage(const view_t& view)
         : m_bin_data(detray::detail::get<0>(view.m_view)),

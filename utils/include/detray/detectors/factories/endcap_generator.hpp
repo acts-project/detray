@@ -302,7 +302,7 @@ class endcap_generator final : public surface_factory_interface<detector_t> {
             std::vector<scalar_t> mask_values{m_cfg.module_bounds()[ir]};
 
             // Precompute trapezoid divisor
-            if constexpr (std::is_same_v<mask_shape_t, trapezoid2D>) {
+            if constexpr (std::is_same<mask_shape_t, trapezoid2D>::value ) {
                 const scalar_t div{
                     1.f / (2.f * mask_values[trapezoid2D::e_half_length_2])};
 

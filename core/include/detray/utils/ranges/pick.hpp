@@ -57,7 +57,7 @@ class pick_view : public detray::ranges::view_interface<
         using iterator_category =
             typename std::iterator_traits<sequence_itr_t>::iterator_category;
 
-        static_assert(std::is_convertible_v<index_t, difference_type>,
+        static_assert(std::is_convertible<index_t, difference_type>::value ,
                       "Given sequence cannot be "
                       "used to index elements of range.");
 
@@ -165,8 +165,8 @@ class pick_view : public detray::ranges::view_interface<
     /// Construct from a @param range that will be enumerated beginning at 0
     template <
         typename range_t, typename sequence_t,
-        std::enable_if_t<detray::ranges::range_v<range_t>, bool> = true,
-        std::enable_if_t<detray::ranges::range_v<sequence_t>, bool> = true>
+        std::enable_if_t<detray::ranges::range<range_t>::value , bool> = true,
+        std::enable_if_t<detray::ranges::range<sequence_t>::value , bool> = true>
     DETRAY_HOST_DEVICE constexpr pick_view(range_t &&range, sequence_t &&seq)
         : m_range_begin{detray::ranges::begin(std::forward<range_t>(range))},
           m_range_end{detray::ranges::end(std::forward<range_t>(range))},
@@ -279,8 +279,8 @@ struct pick : public pick_view<range_itr_t, sequence_itr_t> {
 
     template <
         typename range_t, typename sequence_t,
-        std::enable_if_t<detray::ranges::range_v<range_t>, bool> = true,
-        std::enable_if_t<detray::ranges::range_v<sequence_t>, bool> = true>
+        std::enable_if_t<detray::ranges::range<range_t>::value , bool> = true,
+        std::enable_if_t<detray::ranges::range<sequence_t>::value , bool> = true>
     DETRAY_HOST_DEVICE constexpr pick(range_t &&range, sequence_t &&seq)
         : base_type(std::forward<range_t>(range),
                     std::forward<sequence_t>(seq)) {}
@@ -289,8 +289,8 @@ struct pick : public pick_view<range_itr_t, sequence_itr_t> {
 // deduction guides
 
 template <typename range_t, typename sequence_t,
-          std::enable_if_t<detray::ranges::range_v<range_t>, bool> = true,
-          std::enable_if_t<detray::ranges::range_v<sequence_t>, bool> = true>
+          std::enable_if_t<detray::ranges::range<range_t>::value , bool> = true,
+          std::enable_if_t<detray::ranges::range<sequence_t>::value , bool> = true>
 pick(range_t &&range, sequence_t &&seq)
     -> pick<detray::ranges::iterator_t<range_t>,
             detray::ranges::const_iterator_t<sequence_t>>;

@@ -131,7 +131,7 @@ class grid_impl {
 
     /// Device-side construction from a vecmem based view type
     template <typename grid_view_t,
-              typename std::enable_if_t<detail::is_device_view_v<grid_view_t>,
+              typename std::enable_if_t<detail::is_device_view<grid_view_t>::value ,
                                         bool> = true>
     DETRAY_HOST_DEVICE grid_impl(grid_view_t &view)
         : m_bins(detray::detail::get<0>(view.m_view)),

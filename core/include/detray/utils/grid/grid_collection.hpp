@@ -165,7 +165,7 @@ class grid_collection<
 
     /// Device-side construction from a vecmem based view type
     template <typename coll_view_t,
-              typename std::enable_if_t<detail::is_device_view_v<coll_view_t>,
+              typename std::enable_if_t<detail::is_device_view<coll_view_t>::value ,
                                         bool> = true>
     DETRAY_HOST_DEVICE grid_collection(coll_view_t &view)
         : m_bin_offsets(detail::get<0>(view.m_view)),

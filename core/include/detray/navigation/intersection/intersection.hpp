@@ -92,7 +92,7 @@ struct intersection2D {
                    << ", loc [" << is.local[0] << ", " << is.local[1] << ", "
                    << is.local[2] << "], ";
 
-        if constexpr (std::is_scalar_v<bool_t>) {
+        if constexpr (std::is_scalar<bool_t>::value ) {
             out_stream << (is.status ? ", status: inside"
                                      : ", status: outside");
             out_stream << (is.direction ? ", status: along"

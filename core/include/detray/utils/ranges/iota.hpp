@@ -103,7 +103,7 @@ class iota_view : public detray::ranges::view_interface<iota_view<incr_t>> {
     /// Construct from just a @param start value to represent a single value seq
     template <
         typename deduced_incr_t,
-        std::enable_if_t<not detray::detail::is_interval_v<deduced_incr_t>,
+        std::enable_if_t<not detray::detail::is_interval<deduced_incr_t>::value ,
                          bool> = true>
     DETRAY_HOST_DEVICE constexpr explicit iota_view(deduced_incr_t &&start)
         : m_start{start},
@@ -111,7 +111,7 @@ class iota_view : public detray::ranges::view_interface<iota_view<incr_t>> {
 
     /// Construct from an @param interval that defines start and end values.
     template <typename interval_t,
-              std::enable_if_t<detray::detail::is_interval_v<interval_t>,
+              std::enable_if_t<detray::detail::is_interval<interval_t>::value ,
                                bool> = true>
     DETRAY_HOST_DEVICE constexpr explicit iota_view(interval_t &&interval)
         : m_start{detray::detail::get<0>(interval)},
@@ -169,7 +169,7 @@ struct iota : public detray::ranges::iota_view<incr_t> {
 
     template <
         typename deduced_interval_t,
-        std::enable_if_t<detray::detail::is_interval_v<deduced_interval_t>,
+        std::enable_if_t<detray::detail::is_interval<deduced_interval_t>::value ,
                          bool> = true>
     DETRAY_HOST_DEVICE constexpr explicit iota(deduced_interval_t &&interval)
         : base_type(std::forward<deduced_interval_t>(interval)) {}
@@ -182,7 +182,7 @@ struct iota : public detray::ranges::iota_view<incr_t> {
 
     template <
         typename deduced_incr_t,
-        std::enable_if_t<not detray::detail::is_interval_v<deduced_incr_t>,
+        std::enable_if_t<not detray::detail::is_interval<deduced_incr_t>::value ,
                          bool> = true>
     DETRAY_HOST_DEVICE constexpr explicit iota(deduced_incr_t &&start)
         : base_type(std::forward<deduced_incr_t>(start)) {}
@@ -191,7 +191,7 @@ struct iota : public detray::ranges::iota_view<incr_t> {
 // deduction guides
 
 template <typename deduced_interval_t,
-          std::enable_if_t<detray::detail::is_interval_v<deduced_interval_t>,
+          std::enable_if_t<detray::detail::is_interval<deduced_interval_t>::value ,
                            bool> = true>
 DETRAY_HOST_DEVICE iota(deduced_interval_t &&interval)
     ->iota<detray::detail::remove_cvref_t<
@@ -202,7 +202,7 @@ DETRAY_HOST_DEVICE iota(deduced_incr_t &&start, deduced_incr_t &&end)
     ->iota<detray::detail::remove_cvref_t<deduced_incr_t>>;
 
 template <typename deduced_incr_t,
-          std::enable_if_t<not detray::detail::is_interval_v<deduced_incr_t>,
+          std::enable_if_t<not detray::detail::is_interval<deduced_incr_t>::value ,
                            bool> = true>
 DETRAY_HOST_DEVICE iota(deduced_incr_t &&start)
     ->iota<detray::detail::remove_cvref_t<deduced_incr_t>>;

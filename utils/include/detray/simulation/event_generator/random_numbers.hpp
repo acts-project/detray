@@ -67,15 +67,15 @@ struct random_numbers {
         assert(min <= max);
 
         // Uniform
-        if constexpr (std::is_same_v<
+        if constexpr (std::is_same<
                           distribution_t,
-                          std::uniform_real_distribution<scalar_t>>) {
+                          std::uniform_real_distribution<scalar_t>>::value ) {
             return distribution_t(min, max)(m_engine);
 
             // Normal
-        } else if constexpr (std::is_same_v<
+        } else if constexpr (std::is_same<
                                  distribution_t,
-                                 std::normal_distribution<scalar_t>>) {
+                                 std::normal_distribution<scalar_t>>::value ) {
             scalar_t mu{min + 0.5f * (max - min)};
             return distribution_t(mu, 0.5f / 3.0f * (max - min))(m_engine);
         }

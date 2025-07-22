@@ -83,7 +83,7 @@ struct random_scatterer : actor {
 
             using material_t = typename mat_group_t::value_type;
 
-            if constexpr (detail::is_surface_material_v<material_t>) {
+            if constexpr (detail::is_surface_material<material_t>::value ) {
 
                 const scalar qop = bound_params.qop();
                 const scalar charge = bound_params.charge();

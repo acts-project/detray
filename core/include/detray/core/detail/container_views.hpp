@@ -74,8 +74,8 @@ struct is_device_view : public std::false_type {};
 template <typename T>
 struct is_device_view<
     T, std::enable_if_t<
-           std::is_base_of_v<detray::detail::dbase_view,
-                             std::remove_reference_t<std::remove_cv_t<T>>>,
+           std::is_base_of<detray::detail::dbase_view,
+                             std::remove_reference_t<std::remove_cv_t<T>>>::value ,
            void>> : public std::true_type {};
 
 template <typename T>
@@ -91,10 +91,10 @@ struct has_view : public std::false_type {
 
 template <class T>
 struct has_view<
-    T, std::enable_if_t<detray::detail::is_device_view_v<typename T::view_type>,
+    T, std::enable_if_t<detray::detail::is_device_view<typename T::view_type>::value ,
                         void>> : public std::true_type {
     using type =
-        std::conditional_t<std::is_const_v<T>, typename T::const_view_type,
+        std::conditional_t<std::is_const<T>::value , typename T::const_view_type,
                            typename T::view_type>;
 };
 
@@ -111,7 +111,7 @@ using get_view_t = typename has_view<T>::type;
 /// from @c dbase_view.
 template <typename... view_ts>
 using dmulti_view = detray::detail::dmulti_view_helper<
-    std::conjunction_v<detail::is_device_view<view_ts>...>, view_ts...>;
+    std::conjunction<detail::is_device_view<view_ts>...>::value , view_ts...>;
 
 /// @brief Detray version of 'get_data' - non-const
 ///
@@ -120,7 +120,7 @@ using dmulti_view = detray::detail::dmulti_view_helper<
 ///
 /// @note This does not pick up the vecmem types.
 template <class T,
-          std::enable_if_t<detail::is_device_view_v<typename T::view_type>,
+          std::enable_if_t<detail::is_device_view<typename T::view_type>::value ,
                            bool> = true>
 typename T::view_type get_data(T& viewable) {
     return viewable.get_data();
@@ -133,7 +133,7 @@ typename T::view_type get_data(T& viewable) {
 ///
 /// @note This does not pick up the vecmem types.
 template <class T,
-          std::enable_if_t<detail::is_device_view_v<typename T::view_type>,
+          std::enable_if_t<detail::is_device_view<typename T::view_type>::value ,
                            bool> = true>
 typename T::const_view_type get_data(const T& viewable) {
     return viewable.get_data();

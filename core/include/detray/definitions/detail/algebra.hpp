@@ -33,13 +33,13 @@ template <typename T, typename = void>
 struct get_scalar {};
 
 template <typename T>
-struct get_scalar<T, std::enable_if_t<std::is_arithmetic_v<T>, void>> {
+struct get_scalar<T, std::enable_if_t<std::is_arithmetic<T>::value , void>> {
     using scalar = T;
 };
 
 template <typename T>
 struct get_scalar<
-    T, std::enable_if_t<!std::is_same_v<typename T::scalar, void>, void>> {
+    T, std::enable_if_t<!std::is_same<typename T::scalar, void>::value , void>> {
     using scalar = typename T::scalar;
 };
 /// @}
@@ -50,7 +50,7 @@ template <typename T, typename = void>
 struct get_algebra {};
 
 template <typename T>
-struct get_algebra<T, std::enable_if_t<std::is_arithmetic_v<T>, void>> {
+struct get_algebra<T, std::enable_if_t<std::is_arithmetic<T>::value , void>> {
     // vectors and transforms defined in 4D homogeneous coordinates
     using point3D = std::array<T, 4>;
     using vector3D = std::array<T, 4>;
@@ -59,7 +59,7 @@ struct get_algebra<T, std::enable_if_t<std::is_arithmetic_v<T>, void>> {
 
 template <typename T>
 struct get_algebra<
-    T, std::enable_if_t<!std::is_same_v<typename T::point3D, void>, void>> {
+    T, std::enable_if_t<!std::is_same<typename T::point3D, void>::value , void>> {
     using point2D = typename T::point2D;
     using point3D = typename T::point3D;
     using vector3D = typename T::vector3D;
@@ -74,7 +74,7 @@ struct get_matrix {};
 
 template <typename T>
 struct get_matrix<
-    T, std::enable_if_t<!std::is_same_v<typename T::matrix_operator, void>,
+    T, std::enable_if_t<!std::is_same<typename T::matrix_operator, void>::value ,
                         void>> {
     using matrix_operator = typename T::matrix_operator;
     using size_type = typename matrix_operator::size_ty;
@@ -122,7 +122,7 @@ template <typename A, typename = void>
 struct is_soa : public std::false_type {};
 
 template <typename A>
-struct is_soa<A, std::enable_if_t<!std::is_arithmetic_v<dscalar<A>>, void>>
+struct is_soa<A, std::enable_if_t<!std::is_arithmetic<dscalar<A>>::value , void>>
     : public std::true_type {};
 
 template <typename A>

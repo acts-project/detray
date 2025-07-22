@@ -28,7 +28,7 @@ namespace detray::io::detail {
 /// Infer the IO shape id from the shape type
 template <
     typename shape_t,
-    std::enable_if_t<std::is_enum_v<typename shape_t::boundaries>, bool> = true>
+    std::enable_if_t<std::is_enum<typename shape_t::boundaries>::value , bool> = true>
 constexpr io::shape_id get_id() {
 
     /// Register the mask shapes to the @c shape_id enum
@@ -48,7 +48,7 @@ constexpr io::shape_id get_id() {
 
 /// Infer the IO material id from the material type - homogeneous material
 template <typename material_t,
-          std::enable_if_t<detray::detail::is_hom_material_v<material_t>,
+          std::enable_if_t<detray::detail::is_hom_material<material_t>::value ,
                            bool> = true>
 constexpr io::material_id get_id() {
     using scalar_t = typename material_t::scalar_type;
@@ -69,7 +69,7 @@ constexpr io::material_id get_id() {
 
 /// Infer the IO material id from the material type - material maps
 template <typename material_t,
-          std::enable_if_t<detray::detail::is_material_map_v<material_t>,
+          std::enable_if_t<detray::detail::is_material_map<material_t>::value ,
                            bool> = true>
 constexpr io::material_id get_id() {
 
@@ -93,7 +93,7 @@ constexpr io::material_id get_id() {
 /// Infer the grid id from its coordinate system
 template <
     typename grid_t,
-    std::enable_if_t<detray::detail::is_surface_grid_v<grid_t>, bool> = true>
+    std::enable_if_t<detray::detail::is_surface_grid<grid_t>::value , bool> = true>
 constexpr io::accel_id get_id() {
 
     using frame_t = typename grid_t::local_frame_type;

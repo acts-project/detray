@@ -181,7 +181,7 @@ class grid_writer {
 
             using coll_value_t = typename grid_group_t::value_type;
 
-            if constexpr (detray::detail::is_grid_v<coll_value_t>) {
+            if constexpr (detray::detail::is_grid<coll_value_t>::value ) {
 
                 using value_t = typename coll_value_t::value_type;
 
@@ -207,7 +207,7 @@ class grid_writer {
         constexpr auto coll_id{store_t::value_types::to_id(I)};
         using value_type = typename store_t::template get_type<coll_id>;
 
-        if constexpr (detray::detail::is_grid_v<value_type>) {
+        if constexpr (detray::detail::is_grid<value_type>::value ) {
             n += store.template size<coll_id>();
         }
 
