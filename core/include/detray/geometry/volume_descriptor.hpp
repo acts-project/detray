@@ -235,6 +235,17 @@ class volume_descriptor {
     }
 
     /// @returns acc data structure link for a specific type of object - const
+    /// version with runtime indexing
+    DETRAY_HOST_DEVICE constexpr auto accel_link(const ID& id) const
+        -> const acc_link_t& {
+        static_assert(static_cast<std::size_t>(ID::e_size) >= 1);
+        assert(static_cast<std::size_t>(id) <
+               static_cast<std::size_t>(ID::e_size));
+        return accel_link_helper<static_cast<ID>(
+            static_cast<std::size_t>(ID::e_size) - 1)>(id);
+    }
+
+    /// @returns acc data structure link for a specific type of object - const
     template <ID obj_id>
     DETRAY_HOST_DEVICE constexpr auto accel_link() const -> const acc_link_t& {
         return detail::get<obj_id>(m_accel_links);
@@ -274,6 +285,21 @@ class volume_descriptor {
     }
 
     private:
+    /// @returns acc data structure link for a specific type of object - const
+    /// version with compile-time indexing
+    template <ID obj_id>
+    DETRAY_HOST_DEVICE constexpr auto accel_link_helper(const ID& id) const
+        -> const acc_link_t& {
+        if (id == obj_id) {
+            return accel_link<obj_id>();
+        } else if constexpr (static_cast<std::size_t>(obj_id) > 0) {
+            return accel_link_helper<static_cast<ID>(
+                static_cast<std::size_t>(obj_id) - 1)>(id);
+        } else {
+            __builtin_unreachable();
+        }
+    }
+
     /// How to interpret the boundary values
     volume_id m_id{volume_id::e_unknown};
 
