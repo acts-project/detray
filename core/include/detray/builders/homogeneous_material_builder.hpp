@@ -12,6 +12,7 @@
 #include "detray/builders/homogeneous_material_generator.hpp"
 #include "detray/builders/volume_builder.hpp"
 #include "detray/builders/volume_builder_interface.hpp"
+#include "detray/utils/log.hpp"
 
 // System include(s)
 #include <memory>
@@ -45,6 +46,8 @@ class homogeneous_material_builder final : public volume_decorator<detector_t> {
         std::shared_ptr<surface_factory_interface<detector_t>> sf_factory,
         typename detector_t::geometry_context ctx = {}) override {
 
+        DETRAY_DEBUG("homogeneous_material_builder::add_surface()");
+
         // If the factory also holds surface data, call base volume builder
         volume_decorator<detector_t>::add_surfaces(sf_factory, ctx);
 
@@ -53,12 +56,14 @@ class homogeneous_material_builder final : public volume_decorator<detector_t> {
             std::dynamic_pointer_cast<homogeneous_material_factory<detector_t>>(
                 sf_factory);
         if (mat_factory) {
+            DETRAY_DEBUG("-> found material factory: calling");
             (*mat_factory)(this->surfaces(), m_materials);
             return;
         }
         auto mat_generator = std::dynamic_pointer_cast<
             homogeneous_material_generator<detector_t>>(sf_factory);
         if (mat_generator) {
+            DETRAY_DEBUG("-> found material generator: calling");
             (*mat_generator)(this->surfaces(), m_materials);
             return;
         }
@@ -67,22 +72,29 @@ class homogeneous_material_builder final : public volume_decorator<detector_t> {
 
     /// Add the volume and the material to the detector @param det
     DETRAY_HOST
-    auto build(detector_t &det,
-               typename detector_t::geometry_context ctx = {}) ->
-        typename detector_t::volume_type * override {
+    auto build(detector_t &det, typename detector_t::geometry_context ctx = {})
+        -> typename detector_t::volume_type * override {
+        DETRAY_DEBUG("homogeneous_material_builder::build()");
 
         const auto &material = det.material_store();
+
+        DETRAY_DEBUG("n_surfaces=" << this->surfaces().size());
 
         // Update the surface material links and shift them according to the
         // number of material slabs/rods that were in the detector previously
         for (auto &sf : this->surfaces()) {
+            DETRAY_DEBUG("- sf=" << sf);
             if (sf.material().id() == material_id::e_slab) {
-                sf.update_material(
-                    material.template size<material_id::e_slab>());
+                dindex offset = material.template size<material_id::e_slab>();
+                DETRAY_DEBUG("-> update material slab offset: " << offset);
+                sf.update_material(offset);
             }
             if constexpr (detector_t::materials::template is_defined<
                               material_rod<scalar_type>>()) {
                 if (sf.material().id() == material_id::e_rod) {
+                    dindex offset =
+                        material.template size<material_id::e_rod>();
+                    DETRAY_DEBUG("-> update material rod offset: " << offset);
                     sf.update_material(
                         material.template size<material_id::e_rod>());
                 }
@@ -90,6 +102,12 @@ class homogeneous_material_builder final : public volume_decorator<detector_t> {
         }
 
         // Add material to the detector
+        DETRAY_DEBUG("Appending "
+                     << m_materials.template size<material_id::e_slab>()
+                     << " slabs into detector materials");
+        DETRAY_DEBUG("Appending "
+                     << m_materials.template size<material_id::e_rod>()
+                     << " rods into detector materials");
         det._materials.append(std::move(m_materials));
         m_materials.clear_all();
 

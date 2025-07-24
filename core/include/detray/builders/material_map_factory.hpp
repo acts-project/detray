@@ -13,6 +13,7 @@
 #include "detray/definitions/indexing.hpp"
 #include "detray/geometry/shapes/unmasked.hpp"
 #include "detray/materials/material.hpp"
+#include "detray/utils/log.hpp"
 #include "detray/utils/ranges.hpp"
 
 // System include(s)
@@ -108,6 +109,8 @@ class material_map_factory final : public factory_decorator<detector_t> {
                       std::vector<std::vector<scalar_type>> &&axis_spans,
                       std::vector<index_type> &&indices) {
 
+        DETRAY_DEBUG("material_map_factory::add_material");
+
         auto [sf_index, mat, thickness] = std::move(mat_data).get_data();
 
         m_links[sf_index] = std::make_pair(id, std::move(indices));
@@ -146,6 +149,8 @@ class material_map_factory final : public factory_decorator<detector_t> {
         std::map<dindex, std::vector<bin_data_t>> &material_map,
         std::map<dindex, darray<std::size_t, N>> &n_bins,
         std::map<dindex, darray<std::vector<scalar_type>, N>> &axis_spans) {
+
+        DETRAY_DEBUG("material_map_factory::operator()");
 
         using link_t = typename detector_t::surface_type::material_link;
 

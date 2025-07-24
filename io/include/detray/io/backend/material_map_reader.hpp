@@ -107,12 +107,14 @@ class material_map_reader {
                     n_bins.push_back(axis_data.bins);
                 }
 
-                DETRAY_DEBUG("--> num dims=" << n_bins.size());
-                DETRAY_DEBUG([&] {
+                DETRAY_DEBUG("--> num dims=" << n_bins.size() << " : " << [&] {
                     std::stringstream os;
                     for (const auto &[i, count] :
                          detray::views::enumerate(n_bins)) {
-                        os << " #" << i << " -> " << count << "\n";
+                        if (i > 0) {
+                            os << ", ";
+                        }
+                        os << "#" << i << " -> " << count;
                     }
                     return os.str();
                 }());
