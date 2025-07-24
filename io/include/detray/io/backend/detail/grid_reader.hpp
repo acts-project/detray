@@ -60,7 +60,9 @@ class grid_reader {
             &det_builder,
         const detector_grids_payload<content_t, grid_id_t> &grids_data) {
 
-        DETRAY_DEBUG("Generic grid reader from_payload");
+        DETRAY_DEBUG("Generic grid reader from_payload: content_t="
+                     << DETRAY_TYPENAME(content_t)
+                     << ", grid_id_t=" << DETRAY_TYPENAME(grid_id_t));
 
         // Convert the grids volume by volume
         DETRAY_DEBUG("Converting grids for " << grids_data.grids.size()
@@ -103,7 +105,8 @@ class grid_reader {
     static void from_payload(std::queue<axis::bounds> &bound_ids,
                              std::queue<axis::binning> &binning_ids,
                              Ts &&...data) {
-        DETRAY_DEBUG("Converting axis");
+        DETRAY_DEBUG(
+            "Build bounds for axis: bounds_ts=" << DETRAY_TYPENAME(bounds_ts));
 
         using namespace axis;
 
@@ -111,14 +114,20 @@ class grid_reader {
 
         // Base case: If the bounds types are filled, continue with the binnings
         if constexpr (n_bounds_types == dim) {
+            DETRAY_DEBUG("=> Bounds assembled -> proceeding to binning ids");
             return from_payload<detector_t, bounds_ts, binning_ts>(
                 binning_ids, std::forward<Ts>(data)...);
         } else if (!bound_ids.empty()) {
+
             // The axis label, e.g. x, y or z by number
             constexpr auto lb{static_cast<label>(n_bounds_types)};
 
+            DETRAY_DEBUG("Determining bounds configuration. label=" << lb);
+
             const auto first_id{bound_ids.front()};
             bound_ids.pop();
+
+            DETRAY_DEBUG("first_id=" << first_id);
 
             // Based on the type id, add the next bounds type to the type list
             // and continue
@@ -142,6 +151,10 @@ class grid_reader {
                 }
                 // Test some edge cases
                 default: {
+                    DETRAY_ERROR(
+                        "Given type id could not be matched to a grid boundary "
+                        "type: "
+                        << first_id);
                     throw std::invalid_argument(
                         "Given type id could not be matched to a grid boundary "
                         "type: " +
@@ -165,6 +178,9 @@ class grid_reader {
     static void from_payload(std::queue<axis::binning> &binning_ids,
                              Ts &&...data) {
 
+        DETRAY_DEBUG("Build binning ids for axis: binning_ts="
+                     << DETRAY_TYPENAME(binning_ts));
+
         using namespace axis;
 
         using scalar_t = dscalar<typename detector_t::algebra_type>;
@@ -173,12 +189,18 @@ class grid_reader {
 
         // Base case: If the binning types are filled, continue with the frame
         if constexpr (types::size<binning_ts> == dim) {
+            DETRAY_DEBUG("=> binning complete -> proceeding to frame");
+            std::stringstream os;
+
             return from_payload<detector_t, bounds_ts, binning_ts>(
                 std::forward<Ts>(data)...);
         } else if (!binning_ids.empty()) {
 
             const auto first_id{binning_ids.front()};
             binning_ids.pop();
+
+            DETRAY_DEBUG(
+                "Determining binning configuration. first_id=" << first_id);
 
             switch (first_id) {
                 case binning::e_regular: {
@@ -195,6 +217,10 @@ class grid_reader {
                 }
                 // Test some edge cases
                 default: {
+                    DETRAY_ERROR(
+                        "Given type id could not be matched to a grid binning "
+                        "type: "
+                        << first_id);
                     throw std::invalid_argument(
                         "Given type id could not be matched to a grid binning "
                         "type: " +
@@ -220,6 +246,8 @@ class grid_reader {
         const std::pair<dindex, grid_payload<content_t>> &grid_data,
         detector_builder<typename detector_t::metadata, volume_builder>
             &det_builder) {
+
+        DETRAY_DEBUG("Build frame for axis");
 
         using algebra_t = typename detector_t::algebra_type;
 

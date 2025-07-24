@@ -7,9 +7,45 @@
 
 #pragma once
 
-#include <iostream>
-
 #ifdef DETRAY_ENABLE_LOGGING
+#include <cxxabi.h>
+
+#include <iostream>
+#include <regex>
+#include <string>
+
+namespace detray::log::detail {
+template <typename T>
+inline std::string_view cpp_demangle() {
+    static const std::string type_name = [] {
+        const char *abiName = typeid(T).name();
+        int status = 0;
+        char *ret = abi::__cxa_demangle(abiName, nullptr, nullptr, &status);
+
+        std::string s{ret};
+        free(static_cast<void *>(ret));
+
+        std::regex re{"detray::"};
+        s = std::regex_replace(s, re, "");
+
+        // Special case type-list for readability
+        // Only attempt if the full type is a list
+        std::regex re_list{R"(^types::list<(.*)>$)"};
+
+        std::smatch match;
+        if (std::regex_match(s, match, re_list)) {
+            s = "[" + std::string{match[1]} + "]";
+        } else {
+        }
+        return s;
+    }();
+
+    return type_name;
+}
+}  // namespace detray::log::detail
+
+#define DETRAY_TYPENAME(type) detray::log::detail::cpp_demangle<type>()
+
 #define __FILENAME__ \
     (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 // #define DETRAY_DEBUG(lvl, x) std::cout << lvl<< ": " << x << std::endl;
@@ -18,6 +54,7 @@
               << std::endl;
 #else
 #define DETRAY_DEBUG(x)
+#define DETRAY_TYPENAME(type)
 #endif
 
 #define DETRAY_DEBUG(x) DETRAY_LOG("DEBUG", x)
