@@ -59,3 +59,16 @@ inline std::string_view cpp_demangle() {
 
 #define DETRAY_DEBUG(x) DETRAY_LOG("DEBUG", x)
 #define DETRAY_ERROR(x) DETRAY_LOG("ERROR", x)
+#define DETRAY_LOG_VECTOR(x)              \
+    [&]() {                               \
+        std::stringstream _vec_os;        \
+        std::size_t _vec_i = 0;           \
+        for (const auto &_vec_elem : x) { \
+            if (_vec_i > 0) {             \
+                _vec_os << ", ";          \
+            }                             \
+            _vec_os << _vec_elem;         \
+            _vec_i++;                     \
+        }                                 \
+        return _vec_os.str();             \
+    }()
