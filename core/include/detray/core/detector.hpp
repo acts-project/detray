@@ -8,19 +8,19 @@
 #pragma once
 
 // Project include(s)
-#include "detray/core/detector_metadata.hpp"
 #include "detray/core/detail/surface_lookup.hpp"
 #include "detray/geometry/detail/volume_descriptor.hpp"
+#include "detray/definitions/detail/algebra.hpp"
 
 // Vecmem include(s)
 #ifndef DETRAY_COMPILE_VITIS
+#include "detray/core/detector_metadata.hpp"
 #include <vecmem/memory/memory_resource.hpp>
+#include "detray/utils/ranges.hpp"  // @TODO remove
 #include "detray/builders/volume_builder.hpp"  // @TODO remove
 #include "detray/core/detail/container_buffers.hpp"
 #include "detray/core/detail/container_views.hpp"
 #include "detray/definitions/detail/containers.hpp"
-#include "detray/utils/ranges.hpp"  // @TODO remove
-#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #endif // DETRAY_COMPILE_VITIS
 
@@ -44,7 +44,7 @@ class volume_builder;
 ///
 /// @tparam metadata helper that defines collection and link types centrally
 /// @tparam container_t type collection of the underlying containers
-template <typename metadata_t = default_metadata,
+template <typename metadata_t,
           typename container_t = host_container_types>
 class detector {
 
@@ -147,6 +147,7 @@ class detector {
                   "Detector const view type ill-formed");
 
     /// Detector buffer types
+#ifndef DETRAY_COMPILE_VITIS
     using buffer_type =
         dmulti_buffer<dvector_buffer<volume_type>,
                       typename surface_lookup_container::buffer_type,
@@ -158,6 +159,7 @@ class detector {
 
     static_assert(detail::is_buffer<buffer_type>::value ,
                   "Detector buffer type ill-formed");
+#endif
 
     detector() = delete;
     // The detector holds a lot of data and should never be copied

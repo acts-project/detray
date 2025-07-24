@@ -8,11 +8,14 @@
 #pragma once
 
 // Project include(s)
-#include "detray/core/detail/container_buffers.hpp"
-#include "detray/core/detail/container_views.hpp"
 #include "detray/definitions/detail/indexing.hpp"
+#include "detray/core/detail/container_views.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/geometry/barcode.hpp"
+
+#ifndef DETRAY_COMPILE_VITIS
+#include "detray/core/detail/container_buffers.hpp"
+#endif
 
 // Vecmem include(s)
 #ifndef DETRAY_COMPILE_VITIS
@@ -22,6 +25,7 @@
 // System include(s)
 #include <iostream>
 #include <type_traits>
+#include <cstdint>
 
 namespace detray {
 
@@ -70,7 +74,6 @@ struct source_link : sf_desc_t {
 template <typename sf_desc_t,
           template <typename...> class container_t = dvector>
 class surface_lookup {
-
     public:
     /// Underlying container type that can handle vecmem views
     using base_type = container_t<source_link<sf_desc_t>>;
@@ -83,8 +86,10 @@ class surface_lookup {
     using view_type = detail::get_view_t<container_t<source_link<sf_desc_t>>>;
     using const_view_type =
         detail::get_view_t<const container_t<source_link<sf_desc_t>>>;
+#ifndef DETRAY_COMPILE_VITIS
     using buffer_type =
         detail::get_buffer_t<container_t<source_link<sf_desc_t>>>;
+#endif
 
     /// Empty container
     constexpr surface_lookup() = default;
