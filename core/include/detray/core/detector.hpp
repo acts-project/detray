@@ -11,15 +11,14 @@
 #include "detray/core/detail/surface_lookup.hpp"
 #include "detray/geometry/detail/volume_descriptor.hpp"
 #include "detray/definitions/detail/algebra.hpp"
+#include "detray/core/detail/container_views.hpp"
 
 // Vecmem include(s)
 #ifndef DETRAY_COMPILE_VITIS
 #include "detray/core/detector_metadata.hpp"
 #include <vecmem/memory/memory_resource.hpp>
 #include "detray/utils/ranges.hpp"  // @TODO remove
-#include "detray/builders/volume_builder.hpp"  // @TODO remove
-#include "detray/core/detail/container_buffers.hpp"
-#include "detray/core/detail/container_views.hpp"
+#include "detray/builders/volume_builder.hpp"  // @TODO remove #include "detray/core/detail/container_buffers.hpp"
 #include "detray/definitions/detail/containers.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #endif // DETRAY_COMPILE_VITIS
@@ -624,7 +623,9 @@ class detector {
 
     /// The memory resource represents how and where (host, device, managed)
     /// the memory for the detector containers is allocated
+#ifndef DETRAY_COMPILE_VITIS
     vecmem::memory_resource *_resource = nullptr;
+#endif // DETRAY_COMPILE_VITIS
 };
 
 }  // namespace detray
