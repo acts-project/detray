@@ -1,0 +1,122 @@
+# Detray library, part of the ACTS project (R&D line)
+#
+# (c) 2021-2024 CERN for the benefit of the ACTS project
+#
+# Mozilla Public License Version 2.0
+
+message (STATUS "Building detray HIP unit tests")
+
+cmake_minimum_required(VERSION 3.21) # HIP langauge support requires minimum 3.21 
+#cmake_policy(VERSION 3.21.3...3.27)
+#find_package(hip REQUIRED)
+
+# Set the HIP build flags.
+#include(detray-compiler-options-hip)
+#set(CMAKE_HIP_COMPILER /opt/rocm/bin/hipcc)
+#set(CMAKE_HIP_ARCHITECTURES gfx1031)
+
+set(CMAKE_HIP_COMPILER /opt/rocm/bin/hipcc CACHE STRING "HIP compiler")
+set(CMAKE_CXX_COMPILER /opt/rocm/bin/hipcc CACHE STRING "Use hipcc for HIP and C++")
+set(CMAKE_HIP_ARCHITECTURES gfx1031)
+
+# Enable HIP as a language.
+enable_language(HIP)
+
+#set(CMAKE_HIP_FLAGS "${CMAKE_HIP_FLAGS} --offload-arch=gfx1031")
+
+
+# these 2 files should be compiled with hip compiler
+set_source_files_properties(detector_hip.hip PROPERTIES LANGUAGE HIP)
+set_source_files_properties(detector_hip_kernel.hip PROPERTIES LANGUAGE HIP)
+
+
+
+add_executable(detray_build
+    detector_hip_kernel.hpp
+    detector_hip.hip
+    detector_hip_kernel.hip
+)
+#target_sources(detray_build PRIVATE
+#    detector_hip.hip
+#    detector_hip_kernel.hip
+#)
+
+# Define the HIP platform
+target_compile_definitions(detray_build PRIVATE __HIPCC__)
+
+# Telling the compiler we're using HIP and a specific algebra
+target_compile_definitions(detray_build
+    PRIVATE
+        __HIPCC__
+        DETRAY_USE_ALGEBRA_ARRAY
+)
+
+# Define the algebra plugin explicitly (ex: array)
+target_compile_definitions(detray_build PRIVATE DETRAY_USE_ALGEBRA_ARRAY)
+
+# Link with the algebra plugin and other required libraries
+target_link_libraries(detray_build
+    PRIVATE
+        vecmem::hip
+        GTest::gtest_main
+        detray::core
+        detray::algebra_array
+        detray::test_common
+        detray::test_utils
+)
+
+
+# Add project headers
+# Optional: include HIP headers via module
+# Add manually the path to hip headers if the hip_path is defined
+if(DEFINED ENV{HIP_PATH})
+    target_include_directories(detray_build PRIVATE $ENV{HIP_PATH}/include)
+endif()
+
+
+
+# make unit tests for multiple algebras
+# Currently vc and smatrix is not supported
+set(algebras "array")
+
+if(DETRAY_EIGEN_PLUGIN)
+    list(APPEND algebras "eigen")
+endif()
+
+foreach(algebra ${algebras})
+    # Unit tests for the selected algebra.
+    #detray_add_unit_test(hip_${algebra}
+    #   "detector_hip_kernel.hpp"
+    #   "detector_hip.cpp"
+    #   "detector_hip_kernel.cpp"
+
+    
+    detray_add_unit_test(hip_${algebra}
+       "detector_hip_kernel.hpp"
+       "detector_hip.hip"
+       "detector_hip_kernel.hip"
+       
+       LINK_LIBRARIES GTest::gtest_main vecmem::hip  detray::core 
+       detray::algebra_${algebra} detray::test_common detray::test_utils
+    )
+    # pour l'erreur de detector_test not found -> maybe problem of linking (edition des liens)
+    # so i will add it explicitly 
+
+    #target_sources(detray_unit_test_hip_${algebra} PRIVATE detector_hip_kernel.hip)
+    # Important si la macro ne définit pas LANGUAGE HIP
+    set_source_files_properties(detector_hip_kernel.hip PROPERTIES LANGUAGE HIP)
+    set_source_files_properties(detector_hip.hip PROPERTIES LANGUAGE HIP)
+
+    # Recommandé pour garantir que le .hip est bien compilé dans cette cible
+    target_sources(detray_unit_test_hip_${algebra} PRIVATE detector_hip_kernel.hip)
+
+
+    # Ajout des définitions pour HIP + algebra
+    target_compile_definitions(
+        detray_unit_test_hip_${algebra}
+        PRIVATE ${algebra}=${algebra}
+    )
+
+
+
+endforeach()
