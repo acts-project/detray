@@ -229,6 +229,7 @@ inline auto record_propagation(
             getter::element(bound_param.covariance(), i, i) =
                 stddevs[i] * stddevs[i];
         }
+        assert(!bound_param.is_invalid());
     }
 
     // Access to navigation information
@@ -1046,7 +1047,7 @@ auto compare_to_navigation(
     const std::size_t n_samples{truth_traces.size()};
 
     // Collect some statistics for consistency checking
-    std::size_t n_holes{0};
+    std::size_t n_trk_holes{0};
     std::size_t n_matching_error{0u};
     std::size_t n_fatal_error{0u};
 
@@ -1091,10 +1092,13 @@ auto compare_to_navigation(
 
         // Fatal propagation error: Data unreliable
         if (!success) {
-            std::cout << "ERROR: Propagation aborted! "
-                      << nav_printer.fata_error_msg << std::endl;
+            std::stringstream strm{};
 
-            *debug_file << "ERROR: Propagation aborted:" << std::endl;
+            strm << "ERROR: Track " << i << ": Propagation aborted! "
+                 << nav_printer.fata_error_msg << std::endl;
+
+            std::cout << strm.str();
+            *debug_file << strm.str();
 
             n_fatal_error++;
         }
@@ -1122,10 +1126,9 @@ auto compare_to_navigation(
                               std::back_inserter(recorded_trace));
         }
 
-        // The recorded trace missed somethin, make an estimate of min. number
-        // of missed surfaces
+        // The recorded trace missed something
         if (recorded_trace.size() < truth_trace.size()) {
-            n_holes++;
+            n_trk_holes++;
         }
 
         // Compare recorded and truth traces and count missed surfaces for both
@@ -1133,8 +1136,8 @@ auto compare_to_navigation(
         auto [traces_match, n_miss_trace_nav, n_miss_trace_truth, n_error_trace,
               missed_inters] = compare_traces(cfg, truth_trace, recorded_trace,
                                               ideal_traj, i, &(*debug_file));
-        // Comparison failed
-        if (!traces_match) {
+        // Comparison failed or propagation failed
+        if (!traces_match || !success) {
             // Write debug info to file
             *debug_file << "TEST TRACK " << i << ":\n\n"
                         << nav_printer.to_string() << step_printer.to_string();
@@ -1214,7 +1217,7 @@ auto compare_to_navigation(
         static_cast<double>(trk_stats.n_max_extra_per_trk)};
 
     // Self check
-    if (static_cast<double>(n_holes) > n_tracks_w_holes) {
+    if (static_cast<double>(n_trk_holes) > n_tracks_w_holes) {
         throw std::runtime_error(
             "Number of tracks with holes is underestimated!");
     }
