@@ -12,6 +12,7 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/utils/tuple.hpp"
 #include "detray/utils/tuple_helpers.hpp"
+#include "detray/utils/std_replacements/type_traits.hpp"
 
 // Vecmem include(s)
 #include <vecmem/containers/device_vector.hpp>
@@ -110,7 +111,7 @@ using get_view_t = typename has_view<T>::type;
 /// from @c dbase_view.
 template <typename... view_ts>
 using dmulti_view = detray::detail::dmulti_view_helper<
-    std::conjunction<detail::is_device_view<view_ts>...>::value , view_ts...>;
+    utils::conjunction<detail::is_device_view<view_ts>...>::value , view_ts...>;
 
 /// @brief Detray version of 'get_data' - non-const
 ///

@@ -160,7 +160,7 @@ using dvector_buffer = vecmem::data::vector_buffer<T>;
 /// derive from @c dbase_buffer.
 template <typename... buffer_ts>
 using dmulti_buffer = detray::detail::dmulti_buffer_helper<
-    std::conjunction<detail::is_buffer<buffer_ts>...>::value , buffer_ts...>;
+    detray::utils::conjunction<detail::is_buffer<buffer_ts>...>::value , buffer_ts...>;
 
 /// @brief Get the buffer representation of a vecmem vector - non-const
 template <class T>
