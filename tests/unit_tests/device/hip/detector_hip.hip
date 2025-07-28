@@ -4,9 +4,6 @@
  *
  * Mozilla Public License Version 2.0
  */
-//#include <iostream>
-
-
 
 // Detray test include(s)
 #include "detector_hip_kernel.hpp"
@@ -36,7 +33,7 @@ using namespace detray;
 TEST(detector_hip, detector) {
 
     // memory resource
-    vecmem::hip::managed_memory_resource mng_mr; //an instance of the memory resources manager - hip one 
+    vecmem::hip::managed_memory_resource mng_mr; 
     
 
     // create toy geometry
@@ -74,13 +71,6 @@ TEST(detector_hip, detector) {
     auto rectangles_data = vecmem::get_data(rectangles_device); // checked
     auto discs_data = vecmem::get_data(discs_device); // checked
     auto cylinders_data = vecmem::get_data(cylinders_device); // checked
-
-
-    for (unsigned int i = 0u; i < volumes_host.size(); i++) {
-        //std::cout << "checking volumes : " << volumes_host[i] << std::endl;
-    }
-
-
 
     // run the test code to copy the objects
     detector_test(toy_det_data, volumes_data, surfaces_data, transforms_data,

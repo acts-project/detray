@@ -4,13 +4,7 @@
  *
  * Mozilla Public License Version 2.0
  */
-// hip includes 
-#include <cstdio>  // For printf
-
-#include <hip/hip_runtime.h>
-#include <iostream>
-#include <hip/hip_runtime_api.h>
-
+ 
 #include "detray/definitions/detail/hip_definitions.hpp"  
 #include "detray/geometry/tracking_surface.hpp"
 
@@ -20,15 +14,6 @@
 
 
 namespace detray {
-
-    // hip kernel to copy sub-detector objects
-__global__ void simple_kernel(int *data) {
-    printf("Hello from HIP kernel!\n");
-
-    int idx = threadIdx.x;
-    data[idx] = idx;
-
-}
 
 __global__ void detector_test_kernel(
 
@@ -91,9 +76,6 @@ __global__ void detector_test_kernel(
 
 } 
 
-
-
-
 /// implementation of the test function for detector
 void detector_test(typename detector_host_t::view_type det_data,
                    vecmem::data::vector_view<det_volume_t> volumes_data,
@@ -102,8 +84,6 @@ void detector_test(typename detector_host_t::view_type det_data,
                    vecmem::data::vector_view<rectangle_t> rectangles_data,
                    vecmem::data::vector_view<disc_t> discs_data,
                    vecmem::data::vector_view<cylinder_t> cylinders_data) { 
-
-    hipFree(0);  // Initialize HIP runtime
 
 
     constexpr int block_dim = 1u;
