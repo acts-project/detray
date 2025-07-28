@@ -1,8 +1,9 @@
 # Detray library, part of the ACTS project (R&D line)
 #
-# (c) 2021-2024 CERN for the benefit of the ACTS project
+# (c) 2021-2025 CERN for the benefit of the ACTS project
 #
 # Mozilla Public License Version 2.0
+
 
 message (STATUS "Building detray HIP unit tests")
 cmake_minimum_required(VERSION 3.21) # HIP langauge support requires minimum 3.21 
@@ -10,36 +11,6 @@ cmake_minimum_required(VERSION 3.21) # HIP langauge support requires minimum 3.2
 # Enable HIP as a language.
 enable_language(HIP)
 
-add_executable(detray_build
-    detector_hip_kernel.hpp
-    detector_hip.hip
-    detector_hip_kernel.hip
-)
-
-
-# Define the HIP platform
-target_compile_definitions(detray_build PRIVATE __HIPCC__)
-
-# Telling the compiler we're using HIP and a specific algebra
-target_compile_definitions(detray_build
-    PRIVATE
-        __HIPCC__
-        DETRAY_USE_ALGEBRA_ARRAY
-)
-
-# Define the algebra plugin explicitly (ex: array)
-target_compile_definitions(detray_build PRIVATE DETRAY_USE_ALGEBRA_ARRAY)
-
-# Link with the algebra plugin and other required libraries
-target_link_libraries(detray_build
-    PRIVATE
-        vecmem::hip
-        GTest::gtest_main
-        detray::core
-        detray::algebra_array
-        detray::test_common
-        detray::test_utils
-)
 
 # make unit tests for multiple algebras
 # Currently vc and smatrix is not supported
@@ -66,4 +37,4 @@ foreach(algebra ${algebras})
 
 
 
-endforeach()[
+endforeach()
