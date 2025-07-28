@@ -8,7 +8,9 @@
 #pragma once
 
 // Detray include(s)
+#ifndef DETRAY_COMPILE_VITIS
 #include "detray/builders/grid_factory.hpp"
+#endif
 #include "detray/definitions/detail/containers.hpp"
 #include "detray/materials/material_slab.hpp"
 #include "detray/utils/grid/detail/axis_helpers.hpp"
@@ -29,9 +31,11 @@ using material_map = grid<axes<shape>, bins::single<material_slab<scalar_t>>,
 
 /// How to build material maps of various shapes
 // TODO: Move to material_map_builder once available
+#ifndef DETRAY_COMPILE_VITIS
 template <typename scalar_t = detray::scalar>
 using material_grid_factory =
     grid_factory<bins::single<material_slab<scalar_t>>, simple_serializer>;
+#endif
 
 namespace detail {
 

@@ -134,11 +134,13 @@ class grid_collection<
                     detail::get_view_t<const edges_container_type>>;
 
     /// Vecmem based buffer type
+#ifndef DETRAY_COMPILE_VITIS
     using buffer_type =
         dmulti_buffer<dvector_buffer<size_type>,
                       detail::get_buffer_t<bin_container_type>,
                       detail::get_buffer_t<edge_offset_container_type>,
                       detail::get_buffer_t<edges_container_type>>;
+#endif
 
     /// Make grid collection default constructible: Empty
     grid_collection() = default;

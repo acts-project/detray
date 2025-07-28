@@ -8,12 +8,15 @@
 #pragma once
 
 // Detray include(s)
+#ifndef DETRAY_COMPILE_VITIS
 #include "detray/core/detail/container_buffers.hpp"
+#endif // DETRAY_COMPILE_VITIS
 #include "detray/core/detail/container_views.hpp"
 #include "detray/definitions/detail/containers.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/utils/tuple_helpers.hpp"
 #include "detray/utils/type_traits.hpp"
+#include "detray/utils/std_replacements/type_traits.hpp"
 
 // Vecmem include(s)
 #ifndef DETRAY_COMPILE_VITIS
@@ -41,7 +44,9 @@ class tuple_container {
     using tuple_type = tuple_t<detray::detail::unwrap_decay_t<Ts>...>;
     using view_type = dmulti_view<get_view_t<Ts>...>;
     using const_view_type = dmulti_view<get_view_t<const Ts>...>;
+#ifndef DETRAY_COMPILE_VITIS
     using buffer_type = dmulti_buffer<get_buffer_t<Ts>...>;
+#endif // DETRAY_COMPILE_VITIS
 
     /// Empty container - default alloc
     constexpr tuple_container() = default;
@@ -201,7 +206,7 @@ class tuple_container {
     /// @see https://godbolt.org/z/qd6xns7KG
     template <typename functor_t, typename... Args, std::size_t first_idx,
               std::size_t... remaining_idcs>
-    DETRAY_HOST_DEVICE std::invoke_result_t<
+    DETRAY_HOST_DEVICE detray::utils::std::invoke_result_t<
         functor_t, const detail::tuple_element_t<0, tuple_type> &, Args...>
     visit(const std::size_t idx,
           std::index_sequence<first_idx, remaining_idcs...> /*seq*/,
@@ -219,7 +224,7 @@ class tuple_container {
         }
         // If there is no matching ID, return default output
         if constexpr (not std::is_same<
-                          std::invoke_result_t<
+                          detray::utils::std::invoke_result_t<
                               functor_t,
                               const detail::tuple_element_t<0, tuple_type> &,
                               Args...>,

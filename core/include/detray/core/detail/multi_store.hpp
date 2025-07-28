@@ -10,11 +10,11 @@
 // Detray include(s)
 #ifndef DETRAY_COMPILE_VITIS
 #include "detray/core/detail/container_buffers.hpp"
+#endif // DETRAY_COMPILE_VITIS
 #include "detray/core/detail/container_views.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/utils/type_list.hpp"
-#endif // DETRAY_COMPILE_VITIS
        
 #include "detray/utils/type_registry.hpp"
 #include "detray/core/detail/tuple_container.hpp"
@@ -71,7 +71,9 @@ class multi_store {
     /// Vecmem view types
     using view_type = typename tuple_type::view_type;
     using const_view_type = typename tuple_type::const_view_type;
+#ifndef DETRAY_COMPILE_VITIS
     using buffer_type = typename tuple_type::buffer_type;
+#endif // DETRAY_COMPILE_VITIS
 
     /// Empty container
     constexpr multi_store() = default;

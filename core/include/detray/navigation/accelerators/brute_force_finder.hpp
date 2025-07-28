@@ -8,7 +8,9 @@
 #pragma once
 
 // Detray include(s).
+#ifndef DETRAY_COMPILE_VITIS
 #include "detray/core/detail/container_buffers.hpp"
+#endif // DETRAY_COMPILE_VITIS
 #include "detray/core/detail/container_views.hpp"
 #include "detray/definitions/detail/algorithms.hpp"
 #include "detray/definitions/detail/containers.hpp"
@@ -95,8 +97,10 @@ class brute_force_collection {
         dmulti_view<dvector_view<size_type>, dvector_view<value_t>>;
     using const_view_type =
         dmulti_view<dvector_view<const size_type>, dvector_view<const value_t>>;
+#ifndef DETRAY_COMPILE_VITIS
     using buffer_type =
         dmulti_buffer<dvector_buffer<size_type>, dvector_buffer<value_t>>;
+#endif // DETRAY_COMPILE_VITIS
 
     /// Default constructor
     constexpr brute_force_collection() {

@@ -79,8 +79,10 @@ class grid_impl {
     using const_view_type = dmulti_view<typename bin_storage::const_view_type,
                                         typename axes_type::const_view_type>;
     /// Vecmem based buffer type
+#ifndef DETRAY_COMPILE_VITIS
     using buffer_type = dmulti_buffer<typename bin_storage::buffer_type,
                                       typename axes_type::buffer_type>;
+#endif
 
     /// Find the corresponding (non-)owning grid type
     template <bool owning>

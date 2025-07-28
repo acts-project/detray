@@ -8,7 +8,9 @@
 #pragma once
 
 // Project include(s).
+#ifndef DETRAY_COMPILE_VITIS
 #include "detray/core/detail/container_buffers.hpp"
+#endif
 #include "detray/core/detail/container_views.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
@@ -236,9 +238,11 @@ class multi_axis {
         dmulti_view<dvector_view<dindex_range>, dvector_view<scalar_type>>;
     using const_view_type = dmulti_view<dvector_view<const dindex_range>,
                                         dvector_view<const scalar_type>>;
+#ifndef DETRAY_COMPILE_VITIS
     /// Vecmem based buffer type
     using buffer_type = dmulti_buffer<dvector_buffer<dindex_range>,
                                       dvector_buffer<scalar_type>>;
+#endif
 
     /// Find the corresponding (non-)owning type
     template <bool owning>

@@ -8,7 +8,9 @@
 #pragma once
 
 // Project include(s)
+#ifndef DETRAY_COMPILE_VITIS
 #include "detray/core/detail/container_buffers.hpp"
+#endif // DETRAY_COMPILE_VITIS
 #include "detray/core/detail/container_views.hpp"
 #include "detray/core/detail/data_context.hpp"
 #include "detray/definitions/detail/indexing.hpp"
@@ -52,7 +54,9 @@ class single_store {
     /// Vecmem view types
     using view_type = detail::get_view_t<container_t<T>>;
     using const_view_type = detail::get_view_t<const container_t<T>>;
+#ifndef DETRAY_COMPILE_VITIS
     using buffer_type = detail::get_buffer_t<container_t<T>>;
+#endif // DETRAY_COMPILE_VITIS
 
     /// Empty container
     constexpr single_store() = default;

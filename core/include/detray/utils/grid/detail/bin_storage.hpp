@@ -8,7 +8,9 @@
 #pragma once
 
 // Project include(s).
+#ifndef DETRAY_COMPILE_VITIS
 #include "detray/core/detail/container_buffers.hpp"
+#endif
 #include "detray/core/detail/container_views.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
@@ -42,7 +44,9 @@ class bin_storage : public detray::ranges::view_interface<
     using const_view_type = dvector_view<const bin_type>;
 
     // Vecmem based buffer type
+#ifndef DETRAY_COMPILE_VITIS
     using buffer_type = dvector_buffer<bin_type>;
+#endif
 
     /// Default constructor
     bin_storage() = default;
@@ -142,9 +146,11 @@ struct dynamic_bin_container {
                     dvector_view<const typename bin_t::entry_type>>;
 
     // Vecmem based buffer type
+#ifndef DETRAY_COMPILE_VITIS
     using buffer_type =
         dmulti_buffer<dvector_buffer<bin_data_t>,
                       dvector_buffer<typename bin_t::entry_type>>;
+#endif
 
     constexpr dynamic_bin_container() = default;
 #ifndef DETRAY_COMPILE_VITIS
@@ -334,8 +340,10 @@ class bin_storage<is_owning, detray::bins::dynamic_array<entry_t>, containers>
                                         dvector_view<const entry_t>>;
 
     // Vecmem based buffer type
+#ifndef DETRAY_COMPILE_VITIS
     using buffer_type =
         dmulti_buffer<dvector_buffer<bin_data_t>, dvector_buffer<entry_t>>;
+#endif
 
     /// Default constructor
     bin_storage() = default;

@@ -111,7 +111,7 @@ using get_view_t = typename has_view<T>::type;
 /// from @c dbase_view.
 template <typename... view_ts>
 using dmulti_view = detray::detail::dmulti_view_helper<
-    utils::conjunction<detail::is_device_view<view_ts>...>::value , view_ts...>;
+    utils::std::conjunction<detail::is_device_view<view_ts>...>::value , view_ts...>;
 
 /// @brief Detray version of 'get_data' - non-const
 ///
