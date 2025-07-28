@@ -4,7 +4,7 @@
  *
  * Mozilla Public License Version 2.0
  */
- 
+
 #include "detray/definitions/detail/hip_definitions.hpp"  
 #include "detray/geometry/tracking_surface.hpp"
 
@@ -88,13 +88,14 @@ void detector_test(typename detector_host_t::view_type det_data,
 
     constexpr int block_dim = 1u;
     constexpr int thread_dim = 1u;
+    
     // run the test kernel
     hipLaunchKernelGGL(detector_test_kernel , dim3(block_dim), dim3(thread_dim) , 0, 0 ,
         det_data, volumes_data, surfaces_data, transforms_data, rectangles_data,
         discs_data, cylinders_data);
+
     // HIP error check
     DETRAY_HIP_ERROR_CHECK(hipGetLastError()); 
-
     DETRAY_HIP_ERROR_CHECK(hipDeviceSynchronize()); 
 
 }

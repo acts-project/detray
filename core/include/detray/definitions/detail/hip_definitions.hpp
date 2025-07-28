@@ -6,7 +6,6 @@
  */
 
 #include <hip/hip_runtime.h>
-#include <iostream>
 #include <hip/hip_runtime_api.h>   // for hipDeviceSynchronize, hipGetLastError
 
 #pragma once
