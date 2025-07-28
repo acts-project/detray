@@ -5,13 +5,12 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <hip/hip_runtime.h>
-#include <hip/hip_runtime_api.h>   // for hipDeviceSynchronize, hipGetLastError
-
 #pragma once
 
-
 #if defined(__HIPCC__) 
+
+#include <hip/hip_runtime.h>
+#include <hip/hip_runtime_api.h>   
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
