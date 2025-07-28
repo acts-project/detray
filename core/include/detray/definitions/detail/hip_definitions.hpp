@@ -1,6 +1,6 @@
-/** TRACCC library, part of the ACTS project (R&D line)
+/** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021-2022 CERN for the benefit of the ACTS project
+ * (c) 2021-2025 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -14,9 +14,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-
-/// Number of threads per Warp
-#define WARP_SIZE 32
 
 /// Helper macro used for checking  , type return values.
         

@@ -1,6 +1,6 @@
-/** TRACCC library, part of the ACTS project (R&D line)
+/** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021-2022 CERN for the benefit of the ACTS project
+ * (c) 2021-2025 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -88,7 +88,7 @@ void detector_test(typename detector_host_t::view_type det_data,
 
     constexpr int block_dim = 1u;
     constexpr int thread_dim = 1u;
-    
+
     // run the test kernel
     hipLaunchKernelGGL(detector_test_kernel , dim3(block_dim), dim3(thread_dim) , 0, 0 ,
         det_data, volumes_data, surfaces_data, transforms_data, rectangles_data,
