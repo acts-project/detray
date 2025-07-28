@@ -14,6 +14,7 @@ set(CMAKE_CXX_EXTENSIONS FALSE CACHE BOOL "Disable (host) C++ extensions")
 set(CMAKE_CUDA_STANDARD 20 CACHE STRING "The (CUDA) C++ standard to use")
 set(CMAKE_CUDA_EXTENSIONS FALSE CACHE BOOL "Disable (CUDA) C++ extensions")
 set(CMAKE_SYCL_STANDARD 20 CACHE STRING "The (SYCL) C++ standard to use")
+set(CMAKE_HIP_ARCHITECTURES gfx1031)
 
 set(CMAKE_HIP_STANDARD 20 CACHE STRING "The (HIP) C++ standard to use")
 set(CMAKE_HIP_EXTENSIONS FALSE CACHE BOOL "Disable (HIP) C++ extensions")
@@ -67,10 +68,10 @@ endif()
 #check if HIP is available 
 include(CheckLanguage)
 check_language(HIP)
-set(DETRAY_BUILD_HIP_DEFAULT FALSE)
 if(CMAKE_HIP_COMPILER)
     set(DETRAY_BUILD_HIP_DEFAULT TRUE)
 endif()
+
 
 # Flags controlling which parts of Detray to build.
 option(DETRAY_EIGEN_PLUGIN "Build Eigen math plugin" OFF)
@@ -84,13 +85,9 @@ option(
     "Build the CUDA sources included in detray"
     ${DETRAY_BUILD_CUDA_DEFAULT}
 )
-# ! hip
+
 option(DETRAY_BUILD_HIP "Build the CUDA sources included in detray" OFF)
-#option(
-#    DETRAY_BUILD_HIP
-#    "Build the HIP sources included in detray"
-#    ${DETRAY_BUILD_HIP_DEFAULT}
-#)
+
 cmake_dependent_option(
     DETRAY_BUILD_HOST
     "Build the host sources included in detray"
@@ -153,7 +150,6 @@ endif()
 
 # Clean up.
 unset(DETRAY_BUILD_CUDA_DEFAULT)
-#unset(DETRAY_BUILD_HIP_DEFAULT)
 # Check CUDA and SYCL and HIP C++ standards
 if(${DETRAY_BUILD_CUDA} AND ${CMAKE_CUDA_STANDARD} LESS 20)
     message(
