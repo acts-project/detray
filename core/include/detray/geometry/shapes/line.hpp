@@ -18,8 +18,10 @@
 // System include(s)
 #include <limits>
 #include <ostream>
-#include <string_view>
 #include <type_traits>
+#ifndef DETRAY_COMPILE_VITIS
+#include <string_view>
+#endif // DETRAY_COMPILE_VITIS
 
 namespace detray {
 
@@ -36,8 +38,9 @@ template <bool kSquareCrossSect = false>
 class line {
     public:
     /// The name for this shape
+    #ifndef DETRAY_COMPILE_VITIS
     static constexpr std::string_view name = "line";
-
+    #endif // DETRAY_COMPILE_VITIS
     /// Geometrical cross section of the line
     static constexpr bool square_cross_sect = kSquareCrossSect;
 

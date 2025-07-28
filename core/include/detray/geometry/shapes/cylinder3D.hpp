@@ -19,8 +19,9 @@
 // System include(s)
 #include <limits>
 #include <ostream>
+#ifndef DETRAY_COMPILE_VITIS
 #include <string_view>
-
+#endif // DETRAY_COMPILE_VITIS
 namespace detray {
 
 /// @brief Geometrical shape of a full 3D cylinder.
@@ -29,8 +30,9 @@ namespace detray {
 class cylinder3D {
     public:
     /// The name for this shape
+    #ifndef DETRAY_COMPILE_VITIS
     static constexpr std::string_view name = "cylinder3D";
-
+    #endif // DETRAY_COMPILE_VITIS
     enum boundaries : unsigned int {
         e_min_r = 0u,
         e_min_phi = 1u,

@@ -21,8 +21,9 @@
 // System include(s)
 #include <limits>
 #include <ostream>
+#ifndef DETRAY_COMPILE_VITIS
 #include <string_view>
-
+#endif // DETRAY_COMPILE_VITIS
 namespace detray {
 
 /// @brief Geometrical shape of a stereo annulus that is used for the ITk
@@ -46,8 +47,9 @@ namespace detray {
 class annulus2D {
     public:
     /// The name for this shape
+    #ifndef DETRAY_COMPILE_VITIS
     static constexpr std::string_view name = "(stereo) annulus2D";
-
+    #endif // DETRAY_COMPILE_VITIS
     /// Names for the mask boundary values
     enum boundaries : unsigned int {
         e_min_r = 0u,

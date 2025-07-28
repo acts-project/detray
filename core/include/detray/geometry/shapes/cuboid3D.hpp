@@ -17,8 +17,9 @@
 // System include(s)
 #include <limits>
 #include <ostream>
+#ifndef DETRAY_COMPILE_VITIS
 #include <string_view>
-
+#endif // DETRAY_COMPILE_VITIS
 namespace detray {
 
 /// @brief Geometrical shape of a full 3D cuboid.
@@ -28,8 +29,9 @@ namespace detray {
 class cuboid3D {
     public:
     /// The name for this shape
+    #ifndef DETRAY_COMPILE_VITIS
     static constexpr std::string_view name = "cuboid3D";
-
+    #endif // DETRAY_COMPILE_VITIS
     enum boundaries : unsigned int {
         e_min_x = 0u,
         e_min_y = 1u,

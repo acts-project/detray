@@ -17,8 +17,9 @@
 // System include(s)
 #include <limits>
 #include <ostream>
+#ifndef DETRAY_COMPILE_VITIS
 #include <string_view>
-
+#endif // DETRAY_COMPILE_VITIS
 namespace detray {
 
 /// @brief Underlying geometry for a single parameter bound mask
@@ -29,8 +30,9 @@ template <unsigned int kCheckIndex = 0u>
 class single3D {
     public:
     /// The name for this shape
+    #ifndef DETRAY_COMPILE_VITIS
     static constexpr std::string_view name = "single3D";
-
+    #endif // DETRAY_COMPILE_VITIS
     enum boundaries : unsigned int {
         e_lower = 0u,
         e_upper = 1u,

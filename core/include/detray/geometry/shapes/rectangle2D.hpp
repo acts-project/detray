@@ -16,8 +16,9 @@
 // System include(s)
 #include <limits>
 #include <ostream>
+#ifndef DETRAY_COMPILE_VITIS
 #include <string_view>
-
+#endif // DETRAY_COMPILE_VITIS
 namespace detray {
 
 /// @brief Geometrical shape of a rectangle2D.
@@ -26,8 +27,9 @@ namespace detray {
 class rectangle2D {
     public:
     /// The name for this shape
+    #ifndef DETRAY_COMPILE_VITIS
     static constexpr std::string_view name = "rectangle2D";
-
+    #endif // DETRAY_COMPILE_VITIS
     enum boundaries : unsigned int {
         e_half_x = 0u,
         e_half_y = 1u,

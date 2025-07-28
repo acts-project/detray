@@ -19,8 +19,9 @@
 #include <limits>
 #include <ostream>
 #include <string>
+#ifndef DETRAY_COMPILE_VITIS
 #include <string_view>
-
+#endif // DETRAY_COMPILE_VITIS
 namespace detray {
 
 /// @brief Wraps any shape, but does not enforce boundaries
@@ -35,8 +36,9 @@ class unbounded {
     using bounds_type = darray<scalar_t, boundaries::e_size>;
 
     /// Convenience member to construct the name
+    #ifndef DETRAY_COMPILE_VITIS
     static constexpr std::string_view name_prefix = "unbounded ";
-
+    #endif // DETRAY_COMPILE_VITIS
     /// The name for this shape
     static constexpr string_view_concat2 name{name_prefix, shape::name};
 

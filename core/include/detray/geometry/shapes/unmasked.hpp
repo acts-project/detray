@@ -17,8 +17,9 @@
 // System include(s)
 #include <limits>
 #include <ostream>
+#ifndef DETRAY_COMPILE_VITIS
 #include <string_view>
-
+#endif // DETRAY_COMPILE_VITIS
 namespace detray {
 
 /// @brief Generic shape without boundaries.
@@ -26,8 +27,9 @@ template <std::size_t DIM = 2>
 class unmasked {
     public:
     /// The name for this shape
+    #ifndef DETRAY_COMPILE_VITIS
     static constexpr std::string_view name = "unmasked";
-
+    #endif // DETRAY_COMPILE_VITIS
     enum boundaries : unsigned int { e_size = 1u };
 
     /// Container definition for the shape boundary values
