@@ -246,30 +246,38 @@ struct enumerate : public enumerate_view<range_itr_t, incr_t> {
 
     /// Construct from a @param range and an index range provided by a volume
     /// @param vol.
+#ifndef DETRAY_COMPILE_VITIS
     template <typename deduced_range_t, typename volume_t,
               typename = typename std::remove_reference_t<volume_t>::volume_def>
     DETRAY_HOST_DEVICE enumerate(deduced_range_t &&range, const volume_t &vol)
         : enumerate(detray::ranges::subrange(
                         std::forward<deduced_range_t>(range), vol),
                     detray::detail::get<0>(vol.full_range())) {}
+#endif // DETRAY_COMPILE_VITIS
 };
 
 // deduction guides
 
+#ifndef DETRAY_COMPILE_VITIS
 template <typename range_t,
           std::enable_if_t<detray::ranges::range<range_t>::value , bool> = true>
 DETRAY_HOST_DEVICE enumerate(range_t &&rng)
     ->enumerate<detray::ranges::const_iterator_t<range_t>, dindex>;
+#endif // DETRAY_COMPILE_VITIS
 
+#ifndef DETRAY_COMPILE_VITIS
 template <typename range_t, typename volume_t,
           typename = typename std::remove_reference_t<volume_t>::volume_def>
 DETRAY_HOST_DEVICE enumerate(range_t &&range, const volume_t &vol)
     ->enumerate<detray::ranges::const_iterator_t<range_t>, dindex>;
+#endif // DETRAY_COMPILE_VITIS
 
+#ifndef DETRAY_COMPILE_VITIS
 template <typename range_t,
           std::enable_if_t<detray::ranges::range<range_t>::value , bool> = true>
 DETRAY_HOST_DEVICE enumerate(range_t &&rng, dindex start)
     ->enumerate<detray::ranges::const_iterator_t<range_t>, dindex>;
+#endif // DETRAY_COMPILE_VITIS
 
 }  // namespace views
 

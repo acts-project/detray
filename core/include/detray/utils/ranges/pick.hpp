@@ -288,12 +288,14 @@ struct pick : public pick_view<range_itr_t, sequence_itr_t> {
 
 // deduction guides
 
+#ifndef DETRAY_COMPILE_VITIS
 template <typename range_t, typename sequence_t,
           std::enable_if_t<detray::ranges::range<range_t>::value , bool> = true,
           std::enable_if_t<detray::ranges::range<sequence_t>::value , bool> = true>
 pick(range_t &&range, sequence_t &&seq)
     -> pick<detray::ranges::iterator_t<range_t>,
             detray::ranges::const_iterator_t<sequence_t>>;
+#endif // DETRAY_COMPILE_VITIS
 
 }  // namespace views
 

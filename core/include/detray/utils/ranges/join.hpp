@@ -136,10 +136,13 @@ struct join : public ranges::join_view<range_t> {
 };
 
 // deduction guides
+#ifndef DETRAY_COMPILE_VITIS
 template <typename R>
 DETRAY_HOST_DEVICE join(R &&ranges)->join<std::remove_reference_t<R>>;
+#endif
 
 }  // namespace views
+
 
 namespace detail {
 

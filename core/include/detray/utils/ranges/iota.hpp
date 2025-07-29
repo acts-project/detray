@@ -190,6 +190,7 @@ struct iota : public detray::ranges::iota_view<incr_t> {
 
 // deduction guides
 
+#ifndef DETRAY_COMPILE_VITIS
 template <typename deduced_interval_t,
           std::enable_if_t<detray::detail::is_interval<deduced_interval_t>::value ,
                            bool> = true>
@@ -206,6 +207,7 @@ template <typename deduced_incr_t,
                            bool> = true>
 DETRAY_HOST_DEVICE iota(deduced_incr_t &&start)
     ->iota<detray::detail::remove_cvref_t<deduced_incr_t>>;
+#endif // DETRAY_COMPILE_VITIS
 
 }  // namespace views
 

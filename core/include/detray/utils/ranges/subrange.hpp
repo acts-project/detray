@@ -114,6 +114,7 @@ class subrange : public detray::ranges::view_interface<subrange<range_t>> {
     iterator_t m_begin, m_end;
 };
 
+#ifndef DETRAY_COMPILE_VITIS
 template <
     typename deduced_range_t,
     std::enable_if_t<detray::ranges::range<deduced_range_t>::value , bool> = true>
@@ -135,6 +136,7 @@ template <
     std::enable_if_t<detray::detail::is_interval<index_range_t>::value , bool> = true>
 DETRAY_HOST_DEVICE subrange(deduced_range_t &&range, index_range_t &&pos)
     ->subrange<deduced_range_t>;
+#endif // DETRAY_COMPILE_VITIS
 
 /// @see https://en.cppreference.com/w/cpp/ranges/borrowed_iterator_t
 template <class R>

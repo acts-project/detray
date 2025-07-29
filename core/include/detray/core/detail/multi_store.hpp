@@ -136,14 +136,14 @@ class multi_store {
     }
 
     /// @returns the collections iterator at the start position.
-    template <ID id = ID{0}>
+    template <ID id = ID{static_cast<ID>(0)}>
     DETRAY_HOST_DEVICE constexpr auto begin(const context_type & /*ctx*/ = {}) {
         return detail::get<value_types::to_index(id)>(m_tuple_container)
             .begin();
     }
 
     /// @returns the collections iterator sentinel.
-    template <ID id = ID{0}>
+    template <ID id = ID{static_cast<ID>(0)}>
     DETRAY_HOST_DEVICE constexpr auto end(const context_type & /*ctx*/ = {}) {
         return detail::get<value_types::to_index(id)>(m_tuple_container).end();
     }

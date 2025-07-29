@@ -120,16 +120,20 @@ struct cartesian_product : public ranges::cartesian_product_view<range_ts...> {
         : base_type(ranges...) {}
 };
 
-// deduction guides
-
+#ifndef DETRAY_COMPILE_VITIS
 template <typename... ranges_ts>
 DETRAY_HOST_DEVICE cartesian_product(ranges_ts &&... ranges)
     ->cartesian_product<ranges_ts...>;
+#else
+template <typename... ranges_ts>
+DETRAY_HOST_DEVICE auto make_cartesian_product(ranges_ts && ...ranges) -> cartesian_product<ranges_ts...> {
+    return cartesian_product<ranges_ts...>(std::forward<ranges_ts>(ranges)...);
+}
+#endif // DETRAY_COMPILE_VITIS
+}
 
-}  // namespace views
 
 namespace detail {
-
 /// @brief Iterator implementation for the cartesian product view
 template <typename... iterator_ts>
 struct cartesian_product_iterator {
