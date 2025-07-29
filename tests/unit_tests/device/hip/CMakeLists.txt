@@ -4,13 +4,11 @@
 #
 # Mozilla Public License Version 2.0
 
-
-message (STATUS "Building detray HIP unit tests")
-cmake_minimum_required(VERSION 3.21) # HIP langauge support requires minimum 3.21 
+message(STATUS "Building detray HIP unit tests")
+cmake_minimum_required(VERSION 3.21) # HIP langauge support requires minimum 3.21
 
 # Enable HIP as a language.
 enable_language(HIP)
-
 
 # make unit tests for multiple algebras
 # Currently vc and smatrix is not supported
@@ -24,8 +22,8 @@ foreach(algebra ${algebras})
        "detector_hip_kernel.hpp"
        "detector_hip.hip"
        "detector_hip_kernel.hip"
-       
-       LINK_LIBRARIES GTest::gtest_main vecmem::hip  detray::core 
+
+       LINK_LIBRARIES GTest::gtest_main vecmem::hip  detray::core
        detray::algebra_${algebra} detray::test_common detray::test_utils
     )
 
@@ -34,7 +32,4 @@ foreach(algebra ${algebras})
         detray_unit_test_hip_${algebra}
         PRIVATE ${algebra}=${algebra}
     )
-
-
-
 endforeach()

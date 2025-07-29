@@ -65,13 +65,12 @@ if(CMAKE_CUDA_COMPILER)
     set(DETRAY_BUILD_CUDA_DEFAULT TRUE)
 endif()
 
-#check if HIP is available 
+#check if HIP is available
 include(CheckLanguage)
 check_language(HIP)
 if(CMAKE_HIP_COMPILER)
     set(DETRAY_BUILD_HIP_DEFAULT TRUE)
 endif()
-
 
 # Flags controlling which parts of Detray to build.
 option(DETRAY_EIGEN_PLUGIN "Build Eigen math plugin" OFF)
