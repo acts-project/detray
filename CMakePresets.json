@@ -95,6 +95,17 @@
          }
       },
       {
+         "name": "hip",
+         "displayName": "HIP Developer Configuration",
+         "inherits" : [ "default-fp32" ],
+         "cacheVariables" : {
+            "DETRAY_BUILD_HIP"      : "TRUE",
+            "DETRAY_VC_AOS_PLUGIN"  : "FALSE",
+            "DETRAY_VC_SOA_PLUGIN"  : "FALSE",
+            "DETRAY_SMATRIX_PLUGIN" : "FALSE"
+         }
+      },
+      {
          "name" : "smatrix",
          "displayName" : "SMatrix Developer Configuration",
          "inherits" : [ "default-fp64" ],

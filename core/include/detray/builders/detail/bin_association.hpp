@@ -9,7 +9,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/builders/detail/associator.hpp"
+#include "associator.hpp"
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/coordinates/concentric_cylindrical2D.hpp"

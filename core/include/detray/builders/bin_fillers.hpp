@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s).
-#include "detray/builders/detail/bin_association.hpp"
+#include "./detail/bin_association.hpp"
 #include "detray/navigation/accelerators/concepts.hpp"
 #include "detray/utils/grid/detail/axis.hpp"
 #include "detray/utils/grid/detail/concepts.hpp"
