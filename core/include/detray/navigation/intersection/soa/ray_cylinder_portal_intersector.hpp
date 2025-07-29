@@ -73,10 +73,11 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
 
         // None of the cylinders has a valid intersection
         if (detray::detail::all_of(qe.solutions() <= 0) ||
-            detray::detail::all_of(qe.larger() <= overstep_tol)) {
-            is.status = decltype(is.status)(false);
-            return is;
-        }
+            detray::detail::all_of(qe.larger() <= overstep_tol))
+            [[unlikely]] {
+                is.status = decltype(is.status)(false);
+                return is;
+            }
 
         // Only the closest intersection that is outside the overstepping
         // tolerance is needed
