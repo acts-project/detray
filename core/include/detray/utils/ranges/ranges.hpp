@@ -43,9 +43,11 @@ using detray::ranges::detail::end;
 using detray::ranges::detail::rbegin;
 using detray::ranges::detail::rend;
 
+#ifndef DETRAY_COMPILE_VITIS
 using detray::ranges::detail::data;
-using detray::ranges::detail::empty;
 using detray::ranges::detail::size;
+#endif
+using detray::ranges::detail::empty;
 
 // These are the only ones that are reimplemented using device quilifiers
 using detray::ranges::detail::advance;
@@ -68,7 +70,11 @@ using const_iterator_t = decltype(
     detray::ranges::begin(std::declval<const std::remove_reference_t<R>&>()));
 
 template <class R>
+#ifndef DETRAY_COMPILE_VITIS
 using range_size_t = decltype(detray::ranges::size(std::declval<R&>()));
+#else
+using range_size_t = std::size_t;
+#endif // DETRAY_COMPILE_VITIS
 
 template <class R>
 using range_difference_t =

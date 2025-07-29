@@ -42,12 +42,23 @@ using std::end;
 using std::rbegin;
 using std::rend;
 
+#ifndef DETRAY_COMPILE_VITIS
 using std::size;
 // ranges::ssize;
 using std::data;
-using std::empty;
+#endif // DETRAY_COMPILE_VITIS
 // ranges::cdata
 /// @}
+
+#ifdef DETRAY_COMPILE_VITIS
+template<class C>
+[[nodiscard]] constexpr auto empty(const C& c) -> decltype(c.empty())
+{
+    return c.empty();
+}
+#else
+using std::empty;
+#endif // DETRAY_COMPILE_VITIS
 
 ///  @brief Reimplement std::distance.
 /// @{
