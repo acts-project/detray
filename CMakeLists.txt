@@ -14,6 +14,7 @@ set(CMAKE_CXX_EXTENSIONS FALSE CACHE BOOL "Disable (host) C++ extensions")
 set(CMAKE_CUDA_STANDARD 20 CACHE STRING "The (CUDA) C++ standard to use")
 set(CMAKE_CUDA_EXTENSIONS FALSE CACHE BOOL "Disable (CUDA) C++ extensions")
 set(CMAKE_SYCL_STANDARD 20 CACHE STRING "The (SYCL) C++ standard to use")
+
 set(CMAKE_HIP_ARCHITECTURES gfx1031)
 
 set(CMAKE_HIP_STANDARD 20 CACHE STRING "The (HIP) C++ standard to use")
@@ -58,6 +59,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(detray-functions)
 
 # Check if CUDA is available.
+
 include(CheckLanguage)
 check_language(CUDA)
 set(DETRAY_BUILD_CUDA_DEFAULT FALSE)
@@ -82,7 +84,7 @@ option(
     ${DETRAY_BUILD_CUDA_DEFAULT}
 )
 
-option(DETRAY_BUILD_HIP "Build the CUDA sources included in detray" OFF)
+option(DETRAY_BUILD_HIP "Build the HIP sources included in detray" OFF)
 
 cmake_dependent_option(
     DETRAY_BUILD_HOST
@@ -183,6 +185,7 @@ if(DETRAY_SETUP_VECMEM)
         include("${VECMEM_LANGUAGE_DIR}/vecmem-check-language.cmake")
     endif()
 endif()
+include(vecmem-check-language)
 
 # Set up Algebra Plugins.
 option(

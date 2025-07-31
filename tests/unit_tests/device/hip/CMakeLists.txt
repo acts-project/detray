@@ -10,6 +10,8 @@ cmake_minimum_required(VERSION 3.21) # HIP langauge support requires minimum 3.2
 # Enable HIP as a language.
 enable_language(HIP)
 
+include(detray-compiler-options-hip)
+
 # make unit tests for multiple algebras
 # Currently vc and smatrix is not supported
 set(algebras "array")
