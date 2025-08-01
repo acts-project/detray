@@ -6,7 +6,7 @@
 
 # Set up the project.
 cmake_minimum_required(VERSION 3.11)
-project(detray VERSION 0.101.0 LANGUAGES CXX)
+project(detray VERSION 0.99.0 LANGUAGES CXX)
 
 # Set up the used C++ standard(s).
 set(CMAKE_CXX_STANDARD 20 CACHE STRING "The (host) C++ standard to use")
@@ -80,7 +80,15 @@ option(
     ${DETRAY_BUILD_CUDA_DEFAULT}
 )
 
-option(DETRAY_BUILD_HIP "Build the HIP sources included in detray" OFF)
+#option(DETRAY_BUILD_HIP "Build the HIP sources included in detray" OFF)
+
+option(
+    DETRAY_BUILD_HIP
+    "Build the HIP sources included in detray"
+    ${DETRAY_BUILD_HIP_DEFAULT}
+)
+
+
 
 cmake_dependent_option(
     DETRAY_BUILD_HOST

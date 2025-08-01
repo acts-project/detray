@@ -68,7 +68,6 @@ TEST(detector_hip, detector) {
     // run the test code to copy the objects
     detector_test(toy_det_data, volumes_data, surfaces_data, transforms_data,
                   rectangles_data, discs_data, cylinders_data);
-
     // check if the same volume objects are copied
     for (unsigned int i = 0u; i < volumes_host.size(); i++) {
         EXPECT_EQ(volumes_host[i] == volumes_device[i], true);
