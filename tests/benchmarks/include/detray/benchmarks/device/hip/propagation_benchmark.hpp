@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/core/detector.hpp"
 #include "detray/definitions/algebra.hpp"
 #include "detray/navigation/caching_navigator.hpp"
 #include "detray/propagator/actors.hpp"

@@ -5,6 +5,7 @@
 # Mozilla Public License Version 2.0
 
 message(STATUS "Building detray HIP unit tests")
+
 cmake_minimum_required(VERSION 3.21) # HIP langauge support requires minimum 3.21
 
 find_package(HIPToolkit)
@@ -21,14 +22,15 @@ set(algebras "array")
 if(DETRAY_EIGEN_PLUGIN)
     list(APPEND algebras "eigen")
 endif()
+
 foreach(algebra ${algebras})
     detray_add_unit_test(hip_${CMAKE_HIP_PLATFORM}_${algebra}
        "detector_hip_kernel.hpp"
        "detector_hip.cpp"
        "detector_hip_kernel.hip"
 
-       LINK_LIBRARIES GTest::gtest_main vecmem::hip  detray::core
-       detray::algebra_${algebra} detray::test_common detray::test_utils HIP::hiprt
+       LINK_LIBRARIES GTest::gtest_main HIP::hiprt vecmem::hip detray::core
+       detray::algebra_${algebra} detray::test_common detray::test_utils
     )
 
     # Make hipcc interpret .cpp files as .hip files to make linking work
