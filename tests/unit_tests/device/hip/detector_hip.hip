@@ -32,14 +32,6 @@ using namespace detray;
 
 TEST(detector_hip, detector) {
 
-    // test_macros.cpp
-   #if defined(__HIP_PLATFORM_AMD__)
-   printf("[HIP] AMD platform is active.");
-   #elif defined(__HIP_PLATFORM_NVIDIA__)
-    printf("[HIP] NVCC (NVIDIA) platform is active.");
-    #else
-    printf("No HIP platform macro defined.");
-    #endif
     // memory resource
     vecmem::hip::managed_memory_resource mng_mr; 
     
