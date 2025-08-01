@@ -18,7 +18,7 @@
 #include <vecmem/memory/hip/device_memory_resource.hpp>
 #include <vecmem/memory/hip/managed_memory_resource.hpp>
 #include <vecmem/memory/host_memory_resource.hpp>
-#include <vecmem/utils/hip/async_copy.hpp> 
+#include <vecmem/utils/hip/async_copy.hpp>
 #include <vecmem/utils/hip/copy.hpp>
 
 
@@ -33,8 +33,8 @@ using namespace detray;
 TEST(detector_hip, detector) {
 
     // memory resource
-    vecmem::hip::managed_memory_resource mng_mr; 
-    
+    vecmem::hip::managed_memory_resource mng_mr;
+
 
     // create toy geometry
     auto [toy_det, names] = build_toy_detector<test::algebra>(mng_mr);
@@ -50,7 +50,7 @@ TEST(detector_hip, detector) {
     auto& cylinders_host = masks_host.get<cylinder_id>();
     auto& rectangles_host = masks_host.get<rectangle_id>();
 
-    // copied outputs from device side 
+    // copied outputs from device side
     vecmem::vector<det_volume_t> volumes_device(volumes_host.size(), &mng_mr);
     vecmem::vector<det_surface_t> surfaces_device(surfaces_host.size(),
                                                   &mng_mr);
@@ -75,7 +75,7 @@ TEST(detector_hip, detector) {
     // run the test code to copy the objects
     detector_test(toy_det_data, volumes_data, surfaces_data, transforms_data,
                   rectangles_data, discs_data, cylinders_data);
-    
+
     // check if the same volume objects are copied
     for (unsigned int i = 0u; i < volumes_host.size(); i++) {
         EXPECT_EQ(volumes_host[i] == volumes_device[i], true);
@@ -104,4 +104,3 @@ TEST(detector_hip, detector) {
         EXPECT_EQ(cylinders_host[i] == cylinders_device[i], true);
     }
 }
-

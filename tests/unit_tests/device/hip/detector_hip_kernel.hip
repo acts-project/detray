@@ -5,7 +5,7 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "detray/definitions/detail/hip_definitions.hpp"  
+#include "detray/definitions/detail/hip_definitions.hpp"
 #include "detray/geometry/tracking_surface.hpp"
 
 // Detray test include(s)
@@ -74,7 +74,7 @@ __global__ void detector_test_kernel(
     }
 
 
-} 
+}
 
 /// implementation of the test function for detector
 void detector_test(typename detector_host_t::view_type det_data,
@@ -83,7 +83,7 @@ void detector_test(typename detector_host_t::view_type det_data,
                    vecmem::data::vector_view<transform_t> transforms_data,
                    vecmem::data::vector_view<rectangle_t> rectangles_data,
                    vecmem::data::vector_view<disc_t> discs_data,
-                   vecmem::data::vector_view<cylinder_t> cylinders_data) { 
+                   vecmem::data::vector_view<cylinder_t> cylinders_data) {
 
 
     constexpr int block_dim = 1u;
@@ -95,8 +95,8 @@ void detector_test(typename detector_host_t::view_type det_data,
         discs_data, cylinders_data);
 
     // HIP error check
-    DETRAY_HIP_ERROR_CHECK(hipGetLastError()); 
-    DETRAY_HIP_ERROR_CHECK(hipDeviceSynchronize()); 
+    DETRAY_HIP_ERROR_CHECK(hipGetLastError());
+    DETRAY_HIP_ERROR_CHECK(hipDeviceSynchronize());
 
 }
 }

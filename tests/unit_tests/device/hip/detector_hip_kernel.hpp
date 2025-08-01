@@ -7,7 +7,6 @@
 
 #pragma once
 
-
 // Projetc include(s)
 #include "detray/core/detector.hpp"
 #include "detray/definitions/algebra.hpp"
@@ -44,6 +43,5 @@ void detector_test(typename detector_host_t::view_type det_data,
                    vecmem::data::vector_view<rectangle_t> rectangles_data,
                    vecmem::data::vector_view<disc_t> discs_data,
                    vecmem::data::vector_view<cylinder_t> cylinders_data);
-
 
 }  // namespace detray

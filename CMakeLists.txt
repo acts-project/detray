@@ -64,7 +64,7 @@ if(CMAKE_CUDA_COMPILER)
     set(DETRAY_BUILD_CUDA_DEFAULT TRUE)
 endif()
 
-#check if HIP is available 
+#check if HIP is available
 include(CheckLanguage)
 check_language(HIP)
 set(DETRAY_BUILD_HIP_DEFAULT FALSE)
