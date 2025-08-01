@@ -6,7 +6,7 @@
 
 # Set up the project.
 cmake_minimum_required(VERSION 3.11)
-project(detray VERSION 0.99.0 LANGUAGES CXX)
+project(detray VERSION 0.101.0 LANGUAGES CXX)
 
 # Set up the used C++ standard(s).
 set(CMAKE_CXX_STANDARD 20 CACHE STRING "The (host) C++ standard to use")
@@ -67,14 +67,9 @@ if(CMAKE_CUDA_COMPILER)
     set(DETRAY_BUILD_CUDA_DEFAULT TRUE)
 endif()
 
-
-#check if HIP is available 
+#check if HIP is available
 include(CheckLanguage)
 check_language(HIP)
-set(DETRAY_BUILD_HIP_DEFAULT FALSE)
-if(CMAKE_HIP_COMPILER)
-    set(DETRAY_BUILD_HIP_DEFAULT TRUE)
-endif()
 
 # Flags controlling which parts of Detray to build.
 option(DETRAY_EIGEN_PLUGIN "Build Eigen math plugin" OFF)
@@ -89,15 +84,7 @@ option(
     ${DETRAY_BUILD_CUDA_DEFAULT}
 )
 
-#option(DETRAY_BUILD_HIP "Build the HIP sources included in detray" OFF)
-
-option(
-    DETRAY_BUILD_HIP
-    "Build the HIP sources included in detray"
-    ${DETRAY_BUILD_HIP_DEFAULT}
-)
-
-
+option(DETRAY_BUILD_HIP "Build the HIP sources included in detray" OFF)
 
 cmake_dependent_option(
     DETRAY_BUILD_HOST
@@ -198,8 +185,7 @@ if(DETRAY_SETUP_VECMEM)
         include("${VECMEM_LANGUAGE_DIR}/vecmem-check-language.cmake")
     endif()
 endif()
-include( vecmem-check-language )
-
+include(vecmem-check-language)
 
 # Set up Algebra Plugins.
 option(
