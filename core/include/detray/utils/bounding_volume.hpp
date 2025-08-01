@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023-2024 CERN for the benefit of the ACTS project
+ * (c) 2023-2025 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -300,8 +300,8 @@ class axis_aligned_bounding_volume {
 
     /// Checks whether a point lies inside the box. The point has to be defined
     /// in the coordinate frame that is spanned by the box axes.
-    DETRAY_HOST_DEVICE
     template <concepts::point point_t>
+    DETRAY_HOST_DEVICE
     constexpr bool is_inside(
         const point_t& loc_p,
         const scalar_t t = std::numeric_limits<scalar_t>::epsilon()) const {
