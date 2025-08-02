@@ -30,7 +30,10 @@
 // System include(s)
 #include <algorithm>
 #include <cassert>
+#include <chrono>
+#include <ctime>
 #include <iostream>
+#include <ratio>
 #include <string>
 
 namespace detray {
@@ -63,7 +66,7 @@ using navigator_type = navigator<detector<metadata_t, device_container_types>>;
 /// @param opt which propagation to run (sync vs. unsync)
 template <typename navigator_t, typename stepper_t, typename actor_chain_t>
 void run_propagation_init_kernel(
-    const propagation::config &, typename navigator_t::detector_type::view_type,
+    const propagation::config *, typename navigator_t::detector_type::view_type,
     typename stepper_t::magnetic_field_type,
     vecmem::data::vector_view<typename stepper_t::free_track_parameters_type>,
     vecmem::data::vector_view<typename stepper_t::state>,
@@ -81,12 +84,38 @@ void run_propagation_init_kernel(
 /// @param opt which propagation to run (sync vs. unsync)
 template <typename navigator_t, typename stepper_t, typename actor_chain_t>
 void run_propagation_kernel(
-    const propagation::config &,
+    const propagation::config *,
     vecmem::data::vector_view<typename stepper_t::state>,
     vecmem::data::vector_view<unsigned int>,
     vecmem::data::vector_view<typename navigator_t::state>,
     vecmem::data::vector_view<unsigned int>,
     vecmem::data::vector_view<typename actor_chain_t::state_tuple>);
+
+/// Copy the propagation config to device
+typename propagation::config *setup_config(
+    const typename propagation::config *);
+
+/// Release the config allocation after the propagation is done
+void release_config(typename propagation::config *);
+
+/// Allocate space for the device detector opbject to be shared between kenels
+template <typename device_detector_t>
+typename device_detector_t *allocate_device_detector();
+
+/// Release device detector
+template <typename device_detector_t>
+void release_detector(typename device_detector_t *);
+
+/// Copy a blueprint actor state to device, which will be taken and set up
+/// correctly for every track in the propagation init kernel
+/// @returns the device
+template <typename actor_chain_t>
+typename actor_chain_t::state_tuple *setup_actor_states(
+    typename actor_chain_t::state_tuple *);
+
+/// Release the blueprint actor allocation after all actor states are set up
+template <typename actor_chain_t>
+void release_actor_states(typename actor_chain_t::state_tuple *);
 
 /// Device Propagation benchmark
 template <typename navigator_t, typename stepper_t, typename actor_chain_t>
@@ -201,18 +230,37 @@ struct cuda_propagation {
 
         // Buffer for the actor states
         vecmem::data::vector_buffer<typename actor_chain_t::state_tuple>
-            actor_states_buffer(n_tracks, *dev_mr,
-                                vecmem::data::buffer_type::resizable);
+            actor_states_buffer(n_tracks, *dev_mr);
         cuda_cpy.setup(actor_states_buffer)->wait();
         auto actor_states_view = vecmem::get_data(actor_states_buffer);
+
+        // Copy config to device
+        auto *pinned_cfg_ptr = setup_config(&m_cfg);
+
+        // Copy blueprint actor states to device
+        auto *pinned_actor_state_ptr =
+            setup_actor_states<actor_chain_t>(input_actor_states);
 
         // cudaStreamSynchronize(stream);
         // cudaStreamSynchronize(alt_stream);
 
+        std::chrono::high_resolution_clock::time_point t1_init =
+            std::chrono::high_resolution_clock::now();
         // Initialize the propagation (fill the state buffers)
         run_propagation_init_kernel<navigator_t, stepper_t, actor_chain_t>(
-            m_cfg, det_view, field_view, tracks_view, stepper_states_view,
-            navigator_states_view, actor_states_view, input_actor_states);
+            pinned_cfg_ptr, det_view, field_view, tracks_view,
+            stepper_states_view, navigator_states_view, actor_states_view,
+            pinned_actor_state_ptr);
+        std::chrono::high_resolution_clock::time_point t2_init =
+            std::chrono::high_resolution_clock::now();
+
+        // All states are set up: blueprint no longer needed
+        release_actor_states<actor_chain_t>(pinned_actor_state_ptr);
+
+        const auto init_time =
+            std::chrono::duration_cast<std::chrono::duration<double>>(t2_init -
+                                                                      t1_init);
+        const double init_ms{init_time.count() * 1000.};
 
         // Setup the synchronization buffers
         // Check for successful init?
@@ -232,10 +280,33 @@ struct cuda_propagation {
         cuda_cpy.setup(navigation_res_buffer)->wait();
         auto navigation_res_view = vecmem::get_data(navigation_res_buffer);
 
+        std::chrono::high_resolution_clock::time_point t1_prop =
+            std::chrono::high_resolution_clock::now();
         // Launch the propagation for GPU device
         run_propagation_kernel<navigator_t, stepper_t, actor_chain_t>(
-            m_cfg, stepper_states_view, stepper_res_view, navigator_states_view,
-            navigation_res_view, actor_states_view);
+            pinned_cfg_ptr, stepper_states_view, stepper_res_view,
+            navigator_states_view, navigation_res_view, actor_states_view);
+        std::chrono::high_resolution_clock::time_point t2_prop =
+            std::chrono::high_resolution_clock::now();
+
+        // Deallocate the propagation config
+        release_config(pinned_cfg_ptr);
+
+        const auto prop_time =
+            std::chrono::duration_cast<std::chrono::duration<double>>(t2_prop -
+                                                                      t1_prop);
+        const double prop_ms{prop_time.count() * 1000.};
+
+        std::cout << "Propagator took: " << init_ms + prop_ms << "ms ("
+                  << (init_ms + prop_ms) / (n_tracks / 9000.) << " ms/evt)"
+                  << std::endl;
+
+        std::cout << "  -> Init: " << init_ms << "ms ("
+                  << init_ms / (n_tracks / 9000.) << " ms/evt)" << std::endl;
+
+        std::cout << "  -> Propagation: " << prop_ms << "ms ("
+                  << prop_ms / (n_tracks / 9000.) << " ms/evt)\n"
+                  << std::endl;
     }
 };
 

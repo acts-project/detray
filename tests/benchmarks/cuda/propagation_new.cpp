@@ -23,6 +23,7 @@
 
 // Vecmem include(s)
 #include <vecmem/memory/cuda/device_memory_resource.hpp>
+#include <vecmem/memory/cuda/host_memory_resource.hpp>
 #include <vecmem/memory/host_memory_resource.hpp>
 
 // System include(s)
@@ -49,12 +50,34 @@ int main(int argc, char** argv) {
         random_track_generator<free_track_parameters_t, uniform_gen_t>;
     using field_bknd_t = bfield::const_bknd_t<benchmarks::scalar>;
 
-    vecmem::host_memory_resource host_mr;
+    // vecmem::host_memory_resource host_mr;
+    vecmem::cuda::host_memory_resource host_mr;  //< pinned memory
     vecmem::cuda::device_memory_resource dev_mr;
+
+    // Device info
+    /*int nDevices;
+    cudaGetDeviceCount(&nDevices);
+    for (int i = 0; i < nDevices; i++) {
+        cudaDeviceProp prop;
+        cudaGetDeviceProperties(&prop, i);
+        std::cout << "Device Number: " << i << std::endl;
+        std::cout << "  Device name: " << prop.name<< std::endl;
+        std::cout << "  Memory Clock Rate (KHz): " <<
+            prop.memoryClockRate<< std::endl;
+        std::cout << "  Memory Bus Width (bits): " <<
+            prop.memoryBusWidth<< std::endl;
+        std::cout << "  Peak Memory Bandwidth (GB/s): " <<
+            2.0*prop.memoryClockRate*(prop.memoryBusWidth/8)/1.0e6<< std::endl;
+    }*/
 
     //
     // Configuration
     //
+
+    std::size_t n_tracks{10000u};
+    if (argc > 1) {
+        n_tracks = static_cast<std::size_t>(atoi(argv[1]));
+    }
 
     // Constant magnetic field
     vector3 B{0.f, 0.f, 2.f * unit<scalar>::T};
@@ -76,13 +99,15 @@ int main(int argc, char** argv) {
     //
     // Generate track sample for strong scaling
     track_generator_t::configuration trk_cfg{};
-    trk_cfg.n_tracks(10u);
+    trk_cfg.n_tracks(n_tracks);
     trk_cfg.seed(detail::random_numbers<scalar>::default_seed());
+
+    std::cout << trk_cfg << std::endl;
 
     track_generator_t trk_gen{trk_cfg};
 
     dvector<free_track_parameters_t> single_sample =
-        detray::benchmarks::generate_tracks(&host_mr, trk_gen);
+        detray::benchmarks::generate_tracks(&host_mr, trk_gen, true);
 
     const auto [toy_det, names] =
         build_toy_detector<algebra_t>(host_mr, toy_cfg);
@@ -96,7 +121,7 @@ int main(int argc, char** argv) {
     //
     // Register benchmarks
     //
-    std::cout << "----------------------\n"
+    std::cout << "\n----------------------\n"
               << "Propagation Test\n"
               << "----------------------\n\n";
 
@@ -114,9 +139,12 @@ int main(int argc, char** argv) {
     std::chrono::high_resolution_clock::time_point t2 =
         std::chrono::high_resolution_clock::now();
 
-    const auto time_span =
-        std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
+    const auto total_time =
+        std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+    const double total_time_ms{total_time.count() * 1000.};
 
-    std::cout << "It took me " << time_span << " for " << trk_cfg.n_tracks()
-              << " tracks" << std::endl;
+    // Assumption: 1 event = 3000 truth tracks + 2 seeds per track
+    std::cout << "It took: " << total_time_ms << "ms ("
+              << total_time_ms / (static_cast<double>(n_tracks) / 9000.)
+              << " ms/evt)" << std::endl;
 }
