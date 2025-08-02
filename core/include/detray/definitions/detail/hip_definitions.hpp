@@ -31,4 +31,4 @@ inline void hipAssert(hipError_t code, const char *file, int line,
     }
 }
 
-#endif
+// #endif
