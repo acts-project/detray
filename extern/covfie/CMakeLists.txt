@@ -1,6 +1,6 @@
 # Detray library, part of the ACTS project (R&D line)
 #
-# (c) 2022-2023 CERN for the benefit of the ACTS project
+# (c) 2022-2025 CERN for the benefit of the ACTS project
 #
 # Mozilla Public License Version 2.0
 
@@ -18,7 +18,7 @@ message(STATUS "Fetching covfie as part of the Detray project")
 
 # Declare where to get covfie from.
 set(DETRAY_COVFIE_SOURCE
-    "URL;https://github.com/acts-project/covfie/archive/refs/tags/v0.9.0.tar.gz;URL_MD5;b310712c6dd1acc8104c734086f40fc0"
+    "URL;https://github.com/acts-project/covfie/archive/refs/tags/v0.15.2.tar.gz;URL_MD5;f17d9365abed550845e8b6b3708d39fb"
     CACHE STRING
     "Source for covfie, when built as part of this project"
 )
@@ -40,11 +40,19 @@ set(COVFIE_BUILD_TESTS OFF CACHE BOOL "Build covfie tests")
 set(COVFIE_BUILD_BENCHMARKS OFF CACHE BOOL "Build covfie benchmarks")
 
 set(COVFIE_PLATFORM_CPU ON CACHE BOOL "Enable covfie CPU platform")
+
+set(COVFIE_PLATFORM_HIP
+    ${DETRAY_BUILD_HIP}
+    CACHE BOOL
+    "Enable covfie HIP platform"
+)
 set(COVFIE_PLATFORM_CUDA
     ${DETRAY_BUILD_CUDA}
     CACHE BOOL
     "Enable covfie CUDA platform"
 )
+
+
 
 set(COVFIE_REQUIRE_CXX20 OFF CACHE BOOL "Enable covfie C++20 requirement")
 set(COVFIE_QUIET ON CACHE BOOL "Quiet covfie feature warnings")
