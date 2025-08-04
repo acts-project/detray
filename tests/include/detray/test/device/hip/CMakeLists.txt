@@ -5,7 +5,7 @@
 # Mozilla Public License Version 2.0
 
 # C++17 support for HIP requires CMake 3.21.
-cmake_minimum_required(VERSION 3.21) # HIP langauge support requires minimum 3.21 
+cmake_minimum_required(VERSION 3.21) # HIP langauge support requires minimum 3.21
 
 # Enable HIP as a language.
 enable_language(HIP)

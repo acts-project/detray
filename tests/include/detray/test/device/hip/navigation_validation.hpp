@@ -92,7 +92,7 @@ inline auto run_navigation_validation(
         vecmem::get_data(truth_intersection_traces, host_mr);
     auto truth_intersection_traces_buffer =
         hip_cpy.to(truth_intersection_traces_data, *dev_mr, host_mr,
-                    vecmem::copy::type::host_to_device);
+                   vecmem::copy::type::host_to_device);
     vecmem::data::jagged_vector_view<const intersection_record_t>
         truth_intersection_traces_view =
             vecmem::get_data(truth_intersection_traces_buffer);

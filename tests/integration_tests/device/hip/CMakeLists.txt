@@ -4,12 +4,11 @@
 #
 # Mozilla Public License Version 2.0
 
-#----------------------------- no errrors 
+#----------------------------- no errrors
 message(STATUS "Building detray HIP integration tests")
 
-#HIP langauge support requires minimum 3.21 
+#HIP langauge support requires minimum 3.21
 cmake_minimum_required(VERSION 3.21)
-
 
 #set(CMAKE_HIP_COMPILER_FORCED TRUE)
 #set(CMAKE_HIP_STANDARD_COMPUTED_DEFAULT 17)
@@ -19,8 +18,7 @@ enable_language(HIP)
 # Set the HIP build flags.
 include(detray-compiler-options-hip)
 
-#--------------------------------------------- 
-
+#---------------------------------------------
 
 # make unit tests for multiple algebras
 # Currently vc and smatrix is not supported
@@ -30,9 +28,7 @@ if(DETRAY_EIGEN_PLUGIN)
     list(APPEND algebras "eigen")
 endif()
 
-
 # error in covfie::hip : No known features for HIP compiler "AMD" Version 6.....
-
 
 foreach(algebra ${algebras})
     # Unit tests for the selected algebra.
@@ -40,7 +36,7 @@ foreach(algebra ${algebras})
        "propagator_hip_kernel.hpp"
        "propagator_hip.hip"
        "propagator_hip_kernel.hip"
-       LINK_LIBRARIES GTest::gtest_main vecmem::hip #covfie::hip 
+       LINK_LIBRARIES GTest::gtest_main vecmem::hip #covfie::hip
                        detray::core detray::algebra_${algebra} detray::test_hip
                        detray::test_common
     )
@@ -56,5 +52,3 @@ foreach(algebra ${algebras})
             DEPENDS "detray_unit_test_hip;detray_unit_test_hip_${algebra}"
     )
 endforeach()
-
-

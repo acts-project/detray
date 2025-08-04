@@ -72,7 +72,7 @@ struct run_material_validation {
 
         // Move the track parameters to device
         auto tracks_buffer = hip_cpy.to(vecmem::get_data(tracks), *dev_mr,
-                                         vecmem::copy::type::host_to_device);
+                                        vecmem::copy::type::host_to_device);
         vecmem::data::vector_view<track_t> tracks_view =
             vecmem::get_data(tracks_buffer);
 

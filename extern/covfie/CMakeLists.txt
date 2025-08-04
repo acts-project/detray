@@ -52,8 +52,6 @@ set(COVFIE_PLATFORM_CUDA
     "Enable covfie CUDA platform"
 )
 
-
-
 set(COVFIE_REQUIRE_CXX20 OFF CACHE BOOL "Enable covfie C++20 requirement")
 set(COVFIE_QUIET ON CACHE BOOL "Quiet covfie feature warnings")
 
