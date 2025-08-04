@@ -301,8 +301,7 @@ class axis_aligned_bounding_volume {
     /// Checks whether a point lies inside the box. The point has to be defined
     /// in the coordinate frame that is spanned by the box axes.
     template <concepts::point point_t>
-    DETRAY_HOST_DEVICE
-    constexpr bool is_inside(
+    DETRAY_HOST_DEVICE constexpr bool is_inside(
         const point_t& loc_p,
         const scalar_t t = std::numeric_limits<scalar_t>::epsilon()) const {
         return m_mask.is_inside(loc_p, t);

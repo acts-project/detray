@@ -44,5 +44,4 @@ void detector_test(typename detector_host_t::view_type det_data,
                    vecmem::data::vector_view<disc_t> discs_data,
                    vecmem::data::vector_view<cylinder_t> cylinders_data);
 
-
 }  // namespace detray
