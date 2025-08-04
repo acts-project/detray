@@ -1,13 +1,12 @@
-/** TRACCC library, part of the ACTS project (R&D line)
+/** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021-2025 CERN for the benefit of the ACTS project
+ * (c) 2022-2025 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
 // Detray test include(s)
 #include "detector_hip_kernel.hpp"
-#include "detray/core/detail/alignment.hpp"
 #include "detray/definitions/algebra.hpp"
 #include "detray/test/common/build_toy_detector.hpp"
 #include "detray/test/framework/assert.hpp"
@@ -15,11 +14,8 @@
 
 
 // Vecmem include(s)
-#include <vecmem/memory/hip/device_memory_resource.hpp>
 #include <vecmem/memory/hip/managed_memory_resource.hpp>
 #include <vecmem/memory/host_memory_resource.hpp>
-#include <vecmem/utils/hip/async_copy.hpp> 
-#include <vecmem/utils/hip/copy.hpp>
 
 
 // Google Test include(s)
