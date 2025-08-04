@@ -9,40 +9,41 @@ cmake_minimum_required(VERSION 3.21)
 if(PROJECT_IS_TOP_LEVEL)
     include(detray-functions)
 
+
     #find HIP
     find_package(HIP REQUIRED)
     # Basic flags for all build modes.
-    if(
-        ("${CMAKE_HIP_PLATFORM}" STREQUAL "hcc")
-        OR ("${CMAKE_HIP_PLATFORM}" STREQUAL "amd")
-    )
-        detray_add_flag( CMAKE_HIP_FLAGS "-Wall" )
-        detray_add_flag( CMAKE_HIP_FLAGS "-Wextra" )
-        detray_add_flag( CMAKE_HIP_FLAGS "-Wshadow" )
-        detray_add_flag( CMAKE_HIP_FLAGS "-Wunused-local-typedefs" )
-        detray_add_flag( CMAKE_HIP_FLAGS "-pedantic" )
+    if( ( "${CMAKE_HIP_PLATFORM}" STREQUAL "hcc" ) OR
+        ( "${CMAKE_HIP_PLATFORM}" STREQUAL "amd" ) )
+       detray_add_flag( CMAKE_HIP_FLAGS "-Wall" )
+       detray_add_flag( CMAKE_HIP_FLAGS "-Wextra" )
+       detray_add_flag( CMAKE_HIP_FLAGS "-Wshadow" )
+       detray_add_flag( CMAKE_HIP_FLAGS "-Wunused-local-typedefs" )
+       detray_add_flag( CMAKE_HIP_FLAGS "-pedantic" )
     endif()
     # Generate debug symbols for the device code as well in a debug build.
+<<<<<<< HEAD
     if(
         ("${CMAKE_HIP_PLATFORM}" STREQUAL "nvcc")
         OR ("${CMAKE_HIP_PLATFORM}" STREQUAL "nvidia")
     )
         detray_add_flag( CMAKE_HIP_FLAGS_DEBUG "-G" )
         detray_add_flag( CMAKE_HIP_FLAGS "--expt-relaxed-constexpr" )
+=======
+    if( ( "${CMAKE_HIP_PLATFORM}" STREQUAL "nvcc" ) OR
+        ( "${CMAKE_HIP_PLATFORM}" STREQUAL "nvidia" ) )
+       detray_add_flag( CMAKE_HIP_FLAGS_DEBUG "-G" )
+>>>>>>> d9382600 (hip integration test - propagator)
     endif()
 
     # Fail on warnings, if asked for that behaviour.
-    if(DETRAY_FAIL_ON_WARNINGS)
-        if(
-            ("${CMAKE_HIP_PLATFORM}" STREQUAL "hcc")
-            OR ("${CMAKE_HIP_PLATFORM}" STREQUAL "amd")
-        )
-            detray_add_flag( CMAKE_HIP_FLAGS "-Werror" )
-        elseif(
-            ("${CMAKE_HIP_PLATFORM}" STREQUAL "nvcc")
-            OR ("${CMAKE_HIP_PLATFORM}" STREQUAL "nvidia")
-        )
-            detray_add_flag( CMAKE_HIP_FLAGS "-Werror all-warnings" )
-        endif()
+    if( DETRAY_FAIL_ON_WARNINGS )
+       if( ( "${CMAKE_HIP_PLATFORM}" STREQUAL "hcc" ) OR
+           ( "${CMAKE_HIP_PLATFORM}" STREQUAL "amd" ) )
+          detray_add_flag( CMAKE_HIP_FLAGS "-Werror" )
+       elseif( ( "${CMAKE_HIP_PLATFORM}" STREQUAL "nvcc" ) OR
+               ( "${CMAKE_HIP_PLATFORM}" STREQUAL "nvidia" ) )
+          detray_add_flag( CMAKE_HIP_FLAGS "-Werror all-warnings" )
+       endif()
     endif()
 endif()
