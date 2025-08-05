@@ -20,7 +20,8 @@
 
 // Covfie include(s)
 
-// we can include it after solving the linking problem - covfie::hip in the cmake file 
+// we can include it after solving the linking problem - covfie::hip in the
+// cmake file
 //#include <covfie/hip/backend/primitive/hip_device_array.hpp>  // error
 
 namespace detray {
