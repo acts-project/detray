@@ -121,8 +121,8 @@ struct material {
 
     /// @returns the density effect data
     DETRAY_HOST_DEVICE
-    constexpr const detail::density_effect_data<scalar_type>
-        &density_effect_data() const {
+    constexpr const detail::density_effect_data<scalar_type> &
+    density_effect_data() const {
         return m_density;
     }
 

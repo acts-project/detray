@@ -113,7 +113,7 @@ class grid_builder : public volume_decorator<detector_t> {
     DETRAY_HOST void fill_grid(
         const detector_t &det, const volume_type &vol,
         const typename detector_t::geometry_context ctx = {},
-        const bin_filler_t bin_filler = {}, Args &&... args) {
+        const bin_filler_t bin_filler = {}, Args &&...args) {
 
         bin_filler(m_grid, det, vol, ctx, args...);
     }
@@ -127,15 +127,16 @@ class grid_builder : public volume_decorator<detector_t> {
         const volume_type &vol, const surface_container_t &surfaces,
         const transform_container_t &transforms, const mask_container_t &masks,
         const typename detector_t::geometry_context ctx = {},
-        const bin_filler_t bin_filler = {}, Args &&... args) {
+        const bin_filler_t bin_filler = {}, Args &&...args) {
 
         bin_filler(m_grid, vol, surfaces, transforms, masks, ctx, args...);
     }
 
     /// Add the volume and the grid to the detector @param det
     DETRAY_HOST
-    auto build(detector_t &det, typename detector_t::geometry_context ctx = {})
-        -> typename detector_t::volume_type * override {
+    auto build(detector_t &det,
+               typename detector_t::geometry_context ctx = {}) ->
+        typename detector_t::volume_type * override {
 
         using surface_desc_t = typename detector_t::surface_type;
 

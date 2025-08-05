@@ -33,9 +33,8 @@ class grid_collection {};
 /// @todo refactor this, grid_data and grid_view as detray::ranges::grid_view
 template <typename axes_t, typename bin_t,
           template <std::size_t> class serializer_t>
-requires(!detray::grid_impl<axes_t, bin_t, serializer_t>::
-             is_owning) class grid_collection<detray::grid_impl<axes_t, bin_t,
-                                                                serializer_t>> {
+    requires(!detray::grid_impl<axes_t, bin_t, serializer_t>::is_owning)
+class grid_collection<detray::grid_impl<axes_t, bin_t, serializer_t>> {
 
     using grid_type = detray::grid_impl<axes_t, bin_t, serializer_t>;
     using const_grid_type =
@@ -203,14 +202,12 @@ requires(!detray::grid_impl<axes_t, bin_t, serializer_t>::
     /// @brief Resize the underlying containers
     /// @note Not defined! The amount of memory can differ for every grid
     DETRAY_HOST_DEVICE
-    constexpr void resize(std::size_t) noexcept { /*Not defined*/
-    }
+    constexpr void resize(std::size_t) noexcept { /*Not defined*/ }
 
     /// @brief Reserve memory
     /// @note Not defined! The amount of memory can differ for every grid
     DETRAY_HOST_DEVICE
-    constexpr void reserve(std::size_t) noexcept { /*Not defined*/
-    }
+    constexpr void reserve(std::size_t) noexcept { /*Not defined*/ }
 
     /// Removes all data from the grid collection containers
     DETRAY_HOST_DEVICE

@@ -52,7 +52,8 @@ template <typename index_t, bool contains_size = !sized_index_range,
           typename value_t = std::uint_least64_t,
           value_t lower_mask = 0xffffffff00000000,
           value_t upper_mask = ~lower_mask>
-requires std::convertible_to<index_t, value_t> struct index_range {
+    requires std::convertible_to<index_t, value_t>
+struct index_range {
     using index_type = index_t;
     using encoder = detail::bit_encoder<value_t>;
 
@@ -287,9 +288,9 @@ struct multi_index {
 
     /// Construct from a list of values
     template <typename... I>
-    requires(sizeof...(I) == N &&
-             std::conjunction_v<std::is_convertible<I, index_t>...>)
-        DETRAY_HOST_DEVICE constexpr multi_index(I... indices)
+        requires(sizeof...(I) == N &&
+                 std::conjunction_v<std::is_convertible<I, index_t>...>)
+    DETRAY_HOST_DEVICE constexpr multi_index(I... indices)
         : m_indices{indices...} {}
 
     /// @returns the number of contained indices
@@ -358,8 +359,9 @@ struct multi_index {
 template <typename id_t, typename index_t,
           typename value_t = std::uint_least32_t, value_t id_mask = 0xf0000000,
           value_t index_mask = ~id_mask>
-requires(std::convertible_to<value_t, index_t> ||
-         std::constructible_from<index_t, value_t>) struct typed_index {
+    requires(std::convertible_to<value_t, index_t> ||
+             std::constructible_from<index_t, value_t>)
+struct typed_index {
 
     using id_type = id_t;
     using index_type = index_t;
@@ -435,10 +437,9 @@ requires(std::convertible_to<value_t, index_t> ||
     }
 
     template <typename idx_t>
-    requires(std::integral<idx_t> ||
-             std::same_as<idx_t, index_type>) DETRAY_HOST_DEVICE
-        friend typed_index
-        operator+(const typed_index lhs, const idx_t index) {
+        requires(std::integral<idx_t> || std::same_as<idx_t, index_type>)
+    DETRAY_HOST_DEVICE friend typed_index operator+(const typed_index lhs,
+                                                    const idx_t index) {
         return typed_index{}.set_id(lhs.id()).set_index(lhs.index() + index);
     }
 
@@ -449,10 +450,9 @@ requires(std::convertible_to<value_t, index_t> ||
     }
 
     template <typename idx_t>
-    requires(std::integral<idx_t> ||
-             std::same_as<idx_t, index_type>) DETRAY_HOST_DEVICE
-        friend typed_index
-        operator-(const typed_index lhs, const idx_t& index) {
+        requires(std::integral<idx_t> || std::same_as<idx_t, index_type>)
+    DETRAY_HOST_DEVICE friend typed_index operator-(const typed_index lhs,
+                                                    const idx_t& index) {
         return typed_index{}.set_id(lhs.id()).set_index(lhs.index() - index);
     }
 
@@ -463,9 +463,8 @@ requires(std::convertible_to<value_t, index_t> ||
     }
 
     template <typename idx_t>
-    requires(std::integral<idx_t> ||
-             std::same_as<idx_t, index_type>) DETRAY_HOST_DEVICE typed_index&
-    operator+=(const idx_t index) {
+        requires(std::integral<idx_t> || std::same_as<idx_t, index_type>)
+    DETRAY_HOST_DEVICE typed_index& operator+=(const idx_t index) {
         set_index(this->index() + index);
         return *this;
     }
@@ -477,9 +476,8 @@ requires(std::convertible_to<value_t, index_t> ||
     }
 
     template <typename idx_t>
-    requires(std::integral<idx_t> ||
-             std::same_as<idx_t, index_type>) DETRAY_HOST_DEVICE typed_index&
-    operator-=(const idx_t index) {
+        requires(std::integral<idx_t> || std::same_as<idx_t, index_type>)
+    DETRAY_HOST_DEVICE typed_index& operator-=(const idx_t index) {
         set_index(this->index() - index);
         return *this;
     }
@@ -576,15 +574,17 @@ DETRAY_HOST_DEVICE constexpr decltype(auto) get(
 
 /// Custom get function for the typed_index struct. Get the type.
 template <std::size_t ID, typename id_type, typename index_type>
-requires(ID == 0) DETRAY_HOST_DEVICE constexpr decltype(auto)
-    get(const typed_index<id_type, index_type>& index) noexcept {
+    requires(ID == 0)
+DETRAY_HOST_DEVICE constexpr decltype(auto) get(
+    const typed_index<id_type, index_type>& index) noexcept {
     return index.id();
 }
 
 /// Custom get function for the typed_index struct. Get the index.
 template <std::size_t ID, typename id_type, typename index_type>
-requires(ID == 1) DETRAY_HOST_DEVICE constexpr decltype(auto)
-    get(const typed_index<id_type, index_type>& index) noexcept {
+    requires(ID == 1)
+DETRAY_HOST_DEVICE constexpr decltype(auto) get(
+    const typed_index<id_type, index_type>& index) noexcept {
     return index.index();
 }
 

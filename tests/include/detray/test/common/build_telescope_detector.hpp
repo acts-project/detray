@@ -64,8 +64,8 @@ struct tel_det_config {
 
     /// Construct from mask parameters (except volume link, which is not needed)
     template <typename... Args>
-    requires(std::is_same_v<Args, scalar_t> &&...) explicit tel_det_config(
-        Args &&... args)
+        requires(std::is_same_v<Args, scalar_t> && ...)
+    explicit tel_det_config(Args &&...args)
         : tel_det_config(
               mask<mask_shape_t, algebra_t>{0u, std::forward<Args>(args)...}) {}
 
@@ -169,7 +169,7 @@ template <concepts::algebra algebra_t, typename shape_t,
           template <typename> class trajectory_t>
 DETRAY_HOST_DEVICE tel_det_config(const mask<shape_t, algebra_t> &,
                                   const trajectory_t<algebra_t> &)
-    ->tel_det_config<algebra_t, shape_t, trajectory_t>;
+    -> tel_det_config<algebra_t, shape_t, trajectory_t>;
 
 }  // namespace
 

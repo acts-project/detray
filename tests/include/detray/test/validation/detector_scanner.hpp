@@ -159,7 +159,7 @@ template <template <typename> class scan_type, typename detector_t,
           typename trajectory_t, typename... Args>
 inline auto run(const typename detector_t::geometry_context gctx,
                 const detector_t &detector, const trajectory_t &traj,
-                Args &&... args) {
+                Args &&...args) {
 
     using algebra_t = typename detector_t::algebra_type;
     using nav_link_t = typename detector_t::surface_type::navigation_link;

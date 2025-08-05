@@ -28,8 +28,10 @@ struct get_value_type<T*> {
 };
 
 template <typename container_t>
-requires(!std::same_as<typename std::remove_cvref_t<container_t>::value_type,
-                       void>) struct get_value_type<container_t> {
+    requires(
+        !std::same_as<typename std::remove_cvref_t<container_t>::value_type,
+                      void>)
+struct get_value_type<container_t> {
     using type = typename std::remove_cvref_t<container_t>::value_type;
 };
 

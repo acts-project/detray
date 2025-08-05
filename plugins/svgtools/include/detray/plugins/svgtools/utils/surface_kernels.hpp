@@ -249,13 +249,13 @@ struct link_end_getter {
     template <typename detector_t, concepts::point3D point3_t,
               concepts::vector3D vector3_t, typename shape_t>
         requires std::is_same_v<shape_t, cylinder2D> ||
-        std::is_same_v<shape_t, concentric_cylinder2D> inline auto link_dir(
-            const detray::mask<shape_t, typename detector_t::algebra_type>&
-                mask,
-            const detector_t& detector,
-            const detray::tracking_volume<detector_t>& volume,
-            const point3_t& /*surface_point*/,
-            const vector3_t& surface_normal) const {
+                 std::is_same_v<shape_t, concentric_cylinder2D>
+    inline auto link_dir(
+        const detray::mask<shape_t, typename detector_t::algebra_type>& mask,
+        const detector_t& detector,
+        const detray::tracking_volume<detector_t>& volume,
+        const point3_t& /*surface_point*/,
+        const vector3_t& surface_normal) const {
         for (const auto& desc : volume.portals()) {
 
             const detray::geometry::surface surface{detector, desc};

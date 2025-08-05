@@ -36,9 +36,9 @@ class json_converter {};
 ///
 /// @note The resulting reader types will fulfill @c reader_interface
 template <class detector_t, class backend_t>
-requires concepts::reader_backend<detector_t, backend_t> class json_converter<
-    detector_t, backend_t>
-    final : public reader_interface<detector_t> {
+    requires concepts::reader_backend<detector_t, backend_t>
+class json_converter<detector_t, backend_t> final
+    : public reader_interface<detector_t> {
 
     using io_backend = backend_t;
 
@@ -74,9 +74,9 @@ requires concepts::reader_backend<detector_t, backend_t> class json_converter<
 ///
 /// @note The resulting writer types will fulfill @c writer_interface
 template <class detector_t, class backend_t>
-requires concepts::writer_backend<detector_t, backend_t> class json_converter<
-    detector_t, backend_t>
-    final : public writer_interface<detector_t> {
+    requires concepts::writer_backend<detector_t, backend_t>
+class json_converter<detector_t, backend_t> final
+    : public writer_interface<detector_t> {
 
     using io_backend = backend_t;
 

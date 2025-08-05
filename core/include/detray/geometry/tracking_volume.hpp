@@ -141,7 +141,7 @@ class tracking_volume {
     /// @tparam functor_t the prescription to be applied to the surfaces
     /// @tparam Args      types of additional arguments to the functor
     template <typename functor_t, typename... Args>
-    DETRAY_HOST_DEVICE constexpr void visit_surfaces(Args &&... args) const {
+    DETRAY_HOST_DEVICE constexpr void visit_surfaces(Args &&...args) const {
         visit_surfaces_impl<detail::surface_getter<functor_t>>(
             std::forward<Args>(args)...);
     }
@@ -155,9 +155,10 @@ class tracking_volume {
     /// @tparam Args      types of additional arguments to the functor
     template <typename functor_t, typename track_t, typename config_t,
               typename... Args>
-    DETRAY_HOST_DEVICE constexpr void visit_neighborhood(
-        const track_t &track, const config_t &cfg, const context_t &ctx,
-        Args &&... args) const {
+    DETRAY_HOST_DEVICE constexpr void visit_neighborhood(const track_t &track,
+                                                         const config_t &cfg,
+                                                         const context_t &ctx,
+                                                         Args &&...args) const {
         visit_surfaces_impl<detail::neighborhood_getter<functor_t>>(
             m_detector, m_desc, track, cfg, ctx, std::forward<Args>(args)...);
     }
@@ -167,7 +168,7 @@ class tracking_volume {
     /// @tparam functor_t the prescription to be applied to the material
     /// @tparam Args      types of additional arguments to the functor
     template <typename functor_t, typename... Args>
-    DETRAY_HOST_DEVICE constexpr auto visit_material(Args &&... args) const {
+    DETRAY_HOST_DEVICE constexpr auto visit_material(Args &&...args) const {
         assert(has_material());
         const auto &materials = m_detector.material_store();
         return materials.template visit<functor_t>(m_desc.material(),
@@ -304,7 +305,7 @@ class tracking_volume {
     /// @tparam Args      types of additional arguments to the functor
     template <typename functor_t, typename... Args>
     DETRAY_HOST_DEVICE constexpr void visit_surfaces_impl(
-        Args &&... args) const {
+        Args &&...args) const {
 
         for (std::size_t i = 0;
              i < static_cast<std::size_t>(descr_t::object_id::e_size); ++i) {

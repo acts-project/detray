@@ -43,15 +43,13 @@ class square_surface_generator final
     /// Generator, does not aggregate any data
     /// @{
     DETRAY_HOST
-    void clear() override{/*Do nothing*/};
+    void clear() override { /*Do nothing*/ };
 
     DETRAY_HOST
-    void push_back(surface_data<detector_t> &&) override { /*Do nothing*/
-    }
+    void push_back(surface_data<detector_t> &&) override { /*Do nothing*/ }
     DETRAY_HOST
     auto push_back(std::vector<surface_data<detector_t>> &&)
-        -> void override { /*Do nothing*/
-    }
+        -> void override { /*Do nothing*/ }
     /// @}
 
     /// Generate the surfaces and add them to given data collections.

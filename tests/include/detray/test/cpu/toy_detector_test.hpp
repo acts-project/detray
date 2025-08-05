@@ -47,9 +47,9 @@ inline void test_finder(const acc_t& finder, const dindex volume_index,
 
 /// Call for material grid types
 template <concepts::scalar scalar_t, typename mat_map_t>
-requires std::is_same_v<typename mat_map_t::value_type,
-                        material_slab<scalar_t>> inline void
-test_mat_map(const mat_map_t& mat_map, const bool is_cyl) {
+    requires std::is_same_v<typename mat_map_t::value_type,
+                            material_slab<scalar_t>>
+inline void test_mat_map(const mat_map_t& mat_map, const bool is_cyl) {
 
     // Check if the number of bins is correct
     if (is_cyl) {

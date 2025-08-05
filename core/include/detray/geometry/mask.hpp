@@ -60,8 +60,9 @@ class mask {
     /// Constructor from single mask boundary values @param args and
     /// volume link @param link
     template <typename... Args>
-    requires(sizeof...(Args) == shape::boundaries::e_size) DETRAY_HOST_DEVICE
-        explicit constexpr mask(const links_type& link, Args&&... args)
+        requires(sizeof...(Args) == shape::boundaries::e_size)
+    DETRAY_HOST_DEVICE explicit constexpr mask(const links_type& link,
+                                               Args&&... args)
         : _values({{std::forward<Args>(args)...}}), _volume_link(link) {}
 
     /// Constructor from mask boundary array @param values and
@@ -182,15 +183,15 @@ class mask {
 
     /// @returns the area the mask defines on the local geometry (2D)
     template <typename S = shape_t>
-    requires(S::dim == 2) DETRAY_HOST_DEVICE constexpr auto area() const
-        -> scalar_type {
+        requires(S::dim == 2)
+    DETRAY_HOST_DEVICE constexpr auto area() const -> scalar_type {
         return get_shape().area(_values);
     }
 
     /// @returns the area the mask defines on the local geometry (3D)
     template <typename S = shape_t>
-    requires(S::dim == 3) DETRAY_HOST_DEVICE constexpr auto volume() const
-        -> scalar_type {
+        requires(S::dim == 3)
+    DETRAY_HOST_DEVICE constexpr auto volume() const -> scalar_type {
         return get_shape().volume(_values);
     }
 

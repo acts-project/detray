@@ -116,9 +116,9 @@ class helix {
 
     /// @TODO Add covfie field view concept
     template <typename field_view_t>
-    requires(!concepts::vector3D<field_view_t>) DETRAY_HOST_DEVICE
-        helix(const free_track_parameters_type &track,
-              const field_view_t mag_field)
+        requires(!concepts::vector3D<field_view_t>)
+    DETRAY_HOST_DEVICE helix(const free_track_parameters_type &track,
+                             const field_view_t mag_field)
         : helix(track.pos(), track.time(), track.dir(), track.qop(),
                 sample_field(mag_field, track.pos())) {}
 
@@ -312,8 +312,8 @@ class helix {
 };
 
 template <concepts::algebra algebra_t, typename field_view_t>
-requires(!concepts::vector3D<field_view_t>) DETRAY_HOST_DEVICE
-    helix(const free_track_parameters<algebra_t> &, const field_view_t)
-        ->helix<algebra_t>;
+    requires(!concepts::vector3D<field_view_t>)
+DETRAY_HOST_DEVICE helix(const free_track_parameters<algebra_t> &,
+                         const field_view_t) -> helix<algebra_t>;
 
 }  // namespace detray::detail

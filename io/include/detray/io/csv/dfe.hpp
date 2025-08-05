@@ -31,8 +31,12 @@
         ::std::tie(__VA_ARGS__) = ::std::forward<std::tuple<U...>>(other);  \
         return *this;                                                       \
     }                                                                       \
-    operator Tuple() const { return ::std::make_tuple(__VA_ARGS__); }       \
-    Tuple tuple() const { return ::std::make_tuple(__VA_ARGS__); }          \
+    operator Tuple() const {                                                \
+        return ::std::make_tuple(__VA_ARGS__);                              \
+    }                                                                       \
+    Tuple tuple() const {                                                   \
+        return ::std::make_tuple(__VA_ARGS__);                              \
+    }                                                                       \
     template <std::size_t I>                                                \
     constexpr ::std::tuple_element_t<I, Tuple>& get() {                     \
         return ::std::get<I>(std::tie(__VA_ARGS__));                        \

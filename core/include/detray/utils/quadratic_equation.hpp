@@ -28,7 +28,8 @@ class quadratic_equation {};
 /// @note The solutions are sorted by default. If there is only one solution,
 /// the larger value is undefined.
 template <concepts::scalar scalar_t>
-requires std::is_arithmetic_v<scalar_t> class quadratic_equation<scalar_t> {
+    requires std::is_arithmetic_v<scalar_t>
+class quadratic_equation<scalar_t> {
     public:
     quadratic_equation() = delete;
 
@@ -94,7 +95,8 @@ requires std::is_arithmetic_v<scalar_t> class quadratic_equation<scalar_t> {
 /// @note The solutions are sorted by default. If there is only one
 /// solution, the larger value is undefined.
 template <concepts::scalar scalar_t>
-requires(!std::is_arithmetic_v<scalar_t>) class quadratic_equation<scalar_t> {
+    requires(!std::is_arithmetic_v<scalar_t>)
+class quadratic_equation<scalar_t> {
     public:
     quadratic_equation() = delete;
 
@@ -174,7 +176,7 @@ requires(!std::is_arithmetic_v<scalar_t>) class quadratic_equation<scalar_t> {
 };
 
 template <typename S>
-quadratic_equation(const S a, const S &b, const S &c, const S &tolerance)
-    -> quadratic_equation<S>;
+quadratic_equation(const S a, const S &b, const S &c,
+                   const S &tolerance) -> quadratic_equation<S>;
 
 }  // namespace detray::detail

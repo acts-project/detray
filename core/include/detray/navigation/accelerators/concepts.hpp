@@ -17,11 +17,13 @@
 namespace detray::concepts {
 
 template <class accelerator_t>
-concept surface_grid = concepts::grid<accelerator_t>&& std::same_as<
-    typename accelerator_t::value_type,
-    surface_descriptor<typename accelerator_t::value_type::mask_link,
-                       typename accelerator_t::value_type::material_link,
-                       typename accelerator_t::value_type::transform_link,
-                       typename accelerator_t::value_type::navigation_link>>;
+concept surface_grid =
+    concepts::grid<accelerator_t> &&
+    std::same_as<typename accelerator_t::value_type,
+                 surface_descriptor<
+                     typename accelerator_t::value_type::mask_link,
+                     typename accelerator_t::value_type::material_link,
+                     typename accelerator_t::value_type::transform_link,
+                     typename accelerator_t::value_type::navigation_link>>;
 
 }  // namespace detray::concepts

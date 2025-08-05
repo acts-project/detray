@@ -96,8 +96,9 @@ class volume_builder : public volume_builder_interface<detector_t> {
     /// Build the volume with internal surfaces and portals and add it to the
     /// detector instance @param det
     DETRAY_HOST
-    auto build(detector_t& det, typename detector_t::geometry_context ctx = {})
-        -> typename detector_t::volume_type* override {
+    auto build(detector_t& det,
+               typename detector_t::geometry_context ctx = {}) ->
+        typename detector_t::volume_type* override {
         // Prepare volume data
         m_volume.set_index(static_cast<dindex>(det.volumes().size()));
 

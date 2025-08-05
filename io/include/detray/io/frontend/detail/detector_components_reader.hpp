@@ -37,8 +37,8 @@ class detector_components_reader final {
 
     /// Create a new reader of type @tparam reader_t
     template <class reader_t>
-    requires std::is_base_of_v<reader_interface<detector_t>, reader_t> void add(
-        const std::string& file_name) {
+        requires std::is_base_of_v<reader_interface<detector_t>, reader_t>
+    void add(const std::string& file_name) {
         add(std::make_unique<reader_t>(), file_name);
     }
 

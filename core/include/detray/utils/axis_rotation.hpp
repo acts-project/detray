@@ -50,9 +50,9 @@ struct axis_rotation {
     /// @param v vector to be rotated
     /// @returns Get the counterclockwisely-rotated vector
     template <typename vector3_t>
-    requires(concepts::vector3D<vector3_t> ||
-             concepts::column_matrix3D<vector3_t>) DETRAY_HOST_DEVICE vector3_t
-    operator()(const vector3_t& v) const {
+        requires(concepts::vector3D<vector3_t> ||
+                 concepts::column_matrix3D<vector3_t>)
+    DETRAY_HOST_DEVICE vector3_t operator()(const vector3_t& v) const {
         return R * v;
     }
 

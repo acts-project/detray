@@ -34,32 +34,32 @@ using random_access_iterator_tag = std::random_access_iterator_tag;
 template <class I>
 concept input_iterator =
     std::derived_from<typename std::iterator_traits<I>::iterator_category,
-                      detray::ranges::input_iterator_tag>&&
-        std::input_iterator<I>;
+                      detray::ranges::input_iterator_tag> &&
+    std::input_iterator<I>;
 
 template <class I, typename T>
 concept output_iterator =
     std::derived_from<typename std::iterator_traits<I>::iterator_category,
-                      detray::ranges::input_iterator_tag>&&
-        std::output_iterator<I, T>;
+                      detray::ranges::input_iterator_tag> &&
+    std::output_iterator<I, T>;
 
 template <class I>
 concept forward_iterator =
     std::derived_from<typename std::iterator_traits<I>::iterator_category,
-                      detray::ranges::forward_iterator_tag>&&
-        std::forward_iterator<I>;
+                      detray::ranges::forward_iterator_tag> &&
+    std::forward_iterator<I>;
 
 template <class I>
 concept bidirectional_iterator =
     std::derived_from<typename std::iterator_traits<I>::iterator_category,
-                      detray::ranges::bidirectional_iterator_tag>&&
-        std::bidirectional_iterator<I>;
+                      detray::ranges::bidirectional_iterator_tag> &&
+    std::bidirectional_iterator<I>;
 
 template <class I>
 concept random_access_iterator =
     std::derived_from<typename std::iterator_traits<I>::iterator_category,
-                      detray::ranges::random_access_iterator_tag>&&
-        std::random_access_iterator<I>;
+                      detray::ranges::random_access_iterator_tag> &&
+    std::random_access_iterator<I>;
 
 namespace detail {
 /// Simply import the std versions of basic iterator functionality where

@@ -73,8 +73,8 @@ class surface {
 
     /// Conversion to surface interface around constant detector type
     template <typename detector_type = detector_t>
-    requires(!std::is_const_v<detector_type>) DETRAY_HOST_DEVICE constexpr
-    operator surface<const detector_type>() const {
+        requires(!std::is_const_v<detector_type>)
+    DETRAY_HOST_DEVICE constexpr operator surface<const detector_type>() const {
         return surface<const detector_type>{this->m_detector, this->m_desc};
     }
 
@@ -215,16 +215,15 @@ class surface {
     /// @returns the surface normal in global coordinates at a given bound/local
     /// position @param p
     template <concepts::point point_t = point2_type>
-    DETRAY_HOST_DEVICE constexpr auto normal(const context &ctx,
-                                             const point_t &p) const
-        -> vector3_type {
+    DETRAY_HOST_DEVICE constexpr auto normal(
+        const context &ctx, const point_t &p) const -> vector3_type {
         return visit_mask<typename kernels::normal>(transform(ctx), p);
     }
 
     /// @returns a pointer to the material parameters at the local position
     /// @param loc_p
-    DETRAY_HOST_DEVICE constexpr const material<scalar_type>
-        *material_parameters(const point2_type &loc_p) const {
+    DETRAY_HOST_DEVICE constexpr const material<scalar_type> *
+    material_parameters(const point2_type &loc_p) const {
         return visit_material<typename kernels::get_material_params>(loc_p);
     }
 
@@ -264,7 +263,7 @@ class surface {
     /// @tparam functor_t the prescription to be applied to the mask
     /// @tparam Args      types of additional arguments to the functor
     template <typename functor_t, typename... Args>
-    DETRAY_HOST_DEVICE constexpr auto visit_mask(Args &&... args) const {
+    DETRAY_HOST_DEVICE constexpr auto visit_mask(Args &&...args) const {
         assert(!m_desc.mask().is_invalid());
         const auto &masks = m_detector.mask_store();
         return masks.template visit<functor_t>(m_desc.mask(),
@@ -276,7 +275,7 @@ class surface {
     /// @tparam functor_t the prescription to be applied to the material
     /// @tparam Args      types of additional arguments to the functor
     template <typename functor_t, typename... Args>
-    DETRAY_HOST_DEVICE constexpr auto visit_material(Args &&... args) const {
+    DETRAY_HOST_DEVICE constexpr auto visit_material(Args &&...args) const {
         assert(has_material());
         const auto &materials = m_detector.material_store();
         return materials.template visit<functor_t>(m_desc.material(),
@@ -377,11 +376,11 @@ class surface {
 };
 
 template <typename detector_t, typename descr_t>
-DETRAY_HOST_DEVICE surface(const detector_t &, const descr_t &)
-    ->surface<detector_t>;
+DETRAY_HOST_DEVICE surface(const detector_t &,
+                           const descr_t &) -> surface<detector_t>;
 
 template <typename detector_t>
-DETRAY_HOST_DEVICE surface(const detector_t &, const geometry::barcode)
-    ->surface<detector_t>;
+DETRAY_HOST_DEVICE surface(const detector_t &,
+                           const geometry::barcode) -> surface<detector_t>;
 
 }  // namespace detray::geometry

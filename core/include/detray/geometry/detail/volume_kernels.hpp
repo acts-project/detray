@@ -52,7 +52,7 @@ struct surface_getter {
     template <typename accel_group_t, typename accel_index_t, typename... Args>
     DETRAY_HOST_DEVICE inline void operator()(const accel_group_t &group,
                                               const accel_index_t index,
-                                              Args &&... args) const {
+                                              Args &&...args) const {
 
         // Run over the surfaces in a single acceleration data structure
         for (const auto &sf : group[index].all()) {
@@ -75,7 +75,7 @@ struct neighborhood_getter {
         const detector_t &det, const typename detector_t::volume_type &volume,
         const track_t &track, const config_t &cfg,
         const typename detector_t::geometry_context &ctx,
-        Args &&... args) const {
+        Args &&...args) const {
 
         decltype(auto) accel = group[index];
 

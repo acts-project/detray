@@ -115,13 +115,14 @@ class grid2 {
      **/
     template <typename grid_view_t>
         requires(!std::is_same_v<grid2, grid_view_t>) &&
-        (!std::is_base_of_v<vecmem::memory_resource, grid_view_t>)
-            DETRAY_HOST_DEVICE
+                    (!std::is_base_of_v<vecmem::memory_resource, grid_view_t>)
+    DETRAY_HOST_DEVICE
         grid2(const grid_view_t &grid_data,
               const bare_value m_invalid = detail::invalid_value<bare_value>())
         : _axis_p0(grid_data._axis_p0_view),
-    _axis_p1(grid_data._axis_p1_view), _data_serialized(grid_data._data_view),
-    _populator(m_invalid) {}
+          _axis_p1(grid_data._axis_p1_view),
+          _data_serialized(grid_data._data_view),
+          _populator(m_invalid) {}
 
     /** Allow for grid shift, when using a centralized store and indices
      *
@@ -212,9 +213,9 @@ class grid2 {
      * @return the const reference to the value in this bin
      **/
     template <concepts::point2D point2_t>
-    requires(!std::is_scalar_v<point2_t>) DETRAY_HOST_DEVICE
-        typename serialized_storage::const_reference
-        bin(const point2_t &p2) const {
+        requires(!std::is_scalar_v<point2_t>)
+    DETRAY_HOST_DEVICE typename serialized_storage::const_reference bin(
+        const point2_t &p2) const {
         return _data_serialized[_serializer.template serialize<axis_p0_type,
                                                                axis_p1_type>(
             _axis_p0, _axis_p1, _axis_p0.bin(p2[0]), _axis_p1.bin(p2[1]))];
@@ -227,8 +228,9 @@ class grid2 {
      * @return the const reference to the value in this bin
      **/
     template <concepts::point2D point2_t>
-    requires(!std::is_scalar_v<point2_t>) DETRAY_HOST_DEVICE
-        typename serialized_storage::reference bin(const point2_t &p2) {
+        requires(!std::is_scalar_v<point2_t>)
+    DETRAY_HOST_DEVICE typename serialized_storage::reference bin(
+        const point2_t &p2) {
         return _data_serialized[_serializer.template serialize<axis_p0_type,
                                                                axis_p1_type>(
             _axis_p0, _axis_p1, _axis_p0.bin(p2[0]), _axis_p1.bin(p2[1]))];

@@ -90,9 +90,8 @@ class detector_builder {
 
     /// Decorate a volume builder @param v_builder with more functionality
     template <class builder_t>
-    DETRAY_HOST auto decorate(
-        const volume_builder_interface<detector_type>* v_builder)
-        -> builder_t* {
+    DETRAY_HOST auto decorate(const volume_builder_interface<detector_type>*
+                                  v_builder) -> builder_t* {
         assert(v_builder != nullptr);
 
         return decorate<builder_t>(v_builder->vol_index());

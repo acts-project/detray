@@ -157,7 +157,7 @@ class surface_factory_interface {
     template <typename container_t, typename... Args>
     DETRAY_HOST dindex insert_in_container(
         container_t &cont, const typename container_t::value_type value,
-        const dindex idx, Args &&... args) const {
+        const dindex idx, Args &&...args) const {
         // If no valid position is given, perform push back
         if (detail::is_invalid_value(idx)) {
             cont.push_back(value, std::forward<Args>(args)...);

@@ -67,15 +67,13 @@ class cuboid_portal_generator final
     auto size() const -> dindex override { return 6u; }
 
     DETRAY_HOST
-    void clear() override{/*Do nothing*/};
+    void clear() override { /*Do nothing*/ };
 
     DETRAY_HOST
-    void push_back(surface_data<detector_t> &&) override { /*Do nothing*/
-    }
+    void push_back(surface_data<detector_t> &&) override { /*Do nothing*/ }
     DETRAY_HOST
     auto push_back(std::vector<surface_data<detector_t>> &&)
-        -> void override { /*Do nothing*/
-    }
+        -> void override { /*Do nothing*/ }
 
     /// Create minimum aabbs around all surfaces that are passed and then
     /// construct world portals from the global bounding box.

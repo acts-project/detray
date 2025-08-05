@@ -60,7 +60,7 @@ class volume_builder_interface {
     /// @returns reading access to the volume
     DETRAY_HOST
     virtual auto operator()() const -> const
-        typename detector_t::volume_type & = 0;
+                                       typename detector_t::volume_type & = 0;
     DETRAY_HOST
     virtual auto operator()() -> typename detector_t::volume_type & = 0;
 

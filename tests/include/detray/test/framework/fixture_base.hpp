@@ -55,14 +55,10 @@ class fixture_base : public scope {
     std::string name() const { return "detray_test"; };
 
     protected:
-    static void SetUpTestSuite() { /* Do nothing */
-    }
-    static void TearDownTestSuite() { /* Do nothing */
-    }
-    void SetUp() override { /* Do nothing */
-    }
-    void TearDown() override { /* Do nothing */
-    }
+    static void SetUpTestSuite() { /* Do nothing */ }
+    static void TearDownTestSuite() { /* Do nothing */ }
+    void SetUp() override { /* Do nothing */ }
+    void TearDown() override { /* Do nothing */ }
 
     private:
     scalar tolerance{};

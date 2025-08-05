@@ -33,7 +33,7 @@ struct mixture
     constexpr mixture() {
         // Compute effective relative atomic mass
         // Zeff = Ar0 * ratio0 + Ar1 * ratio1 + ...
-        auto sum_Ar = [](material_types... M) constexpr->decltype(auto) {
+        auto sum_Ar = [](material_types... M) constexpr -> decltype(auto) {
             return ((M.Ar() * M.fraction()) + ...);
         };
 
@@ -41,14 +41,14 @@ struct mixture
 
         // Compute effective atomic number
         // Zeff = Z0 * ratio0 + Z1 * ratio1 + ...
-        auto sum_Z = [](material_types... M) constexpr->decltype(auto) {
+        auto sum_Z = [](material_types... M) constexpr -> decltype(auto) {
             return ((M.Z() * M.fraction()) + ...);
         };
 
         this->set_Z(std::apply(sum_Z, std::tuple<material_types...>()));
 
         // Get averaged mass density
-        auto sum_rho = [](material_types... M) constexpr->decltype(auto) {
+        auto sum_rho = [](material_types... M) constexpr -> decltype(auto) {
             return ((M.mass_density() * M.fraction()) + ...);
         };
 
@@ -63,7 +63,7 @@ struct mixture
         // W_i is mass density of i_th component
         // W_avg is the averaged mass density
         auto sum_rho_over_X0 =
-            [](material_types... M) constexpr->decltype(auto) {
+            [](material_types... M) constexpr -> decltype(auto) {
             return ((M.fraction() / M.X0()) + ...);
         };
         this->set_X0(
@@ -72,7 +72,7 @@ struct mixture
         // Compute effective nuclear radiation length
         // Follow the same equation of effective X0
         auto sum_rho_over_L0 =
-            [](material_types... M) constexpr->decltype(auto) {
+            [](material_types... M) constexpr -> decltype(auto) {
             return ((M.fraction() / M.L0()) + ...);
         };
 

@@ -379,8 +379,8 @@ template <typename entry_t, typename data_t>
 dynamic_array(entry_t* bin_storage, data_t& bin_data) -> dynamic_array<entry_t>;
 
 template <typename entry_t, typename data_t>
-dynamic_array(const entry_t* bin_storage, const data_t& bin_data)
-    -> dynamic_array<entry_t>;
+dynamic_array(const entry_t* bin_storage,
+              const data_t& bin_data) -> dynamic_array<entry_t>;
 /// @}
 
 }  // namespace detray::bins

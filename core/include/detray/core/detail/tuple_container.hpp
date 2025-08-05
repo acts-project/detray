@@ -50,21 +50,21 @@ class tuple_container {
     constexpr tuple_container &operator=(tuple_container &&) noexcept = default;
 
     /// Copy construct from element types
-    constexpr explicit tuple_container(const Ts &... args) : _tuple(args...) {}
+    constexpr explicit tuple_container(const Ts &...args) : _tuple(args...) {}
 
     /// Construct with a specific vecmem memory resource @param resource
     /// (host-side only)
     template <typename allocator_t = vecmem::memory_resource>
-    requires(!concepts::device_view<allocator_t>) DETRAY_HOST
-        explicit tuple_container(allocator_t &resource)
+        requires(!concepts::device_view<allocator_t>)
+    DETRAY_HOST explicit tuple_container(allocator_t &resource)
         : _tuple(Ts(&resource)...) {}
 
     /// Copy Construct with a specific (vecmem) memory resource @param resource
     /// (host-side only)
     template <typename allocator_t = vecmem::memory_resource,
               typename T = tuple_t<Ts...>>
-    requires std::is_same_v<T, std::tuple<Ts...>> DETRAY_HOST
-    tuple_container(allocator_t &resource, const Ts &... args)
+        requires std::is_same_v<T, std::tuple<Ts...>>
+    DETRAY_HOST tuple_container(allocator_t &resource, const Ts &...args)
         : _tuple(std::allocator_arg, resource, args...) {}
 
     /// Construct from the container @param view type. Mainly used device-side.
@@ -117,7 +117,7 @@ class tuple_container {
     ///
     /// @returns the functor result.
     template <typename functor_t, typename... Args>
-    DETRAY_HOST_DEVICE decltype(auto) apply(Args &&... As) const {
+    DETRAY_HOST_DEVICE decltype(auto) apply(Args &&...As) const {
 
         return apply_impl<functor_t>(std::make_index_sequence<sizeof...(Ts)>{},
                                      std::forward<Args>(As)...);
@@ -130,10 +130,11 @@ class tuple_container {
     /// type, regardless the input tuple element type).
     template <typename functor_t, typename... Args>
     DETRAY_HOST_DEVICE decltype(auto) visit(const std::size_t idx,
-                                            Args &&... As) const
+                                            Args &&...As) const
         requires std::invocable<
             functor_t, decltype(detail::get<0>(std::declval<tuple_type>())),
-            Args...> {
+            Args...>
+    {
         return visit_helper<functor_t>(
             idx, std::make_index_sequence<sizeof...(Ts)>{},
             std::forward<Args>(As)...);
@@ -142,15 +143,16 @@ class tuple_container {
     private:
     /// @returns the view for all contained types.
     template <std::size_t... I>
-    requires(concepts::viewable<Ts> &&...) DETRAY_HOST view_type
-        get_data(std::index_sequence<I...> /*seq*/) noexcept {
+        requires(concepts::viewable<Ts> && ...)
+    DETRAY_HOST view_type get_data(std::index_sequence<I...> /*seq*/) noexcept {
         return view_type{detray::get_data(detail::get<I>(_tuple))...};
     }
 
     /// @returns the const view for all contained types.
     template <std::size_t... I>
-    requires(concepts::viewable<Ts> &&...) DETRAY_HOST const_view_type
-        get_data(std::index_sequence<I...> /*seq*/) const noexcept {
+        requires(concepts::viewable<Ts> && ...)
+    DETRAY_HOST const_view_type
+    get_data(std::index_sequence<I...> /*seq*/) const noexcept {
         return const_view_type{detray::get_data(detail::get<I>(_tuple))...};
     }
 
@@ -168,7 +170,7 @@ class tuple_container {
     /// @tparam Args argument types for the functor
     template <typename functor_t, std::size_t... I, typename... Args>
     DETRAY_HOST_DEVICE decltype(auto) apply_impl(
-        std::index_sequence<I...> /*seq*/, Args &&... As) const {
+        std::index_sequence<I...> /*seq*/, Args &&...As) const {
 
         // Call the functor on the tuple elements
         return functor_t{}(std::forward<Args>(As)..., get<I>()...);
@@ -189,7 +191,7 @@ class tuple_container {
     DETRAY_HOST_DEVICE decltype(auto) visit_helper(
         const std::size_t idx,
         std::index_sequence<first_idx, remaining_idcs...> /*seq*/,
-        Args &&... As) const {
+        Args &&...As) const {
         using return_type = std::invoke_result_t<
             functor_t, const detail::tuple_element_t<0, tuple_type> &, Args...>;
 

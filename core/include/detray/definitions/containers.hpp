@@ -96,14 +96,14 @@ struct has_reserve {
 /// available
 /// @{
 template <typename T>
-requires has_reserve<T>::value DETRAY_HOST_DEVICE void call_reserve(
-    T& obj, std::size_t newsize) {
+    requires has_reserve<T>::value
+DETRAY_HOST_DEVICE void call_reserve(T& obj, std::size_t newsize) {
     obj.reserve(newsize);
 }
 
 template <typename T>
-requires(!has_reserve<T>::value) DETRAY_HOST_DEVICE
-    void call_reserve(T& /*obj*/, std::size_t /*newsize*/) {
+    requires(!has_reserve<T>::value)
+DETRAY_HOST_DEVICE void call_reserve(T& /*obj*/, std::size_t /*newsize*/) {
     /*Not defined*/
 }
 /// @}

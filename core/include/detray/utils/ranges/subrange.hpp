@@ -105,10 +105,9 @@ struct subrange : public detail::subrange_view<range_t> {
     /// Construct from a @param range and starting position @param pos. Used
     /// as an overload when only a single position is needed.
     template <detray::ranges::range deduced_range_t, concepts::index index_t>
-    requires std::is_convertible_v<
-        index_t, detray::ranges::range_difference_t<deduced_range_t>>
-        DETRAY_HOST_DEVICE constexpr subrange(deduced_range_t &&range,
-                                              index_t pos)
+        requires std::is_convertible_v<
+            index_t, detray::ranges::range_difference_t<deduced_range_t>>
+    DETRAY_HOST_DEVICE constexpr subrange(deduced_range_t &&range, index_t pos)
         : base_type{detray::ranges::next(detray::ranges::begin(range),
                                          static_cast<difference_t>(pos)),
                     detray::ranges::next(
@@ -147,27 +146,27 @@ struct subrange : public detail::subrange_view<range_t> {
 
 // deduction guides
 DETRAY_HOST_DEVICE subrange()
-    ->subrange<detray::ranges::views::empty<int>, dindex_range>;
+    -> subrange<detray::ranges::views::empty<int>, dindex_range>;
 
 template <concepts::index index_t>
 DETRAY_HOST_DEVICE subrange(index_t start, index_t end)
-    ->subrange<detray::ranges::views::empty<int>, darray<index_t, 2>>;
+    -> subrange<detray::ranges::views::empty<int>, darray<index_t, 2>>;
 
 template <detray::ranges::range deduced_range_t>
 DETRAY_HOST_DEVICE subrange(deduced_range_t &&range)
-    ->subrange<std::remove_reference_t<deduced_range_t>, bool>;
+    -> subrange<std::remove_reference_t<deduced_range_t>, bool>;
 
 template <detray::ranges::range deduced_range_t, concepts::index index_t>
-requires std::convertible_to<
-    index_t, detray::ranges::range_difference_t<deduced_range_t>>
-    DETRAY_HOST_DEVICE subrange(deduced_range_t &&range, index_t pos)
-        ->subrange<std::remove_reference_t<deduced_range_t>, index_t>;
+    requires std::convertible_to<
+                 index_t, detray::ranges::range_difference_t<deduced_range_t>>
+DETRAY_HOST_DEVICE subrange(deduced_range_t &&range, index_t pos)
+    -> subrange<std::remove_reference_t<deduced_range_t>, index_t>;
 
 template <detray::ranges::range deduced_range_t,
           concepts::interval index_range_t>
 DETRAY_HOST_DEVICE subrange(deduced_range_t &&range, index_range_t &&pos)
-    ->subrange<std::remove_reference_t<deduced_range_t>,
-               std::remove_cvref_t<index_range_t>>;
+    -> subrange<std::remove_reference_t<deduced_range_t>,
+                std::remove_cvref_t<index_range_t>>;
 
 /// @see https://en.cppreference.com/w/cpp/ranges/borrowed_iterator_t
 template <detray::ranges::range R, concepts::interval I>

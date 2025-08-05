@@ -23,21 +23,22 @@ namespace detray::detail::material_accessor {
 /// description and to raw material in a homogeneous volume material
 /// description
 template <detray::ranges::range material_coll_t, concepts::point point_t>
-requires concepts::homogeneous_material<typename material_coll_t::value_type>
-    DETRAY_HOST_DEVICE constexpr decltype(auto) get(
-        const material_coll_t &material_coll, const dindex idx,
-        const point_t &) noexcept {
+    requires concepts::homogeneous_material<
+        typename material_coll_t::value_type>
+DETRAY_HOST_DEVICE constexpr decltype(auto) get(
+    const material_coll_t &material_coll, const dindex idx,
+    const point_t &) noexcept {
 
     return material_coll[idx];
 }
 
 /// Access to material slabs in a material map or volume material
 template <typename material_coll_t>
-requires concepts::material_map<typename material_coll_t::value_type>
-    DETRAY_HOST_DEVICE constexpr decltype(auto) get(
-        const material_coll_t &material_coll, const dindex idx,
-        const typename material_coll_t::value_type::point_type
-            &loc_point) noexcept {
+    requires concepts::material_map<typename material_coll_t::value_type>
+DETRAY_HOST_DEVICE constexpr decltype(auto) get(
+    const material_coll_t &material_coll, const dindex idx,
+    const typename material_coll_t::value_type::point_type
+        &loc_point) noexcept {
 
     // Find the material slab (only one entry per bin)
     return material_coll[idx].search(loc_point).ref();

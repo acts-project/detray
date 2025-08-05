@@ -24,47 +24,48 @@ struct tuple<T, Ts...> {
 
     DETRAY_HOST_DEVICE constexpr tuple(){};
 
-    constexpr tuple(const tuple &o) requires(
-        std::is_copy_constructible_v<T> &&
-        (std::is_copy_constructible_v<Ts> && ...)) = default;
+    constexpr tuple(const tuple &o)
+        requires(std::is_copy_constructible_v<T> &&
+                 (std::is_copy_constructible_v<Ts> && ...))
+    = default;
 
     template <typename U, typename... Us>
-    requires std::is_constructible_v<T, U &&>
-        &&std::is_constructible_v<tuple<Ts...>, Us &&...>
-            DETRAY_HOST_DEVICE explicit constexpr tuple(
-                const tuple<U, Us...> &o)
+        requires std::is_constructible_v<T, U &&> &&
+                     std::is_constructible_v<tuple<Ts...>, Us &&...>
+    DETRAY_HOST_DEVICE explicit constexpr tuple(const tuple<U, Us...> &o)
         : v(o.v), r(o.r) {}
 
     constexpr tuple(tuple &&o) noexcept
         requires(std::is_move_constructible_v<T> &&
-                 (std::is_move_constructible_v<Ts> && ...)) = default;
+                 (std::is_move_constructible_v<Ts> && ...))
+    = default;
 
     template <typename U, typename... Us>
-    requires std::is_constructible_v<T, U &&>
-        &&std::is_constructible_v<tuple<Ts...>, Us &&...>
-            DETRAY_HOST_DEVICE explicit constexpr tuple(tuple<U, Us...> &&o)
+        requires std::is_constructible_v<T, U &&> &&
+                     std::is_constructible_v<tuple<Ts...>, Us &&...>
+    DETRAY_HOST_DEVICE explicit constexpr tuple(tuple<U, Us...> &&o)
         : v(std::move(o.v)), r(std::move(o.r)) {}
 
     template <typename U, typename... Us>
-        requires std::is_constructible_v<T, U &&>
-            &&std::is_constructible_v<tuple<Ts...>, Us &&...> &&
-        (!(std::is_same_v<tuple, U> ||
-           (std::is_same_v<tuple, Us> || ...))) DETRAY_HOST_DEVICE
-        explicit constexpr tuple(U &&_v, Us &&... _r)
-        : v(std::forward<U>(_v)),
-    r(std::forward<Us>(_r)...) {}
+        requires std::is_constructible_v<T, U &&> &&
+                     std::is_constructible_v<tuple<Ts...>, Us &&...> &&
+                     (!(std::is_same_v<tuple, U> ||
+                        (std::is_same_v<tuple, Us> || ...)))
+    DETRAY_HOST_DEVICE explicit constexpr tuple(U &&_v, Us &&..._r)
+        : v(std::forward<U>(_v)), r(std::forward<Us>(_r)...) {}
 
     constexpr ~tuple() noexcept = default;
 
-    constexpr tuple &operator=(const tuple &other) requires(
-        std::is_copy_assignable_v<T> &&
-        (std::is_copy_assignable_v<Ts> && ...)) = default;
+    constexpr tuple &operator=(const tuple &other)
+        requires(std::is_copy_assignable_v<T> &&
+                 (std::is_copy_assignable_v<Ts> && ...))
+    = default;
 
     template <typename U, typename... Us>
-    DETRAY_HOST_DEVICE constexpr tuple &
-    operator=(const tuple<U, Us...> &other) requires(
-        std::is_assignable_v<T &, const U &> &&
-        (std::is_assignable_v<Ts &, const Us &> && ...)) {
+    DETRAY_HOST_DEVICE constexpr tuple &operator=(const tuple<U, Us...> &other)
+        requires(std::is_assignable_v<T &, const U &> &&
+                 (std::is_assignable_v<Ts &, const Us &> && ...))
+    {
         v = other.v;
         r = other.r;
         return *this;
@@ -72,13 +73,14 @@ struct tuple<T, Ts...> {
 
     constexpr tuple &operator=(tuple &&other) noexcept
         requires(std::is_move_assignable_v<T> &&
-                 (std::is_move_assignable_v<Ts> && ...)) = default;
+                 (std::is_move_assignable_v<Ts> && ...))
+    = default;
 
     template <typename U, typename... Us>
-    DETRAY_HOST_DEVICE constexpr tuple &operator=(
-        tuple<U, Us...> &&other) requires(std::is_assignable_v<T &, U> &&
-                                          (std::is_assignable_v<Ts &, Us> &&
-                                           ...)) {
+    DETRAY_HOST_DEVICE constexpr tuple &operator=(tuple<U, Us...> &&other)
+        requires(std::is_assignable_v<T &, U> &&
+                 (std::is_assignable_v<Ts &, Us> && ...))
+    {
         v = std::move(other.v);
         r = std::move(other.r);
         return *this;
@@ -140,13 +142,13 @@ DETRAY_HOST_DEVICE auto &get(detray::tuple<T, Ts...> &t) noexcept {
 }
 
 template <typename... Ts>
-DETRAY_HOST_DEVICE constexpr detray::tuple<Ts &...> tie(Ts &... args) {
+DETRAY_HOST_DEVICE constexpr detray::tuple<Ts &...> tie(Ts &...args) {
     return detray::tuple<Ts &...>(args...);
 }
 
 template <typename... Ts>
 DETRAY_HOST_DEVICE constexpr detray::tuple<std::decay_t<Ts>...> make_tuple(
-    Ts &&... vs) {
+    Ts &&...vs) {
     return detray::tuple<std::decay_t<Ts>...>(std::forward<Ts>(vs)...);
 }
 

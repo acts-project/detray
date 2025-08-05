@@ -40,12 +40,11 @@ struct jacobian_engine {
     /// @}
 
     template <typename frame_t>
-    requires concepts::point<typename frame_t::loc_point>
-        DETRAY_HOST_DEVICE static inline void
-        bound_to_free_jacobian_set_dfree_dlocal(
-            bound_to_free_matrix_type& jac_to_global,
-            const transform3_type& trf3, const vector3_type& pos,
-            const vector3_type& dir) {
+        requires concepts::point<typename frame_t::loc_point>
+    DETRAY_HOST_DEVICE static inline void
+    bound_to_free_jacobian_set_dfree_dlocal(
+        bound_to_free_matrix_type& jac_to_global, const transform3_type& trf3,
+        const vector3_type& pos, const vector3_type& dir) {
         using jacobian_t = jacobian<frame_t>;
 
         // Set d(x,y,z)/d(loc0, loc1)
@@ -82,12 +81,11 @@ struct jacobian_engine {
     }
 
     template <typename frame_t>
-    requires concepts::point<typename frame_t::loc_point>
-        DETRAY_HOST_DEVICE static inline void
-        bound_to_free_jacobian_set_dfree_dangle(
-            bound_to_free_matrix_type& jac_to_global,
-            const transform3_type& trf3, const vector3_type& pos,
-            const vector3_type& dir) {
+        requires concepts::point<typename frame_t::loc_point>
+    DETRAY_HOST_DEVICE static inline void
+    bound_to_free_jacobian_set_dfree_dangle(
+        bound_to_free_matrix_type& jac_to_global, const transform3_type& trf3,
+        const vector3_type& pos, const vector3_type& dir) {
         using jacobian_t = jacobian<frame_t>;
 
         // Set d(x,y,z)/d(phi, theta)
@@ -96,11 +94,11 @@ struct jacobian_engine {
     }
 
     template <typename frame_t, typename mask_t>
-    requires concepts::point<typename frame_t::loc_point>
-        DETRAY_HOST_DEVICE static inline bound_to_free_matrix_type
-        bound_to_free_jacobian(
-            const transform3_type& trf3, const mask_t& mask,
-            const bound_parameters_vector<algebra_type>& bound_vec) {
+        requires concepts::point<typename frame_t::loc_point>
+    DETRAY_HOST_DEVICE static inline bound_to_free_matrix_type
+    bound_to_free_jacobian(
+        const transform3_type& trf3, const mask_t& mask,
+        const bound_parameters_vector<algebra_type>& bound_vec) {
         bound_to_free_matrix_type jac_to_global =
             matrix::zero<bound_to_free_matrix_type>();
 
@@ -121,12 +119,11 @@ struct jacobian_engine {
     }
 
     template <typename frame_t>
-    requires concepts::point<typename frame_t::loc_point>
-        DETRAY_HOST_DEVICE static inline void
-        free_to_bound_jacobian_set_dlocal_dfree(
-            free_to_bound_matrix_type& jac_to_local,
-            const transform3_type& trf3, const vector3_type& pos,
-            const vector3_type& dir) {
+        requires concepts::point<typename frame_t::loc_point>
+    DETRAY_HOST_DEVICE static inline void
+    free_to_bound_jacobian_set_dlocal_dfree(
+        free_to_bound_matrix_type& jac_to_local, const transform3_type& trf3,
+        const vector3_type& pos, const vector3_type& dir) {
         using jacobian_t = jacobian<frame_t>;
 
         // Set d(loc0, loc1)/d(x,y,z)
@@ -166,11 +163,11 @@ struct jacobian_engine {
     }
 
     template <typename frame_t>
-    requires concepts::point<typename frame_t::loc_point>
-        DETRAY_HOST_DEVICE static inline free_to_bound_matrix_type
-        free_to_bound_jacobian(
-            const transform3_type& trf3,
-            const free_track_parameters<algebra_type>& free_params) {
+        requires concepts::point<typename frame_t::loc_point>
+    DETRAY_HOST_DEVICE static inline free_to_bound_matrix_type
+    free_to_bound_jacobian(
+        const transform3_type& trf3,
+        const free_track_parameters<algebra_type>& free_params) {
 
         // Declare jacobian for bound to free coordinate transform
         free_to_bound_matrix_type jac_to_local =
@@ -188,12 +185,11 @@ struct jacobian_engine {
     }
 
     template <typename frame_t>
-    requires concepts::point<typename frame_t::loc_point>
-        DETRAY_HOST_DEVICE static inline free_to_path_matrix_type
-        free_to_path_derivative(const vector3_type& pos,
-                                const vector3_type& dir,
-                                const vector3_type& dtds,
-                                const transform3_type& trf3) {
+        requires concepts::point<typename frame_t::loc_point>
+    DETRAY_HOST_DEVICE static inline free_to_path_matrix_type
+    free_to_path_derivative(const vector3_type& pos, const vector3_type& dir,
+                            const vector3_type& dtds,
+                            const transform3_type& trf3) {
         using jacobian_t = jacobian<frame_t>;
 
         return jacobian_t::path_derivative(trf3, pos, dir, dtds);
@@ -217,11 +213,11 @@ struct jacobian_engine {
     }
 
     template <typename frame_t>
-    requires concepts::point<typename frame_t::loc_point>
-        DETRAY_HOST_DEVICE static inline free_matrix<algebra_type>
-        path_correction(const vector3_type& pos, const vector3_type& dir,
-                        const vector3_type& dtds, const scalar_type dqopds,
-                        const transform3_type& trf3) {
+        requires concepts::point<typename frame_t::loc_point>
+    DETRAY_HOST_DEVICE static inline free_matrix<algebra_type> path_correction(
+        const vector3_type& pos, const vector3_type& dir,
+        const vector3_type& dtds, const scalar_type dqopds,
+        const transform3_type& trf3) {
 
         return path_to_free_derivative(dir, dtds, dqopds) *
                free_to_path_derivative<frame_t>(pos, dir, dtds, trf3);

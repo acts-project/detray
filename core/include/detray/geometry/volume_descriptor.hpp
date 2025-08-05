@@ -195,9 +195,8 @@ class volume_descriptor {
     /// @param shift shift of the surface range in a larger container.
     /// @param n_surfaces the number of surfaces in this range.
     template <surface_id id>
-    DETRAY_HOST auto update_sf_link(std::size_t shift,
-                                    std::size_t n_surfaces = 0) noexcept
-        -> void {
+    DETRAY_HOST auto update_sf_link(
+        std::size_t shift, std::size_t n_surfaces = 0) noexcept -> void {
         auto& rg = sf_link<id>();
         // Range not set yet - initialize
         if (constexpr typename sf_link_type::index_type empty{}; rg == empty) {
@@ -222,8 +221,8 @@ class volume_descriptor {
     /// Set the volume material link using the given material type id
     /// @param mat_id and index of the material instance @param mat_idx
     DETRAY_HOST
-    constexpr auto set_material(const material_id mat_id, const dindex mat_idx)
-        -> void {
+    constexpr auto set_material(const material_id mat_id,
+                                const dindex mat_idx) -> void {
         m_mat_link = {mat_id,
                       static_cast<typename material_link::index_type>(mat_idx)};
     }

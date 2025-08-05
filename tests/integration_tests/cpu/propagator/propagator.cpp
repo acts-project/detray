@@ -169,8 +169,7 @@ class PropagatorWithRkStepper : public ::testing::TestWithParam<
     }
 
     /// Clean up
-    virtual void TearDown() { /* Do nothing */
-    }
+    virtual void TearDown() { /* Do nothing */ }
 
     protected:
     /// Detector configuration

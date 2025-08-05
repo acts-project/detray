@@ -169,9 +169,8 @@ class volume_graph {
             }
 
             /// @returns distance between two iterators
-            friend constexpr auto operator-(const iterator &lhs,
-                                            const iterator &rhs)
-                -> difference_type {
+            friend constexpr auto operator-(
+                const iterator &lhs, const iterator &rhs) -> difference_type {
                 return lhs.m_vol_itr - rhs.m_vol_itr;
             }
 
