@@ -18,7 +18,7 @@ message(STATUS "Fetching covfie as part of the Detray project")
 
 # Declare where to get covfie from.
 set(DETRAY_COVFIE_SOURCE
-    "URL;https://github.com/acts-project/covfie/archive/refs/tags/v0.15.2.tar.gz;URL_MD5;f17d9365abed550845e8b6b3708d39fb"
+    "URL;https://github.com/acts-project/covfie/archive/refs/tags/v0.9.0.tar.gz;URL_MD5;b310712c6dd1acc8104c734086f40fc0"
     CACHE STRING
     "Source for covfie, when built as part of this project"
 )

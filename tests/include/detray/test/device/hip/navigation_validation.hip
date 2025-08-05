@@ -152,8 +152,7 @@ void navigation_validation_device(
     int block_dim = truth_intersection_traces_view.size() / thread_dim + 1;
 
     // run the test kernel
-    navigation_validation_kernel<bfield_t, detector_t, intersection_record_t>
-        <<<block_dim, thread_dim>>>(
+    hipLaunchKernel((navigation_validation_kernel<bfield_t, detector_t, intersection_record_t>),dim3(block_dim) , dim3(thread_dim), 0,0,
             det_view, cfg, ptc_hypo, field_data, truth_intersection_traces_view,
             recorded_intersections_view, mat_records_view, mat_steps_view);
 

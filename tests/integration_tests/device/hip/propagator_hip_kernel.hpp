@@ -20,14 +20,14 @@
 
 // Covfie include(s)
 
-// we can include it after solving the linking problem - covfie::hip in the cake
-// file #include <covfie/hip/backend/primitive/hip_device_array.hpp>  // error
+// we can include it after solving the linking problem - covfie::hip in the cmake file 
+//#include <covfie/hip/backend/primitive/hip_device_array.hpp>  // error
 
 namespace detray {
 
 using scalar = test::scalar;
 
-// this namespace - dependance with covfie -> cannot run it until solving the
+// this namespace - depend on covfie -> cannot run it until solving the
 // covfie::hip
 
 /*namespace bfield::hip {

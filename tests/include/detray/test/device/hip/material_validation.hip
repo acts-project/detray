@@ -96,8 +96,9 @@ void material_validation_device(
     int block_dim = tracks_view.size() / thread_dim + 1;
 
     // run the test kernel
-    material_validation_kernel<detector_t><<<block_dim, thread_dim>>>(
+    hipLaunchKernelGGL(material_validation_kernel<detector_t> , dim3(block_dim) , dim3(thread_dim) , 0 , 0 , 
         det_view, cfg, tracks_view, mat_records_view, mat_steps_view);
+
 
     // hip error check
     DETRAY_HIP_ERROR_CHECK(hipGetLastError());
