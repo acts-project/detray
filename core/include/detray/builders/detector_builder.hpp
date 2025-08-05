@@ -122,7 +122,6 @@ class detector_builder {
             vol_builder->build(det);
         }
 
-        DETRAY_DEBUG("Setting volume finder");
         det.set_volume_finder(std::move(m_vol_finder));
 
         // TODO: Add sorting, data deduplication etc. here later...

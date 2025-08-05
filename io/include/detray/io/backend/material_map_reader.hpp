@@ -66,14 +66,11 @@ class material_map_reader {
             DETRAY_DEBUG(" - volume index from payload is " << vol_idx);
 
             if (!det_builder.has_volume(vol_idx)) {
-                DETRAY_ERROR("Volume "
-                             << vol_idx << ": "
-                             << "Cannot build material map for volume "
-                             << "(volume not registered in detector builder)");
                 std::stringstream err_stream;
                 err_stream << "Volume " << vol_idx << ": "
                            << "Cannot build material map for volume "
                            << "(volume not registered in detector builder)";
+                DETRAY_ERROR(err_stream.str());
                 throw std::invalid_argument(err_stream.str());
             }
 
@@ -94,7 +91,7 @@ class material_map_reader {
             for (const auto &[idx, grid_data] :
                  detray::views::enumerate(mat_grids)) {
 
-                DETRAY_DEBUG("- grid idx=" << idx);
+                DETRAY_DEBUG("- grid link.index=" << grid_data.grid_link.index);
 
                 mat_id map_id =
                     from_payload<io::material_id::n_mats, detector_t>(
