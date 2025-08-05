@@ -43,8 +43,7 @@ struct void_inspector {
 
     DETRAY_HOST_DEVICE
     constexpr explicit void_inspector(
-        const void_view & /*ignored*/) { /*Do nothing*/
-    }
+        const void_view & /*ignored*/) { /*Do nothing*/ }
 
     template <typename state_t>
     DETRAY_HOST_DEVICE constexpr void operator()(
@@ -418,10 +417,9 @@ class navigator {
         ///
         /// @return navigation heartbeat (dead)
         template <typename debug_msg_generator_t>
-        requires(!std::same_as<char *, debug_msg_generator_t>)
-            DETRAY_HOST_DEVICE
-            inline auto abort(const debug_msg_generator_t &debug_msg_generator)
-                -> bool {
+            requires(!std::same_as<char *, debug_msg_generator_t>)
+        DETRAY_HOST_DEVICE inline auto abort(
+            const debug_msg_generator_t &debug_msg_generator) -> bool {
             m_status = navigation::status::e_abort;
             m_heartbeat = false;
             m_trust_level = navigation::trust_level::e_full;

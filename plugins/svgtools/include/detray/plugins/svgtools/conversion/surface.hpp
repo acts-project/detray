@@ -75,8 +75,9 @@ auto inline surface(const transform3_t& transform, const mask_t& m) {
 template <concepts::transform3D transform3_t, typename shape_t,
           concepts::algebra algebra_t>
     requires std::is_same_v<shape_t, cylinder2D> ||
-    std::is_same_v<shape_t, concentric_cylinder2D> auto inline surface(
-        const transform3_t& transform, const mask<shape_t, algebra_t>& m) {
+             std::is_same_v<shape_t, concentric_cylinder2D>
+auto inline surface(const transform3_t& transform,
+                    const mask<shape_t, algebra_t>& m) {
 
     using point3_t = typename mask<shape_t, algebra_t>::point3_type;
     using p_surface_t = actsvg::proto::surface<std::vector<point3_t>>;

@@ -39,8 +39,10 @@ struct get_state_tuple {
 
 // Composite actor: Has observers
 template <typename actor_t>
-requires(!std::same_as<typename std::remove_cvref_t<actor_t>::observer_states,
-                       void>) struct get_state_tuple<actor_t> {
+    requires(
+        !std::same_as<typename std::remove_cvref_t<actor_t>::observer_states,
+                      void>)
+struct get_state_tuple<actor_t> {
     private:
     using principal_actor_t = typename actor_t::actor_type;
 

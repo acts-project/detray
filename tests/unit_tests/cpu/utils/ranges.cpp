@@ -361,8 +361,8 @@ GTEST_TEST(detray_utils, ranges_enumerate) {
     static_assert(detray::ranges::random_access_range<decltype(enumerator)>);
 
     // Test prerequisits for LagacyIterator
-    static_assert(std::is_copy_constructible_v<typename decltype(
-                      enumerator)::iterator_t>);
+    static_assert(std::is_copy_constructible_v<
+                  typename decltype(enumerator)::iterator_t>);
     static_assert(
         std::is_copy_assignable_v<typename decltype(enumerator)::iterator_t>);
     static_assert(

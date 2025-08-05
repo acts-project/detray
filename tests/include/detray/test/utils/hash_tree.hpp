@@ -47,8 +47,9 @@ template <typename input_collection_t,
           typename hash_t =
               decltype(std::declval<hash_function_t>()(data_t{0})),
           template <typename> class vector_t = dvector>
-requires std::is_invocable_v<hash_function_t, data_t>
-    &&std::is_invocable_v<hash_function_t, hash_t> class hash_tree {
+    requires std::is_invocable_v<hash_function_t, data_t> &&
+             std::is_invocable_v<hash_function_t, hash_t>
+class hash_tree {
 
     public:
     using hash_function = hash_function_t;

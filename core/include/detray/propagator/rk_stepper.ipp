@@ -498,12 +498,11 @@ DETRAY_HOST_DEVICE auto detray::rk_stepper<
 
 template <typename magnetic_field_t, detray::concepts::algebra algebra_t,
           typename constraint_t, typename policy_t, typename inspector_t>
-DETRAY_HOST_DEVICE auto
-detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
-                   inspector_t>::state::d2qopdsdqop(const scalar_type qop,
-                                                    const material<scalar_type>*
-                                                        vol_mat_ptr) const
-    -> scalar_type {
+DETRAY_HOST_DEVICE auto detray::rk_stepper<
+    magnetic_field_t, algebra_t, constraint_t, policy_t,
+    inspector_t>::state::d2qopdsdqop(const scalar_type qop,
+                                     const material<scalar_type>* vol_mat_ptr)
+    const -> scalar_type {
 
     if (!vol_mat_ptr) {
         return 0.f;

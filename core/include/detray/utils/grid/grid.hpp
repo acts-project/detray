@@ -216,8 +216,8 @@ class grid_impl {
 
     /// @param indices the single indices corresponding to a multi_bin
     template <typename... I>
-    requires(sizeof...(I) == dim) DETRAY_HOST_DEVICE decltype(auto)
-        bin(I... indices) const {
+        requires(sizeof...(I) == dim)
+    DETRAY_HOST_DEVICE decltype(auto) bin(I... indices) const {
         return bin(loc_bin_index{indices...});
     }
     /// @}
@@ -349,7 +349,8 @@ class grid_impl {
     /// the value type of the grid is cv qualified (then value_t propagates
     /// quialifiers) - non-const
     template <bool owning = is_owning>
-    requires owning DETRAY_HOST auto get_data() -> view_type {
+        requires owning
+    DETRAY_HOST auto get_data() -> view_type {
         return view_type{detray::get_data(m_bins), detray::get_data(m_axes)};
     }
 
@@ -357,7 +358,8 @@ class grid_impl {
     /// the value type of the grid is cv qualified (then value_t propagates
     /// quialifiers) - const
     template <bool owning = is_owning>
-    requires owning DETRAY_HOST auto get_data() const -> const_view_type {
+        requires owning
+    DETRAY_HOST auto get_data() const -> const_view_type {
         return const_view_type{detray::get_data(m_bins),
                                detray::get_data(m_axes)};
     }

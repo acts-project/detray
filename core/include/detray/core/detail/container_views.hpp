@@ -92,8 +92,8 @@ struct get_view : public std::false_type {
 
 /// Get view of detray type
 template <class T>
-requires concepts::device_view<typename T::view_type> struct get_view<T>
-    : public std::true_type {
+    requires concepts::device_view<typename T::view_type>
+struct get_view<T> : public std::true_type {
     using type =
         std::conditional_t<std::is_const_v<T>, typename T::const_view_type,
                            typename T::view_type>;

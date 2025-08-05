@@ -188,14 +188,15 @@ inline auto record_propagation(
     typename material_tracer_t::state mat_tracer_state{*host_mr};
 
     // Combine all actor states
-    auto setup_actor_states = []<std::size_t... indices>(
-        typename pathlimit_aborter_t::state & s1,
-        typename step_tracer_t::state & s2,
-        typename material_tracer_t::state & s3,
-        typename actor_chain<actor_ts...>::state_ref_tuple & t,
-        std::index_sequence<indices...> /*ids*/) {
-        return detray::tie(s1, detail::get<indices>(t)..., s2, s3);
-    };
+    auto setup_actor_states =
+        []<std::size_t... indices>(
+            typename pathlimit_aborter_t::state &s1,
+            typename step_tracer_t::state &s2,
+            typename material_tracer_t::state &s3,
+            typename actor_chain<actor_ts...>::state_ref_tuple &t,
+            std::index_sequence<indices...> /*ids*/) {
+            return detray::tie(s1, detail::get<indices>(t)..., s2, s3);
+        };
     constexpr auto idx_seq{std::make_index_sequence<detail::tuple_size_v<
         typename actor_chain<actor_ts...>::state_ref_tuple>>{}};
 
@@ -259,24 +260,25 @@ inline auto record_propagation(
 
         // Make a deep copy of states for forward propagation, but omit the
         // expensive tracers for the forward pass
-        auto copy_actor_states = []<std::size_t... indices>(
-            typename pathlimit_aborter_t::state & s1,
-            typename actor_chain<actor_ts...>::state_ref_tuple & t,
-            std::index_sequence<indices...> /*ids*/) {
-            using fw_state_tuple_t =
-                typename actor_chain<pathlimit_aborter_t,
-                                     actor_ts...>::state_tuple;
-            return fw_state_tuple_t{s1, detail::get<indices>(t)...};
-        };
+        auto copy_actor_states =
+            []<std::size_t... indices>(
+                typename pathlimit_aborter_t::state &s1,
+                typename actor_chain<actor_ts...>::state_ref_tuple &t,
+                std::index_sequence<indices...> /*ids*/) {
+                using fw_state_tuple_t =
+                    typename actor_chain<pathlimit_aborter_t,
+                                         actor_ts...>::state_tuple;
+                return fw_state_tuple_t{s1, detail::get<indices>(t)...};
+            };
 
         // Setup forward actor states
-        auto setup_fw_actor_states = []<std::size_t... indices>(
-            typename actor_chain<pathlimit_aborter_t,
-                                 actor_ts...>::state_tuple &
-                t,
-            std::index_sequence<indices...> /*ids*/) {
-            return detray::tie(detail::get<indices>(t)...);
-        };
+        auto setup_fw_actor_states =
+            []<std::size_t... indices>(
+                typename actor_chain<pathlimit_aborter_t,
+                                     actor_ts...>::state_tuple &t,
+                std::index_sequence<indices...> /*ids*/) {
+                return detray::tie(detail::get<indices>(t)...);
+            };
 
         auto fw_state_tuple =
             copy_actor_states(pathlimit_aborter_state, state_tuple, idx_seq);

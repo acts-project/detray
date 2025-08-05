@@ -62,7 +62,7 @@ struct aggregate_inspector {
                                        const navigation::config &cfg,
                                        const point3_t &pos,
                                        const vector3_t &dir,
-                                       const char *message, Args &&... args) {
+                                       const char *message, Args &&...args) {
         // Call inspector
         std::get<current_id>(_inspectors)(state, cfg, pos, dir, message,
                                           std::forward<Args>(args)...);
@@ -79,7 +79,7 @@ struct aggregate_inspector {
     template <unsigned int current_id = 0, typename state_type,
               typename... Args>
     DETRAY_HOST_DEVICE auto operator()(state_type &state, const char *message,
-                                       Args &&... args) {
+                                       Args &&...args) {
         // Call inspector
         std::get<current_id>(_inspectors)(state, message);
 
@@ -224,8 +224,7 @@ struct object_tracer {
     template <typename state_type>
     DETRAY_HOST_DEVICE auto operator()(
         const state_type & /*state*/,
-        const char * /*message*/) { /* Do nothing*/
-    }
+        const char * /*message*/) { /* Do nothing*/ }
 
     /// @returns a specific candidate from the trace
     DETRAY_HOST_DEVICE

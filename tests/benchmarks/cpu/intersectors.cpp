@@ -6,8 +6,8 @@
  */
 
 // Algebra include(s).
-//#include "detray/plugins/algebra/array_definitions.hpp"
-//#include "detray/plugins/algebra/eigen_definitions.hpp"
+// #include "detray/plugins/algebra/array_definitions.hpp"
+// #include "detray/plugins/algebra/eigen_definitions.hpp"
 #include "detray/plugins/algebra/vc_aos_definitions.hpp"
 #include "detray/plugins/algebra/vc_soa_definitions.hpp"
 

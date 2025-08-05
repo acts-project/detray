@@ -45,19 +45,16 @@ concept index = std::is_integral_v<T> && !std::same_as<T, bool>;
 /// be obtained with 'get'.
 template <typename I>
 concept interval = requires(I i) {
-
     requires(!std::is_fundamental_v<std::remove_cvref_t<I>>);
 
-    { detray::detail::get<0>(i) }
-    ->concepts::arithmetic_cvref;
+    { detray::detail::get<0>(i) } -> concepts::arithmetic_cvref;
 
-    { detray::detail::get<1>(i) }
-    ->concepts::arithmetic_cvref;
+    { detray::detail::get<1>(i) } -> concepts::arithmetic_cvref;
 };
 
 /// Range of a given type
 template <typename R, typename T>
 concept range_of =
-    std::ranges::range<R>&& std::same_as<std::ranges::range_value_t<R>, T>;
+    std::ranges::range<R> && std::same_as<std::ranges::range_value_t<R>, T>;
 
 }  // namespace detray::concepts

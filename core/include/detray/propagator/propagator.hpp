@@ -193,10 +193,10 @@ struct propagator {
     ///
     /// @return propagation success.
     template <typename actor_states_t>
-    requires concepts::is_state_of<actor_states_t, actor_chain_type>
-        DETRAY_HOST_DEVICE bool propagate(
-            state &propagation,
-            actor_states_t actor_state_refs = dtuple<>{}) const {
+        requires concepts::is_state_of<actor_states_t, actor_chain_type>
+    DETRAY_HOST_DEVICE bool propagate(
+        state &propagation,
+        actor_states_t actor_state_refs = dtuple<>{}) const {
 
         auto &navigation = propagation._navigation;
         auto &stepping = propagation._stepping;
@@ -292,9 +292,9 @@ struct propagator {
     ///
     /// @return propagation success.
     template <typename actor_states_t>
-    requires concepts::is_state_of<actor_states_t, actor_chain_type>
-        DETRAY_HOST_DEVICE bool propagate_sync(
-            state &propagation, actor_states_t actor_state_refs) const {
+        requires concepts::is_state_of<actor_states_t, actor_chain_type>
+    DETRAY_HOST_DEVICE bool propagate_sync(
+        state &propagation, actor_states_t actor_state_refs) const {
 
         auto &navigation = propagation._navigation;
         auto &stepping = propagation._stepping;

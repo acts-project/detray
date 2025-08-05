@@ -64,8 +64,8 @@ class single_store {
     /// Construct with a specific memory resource @param resource
     /// (host-side only)
     template <typename allocator_t = vecmem::memory_resource>
-    requires(std::derived_from<allocator_t, std::pmr::memory_resource>)
-        DETRAY_HOST explicit single_store(allocator_t &resource)
+        requires(std::derived_from<allocator_t, std::pmr::memory_resource>)
+    DETRAY_HOST explicit single_store(allocator_t &resource)
         : m_container(&resource) {
         m_context_size = m_container.size();
     }
@@ -74,9 +74,9 @@ class single_store {
     /// (host-side only)
     template <typename allocator_t = vecmem::memory_resource,
               typename C = container_t<T>>
-    requires(std::is_same_v<C, std::vector<T>>
-                 &&std::derived_from<allocator_t, std::pmr::memory_resource>)
-        DETRAY_HOST single_store(allocator_t &resource, const T &arg)
+        requires(std::is_same_v<C, std::vector<T>> &&
+                 std::derived_from<allocator_t, std::pmr::memory_resource>)
+    DETRAY_HOST single_store(allocator_t &resource, const T &arg)
         : m_container(&resource, arg) {
         m_context_size = m_container.size();
     }
@@ -142,16 +142,15 @@ class single_store {
 
     /// @returns context based access to an element (also range checked)
     DETRAY_HOST_DEVICE
-    constexpr auto at(const dindex i,
-                      const context_type &ctx = {}) const noexcept
-        -> const T & {
+    constexpr auto at(const dindex i, const context_type &ctx = {})
+        const noexcept -> const T & {
         return m_container.at(ctx.get() * m_context_size + i);
     }
 
     /// @returns context based access to an element (also range checked)
     DETRAY_HOST_DEVICE
-    constexpr auto at(const dindex i, const context_type &ctx = {}) noexcept
-        -> T & {
+    constexpr auto at(const dindex i,
+                      const context_type &ctx = {}) noexcept -> T & {
         return m_container.at(ctx.get() * m_context_size + i);
     }
 
@@ -184,8 +183,8 @@ class single_store {
     /// @note in general can throw an exception
     template <typename U>
     DETRAY_HOST constexpr auto push_back(
-        const U &arg, const context_type & /*ctx*/ = {}) noexcept(false)
-        -> void {
+        const U &arg,
+        const context_type & /*ctx*/ = {}) noexcept(false) -> void {
         assert(m_n_contexts == 0u);
         m_container.push_back(arg);
         m_context_size = m_container.size();
@@ -215,7 +214,7 @@ class single_store {
     /// @note in general can throw an exception
     template <typename... Args>
     DETRAY_HOST constexpr decltype(auto) emplace_back(
-        const context_type & /*ctx*/ = {}, Args &&... args) noexcept(false) {
+        const context_type & /*ctx*/ = {}, Args &&...args) noexcept(false) {
         assert(m_n_contexts == 0u);
         m_context_size++;
         return m_container.emplace_back(std::forward<Args>(args)...);

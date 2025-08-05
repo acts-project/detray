@@ -70,8 +70,8 @@ struct regular {
 
     /** Constructor with axis_data **/
     template <typename axis_data_t>
-    requires(!std::is_same_v<regular, axis_data_t>) DETRAY_HOST_DEVICE
-        explicit regular(const axis_data_t &axis_data)
+        requires(!std::is_same_v<regular, axis_data_t>)
+    DETRAY_HOST_DEVICE explicit regular(const axis_data_t &axis_data)
         : n_bins(axis_data.n_bins), min(axis_data.min), max(axis_data.max) {}
 
     /** Return the number of bins */
@@ -253,8 +253,8 @@ struct circular {
 
     /** Constructor with axis_data **/
     template <typename axis_data_t>
-    requires(!std::is_same_v<circular, axis_data_t>) DETRAY_HOST_DEVICE
-        explicit circular(const axis_data_t &axis_data)
+        requires(!std::is_same_v<circular, axis_data_t>)
+    DETRAY_HOST_DEVICE explicit circular(const axis_data_t &axis_data)
         : n_bins(axis_data.n_bins), min(axis_data.min), max(axis_data.max) {}
 
     /** Return the number of bins */
@@ -475,8 +475,8 @@ struct irregular {
 
     /** Constructor with axis_data **/
     template <typename axis_data_t>
-    requires(!std::is_same_v<irregular, axis_data_t>) DETRAY_HOST_DEVICE
-        explicit irregular(const axis_data_t &axis_data)
+        requires(!std::is_same_v<irregular, axis_data_t>)
+    DETRAY_HOST_DEVICE explicit irregular(const axis_data_t &axis_data)
         : n_bins(axis_data.n_bins),
           min(axis_data.min),
           max(axis_data.max),
@@ -614,8 +614,8 @@ template <typename axis_t, concepts::scalar scalar_t, typename Enable = void>
 struct axis_data;
 
 template <typename axis_t, concepts::scalar scalar_t>
-    requires(axis_t::axis_identifier == 0u) ||
-    (axis_t::axis_identifier == 1u) struct axis_data<axis_t, scalar_t> {
+    requires(axis_t::axis_identifier == 0u) || (axis_t::axis_identifier == 1u)
+struct axis_data<axis_t, scalar_t> {
 
     /// Declare that a default constructor can/should be generated
     axis_data() = default;
@@ -626,9 +626,9 @@ template <typename axis_t, concepts::scalar scalar_t>
         : n_bins(_n_bins), min(_min), max(_max) {}
     /// Construct a const data object from a non-const one
     template <typename other_scalar_t>
-    requires concepts::same_as_no_const<scalar_t, other_scalar_t>
-        DETRAY_HOST_DEVICE explicit axis_data(
-            const axis_data<axis_t, other_scalar_t, void> &parent)
+        requires concepts::same_as_no_const<scalar_t, other_scalar_t>
+    DETRAY_HOST_DEVICE explicit axis_data(
+        const axis_data<axis_t, other_scalar_t, void> &parent)
         : n_bins(parent.n_bins), min(parent.min), max(parent.max) {}
 
     dindex n_bins;
@@ -637,7 +637,8 @@ template <typename axis_t, concepts::scalar scalar_t>
 };
 
 template <typename axis_t, concepts::scalar scalar_t>
-requires(axis_t::axis_identifier == 2) struct axis_data<axis_t, scalar_t> {
+    requires(axis_t::axis_identifier == 2)
+struct axis_data<axis_t, scalar_t> {
 
     /// Declare that a default constructor can/should be generated
     axis_data() = default;
@@ -649,9 +650,9 @@ requires(axis_t::axis_identifier == 2) struct axis_data<axis_t, scalar_t> {
         : n_bins(_n_bins), min(_min), max(_max), boundaries(_boundaries) {}
     /// Construct a const data object from a non-const one
     template <typename other_scalar_t>
-    requires concepts::same_as_no_const<scalar_t, other_scalar_t>
-        DETRAY_HOST_DEVICE explicit axis_data(
-            const axis_data<axis_t, other_scalar_t, void> &parent)
+        requires concepts::same_as_no_const<scalar_t, other_scalar_t>
+    DETRAY_HOST_DEVICE explicit axis_data(
+        const axis_data<axis_t, other_scalar_t, void> &parent)
         : n_bins(parent.n_bins),
           min(parent.min),
           max(parent.max),
@@ -672,9 +673,9 @@ template <template <template <typename, std::size_t> class,
           template <typename, std::size_t> class array_t,
           template <typename...> class vector_t>
     requires(axis_t<array_t, vector_t>::axis_identifier == 0u) ||
-    (axis_t<array_t, vector_t>::axis_identifier ==
-     1u) inline axis_data<axis_t<array_t, vector_t>,
-                          scalar> get_data(axis_t<array_t, vector_t> &axis) {
+            (axis_t<array_t, vector_t>::axis_identifier == 1u)
+inline axis_data<axis_t<array_t, vector_t>, scalar> get_data(
+    axis_t<array_t, vector_t> &axis) {
 
     axis_data<axis_t<array_t, vector_t>, scalar> result{axis.n_bins, axis.min,
                                                         axis.max};
@@ -689,10 +690,9 @@ template <template <template <typename, std::size_t> class,
           class axis_t,
           template <typename, std::size_t> class array_t,
           template <typename...> class vector_t>
-requires(
-    axis_t<array_t, vector_t>::axis_identifier ==
-    2u) inline axis_data<axis_t<array_t, vector_t>,
-                         scalar> get_data(axis_t<array_t, vector_t> &axis) {
+    requires(axis_t<array_t, vector_t>::axis_identifier == 2u)
+inline axis_data<axis_t<array_t, vector_t>, scalar> get_data(
+    axis_t<array_t, vector_t> &axis) {
 
     axis_data<axis_t<array_t, vector_t>, scalar> result{
         axis.n_bins, axis.min, axis.max, vecmem::get_data(axis.boundaries)};
@@ -708,10 +708,9 @@ template <template <template <typename, std::size_t> class,
           template <typename, std::size_t> class array_t,
           template <typename...> class vector_t>
     requires(axis_t<array_t, vector_t>::axis_identifier == 0u) ||
-    (axis_t<array_t, vector_t>::axis_identifier ==
-     1u) inline axis_data<axis_t<array_t, vector_t>,
-                          const scalar> get_data(const axis_t<array_t, vector_t>
-                                                     &axis) {
+            (axis_t<array_t, vector_t>::axis_identifier == 1u)
+inline axis_data<axis_t<array_t, vector_t>, const scalar> get_data(
+    const axis_t<array_t, vector_t> &axis) {
 
     axis_data<axis_t<array_t, vector_t>, const scalar> result{
         axis.n_bins, axis.min, axis.max};
@@ -726,9 +725,9 @@ template <template <template <typename, std::size_t> class,
           class axis_t,
           template <typename, std::size_t> class array_t,
           template <typename...> class vector_t>
-requires(axis_t<array_t, vector_t>::axis_identifier == 2u) inline axis_data<
-    axis_t<array_t, vector_t>,
-    const scalar> get_data(const axis_t<array_t, vector_t> &axis) {
+    requires(axis_t<array_t, vector_t>::axis_identifier == 2u)
+inline axis_data<axis_t<array_t, vector_t>, const scalar> get_data(
+    const axis_t<array_t, vector_t> &axis) {
 
     axis_data<axis_t<array_t, vector_t>, const scalar> result{
         axis.n_bins, axis.min, axis.max, vecmem::get_data(axis.boundaries)};

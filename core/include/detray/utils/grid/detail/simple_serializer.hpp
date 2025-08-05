@@ -57,8 +57,8 @@ struct simple_serializer<2> {
     /// @returns a dindex for the bin data storage
     template <typename multi_axis_t>
     DETRAY_HOST_DEVICE auto operator()(
-        multi_axis_t &axes, typename multi_axis_t::loc_bin_index mbin) const
-        -> dindex {
+        multi_axis_t &axes,
+        typename multi_axis_t::loc_bin_index mbin) const -> dindex {
         dindex offset{mbin[1] * axes.template get_axis<0>().nbins()};
         return offset + mbin[0];
     }
@@ -97,8 +97,8 @@ struct simple_serializer<3> {
     /// @returns a dindex for the bin data storage
     template <typename multi_axis_t>
     DETRAY_HOST_DEVICE auto operator()(
-        multi_axis_t &axes, typename multi_axis_t::loc_bin_index mbin) const
-        -> dindex {
+        multi_axis_t &axes,
+        typename multi_axis_t::loc_bin_index mbin) const -> dindex {
         dindex nbins_axis0 = axes.template get_axis<0>().nbins();
         dindex nbins_axis1 = axes.template get_axis<1>().nbins();
 

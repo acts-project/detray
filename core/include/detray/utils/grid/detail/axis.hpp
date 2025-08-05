@@ -122,7 +122,7 @@ struct single_axis {
 
     /// @returns the width of a bin
     template <typename... Args>
-    DETRAY_HOST_DEVICE constexpr scalar_type bin_width(Args &&... args) const {
+    DETRAY_HOST_DEVICE constexpr scalar_type bin_width(Args &&...args) const {
         return m_binning.bin_width(std::forward<Args>(args)...);
     }
 
@@ -274,14 +274,15 @@ class multi_axis {
 
     /// Construct containers using a specific memory resources
     template <bool owner = is_owning>
-    requires owner DETRAY_HOST explicit multi_axis(
-        vecmem::memory_resource &resource)
+        requires owner
+    DETRAY_HOST explicit multi_axis(vecmem::memory_resource &resource)
         : m_edge_offsets(&resource), m_edges(&resource) {}
 
     /// Construct from containers - move
     template <bool owner = is_owning>
-    requires owner DETRAY_HOST_DEVICE
-    multi_axis(edge_offset_range_t &&edge_offsets, edge_range_t &&edges)
+        requires owner
+    DETRAY_HOST_DEVICE multi_axis(edge_offset_range_t &&edge_offsets,
+                                  edge_range_t &&edges)
         : m_edge_offsets(std::move(edge_offsets)), m_edges(std::move(edges)) {}
 
     /// Construct from containers that are not owned by this class
@@ -290,10 +291,10 @@ class multi_axis {
     /// @param edges the global edge container
     /// @param offset offset into the global edge offset container
     template <bool owner = is_owning>
-    requires(!owner) DETRAY_HOST_DEVICE
-        multi_axis(const vector_type<dsized_index_range> &edge_offsets,
-                   const vector_type<scalar_type> &edges,
-                   const unsigned int offset = 0)
+        requires(!owner)
+    DETRAY_HOST_DEVICE multi_axis(
+        const vector_type<dsized_index_range> &edge_offsets,
+        const vector_type<scalar_type> &edges, const unsigned int offset = 0)
         : m_edge_offsets(edge_offsets,
                          dsized_index_range{offset, offset + dim}),
           m_edges(&edges) {}
@@ -415,7 +416,8 @@ class multi_axis {
 
     /// @returns a vecmem view on the axes data. Only allowed if it owns data.
     template <bool owner = is_owning>
-    requires owner DETRAY_HOST auto get_data() -> view_type {
+        requires owner
+    DETRAY_HOST auto get_data() -> view_type {
         return view_type{detray::get_data(m_edge_offsets),
                          detray::get_data(m_edges)};
     }
@@ -423,7 +425,8 @@ class multi_axis {
     /// @returns a vecmem const view on the axes data. Only allowed if it is
     /// owning data.
     template <bool owner = is_owning>
-    requires owner DETRAY_HOST auto get_data() const -> const_view_type {
+        requires owner
+    DETRAY_HOST auto get_data() const -> const_view_type {
         return const_view_type{detray::get_data(m_edge_offsets),
                                detray::get_data(m_edges)};
     }

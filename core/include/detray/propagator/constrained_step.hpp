@@ -75,8 +75,8 @@ struct constrained_step {
 
     /// Register a new @param step_size constraint
     template <step::constraint type>
-    requires(type != step::constraint::e_all) DETRAY_HOST_DEVICE
-        void set(const scalar_t step_size) {
+        requires(type != step::constraint::e_all)
+    DETRAY_HOST_DEVICE void set(const scalar_t step_size) {
         _constraints[type] =
             math::min(_constraints[type], math::fabs(step_size));
     }

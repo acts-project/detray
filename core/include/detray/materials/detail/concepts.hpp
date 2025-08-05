@@ -16,102 +16,84 @@ namespace detray::concepts {
 /// Material parameters
 template <class M>
 concept material_params = requires(const M m) {
-
     typename M::ratio;
 
-    { m.X0() }
-    ->std::same_as<typename M::scalar_type>;
+    { m.X0() } -> std::same_as<typename M::scalar_type>;
 
-    { m.L0() }
-    ->std::same_as<typename M::scalar_type>;
+    { m.L0() } -> std::same_as<typename M::scalar_type>;
 
-    { m.Ar() }
-    ->std::same_as<typename M::scalar_type>;
+    { m.Ar() } -> std::same_as<typename M::scalar_type>;
 
-    { m.Z() }
-    ->std::same_as<typename M::scalar_type>;
+    { m.Z() } -> std::same_as<typename M::scalar_type>;
 
-    { m.mass_density() }
-    ->std::same_as<typename M::scalar_type>;
+    { m.mass_density() } -> std::same_as<typename M::scalar_type>;
 
-    { m.molar_density() }
-    ->std::same_as<typename M::scalar_type>;
+    { m.molar_density() } -> std::same_as<typename M::scalar_type>;
 
-    { m.state() }
-    ->std::same_as<detray::material_state>;
+    { m.state() } -> std::same_as<detray::material_state>;
 
-    { m.molar_electron_density() }
-    ->std::same_as<typename M::scalar_type>;
+    { m.molar_electron_density() } -> std::same_as<typename M::scalar_type>;
 
-    { m.density_effect_data() }
-    ->std::same_as<
-        const detray::detail::density_effect_data<typename M::scalar_type> &>;
+    {
+        m.density_effect_data()
+    } -> std::same_as<
+          const detray::detail::density_effect_data<typename M::scalar_type> &>;
 
-    { m.mean_excitation_energy() }
-    ->std::same_as<typename M::scalar_type>;
+    { m.mean_excitation_energy() } -> std::same_as<typename M::scalar_type>;
 };
 
 /// Material parameters with a thickness
 template <class M>
 concept material_slab = requires(const M slab) {
-
     typename M::material_type;
 
     requires concepts::material_params<typename M::material_type>;
 
-    { slab.thickness() }
-    ->std::same_as<typename M::scalar_type>;
+    { slab.thickness() } -> std::same_as<typename M::scalar_type>;
 
-    { slab.thickness_in_X0() }
-    ->std::same_as<typename M::scalar_type>;
+    { slab.thickness_in_X0() } -> std::same_as<typename M::scalar_type>;
 
-    { slab.thickness_in_L0() }
-    ->std::same_as<typename M::scalar_type>;
+    { slab.thickness_in_L0() } -> std::same_as<typename M::scalar_type>;
 
-    { slab.path_segment(typename M::scalar_type(), typename M::scalar_type()) }
-    ->std::same_as<typename M::scalar_type>;
+    {
+        slab.path_segment(typename M::scalar_type(), typename M::scalar_type())
+    } -> std::same_as<typename M::scalar_type>;
 
     {
         slab.path_segment_in_X0(typename M::scalar_type(),
                                 typename M::scalar_type())
-    }
-    ->std::same_as<typename M::scalar_type>;
+    } -> std::same_as<typename M::scalar_type>;
 
     {
         slab.path_segment_in_L0(typename M::scalar_type(),
                                 typename M::scalar_type())
-    }
-    ->std::same_as<typename M::scalar_type>;
+    } -> std::same_as<typename M::scalar_type>;
 };
 
 /// Material parameters with a radius
 template <class M>
 concept material_rod = requires(const M rod) {
-
     typename M::material_type;
 
     requires concepts::material_params<typename M::material_type>;
 
-    { rod.thickness() }
-    ->std::same_as<typename M::scalar_type>;
+    { rod.thickness() } -> std::same_as<typename M::scalar_type>;
 
-    { rod.radius() }
-    ->std::same_as<typename M::scalar_type>;
+    { rod.radius() } -> std::same_as<typename M::scalar_type>;
 
-    { rod.path_segment(typename M::scalar_type(), typename M::scalar_type()) }
-    ->std::same_as<typename M::scalar_type>;
+    {
+        rod.path_segment(typename M::scalar_type(), typename M::scalar_type())
+    } -> std::same_as<typename M::scalar_type>;
 
     {
         rod.path_segment_in_X0(typename M::scalar_type(),
                                typename M::scalar_type())
-    }
-    ->std::same_as<typename M::scalar_type>;
+    } -> std::same_as<typename M::scalar_type>;
 
     {
         rod.path_segment_in_L0(typename M::scalar_type(),
                                typename M::scalar_type())
-    }
-    ->std::same_as<typename M::scalar_type>;
+    } -> std::same_as<typename M::scalar_type>;
 };
 
 /// Homogeneous material
@@ -123,7 +105,7 @@ concept homogeneous_material =
 /// Material map concept: Material grid
 template <class M>
 concept material_map =
-    concepts::grid<M> &&concepts::material_slab<typename M::value_type>;
+    concepts::grid<M> && concepts::material_slab<typename M::value_type>;
 
 /// Material that can used for surfaces
 template <class M>

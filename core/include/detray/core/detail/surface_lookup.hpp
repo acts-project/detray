@@ -90,17 +90,17 @@ class surface_lookup {
     /// Construct with a specific memory resource @param resource
     /// (host-side only)
     template <typename allocator_t = vecmem::memory_resource>
-    requires(!concepts::device_view<allocator_t>) DETRAY_HOST
-        explicit surface_lookup(allocator_t &resource)
+        requires(!concepts::device_view<allocator_t>)
+    DETRAY_HOST explicit surface_lookup(allocator_t &resource)
         : m_container(&resource) {}
 
     /// Copy Construct with a specific memory resource @param resource
     /// (host-side only)
     template <typename allocator_t = vecmem::memory_resource,
               typename C = container_t<source_link<sf_desc_t>>>
-    requires std::is_same_v<C, std::vector<source_link<sf_desc_t>>>
-        DETRAY_HOST explicit surface_lookup(allocator_t &resource,
-                                            const source_link<sf_desc_t> &arg)
+        requires std::is_same_v<C, std::vector<source_link<sf_desc_t>>>
+    DETRAY_HOST explicit surface_lookup(allocator_t &resource,
+                                        const source_link<sf_desc_t> &arg)
         : m_container(&resource, arg) {}
 
     /// Construct from the container @param view . Mainly used device-side.
@@ -208,9 +208,8 @@ class surface_lookup {
     ///
     /// @param sf_desc the surface descriptor
     /// @param src the source index
-    DETRAY_HOST constexpr auto push_back(sf_desc_t sf_desc,
-                                         std::uint64_t src) noexcept(false)
-        -> void {
+    DETRAY_HOST constexpr auto push_back(
+        sf_desc_t sf_desc, std::uint64_t src) noexcept(false) -> void {
         m_container.push_back({sf_desc, src});
     }
 

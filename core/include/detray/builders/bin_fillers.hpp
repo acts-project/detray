@@ -45,11 +45,10 @@ struct fill_by_bin {
               typename surface_container_t, typename mask_container,
               typename transform_container, typename context_t,
               typename... Args>
-    DETRAY_HOST auto operator()(grid_t &grid, const volume_t &,
-                                const surface_container_t &,
-                                const mask_container &, const context_t,
-                                std::vector<bin_data_type<grid_t>> &bins) const
-        -> void {
+    DETRAY_HOST auto operator()(
+        grid_t &grid, const volume_t &, const surface_container_t &,
+        const mask_container &, const context_t,
+        std::vector<bin_data_type<grid_t>> &bins) const -> void {
 
         for (const bin_data_type<grid_t> &bd : bins) {
             grid.template populate<attach<>>(bd.local_bin_idx,

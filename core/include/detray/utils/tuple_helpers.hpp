@@ -68,8 +68,8 @@ struct tuple_element<N, std::tuple<value_types...>>
 // detray::tuple
 template <std::size_t N, typename... value_types>
 struct tuple_element<N, detray::tuple<value_types...>> {
-    using type = std::decay_t<decltype(
-        ::detray::get<N>(std::declval<detray::tuple<value_types...>>()))>;
+    using type = std::decay_t<decltype(::detray::get<N>(
+        std::declval<detray::tuple<value_types...>>()))>;
 };
 
 template <std::size_t N, class T>
@@ -120,17 +120,18 @@ using unwrap_decay_t = typename unwrap_refwrapper<std::decay_t<T>>::type;
 
 // make_tuple for std::tuple
 template <template <typename...> class tuple_t, class... value_types>
-requires std::is_same_v<tuple_t<value_types...>, std::tuple<value_types...>>
-    DETRAY_HOST constexpr std::tuple<unwrap_decay_t<value_types>...> make_tuple(
-        value_types&&... args) {
+    requires std::is_same_v<tuple_t<value_types...>, std::tuple<value_types...>>
+DETRAY_HOST constexpr std::tuple<unwrap_decay_t<value_types>...> make_tuple(
+    value_types&&... args) {
     return std::make_tuple(std::forward<value_types>(args)...);
 }
 
 // make_tuple for detray::tuple
 template <template <typename...> class tuple_t, class... value_types>
-requires std::is_same_v<tuple_t<value_types...>, detray::tuple<value_types...>>
-    DETRAY_HOST_DEVICE constexpr detray::tuple<unwrap_decay_t<value_types>...>
-    make_tuple(value_types&&... args) {
+    requires std::is_same_v<tuple_t<value_types...>,
+                            detray::tuple<value_types...>>
+DETRAY_HOST_DEVICE constexpr detray::tuple<unwrap_decay_t<value_types>...>
+make_tuple(value_types&&... args) {
     return detray::tuple<unwrap_decay_t<value_types>...>{
         std::forward<value_types>(args)...};
 }
@@ -228,8 +229,8 @@ struct is_permutation<dtuple<Args1...>, dtuple<Args2...>> {
 
     static constexpr bool value =
         ((detray::detail::tuple_size_v<T1> ==
-          detray::detail::tuple_size_v<T2>)&&compare<T1, Args2...>() &&
-         compare<T2, Args1...>());
+          detray::detail::tuple_size_v<T2>) &&
+         compare<T1, Args2...>() && compare<T2, Args1...>());
 };
 
 template <typename T1, typename T2>

@@ -165,15 +165,13 @@ class cylinder_portal_generator final
     auto size() const -> dindex override { return 4u; }
 
     DETRAY_HOST
-    void clear() override{/*Do nothing*/};
+    void clear() override { /*Do nothing*/ };
 
     DETRAY_HOST
-    void push_back(surface_data<detector_t> &&) override { /*Do nothing*/
-    }
+    void push_back(surface_data<detector_t> &&) override { /*Do nothing*/ }
     DETRAY_HOST
     auto push_back(std::vector<surface_data<detector_t>> &&)
-        -> void override { /*Do nothing*/
-    }
+        -> void override { /*Do nothing*/ }
 
     /// @brief Access the volume boundaries after fitting
     const boundaries &volume_boundaries() const { return m_boundaries; }

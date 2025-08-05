@@ -38,9 +38,9 @@ template <concepts::grid grid_t>
 struct bin_view : public detray::ranges::view_interface<bin_view<grid_t>> {
 
     /// Cartesian product view over the local bin index sequences
-    using bin_indexer_t = decltype(
-        get_bin_indexer(std::declval<axis::multi_bin_range<grid_t::dim>>(),
-                        std::declval<std::make_index_sequence<grid_t::dim>>()));
+    using bin_indexer_t = decltype(get_bin_indexer(
+        std::declval<axis::multi_bin_range<grid_t::dim>>(),
+        std::declval<std::make_index_sequence<grid_t::dim>>()));
 
     using iterator_t =
         bin_iterator<grid_t, detray::ranges::iterator_t<bin_indexer_t>>;

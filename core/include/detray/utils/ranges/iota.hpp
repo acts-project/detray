@@ -41,8 +41,9 @@ class iota_view : public detray::ranges::view_interface<iota_view<incr_t>> {
         using reference = incr_t;
         using iterator_category = detray::ranges::bidirectional_iterator_tag;
 
-        constexpr iterator() requires std::default_initializable<incr_t> =
-            default;
+        constexpr iterator()
+            requires std::default_initializable<incr_t>
+        = default;
 
         /// Parametrized Constructor
         DETRAY_HOST_DEVICE constexpr explicit iterator(incr_t i) : m_i{i} {}
@@ -99,7 +100,9 @@ class iota_view : public detray::ranges::view_interface<iota_view<incr_t>> {
 
     /// Default constructor (only works if @c imrementable_t is default
     /// constructible)
-    constexpr iota_view() requires std::default_initializable<incr_t> = default;
+    constexpr iota_view()
+        requires std::default_initializable<incr_t>
+    = default;
 
     /// Construct from an @param interval that defines start and end values.
     template <concepts::interval interval_t>
@@ -137,7 +140,9 @@ struct iota : public detray::ranges::iota_view<incr_t> {
 
     using base_type = detray::ranges::iota_view<incr_t>;
 
-    constexpr iota() requires std::default_initializable<incr_t> = default;
+    constexpr iota()
+        requires std::default_initializable<incr_t>
+    = default;
 
     template <concepts::interval interval_t>
     DETRAY_HOST_DEVICE constexpr explicit iota(interval_t &&interval)
@@ -153,13 +158,13 @@ struct iota : public detray::ranges::iota_view<incr_t> {
 // deduction guides
 template <concepts::interval interval_t>
 DETRAY_HOST_DEVICE iota(interval_t &&interval)
-    ->iota<std::remove_cvref_t<decltype(detray::detail::get<0>(interval))>>;
+    -> iota<std::remove_cvref_t<decltype(detray::detail::get<0>(interval))>>;
 
 template <concepts::index I>
-DETRAY_HOST_DEVICE iota(I start, I end)->iota<I>;
+DETRAY_HOST_DEVICE iota(I start, I end) -> iota<I>;
 
 template <concepts::index I>
-DETRAY_HOST_DEVICE iota(I start)->iota<I>;
+DETRAY_HOST_DEVICE iota(I start) -> iota<I>;
 
 }  // namespace views
 

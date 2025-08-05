@@ -92,8 +92,8 @@ class geometry_writer {
 
     /// Convert a surface mask @param m into its io payload
     template <typename mask_t>
-    requires(!std::is_same_v<typename mask_t::shape, void>) static mask_payload
-        to_payload(const mask_t& m) {
+        requires(!std::is_same_v<typename mask_t::shape, void>)
+    static mask_payload to_payload(const mask_t& m) {
         mask_payload mask_data;
 
         mask_data.shape = io::detail::get_id<typename mask_t::shape>();

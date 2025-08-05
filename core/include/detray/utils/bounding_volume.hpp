@@ -52,9 +52,9 @@ class axis_aligned_bounding_volume {
 
     /// Construct around an arbitrary surface @param mask
     template <typename mask_t, typename S = shape_t>
-    requires std::is_same_v<S, cuboid3D>
-        DETRAY_HOST_DEVICE constexpr axis_aligned_bounding_volume(
-            const mask_t& mask, std::size_t box_id, const scalar_t envelope)
+        requires std::is_same_v<S, cuboid3D>
+    DETRAY_HOST_DEVICE constexpr axis_aligned_bounding_volume(
+        const mask_t& mask, std::size_t box_id, const scalar_t envelope)
         : m_mask{mask.local_min_bounds(envelope).values(), box_id} {
         // Make sure the box is actually 'bounding'
         assert(envelope >= std::numeric_limits<scalar_t>::epsilon());
@@ -72,13 +72,13 @@ class axis_aligned_bounding_volume {
     /// @note the given bounding volumes need to be defnined in the same
     /// local coordinate system!
     template <typename other_shape_t>
-    requires std::is_same_v<
-        typename shape::template local_frame_type<algebra_t>,
-        typename other_shape_t::template local_frame_type<algebra_t>>
-        DETRAY_HOST constexpr axis_aligned_bounding_volume(
-            const std::vector<
-                axis_aligned_bounding_volume<other_shape_t, algebra_t>>& aabbs,
-            std::size_t box_id, const scalar_t env) {
+        requires std::is_same_v<
+            typename shape::template local_frame_type<algebra_t>,
+            typename other_shape_t::template local_frame_type<algebra_t>>
+    DETRAY_HOST constexpr axis_aligned_bounding_volume(
+        const std::vector<
+            axis_aligned_bounding_volume<other_shape_t, algebra_t>>& aabbs,
+        std::size_t box_id, const scalar_t env) {
 
         using loc_point_t = darray<scalar_t, other_shape_t::dim>;
 
@@ -233,8 +233,9 @@ class axis_aligned_bounding_volume {
     ///
     /// @returns a new, transformed aabb.
     template <concepts::transform3D transform3_t, typename S = shape_t>
-    requires std::is_same_v<S, cuboid3D> DETRAY_HOST_DEVICE auto transform(
-        const transform3_t& trf) const -> axis_aligned_bounding_volume {
+        requires std::is_same_v<S, cuboid3D>
+    DETRAY_HOST_DEVICE auto transform(const transform3_t& trf) const
+        -> axis_aligned_bounding_volume {
 
         using point3_t = typename transform3_t::point3;
 

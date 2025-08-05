@@ -102,14 +102,12 @@ class wire_layer_generator final
     /// This is a surface generator, no external surface data needed
     /// @{
     DETRAY_HOST
-    void clear() override{/*Do nothing*/};
+    void clear() override { /*Do nothing*/ };
     DETRAY_HOST
-    void push_back(surface_data<detector_t> &&) override { /*Do nothing*/
-    }
+    void push_back(surface_data<detector_t> &&) override { /*Do nothing*/ }
     DETRAY_HOST
     auto push_back(std::vector<surface_data<detector_t>> &&)
-        -> void override { /*Do nothing*/
-    }
+        -> void override { /*Do nothing*/ }
     /// @}
 
     /// Create a wire chamber barrel layer.

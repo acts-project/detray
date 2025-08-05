@@ -77,15 +77,15 @@ class grid_factory {
         typename phi_bounds = axis::circular<>,
         typename r_binning = axis::regular<scalar_type, host_container_types>,
         typename phi_binning = axis::regular<scalar_type, host_container_types>>
-    requires std::is_enum_v<decltype(r_bounds::label)> auto new_grid(
-        const mask<annulus2D, algebra_type> &grid_bounds,
-        const darray<std::size_t, 2UL> n_bins,
-        const std::vector<std::pair<loc_bin_index<annulus2D>, dindex>>
-            &bin_capacities = {},
-        const darray<std::vector<scalar_type>, 2UL> &bin_edges =
-            darray<std::vector<scalar_type>, 2UL>(),
-        const darray<std::vector<scalar_type>, 2UL> &axis_spans =
-            darray<std::vector<scalar_type>, 2UL>()) const {
+        requires std::is_enum_v<decltype(r_bounds::label)>
+    auto new_grid(const mask<annulus2D, algebra_type> &grid_bounds,
+                  const darray<std::size_t, 2UL> n_bins,
+                  const std::vector<std::pair<loc_bin_index<annulus2D>, dindex>>
+                      &bin_capacities = {},
+                  const darray<std::vector<scalar_type>, 2UL> &bin_edges =
+                      darray<std::vector<scalar_type>, 2UL>(),
+                  const darray<std::vector<scalar_type>, 2UL> &axis_spans =
+                      darray<std::vector<scalar_type>, 2UL>()) const {
 
         static_assert(
             std::is_same_v<phi_bounds, axis::circular<>>,
@@ -135,15 +135,15 @@ class grid_factory {
         typename x_binning = axis::regular<scalar_type, host_container_types>,
         typename y_binning = axis::regular<scalar_type, host_container_types>,
         typename z_binning = axis::regular<scalar_type, host_container_types>>
-    requires std::is_enum_v<decltype(x_bounds::label)> auto new_grid(
-        const mask<cuboid3D, algebra_type> &grid_bounds,
-        const darray<std::size_t, 3UL> n_bins,
-        const std::vector<std::pair<loc_bin_index<cuboid3D>, dindex>>
-            &bin_capacities = {},
-        const darray<std::vector<scalar_type>, 3UL> &bin_edges =
-            darray<std::vector<scalar_type>, 3UL>(),
-        const darray<std::vector<scalar_type>, 3UL> &axis_spans =
-            darray<std::vector<scalar_type>, 3UL>()) const {
+        requires std::is_enum_v<decltype(x_bounds::label)>
+    auto new_grid(const mask<cuboid3D, algebra_type> &grid_bounds,
+                  const darray<std::size_t, 3UL> n_bins,
+                  const std::vector<std::pair<loc_bin_index<cuboid3D>, dindex>>
+                      &bin_capacities = {},
+                  const darray<std::vector<scalar_type>, 3UL> &bin_edges =
+                      darray<std::vector<scalar_type>, 3UL>(),
+                  const darray<std::vector<scalar_type>, 3UL> &axis_spans =
+                      darray<std::vector<scalar_type>, 3UL>()) const {
         // Axes boundaries and local indices
         using boundary = cuboid3D::boundaries;
         using axes_t = axes<cuboid3D>::template type<algebra_t>;
@@ -191,7 +191,8 @@ class grid_factory {
         typename rphi_binning =
             axis::regular<scalar_type, host_container_types>,
         typename z_binning = axis::regular<scalar_type, host_container_types>>
-    requires std::is_enum_v<decltype(rphi_bounds::label)> auto new_grid(
+        requires std::is_enum_v<decltype(rphi_bounds::label)>
+    auto new_grid(
         const mask<cylinder2D, algebra_type> &grid_bounds,
         const darray<std::size_t, 2UL> n_bins,
         const std::vector<std::pair<loc_bin_index<cylinder2D>, dindex>>
@@ -237,15 +238,16 @@ class grid_factory {
         typename rphi_binning =
             axis::regular<scalar_type, host_container_types>,
         typename z_binning = axis::regular<scalar_type, host_container_types>>
-    requires std::is_enum_v<decltype(rphi_bounds::label)> auto new_grid(
-        const mask<concentric_cylinder2D, algebra_type> &grid_bounds,
-        const darray<std::size_t, 2UL> n_bins,
-        const std::vector<std::pair<loc_bin_index<concentric_cylinder2D>,
-                                    dindex>> &bin_capacities = {},
-        const darray<std::vector<scalar_type>, 2UL> &bin_edges =
-            darray<std::vector<scalar_type>, 2UL>(),
-        const darray<std::vector<scalar_type>, 2UL> &axis_spans =
-            darray<std::vector<scalar_type>, 2UL>()) const {
+        requires std::is_enum_v<decltype(rphi_bounds::label)>
+    auto new_grid(const mask<concentric_cylinder2D, algebra_type> &grid_bounds,
+                  const darray<std::size_t, 2UL> n_bins,
+                  const std::vector<
+                      std::pair<loc_bin_index<concentric_cylinder2D>, dindex>>
+                      &bin_capacities = {},
+                  const darray<std::vector<scalar_type>, 2UL> &bin_edges =
+                      darray<std::vector<scalar_type>, 2UL>(),
+                  const darray<std::vector<scalar_type>, 2UL> &axis_spans =
+                      darray<std::vector<scalar_type>, 2UL>()) const {
 
         static_assert(
             std::is_same_v<rphi_bounds, axis::circular<axis::label::e_rphi>>,
@@ -285,7 +287,8 @@ class grid_factory {
         typename r_binning = axis::regular<scalar_type, host_container_types>,
         typename phi_binning = axis::regular<scalar_type, host_container_types>,
         typename z_binning = axis::regular<scalar_type, host_container_types>>
-    requires std::is_enum_v<decltype(r_bounds::label)> auto new_grid(
+        requires std::is_enum_v<decltype(r_bounds::label)>
+    auto new_grid(
         const mask<cylinder3D, algebra_type> &grid_bounds,
         const darray<std::size_t, 3UL> n_bins,
         const std::vector<std::pair<loc_bin_index<cylinder3D>, dindex>>
@@ -348,15 +351,15 @@ class grid_factory {
         typename phi_bounds = axis::circular<>,
         typename r_binning = axis::regular<scalar_type, host_container_types>,
         typename phi_binning = axis::regular<scalar_type, host_container_types>>
-    requires std::is_enum_v<decltype(r_bounds::label)> auto new_grid(
-        const mask<ring2D, algebra_type> &grid_bounds,
-        const darray<std::size_t, 2UL> n_bins,
-        const std::vector<std::pair<loc_bin_index<ring2D>, dindex>>
-            &bin_capacities = {},
-        const darray<std::vector<scalar_type>, 2UL> &bin_edges =
-            darray<std::vector<scalar_type>, 2UL>(),
-        const darray<std::vector<scalar_type>, 2UL> &axis_spans =
-            darray<std::vector<scalar_type>, 2UL>()) const {
+        requires std::is_enum_v<decltype(r_bounds::label)>
+    auto new_grid(const mask<ring2D, algebra_type> &grid_bounds,
+                  const darray<std::size_t, 2UL> n_bins,
+                  const std::vector<std::pair<loc_bin_index<ring2D>, dindex>>
+                      &bin_capacities = {},
+                  const darray<std::vector<scalar_type>, 2UL> &bin_edges =
+                      darray<std::vector<scalar_type>, 2UL>(),
+                  const darray<std::vector<scalar_type>, 2UL> &axis_spans =
+                      darray<std::vector<scalar_type>, 2UL>()) const {
 
         static_assert(std::is_same_v<phi_bounds, axis::circular<>>,
                       "Phi axis bounds need to be circular for ring shape");
@@ -394,7 +397,8 @@ class grid_factory {
         typename y_bounds = axis::closed<axis::label::e_y>,
         typename x_binning = axis::regular<scalar_type, host_container_types>,
         typename y_binning = axis::regular<scalar_type, host_container_types>>
-    requires std::is_enum_v<decltype(x_bounds::label)> auto new_grid(
+        requires std::is_enum_v<decltype(x_bounds::label)>
+    auto new_grid(
         const mask<rectangle2D, algebra_type> &grid_bounds,
         const darray<std::size_t, 2UL> n_bins,
         const std::vector<std::pair<loc_bin_index<rectangle2D>, dindex>>
@@ -439,7 +443,8 @@ class grid_factory {
         typename y_bounds = axis::closed<axis::label::e_y>,
         typename x_binning = axis::regular<scalar_type, host_container_types>,
         typename y_binning = axis::regular<scalar_type, host_container_types>>
-    requires std::is_enum_v<decltype(x_bounds::label)> auto new_grid(
+        requires std::is_enum_v<decltype(x_bounds::label)>
+    auto new_grid(
         const mask<trapezoid2D, algebra_type> &grid_bounds,
         const darray<std::size_t, 2UL> n_bins,
         const std::vector<std::pair<loc_bin_index<trapezoid2D>, dindex>>
@@ -495,7 +500,8 @@ class grid_factory {
     ///                     last bin), otherwise ignored.
     template <typename grid_frame_t, typename... bound_ts,
               typename... binning_ts>
-    requires std::is_object_v<typename grid_frame_t::loc_point> auto new_grid(
+        requires std::is_object_v<typename grid_frame_t::loc_point>
+    auto new_grid(
         const std::vector<scalar_type> &spans,
         const std::vector<std::size_t> &n_bins,
         const std::vector<std::pair<axis::multi_bin<sizeof...(bound_ts)>,
@@ -519,7 +525,8 @@ class grid_factory {
     /// Helper to build grid from shape plus binning and bounds types
     template <typename grid_shape_t, typename... bound_ts,
               typename... binning_ts>
-    requires std::is_enum_v<typename grid_shape_t::boundaries> auto new_grid(
+        requires std::is_enum_v<typename grid_shape_t::boundaries>
+    auto new_grid(
         const std::vector<scalar_type> &spans,
         const std::vector<std::size_t> &n_bins,
         const std::vector<std::pair<axis::multi_bin<sizeof...(bound_ts)>,

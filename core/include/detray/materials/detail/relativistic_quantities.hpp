@@ -46,7 +46,7 @@ struct relativistic_quantities {
     DETRAY_HOST_DEVICE
     relativistic_quantities(const pdg_particle<scalar_type>& ptc,
                             const scalar_type qop)
-        : relativistic_quantities(ptc.mass(), qop, ptc.charge()){};
+        : relativistic_quantities(ptc.mass(), qop, ptc.charge()) {};
 
     DETRAY_HOST_DEVICE relativistic_quantities(const scalar_type mass,
                                                const scalar_type qOverP,

@@ -49,7 +49,8 @@ class tracking_surface : public geometry::surface<detector_t> {
 
     /// Conversion to surface interface around constant detector type
     template <typename detector_type = detector_t>
-    requires(!std::is_const_v<detector_type>) DETRAY_HOST_DEVICE constexpr
+        requires(!std::is_const_v<detector_type>)
+    DETRAY_HOST_DEVICE constexpr
     operator tracking_surface<const detector_type>() const {
         return tracking_surface<const detector_type>{this->m_detector,
                                                      this->m_desc};
@@ -115,14 +116,14 @@ class tracking_surface : public geometry::surface<detector_t> {
 
 template <typename detector_t, typename descr_t>
 DETRAY_HOST_DEVICE tracking_surface(const detector_t &, const descr_t &)
-    ->tracking_surface<detector_t>;
+    -> tracking_surface<detector_t>;
 
 template <typename detector_t>
 DETRAY_HOST_DEVICE tracking_surface(const detector_t &, const geometry::barcode)
-    ->tracking_surface<detector_t>;
+    -> tracking_surface<detector_t>;
 
 template <typename detector_t>
 DETRAY_HOST_DEVICE tracking_surface(const geometry::surface<detector_t>)
-    ->tracking_surface<detector_t>;
+    -> tracking_surface<detector_t>;
 
 }  // namespace detray

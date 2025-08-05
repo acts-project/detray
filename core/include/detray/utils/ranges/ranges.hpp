@@ -98,23 +98,28 @@ concept range = std::ranges::range<R>;
 /// Range category concepts
 /// @{
 template <class R>
-concept input_range = detray::ranges::range<R>&&
+concept input_range =
+    detray::ranges::range<R> &&
     detray::ranges::input_iterator<detray::ranges::iterator_t<R>>;
 
 template <class R, typename T>
-concept output_range = detray::ranges::range<R>&&
+concept output_range =
+    detray::ranges::range<R> &&
     detray::ranges::output_iterator<detray::ranges::iterator_t<R>, T>;
 
 template <class R>
-concept forward_range = detray::ranges::range<R>&&
+concept forward_range =
+    detray::ranges::range<R> &&
     detray::ranges::forward_iterator<detray::ranges::iterator_t<R>>;
 
 template <class R>
-concept bidirectional_range = detray::ranges::range<R>&&
+concept bidirectional_range =
+    detray::ranges::range<R> &&
     detray::ranges::bidirectional_iterator<detray::ranges::iterator_t<R>>;
 
 template <class R>
-concept random_access_range = detray::ranges::range<R>&&
+concept random_access_range =
+    detray::ranges::range<R> &&
     detray::ranges::random_access_iterator<detray::ranges::iterator_t<R>>;
 /// @}
 
@@ -148,8 +153,8 @@ struct dangling {
     constexpr dangling() noexcept = default;
 
     template <class... Args>
-    requires(!(std::same_as<dangling, Args> ||
-               ...)) explicit constexpr dangling(Args&&...) noexcept {}
+        requires(!(std::same_as<dangling, Args> || ...))
+    explicit constexpr dangling(Args&&...) noexcept {}
 };
 
 template <class R>
@@ -282,13 +287,13 @@ inline constexpr bool enable_view =
     std::is_base_of_v<base_view, R> || std::is_base_of_v<view_interface<R>, R>;
 
 template <class R>
-inline constexpr bool view = detray::ranges::range<R>&& std::is_object_v<R>&&
-    std::is_move_constructible_v<R>&& enable_view<R>;
+inline constexpr bool view = detray::ranges::range<R> && std::is_object_v<R> &&
+                             std::is_move_constructible_v<R> && enable_view<R>;
 
 template <class R>
-inline constexpr bool viewable_range = detray::ranges::range<R> &&
-                                       (borrowed_range<R> ||
-                                        view<std::remove_cvref_t<R>>);
+inline constexpr bool viewable_range =
+    detray::ranges::range<R> &&
+    (borrowed_range<R> || view<std::remove_cvref_t<R>>);
 /// @}
 
 /// Pipe operator for range composition
