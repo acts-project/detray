@@ -66,14 +66,11 @@ class homogeneous_material_reader {
             DETRAY_DEBUG(" - volume index from payload is " << vol_idx);
 
             if (!det_builder.has_volume(vol_idx)) {
-                DETRAY_ERROR("Volume "
-                             << vol_idx << ": "
-                             << "Cannot build homogeneous material for volume "
-                             << "(volume not registered in detector builder)");
                 std::stringstream err_stream;
                 err_stream << "Volume " << vol_idx << ": "
                            << "Cannot build homogeneous material for volume "
                            << "(volume not registered in detector builder)";
+                DETRAY_ERROR(err_stream.str());
                 throw std::invalid_argument(err_stream.str());
             }
 
