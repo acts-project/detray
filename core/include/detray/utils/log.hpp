@@ -48,17 +48,10 @@ inline std::string_view cpp_demangle() {
 
 #define __FILENAME__ \
     (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
-// #define DETRAY_DEBUG(lvl, x) std::cout << lvl<< ": " << x << std::endl;
 #define DETRAY_LOG(lvl, x)                                                  \
     std::cout << __FILENAME__ << ":" << __LINE__ << " " << lvl << ": " << x \
               << std::endl;
-#else
-#define DETRAY_DEBUG(x)
-#define DETRAY_TYPENAME(type)
-#endif
 
-#define DETRAY_DEBUG(x) DETRAY_LOG("DEBUG", x)
-#define DETRAY_ERROR(x) DETRAY_LOG("ERROR", x)
 #define DETRAY_LOG_VECTOR(x)              \
     [&]() {                               \
         std::stringstream _vec_os;        \
@@ -72,3 +65,11 @@ inline std::string_view cpp_demangle() {
         }                                 \
         return _vec_os.str();             \
     }()
+
+#else
+#define DETRAY_LOG(x)
+#define DETRAY_TYPENAME(type)
+#endif
+
+#define DETRAY_DEBUG(x) DETRAY_LOG("DEBUG", x)
+#define DETRAY_ERROR(x) DETRAY_LOG("ERROR", x)

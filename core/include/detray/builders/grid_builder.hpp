@@ -200,6 +200,8 @@ class grid_builder : public volume_decorator<detector_t> {
         vol_ptr->set_link(m_id, gid,
                           det.accelerator_store().template size<gid>() - 1);
 
+        DETRAY_DEBUG("Accelerator link: " << vol_ptr->accel_link());
+
         return vol_ptr;
     }
 

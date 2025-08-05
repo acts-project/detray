@@ -36,13 +36,13 @@ namespace detray::io::detail {
 /// @tparam DIM the dimension of the grid
 /// @tparam bin_filler_t helper to fill all bins of a grid
 /// @tparam serializer_t memory layout of the grid
-template <
-    typename value_t,
-    template <typename, typename, typename, typename> class grid_builder_t,
-    typename CAP = std::integral_constant<std::size_t, 0>,
-    typename DIM = std::integral_constant<std::size_t, 2>,
-    typename bin_filler_t = fill_by_pos,
-    template <std::size_t> class serializer_t = simple_serializer>
+template <typename value_t,
+          template <typename, typename, typename, typename>
+          class grid_builder_t,
+          typename CAP = std::integral_constant<std::size_t, 0>,
+          typename DIM = std::integral_constant<std::size_t, 2>,
+          typename bin_filler_t = fill_by_pos,
+          template <std::size_t> class serializer_t = simple_serializer>
 class grid_reader {
 
     /// IO accelerator ids do not need to coincide with the detector ids,
@@ -71,7 +71,8 @@ class grid_reader {
             for (const auto &[i, grid_data] :
                  detray::views::enumerate(grid_data_coll)) {
 
-                DETRAY_DEBUG("- volume #" << i);
+                DETRAY_DEBUG("- reading grid #" << i << " in volume #"
+                                                << grid_data.owner_link.link);
 
                 std::queue<axis::bounds> bounds;
                 std::queue<axis::binning> binnings;
@@ -247,9 +248,9 @@ class grid_reader {
         detector_builder<typename detector_t::metadata, volume_builder>
             &det_builder) {
 
-        using grid_type = grid_payload<content_t>::grid_type;
-        DETRAY_DEBUG("Build frame for grid of type="
-                     << DETRAY_TYPENAME(grid_type) << ", dim=" << dim
+        using grid_io_id_t = grid_payload<content_t>::grid_type;
+        DETRAY_DEBUG("Build frame for grid of io id="
+                     << DETRAY_TYPENAME(grid_io_id_t) << ", dim=" << dim
                      << ", link=" << grid_data.second.grid_link.type);
 
         using algebra_t = typename detector_t::algebra_type;
@@ -391,11 +392,9 @@ class grid_reader {
         err_stream << "Volume " << volume_idx << ": ";
 
         if (!det_builder.has_volume(volume_idx)) {
-            DETRAY_ERROR("Volume "
-                         << volume_idx << "Cannot build grid for volume "
-                         << "(volume not registered in detector builder)");
             err_stream << "Cannot build grid for volume "
                        << "(volume not registered in detector builder)";
+            DETRAY_ERROR(err_stream.str());
             throw std::invalid_argument(err_stream.str());
         }
 
@@ -506,13 +505,11 @@ class grid_reader {
                 }
             }
         } else {
-            DETRAY_ERROR("Volume " << volume_idx
-                                   << "Grid type in file does not match any "
-                                      "grid type in detector, grid_t"
-                                   << DETRAY_TYPENAME(grid_t));
             types::print<types::list<grid_t>>();
             err_stream
                 << "Grid type in file does not match any grid type in detector";
+            DETRAY_ERROR(err_stream.str()
+                         << "grid_t=" << DETRAY_TYPENAME(grid_t));
             throw std::invalid_argument(err_stream.str());
         }
     }

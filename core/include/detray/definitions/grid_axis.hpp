@@ -47,18 +47,17 @@ enum class binning {
     e_irregular = 1,
 };
 
+#define _enum_print(x) \
+    case x:            \
+        os << #x;      \
+        break
+
 DETRAY_HOST inline std::ostream& operator<<(std::ostream& os, bounds b) {
     switch (b) {
         using enum bounds;
-        case e_open:
-            os << "e_open";
-            break;
-        case e_closed:
-            os << "e_closed";
-            break;
-        case e_circular:
-            os << "e_circular";
-            break;
+        _enum_print(e_open);
+        _enum_print(e_closed);
+        _enum_print(e_circular);
     }
     return os;
 }
@@ -74,9 +73,7 @@ DETRAY_HOST inline std::ostream& operator<<(std::ostream& os, label l) {
             // e_phi and e_cyl_z have same value (1)
             os << "e_y/e_phi/e_cyl_z";
             break;
-        case e_z:
-            os << "e_z";
-            break;
+            _enum_print(e_z);
     }
     return os;
 }
@@ -84,14 +81,12 @@ DETRAY_HOST inline std::ostream& operator<<(std::ostream& os, label l) {
 DETRAY_HOST inline std::ostream& operator<<(std::ostream& os, binning b) {
     switch (b) {
         using enum binning;
-        case e_regular:
-            os << "e_regular";
-            break;
-        case e_irregular:
-            os << "e_irregular";
-            break;
+        _enum_print(e_regular);
+        _enum_print(e_irregular);
     }
     return os;
 }
+
+#undef _enum_print
 
 }  // namespace detray::axis

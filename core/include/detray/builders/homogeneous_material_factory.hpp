@@ -129,7 +129,7 @@ class material_data {
     DETRAY_HOST friend std::ostream &operator<<(std::ostream &os,
                                                 const material_data &mat_data) {
         os << "material_data{sf_index: ";
-        if (mat_data.m_sf_index == detail::invalid_value<std::size_t>()) {
+        if (detail::is_invalid_value(mat_data.m_sf_index)) {
             os << "invalid";
         } else {
             os << mat_data.m_sf_index;
