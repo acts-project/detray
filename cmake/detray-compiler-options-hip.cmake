@@ -28,6 +28,7 @@ if(PROJECT_IS_TOP_LEVEL)
         OR ("${CMAKE_HIP_PLATFORM}" STREQUAL "nvidia")
     )
         detray_add_flag( CMAKE_HIP_FLAGS_DEBUG "-G" )
+        detray_add_flag( CMAKE_HIP_FLAGS "--expt-relaxed-constexpr" )
     endif()
 
     # Fail on warnings, if asked for that behaviour.

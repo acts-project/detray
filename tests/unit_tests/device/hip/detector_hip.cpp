@@ -12,11 +12,9 @@
 #include "detray/test/framework/assert.hpp"
 #include "detray/test/framework/types.hpp"
 
-
 // Vecmem include(s)
 #include <vecmem/memory/hip/managed_memory_resource.hpp>
 #include <vecmem/memory/host_memory_resource.hpp>
-
 
 // Google Test include(s)
 #include <gtest/gtest.h>
@@ -30,7 +28,6 @@ TEST(detector_hip, detector) {
 
     // memory resource
     vecmem::hip::managed_memory_resource mng_mr;
-
 
     // create toy geometry
     auto [toy_det, names] = build_toy_detector<test::algebra>(mng_mr);
@@ -62,11 +59,11 @@ TEST(detector_hip, detector) {
 
     // get data object for device outputs
     auto volumes_data = vecmem::get_data(volumes_device);
-    auto surfaces_data = vecmem::get_data(surfaces_device); // checked
-    auto transforms_data = vecmem::get_data(transforms_device); // checked
-    auto rectangles_data = vecmem::get_data(rectangles_device); // checked
-    auto discs_data = vecmem::get_data(discs_device); // checked
-    auto cylinders_data = vecmem::get_data(cylinders_device); // checked
+    auto surfaces_data = vecmem::get_data(surfaces_device);
+    auto transforms_data = vecmem::get_data(transforms_device);
+    auto rectangles_data = vecmem::get_data(rectangles_device);
+    auto discs_data = vecmem::get_data(discs_device);
+    auto cylinders_data = vecmem::get_data(cylinders_device);
 
     // run the test code to copy the objects
     detector_test(toy_det_data, volumes_data, surfaces_data, transforms_data,

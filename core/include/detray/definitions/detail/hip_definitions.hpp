@@ -7,7 +7,7 @@
 
 #pragma once
 
-#if defined(__HIPCC__)
+#if defined(__HIPCC__) || defined(__NVCC__)
 
 #include <assert.h>
 #include <hip/hip_runtime.h>

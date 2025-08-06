@@ -67,10 +67,6 @@ if(CMAKE_CUDA_COMPILER)
     set(DETRAY_BUILD_CUDA_DEFAULT TRUE)
 endif()
 
-#check if HIP is available
-include(CheckLanguage)
-check_language(HIP)
-
 # Flags controlling which parts of Detray to build.
 option(DETRAY_EIGEN_PLUGIN "Build Eigen math plugin" OFF)
 option(DETRAY_SMATRIX_PLUGIN "Build ROOT/SMatrix math plugin" OFF)
@@ -185,6 +181,8 @@ if(DETRAY_SETUP_VECMEM)
         include("${VECMEM_LANGUAGE_DIR}/vecmem-check-language.cmake")
     endif()
 endif()
+
+# Check if HIP is available
 include(vecmem-check-language)
 
 # Set up Algebra Plugins.
