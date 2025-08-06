@@ -126,6 +126,14 @@ jobs:
             CXX_STANDARD: "20"
             CONTAINER: "ghcr.io/acts-project/ubuntu2404_cuda:67"
             OPTIONS: -DDETRAY_BUILD_CUDA=ON -DDETRAY_EIGEN_PLUGIN=ON -DDETRAY_SMATRIX_PLUGIN=OFF -DDETRAY_VC_AOS_PLUGIN=OFF -DDETRAY_VC_SOA_PLUGIN=OFF
+          - NAME: "HIP-AMD"
+            CXX_STANDARD: "20"
+            CONTAINER: "ghcr.io/acts-project/ubuntu2404_rocm_oneapi:69"
+            OPTIONS: -DCMAKE_HIP_PLATFORM=amd -DDETRAY_BUILD_HIP=ON -DDETRAY_EIGEN_PLUGIN=ON -DDETRAY_SMATRIX_PLUGIN=OFF -DDETRAY_VC_AOS_PLUGIN=OFF -DDETRAY_VC_SOA_PLUGIN=OFF
+          - NAME: "HIP-NVIDIA"
+            CXX_STANDARD: "20"
+            CONTAINER: "ghcr.io/acts-project/ubuntu2404_rocm_oneapi:69"
+            OPTIONS: -DCMAKE_HIP_PLATFORM=nvidia -DDETRAY_BUILD_HIP=ON -DDETRAY_EIGEN_PLUGIN=ON -DDETRAY_SMATRIX_PLUGIN=OFF -DDETRAY_VC_AOS_PLUGIN=OFF -DDETRAY_VC_SOA_PLUGIN=OFF
           - NAME: "SYCL"
             CXX_STANDARD: "20"
             CONTAINER: "ghcr.io/acts-project/ubuntu2404_oneapi:56"
