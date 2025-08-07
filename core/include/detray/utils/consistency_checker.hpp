@@ -196,20 +196,29 @@ struct material_checker {
         using material_t = typename material_coll_t::value_type;
         using scalar_t = typename material_t::scalar_type;
 
-        const material_t &mat = material_coll.at(idx);
+        try {
+            const material_t &mat = material_coll.at(idx);
 
-        // Homogeneous volume material
-        if constexpr (concepts::material_params<material_t>) {
+            // Homogeneous volume material
+            if constexpr (concepts::material_params<material_t>) {
 
-            if (mat == detray::vacuum<scalar_t>{}) {
-                throw_material_error("homogeneous volume material", idx, mat);
+                if (mat == detray::vacuum<scalar_t>{}) {
+                    throw_material_error("homogeneous volume material", idx,
+                                         mat);
+                }
+
+            } else {
+                // Material slabs and rods
+                if (!mat) {
+                    throw_material_error("homogeneous surface material", idx,
+                                         mat);
+                }
             }
-
-        } else {
-            // Material slabs and rods
-            if (!mat) {
-                throw_material_error("homogeneous surface material", idx, mat);
-            }
+        } catch (std::out_of_range &) {
+            std::stringstream err_stream{};
+            err_stream << "Out of range material access in: "
+                       << "homogeneous material collection at index " << idx;
+            throw std::invalid_argument(err_stream.str());
         }
     }
 };
@@ -362,6 +371,7 @@ inline bool check_consistency(const detector_t &det, const bool verbose = false,
 
         // Check the surface material, if present
         if (sf.has_material()) {
+            DETRAY_DEBUG("Checking surface sf=" << sf);
             sf.template visit_material<detail::material_checker>(
                 sf_desc.material().id());
         }
