@@ -333,8 +333,9 @@ class homogeneous_material_factory final
         // Add the material to the surfaces that the data links against
         for (auto [i, sf] : detray::views::pick(surfaces, m_indices)) {
             if (sf.material().id() < detector_t::materials::id::e_none) {
-                // This surface already has a material link, skip it in this
-                // factory
+                DETRAY_DEBUG("Surface descriptor already has a material link:"
+                             << sf.material().id()
+                             << " skipping configured homogeneous assignment");
                 continue;
             }
 
