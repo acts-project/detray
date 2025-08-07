@@ -310,6 +310,7 @@ class bin_storage<is_owning, detray::bins::dynamic_array<entry_t>, containers>
 
         /// Construct and @returns a bin on the fly
         /// @{
+#ifndef DETRAY_COMPILE_VITIS
         DETRAY_HOST_DEVICE
         constexpr auto operator*() const {
             return detray::bins::dynamic_array{m_entry_data, *m_itr};
@@ -319,6 +320,7 @@ class bin_storage<is_owning, detray::bins::dynamic_array<entry_t>, containers>
             return detray::bins::dynamic_array{m_entry_data, *m_itr};
         }
         /// @}
+#endif // DETRAY_COMPILE_VITIS
 
         private:
         /// Access to the bin content

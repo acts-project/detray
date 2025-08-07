@@ -69,9 +69,11 @@ class detector {
     using vector_type = typename container_t::template vector_type<T>;
     template <typename... T>
     using tuple_type = typename container_t::template tuple_type<T...>;
+#ifndef DETRAY_COMPILE_VITIS
     template <typename T>
     using jagged_vector_type =
         typename container_t::template jagged_vector_type<T>;
+#endif // DETRAY_COMPILE_VITIS
 
     /// In case the detector needs to be printed
     using name_map = std::map<dindex, std::string>;

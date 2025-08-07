@@ -172,9 +172,11 @@ class grid_impl {
 
     /// @returns the total number of values in the grid
     /// @note this has to query every bin for the number of elements
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST_DEVICE inline constexpr auto size() const -> dindex {
         return static_cast<dindex>(all().size());
     }
+#endif
 
     /// @returns an instance of the grid serializer
     static constexpr auto serializer() -> serializer_t<dim> { return {}; }
@@ -254,10 +256,12 @@ class grid_impl {
     /// @}
 
     /// @returns a view over the flatened bin content by joining the bin ranges
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST_DEVICE auto all() { return detray::views::join(bins()); }
 
     /// @returns a view over the flatened bin content by joining the bin ranges
     DETRAY_HOST_DEVICE auto all() const { return detray::views::join(bins()); }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Transform a point in global cartesian coordinates to bound coordinates
     ///
@@ -315,6 +319,7 @@ class grid_impl {
     /// @param win_size size of the binned/scalar search window
     ///
     /// @return the sequence of values
+#ifndef DETRAY_COMPILE_VITIS
     template <typename neighbor_t>
     DETRAY_HOST_DEVICE auto search(
         const point_type &p, const std::array<neighbor_t, 2> &win_size) const {
@@ -326,6 +331,7 @@ class grid_impl {
         // Join the respective bins to a single iteration
         return detray::views::join(std::move(search_area));
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Poupulate a bin with a single one of its corresponding values @param v
     /// @{
