@@ -258,6 +258,15 @@ class grid_collection<detray::grid_impl<axes_t, bin_t, serializer_t>> {
             m_bin_offsets[i]);
     }
 
+    /// Create grid from container pointers with range check
+    DETRAY_HOST
+    auto at(const size_type i) const -> grid_type {
+        const size_type axes_offset{grid_type::dim * i};
+        return grid_type(
+            &m_bins, multi_axis_t(m_bin_edge_offsets, m_bin_edges, axes_offset),
+            m_bin_offsets.at(i));
+    }
+
     /// @returns a vecmem view on the grid collection data - non-const
     DETRAY_HOST auto get_data() -> view_type {
         return view_type{detray::get_data(m_bin_offsets),

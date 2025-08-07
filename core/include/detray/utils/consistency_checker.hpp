@@ -161,7 +161,7 @@ struct material_checker {
     DETRAY_HOST_DEVICE void operator()(const material_coll_t &material_coll,
                                        const index_t idx, const id_t id) const {
 
-        const auto mat_map = material_coll[idx];
+        const auto mat_map = material_coll.at(idx);
 
         // Check whether there are any entries in the bins
         if (mat_map.size() == 0u) {
