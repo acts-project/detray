@@ -368,11 +368,13 @@ class homogeneous_material_factory final
             DETRAY_DEBUG("After insert: mat_idx=" << mat_idx);
             link_t new_link{m_links[sf_idx].first, mat_idx};
 
+            auto &sf_desc = surfaces.at(static_cast<dindex>(i));
+            DETRAY_DEBUG("Existing link: " << sf_desc.material());
             DETRAY_DEBUG("Setting new link: " << new_link);
 
             // Set the initial surface material link (will be updated when
             // added to the detector)
-            surfaces.at(static_cast<dindex>(i)).material() = new_link;
+            sf_desc.material() = new_link;
         }
     }
 
