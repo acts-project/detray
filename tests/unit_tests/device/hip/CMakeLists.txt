@@ -7,6 +7,8 @@
 message(STATUS "Building detray HIP unit tests")
 cmake_minimum_required(VERSION 3.21) # HIP langauge support requires minimum 3.21
 
+find_package(HIPToolkit)
+
 # Enable HIP as a language.
 enable_language(HIP)
 
@@ -22,11 +24,11 @@ endif()
 foreach(algebra ${algebras})
     detray_add_unit_test(hip_${algebra}
        "detector_hip_kernel.hpp"
-       "detector_hip.hip"
+       "detector_hip.cpp"
        "detector_hip_kernel.hip"
 
        LINK_LIBRARIES GTest::gtest_main vecmem::hip  detray::core
-       detray::algebra_${algebra} detray::test_common detray::test_utils
+       detray::algebra_${algebra} detray::test_common detray::test_utils HIP::hiprt
     )
 
     # Add definitions for HIP + algebra

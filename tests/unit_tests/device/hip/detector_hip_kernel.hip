@@ -72,8 +72,6 @@ __global__ void detector_test_kernel(
     for (unsigned int i = 0u; i < cylinders.size(); i++) {
         cylinders_device[i] = cylinders[i];
     }
-
-
 }
 
 /// implementation of the test function for detector
@@ -84,7 +82,6 @@ void detector_test(typename detector_host_t::view_type det_data,
                    vecmem::data::vector_view<rectangle_t> rectangles_data,
                    vecmem::data::vector_view<disc_t> discs_data,
                    vecmem::data::vector_view<cylinder_t> cylinders_data) {
-
 
     constexpr int block_dim = 1u;
     constexpr int thread_dim = 1u;
