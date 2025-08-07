@@ -43,6 +43,28 @@ class homogeneous_material_writer {
 
         homogeneous_material_header_payload header_data;
 
+        using material_type = material_slab_payload::mat_type;
+
+        auto count_surface_with_material_type = [&det](
+                                                    material_type target_type) {
+            std::size_t count{0u};
+            for (const auto& [sf_idx, sf_desc] :
+                 detray::views::enumerate(det.surfaces())) {
+                const auto sf = geometry::surface{det, sf_desc};
+
+                if (material_slab_payload mslp =
+                        sf.has_material()
+                            ? sf.template visit_material<get_material_payload>(
+                                  sf_idx)
+                            : material_slab_payload{};
+                    mslp.type == target_type) {
+                    count++;
+                }
+            }
+
+            return count;
+        };
+
         header_data.common = detail::basic_converter::to_payload(det_name, tag);
 
         const auto& materials = det.material_store();
@@ -51,12 +73,12 @@ class homogeneous_material_writer {
         auto& mat_sub_header = header_data.sub_header.value();
         if constexpr (detray::concepts::has_material_slabs<detector_t>) {
             mat_sub_header.n_slabs =
-                materials.template size<detector_t::materials::id::e_slab>();
+                count_surface_with_material_type(material_type::slab);
         }
         mat_sub_header.n_rods = 0u;
         if constexpr (detray::concepts::has_material_rods<detector_t>) {
             mat_sub_header.n_rods =
-                materials.template size<detector_t::materials::id::e_rod>();
+                count_surface_with_material_type(material_type::rod);
         }
 
         return header_data;
