@@ -72,8 +72,9 @@ class homogeneous_material_builder final : public volume_decorator<detector_t> {
 
     /// Add the volume and the material to the detector @param det
     DETRAY_HOST
-    auto build(detector_t &det, typename detector_t::geometry_context ctx = {})
-        -> typename detector_t::volume_type * override {
+    auto build(detector_t &det,
+               typename detector_t::geometry_context ctx = {}) ->
+        typename detector_t::volume_type * override {
         DETRAY_DEBUG("homogeneous_material_builder::build()");
 
         const auto &material = det.material_store();
@@ -84,10 +85,12 @@ class homogeneous_material_builder final : public volume_decorator<detector_t> {
         // number of material slabs/rods that were in the detector previously
         for (auto &sf : this->surfaces()) {
             DETRAY_DEBUG("- sf=" << sf);
+            DETRAY_DEBUG("  - material_id=" << sf.material().id());
             if (sf.material().id() == material_id::e_slab) {
                 dindex offset = material.template size<material_id::e_slab>();
                 DETRAY_DEBUG("-> update material slab offset: " << offset);
                 sf.update_material(offset);
+                DETRAY_DEBUG("-> material now: " << sf.material());
             }
             if constexpr (detector_t::materials::template is_defined<
                               material_rod<scalar_type>>()) {
