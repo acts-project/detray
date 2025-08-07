@@ -121,7 +121,7 @@ class barcode {
         return *this;
     }
 
-    /// Check wether the barcode is valid to use.
+    /// Check whether the barcode is valid to use.
     /// @note The extra bits are allowed to be invalid and will not be checked
     DETRAY_HOST_DEVICE
     constexpr bool is_invalid() const noexcept {

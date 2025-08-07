@@ -107,7 +107,7 @@ struct surface_checker {
         }
     }
 
-    /// Test wether a given surface @param check_desc is properly registered at
+    /// Test whether a given surface @param check_desc is properly registered at
     /// least once in one of the volume acceleration data structures
     ///
     /// @param ref_descr one of the surfaces in the volumes acceleration data
@@ -151,7 +151,7 @@ struct material_checker {
         throw std::invalid_argument(err_stream.str());
     }
 
-    /// Test wether a given material map contains invalid material
+    /// Test whether a given material map contains invalid material
     ///
     /// @param material_coll collection of material grids
     /// @param idx the specific grid to be checked
@@ -163,7 +163,7 @@ struct material_checker {
 
         const auto mat_map = material_coll[idx];
 
-        // Check wether there are any entries in the bins
+        // Check whether there are any entries in the bins
         if (mat_map.size() == 0u) {
             std::stringstream err_stream{};
             err_stream << "Empty material grid: " << static_cast<int>(id)
@@ -183,7 +183,7 @@ struct material_checker {
         }
     }
 
-    /// Test wether a given collection of material contains invalid material
+    /// Test whether a given collection of material contains invalid material
     ///
     /// @param material_coll collection of material slabs/rods/raw mat
     /// @param idx the specific instance to be checked
@@ -214,7 +214,7 @@ struct material_checker {
     }
 };
 
-/// @brief Checks wether the data containers of a detector are empty
+/// @brief Checks whether the data containers of a detector are empty
 ///
 /// In case the default metadata is used, the unused containers are allowed to
 /// be empty.

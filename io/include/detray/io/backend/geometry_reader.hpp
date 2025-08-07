@@ -222,7 +222,7 @@ class geometry_reader {
 
         // Shape index of surface data found
         if (shape_id == I) {
-            // Test wether this shape exists in detector
+            // Test whether this shape exists in detector
             if constexpr (!std::is_same_v<shape_t, void>) {
                 return std::make_shared<surface_factory<detector_t, shape_t>>();
             }

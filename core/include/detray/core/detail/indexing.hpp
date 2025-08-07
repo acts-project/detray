@@ -170,7 +170,7 @@ struct index_range {
         return *this;
     }
 
-    /// Check wether the index range is valid to use.
+    /// Check whether the index range is valid to use.
     DETRAY_HOST_DEVICE
     constexpr bool is_invalid() const noexcept {
         return encoder::template is_invalid<lower_mask, upper_mask>(m_value);
@@ -297,7 +297,7 @@ struct multi_index {
     DETRAY_HOST_DEVICE
     constexpr static auto size() -> std::size_t { return N; }
 
-    /// Check wether the multi index is valid to use.
+    /// Check whether the multi index is valid to use.
     DETRAY_HOST_DEVICE
     constexpr bool is_invalid() const noexcept {
         bool is_inv_elem{false};
@@ -507,19 +507,19 @@ struct typed_index {
         return *this;
     }
 
-    /// Check wether the link is valid to use.
+    /// Check whether the link is valid to use.
     DETRAY_HOST_DEVICE
     constexpr bool is_invalid() const noexcept {
         return encoder::template is_invalid<id_mask, index_mask>(m_value);
     }
 
-    /// Check wether the type id is invalid.
+    /// Check whether the type id is invalid.
     DETRAY_HOST_DEVICE
     constexpr bool is_invalid_id() const noexcept {
         return encoder::template is_invalid<id_mask>(m_value);
     }
 
-    /// Check wether the index is invalid.
+    /// Check whether the index is invalid.
     DETRAY_HOST_DEVICE
     constexpr bool is_invalid_index() const noexcept {
         return encoder::template is_invalid<index_mask>(m_value);
