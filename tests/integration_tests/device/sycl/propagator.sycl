@@ -31,9 +31,8 @@ auto handle_async_error = [](::sycl::exception_list elist) {
         }
     }
 };
-class SyclPropConstBFieldMng : public ::testing::TestWithParam<
-                                   std::tuple<scalar, scalar, vector3>> {
-};
+class SyclPropConstBFieldMng
+    : public ::testing::TestWithParam<std::tuple<scalar, scalar, vector3>> {};
 
 TEST_P(SyclPropConstBFieldMng, propagator) {
 
@@ -64,13 +63,12 @@ TEST_P(SyclPropConstBFieldMng, propagator) {
 
     auto det_view = detray::get_data(det);
 
-    run_propagation_test<bfield::const_bknd_t<scalar>>(&shared_mr, &q, det,
-                                                         cfg, det_view, field);
+    run_propagation_test<bfield::const_bknd_t<scalar>>(&shared_mr, &q, det, cfg,
+                                                       det_view, field);
 }
 
-class SyclPropConstBFieldCpy : public ::testing::TestWithParam<
-                                   std::tuple<scalar, scalar, vector3>> {
-};
+class SyclPropConstBFieldCpy
+    : public ::testing::TestWithParam<std::tuple<scalar, scalar, vector3>> {};
 
 TEST_P(SyclPropConstBFieldCpy, propagator) {
 
@@ -115,64 +113,58 @@ INSTANTIATE_TEST_SUITE_P(
     ::testing::Values(std::make_tuple(-100.f * unit<scalar>::um,
                                       std::numeric_limits<scalar>::max(),
                                       vector3{0.f * unit<scalar>::T,
-                                                0.f * unit<scalar>::T,
-                                                2.f * unit<scalar>::T})));
+                                              0.f * unit<scalar>::T,
+                                              2.f * unit<scalar>::T})));
 
-INSTANTIATE_TEST_SUITE_P(
-    SyclPropagatorValidation2, SyclPropConstBFieldMng,
-    ::testing::Values(std::make_tuple(-800.f * unit<scalar>::um,
-                                      5.f * unit<scalar>::mm,
-                                      vector3{0.f * unit<scalar>::T,
-                                                1.f * unit<scalar>::T,
-                                                1.f * unit<scalar>::T})));
+INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation2, SyclPropConstBFieldMng,
+                         ::testing::Values(std::make_tuple(
+                             -800.f * unit<scalar>::um, 5.f * unit<scalar>::mm,
+                             vector3{0.f * unit<scalar>::T,
+                                     1.f * unit<scalar>::T,
+                                     1.f * unit<scalar>::T})));
 
-INSTANTIATE_TEST_SUITE_P(
-    SyclPropagatorValidation3, SyclPropConstBFieldMng,
-    ::testing::Values(std::make_tuple(-800.f * unit<scalar>::um,
-                                      5.f * unit<scalar>::mm,
-                                      vector3{1.f * unit<scalar>::T,
-                                                0.f * unit<scalar>::T,
-                                                1.f * unit<scalar>::T})));
+INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation3, SyclPropConstBFieldMng,
+                         ::testing::Values(std::make_tuple(
+                             -800.f * unit<scalar>::um, 5.f * unit<scalar>::mm,
+                             vector3{1.f * unit<scalar>::T,
+                                     0.f * unit<scalar>::T,
+                                     1.f * unit<scalar>::T})));
 
-INSTANTIATE_TEST_SUITE_P(
-    SyclPropagatorValidation4, SyclPropConstBFieldMng,
-    ::testing::Values(std::make_tuple(-800.f * unit<scalar>::um,
-                                      1.f * unit<scalar>::mm,
-                                      vector3{1.f * unit<scalar>::T,
-                                                1.f * unit<scalar>::T,
-                                                1.f * unit<scalar>::T})));
+INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation4, SyclPropConstBFieldMng,
+                         ::testing::Values(std::make_tuple(
+                             -800.f * unit<scalar>::um, 1.f * unit<scalar>::mm,
+                             vector3{1.f * unit<scalar>::T,
+                                     1.f * unit<scalar>::T,
+                                     1.f * unit<scalar>::T})));
 
 INSTANTIATE_TEST_SUITE_P(
     SyclPropagatorValidation5, SyclPropConstBFieldCpy,
     ::testing::Values(std::make_tuple(-100.f * unit<scalar>::um,
                                       std::numeric_limits<scalar>::max(),
                                       vector3{0.f * unit<scalar>::T,
-                                                0.f * unit<scalar>::T,
-                                                2.f * unit<scalar>::T})));
+                                              0.f * unit<scalar>::T,
+                                              2.f * unit<scalar>::T})));
 
-INSTANTIATE_TEST_SUITE_P(
-    SyclPropagatorValidation6, SyclPropConstBFieldCpy,
-    ::testing::Values(std::make_tuple(-800.f * unit<scalar>::um,
-                                      5.f * unit<scalar>::mm,
-                                      vector3{0.f * unit<scalar>::T,
-                                                1.f * unit<scalar>::T,
-                                                1.f * unit<scalar>::T})));
+INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation6, SyclPropConstBFieldCpy,
+                         ::testing::Values(std::make_tuple(
+                             -800.f * unit<scalar>::um, 5.f * unit<scalar>::mm,
+                             vector3{0.f * unit<scalar>::T,
+                                     1.f * unit<scalar>::T,
+                                     1.f * unit<scalar>::T})));
 
-INSTANTIATE_TEST_SUITE_P(
-    SyclPropagatorValidation7, SyclPropConstBFieldCpy,
-    ::testing::Values(std::make_tuple(-800.f * unit<scalar>::um,
-                                      5.f * unit<scalar>::mm,
-                                      vector3{1.f * unit<scalar>::T,
-                                                0.f * unit<scalar>::T,
-                                                1.f * unit<scalar>::T})));
+INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation7, SyclPropConstBFieldCpy,
+                         ::testing::Values(std::make_tuple(
+                             -800.f * unit<scalar>::um, 5.f * unit<scalar>::mm,
+                             vector3{1.f * unit<scalar>::T,
+                                     0.f * unit<scalar>::T,
+                                     1.f * unit<scalar>::T})));
 
-INSTANTIATE_TEST_SUITE_P(
-    SyclPropagatorValidation8, SyclPropConstBFieldCpy,
-    ::testing::Values(std::make_tuple(-800.f * unit<scalar>::um,
-                                      1.f * unit<scalar>::mm,
-                                      vector3{1.f * unit<scalar>::T,
-                                                1.f * unit<scalar>::T,
-                                                1.f * unit<scalar>::T})));
+INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation8, SyclPropConstBFieldCpy,
+                         ::testing::Values(std::make_tuple(
+                             -800.f * unit<scalar>::um, 1.f * unit<scalar>::mm,
+                             vector3{1.f * unit<scalar>::T,
+                                     1.f * unit<scalar>::T,
+                                     1.f * unit<scalar>::T})));
 
 /// This tests the device propagation in an inhomogenepus magnetic field
 /*
