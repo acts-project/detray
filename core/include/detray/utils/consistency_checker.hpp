@@ -161,25 +161,33 @@ struct material_checker {
     DETRAY_HOST_DEVICE void operator()(const material_coll_t &material_coll,
                                        const index_t idx, const id_t id) const {
 
-        const auto mat_map = material_coll.at(idx);
+        try {
+            const auto mat_map = material_coll.at(idx);
 
-        // Check whether there are any entries in the bins
-        if (mat_map.size() == 0u) {
-            std::stringstream err_stream{};
-            err_stream << "Empty material grid: " << static_cast<int>(id)
-                       << " at index " << idx;
+            // Check whether there are any entries in the bins
+            if (mat_map.size() == 0u) {
+                std::stringstream err_stream{};
+                err_stream << "Empty material grid: " << static_cast<int>(id)
+                           << " at index " << idx;
 
-            throw std::invalid_argument(err_stream.str());
-        } else {
-            for (const auto &bin : mat_map.bins()) {
-                if (bin.size() == 0u) {
-                    std::stringstream err_stream{};
-                    err_stream << "Empty material bin: " << static_cast<int>(id)
-                               << " at index " << idx;
+                throw std::invalid_argument(err_stream.str());
+            } else {
+                for (const auto &bin : mat_map.bins()) {
+                    if (bin.size() == 0u) {
+                        std::stringstream err_stream{};
+                        err_stream
+                            << "Empty material bin: " << static_cast<int>(id)
+                            << " at index " << idx;
 
-                    throw std::invalid_argument(err_stream.str());
+                        throw std::invalid_argument(err_stream.str());
+                    }
                 }
             }
+        } catch (std::out_of_range &) {
+            std::stringstream err_stream{};
+            err_stream << "Out of range material access in: "
+                       << "binned material collection at index " << idx;
+            throw std::invalid_argument(err_stream.str());
         }
     }
 

@@ -162,9 +162,15 @@ class material_map_factory final : public factory_decorator<detector_t> {
 
         assert(surfaces.size() >= n_materials);
 
+        DETRAY_DEBUG("Have " << m_materials.size()
+                             << " configured material maps to assign");
+
         // Add the material only to those surfaces that the data links against
         for (auto &[i, materials] : m_materials) {
             const auto sf_idx{static_cast<dindex>(i)};
+            auto &sf = surfaces.at(sf_idx);
+
+            DETRAY_DEBUG("- sf=" << sf);
 
             // Copy the number of bins to the builder
             assert(m_n_bins.at(sf_idx).size() == N);
