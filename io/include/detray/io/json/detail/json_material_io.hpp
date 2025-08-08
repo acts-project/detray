@@ -43,8 +43,10 @@ inline void from_json(const nlohmann::ordered_json& j,
         mat_sub_header.n_slabs = j["slab_count"];
         mat_sub_header.n_rods = j["rod_count"];
         // Default surface counts to 0 to keep older files compatible
-        mat_sub_header.n_slab_surfaces = j.value("slab_surface_count", 0);
-        mat_sub_header.n_rod_surfaces = j.value("rod_surface_count", 0);
+        mat_sub_header.n_slab_surfaces =
+            j.value<std::size_t>("slab_surface_count", 0);
+        mat_sub_header.n_rod_surfaces =
+            j.value<std::size_t>("rod_surface_count", 0);
     }
 }
 
