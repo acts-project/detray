@@ -102,6 +102,40 @@ struct default_metadata {
         e_unmasked2 = 18u,*/
     };
 
+    DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
+                                                       mask_ids mid) {
+
+        switch (mid) {
+            case mask_ids::e_rectangle2:
+                // e_portal_rectangle2 has same value (0u)
+                os << "e_rectangle2/e_portal_rectangle2";
+                break;
+            case mask_ids::e_trapezoid2:
+                os << "e_trapezoid2";
+                break;
+            case mask_ids::e_annulus2:
+                os << "e_annulus2";
+                break;
+            case mask_ids::e_cylinder2:
+                os << "e_cylinder2";
+                break;
+            case mask_ids::e_portal_cylinder2:
+                os << "e_portal_cylinder2";
+                break;
+            case mask_ids::e_ring2:
+                // e_portal_ring2 has same value (5u)
+                os << "e_ring2/e_portal_ring2";
+                break;
+            case mask_ids::e_straw_tube:
+                os << "e_straw_tube";
+                break;
+            case mask_ids::e_drift_cell:
+                os << "e_drift_cell";
+                break;
+        }
+        return os;
+    }
+
     /// How to store masks
     template <template <typename...> class vector_t = dvector>
     using mask_store = regular_multi_store<mask_ids, empty_context, dtuple,
