@@ -72,6 +72,8 @@ class material_map_builder final : public volume_decorator<detector_t> {
         std::shared_ptr<surface_factory_interface<detector_t>> sf_factory,
         typename detector_t::geometry_context ctx = {}) override {
 
+        DETRAY_DEBUG("material_map_builder::add_surfaces()");
+
         // If the factory also holds surface data, call base volume builder
         volume_decorator<detector_t>::add_surfaces(sf_factory, ctx);
 
@@ -95,9 +97,9 @@ class material_map_builder final : public volume_decorator<detector_t> {
 
     /// Add the volume and the material maps to the detector @param det
     DETRAY_HOST
-    auto build(detector_t& det,
-               typename detector_t::geometry_context ctx = {}) ->
-        typename detector_t::volume_type* override {
+    auto build(detector_t& det, typename detector_t::geometry_context ctx = {})
+        -> typename detector_t::volume_type* override {
+        DETRAY_DEBUG("material_map_builder::build()");
 
         // Ensure the material links are correct BEFORE the surfaces are built
         // and potentially added to an acceleration data structure
