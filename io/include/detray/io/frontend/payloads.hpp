@@ -124,7 +124,9 @@ struct volume_payload {
 /// @brief a payload for the material specific part of the file header
 struct homogeneous_material_sub_header_payload {
     std::size_t n_slabs{0ul};
+    std::size_t n_slab_surfaces{0ul};
     std::size_t n_rods{0ul};
+    std::size_t n_rod_surfaces{0ul};
 };
 
 /// @brief a payload for the homogeneous material file header

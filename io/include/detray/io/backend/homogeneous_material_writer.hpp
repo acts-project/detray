@@ -73,11 +73,15 @@ class homogeneous_material_writer {
         auto& mat_sub_header = header_data.sub_header.value();
         if constexpr (detray::concepts::has_material_slabs<detector_t>) {
             mat_sub_header.n_slabs =
+                materials.template size<detector_t::materials::id::e_slab>();
+            mat_sub_header.n_slab_surfaces =
                 count_surface_with_material_type(material_type::slab);
         }
         mat_sub_header.n_rods = 0u;
         if constexpr (detray::concepts::has_material_rods<detector_t>) {
             mat_sub_header.n_rods =
+                materials.template size<detector_t::materials::id::e_rod>();
+            mat_sub_header.n_rod_surfaces =
                 count_surface_with_material_type(material_type::rod);
         }
 
