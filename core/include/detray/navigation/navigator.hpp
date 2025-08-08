@@ -951,7 +951,7 @@ class navigator {
     /// @brief Helper method that re-establishes the navigation state after an
     /// update.
     ///
-    /// It checks wether the track has reached a surface or is still moving
+    /// It checks whether the track has reached a surface or is still moving
     /// towards the next surface candidate. If no new next candidate can be
     //  found, it flags 'no trust' in order to trigger a volume initialization.
     ///

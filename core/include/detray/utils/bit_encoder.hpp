@@ -30,7 +30,7 @@ class bit_encoder {
     public:
     bit_encoder() = delete;
 
-    /// Check wether the set @param v encodes valid values according to the
+    /// Check whether the set @param v encodes valid values according to the
     /// given masks (@tparam head and @tparam tail)
     template <value_t... masks>
     DETRAY_HOST_DEVICE static constexpr bool is_invalid(value_t v) noexcept {
