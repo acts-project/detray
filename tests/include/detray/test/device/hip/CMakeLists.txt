@@ -7,6 +7,8 @@
 # C++17 support for HIP requires CMake 3.21.
 cmake_minimum_required(VERSION 3.21) # HIP langauge support requires minimum 3.21
 
+find_package(HIPToolkit)
+
 # Enable HIP as a language.
 enable_language(HIP)
 
@@ -34,4 +36,5 @@ target_link_libraries(
         detray::test_device
         detray::test_cpu
         detray::validation_utils
+        HIP::hiprt
 )
