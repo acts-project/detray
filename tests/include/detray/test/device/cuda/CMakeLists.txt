@@ -28,6 +28,7 @@ add_library(detray::test_cuda ALIAS detray_test_cuda)
 target_link_libraries(
     detray_test_cuda
     PUBLIC
+        CUDA::cudart
         vecmem::cuda
         covfie::cuda
         detray::core_array
