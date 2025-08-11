@@ -61,7 +61,8 @@ foreach(algebra ${algebras})
        "transform_store_cuda_kernel.hpp"
        "transform_store_cuda.cpp"
        "transform_store_cuda_kernel.cu"
-       LINK_LIBRARIES GTest::gtest_main vecmem::cuda covfie::cuda detray::core
+       LINK_LIBRARIES GTest::gtest_main
+        CUDA::cudart vecmem::cuda covfie::cuda detray::core
        detray::algebra_${algebra} detray::test_common detray::test_utils
     )
 
