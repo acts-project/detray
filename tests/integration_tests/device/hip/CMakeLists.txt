@@ -4,22 +4,19 @@
 #
 # Mozilla Public License Version 2.0
 
-#----------------------------- no errrors
 message(STATUS "Building detray HIP integration tests")
 
-#HIP langauge support requires minimum 3.21
+#HIP langauge support requires minimum 3.21 
 cmake_minimum_required(VERSION 3.21)
 
-#set(CMAKE_HIP_COMPILER_FORCED TRUE)
-#set(CMAKE_HIP_STANDARD_COMPUTED_DEFAULT 17)
+find_package(HIPToolkit)
+
 # Enable HIP as a language.
 enable_language(HIP)
 
 # Set the HIP build flags.
 include(detray-compiler-options-hip)
-
-#---------------------------------------------
-
+ 
 # make unit tests for multiple algebras
 # Currently vc and smatrix is not supported
 set(algebras "array")
@@ -28,27 +25,38 @@ if(DETRAY_EIGEN_PLUGIN)
     list(APPEND algebras "eigen")
 endif()
 
-# error in covfie::hip : No known features for HIP compiler "AMD" Version 6.....
+
+
 
 foreach(algebra ${algebras})
     # Unit tests for the selected algebra.
-    detray_add_integration_test(hip_${algebra}
+    detray_add_integration_test(hip_${CMAKE_BUILD_PLATFORM}_${algebra}
        "propagator_hip_kernel.hpp"
-       "propagator_hip.hip"
+       "propagator_hip.cpp"
        "propagator_hip_kernel.hip"
-       LINK_LIBRARIES GTest::gtest_main vecmem::hip #covfie::hip
-                       detray::core detray::algebra_${algebra} detray::test_hip
-                       detray::test_common
+       LINK_LIBRARIES GTest::gtest_main vecmem::hip HIP::hiprt #covfie::hip 
+                       detray::core detray::algebra_${algebra} detray::test_device
+                       detray::test_common 
     )
+    # Make hipcc interpret .cpp files as .hip files to make linking work
+    # (only needed for the amd backend)
+    if(
+        ("${CMAKE_HIP_PLATFORM}" STREQUAL "hcc")
+        OR ("${CMAKE_HIP_PLATFORM}" STREQUAL "amd")
+    )
+        set_source_files_properties(propagator_hip.cpp PROPERTIES LANGUAGE HIP)
+    endif()
 
     target_compile_definitions(
-        detray_integration_test_hip_${algebra}
+        detray_integration_test_hip_${CMAKE_BUILD_PLATFORM}_${algebra}
         PRIVATE ${algebra}=${algebra}
     )
 
     set_tests_properties(
-        detray_integration_test_hip_${algebra}
+        detray_integration_test_hip_${CMAKE_BUILD_PLATFORM}_${algebra}
         PROPERTIES
-            DEPENDS "detray_unit_test_hip;detray_unit_test_hip_${algebra}"
+            DEPENDS "detray_unit_test_hip_${CMAKE_BUILD_PLATFORM}_${algebra}"
     )
 endforeach()
+
+

@@ -21,8 +21,6 @@ __global__ void propagator_test_kernel(
     vecmem::data::jagged_vector_view<detail::step_data<test_algebra>>
         steps_data) {
 
-    printf("test from the kernel !");
-
     int gid = threadIdx.x + blockIdx.x * blockDim.x;
     using detector_device_t =
         detector<typename detector_t::metadata, device_container_types>;

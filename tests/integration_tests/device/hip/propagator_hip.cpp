@@ -179,6 +179,6 @@ TEST(HipPropagatorValidation9, inhomogeneous_bfield_cpy) {
 
     //run_propagation_test<bfield::hip::inhom_bknd_t>(
     //    &mng_mr, det, cfg, detray::get_data(det_buff), std::move(field));
-
+    
 }
 */

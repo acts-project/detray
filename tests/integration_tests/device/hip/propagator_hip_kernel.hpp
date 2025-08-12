@@ -20,16 +20,16 @@
 
 // Covfie include(s)
 
-// we can include it after solving the linking problem - covfie::hip in the
-// cmake file
+//we can include it after solving the linking problem - covfie::hip in the cake file 
 //#include <covfie/hip/backend/primitive/hip_device_array.hpp>  // error
 
 namespace detray {
 
 using scalar = test::scalar;
 
-// this namespace - depend on covfie -> cannot run it until solving the
-// covfie::hip
+
+
+// this namespace - dependance with covfie -> cannot run it until solving the covfie::hip 
 
 /*namespace bfield::hip {
 
@@ -42,6 +42,8 @@ using inhom_bknd_t = covfie::backend::affine<covfie::backend::linear<
 }  // namespace bfield::hip
 
 */
+
+
 
 /// Launch the propagation test kernel
 template <typename bfield_bknd_t, typename detector_t>
