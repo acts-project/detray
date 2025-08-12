@@ -61,6 +61,8 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, do_debug> {
         const scalar_type mask_tol_scalor = 0.f,
         const scalar_type overstep_tol = 0.f) const {
 
+        using status_t = typename intersection_type<surface_descr_t>::status_t;
+
         intersection_type<surface_descr_t> is;
 
         // Retrieve the surface normal & translation (context resolved)
@@ -86,14 +88,21 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, do_debug> {
             if constexpr (intersection_type<surface_descr_t>::is_debug()) {
                 is.local = loc;
             }
-            is.status = mask.is_inside(
-                loc,
+
+            // Tolerance: per mille of the distance, scaled with distance
+            const auto base_tol =
                 math::max(mask_tolerance[0],
                           math::min(mask_tolerance[1],
-                                    mask_tol_scalor * math::fabs(is.path))));
+                                    mask_tol_scalor * math::fabs(is.path)));
+
+            is.status(mask.is_inside(loc, base_tol)) =
+                static_cast<status_t>(intersection::status::e_inside);
+
+            is.status(mask.is_inside(loc, base_tol)) =
+                static_cast<status_t>(intersection::status::e_edge);
 
             // Early return, if no intersection was found
-            if (detray::detail::none_of(is.status)) {
+            if (is.is_outside()) {
                 return is;
             }
 
@@ -102,9 +111,10 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, do_debug> {
             is.volume_link = mask.volume_link();
 
             // Mask the values where the overstepping tolerance was not met
-            is.status &= (is.path >= overstep_tol);
+            is.status(is.path >= overstep_tol) =
+                static_cast<status_t>(intersection::status::e_outside);
         } else {
-            is.status = decltype(is.status)(false);
+            is.set_status(intersection::status::e_outside);
         }
 
         return is;

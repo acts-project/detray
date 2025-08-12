@@ -94,7 +94,7 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
                 overstep_tol);
             is.sf_desc = sf;
         } else {
-            is.status = false;
+            is.set_status(intersection::status::e_outside);
         }
 
         return is;

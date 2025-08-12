@@ -79,10 +79,10 @@ struct intersection_initialize {
     DETRAY_HOST_DEVICE bool place_in_collection(
         const typename is_container_t::value_type &sfi,
         is_container_t &intersections) const {
-        if (sfi.status) {
+        if (sfi.is_probably_inside()) {
             insert_sorted(sfi, intersections);
         }
-        return sfi.status;
+        return sfi.is_probably_inside();
     }
 
     template <typename is_container_t>
@@ -90,7 +90,7 @@ struct intersection_initialize {
         darray<typename is_container_t::value_type, 2> &&solutions,
         is_container_t &intersections) const {
         for (auto &sfi : std::move(solutions)) {
-            if (sfi.status) {
+            if (sfi.is_probably_inside()) {
                 insert_sorted(sfi, intersections);
             }
         }
@@ -158,7 +158,7 @@ struct intersection_update {
                 .update(traj, sfi, mask, ctf, mask_tolerance, mask_tol_scalor,
                         overstep_tol);
 
-            if (sfi.status) {
+            if (sfi.is_probably_inside()) {
                 return true;
             }
         }
