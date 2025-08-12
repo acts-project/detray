@@ -470,6 +470,7 @@ class tracking_surface {
     const descr_t &m_desc;
 };
 
+#ifndef DETRAY_COMPILE_VITIS
 template <typename detector_t, typename descr_t>
 DETRAY_HOST_DEVICE tracking_surface(const detector_t &, const descr_t &)
     ->tracking_surface<detector_t>;
@@ -477,5 +478,6 @@ DETRAY_HOST_DEVICE tracking_surface(const detector_t &, const descr_t &)
 template <typename detector_t>
 DETRAY_HOST_DEVICE tracking_surface(const detector_t &, const geometry::barcode)
     ->tracking_surface<detector_t>;
+#endif // DETRAY_COMPILE_VITIS
 
 }  // namespace detray

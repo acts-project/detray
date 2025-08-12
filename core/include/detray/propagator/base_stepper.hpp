@@ -69,7 +69,7 @@ class base_stepper {
             : _bound_params(bound_params) {
 
             // Surface
-            const auto sf = tracking_surface{det, bound_params.surface_link()};
+            const auto sf = tracking_surface<decltype(det)>{det, bound_params.surface_link()};
 
             const typename detector_t::geometry_context ctx{};
             sf.template visit_mask<

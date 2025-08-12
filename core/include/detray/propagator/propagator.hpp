@@ -17,6 +17,8 @@
 #include "detray/propagator/propagation_config.hpp"
 #include "detray/tracks/tracks.hpp"
 
+#include "detray/geometry/tracking_surface.hpp"
+#include "detray/geometry/tracking_volume.hpp"
 // System include(s).
 #include <iomanip>
 

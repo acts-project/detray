@@ -56,8 +56,9 @@ struct intersection_initialize {
         const auto &ctf = contextual_transforms[surface.transform()];
 
         // Run over the masks that belong to the surface (only one can be hit)
-        for (const auto &mask :
-             detray::ranges::subrange(mask_group, mask_range)) {
+       // auto mask_subrange = detray::ranges::subrange(mask_group, mask_range);
+        auto mask_subrange = detray::ranges::subrange<decltype(mask_range)>(mask_group, mask_range);
+        for (const auto &mask : mask_subrange) {
 
             if (place_in_collection(
                     intersector_t<typename mask_t::shape, algebra_t>{}(
@@ -140,9 +141,10 @@ struct intersection_update {
 
         const auto &ctf = contextual_transforms[sfi.sf_desc.transform()];
 
+        auto mask_subrange = detray::ranges::subrange<decltype(mask_range)>(mask_group, mask_range);
         // Run over the masks that belong to the surface
         for (const auto &mask :
-             detray::ranges::subrange(mask_group, mask_range)) {
+             mask_subrange) {
 
             intersector_t<typename mask_t::shape, algebra_t>{}.update(
                 traj, sfi, mask, ctf, mask_tolerance, mask_tol_scalor,

@@ -116,17 +116,17 @@ class tracking_volume {
     template <surface_id sf_type = surface_id::e_all>
     DETRAY_HOST_DEVICE constexpr decltype(auto) surfaces() const {
         if constexpr (sf_type == surface_id::e_all) {
-            return detray::ranges::subrange{m_detector.surfaces(),
+            return detray::ranges::subrange<decltype(m_desc.full_sf_range)>{m_detector.surfaces(),
                                             m_desc.full_sf_range()};
         } else {
-            return detray::ranges::subrange{m_detector.surfaces(),
+            return detray::ranges::subrange<decltype(m_desc.template sf_links<sf_type>)>{m_detector.surfaces(),
                                             m_desc.template sf_link<sf_type>()};
         }
     }
 
     /// @returns an iterator pair for the requested type of surfaces.
     DETRAY_HOST_DEVICE constexpr decltype(auto) portals() const {
-        return detray::ranges::subrange{
+        return detray::ranges::subrange<decltype(m_desc.template sf_link<surface_id::e_portal>)>{
             m_detector.surfaces(),
             m_desc.template sf_link<surface_id::e_portal>()};
     }

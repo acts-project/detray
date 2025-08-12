@@ -27,9 +27,12 @@
 #include "detray/navigation/navigation_config.hpp"
 #include "detray/utils/ranges.hpp"
 
+#include "detray/geometry/tracking_surface.hpp"
+#include "detray/geometry/tracking_volume.hpp"
+
 // vecmem include(s)
-#include <vecmem/containers/data/jagged_vector_buffer.hpp>
 #ifndef DETRAY_COMPILE_VITIS
+#include <vecmem/containers/data/jagged_vector_buffer.hpp>
 #include <vecmem/memory/memory_resource.hpp>
 #endif // DETRAY_COMPILE_VITIS
 
@@ -139,10 +142,10 @@ class navigator {
             const scalar_type mask_tol_scalor,
             const scalar_type overstep_tol) const {
 
-            const auto sf = tracking_surface{det, sf_descr};
+            const auto sf = tracking_surface<decltype(det)>{det, sf_descr};
 
             sf.template visit_mask<intersection_initialize<ray_intersector>>(
-                candidates, detail::ray(track), sf_descr, det.transform_store(),
+                candidates, detail::ray<decltype(track)>(track), sf_descr, det.transform_store(),
                 sf.is_portal() ? std::array<scalar_type, 2>{0.f, 0.f}
                                : mask_tol,
                 mask_tol_scalor, overstep_tol);
@@ -172,11 +175,13 @@ class navigator {
         public:
         using detector_type = navigator::detector_type;
 
+#ifndef DETRAY_COMPILE_VITIS
         using view_type = dmulti_view<djagged_vector_view<intersection_type>,
                                       detail::get_view_t<inspector_t>>;
         using const_view_type =
             dmulti_view<djagged_vector_view<const intersection_type>,
                         detail::get_view_t<const inspector_t>>;
+#endif // DETRAY_COMPILE_VITIS
 
         /// Default constructor
         state() = default;
@@ -522,7 +527,7 @@ class navigator {
         state &navigation = propagation._navigation;
         const auto det = navigation.detector();
         const auto &track = propagation._stepping();
-        const auto volume = tracking_volume{*det, navigation.volume()};
+        const auto volume = tracking_volume<decltype(det)>{*det, navigation.volume()};
 
         // Clean up state
         navigation.clear();
@@ -790,11 +795,11 @@ class navigator {
             return false;
         }
 
-        const auto sf = tracking_surface{*det, candidate.sf_desc};
+        const auto sf = tracking_surface<decltype(det)>{*det, candidate.sf_desc};
 
         // Check whether this candidate is reachable by the track
         return sf.template visit_mask<intersection_update<ray_intersector>>(
-            detail::ray(track), candidate, det->transform_store(),
+            detail::ray<decltype(track)>(track), candidate, det->transform_store(),
             sf.is_portal() ? std::array<scalar_type, 2>{0.f, 0.f}
                            : std::array<scalar_type, 2>{cfg.min_mask_tolerance,
                                                         cfg.max_mask_tolerance},

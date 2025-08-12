@@ -176,8 +176,10 @@ class quadratic_equation<
     darray<scalar_t, 2> m_values{scalar_t(0.f), scalar_t(0.f)};
 };
 
+#ifndef DETRAY_COMPILE_VITIS
 template <typename S>
 quadratic_equation(const S a, const S &b, const S &c, const S &tolerance)
     -> quadratic_equation<S>;
+#endif  // DETRAY_COMPILE_VITIS
 
 }  // namespace detray::detail
