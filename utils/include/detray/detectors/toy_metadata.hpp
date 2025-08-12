@@ -15,6 +15,7 @@
 #include "detray/geometry/detail/surface_descriptor.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes/concentric_cylinder2D.hpp"
+#include "detray/geometry/shapes/cylinder3D.hpp"
 #include "detray/geometry/shapes/rectangle2D.hpp"
 #include "detray/geometry/shapes/ring2D.hpp"
 #include "detray/geometry/shapes/trapezoid2D.hpp"
