@@ -126,7 +126,9 @@ struct helix_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
 
                 tol = math::fabs((s - s_prev) * math::sqrt(sin_inc2));
             }
-            sfi.status = mask.is_inside(sfi.local, tol);
+            sfi.set_status(mask.is_inside(sfi.local, tol)
+                               ? intersection::status::e_inside
+                               : intersection::status::e_outside);
             sfi.sf_desc = sf_desc;
             sfi.direction = !math::signbit(s);
             sfi.volume_link = mask.volume_link();

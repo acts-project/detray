@@ -119,12 +119,19 @@ struct ray_concentric_cylinder_intersector {
                 is.path = t01[cindex];
                 // In this case, the point has to be in cylinder3 coordinates
                 // for the r-check
-                // Tolerance: per mille of the distance
-                is.status = mask.is_inside(
-                    loc, math::max(
-                             mask_tolerance[0],
-                             math::min(mask_tolerance[1],
-                                       mask_tol_scalor * math::fabs(is.path))));
+
+                // Tolerance: per mille of the distance, scaled with distance
+                const auto base_tol =
+                    math::max(mask_tolerance[0],
+                              math::min(mask_tolerance[1],
+                                        mask_tol_scalor * math::fabs(is.path)));
+                if (mask.is_inside(loc, base_tol)) {
+                    is.set_status(intersection::status::e_inside);
+                } else if (mask.is_inside(loc, base_tol)) {
+                    is.set_status(intersection::status::e_edge);
+                } else { /*outside*/
+                }
+
                 is.sf_desc = sf;
                 is.direction = !detail::signbit(is.path);
                 is.volume_link = mask.volume_link();

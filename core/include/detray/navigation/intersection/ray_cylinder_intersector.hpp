@@ -86,8 +86,8 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
                 ret[0].sf_desc = sf;
                 break;
             case 0:
-                ret[0].status = false;
-                ret[1].status = false;
+                ret[0].set_status(intersection::status::e_outside);
+                ret[1].set_status(intersection::status::e_outside);
         }
 
         // Even if there are two geometrically valid solutions, the smaller one
@@ -136,7 +136,7 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
                     mask_tol_scalor, overstep_tol);
                 break;
             case 0:
-                sfi.status = false;
+                sfi.set_status(intersection::status::e_outside);
         }
     }
 
@@ -193,15 +193,23 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
             if constexpr (intersection_type<surface_descr_t>::is_debug()) {
                 is.local = loc;
             }
-            // Tolerance: per mille of the distance
-            is.status = mask.is_inside(
-                loc, math::max(mask_tolerance[0],
-                               math::min(mask_tolerance[1],
-                                         mask_tol_scalor * math::fabs(path))));
+
+            // Tolerance: per mille of the distance, scaled with distance
+            const auto base_tol =
+                math::max(mask_tolerance[0],
+                          math::min(mask_tolerance[1],
+                                    mask_tol_scalor * math::fabs(is.path)));
+            if (mask.is_inside(loc, base_tol)) {
+                is.set_status(intersection::status::e_inside);
+            } else if (mask.is_inside(loc, base_tol)) {
+                is.set_status(intersection::status::e_edge);
+            } else { /*outside*/
+            }
+
             is.direction = !detail::signbit(path);
             is.volume_link = mask.volume_link();
         } else {
-            is.status = false;
+            is.set_status(intersection::status::e_outside);
         }
 
         is.path = path;

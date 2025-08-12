@@ -86,18 +86,24 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, do_debug> {
                 if constexpr (intersection_type<surface_descr_t>::is_debug()) {
                     is.local = loc;
                 }
-                // Tolerance: per mille of the distance
-                is.status = mask.is_inside(
-                    loc, math::max(
-                             mask_tolerance[0],
-                             math::min(mask_tolerance[1],
-                                       mask_tol_scalor * math::fabs(is.path))));
+                // Tolerance: per mille of the distance, scaled with distance
+                const auto base_tol =
+                    math::max(mask_tolerance[0],
+                              math::min(mask_tolerance[1],
+                                        mask_tol_scalor * math::fabs(is.path)));
+                if (mask.is_inside(loc, base_tol)) {
+                    is.set_status(intersection::status::e_inside);
+                } else if (mask.is_inside(loc, base_tol)) {
+                    is.set_status(intersection::status::e_edge);
+                } else { /*outside*/
+                }
+
                 is.sf_desc = sf;
                 is.direction = !detail::signbit(is.path);
                 is.volume_link = mask.volume_link();
             }
         } else {
-            is.status = false;
+            is.set_status(intersection::status::e_outside);
         }
 
         return is;
