@@ -218,7 +218,7 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
             surface.mask(), detail::ray(track), sfi_update[idx],
             transform_store);
 
-        if(!sfi_update[idx].status) {
+        if(!sfi_update[idx].is_inside()) {
     continue; } ASSERT_TRUE(sfi_update[idx].direction) << " at surface " <<
     sfi_update[idx]
     << ", " << sfi_init[idx]; ASSERT_EQ(sfi_update[idx].volume_link, 0u);

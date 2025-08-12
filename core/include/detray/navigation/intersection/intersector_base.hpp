@@ -177,13 +177,16 @@ DETRAY_HOST_DEVICE constexpr void resolve_mask(
     // Build intersection struct from test trajectory, if the distance is valid
     if (detray::detail::none_of(ip.path >= overstep_tol)) {
         // Not a valid intersection
-        is.status = dbool<algebra_t>(false);
+        is.set_status(intersection::status::e_outside);
         return;
     }
 
     // Mask out solutions that don't meet the overstepping tolerance (SoA)
     if constexpr (concepts::soa<algebra_t>) {
-        is.status &= (is.path() >= overstep_tol);
+        using status_t = typename intersection_t::status_t;
+
+        is.status(is.path >= overstep_tol) =
+            static_cast<status_t>(intersection::status::e_outside);
     }
 
     // Save local position for debug evaluation
@@ -215,10 +218,28 @@ DETRAY_HOST_DEVICE constexpr void resolve_mask(
 
     // Intersector provides specialized local point
     if constexpr (std::same_as<point_t, dpoint2D<algebra_t>>) {
-        is.status = mask.is_inside(ip.point, base_tol);
+        if (mask.is_inside(ip.point, base_tol)) {
+            is.set_status(intersection::status::e_inside);
+        }
+        /*if (mask.is_inside(ip.point, base_tol)) {
+            is.set_status(intersection::status::e_inside);
+        } else if (mask.is_inside(ip.point,
+                                    base_tol + external_mask_tolerance)) {
+            is.set_status(intersection::status::e_edge);
+        } else { /*outside*/
+        //}
     } else {
+        if (mask.is_inside(trf, ip.point, base_tol)) {
+            is.set_status(intersection::status::e_inside);
+        }
         // Otherwise, let the shape transform the point to local
-        is.status = mask.is_inside(trf, ip.point, base_tol);
+        /*if (mask.is_inside(trf, ip.point, base_tol)) {
+            is.set_status(intersection::status::e_inside);
+        } else if (mask.is_inside(trf, ip.point,
+                                    base_tol + external_mask_tolerance)) {
+            is.set_status(intersection::status::e_edge);
+        } else { /*outside*/
+        //}
     }
 
     is.set_path(ip.path);

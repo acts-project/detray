@@ -117,7 +117,7 @@ struct intersection_initialize {
                     resolve_mask(is, traj, result[i], sf_desc, mask, ctf,
                                  mask_tolerance, mask_tol_scalor, overstep_tol);
 
-                    if (is.is_inside()) {
+                    if (is.is_probably_inside()) {
                         insert_sorted(is, is_container);
                         ++n_found;
                     }
@@ -129,7 +129,7 @@ struct intersection_initialize {
                 resolve_mask(is, traj, result, sf_desc, mask, ctf,
                              mask_tolerance, mask_tol_scalor, overstep_tol);
 
-                if (is.is_inside()) {
+                if (is.is_probably_inside()) {
                     insert_sorted(is, is_container);
                     return;
                 }
@@ -243,7 +243,7 @@ struct intersection_update {
                              mask_tolerance, mask_tol_scalor, overstep_tol);
             }
 
-            if (sfi.is_inside()) {
+            if (sfi.is_probably_inside()) {
                 return true;
             }
         }

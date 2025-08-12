@@ -100,7 +100,7 @@ struct perigee_stopper : actor {
                                     mask_tolerance, overstep_tolerance);
 
         scalar_t dist_to_cand{std::as_const(navigation).target().path};
-        if (perigee_intr.status &&
+        if (perigee_intr.is_probably_inside() &&
             math::fabs(perigee_intr.path) < math::fabs(dist_to_cand)) {
             // The track has reached the perigee: "exit success"
             assert(actor_state.m_on_perigee_tol > 0.f);

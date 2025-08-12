@@ -629,7 +629,7 @@ bound_track_parameters<test_algebra> get_initial_parameter(
     hlx_is.run_rtsafe = false;
     hlx_is.convergence_tolerance = helix_tolerance;
     auto sfi = hlx_is(hlx, departure_sf, departure_mask, departure_trf, 0.f);
-    EXPECT_TRUE(sfi.status)
+    EXPECT_TRUE(sfi.is_inside())
         << " Initial surface not found" << std::endl
         << " log10(Helix tolerance): " << math::log10(helix_tolerance)
         << " Phi: " << vector::phi(vertex.dir())
@@ -1059,7 +1059,7 @@ void evaluate_jacobian_difference_helix(
     auto sfi =
         hlx_is(hlx, destination_sf, destination_mask, destination_trf, 0.f);
 
-    EXPECT_TRUE(sfi.status)
+    EXPECT_TRUE(sfi.is_inside())
         << " Final surface not found" << std::endl
         << " log10(Helix tolerance): " << math::log10(helix_tolerance)
         << " Phi: " << track.phi() << " Theta: " << track.theta()

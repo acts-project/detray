@@ -97,7 +97,30 @@ class direct_navigator {
         /// @returns current/previous object that was reached
         DETRAY_HOST_DEVICE
         inline auto current() const -> const candidate_t & {
+            assert(is_on_surface());
             return m_candidate_prev;
+        }
+
+        /// @returns true if the current candidate lies on the surface edge
+        DETRAY_HOST_DEVICE
+        inline bool is_edge_candidate() const {
+            assert(is_on_surface());
+            return current().is_edge();
+        }
+
+        /// @returns true if the current candidate lies on the surface
+        DETRAY_HOST_DEVICE
+        inline bool is_good_candidate() const {
+            assert(is_on_surface());
+            return current().is_inside();
+        }
+
+        /// @returns true if the current candidate lies on the surface,
+        /// inlcuding its edge
+        DETRAY_HOST_DEVICE
+        inline bool is_probably_candidate() const {
+            assert(is_on_surface());
+            return current().is_probably_inside();
         }
 
         /// @returns next object that we want to reach (current target) - const

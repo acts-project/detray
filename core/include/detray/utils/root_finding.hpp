@@ -294,13 +294,15 @@ DETRAY_HOST_DEVICE constexpr void resolve_mask(
 
             tol = math::fabs(ip.path_err * math::sqrt(sin_inc2));
         }
-        is.status = mask.is_inside(is.local(), tol);
+        is.set_status(mask.is_inside(is.local(), tol)
+                          ? intersection::status::e_inside
+                          : intersection::status::e_outside);
         is.sf_desc = sf_desc;
         is.direction = !math::signbit(ip.path);
         is.volume_link = mask.volume_link();
     } else {
         // Not a valid intersection
-        is.status = false;
+        is.set_status(intersection::status::e_outside);
     }
 }
 

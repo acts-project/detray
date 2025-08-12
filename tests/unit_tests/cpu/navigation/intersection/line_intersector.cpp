@@ -68,7 +68,7 @@ GTEST_TEST(detray_intersection, line_intersector_case1) {
     is[2] = line_intersector_type()(detail::ray(trks[2]),
                                     surface_descriptor<>{}, ln, tf, tol);
 
-    EXPECT_TRUE(is[0].status);
+    EXPECT_TRUE(is[0].is_inside());
     EXPECT_EQ(is[0].path(), 1.f);
 
     const auto global0 = ln.to_global_frame(tf, is[0].local());
@@ -77,7 +77,7 @@ GTEST_TEST(detray_intersection, line_intersector_case1) {
     EXPECT_EQ(is[0].local()[0], -1.f);  // right
     EXPECT_EQ(is[0].local()[1], 0.f);
 
-    EXPECT_TRUE(is[1].status);
+    EXPECT_TRUE(is[1].is_inside());
     EXPECT_EQ(is[1].path(), 1.f);
     const auto global1 = ln.to_global_frame(tf, is[1].local());
     EXPECT_NEAR(global1[0], -1.f, tol);
@@ -86,7 +86,7 @@ GTEST_TEST(detray_intersection, line_intersector_case1) {
     EXPECT_EQ(is[1].local()[0], 1.f);  // left
     EXPECT_EQ(is[1].local()[1], 0.f);
 
-    EXPECT_TRUE(is[2].status);
+    EXPECT_TRUE(is[2].is_inside());
     EXPECT_NEAR(is[2].path(), constant<scalar>::sqrt2, tol);
     const auto global2 = ln.to_global_frame(tf, is[2].local());
     EXPECT_NEAR(global2[0], 1.f, tol);
@@ -118,7 +118,7 @@ GTEST_TEST(detray_intersection, line_intersector_case2) {
     const intersection_t is = line_intersector_type()(
         detail::ray<test_algebra>(trk), surface_descriptor<>{}, ln, tf, tol);
 
-    EXPECT_TRUE(is.status);
+    EXPECT_TRUE(is.is_inside());
     EXPECT_NEAR(is.path(), 2.f, tol);
     const auto global = ln.to_global_frame(tf, is.local());
     EXPECT_NEAR(global[0], 1.f, tol);
@@ -177,7 +177,7 @@ GTEST_TEST(detray_intersection, line_intersector_square_scope) {
 
     ASSERT_TRUE(is.size() >= 12);
 
-    EXPECT_TRUE(is[0].status);
+    EXPECT_TRUE(is[0].is_inside());
     EXPECT_NEAR(is[0].path(), constant<scalar>::sqrt2, tol);
     const auto local0 = ln.to_local_frame3D(
         tf,
@@ -190,29 +190,29 @@ GTEST_TEST(detray_intersection, line_intersector_square_scope) {
     EXPECT_NEAR(is[0].local()[0], -constant<scalar>::sqrt2, tol);
     EXPECT_NEAR(is[0].local()[1], 0.f, tol);
 
-    EXPECT_TRUE(is[1].status);
+    EXPECT_TRUE(is[1].is_inside());
     EXPECT_TRUE(std::signbit(is[1].local()[0]));
-    EXPECT_FALSE(is[2].status);
+    EXPECT_FALSE(is[2].is_inside());
     EXPECT_TRUE(std::signbit(is[2].local()[0]));
 
-    EXPECT_TRUE(is[3].status);
+    EXPECT_TRUE(is[3].is_inside());
     EXPECT_FALSE(std::signbit(is[3].local()[0]));
-    EXPECT_TRUE(is[4].status);
+    EXPECT_TRUE(is[4].is_inside());
     EXPECT_FALSE(std::signbit(is[4].local()[0]));
-    EXPECT_FALSE(is[5].status);
+    EXPECT_FALSE(is[5].is_inside());
     EXPECT_FALSE(std::signbit(is[5].local()[0]));
 
-    EXPECT_TRUE(is[6].status);
+    EXPECT_TRUE(is[6].is_inside());
     EXPECT_FALSE(std::signbit(is[6].local()[0]));
-    EXPECT_TRUE(is[7].status);
+    EXPECT_TRUE(is[7].is_inside());
     EXPECT_FALSE(std::signbit(is[7].local()[0]));
-    EXPECT_FALSE(is[8].status);
+    EXPECT_FALSE(is[8].is_inside());
     EXPECT_FALSE(std::signbit(is[8].local()[0]));
 
-    EXPECT_TRUE(is[9].status);
+    EXPECT_TRUE(is[9].is_inside());
     EXPECT_TRUE(std::signbit(is[9].local()[0]));
-    EXPECT_TRUE(is[10].status);
+    EXPECT_TRUE(is[10].is_inside());
     EXPECT_TRUE(std::signbit(is[10].local()[0]));
-    EXPECT_FALSE(is[11].status);
+    EXPECT_FALSE(is[11].is_inside());
     EXPECT_TRUE(std::signbit(is[11].local()[0]));
 }
