@@ -155,7 +155,7 @@ void BM_INTERSECT_PLANES_AOS(benchmark::State& state) {
                 auto is = pi(ray, plane_descs[i], masks[i], tranforms[i]);
 
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
-                if (is.status) {
+                if (is.is_inside()) {
                     ++hit;
                 } else {
                     ++miss;
@@ -218,8 +218,8 @@ void BM_INTERSECT_PLANES_SOA(benchmark::State& state) {
                 benchmark::DoNotOptimize(is);
 
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
-                hit += is.status.count();
-                miss += simd_size - is.status.count();
+                hit += is.is_inside().count();
+                miss += simd_size - is.is_inside().count();
 #endif
             }
         }
@@ -280,7 +280,7 @@ void BM_INTERSECT_CYLINDERS_AOS(benchmark::State& state) {
                 static_assert(is.size() == 2u, "Wrong number of solutions");
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
                 for (const auto& i : is) {
-                    if (i.status) {
+                    if (i.is_inside()) {
                         ++hit;
                     } else {
                         ++miss;
@@ -346,8 +346,8 @@ void BM_INTERSECT_CYLINDERS_SOA(benchmark::State& state) {
                 static_assert(is.size() == 2u, "Wrong number of solutions");
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
                 for (const auto& i : is) {
-                    hit += i.status.count();
-                    miss += simd_size - i.status.count();
+                    hit += i.is_inside().count();
+                    miss += simd_size - i.is_inside().count();
                 }
 #endif
                 benchmark::DoNotOptimize(is);
@@ -406,7 +406,7 @@ void BM_INTERSECT_CONCENTRIC_CYLINDERS_AOS(benchmark::State& state) {
             for (const auto& cylinder : masks) {
                 auto is = cci(ray, cyl_desc, cylinder, trf);
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
-                if (is.status) {
+                if (is.is_inside()) {
                     ++hit;
                 } else {
                     ++miss;
@@ -467,8 +467,8 @@ void BM_INTERSECT_CONCENTRIC_CYLINDERS_SOA(benchmark::State& state) {
             for (const auto& cylinder : masks) {
                 auto is = cci(ray, cyl_desc, cylinder, trf);
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
-                hit += is.status.count();
-                miss += simd_size - is.status.count();
+                hit += is.is_inside().count();
+                miss += simd_size - is.is_inside().count();
 #endif
                 benchmark::DoNotOptimize(is);
             }
