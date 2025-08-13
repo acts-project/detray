@@ -300,7 +300,7 @@ GTEST_TEST(detray_intersection, intersection_kernel_helix) {
         mask_store.visit<intersection_initialize<helix_intersector>>(
             surface.mask(), sfi_helix, h, surface, transform_store,
             static_context, std::array<scalar, 2>{0.f, 0.f}, scalar{0.f},
-            scalar{0.f});
+            scalar{0.f}, scalar{0.f});
 
         vector3 global{0.f, 0.f, 0.f};
 

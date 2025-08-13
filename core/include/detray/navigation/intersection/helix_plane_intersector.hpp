@@ -64,7 +64,7 @@ struct helix_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
     /// @return the intersection
     DETRAY_HOST_DEVICE constexpr result_type point_of_intersection(
         const trajectory_type<algebra_t> &h, const transform3_type &trf,
-        const scalar_type = 0.f) const {
+        const scalar_type = 0.f, const scalar_type = 0.f) const {
 
         if (!run_rtsafe) {
             // Get the surface info

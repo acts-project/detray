@@ -145,10 +145,27 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
     // State type in the nominal navigation (no inspectors)
     using nav_stat_t = navigator<detector_t, cache_size>::state;
 
-    // 256 bytes for single precision
-    static_assert(sizeof(nav_stat_t) ==
-                  16 + navigation::default_cache_size *
-                           sizeof(typename nav_stat_t::value_type));
+    // Check memory layout of intersection struct (currently 224)
+    constexpr std::size_t offset{navigation::default_cache_size *
+                                 sizeof(typename nav_stat_t::value_type)};
+    // Align to GPU read boundaries
+    static_assert(offset % 32 == 0);
+    static_assert(offsetof(nav_stat_t, m_detector) == offset);
+    static_assert(offsetof(nav_stat_t, m_status) == offset + 8);
+    static_assert(offsetof(nav_stat_t, m_trust_level) == offset + 9);
+    static_assert(offsetof(nav_stat_t, m_direction) == offset + 10);
+    static_assert(offsetof(nav_stat_t, m_heartbeat) == offset + 11);
+    static_assert(offsetof(nav_stat_t, m_external_mask_tol) == offset + 12);
+    // 16-byte alignment for the candidate indices
+    static_assert((offsetof(nav_stat_t, m_next) == offset + 16) ||
+                  (offsetof(nav_stat_t, m_next) == offset + 20));
+    static_assert((offsetof(nav_stat_t, m_last) == offset + 17) ||
+                  (offsetof(nav_stat_t, m_last) == offset + 21));
+    static_assert((offsetof(nav_stat_t, m_volume_index) == offset + 18) ||
+                  (offsetof(nav_stat_t, m_volume_index) == offset + 22));
+
+    // 240 bytes for single precision + padding due to overalignment
+    static_assert((sizeof(nav_stat_t) == 256));
 
     // test track
     point3 pos{0.f, 0.f, 0.f};

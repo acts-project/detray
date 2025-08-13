@@ -27,7 +27,7 @@ namespace detray {
 
 namespace navigation {
 
-static constexpr std::size_t default_cache_size{10u};
+static constexpr std::size_t default_cache_size{8u};
 
 /// A void inpector that does nothing.
 ///
@@ -122,7 +122,7 @@ class navigator {
     /// towards the navigation. The navigator is responsible for updating the
     /// elements in the state's cache with every navigation call, establishing
     /// 'full trust' after changes to the track state reduced the trust level.
-    class state : public detray::ranges::view_interface<state> {
+    class alignas(128) state : public detray::ranges::view_interface<state> {
 
         friend class navigator;
 
@@ -307,6 +307,19 @@ class navigator {
         inline void set_direction(const navigation::direction dir) {
             m_direction = dir;
             set_no_trust();
+        }
+
+        /// @returns the externally set mask tolerance - const
+        DETRAY_HOST_DEVICE
+        inline constexpr scalar_type external_mask_tolerance() const {
+            return m_external_mask_tol;
+        }
+
+        /// Set the externally set mask tolerance accroding to noise prediction
+        DETRAY_HOST_DEVICE
+        inline constexpr void set_external_mask_tolerance(
+            const scalar_type tol) {
+            m_external_mask_tol = tol;
         }
 
         /// @returns navigation trust level - const
@@ -644,22 +657,12 @@ class navigator {
             }
         }
 
+        public:
         /// Our cache of candidates (intersections with any kind of surface)
         candidate_cache_t m_candidates;
 
         /// Detector pointer
         const detector_type *m_detector{nullptr};
-
-        /// Index in the detector volume container of current navigation volume
-        nav_link_type m_volume_index{0u};
-
-        /// The next best candidate (target): m_next <= m_last + 1.
-        /// m_next can be larger than m_last when the cache is exhausted
-        dist_t m_next{0};
-
-        /// The last reachable candidate: m_last < k_cache_capacity
-        /// Can never be advanced beyond the last element
-        dist_t m_last{-1};
 
         /// The navigation status
         navigation::status m_status{navigation::status::e_unknown};
@@ -674,6 +677,20 @@ class navigator {
 
         /// Heartbeat of this navigation flow signals navigation is alive
         bool m_heartbeat{false};
+
+        /// External mask tolerance, that models noise during track transport
+        scalar_type m_external_mask_tol{0.f * unit<scalar_type>::mm};
+
+        /// The next best candidate (target): m_next <= m_last + 1.
+        /// m_next can be larger than m_last when the cache is exhausted
+        dist_t m_next{0};
+
+        /// The last reachable candidate: m_last < k_cache_capacity
+        /// Can never be advanced beyond the last element
+        dist_t m_last{-1};
+
+        /// Index in the detector volume container of current navigation volume
+        nav_link_type m_volume_index{0u};
 
         /// The inspector type of this navigation engine
         [[no_unique_address]] inspector_type m_inspector;
@@ -704,7 +721,8 @@ class navigator {
                         track.dir()),
                 sf_descr, det.transform_store(), ctx,
                 sf.is_portal() ? darray<scalar_type, 2>{0.f, 0.f} : mask_tol,
-                mask_tol_scalor, overstep_tol);
+                mask_tol_scalor, nav_state.external_mask_tolerance(),
+                overstep_tol);
         }
     };
 
@@ -893,7 +911,8 @@ class navigator {
         if (navigation.trust_level() == navigation::trust_level::e_high) {
             // Update next candidate: If not reachable, 'high trust' is broken
             if (!update_candidate(navigation.direction(), navigation.target(),
-                                  track, det, cfg, ctx)) {
+                                  track, det, cfg,
+                                  navigation.external_mask_tolerance(), ctx)) {
                 navigation.m_status = navigation::status::e_unknown;
                 navigation.set_fair_trust();
             } else {
@@ -915,9 +934,9 @@ class navigator {
 
                 // Else: Track is on module.
                 // Ready the next candidate after the current module
-                if (update_candidate(navigation.direction(),
-                                     navigation.target(), track, det, cfg,
-                                     ctx)) {
+                if (update_candidate(
+                        navigation.direction(), navigation.target(), track, det,
+                        cfg, navigation.external_mask_tolerance(), ctx)) {
                     return false;
                 }
 
@@ -935,8 +954,9 @@ class navigator {
 
             for (auto &candidate : navigation) {
                 // Disregard this candidate if it is not reachable
-                if (!update_candidate(navigation.direction(), candidate, track,
-                                      det, cfg, ctx)) {
+                if (!update_candidate(
+                        navigation.direction(), candidate, track, det, cfg,
+                        navigation.external_mask_tolerance(), ctx)) {
                     // Forcefully set dist to numeric max for sorting
                     candidate.set_path(std::numeric_limits<scalar_type>::max());
                 }
@@ -1024,7 +1044,9 @@ class navigator {
     DETRAY_HOST_DEVICE inline bool update_candidate(
         const navigation::direction nav_dir, intersection_type &candidate,
         const track_t &track, const detector_type &det,
-        const navigation::config &cfg, const context_type &ctx) const {
+        const navigation::config &cfg,
+        const scalar_type external_mask_tolerance,
+        const context_type &ctx) const {
 
         if (candidate.sf_desc.barcode().is_invalid()) {
             return false;
@@ -1041,6 +1063,7 @@ class navigator {
                            : darray<scalar_type, 2>{cfg.min_mask_tolerance,
                                                     cfg.max_mask_tolerance},
             static_cast<scalar_type>(cfg.mask_tolerance_scalor),
+            external_mask_tolerance,
             static_cast<scalar_type>(cfg.overstep_tolerance));
     }
 

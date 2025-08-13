@@ -53,6 +53,7 @@ struct intersection_initialize {
         const darray<scalar_t, 2u> &mask_tolerance = {0.f,
                                                       1.f * unit<scalar_t>::mm},
         const scalar_t mask_tol_scalor = 0.f,
+        const scalar_t external_mask_tolerance = 0.f,
         const scalar_t overstep_tol = 0.f) const {
 
         using mask_t = typename mask_group_t::value_type;
@@ -115,7 +116,8 @@ struct intersection_initialize {
 
                 for (std::size_t i = 0u; i < n_sol; ++i) {
                     resolve_mask(is, traj, result[i], sf_desc, mask, ctf,
-                                 mask_tolerance, mask_tol_scalor, overstep_tol);
+                                 mask_tolerance, mask_tol_scalor,
+                                 external_mask_tolerance, overstep_tol);
 
                     if (is.is_probably_inside()) {
                         insert_sorted(is, is_container);
@@ -127,7 +129,8 @@ struct intersection_initialize {
                 }
             } else {
                 resolve_mask(is, traj, result, sf_desc, mask, ctf,
-                             mask_tolerance, mask_tol_scalor, overstep_tol);
+                             mask_tolerance, mask_tol_scalor,
+                             external_mask_tolerance, overstep_tol);
 
                 if (is.is_probably_inside()) {
                     insert_sorted(is, is_container);
@@ -181,6 +184,7 @@ struct intersection_update {
         const darray<scalar_t, 2u> &mask_tolerance = {0.f,
                                                       1.f * unit<scalar_t>::mm},
         const scalar_t mask_tol_scalor = 0.f,
+        const scalar_t external_mask_tolerance = 0.f,
         const scalar_t overstep_tol = 0.f) const {
 
         using mask_t = typename mask_group_t::value_type;
@@ -237,10 +241,12 @@ struct intersection_update {
             // Build the resulting intersecion(s) from the intersection point
             if constexpr (n_sol > 1) {
                 resolve_mask(sfi, traj, result[0], sfi.sf_desc, mask, ctf,
-                             mask_tolerance, mask_tol_scalor, overstep_tol);
+                             mask_tolerance, mask_tol_scalor,
+                             external_mask_tolerance, overstep_tol);
             } else {
                 resolve_mask(sfi, traj, result, sfi.sf_desc, mask, ctf,
-                             mask_tolerance, mask_tol_scalor, overstep_tol);
+                             mask_tolerance, mask_tol_scalor,
+                             external_mask_tolerance, overstep_tol);
             }
 
             if (sfi.is_probably_inside()) {

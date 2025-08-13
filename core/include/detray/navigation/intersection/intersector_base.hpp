@@ -172,7 +172,9 @@ DETRAY_HOST_DEVICE constexpr void resolve_mask(
         &ip,
     const surface_descr_t sf_desc, const mask_t &mask, const transform3_t &trf,
     const darray<scalar_t, 2> &mask_tolerance,
-    const scalar_t mask_tol_scalor = 0.f, const scalar_t overstep_tol = 0.f) {
+    const scalar_t mask_tol_scalor = 0.f,
+    const scalar_t external_mask_tolerance = 0.f,
+    const scalar_t overstep_tol = 0.f) {
 
     // Build intersection struct from test trajectory, if the distance is valid
     if (detray::detail::none_of(ip.path >= overstep_tol)) {
@@ -220,26 +222,20 @@ DETRAY_HOST_DEVICE constexpr void resolve_mask(
     if constexpr (std::same_as<point_t, dpoint2D<algebra_t>>) {
         if (mask.is_inside(ip.point, base_tol)) {
             is.set_status(intersection::status::e_inside);
-        }
-        /*if (mask.is_inside(ip.point, base_tol)) {
-            is.set_status(intersection::status::e_inside);
         } else if (mask.is_inside(ip.point,
-                                    base_tol + external_mask_tolerance)) {
+                                  base_tol + external_mask_tolerance)) {
             is.set_status(intersection::status::e_edge);
         } else { /*outside*/
-        //}
+        }
     } else {
+        // Otherwise, let the shape transform the point to local
         if (mask.is_inside(trf, ip.point, base_tol)) {
             is.set_status(intersection::status::e_inside);
-        }
-        // Otherwise, let the shape transform the point to local
-        /*if (mask.is_inside(trf, ip.point, base_tol)) {
-            is.set_status(intersection::status::e_inside);
         } else if (mask.is_inside(trf, ip.point,
-                                    base_tol + external_mask_tolerance)) {
+                                  base_tol + external_mask_tolerance)) {
             is.set_status(intersection::status::e_edge);
         } else { /*outside*/
-        //}
+        }
     }
 
     is.set_path(ip.path);
