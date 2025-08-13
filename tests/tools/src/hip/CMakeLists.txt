@@ -39,6 +39,11 @@ if(DETRAY_BUILD_BENCHMARKS)
         )
             set_source_files_properties(propagator_hip.cpp PROPERTIES LANGUAGE HIP)
         endif()
+        target_compile_definitions(
+            detray_propagation_benchmark_hip_${CMAKE_HIP_PLATFORM}_${algebra}
+
+            PRIVATE HIP_PLATFORM_NAME="${CMAKE_HIP_PLATFORM}"
+        )
 
     endforeach()
 endif()
