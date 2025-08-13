@@ -205,6 +205,7 @@ class material_map_factory final : public factory_decorator<detector_t> {
             }
 
             auto map_id{m_links.at(sf_idx).first};
+            DETRAY_DEBUG("material map factory sets map_id=" << map_id);
             surfaces[sf_idx].material() = link_t{map_id, dindex_invalid};
         }
     }
