@@ -58,6 +58,7 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t, do_debug> {
         const mask_t &mask, const transform3_type &trf,
         const darray<scalar_type, 2u> &mask_tolerance = {0.f, 1.f},
         const scalar_type mask_tol_scalor = 0.f,
+        const scalar_type external_mask_tolerance = 0.f,
         const scalar_type overstep_tol = 0.f) const {
 
         using status_t = typename intersection_type<surface_descr_t>::status_t;
@@ -115,7 +116,7 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t, do_debug> {
         is.status(mask.is_inside(loc, base_tol)) =
             static_cast<status_t>(intersection::status::e_inside);
 
-        is.status(mask.is_inside(loc, base_tol)) =
+        is.status(mask.is_inside(loc, base_tol + external_mask_tolerance)) =
             static_cast<status_t>(intersection::status::e_edge);
 
         // Early return, if no intersection was found
@@ -151,9 +152,11 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t, do_debug> {
         const transform3_type &trf,
         const darray<scalar_type, 2u> &mask_tolerance = {0.f, 1.f},
         const scalar_type mask_tol_scalor = 0.f,
+        const scalar_type external_mask_tolerance = 0.f,
         const scalar_type overstep_tol = 0.f) const {
         sfi = this->operator()(ray, sfi.sf_desc, mask, trf, mask_tolerance,
-                               mask_tol_scalor, overstep_tol);
+                               mask_tol_scalor, external_mask_tolerance,
+                               overstep_tol);
     }
 };
 

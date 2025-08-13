@@ -61,6 +61,7 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
                const transform3_type &trf,
                const darray<scalar_type, 2u> &mask_tolerance = {0.f, 1.f},
                const scalar_type mask_tol_scalor = 0.f,
+               const scalar_type external_mask_tolerance = 0.f,
                const scalar_type overstep_tol = 0.f) const {
 
         // One or both of these solutions might be invalid
@@ -69,12 +70,12 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
         darray<intersection_type<surface_descr_t>, 2> ret;
         ret[1] = build_candidate<surface_descr_t>(
             ray, mask, trf, qe.larger(), mask_tolerance, mask_tol_scalor,
-            overstep_tol);
+            external_mask_tolerance, overstep_tol);
         ret[1].sf_desc = sf;
 
         ret[0] = build_candidate<surface_descr_t>(
             ray, mask, trf, qe.smaller(), mask_tolerance, mask_tol_scalor,
-            overstep_tol);
+            external_mask_tolerance, overstep_tol);
         ret[0].sf_desc = sf;
 
         // Even if there are two geometrically valid solutions, the smaller one
@@ -100,6 +101,7 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
         const transform3_type &trf,
         const darray<scalar_type, 2u> &mask_tolerance = {0.f, 1.f},
         const scalar_type mask_tol_scalor = 0.f,
+        const scalar_type external_mask_tolerance = 0.f,
         const scalar_type overstep_tol = 0.f) const {
 
         // One or both of these solutions might be invalid
@@ -112,9 +114,9 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
             return;
         }
 
-        sfi = build_candidate<surface_descr_t>(ray, mask, trf, qe.smaller(),
-                                               mask_tolerance, mask_tol_scalor,
-                                               overstep_tol);
+        sfi = build_candidate<surface_descr_t>(
+            ray, mask, trf, qe.smaller(), mask_tolerance, mask_tol_scalor,
+            external_mask_tolerance, overstep_tol);
     }
 
     protected:
@@ -161,6 +163,7 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
                     const darray<scalar_type, 2u> &mask_tolerance =
                         {0.f, 1.f * unit<scalar_type>::mm},
                     const scalar_type mask_tol_scalor = 0.f,
+                    const scalar_type external_mask_tolerance = 0.f,
                     const scalar_type overstep_tol = 0.f) const {
 
         using status_t = typename intersection_type<surface_descr_t>::status_t;
@@ -189,7 +192,7 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
         is.status(mask.is_inside(loc, base_tol)) =
             static_cast<status_t>(intersection::status::e_inside);
 
-        is.status(mask.is_inside(loc, base_tol)) =
+        is.status(mask.is_inside(loc, base_tol + external_mask_tolerance)) =
             static_cast<status_t>(intersection::status::e_edge);
 
         is.direction = !math::signbit(is.path);

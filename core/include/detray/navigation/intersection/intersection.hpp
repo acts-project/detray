@@ -40,7 +40,7 @@ struct intersection2D {};
 ///
 /// @tparam surface_descr_t is the type of surface descriptor
 template <typename surface_descr_t, concepts::algebra algebra_t>
-struct intersection2D<surface_descr_t, algebra_t, false> {
+struct /*alignas(32)*/ intersection2D<surface_descr_t, algebra_t, false> {
 
     using algebra_type = algebra_t;
     using T = dvalue<algebra_t>;
