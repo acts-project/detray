@@ -435,7 +435,7 @@ class direct_navigator {
                 navigation.target(), det.transform_store(), ctx,
                 darray<scalar_type, 2>{cfg.min_mask_tolerance,
                                        cfg.max_mask_tolerance},
-                static_cast<scalar_type>(cfg.mask_tolerance_scalor),
+                static_cast<scalar_type>(cfg.mask_tolerance_scalor), 0.f,
                 static_cast<scalar_type>(cfg.overstep_tolerance));
 
         // If an intersection is not found, proceed the track with safe step
