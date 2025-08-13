@@ -141,23 +141,6 @@
          }
       },
       {
-         "name" : "gitlab-hip-ci",
-         "displayName" : "Gitlab CUDA CI Configuration",
-         "inherits" : [ "hip-fp32" ],
-         "cacheVariables" : {
-            "CMAKE_HIP_PLATFORM" : "nvidia",
-            "BUILD_TESTING" : "TRUE",
-            "DETRAY_BUILD_HOST" : "FALSE",
-            "DETRAY_BUILD_UNITTESTS" : "TRUE",
-            "DETRAY_BUILD_INTEGRATIONTESTS" : "TRUE",
-            "DETRAY_BUILD_CLI_TOOLS" : "FALSE",
-            "DETRAY_BUILD_BENCHMARKS" : "FALSE",
-            "DETRAY_BUILD_TUTORIALS" : "FALSE",
-            "DETRAY_FAIL_ON_WARNINGS" : "TRUE",
-            "DETRAY_EIGEN_PLUGIN" : "TRUE"
-         }
-      },
-      {
          "name" : "gitlab-sycl-ci",
          "displayName" : "Gitlab SYCL CI Configuration",
          "inherits" : [ "default-fp32", "sycl" ],
