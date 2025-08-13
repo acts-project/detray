@@ -4,6 +4,8 @@
 #
 # Mozilla Public License Version 2.0
 
+message(STATUS "Building 'detray::benchmark_cpu' component")
+
 # Set the CPU build flags.
 include(detray-compiler-options-cpp)
 

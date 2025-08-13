@@ -4,7 +4,7 @@
 #
 #Mozilla Public License Version 2.0
 
-message(STATUS "Building detray device command line tools")
+message(STATUS "Building detray CUDA command line tools")
 
 # Enable CUDA as a language.
 enable_language(CUDA)
