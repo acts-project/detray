@@ -132,8 +132,23 @@ class material_map_builder final : public volume_decorator<detector_t> {
                 axis_spans, det._materials);
 
             // Make sure the linking was precomputed correctly
-            assert(mat_id == sf_desc.material().id());
-            assert(mat_idx == sf_desc.material().index());
+            std::stringstream err_msg;
+            if (mat_id != sf_desc.material().id()) {
+                err_msg
+                    << "Material map builder: material id mismatch for surface "
+                    << sf_idx << ": expected " << sf_desc.material().id()
+                    << ", got " << mat_id;
+
+                throw std::runtime_error(err_msg.str());
+            }
+            if (mat_idx != sf_desc.material().index()) {
+                err_msg << "Material map builder: material index mismatch for "
+                           "surface "
+                        << sf_idx << ": expected " << sf_desc.material().index()
+                        << ", got " << mat_idx;
+
+                throw std::runtime_error(err_msg.str());
+            }
             sf_idx++;
         }
 
