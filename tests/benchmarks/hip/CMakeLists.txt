@@ -26,7 +26,7 @@ endif()
 foreach(algebra ${algebra_plugins})
     detray_add_executable(benchmark_hip_propagation_${CMAKE_HIP_PLATFORM}_${algebra}
       "propagation.cpp"
-       LINK_LIBRARIES detray::benchmark_hip_${CMAKE_HIP_PLATFORM}_${algebra} detray::core_${algebra} vecmem::hip detray::test_common HIP::hiprt
+       LINK_LIBRARIES detray::benchmark_hip_${CMAKE_HIP_PLATFORM}_${algebra} HIP::hiprt detray::core_${algebra} vecmem::hip detray::test_common 
     )
 
     if(
