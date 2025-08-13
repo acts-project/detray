@@ -71,6 +71,7 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
         const darray<scalar_type, 2u> mask_tolerance =
             {0.f, 1.f * unit<scalar_type>::mm},
         const scalar_type mask_tol_scalor = 0.f,
+        const scalar_type external_mask_tolerance = 0.f,
         const scalar_type overstep_tol = 0.f) const {
 
         intersection_type<surface_descr_t> is;
@@ -91,7 +92,7 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
 
             is = this->template build_candidate<surface_descr_t>(
                 ray, mask, trf, t, mask_tolerance, mask_tol_scalor,
-                overstep_tol);
+                external_mask_tolerance, overstep_tol);
             is.sf_desc = sf;
         } else {
             is.set_status(intersection::status::e_outside);
@@ -127,9 +128,11 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
         const darray<scalar_type, 2u> &mask_tolerance =
             {0.f, 1.f * unit<scalar_type>::mm},
         const scalar_type mask_tol_scalor = 0.f,
+        const scalar_type external_mask_tolerance = 0.f,
         const scalar_type overstep_tol = 0.f) const {
         sfi = this->operator()(ray, sfi.sf_desc, mask, trf, mask_tolerance,
-                               mask_tol_scalor, overstep_tol);
+                               mask_tol_scalor, external_mask_tolerance,
+                               overstep_tol);
     }
 };
 

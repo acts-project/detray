@@ -62,6 +62,7 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, do_debug> {
         const darray<scalar_type, 2u> mask_tolerance =
             {0.f, 1.f * unit<scalar_type>::mm},
         const scalar_type mask_tol_scalor = 0.f,
+        const scalar_type external_mask_tolerance = 0.f,
         const scalar_type overstep_tol = 0.f) const {
 
         intersection_type<surface_descr_t> is;
@@ -93,7 +94,8 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, do_debug> {
                                         mask_tol_scalor * math::fabs(is.path)));
                 if (mask.is_inside(loc, base_tol)) {
                     is.set_status(intersection::status::e_inside);
-                } else if (mask.is_inside(loc, base_tol)) {
+                } else if (mask.is_inside(loc,
+                                          base_tol + external_mask_tolerance)) {
                     is.set_status(intersection::status::e_edge);
                 } else { /*outside*/
                 }
@@ -137,9 +139,11 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, do_debug> {
         const darray<scalar_type, 2u> &mask_tolerance =
             {0.f, 1.f * unit<scalar_type>::mm},
         const scalar_type mask_tol_scalor = 0.f,
+        const scalar_type external_mask_tolerance = 0.f,
         const scalar_type overstep_tol = 0.f) const {
         sfi = this->operator()(ray, sfi.sf_desc, mask, trf, mask_tolerance,
-                               mask_tol_scalor, overstep_tol);
+                               mask_tol_scalor, external_mask_tolerance,
+                               overstep_tol);
     }
 };
 
