@@ -30,7 +30,7 @@ endif()
 
 foreach(algebra ${algebras})
     # Unit tests for the selected algebra.
-    detray_add_integration_test(hip_${CMAKE_BUILD_PLATFORM}_${algebra}
+    detray_add_integration_test(hip_${CMAKE_HIP_PLATFORM}_${algebra}
        "propagator_hip_kernel.hpp"
        "propagator_hip.cpp"
        "propagator_hip_kernel.hip"
@@ -49,14 +49,14 @@ foreach(algebra ${algebras})
     endif()
 
     target_compile_definitions(
-        detray_integration_test_hip_${CMAKE_BUILD_PLATFORM}_${algebra}
+        detray_integration_test_hip_${CMAKE_HIP_PLATFORM}_${algebra}
         PRIVATE ${algebra}=${algebra}
     )
 
     set_tests_properties(
-        detray_integration_test_hip_${CMAKE_BUILD_PLATFORM}_${algebra}
+        detray_integration_test_hip_${CMAKE_HIP_PLATFORM}_${algebra}
         PROPERTIES
-            DEPENDS "detray_unit_test_hip_${CMAKE_BUILD_PLATFORM}_${algebra}"
+            DEPENDS "detray_unit_test_hip_${CMAKE_HIP_PLATFORM}_${algebra}"
     )
 endforeach()
 
