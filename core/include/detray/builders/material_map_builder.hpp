@@ -315,11 +315,11 @@ struct add_sf_material_map {
                 // Add the material grid to the detector
                 constexpr auto gid{
                     materials_t::template get_id<non_owning_t>()};
+                mat_store.template push_back<gid>(mat_grid);
                 DETRAY_DEBUG("Adding material grid with gid="
                              << gid << " mat_grid=" << mat_grid
                              << "(size is now "
                              << mat_store.template size<gid>() << ")");
-                mat_store.template push_back<gid>(mat_grid);
 
                 // Return the index of the new material map
                 return {gid, static_cast<dindex>(
