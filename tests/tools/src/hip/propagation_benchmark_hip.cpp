@@ -177,7 +177,7 @@ int main(int argc, char** argv) {
     }
 
     // These fields are needed by the plotting scripts, even if undefined
-    ::benchmark::AddCustomContext("Backend", "HIP");
+    ::benchmark::AddCustomContext("Backend", HIP_PLATFORM_NAME );
     ::benchmark::AddCustomContext("Backend Name", proc_name);
     ::benchmark::AddCustomContext("Algebra-plugin",
                                   detray::types::get_name<bench_algebra>());
