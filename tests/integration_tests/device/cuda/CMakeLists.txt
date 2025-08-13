@@ -29,8 +29,8 @@ foreach(algebra ${algebras})
        "propagator_cuda_kernel.hpp"
        "propagator_cuda.cpp"
        "propagator_cuda_kernel.cu"
-       LINK_LIBRARIES GTest::gtest_main vecmem::cuda covfie::cuda
-                       detray::core detray::algebra_${algebra} detray::test_cuda
+       LINK_LIBRARIES GTest::gtest_main CUDA::cudart vecmem::cuda covfie::cuda
+                       detray::core detray::algebra_${algebra} detray::test_device
                        detray::test_common
     )
 
