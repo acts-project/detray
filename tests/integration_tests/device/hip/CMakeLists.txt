@@ -35,7 +35,7 @@ foreach(algebra ${algebras})
        "propagator_hip.cpp"
        "propagator_hip_kernel.hip"
        LINK_LIBRARIES GTest::gtest_main 
-        HIP::hiprt vecmem::hip covfie::hip 
+        HIP::hiprt vecmem::hip #covfie::hip 
         detray::core detray::algebra_${algebra} detray::test_device
         detray::test_common 
     )
