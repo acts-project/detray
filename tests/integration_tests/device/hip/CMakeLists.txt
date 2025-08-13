@@ -34,9 +34,10 @@ foreach(algebra ${algebras})
        "propagator_hip_kernel.hpp"
        "propagator_hip.cpp"
        "propagator_hip_kernel.hip"
-       LINK_LIBRARIES GTest::gtest_main vecmem::hip HIP::hiprt #covfie::hip 
-                       detray::core detray::algebra_${algebra} detray::test_device
-                       detray::test_common 
+       LINK_LIBRARIES GTest::gtest_main 
+        HIP::hiprt vecmem::hip covfie::hip 
+        detray::core detray::algebra_${algebra} detray::test_device
+        detray::test_common 
     )
     # Make hipcc interpret .cpp files as .hip files to make linking work
     # (only needed for the amd backend)

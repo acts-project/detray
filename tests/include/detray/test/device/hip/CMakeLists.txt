@@ -30,8 +30,9 @@ add_library(detray::test_hip ALIAS detray_test_hip)
 target_link_libraries(
     detray_test_hip
     PUBLIC
+        HIP::hiprt
         vecmem::hip
-        #covfie::hip
+        covfie::hip
         detray::core_array
         detray::test_device
         detray::test_cpu
