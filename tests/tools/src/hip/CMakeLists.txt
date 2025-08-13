@@ -29,7 +29,7 @@ if(DETRAY_BUILD_BENCHMARKS)
     foreach(algebra ${algebra_plugins})
         detray_add_executable(propagation_benchmark_hip_${CMAKE_HIP_PLATFORM}_${algebra}
         "propagation_benchmark_hip.cpp"
-        LINK_LIBRARIES detray::benchmark_hip_${CMAKE_HIP_PLATFORM}_${algebra} vecmem::hip detray::tools detray::test_common HIP::hiprt
+        LINK_LIBRARIES detray::benchmark_hip_${CMAKE_HIP_PLATFORM}_${algebra} HIP::hiprt vecmem::hip detray::tools detray::test_common 
         )
         # Make hipcc interpret .cpp files as .hip files to make linking work
         # (only needed for the amd backend)

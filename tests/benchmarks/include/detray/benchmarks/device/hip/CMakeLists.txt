@@ -39,10 +39,10 @@ foreach(algebra ${algebra_plugins})
     target_link_libraries(
         detray_benchmark_hip_${CMAKE_HIP_PLATFORM}_${algebra}
         PUBLIC
+            HIP::hiprt
             vecmem::hip
             detray::benchmarks
             detray::test_common
             detray::core_${algebra}
-            HIP::hiprt
     )
 endforeach()
