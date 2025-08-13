@@ -14,16 +14,13 @@
 #include <regex>
 #include <string>
 
+#include "detray/utils/type_list.hpp"
+
 namespace detray::log::detail {
 template <typename T>
-inline std::string_view cpp_demangle() {
+inline std::string_view process_typename() {
     static const std::string type_name = [] {
-        const char *abiName = typeid(T).name();
-        int status = 0;
-        char *ret = abi::__cxa_demangle(abiName, nullptr, nullptr, &status);
-
-        std::string s{ret};
-        free(static_cast<void *>(ret));
+        std::string s = detray::types::demangle_type_name<T>();
 
         std::regex re{"detray::"};
         s = std::regex_replace(s, re, "");
@@ -44,7 +41,7 @@ inline std::string_view cpp_demangle() {
 }
 }  // namespace detray::log::detail
 
-#define DETRAY_TYPENAME(type) detray::log::detail::cpp_demangle<type>()
+#define DETRAY_TYPENAME(type) detray::log::detail::process_typename<type>()
 
 #define __FILENAME__ \
     (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
