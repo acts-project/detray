@@ -24,18 +24,25 @@ if(DETRAY_EIGEN_PLUGIN)
 endif()
 
 foreach(algebra ${algebra_plugins})
-    detray_add_executable(benchmark_hip_propagation_${algebra}
+    detray_add_executable(benchmark_hip_propagation_${CMAKE_HIP_PLATFORM}_${algebra}
       "propagation.cpp"
-       LINK_LIBRARIES detray::benchmark_hip_${algebra} detray::core_${algebra} vecmem::hip detray::test_common HIP::hiprt
+       LINK_LIBRARIES detray::benchmark_hip_${CMAKE_HIP_PLATFORM}_${algebra} detray::core_${algebra} vecmem::hip detray::test_common HIP::hiprt
     )
 
+    if(
+        ("${CMAKE_HIP_PLATFORM}" STREQUAL "hcc")
+        OR ("${CMAKE_HIP_PLATFORM}" STREQUAL "amd")
+    )
+        set_source_files_properties(propagation.cpp PROPERTIES LANGUAGE HIP)
+    endif()
+
     target_compile_definitions(
-        detray_benchmark_hip_propagation_${algebra}
+        detray_benchmark_hip_propagation_${CMAKE_HIP_PLATFORM}_${algebra}
         PRIVATE ${algebra}=${algebra}
     )
 
     target_compile_options(
-        detray_benchmark_hip_propagation_${algebra}
+        detray_benchmark_hip_propagation_${CMAKE_HIP_PLATFORM}_${algebra}
         PRIVATE "-march=native" "-ftree-vectorize"
     )
 endforeach()

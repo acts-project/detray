@@ -13,8 +13,6 @@ enable_language(HIP)
 
 # Set the HIP build flags.
 include(detray-compiler-options-hip)
-set_source_files_properties(propagation_benchmark.hip PROPERTIES LANGUAGE HIP)
-
 
 # Build benchmark library for multiple algebra plugins to create correct
 # template instantiations
@@ -34,7 +32,7 @@ foreach(algebra ${algebra_plugins})
     )
 
     add_library(
-        detray::benchmark_hip_${algebra}
+        detray::benchmark_hip_${CMAKE_HIP_PLATFORM}_${algebra}
         ALIAS detray_benchmark_hip_${CMAKE_HIP_PLATFORM}_${algebra}
     )
 
