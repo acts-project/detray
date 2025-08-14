@@ -17,6 +17,7 @@
 #include "detray/utils/type_traits.hpp"
 
 // Vecmem include(s)
+#include <detray/utils/log.hpp>
 #include <vecmem/memory/memory_resource.hpp>
 
 // System include(s)
@@ -109,9 +110,15 @@ class detector_builder {
     DETRAY_HOST
     auto build(vecmem::memory_resource& resource) -> detector_type {
 
+        DETRAY_DEBUG("detray: building detector " << name());
+
         detector_type det{resource};
 
+        DETRAY_DEBUG("Have " << m_volumes.size()
+                             << " configured volume builders");
         for (auto& vol_builder : m_volumes) {
+
+            DETRAY_DEBUG("- builder: " << vol_builder->name());
             vol_builder->build(det);
         }
 
@@ -119,6 +126,7 @@ class detector_builder {
 
         // TODO: Add sorting, data deduplication etc. here later...
 
+        DETRAY_DEBUG("detray: detector building complete");
         return det;
     }
 
@@ -127,6 +135,8 @@ class detector_builder {
     DETRAY_HOST
     auto build(vecmem::memory_resource& resource,
                typename detector_type::name_map& name_map) -> detector_type {
+
+        DETRAY_DEBUG("detray: filling names for detector " << name());
 
         assert(name_map.empty());
 
@@ -144,6 +154,7 @@ class detector_builder {
     /// Put the volumes into a search data structure
     template <typename... Args>
     DETRAY_HOST void set_volume_finder([[maybe_unused]] Args&&... args) {
+        DETRAY_DEBUG("Setting volume finder for detector " << name());
 
         using vol_finder_t = typename detector_type::volume_finder;
 
