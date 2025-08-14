@@ -50,3 +50,7 @@ endif()
 if(DETRAY_BUILD_CUDA)
     add_subdirectory(cuda)
 endif()
+
+if(DETRAY_BUILD_HIP)
+    add_subdirectory(hip)
+endif()
