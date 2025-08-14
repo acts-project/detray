@@ -97,9 +97,8 @@ class material_map_builder final : public volume_decorator<detector_t> {
 
     /// Add the volume and the material maps to the detector @param det
     DETRAY_HOST
-    auto build(detector_t& det,
-               typename detector_t::geometry_context ctx = {}) ->
-        typename detector_t::volume_type* override {
+    auto build(detector_t& det, typename detector_t::geometry_context ctx = {})
+        -> typename detector_t::volume_type* override {
         DETRAY_DEBUG("material_map_builder::build()");
 
         // Ensure the material links are correct BEFORE the surfaces are built
@@ -143,10 +142,10 @@ class material_map_builder final : public volume_decorator<detector_t> {
             if (mat_id != sf_desc.material().id()) {
                 err_msg
                     << "Material map builder: material id mismatch for surface "
-                    << sf_idx << ": expected "
-                    << static_cast<int>(sf_desc.material().id()) << ", got "
-                    << static_cast<int>(mat_id);
+                    << sf_idx << ": expected " << sf_desc.material().id()
+                    << ", got " << mat_id;
 
+                DETRAY_ERROR(err_msg.str());
                 throw std::runtime_error(err_msg.str());
             }
             if (mat_idx != sf_desc.material().index()) {
@@ -155,6 +154,7 @@ class material_map_builder final : public volume_decorator<detector_t> {
                         << sf_idx << ": expected " << sf_desc.material().index()
                         << ", got " << mat_idx;
 
+                DETRAY_ERROR(err_msg.str());
                 throw std::runtime_error(err_msg.str());
             }
             sf_idx++;
