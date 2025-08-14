@@ -274,7 +274,10 @@ DETRAY_HOST_DEVICE constexpr void resolve_mask(
     const intersection_point_err<algebra_t> &ip, const surface_descr_t sf_desc,
     const mask_t &mask, const transform3_t &trf,
     const darray<scalar_t, 2> &mask_tolerance, const scalar_t = 0.f,
-    const scalar_t = 0.f) {
+    const scalar_t = 0.f, const scalar_t = 0.f) {
+
+    assert((mask_tolerance[0] == mask_tolerance[1]) &&
+           "Helix intersectors use only one mask tolerance value");
 
     // Build intersection struct from test trajectory, if the distance is valid
     if (!detail::is_invalid_value(ip.path)) {

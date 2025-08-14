@@ -27,6 +27,9 @@ namespace detray::navigation {
 template <typename state_type>
 DETRAY_HOST inline std::string print_state(const state_type &state) {
 
+    using detector_t = typename state_type::detector_type;
+    using scalar_t = typename detector_t::scalar_type;
+
     // Gathers navigation information accross navigator update calls
     std::stringstream debug_stream{};
     // Column width in output
@@ -36,7 +39,7 @@ DETRAY_HOST inline std::string print_state(const state_type &state) {
                  << std::endl;
 
     debug_stream << std::setw(cw) << std::boolalpha
-                 << "hearbeat:" << state.is_alive() << std::endl;
+                 << "heartbeat:" << state.is_alive() << std::endl;
     std::cout << std::noboolalpha;
 
     // Navigation direction
@@ -134,8 +137,14 @@ DETRAY_HOST inline std::string print_state(const state_type &state) {
     } else if (state.is_exhausted()) {
         debug_stream << "no target" << std::endl;
     } else {
-        debug_stream << state() << std::endl;
+        debug_stream << state() / detray::unit<scalar_t>::mm << " mm"
+                     << std::endl;
     }
+
+    // Current external mask tolerance
+    debug_stream << std::setw(cw) << "ext. mask tol.:"
+                 << state.external_tol() / detray::unit<scalar_t>::mm << " mm"
+                 << std::endl;
 
     return debug_stream.str();
 }

@@ -122,7 +122,7 @@ class navigator {
     /// towards the navigation. The navigator is responsible for updating the
     /// elements in the state's cache with every navigation call, establishing
     /// 'full trust' after changes to the track state reduced the trust level.
-    class alignas(128) state : public detray::ranges::view_interface<state> {
+    class state : public detray::ranges::view_interface<state> {
 
         friend class navigator;
 
@@ -309,16 +309,15 @@ class navigator {
             set_no_trust();
         }
 
-        /// @returns the externally set mask tolerance - const
+        /// @returns the externally provided mask tolerance - const
         DETRAY_HOST_DEVICE
-        inline constexpr scalar_type external_mask_tolerance() const {
+        constexpr scalar_type external_tol() const {
             return m_external_mask_tol;
         }
 
-        /// Set the externally set mask tolerance accroding to noise prediction
+        /// Set externally provided mask tolerance according to noise prediction
         DETRAY_HOST_DEVICE
-        inline constexpr void set_external_mask_tolerance(
-            const scalar_type tol) {
+        constexpr void set_external_tol(const scalar_type tol) {
             m_external_mask_tol = tol;
         }
 
@@ -657,7 +656,6 @@ class navigator {
             }
         }
 
-        public:
         /// Our cache of candidates (intersections with any kind of surface)
         candidate_cache_t m_candidates;
 
@@ -721,8 +719,8 @@ class navigator {
                         track.dir()),
                 sf_descr, det.transform_store(), ctx,
                 sf.is_portal() ? darray<scalar_type, 2>{0.f, 0.f} : mask_tol,
-                mask_tol_scalor, nav_state.external_mask_tolerance(),
-                overstep_tol);
+                mask_tol_scalor,
+                sf.is_portal() ? 0.f : nav_state.external_tol(), overstep_tol);
         }
     };
 
@@ -911,8 +909,8 @@ class navigator {
         if (navigation.trust_level() == navigation::trust_level::e_high) {
             // Update next candidate: If not reachable, 'high trust' is broken
             if (!update_candidate(navigation.direction(), navigation.target(),
-                                  track, det, cfg,
-                                  navigation.external_mask_tolerance(), ctx)) {
+                                  track, det, cfg, navigation.external_tol(),
+                                  ctx)) {
                 navigation.m_status = navigation::status::e_unknown;
                 navigation.set_fair_trust();
             } else {
@@ -934,9 +932,9 @@ class navigator {
 
                 // Else: Track is on module.
                 // Ready the next candidate after the current module
-                if (update_candidate(
-                        navigation.direction(), navigation.target(), track, det,
-                        cfg, navigation.external_mask_tolerance(), ctx)) {
+                if (update_candidate(navigation.direction(),
+                                     navigation.target(), track, det, cfg,
+                                     navigation.external_tol(), ctx)) {
                     return false;
                 }
 
@@ -954,9 +952,9 @@ class navigator {
 
             for (auto &candidate : navigation) {
                 // Disregard this candidate if it is not reachable
-                if (!update_candidate(
-                        navigation.direction(), candidate, track, det, cfg,
-                        navigation.external_mask_tolerance(), ctx)) {
+                if (!update_candidate(navigation.direction(), candidate, track,
+                                      det, cfg, navigation.external_tol(),
+                                      ctx)) {
                     // Forcefully set dist to numeric max for sorting
                     candidate.set_path(std::numeric_limits<scalar_type>::max());
                 }
@@ -1063,7 +1061,7 @@ class navigator {
                            : darray<scalar_type, 2>{cfg.min_mask_tolerance,
                                                     cfg.max_mask_tolerance},
             static_cast<scalar_type>(cfg.mask_tolerance_scalor),
-            external_mask_tolerance,
+            sf.is_portal() ? 0.f : external_mask_tolerance,
             static_cast<scalar_type>(cfg.overstep_tolerance));
     }
 

@@ -254,9 +254,12 @@ inline auto record_material(
         cfg.stepping.path_limit};
     typename pointwise_material_interactor<algebra_t>::state interactor_state{};
     typename material_tracer_t::state mat_tracer_state{*host_mr};
+    typename parameter_resetter<algebra_t>::state resetter_state{};
+    // The truth track is not scattered, so the direction is known precisely
+    resetter_state.estimate_scattering_noise = false;
 
     auto actor_states = detray::tie(pathlimit_aborter_state, interactor_state,
-                                    mat_tracer_state);
+                                    mat_tracer_state, resetter_state);
 
     typename propagator_t::state propagation{track, det, cfg.context};
 

@@ -35,11 +35,12 @@ struct propagator {
 
     using stepper_type = stepper_t;
     using navigator_type = navigator_t;
-    using intersection_type = typename navigator_type::intersection_type;
-    using detector_type = typename navigator_type::detector_type;
     using actor_chain_type = actor_chain_t;
+
+    using detector_type = typename navigator_type::detector_type;
     using algebra_type = typename stepper_t::algebra_type;
     using scalar_type = dscalar<algebra_type>;
+    using intersection_type = typename navigator_type::intersection_type;
     using free_track_parameters_type =
         typename stepper_t::free_track_parameters_type;
     using bound_track_parameters_type =
@@ -63,6 +64,7 @@ struct propagator {
     struct state {
 
         using detector_type = typename navigator_t::detector_type;
+        using algebra_type = typename stepper_t::algebra_type;
         using context_type = typename detector_type::geometry_context;
         using navigator_state_type = typename navigator_t::state;
         using actor_chain_type = actor_chain_t;
