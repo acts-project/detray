@@ -136,8 +136,9 @@ class material_map_builder final : public volume_decorator<detector_t> {
             if (mat_id != sf_desc.material().id()) {
                 err_msg
                     << "Material map builder: material id mismatch for surface "
-                    << sf_idx << ": expected " << sf_desc.material().id()
-                    << ", got " << mat_id;
+                    << sf_idx << ": expected "
+                    << static_cast<int>(sf_desc.material().id()) << ", got "
+                    << static_cast<int>(mat_id);
 
                 throw std::runtime_error(err_msg.str());
             }
