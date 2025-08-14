@@ -101,6 +101,8 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
                                  vector3{0.f, 0.f, -1.f});
     // Identity transform for concentric cylinder
     transform_store.emplace_back(static_context, vector3{0.f, 0.f, 0.f});
+    // Shifted retangle
+    transform_store.emplace_back(static_context, vector3{12.f, 0.f, 1000.f});
 
     // The masks & their store
     mask_container_t mask_store(host_mr);
@@ -111,6 +113,8 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
     const cylinder_t cyl{0u, 5.f, -10.f, 10.f};
     const cylinder_portal_t cyl_portal{0u, 1.f, 0.f, 1000.f};
 
+    mask_store.template push_back<mask_ids::e_rectangle2>(rect,
+                                                          empty_context{});
     mask_store.template push_back<mask_ids::e_rectangle2>(rect,
                                                           empty_context{});
     mask_store.template push_back<mask_ids::e_trapezoid2>(trap,
@@ -136,9 +140,12 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
     surface_t cyl_portal_surface(4u, {mask_ids::e_cylinder2_portal, 0u},
                                  {material_ids::e_slab, 2u}, 0u,
                                  surface_id::e_portal);
-    surface_container_t surfaces = {rectangle_surface, trapezoid_surface,
-                                    annulus_surface, cyl_surface,
-                                    cyl_portal_surface};
+    surface_t rectangle_shifted_surface(5u, {mask_ids::e_rectangle2, 1u},
+                                        {material_ids::e_slab, 0u}, 0u,
+                                        surface_id::e_sensitive);
+    surface_container_t surfaces = {
+        rectangle_surface, trapezoid_surface,  annulus_surface,
+        cyl_surface,       cyl_portal_surface, rectangle_shifted_surface};
 
     const point3 pos{0.f, 0.f, 0.f};
     const vector3 mom{0.01f, 0.01f, 10.f};
@@ -151,10 +158,12 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
     const point3 expected_cylinder1{0.045f, 0.045f, 45.0f};
     const point3 expected_cylinder2{0.055f, 0.055f, 55.0f};
     const point3 expected_cylinder_pt{0.7071068f, 0.7071068f, 707.1068f};
+    const point3 expected_rectangle_shifted{1.f, 1.f, 1000.f};
 
     const std::vector<point3> expected_points = {
-        expected_rectangle, expected_trapezoid, expected_annulus,
-        expected_cylinder1, expected_cylinder2, expected_cylinder_pt};
+        expected_rectangle,        expected_trapezoid, expected_annulus,
+        expected_cylinder1,        expected_cylinder2, expected_cylinder_pt,
+        expected_rectangle_shifted};
 
     // Initialize kernel
     std::vector<
@@ -165,7 +174,8 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
     for (const auto &surface : surfaces) {
         mask_store.visit<intersection_initialize<ray_intersector>>(
             surface.mask(), sfi_init, detail::ray(track), surface,
-            transform_store, static_context, std::array<scalar, 2>{tol, tol});
+            transform_store, static_context, std::array<scalar, 2>{tol, tol},
+            scalar{0.f}, 1.f * unit<scalar>::mm);
     }
 
     EXPECT_TRUE(expected_points.size() == sfi_init.size());
@@ -179,30 +189,30 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
 
         vector3 global{0.f, 0.f, 0.f};
 
-        if (sfi_init[i].sf_desc.mask().id() == mask_ids::e_rectangle2) {
+        const surface_t sf_desc = sfi_init[i].sf_desc;
+        if (sf_desc.mask().id() == mask_ids::e_rectangle2) {
             global = rect.to_global_frame(transform_store.at(0),
                                           sfi_init[i].local());
-        } else if (sfi_init[i].sf_desc.mask().id() == mask_ids::e_trapezoid2) {
+        } else if (sf_desc.mask().id() == mask_ids::e_trapezoid2) {
             global = trap.to_global_frame(transform_store.at(1),
                                           sfi_init[i].local());
-        } else if (sfi_init[i].sf_desc.mask().id() == mask_ids::e_annulus2) {
+        } else if (sf_desc.mask().id() == mask_ids::e_annulus2) {
             global = annl.to_global_frame(transform_store.at(2),
                                           sfi_init[i].local());
-        } else if (sfi_init[i].sf_desc.mask().id() == mask_ids::e_cylinder2) {
+        } else if (sf_desc.mask().id() == mask_ids::e_cylinder2) {
             global =
                 cyl.to_global_frame(transform_store.at(3), sfi_init[i].local());
-        } else if (sfi_init[i].sf_desc.mask().id() ==
-                   mask_ids::e_cylinder2_portal) {
+        } else if (sf_desc.mask().id() == mask_ids::e_cylinder2_portal) {
             global = cyl_portal.to_global_frame(transform_store.at(4),
                                                 sfi_init[i].local());
         }
 
         EXPECT_NEAR(global[0], expected_points[i][0], 1e-3f)
-            << " at surface " << sfi_init[i].sf_desc.barcode();
+            << " at surface " << sf_desc.barcode();
         EXPECT_NEAR(global[1], expected_points[i][1], 1e-3f)
-            << " at surface " << sfi_init[i].sf_desc.barcode();
+            << " at surface " << sf_desc.barcode();
         EXPECT_NEAR(global[2], expected_points[i][2], 1e-3f)
-            << " at surface " << sfi_init[i].sf_desc.barcode();
+            << " at surface " << sf_desc.barcode();
     }
 
     // Update kernel

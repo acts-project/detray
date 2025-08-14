@@ -252,6 +252,19 @@ struct intersection2D {
         status = static_cast<status_t>(s);
     }
 
+    /// Set the intersection status according to enum value @param s
+    constexpr void set_status_if(intersection::status s,
+                                 dbool<algebra_t> mask) {
+        // @TODO find a unified conditional assignment in algebra_plugins
+        if constexpr (concepts::soa<algebra_t>) {
+            status(mask) = static_cast<status_t>(s);
+        } else {
+            if (mask) {
+                status = static_cast<status_t>(s);
+            }
+        }
+    }
+
     /// @note: Three way comparison cannot be used easily with SoA boolean masks
     /// @{
     /// @param rhs is the right hand side intersection for comparison

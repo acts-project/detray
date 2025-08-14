@@ -187,7 +187,7 @@ DETRAY_HOST_DEVICE constexpr void resolve_mask(
     if constexpr (concepts::soa<algebra_t>) {
         using status_t = typename intersection_t::status_t;
 
-        is.status(is.path >= overstep_tol) =
+        is.status(is.path() >= overstep_tol) =
             static_cast<status_t>(intersection::status::e_outside);
     }
 
@@ -218,25 +218,24 @@ DETRAY_HOST_DEVICE constexpr void resolve_mask(
         mask_tolerance[0],
         math::min(mask_tolerance[1], mask_tol_scalor * math::fabs(ip.path)));
 
+    // Mask check result with and without external tolerance
+    dbool<algebra_t> check_result{false};
+    dbool<algebra_t> check_result_ext{false};
+
     // Intersector provides specialized local point
     if constexpr (std::same_as<point_t, dpoint2D<algebra_t>>) {
-        if (mask.is_inside(ip.point, base_tol)) {
-            is.set_status(intersection::status::e_inside);
-        } else if (mask.is_inside(ip.point,
-                                  base_tol + external_mask_tolerance)) {
-            is.set_status(intersection::status::e_edge);
-        } else { /*outside*/
-        }
+        check_result = mask.is_inside(ip.point, base_tol);
+        check_result_ext =
+            mask.is_inside(ip.point, base_tol + external_mask_tolerance);
     } else {
         // Otherwise, let the shape transform the point to local
-        if (mask.is_inside(trf, ip.point, base_tol)) {
-            is.set_status(intersection::status::e_inside);
-        } else if (mask.is_inside(trf, ip.point,
-                                  base_tol + external_mask_tolerance)) {
-            is.set_status(intersection::status::e_edge);
-        } else { /*outside*/
-        }
+        check_result = mask.is_inside(trf, ip.point, base_tol);
+        check_result_ext =
+            mask.is_inside(trf, ip.point, base_tol + external_mask_tolerance);
     }
+
+    is.set_status_if(intersection::status::e_inside, check_result);
+    is.set_status_if(intersection::status::e_edge, check_result_ext);
 
     is.set_path(ip.path);
     is.sf_desc = sf_desc;
