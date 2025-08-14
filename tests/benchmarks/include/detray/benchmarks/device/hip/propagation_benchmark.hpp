@@ -26,7 +26,8 @@
 
 // Vecmem include(s)
 #include <vecmem/memory/hip/device_memory_resource.hpp>
-
+#include <vecmem/memory/host_memory_resource.hpp>
+#include <vecmem/memory/memory_resource.hpp>
 #include <vecmem/utils/hip/copy.hpp>
 
 // Benchmark include
