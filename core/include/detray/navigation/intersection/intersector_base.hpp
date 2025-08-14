@@ -78,6 +78,7 @@ struct intersector_base : public intersector_t {
         const darray<scalar_type, 2u> mask_tolerance =
             {0.f, 1.f * unit<value_type>::mm},
         const scalar_type mask_tol_scalor = 0.f,
+        const scalar_type external_mask_tol = 0.f,
         const scalar_type overstep_tol = 0.f) const {
 
         result_type result = call_intersector(traj, mask, trf, overstep_tol);
@@ -85,7 +86,7 @@ struct intersector_base : public intersector_t {
         intersection_type<surface_descr_t> is;
 
         resolve_mask(is, traj, result, sf, mask, trf, mask_tolerance,
-                     mask_tol_scalor, overstep_tol);
+                     mask_tol_scalor, external_mask_tol, overstep_tol);
 
         return is;
     }
@@ -102,6 +103,7 @@ struct intersector_base : public intersector_t {
                const darray<scalar_type, 2u> mask_tolerance =
                    {0.f, 100.f * unit<value_type>::um},
                const scalar_type mask_tol_scalor = 0.f,
+               const scalar_type external_mask_tol = 0.f,
                const scalar_type overstep_tol = 0.f) const {
 
         // One or both of these solutions might be invalid
@@ -112,7 +114,8 @@ struct intersector_base : public intersector_t {
         for (std::size_t i = 0u; i < n_solutions; ++i) {
             if (detray::detail::any_of(result[i].is_valid())) {
                 resolve_mask(ret[i], traj, result[i], sf, mask, trf,
-                             mask_tolerance, mask_tol_scalor, overstep_tol);
+                             mask_tolerance, mask_tol_scalor, external_mask_tol,
+                             overstep_tol);
             }
         }
 
@@ -132,7 +135,7 @@ struct intersector_base : public intersector_t {
         const scalar_type overstep_tol = 0.f) const {
 
         return this->operator()(traj, sf, mask, trf, {mask_tolerance, 0.f}, 0.f,
-                                overstep_tol);
+                                0.f, overstep_tol);
     }
 
     private:
@@ -187,7 +190,7 @@ DETRAY_HOST_DEVICE constexpr void resolve_mask(
     if constexpr (concepts::soa<algebra_t>) {
         using status_t = typename intersection_t::status_t;
 
-        is.status(is.path >= overstep_tol) =
+        is.status(is.path() >= overstep_tol) =
             static_cast<status_t>(intersection::status::e_outside);
     }
 
@@ -218,24 +221,27 @@ DETRAY_HOST_DEVICE constexpr void resolve_mask(
         mask_tolerance[0],
         math::min(mask_tolerance[1], mask_tol_scalor * math::fabs(ip.path)));
 
+    // Mask check results with and without external tolerance
+    dbool<algebra_t> check_mask{false};
+    dbool<algebra_t> check_edge{false};
+
     // Intersector provides specialized local point
     if constexpr (std::same_as<point_t, dpoint2D<algebra_t>>) {
-        if (mask.is_inside(ip.point, base_tol)) {
-            is.set_status(intersection::status::e_inside);
-        } else if (mask.is_inside(ip.point,
-                                  base_tol + external_mask_tolerance)) {
-            is.set_status(intersection::status::e_edge);
-        } else { /*outside*/
-        }
+        check_mask = mask.is_inside(ip.point, base_tol);
+        check_edge =
+            mask.is_inside(ip.point, base_tol + external_mask_tolerance);
     } else {
         // Otherwise, let the shape transform the point to local
-        if (mask.is_inside(trf, ip.point, base_tol)) {
-            is.set_status(intersection::status::e_inside);
-        } else if (mask.is_inside(trf, ip.point,
-                                  base_tol + external_mask_tolerance)) {
-            is.set_status(intersection::status::e_edge);
-        } else { /*outside*/
-        }
+        check_mask = mask.is_inside(trf, ip.point, base_tol);
+        check_edge =
+            mask.is_inside(trf, ip.point, base_tol + external_mask_tolerance);
+    }
+
+    // Set the less strict state first (if not in on the edge, then outside)
+    if (is.set_status_if(intersection::status::e_edge, check_edge)) {
+        is.set_status_if(intersection::status::e_inside, check_mask);
+    } else {
+        is.set_status(intersection::status::e_outside);
     }
 
     is.set_path(ip.path);

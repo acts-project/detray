@@ -479,7 +479,8 @@ bound_getter<test_algebra>::state evaluate_bound_param(
     bound_getter<test_algebra>::state bound_getter_state{};
     bound_getter_state.track_ID = trk_count;
     bound_getter_state.m_min_path_length = detector_length * 0.75f;
-    auto actor_states = detray::tie(bound_getter_state);
+    parameter_resetter<test_algebra>::state resetter_state{};
+    auto actor_states = detray::tie(bound_getter_state, resetter_state);
 
     // Init propagator states for the reference track
     typename propagator_t::state state(initial_param, field, det);
@@ -527,8 +528,9 @@ bound_param_vector_type get_displaced_bound_vector(
     bound_getter<test_algebra>::state bound_getter_state{};
     bound_getter_state.track_ID = trk_count;
     bound_getter_state.m_min_path_length = detector_length * 0.75f;
+    parameter_resetter<test_algebra>::state resetter_state{};
 
-    auto actor_states = detray::tie(bound_getter_state);
+    auto actor_states = detray::tie(bound_getter_state, resetter_state);
     dstate.set_particle(ptc);
     dstate._stepping
         .template set_constraint<detray::step::constraint::e_accuracy>(

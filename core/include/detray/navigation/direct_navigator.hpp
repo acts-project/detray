@@ -235,6 +235,14 @@ class direct_navigator {
             return m_direction;
         }
 
+        /// @returns the externally set mask tolerance - const
+        DETRAY_HOST_DEVICE
+        constexpr scalar_type external_tol() const { return 0.f; }
+
+        /// Set externally provided mask tolerance according to noise prediction
+        DETRAY_HOST_DEVICE
+        constexpr void set_external_tol(const scalar_type) { /* Do nothing */ }
+
         /// Helper method to check the track has reached a module surface
         DETRAY_HOST_DEVICE
         inline auto is_on_surface() const -> bool {
@@ -435,7 +443,8 @@ class direct_navigator {
                 navigation.target(), det.transform_store(), ctx,
                 darray<scalar_type, 2>{cfg.min_mask_tolerance,
                                        cfg.max_mask_tolerance},
-                static_cast<scalar_type>(cfg.mask_tolerance_scalor), 0.f,
+                static_cast<scalar_type>(cfg.mask_tolerance_scalor),
+                scalar_type{0.f},
                 static_cast<scalar_type>(cfg.overstep_tolerance));
 
         // If an intersection is not found, proceed the track with safe step

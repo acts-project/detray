@@ -69,10 +69,12 @@ void propagator_test(
                     cfg.stepping.path_limit};
                 pointwise_material_interactor<test_algebra>::state
                     interactor_state{};
+                parameter_resetter_t::state resetter_state{};
 
                 // Create the actor states
-                auto actor_states = ::detray::tie(tracer_state, aborter_state,
-                                                  interactor_state);
+                auto actor_states =
+                    ::detray::tie(tracer_state, aborter_state, interactor_state,
+                                  resetter_state);
                 // Create the propagator state
                 typename propagator_device_t::state state(tracks[gid],
                                                           field_data, dev_det);

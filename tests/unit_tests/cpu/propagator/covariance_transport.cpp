@@ -102,7 +102,8 @@ GTEST_TEST(detray_propagator, covariance_transport) {
     propagator_t::state propagation(bound_param0, det, prop_cfg.context);
 
     // Run propagator
-    p.propagate(propagation);
+    parameter_resetter<test_algebra>::state resetter_state{};
+    p.propagate(propagation, detray::tie(resetter_state));
 
     // Bound state after one turn propagation
     const auto& bound_param1 = propagation._stepping.bound_params();
