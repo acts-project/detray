@@ -21,6 +21,17 @@
 
 namespace detray {
 
+namespace intersection {
+
+/// Intersection status
+enum class status : std::uint_least8_t {
+    e_inside = 0u,   ///< Inside the mask within numeric uncertainty
+    e_edge = 1u,     ///< Inside the mask's external tolerance band
+    e_outside = 2u,  ///< Outside of mask (including all tolerances)
+};
+
+}  // namespace intersection
+
 template <typename surface_descr_t, concepts::algebra algebra_t,
           bool debug = false>
 struct intersection2D {};
@@ -29,11 +40,17 @@ struct intersection2D {};
 ///
 /// @tparam surface_descr_t is the type of surface descriptor
 template <typename surface_descr_t, concepts::algebra algebra_t>
-struct intersection2D<surface_descr_t, algebra_t, false> {
+struct /*alignas(32)*/ intersection2D<surface_descr_t, algebra_t, false> {
 
     using algebra_type = algebra_t;
     using T = dvalue<algebra_t>;
     using bool_t = dbool<algebra_t>;
+    // This is needed for the SIMD implementation, where the boolean type that
+    // results from the mask tolerance check has to match the SIMD vector type
+    // on which it is used on for a masked assignment of the different status
+    // codes
+    using status_t = std::conditional_t<algebra::concepts::soa<algebra_t>, T,
+                                        intersection::status>;
     using scalar_type = dscalar<algebra_t>;
     using point2_type = dpoint2D<algebra_t>;
     using point3_type = dpoint3D<algebra_t>;
@@ -50,8 +67,9 @@ struct intersection2D<surface_descr_t, algebra_t, false> {
     /// Navigation information (next volume to go to)
     nav_link_t volume_link{detail::invalid_value<nav_link_t>()};
 
-    /// Result of the intersection (true = inside, false = outside)
-    bool_t status{false};
+    /// Result of the intersection
+    dsimd<algebra_t, status_t> status =
+        static_cast<status_t>(intersection::status::e_outside);
 
     /// Direction of the intersection with respect to the track (true = along,
     /// false = opposite)
@@ -59,6 +77,11 @@ struct intersection2D<surface_descr_t, algebra_t, false> {
 
     /// @returns true if debug information needs to be filled
     static consteval bool is_debug() { return false; }
+
+    /// Set the intersection status according to enum value @param s
+    constexpr void set_status(intersection::status s) {
+        status = static_cast<status_t>(s);
+    }
 
     /// @note: Three way comparison cannot be used easily with SoA boolean masks
     /// @{
@@ -99,8 +122,37 @@ struct intersection2D<surface_descr_t, algebra_t, false> {
                std::numeric_limits<float>::epsilon();
     }
 
+    /// @returns true if any of the intersection results is 'inside'
     DETRAY_HOST_DEVICE
-    constexpr bool_t is_inside() const { return detail::any_of(this->status); }
+    constexpr bool is_inside() const {
+        const dsimd<algebra_t, status_t> comp(
+            static_cast<status_t>(intersection::status::e_inside));
+        return detail::any_of(this->status == comp);
+    }
+
+    /// @returns true if any of the intersection results is 'edge'
+    DETRAY_HOST_DEVICE
+    constexpr bool is_edge() const {
+        const dsimd<algebra_t, status_t> comp(
+            static_cast<status_t>(intersection::status::e_edge));
+        return detail::any_of(this->status == comp);
+    }
+
+    /// @returns true if any of the intersection results is 'inside' or 'edge'
+    DETRAY_HOST_DEVICE
+    constexpr bool is_probably_inside() const {
+        const dsimd<algebra_t, status_t> comp(
+            static_cast<status_t>(intersection::status::e_edge));
+        return detail::any_of(this->status <= comp);
+    }
+
+    /// @returns true if all of the intersection results are 'outside'
+    DETRAY_HOST_DEVICE
+    constexpr bool is_outside() const {
+        const status_t comp(
+            static_cast<status_t>(intersection::status::e_outside));
+        return detail::all_of(this->status == comp);
+    }
 
     /// Transform to a string for output debugging
     DETRAY_HOST
@@ -111,9 +163,14 @@ struct intersection2D<surface_descr_t, algebra_t, false> {
                    << ", type: " << static_cast<int>(is.sf_desc.mask().id())
                    << ", links to vol:" << is.volume_link << ")";
 
+        if (is.is_inside()) {
+            out_stream << ", status: inside";
+        } else if (is.is_edge()) {
+            out_stream << ", status: edge";
+        } else {
+            out_stream << ", status: outside";
+        }
         if constexpr (std::is_scalar_v<bool_t>) {
-            out_stream << (is.status ? ", status: inside"
-                                     : ", status: outside");
             out_stream << (is.direction ? ", direction: along"
                                         : ", direction: opposite");
         } else {

@@ -67,7 +67,8 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
                const darray<scalar_type, 2u> mask_tolerance =
                    {detail::invalid_value<scalar_type>(),
                     detail::invalid_value<scalar_type>()},
-               const scalar_type = 0.f, const scalar_type = 0.f) const {
+               const scalar_type = 0.f, const scalar_type = 0.f,
+               const scalar_type = 0.f) const {
         assert((mask_tolerance[0] == mask_tolerance[1]) &&
                "Helix intersectors use only one mask tolerance value");
 
@@ -180,7 +181,9 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
 
                     tol = math::fabs((s - s_prev) * math::sqrt(sin_inc2));
                 }
-                sfi.status = mask.is_inside(sfi.local, tol);
+                sfi.set_status(mask.is_inside(sfi.local, tol)
+                                   ? intersection::status::e_inside
+                                   : intersection::status::e_outside);
                 sfi.sf_desc = sf_desc;
                 sfi.direction = !math::signbit(s);
                 sfi.volume_link = mask.volume_link();
@@ -277,7 +280,7 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
     operator()(const helix_type &h, const surface_descr_t &sf_desc,
                const mask_t &mask, const transform3_type &trf,
                const scalar_type mask_tolerance, const scalar_type = 0.f,
-               const scalar_type = 0.f) const {
+               const scalar_type = 0.f, const scalar_type = 0.f) const {
         return this->operator()(h, sf_desc, mask, trf,
                                 {mask_tolerance, mask_tolerance}, 0.f);
     }

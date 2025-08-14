@@ -65,7 +65,7 @@ void BM_INTERSECT_PLANES(benchmark::State &state) {
 
                 benchmark::DoNotOptimize(sfhit);
                 benchmark::DoNotOptimize(sfmiss);
-                if (is.status) {
+                if (is.is_inside()) {
                     ++sfhit;
                 } else {
                     ++sfmiss;
@@ -140,7 +140,7 @@ void BM_INTERSECT_CYLINDERS(benchmark::State &state) {
                 benchmark::DoNotOptimize(sfhit);
                 benchmark::DoNotOptimize(sfmiss);
                 for (const auto &sfi : inters) {
-                    if (sfi.status) {
+                    if (sfi.is_inside()) {
                         ++sfhit;
                     } else {
                         ++sfmiss;
@@ -197,7 +197,7 @@ void BM_INTERSECT_PORTAL_CYLINDERS(benchmark::State &state) {
 
                 benchmark::DoNotOptimize(sfhit);
                 benchmark::DoNotOptimize(sfmiss);
-                if (is.status) {
+                if (is.is_inside()) {
                     ++sfhit;
                 } else {
                     ++sfmiss;
@@ -248,7 +248,7 @@ void BM_INTERSECT_CONCENTRIC_CYLINDERS(benchmark::State &state) {
 
                 benchmark::DoNotOptimize(sfhit);
                 benchmark::DoNotOptimize(sfmiss);
-                if (is.status) {
+                if (is.is_inside()) {
                     ++sfhit;
                 } else {
                     ++sfmiss;
