@@ -16,7 +16,31 @@ include(CMakeFindDependencyMacro)
 
 find_dependency(Boost COMPONENTS program_options REQUIRED)
 
+if(DETRAY_BUILD_TESTING)
+    # Build the detector validation executable.
+    detray_add_executable(detector_validation_hip_${CMAKE_HIP_PLATFORM}
+                        "detector_validation_hip.cpp"
+                        LINK_LIBRARIES GTest::gtest GTest::gtest_main
+                        Boost::program_options detray::test_hip_${CMAKE_HIP_PLATFORM} detray::tools
+    )
 
+    # Build the material hip validation executable.
+    detray_add_executable(material_validation_hip_${CMAKE_HIP_PLATFORM}
+                        "material_validation_hip.cpp"
+                        LINK_LIBRARIES GTest::gtest GTest::gtest_main
+                        Boost::program_options detray::test_hip_${CMAKE_HIP_PLATFORM} detray::tools
+    )
+                        # Make hipcc interpret .cpp files as .hip files to make linking work
+                        # (only needed for the amd backend)
+                        if(
+                            ("${CMAKE_HIP_PLATFORM}" STREQUAL "hcc")
+                            OR ("${CMAKE_HIP_PLATFORM}" STREQUAL "amd")
+                        )
+                            set_source_files_properties(material_validation_hip.cpp PROPERTIES LANGUAGE HIP)
+                            set_source_files_properties(navigation_validation_hip.cpp PROPERTIES LANGUAGE HIP)
+
+                        endif()
+endif()
 
 if(DETRAY_BUILD_BENCHMARKS)
     # Build benchmarks for multiple algebra plugins
