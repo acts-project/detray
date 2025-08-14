@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2024 CERN for the benefit of the ACTS project
+ * (c) 2025 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -12,7 +12,7 @@
 #include "detray/tracks/tracks.hpp"
 
 // Detray benchmark include(s)
-#include "detray/benchmarks/device/hip/propagation_benchmark.hpp" // need to create this file !
+#include "detray/benchmarks/device/hip/propagation_benchmark.hpp" 
 #include "detray/benchmarks/types.hpp"
 
 // Detray test include(s)
