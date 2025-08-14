@@ -39,8 +39,10 @@ __global__ void propagation_kernel(
     // Create actor states
     detray::pathlimit_aborter<scalar>::state aborter_state{path_limit};
     detray::pointwise_material_interactor<algebra_t>::state interactor_state{};
+    detray::parameter_resetter<algebra_t>::state resetter_state{};
 
-    auto actor_states = detray::tie(aborter_state, interactor_state);
+    auto actor_states =
+        detray::tie(aborter_state, interactor_state, resetter_state);
 
     // Create the propagator state for the track
     detray::tutorial::propagator_t::state state(tracks[gid], field_data, det);

@@ -52,10 +52,13 @@ __global__ void propagator_test_kernel(
     tracer_state.collect_only_on_surface(true);
     pathlimit_aborter_t::state aborter_state{cfg.stepping.path_limit};
     pointwise_material_interactor<test_algebra>::state interactor_state{};
+    parameter_resetter_t::state resetter_state{};
+    // No multilpe scattering simulated in this test
+    resetter_state.estimate_scattering_noise = false;
 
     // Create the actor states
-    auto actor_states =
-        ::detray::tie(tracer_state, aborter_state, interactor_state);
+    auto actor_states = ::detray::tie(tracer_state, aborter_state,
+                                      interactor_state, resetter_state);
     // Create the propagator state
     typename propagator_device_t::state state(tracks.at(gid), field_data, det);
 
