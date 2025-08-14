@@ -18,7 +18,7 @@ message(STATUS "Building Algebra Plugins as part of the Detray project")
 
 # Declare where to get Algebra Plugins from.
 set(DETRAY_ALGEBRA_PLUGINS_SOURCE
-    "URL;https://github.com/acts-project/algebra-plugins/archive/refs/tags/v0.27.0.tar.gz;URL_MD5;d59270836aba4cebc27369acea6a995f"
+    "GIT_REPOSITORY;https://github.com/niermann999/algebra-plugins;GIT_TAG;fix-simd-concept"
     CACHE STRING
     "Source for Algebra Plugins, when built as part of this project"
 )
