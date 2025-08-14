@@ -37,7 +37,7 @@ if(DETRAY_BUILD_BENCHMARKS)
             ("${CMAKE_HIP_PLATFORM}" STREQUAL "hcc")
             OR ("${CMAKE_HIP_PLATFORM}" STREQUAL "amd")
         )
-            set_source_files_properties(propagator_hip.cpp PROPERTIES LANGUAGE HIP)
+            set_source_files_properties(propagation_benchmark_hip.cpp PROPERTIES LANGUAGE HIP)
         endif()
         target_compile_definitions(
             detray_propagation_benchmark_hip_${CMAKE_HIP_PLATFORM}_${algebra}
