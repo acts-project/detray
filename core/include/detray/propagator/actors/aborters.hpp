@@ -73,34 +73,26 @@ template <concepts::scalar scalar_t>
 struct momentum_aborter : actor {
 
     struct state {
-        /// @return whether the limit should be interpreted as transverse
-        /// momentum
-        DETRAY_HOST_DEVICE
-        constexpr bool is_pT() const { return m_is_pT; }
-
         /// @returns the momentum limit.
         DETRAY_HOST_DEVICE
         constexpr scalar_t p_limit() const { return m_min_p; }
 
+        /// @returns the momentum limit.
+        DETRAY_HOST_DEVICE
+        constexpr scalar_t pT_limit() const { return m_min_pT; }
+
         /// Set the momentum limit to @param p
         DETRAY_HOST_DEVICE
-        constexpr void min_p(const scalar_t p) {
-            m_is_pT = false;
-            m_min_p = p;
-        }
+        constexpr void min_p(const scalar_t p) { m_min_p = p; }
 
         /// Set the transverse momentum limit to @param p
         DETRAY_HOST_DEVICE
-        constexpr void min_pT(const scalar_t p) {
-            m_is_pT = true;
-            m_min_p = p;
-        }
+        constexpr void min_pT(const scalar_t pT) { m_min_pT = pT; }
 
         private:
-        /// Check transverse momentum instead of total momentum
-        bool m_is_pT{false};
         /// Absolute momentum magnitude limit
         scalar_t m_min_p = 10.f * unit<scalar_t>::MeV;
+        scalar_t m_min_pT = 10.f * unit<scalar_t>::MeV;
     };
 
     /// Enforces a minimum momentum magnitude
@@ -120,12 +112,17 @@ struct momentum_aborter : actor {
 
         const auto &track = step_state();
         const scalar_t q{step_state.particle_hypothesis().charge()};
-        const scalar_t mag{abrt_state.is_pT() ? track.pT(q) : track.p(q)};
 
-        if (mag <= abrt_state.p_limit()) {
+        if (track.p(q) <= abrt_state.p_limit()) {
             // Stop navigation
             prop_state._heartbeat &=
-                nav_state.abort("Aborter: Minimum momentum reached");
+                nav_state.abort("Aborter: Minimum momentum (p) reached");
+        }
+
+        if (track.pT(q) <= abrt_state.pT_limit()) {
+            // Stop navigation
+            prop_state._heartbeat &= nav_state.abort(
+                "Aborter: Minimum transverse momentum (pT) reached");
         }
     }
 };
