@@ -40,8 +40,8 @@ endif()
 
 if(DETRAY_BUILD_TESTING)
     # Build the detector validation executable.
-    detray_add_executable(detector_validation
-                        "detector_validation.cpp"
+    detray_add_executable(navigation_validation
+                        "navigation_validation.cpp"
                         LINK_LIBRARIES GTest::gtest GTest::gtest_main
                         Boost::program_options detray::core_array detray::test_cpu detray::tools
     )
