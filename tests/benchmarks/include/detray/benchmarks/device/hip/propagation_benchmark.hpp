@@ -154,8 +154,8 @@ struct hip_propagation_bm : public benchmark_base {
 
         // Do a small warm up run
         if (m_cfg.benchmark().do_warmup()) {
-            auto warmup_track_buffer = detray::get_buffer(
-                vecmem::get_data(*tracks), *dev_mr, hip_cpy);
+            auto warmup_track_buffer =
+                detray::get_buffer(vecmem::get_data(*tracks), *dev_mr, hip_cpy);
 
             run_propagation_kernel<propagator_t, kOPT>(
                 m_cfg.propagation(), det_view, *bfield, device_actor_state_ptr,

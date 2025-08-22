@@ -41,10 +41,8 @@ endif()
 
 # Set up all of the "device" benchmarks.
 
-
-if(DETRAY_BUILD_CUDA  OR DETRAY_BUILD_HIP)
+if(DETRAY_BUILD_CUDA OR DETRAY_BUILD_HIP)
     add_subdirectory(include/detray/benchmarks/device)
-
 endif()
 
 if(DETRAY_BUILD_CUDA)

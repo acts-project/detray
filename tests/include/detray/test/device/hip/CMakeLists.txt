@@ -25,7 +25,10 @@ add_library(
     "navigation_validation.hip"
 )
 
-add_library(detray::test_hip_${CMAKE_HIP_PLATFORM} ALIAS detray_test_hip_${CMAKE_HIP_PLATFORM})
+add_library(
+    detray::test_hip_${CMAKE_HIP_PLATFORM}
+    ALIAS detray_test_hip_${CMAKE_HIP_PLATFORM}
+)
 
 target_link_libraries(
     detray_test_hip_${CMAKE_HIP_PLATFORM}
