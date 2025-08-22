@@ -13,10 +13,7 @@ enable_language(HIP)
 
 include(CMakeFindDependencyMacro)
 
-
 find_dependency(Boost COMPONENTS program_options REQUIRED)
-
-
 
 if(DETRAY_BUILD_BENCHMARKS)
     # Build benchmarks for multiple algebra plugins
@@ -29,7 +26,7 @@ if(DETRAY_BUILD_BENCHMARKS)
     foreach(algebra ${algebra_plugins})
         detray_add_executable(propagation_benchmark_hip_${CMAKE_HIP_PLATFORM}_${algebra}
         "propagation_benchmark_hip.cpp"
-        LINK_LIBRARIES detray::benchmark_hip_${CMAKE_HIP_PLATFORM}_${algebra} HIP::hiprt vecmem::hip detray::tools detray::test_common 
+        LINK_LIBRARIES detray::benchmark_hip_${CMAKE_HIP_PLATFORM}_${algebra} HIP::hiprt vecmem::hip detray::tools detray::test_common
         )
         # Make hipcc interpret .cpp files as .hip files to make linking work
         # (only needed for the amd backend)
@@ -37,13 +34,14 @@ if(DETRAY_BUILD_BENCHMARKS)
             ("${CMAKE_HIP_PLATFORM}" STREQUAL "hcc")
             OR ("${CMAKE_HIP_PLATFORM}" STREQUAL "amd")
         )
-            set_source_files_properties(propagation_benchmark_hip.cpp PROPERTIES LANGUAGE HIP)
+            set_source_files_properties(
+                propagation_benchmark_hip.cpp
+                PROPERTIES LANGUAGE HIP
+            )
         endif()
         target_compile_definitions(
             detray_propagation_benchmark_hip_${CMAKE_HIP_PLATFORM}_${algebra}
-
             PRIVATE HIP_PLATFORM_NAME="${CMAKE_HIP_PLATFORM}"
         )
-
     endforeach()
 endif()
