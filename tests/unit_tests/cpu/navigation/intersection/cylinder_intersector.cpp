@@ -100,8 +100,8 @@ GTEST_TEST(detray_intersection, cylinder_portal) {
 
     // Create a concentric cylinder and test intersection
     const transform3_t identity{};
-    mask<cylinder2D, test_algebra, std::uint_least16_t> cylinder{0u, r, -hz,
-                                                                 hz};
+    mask<concentric_cylinder2D, test_algebra, std::uint_least16_t> cylinder{
+        0u, r, -hz, hz};
 
     ray_intersector<cylinder2D, test_algebra, true> ci;
     ray_intersector<concentric_cylinder2D, test_algebra, true> cpi;

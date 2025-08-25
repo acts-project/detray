@@ -34,13 +34,12 @@ struct ray_intersector_impl;
 /// intersection points is needed in the case of a cylinderical portal surface.
 template <algebra::concepts::aos algebra_t, bool do_debug>
 struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
-                            do_debug>
-    : public ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t,
-                                  do_debug> {
+                            do_debug> {
 
     /// linear algebra types
     /// @{
     using scalar_type = dscalar<algebra_t>;
+    using point2_type = dpoint2D<algebra_t>;
     using point3_type = dpoint3D<algebra_t>;
     using vector3_type = dvector3D<algebra_t>;
     using transform3_type = dtransform3D<algebra_t>;
@@ -83,11 +82,13 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
 
         const point3_type &ro = ray.pos();
         const vector3_type &rd = ray.dir();
-        const scalar_type rord_2D{ro[0] * rd[0] + ro[1] * rd[1]};
-        const scalar_type rd_perp_inv_2{1.f / (rd[0] * rd[0] + rd[1] * rd[1])};
+        scalar_type path{0.f};
+
+        const scalar_type rd_perp_2{rd[0] * rd[0] + rd[1] * rd[1]};
 
         // The ray is parallel to the cylinder axis (z-axis)...
-        if (!std::isfinite(rd_perp_inv_2)) {
+        if (rd_perp_2 < std::numeric_limits<scalar_type>::epsilon())
+            [[unlikely]] {
             is.status = false;
             return is;
         }
@@ -95,36 +96,44 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
         // ...otherwise, two solutions should exist, if the descriminator is
         // greater than zero
         const scalar_type ro_perp_2{ro[0] * ro[0] + ro[1] * ro[1]};
-        const scalar_type sqrt_discr{
-            math::sqrt(rd_perp_inv_2 * (r * r - ro_perp_2 +
-                                        rord_2D * rord_2D * rd_perp_inv_2))};
-        assert(std::isfinite(sqrt_discr));
-        const scalar_type constant{-(rord_2D * rd_perp_inv_2)};
+        const scalar_type rad_diff{r * r - ro_perp_2};
 
-        const scalar_type s1{constant + sqrt_discr};
-        const scalar_type s2{constant - sqrt_discr};
+        // Only calculate the path, when not already on surface
+        if (math::fabs(rad_diff) > 1.f * unit<scalar_type>::um) {
 
-        // Take the nearest solution
-        scalar_type path{s1 < s2 ? s1 : s2};
+            const scalar_type rd_perp_inv_2{1.f / rd_perp_2};
+            const scalar_type k{-rd_perp_inv_2 *
+                                (ro[0] * rd[0] + ro[1] * rd[1])};
+            const scalar_type discr{rd_perp_inv_2 * rad_diff + k * k};
 
-        // If the near solution is outside the overstepping tolerance, take the
-        // far solution (if it exists)
-        if (path < overstep_tol || !std::isfinite(path)) {
-            path = (s1 >= s2) ? s1 : s2;
-            // Ray is outside of cylinder or second solution does not exist:
-            // Should not happen for portal
-            if (path < overstep_tol || !std::isfinite(path) ||
-                sqrt_discr <= 0.f) {
+            // No intersection found
+            if (discr < 0.f) [[unlikely]] {
                 is.status = false;
                 return is;
             }
+
+            const scalar_type sqrt_discr{math::sqrt(discr)};
+            const scalar_type s1{k + sqrt_discr};
+            const scalar_type s2{k - sqrt_discr};
+
+            // Take the nearest solution
+            path = (s1 < s2) ? s1 : s2;
+
+            // If the near solution is outside the overstepping tolerance, take
+            // the far solution (if it exists)
+            if (path < overstep_tol) {
+                path = (s1 >= s2) ? s1 : s2;
+                // Ray is outside of cylinder or second solution does not exist:
+                // Should not happen for portal
+                if (path < overstep_tol || discr == 0.f) {
+                    is.status = false;
+                    return is;
+                }
+            }
         }
 
-        const point3_type p3 = ro + path * rd;
-
-        const auto loc{mask_t::to_local_frame(trf, p3)};
         if constexpr (intersection_type<surface_descr_t>::is_debug()) {
-            is.local = loc;
+            is.local = mask_t::to_local_frame(trf, ro + path * rd);
         }
 
         // Tolerance: per mille of the distance, scaled with distance
@@ -132,7 +141,9 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
             math::max(mask_tolerance[0],
                       math::min(mask_tolerance[1],
                                 mask_tol_scalor * math::fabs(is.path)));
-        is.status = mask.is_inside(loc, base_tol);
+        // Portal cylinder is closed in phi, only need to check z
+        is.status =
+            mask.is_inside(point2_type{0.f, ro[2] + path * rd[2]}, base_tol);
         is.direction = !detail::signbit(path);
         is.volume_link = mask.volume_link();
 
