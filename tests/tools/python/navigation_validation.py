@@ -130,8 +130,8 @@ def __main__():
 
     # Check bin path
     bindir = args.bindir.strip("/")
-    cpu_validation = bindir + "/detray_detector_validation"
-    cuda_validation = bindir + "/detray_detector_validation_cuda"
+    cpu_validation = bindir + "/detray_navigation_validation"
+    cuda_validation = bindir + "/detray_navigation_validation_cuda"
 
     if not os.path.isdir(bindir) or not os.path.isfile(cpu_validation):
         logging.error(f"Navigation validation binaries were not found! ({args.bindir})")
