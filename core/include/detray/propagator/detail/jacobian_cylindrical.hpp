@@ -133,8 +133,4 @@ struct jacobian<cylindrical2D<algebra_t>> {
     }
 };
 
-template <concepts::algebra algebra_t>
-struct jacobian<concentric_cylindrical2D<algebra_t>>
-    : public jacobian<cylindrical2D<algebra_t>> {};
-
 }  // namespace detray::detail
