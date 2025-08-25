@@ -23,6 +23,8 @@ endif()
 
 # Set up a benchamrk library for CUDA
 foreach(algebra ${algebra_plugins})
+    message(STATUS "Building 'detray::benchmark_cuda_${algebra}' component")
+
     add_library(
         detray_benchmark_cuda_${algebra}
         STATIC
