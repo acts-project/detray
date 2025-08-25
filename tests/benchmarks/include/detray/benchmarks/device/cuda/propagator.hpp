@@ -8,13 +8,15 @@
 #pragma once
 
 // Project include(s)
+#include "detray/core/detector.hpp"
 #include "detray/definitions/algebra.hpp"
-#include "detray/navigation/navigator.hpp"
+#include "detray/navigation/caching_navigator.hpp"
 #include "detray/propagator/actors.hpp"
 #include "detray/propagator/propagation_config.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
+#include "detray/utils/log.hpp"
 
 // Detray test include(s)
 #include "detray/benchmarks/types.hpp"
@@ -54,7 +56,17 @@ using stepper_type = rk_stepper<covfie::field_view<bfield_t>,
                                 typename detector<metadata_t>::algebra_type>;
 
 template <typename metadata_t>
-using navigator_type = navigator<detector<metadata_t, device_container_types>>;
+using navigator_type =
+    caching_navigator<detector<metadata_t, device_container_types>>;
+
+/// Propagation that state aggregates a stepping and a navigation state. It
+/// also keeps references to the actor states.
+template <typename navigator_t, typename stepper_t>
+struct propagation_state {
+    typename stepper_t::state _stepping;
+    typename navigator_t::state _navigation;
+    typename navigator_t::detector_type::geometry_context _context{};
+};
 
 /// Setup all of the data states on device
 ///
@@ -66,11 +78,11 @@ using navigator_type = navigator<detector<metadata_t, device_container_types>>;
 /// @param opt which propagation to run (sync vs. unsync)
 template <typename navigator_t, typename stepper_t, typename actor_chain_t>
 void run_propagation_init_kernel(
-    const propagation::config *, typename navigator_t::detector_type::view_type,
+    const propagation::config *, typename navigator_t::detector_type *,
+    typename navigator_t::detector_type::view_type,
     typename stepper_t::magnetic_field_type,
     vecmem::data::vector_view<typename stepper_t::free_track_parameters_type>,
-    vecmem::data::vector_view<typename stepper_t::state>,
-    vecmem::data::vector_view<typename navigator_t::state>,
+    vecmem::data::vector_view<propagation_state<navigator_t, stepper_t>>,
     vecmem::data::vector_view<typename actor_chain_t::state_tuple>,
     typename actor_chain_t::state_tuple *);
 
@@ -84,10 +96,9 @@ void run_propagation_init_kernel(
 /// @param opt which propagation to run (sync vs. unsync)
 template <typename navigator_t, typename stepper_t, typename actor_chain_t>
 void run_propagation_kernel(
-    const propagation::config *,
-    vecmem::data::vector_view<typename stepper_t::state>,
+    const propagation::config *, const typename navigator_t::detector_type *,
+    vecmem::data::vector_view<propagation_state<navigator_t, stepper_t>>,
     vecmem::data::vector_view<unsigned int>,
-    vecmem::data::vector_view<typename navigator_t::state>,
     vecmem::data::vector_view<unsigned int>,
     vecmem::data::vector_view<typename actor_chain_t::state_tuple>);
 
@@ -100,11 +111,11 @@ void release_config(typename propagation::config *);
 
 /// Allocate space for the device detector opbject to be shared between kenels
 template <typename device_detector_t>
-typename device_detector_t *allocate_device_detector();
+device_detector_t *setup_device_detector(typename device_detector_t::view_type);
 
 /// Release device detector
 template <typename device_detector_t>
-void release_detector(typename device_detector_t *);
+void release_device_detector(device_detector_t *);
 
 /// Copy a blueprint actor state to device, which will be taken and set up
 /// correctly for every track in the propagation init kernel
@@ -123,18 +134,13 @@ struct cuda_propagation {
     /// Detector dependent types
     using metadata_t = typename navigator_t::detector_type::metadata;
     using detector_t = detector<metadata_t>;
+    using device_detector_t = detector<metadata_t, device_container_types>;
     using bfield_view_t = typename stepper_t::magnetic_field_type;
     using algebra_t = typename detector_t::algebra_type;
     using scalar_t = dscalar<algebra_t>;
     using vector3_t = dvector3D<algebra_t>;
 
-    /// Propagation that state aggregates a stepping and a navigation state. It
-    /// also keeps references to the actor states.
-    struct state {
-        typename stepper_t::state &_stepping;
-        typename navigator_t::state &_navigation;
-        typename detector_t::geometry_context _context{};
-    };
+    using state = propagation_state<navigator_t, stepper_t>;
 
     /// The propagation configuration
     propagation::config m_cfg{};
@@ -207,26 +213,14 @@ struct cuda_propagation {
         // Helper object for performing memory copies (to CUDA devices)
         vecmem::cuda::copy cuda_cpy;
 
-        // CUDA types used.
-        // cudaStream_t alt_stream;
-        // cudaStreamCreate(&alt_stream);
-        // vecmem::cuda::async_copy cuda_cpy{stream};
-        // vecmem::cuda::async_copy cuda_cpy_alt{alt_stream};
-
         const unsigned int n_tracks{
             static_cast<unsigned int>(tracks_view.size())};
 
         // Buffer for the stepper states
-        vecmem::data::vector_buffer<typename stepper_t::state>
-            stepper_states_buffer(n_tracks, *dev_mr);
+        vecmem::data::vector_buffer<state> stepper_states_buffer(n_tracks,
+                                                                 *dev_mr);
         cuda_cpy.setup(stepper_states_buffer)->wait();
         auto stepper_states_view = vecmem::get_data(stepper_states_buffer);
-
-        // Buffer for the navigator states
-        vecmem::data::vector_buffer<typename navigator_t::state>
-            navigator_states_buffer(n_tracks, *dev_mr);
-        cuda_cpy.setup(navigator_states_buffer)->wait();
-        auto navigator_states_view = vecmem::get_data(navigator_states_buffer);
 
         // Buffer for the actor states
         vecmem::data::vector_buffer<typename actor_chain_t::state_tuple>
@@ -236,20 +230,20 @@ struct cuda_propagation {
 
         // Copy config to device
         auto *pinned_cfg_ptr = setup_config(&m_cfg);
+        // Allocate memory for device detector object (not detector data!)
+        auto *pinned_detector_ptr =
+            setup_device_detector<device_detector_t>(det_view);
 
         // Copy blueprint actor states to device
         auto *pinned_actor_state_ptr =
             setup_actor_states<actor_chain_t>(input_actor_states);
 
-        // cudaStreamSynchronize(stream);
-        // cudaStreamSynchronize(alt_stream);
-
         std::chrono::high_resolution_clock::time_point t1_init =
             std::chrono::high_resolution_clock::now();
         // Initialize the propagation (fill the state buffers)
         run_propagation_init_kernel<navigator_t, stepper_t, actor_chain_t>(
-            pinned_cfg_ptr, det_view, field_view, tracks_view,
-            stepper_states_view, navigator_states_view, actor_states_view,
+            pinned_cfg_ptr, pinned_detector_ptr, det_view, field_view,
+            tracks_view, stepper_states_view, actor_states_view,
             pinned_actor_state_ptr);
         std::chrono::high_resolution_clock::time_point t2_init =
             std::chrono::high_resolution_clock::now();
@@ -261,12 +255,6 @@ struct cuda_propagation {
             std::chrono::duration_cast<std::chrono::duration<double>>(t2_init -
                                                                       t1_init);
         const double init_ms{init_time.count() * 1000.};
-
-        // Setup the synchronization buffers
-        // Check for successful init?
-        // cudaStreamSynchronize(stream);
-        // cudaStreamSynchronize(alt_stream);
-        // cudaStreamDestroy(alt_stream);
 
         // Navigation results
         vecmem::data::vector_buffer<unsigned int> stepper_res_buffer(n_tracks,
@@ -284,29 +272,32 @@ struct cuda_propagation {
             std::chrono::high_resolution_clock::now();
         // Launch the propagation for GPU device
         run_propagation_kernel<navigator_t, stepper_t, actor_chain_t>(
-            pinned_cfg_ptr, stepper_states_view, stepper_res_view,
-            navigator_states_view, navigation_res_view, actor_states_view);
+            pinned_cfg_ptr, pinned_detector_ptr, stepper_states_view,
+            stepper_res_view, navigation_res_view, actor_states_view);
         std::chrono::high_resolution_clock::time_point t2_prop =
             std::chrono::high_resolution_clock::now();
 
-        // Deallocate the propagation config
+        // Deallocate the propagation config and detector
         release_config(pinned_cfg_ptr);
+        release_device_detector(pinned_detector_ptr);
 
         const auto prop_time =
             std::chrono::duration_cast<std::chrono::duration<double>>(t2_prop -
                                                                       t1_prop);
         const double prop_ms{prop_time.count() * 1000.};
 
-        std::cout << "Propagator took: " << init_ms + prop_ms << "ms ("
-                  << (init_ms + prop_ms) / (n_tracks / 9000.) << " ms/evt)"
-                  << std::endl;
+        DETRAY_INFO_HOST("Propagator took: "
+                         << init_ms + prop_ms << "ms ("
+                         << (init_ms + prop_ms) / (n_tracks / 3000.)
+                         << " ms/evt)");
 
-        std::cout << "  -> Init: " << init_ms << "ms ("
-                  << init_ms / (n_tracks / 9000.) << " ms/evt)" << std::endl;
+        DETRAY_INFO_HOST("  -> Init: " << init_ms << "ms ("
+                                       << init_ms / (n_tracks / 3000.)
+                                       << " ms/evt)");
 
-        std::cout << "  -> Propagation: " << prop_ms << "ms ("
-                  << prop_ms / (n_tracks / 9000.) << " ms/evt)\n"
-                  << std::endl;
+        DETRAY_INFO_HOST("  -> Propagation: " << prop_ms << "ms ("
+                                              << prop_ms / (n_tracks / 3000.)
+                                              << " ms/evt)\n");
     }
 };
 
