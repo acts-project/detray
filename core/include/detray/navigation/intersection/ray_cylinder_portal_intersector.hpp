@@ -53,6 +53,11 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
 
     /// Operator function to find intersections between ray and cylinder mask
     ///
+    /// Intersecting the cylinder from the inside yields one intersection
+    /// along the direction of the track and one behind it. These intersections
+    /// can be calculated in a simplified way, since the cylinder cannot be
+    /// shifted or rotated. Solve: perp(ro + t * rd) = r_cyl
+    ///
     /// @tparam mask_t is the input mask type
     /// @tparam surface_descr_t is the type of surface handle
     ///
@@ -74,28 +79,65 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
         const scalar_type overstep_tol = 0.f) const {
 
         intersection_type<surface_descr_t> is;
+        const scalar_type r{mask[mask_t::shape::e_r]};
 
-        // Intersecting the cylinder from the inside yield one intersection
-        // along the direction of the track and one behind it
-        const auto qe = this->solve_intersection(ray, mask, trf);
+        const point3_type &ro = ray.pos();
+        const vector3_type &rd = ray.dir();
+        const scalar_type rord_2D{ro[0] * rd[0] + ro[1] * rd[1]};
+        const scalar_type rd_perp_inv_2{1.f / (rd[0] * rd[0] + rd[1] * rd[1])};
 
-        // Find the closest valid intersection
-        if (qe.solutions() > 0) {
-
-            // Only the closest intersection that is outside the overstepping
-            // tolerance is needed
-            scalar_type t = qe.smaller();
-            if ((qe.smaller() < overstep_tol) && (qe.solutions() == 2u)) {
-                t = qe.larger();
-            }
-
-            is = this->template build_candidate<surface_descr_t>(
-                ray, mask, trf, t, mask_tolerance, mask_tol_scalor,
-                overstep_tol);
-            is.sf_desc = sf;
-        } else {
+        // The ray is parallel to the cylinder axis (z-axis)...
+        if (!std::isfinite(rd_perp_inv_2)) {
             is.status = false;
+            return is;
         }
+
+        // ...otherwise, two solutions should exist, if the descriminator is
+        // greater than zero
+        const scalar_type ro_perp_2{ro[0] * ro[0] + ro[1] * ro[1]};
+        const scalar_type sqrt_discr{
+            math::sqrt(rd_perp_inv_2 * (r * r - ro_perp_2 +
+                                        rord_2D * rord_2D * rd_perp_inv_2))};
+        assert(std::isfinite(sqrt_discr));
+        const scalar_type constant{-(rord_2D * rd_perp_inv_2)};
+
+        const scalar_type s1{constant + sqrt_discr};
+        const scalar_type s2{constant - sqrt_discr};
+
+        // Take the nearest solution
+        scalar_type path{s1 < s2 ? s1 : s2};
+
+        // If the near solution is outside the overstepping tolerance, take the
+        // far solution (if it exists)
+        if (path < overstep_tol || !std::isfinite(path)) {
+            path = (s1 >= s2) ? s1 : s2;
+            // Ray is outside of cylinder or second solution does not exist:
+            // Should not happen for portal
+            if (path < overstep_tol || !std::isfinite(path) ||
+                sqrt_discr <= 0.f) {
+                is.status = false;
+                return is;
+            }
+        }
+
+        const point3_type p3 = ro + path * rd;
+
+        const auto loc{mask_t::to_local_frame(trf, p3)};
+        if constexpr (intersection_type<surface_descr_t>::is_debug()) {
+            is.local = loc;
+        }
+
+        // Tolerance: per mille of the distance, scaled with distance
+        const auto base_tol =
+            math::max(mask_tolerance[0],
+                      math::min(mask_tolerance[1],
+                                mask_tol_scalor * math::fabs(is.path)));
+        is.status = mask.is_inside(loc, base_tol);
+        is.direction = !detail::signbit(path);
+        is.volume_link = mask.volume_link();
+
+        is.path = path;
+        is.sf_desc = sf;
 
         return is;
     }
