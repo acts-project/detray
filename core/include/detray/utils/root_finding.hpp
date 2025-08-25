@@ -13,6 +13,7 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/navigation/intersection/intersection.hpp"
 #include "detray/utils/invalid_values.hpp"
 
 // System include(s).
@@ -288,13 +289,15 @@ DETRAY_HOST_DEVICE inline void build_intersection(
 
             tol = math::fabs(ds * math::sqrt(sin_inc2));
         }
-        sfi.status = mask.is_inside(sfi.local, tol);
+        sfi.set_status(mask.is_inside(sfi.local, tol)
+                           ? intersection::status::e_inside
+                           : intersection::status::e_outside);
         sfi.sf_desc = sf_desc;
         sfi.direction = !math::signbit(s);
         sfi.volume_link = mask.volume_link();
     } else {
         // Not a valid intersection
-        sfi.status = false;
+        sfi.set_status(intersection::status::e_outside);
     }
 }
 

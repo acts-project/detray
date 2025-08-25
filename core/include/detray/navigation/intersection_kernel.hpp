@@ -51,6 +51,7 @@ struct intersection_initialize {
         const darray<scalar_t, 2u> &mask_tolerance = {0.f,
                                                       1.f * unit<scalar_t>::mm},
         const scalar_t mask_tol_scalor = 0.f,
+        const scalar_t external_mask_tolerance = 0.f,
         const scalar_t overstep_tol = 0.f) const {
 
         using mask_t = typename mask_group_t::value_type;
@@ -67,7 +68,7 @@ struct intersection_initialize {
                     intersector_t<typename mask_t::shape, algebra_t,
                                   intersection_t::is_debug()>{}(
                         traj, surface, mask, ctf, mask_tolerance,
-                        mask_tol_scalor, overstep_tol),
+                        mask_tol_scalor, external_mask_tolerance, overstep_tol),
                     is_container)) {
                 return;
             }
@@ -79,10 +80,10 @@ struct intersection_initialize {
     DETRAY_HOST_DEVICE bool place_in_collection(
         const typename is_container_t::value_type &sfi,
         is_container_t &intersections) const {
-        if (sfi.status) {
+        if (sfi.is_probably_inside()) {
             insert_sorted(sfi, intersections);
         }
-        return sfi.status;
+        return sfi.is_probably_inside();
     }
 
     template <typename is_container_t>
@@ -90,7 +91,7 @@ struct intersection_initialize {
         darray<typename is_container_t::value_type, 2> &&solutions,
         is_container_t &intersections) const {
         for (auto &sfi : std::move(solutions)) {
-            if (sfi.status) {
+            if (sfi.is_probably_inside()) {
                 insert_sorted(sfi, intersections);
             }
         }
@@ -141,6 +142,7 @@ struct intersection_update {
         const darray<scalar_t, 2u> &mask_tolerance = {0.f,
                                                       1.f * unit<scalar_t>::mm},
         const scalar_t mask_tol_scalor = 0.f,
+        const scalar_t external_mask_tolerance = 0.f,
         const scalar_t overstep_tol = 0.f) const {
 
         using mask_t = typename mask_group_t::value_type;
@@ -156,9 +158,9 @@ struct intersection_update {
             intersector_t<typename mask_t::shape, algebra_t,
                           intersection_t::is_debug()>{}
                 .update(traj, sfi, mask, ctf, mask_tolerance, mask_tol_scalor,
-                        overstep_tol);
+                        external_mask_tolerance, overstep_tol);
 
-            if (sfi.status) {
+            if (sfi.is_probably_inside()) {
                 return true;
             }
         }

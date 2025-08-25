@@ -214,7 +214,8 @@ inline auto record_propagation(
     }
 
     // Set the initial covariances
-    if (!stddevs.empty()) {
+    if (!stddevs.empty() &&
+        !std::ranges::all_of(stddevs, [](scalar_t s) { return s == 0.f; })) {
         std::random_device rd{};
         std::mt19937 generator{rd()};
 

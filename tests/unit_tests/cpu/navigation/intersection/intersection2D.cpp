@@ -54,6 +54,8 @@ using surface_t =
 // This tests the construction of a intresection
 GTEST_TEST(detray_intersection, intersection2D) {
 
+    using enum detray::intersection::status;
+
     using intersection_t = intersection2D<surface_t, test_algebra, true>;
     using nominal_inters_t = intersection2D<surface_t, test_algebra, false>;
 
@@ -75,11 +77,11 @@ GTEST_TEST(detray_intersection, intersection2D) {
     const surface_t sf{};
     const point3 test_pt{0.2f, 0.4f, 0.f};
 
-    intersection_t i0{{sf, 2.f, 1u, false, true}, test_pt};
-    intersection_t i1{{sf, 1.7f, 0u, true, false}, test_pt};
+    intersection_t i0{{sf, 2.f, 1u, e_outside, true}, test_pt};
+    intersection_t i1{{sf, 1.7f, 0u, e_inside, false}, test_pt};
 
     intersection_t invalid{};
-    ASSERT_FALSE(invalid.status);
+    ASSERT_FALSE(invalid.is_inside());
 
     dvector<intersection_t> intersections = {invalid, i0, i1};
     std::ranges::sort(intersections);

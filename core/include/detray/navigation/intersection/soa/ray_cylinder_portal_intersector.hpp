@@ -63,6 +63,7 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
         const mask_t &mask, const transform3_type &trf,
         const darray<scalar_type, 2u> &mask_tolerance = {0.f, 1.f},
         const scalar_type mask_tol_scalor = 0.f,
+        const scalar_type external_mask_tolerance = 0.f,
         const scalar_type overstep_tol = 0.f) const {
 
         intersection_type<surface_descr_t> is;
@@ -74,7 +75,7 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
         // None of the cylinders has a valid intersection
         if (detray::detail::all_of(qe.solutions() <= 0) ||
             detray::detail::all_of(qe.larger() <= overstep_tol)) {
-            is.status = decltype(is.status)(false);
+            is.set_status(intersection::status::e_outside);
             return is;
         }
 
@@ -86,7 +87,8 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
         t(!valid_smaller) = qe.larger();
 
         is = this->template build_candidate<surface_descr_t>(
-            ray, mask, trf, t, mask_tolerance, mask_tol_scalor, overstep_tol);
+            ray, mask, trf, t, mask_tolerance, mask_tol_scalor,
+            external_mask_tolerance, overstep_tol);
         is.sf_desc = sf;
 
         return is;
@@ -109,9 +111,11 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
         const transform3_type &trf,
         const darray<scalar_type, 2u> &mask_tolerance = {0.f, 1.f},
         const scalar_type mask_tol_scalor = 0.f,
+        const scalar_type external_mask_tolerance = 0.f,
         const scalar_type overstep_tol = 0.f) const {
         sfi = this->operator()(ray, sfi.sf_desc, mask, trf, mask_tolerance,
-                               mask_tol_scalor, overstep_tol);
+                               mask_tol_scalor, external_mask_tolerance,
+                               overstep_tol);
     }
 };
 
