@@ -42,6 +42,7 @@ foreach(algebra ${algebra_plugins})
     target_link_libraries(
         detray_benchmark_cuda_${algebra}
         PUBLIC
+            CUDA::cudart
             vecmem::cuda
             detray::benchmarks
             detray::test_common

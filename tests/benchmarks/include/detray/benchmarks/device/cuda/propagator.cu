@@ -8,6 +8,7 @@
 // Project include(s)
 #include "detray/benchmarks/device/cuda/propagator.hpp"
 #include "detray/definitions/detail/cuda_definitions.hpp"
+#include "detray/utils/log.hpp"
 
 // CUDA include(s)
 #include <cooperative_groups.h>
@@ -16,36 +17,189 @@
 
 namespace detray {
 
+template <typename navigator_t, typename stepper_t, typename actor_chain_t>
+struct propagation_queue {
+    using barrier_type = ::cuda::barrier<::cuda::thread_scope_block>;
+    using data_buffer_type =
+        vecmem::device_vector<propagation_state<navigator_t, stepper_t>>;
+    using slot_type = std::array<int, 2>;
+
+    barrier_type *m_barriers;
+
+    // Thread group that works on this queue
+    cooperative_groups::thread_group &m_group;
+
+    // Data to work on, shared between all blocks!
+    data_buffer_type m_data;
+
+    // Alternate between two batches of work (different "steps")
+    std::array<slot_type, 2> m_slots;
+
+    DETRAY_DEVICE propagation_queue(
+        const data_buffer_type data,
+        cooperative_groups::thread_group &thread_group, barrier_type barriers[])
+        : m_data{data}, m_group{thread_group}, m_barriers{barriers} {
+
+        constexpr int n_slots{2};
+        int queue_length{static_cast<int>(m_group.size()) / 2};  // 256
+        int buffer_size{n_slots * queue_length};
+
+        // Offset for this block's data into the state containers
+        const int data_offset{buffer_size * static_cast<int>(blockIdx.x)};
+
+        // Number of elements this block handles (comes in chunks of 512
+        // tracks)
+        const int n_tracks{math::min(
+            static_cast<int>(m_data.size()) - data_offset, buffer_size)};
+
+        m_slots[0] = {data_offset, data_offset + queue_length};
+        m_slots[1] = {data_offset + queue_length,
+                      data_offset + 2 * queue_length};
+
+        DETRAY_DEBUG_DEVICE("Thread %d slot 0: [%d, %d]",
+                            threadIdx.x + blockIdx.x * blockDim.x,
+                            m_slots[0][0], m_slots[0][1]);
+        DETRAY_DEBUG_DEVICE("Thread %d slot 1: [%d, %d]",
+                            threadIdx.x + blockIdx.x * blockDim.x,
+                            m_slots[1][0], m_slots[1][1]);
+
+        if (m_group.thread_rank() < 4) {
+            init(m_barriers + m_group.thread_rank(), m_group.size());
+        }
+        m_group.sync();
+    }
+
+    propagation_queue(const propagation_queue &data) = default;
+
+    /// Set the thread group that will work on this queue
+    DETRAY_DEVICE void thread_group(cooperative_groups::thread_group group) {
+        m_group = group;
+    }
+
+    /// @returns the thread group that works on this queue
+    DETRAY_DEVICE cooperative_groups::thread_group thread_group() const {
+        return m_group;
+    }
+
+    DETRAY_DEVICE constexpr std::size_t size() const { return m_data.size(); }
+
+    DETRAY_DEVICE constexpr const auto &data() const { return m_data; }
+
+    DETRAY_DEVICE constexpr const auto &navigation_states(
+        const int step) const {
+        return get_data(step)._navigation;
+    }
+
+    DETRAY_DEVICE constexpr auto &navigation_states(const int step) {
+        return get_data(step)._navigation;
+    }
+
+    DETRAY_DEVICE constexpr const auto &stepper_states(const int step) const {
+        return get_data(step)._stepping;
+    }
+
+    DETRAY_DEVICE constexpr auto &stepper_states(const int step) {
+        return get_data(step)._stepping;
+    }
+
+    DETRAY_DEVICE constexpr int slot_index(const int step) const {
+        return step % 2;
+    }
+
+    DETRAY_DEVICE constexpr slot_type get_slot(const int step) const {
+        return m_slots[slot_index(step)];
+    }
+
+    DETRAY_DEVICE constexpr int get_data_index(const int step) const {
+        return m_group.thread_rank() % (m_group.size() / 2) + get_slot(step)[0];
+    }
+
+    /// @returns whether this thread was assigned a piece of work
+    DETRAY_DEVICE constexpr bool is_active(const int step) const {
+        return get_data_index(step) < get_slot(step)[1];
+    }
+
+    DETRAY_DEVICE constexpr bool is_alive(const int step) const {
+        return (is_active(step) && get_data(step)._navigation.is_alive());
+    }
+
+    DETRAY_DEVICE constexpr decltype(auto) get_data(const int step) const {
+        return m_data[get_data_index(step)];
+    }
+
+    DETRAY_DEVICE constexpr decltype(auto) get_data(const int step) {
+        return m_data[get_data_index(step)];
+    }
+
+    DETRAY_DEVICE constexpr decltype(auto) get_stepping_barrier(
+        const int step) {
+        return m_barriers[slot_index(step)];
+    }
+
+    DETRAY_DEVICE constexpr decltype(auto) get_navigation_barrier(
+        const int step) {
+        return m_barriers[slot_index(step) + 2];
+    }
+
+    DETRAY_DEVICE inline void wait_for_navigation(const int step) {
+        DETRAY_DEBUG_DEVICE(
+            "Thread %ld (Step): Wait for navigation (slot: %d, iteration %d)",
+            m_group.thread_rank(), slot_index(step), step);
+        // Wait until the navigation triggers stepping
+        get_stepping_barrier(step).arrive_and_wait();
+    }
+
+    DETRAY_DEVICE inline void wait_for_stepping(const int step) {
+        DETRAY_DEBUG_DEVICE(
+            "Thread %ld (Nav): Wait for stepping (slot: %d, iteration %d)",
+            m_group.thread_rank(), slot_index(step), step);
+        // Wait until the stepper triggers navigation
+        get_navigation_barrier(step).arrive_and_wait();
+    }
+
+    DETRAY_DEVICE inline barrier_type::arrival_token trigger_navigation(
+        const int step) {
+        DETRAY_DEBUG_DEVICE(
+            "Thread %ld (Step): Trigger navigation (slot: %d, iteration %d)",
+            m_group.thread_rank(), slot_index(step), step);
+        return get_navigation_barrier(step).arrive();
+    }
+
+    DETRAY_DEVICE inline barrier_type::arrival_token trigger_stepping(
+        const int step) {
+        DETRAY_DEBUG_DEVICE(
+            "Thread %ld (Nav): Trigger stepper (slot: %d, iteration %d)",
+            m_group.thread_rank(), slot_index(step), step);
+        return get_stepping_barrier(step).arrive();
+    }
+};
+
 /// Initialize the stepper, navigator and actor states on device
 template <typename navigator_t, typename stepper_t, typename actor_chain_t>
 __global__ void __launch_bounds__(256, 4) propagation_init_kernel(
     const propagation::config *pinned_cfg,
+    typename navigator_t::detector_type *pinned_detector_ptr,
     typename navigator_t::detector_type::view_type det_view,
     typename stepper_t::magnetic_field_type field_view,
     vecmem::data::vector_view<typename stepper_t::free_track_parameters_type>
         tracks_view,
-    vecmem::data::vector_view<typename stepper_t::state> stepper_states_view,
-    vecmem::data::vector_view<typename navigator_t::state>
-        navigator_states_view,
+    vecmem::data::vector_view<propagation_state<navigator_t, stepper_t>>
+        propagation_states_view,
     vecmem::data::vector_view<typename actor_chain_t::state_tuple>
         actor_states_view,
     typename actor_chain_t::state_tuple *pinned_actor_state_ptr) {
 
-    using metadata_t = typename navigator_t::detector_type::metadata;
-    using detector_device_t = detector<metadata_t, device_container_types>;
+    using detector_device_t = typename navigator_t::detector_type;
     using algebra_t = typename detector_device_t::algebra_type;
 
     using track_t = typename stepper_t::free_track_parameters_type;
     using stepper_state_t = typename stepper_t::state;
     using navigation_state_t = typename navigator_t::state;
-    using propagation_state_t =
-        typename cuda_propagation<navigator_t, stepper_t, actor_chain_t>::state;
+    using propagation_state_t = propagation_state<navigator_t, stepper_t>;
 
-    const detector_device_t det(det_view);
     const vecmem::device_vector<track_t> tracks(tracks_view);
-    vecmem::device_vector<stepper_state_t> stepper_states(stepper_states_view);
-    vecmem::device_vector<navigation_state_t> navigation_states(
-        navigator_states_view);
+    vecmem::device_vector<propagation_state_t> propagation_states(
+        propagation_states_view);
     vecmem::device_vector<typename actor_chain_t::state_tuple> actor_states(
         actor_states_view);
 
@@ -61,9 +215,6 @@ __global__ void __launch_bounds__(256, 4) propagation_init_kernel(
     auto block = cooperative_groups::this_thread_block();
     if (block.thread_rank() == 0) {
         nav_cfg[0] = pinned_cfg->navigation;
-    }
-
-    if (block.thread_rank() == 0) {
         actor_states_sh[0] = *pinned_actor_state_ptr;
     }
     block.sync();
@@ -77,12 +228,10 @@ __global__ void __launch_bounds__(256, 4) propagation_init_kernel(
     // Create the stepper state:
     // The track gets copied into the stepper state, so that the
     // original track sample vector remains unchanged
-    stepper_state_t &stepping = stepper_states.at(gid);
-    stepping = stepper_state_t{tracks.at(gid), field_view};
+    stepper_state_t stepping{tracks.at(gid), field_view};
 
     // Create navigator state
-    navigation_state_t &navigation = navigation_states.at(gid);
-    navigation = navigation_state_t{det};
+    navigation_state_t navigation{*pinned_detector_ptr};
 
     // Temporary propagation state
     propagation_state_t propagation{stepping, navigation, gctx};
@@ -103,7 +252,17 @@ __global__ void __launch_bounds__(256, 4) propagation_init_kernel(
 
     // Update the navigation information, in case the actors changed the track
     navigator.update(stepping(), navigation, *nav_cfg, gctx);
-    assert(navigation.is_alive());
+
+    propagation_states.at(gid)._stepping = stepping;
+    propagation_states.at(gid)._navigation = navigation;
+    propagation_states.at(gid)._context = gctx;
+
+    assert(propagation_states.at(gid)._navigation.is_alive());
+    assert(std::isfinite(propagation_states.at(gid)._navigation()));
+
+    DETRAY_DEBUG_DEVICE("Thread %d (Init): Dist to next %f mm",
+                        block.thread_rank(),
+                        propagation_states.at(gid)._navigation());
 }
 
 template <typename collection_t>
@@ -116,15 +275,9 @@ __device__ std::size_t scan(collection_t &c) {
 /// Run the stepper
 template <typename navigator_t, typename stepper_t, typename actor_chain_t>
 __device__ inline void take_step(
-    const stepping::config *cfg, cooperative_groups::thread_block block,
-    const std::array<int, 2> queues[],
-    ::cuda::barrier<::cuda::thread_scope_block> needs_stepping[],
-    ::cuda::barrier<::cuda::thread_scope_block> needs_navigation[],
-    vecmem::device_vector<typename stepper_t::state> stepper_states,
-    // vecmem::device_vector<unsigned int> stepper_res_view,
-    vecmem::device_vector<typename navigator_t::state> navigation_states
-    // vecmem::device_vector<unsigned int> navigator_res_view
-) {
+    const stepping::config *cfg,
+    propagation_queue<navigator_t, stepper_t, actor_chain_t> &queue,
+    [[maybe_unused]] int thread_idx) {
 
     using barrier_t = ::cuda::barrier<::cuda::thread_scope_block>;
 
@@ -134,232 +287,107 @@ __device__ inline void take_step(
 
     using stepper_state_t = typename stepper_t::state;
     using navigation_state_t = typename navigator_t::state;
-    using propagation_state_t =
-        typename cuda_propagation<navigator_t, stepper_t, actor_chain_t>::state;
+    using propagation_state_t = propagation_state<navigator_t, stepper_t>;
 
     constexpr stepper_t stepper{};
     constexpr bool reset_stepsize{true};
-    typename detector_t::geometry_context gctx{};
 
     assert(cfg != nullptr);
-    assert(stepper_states.size() == navigation_states.size());
-    assert(static_cast<int>(stepper_states.size()) > 512 * blockIdx.x);
 
-    // Block-local thread index
-    const int thread_idx = block.thread_rank();
+    for (int i = 0; i < 100; ++i) {
 
-    // Does this thread have work in either queue ?
-    const int state_idx_0{thread_idx + queues[0][0]};
-    const int state_idx_1{thread_idx + queues[1][0]};
+        queue.wait_for_navigation(i);
 
-    const bool has_queue_0{state_idx_1 < queues[0][1]};
-    const bool has_queue_1{state_idx_1 < queues[1][1]};
+        if (queue.is_alive(i)) {
+            const navigation_state_t &navigation = queue.navigation_states(i);
+            stepper_state_t &stepping = queue.stepper_states(i);
 
-    // Run while either at least one of the two navigation streams monitored by
-    // this thread is alive
-    int i{0};
-    while ((has_queue_0 && navigation_states.at(state_idx_0).is_alive() ||
-            (has_queue_1 && navigation_states.at(state_idx_1).is_alive())) &&
-           i < 1000) {
-        // Queue for this iteration
-        const int queue_idx{i % 2};
-        const std::array<int, 2> &current_queue{queues[queue_idx]};
-        // Which state to get
-        auto state_idx = thread_idx + current_queue[0];
+            DETRAY_DEBUG_DEVICE(
+                "Thread %d (Step): Take step ready (iteration %d)", thread_idx,
+                i);
 
-        printf("Thread %d (Step): Wait for navigation (queue: %d)\n",
-               thread_idx, queue_idx);
-        needs_stepping[queue_idx].arrive_and_wait();
+            const auto &track = stepping();
 
-        printf("Thread %d (Step): Run state index %d (queue: %d)\n", thread_idx,
-               state_idx, queue_idx);
-        if (state_idx < current_queue[1]) {
-            navigation_state_t &navigation = navigation_states.at(state_idx);
+            const auto vol = navigation.current_volume();
+            const material<scalar_t> *vol_mat_ptr =
+                vol.has_material() ? vol.material_parameters(track.pos())
+                                   : nullptr;
 
-            if (navigation.is_alive()) {
-                printf("Thread %d (Step): Do stepping (queue: %d)\n",
-                       thread_idx, queue_idx);
+            stepper.step(navigation(), stepping, *cfg, reset_stepsize,
+                         vol_mat_ptr);
 
-                stepper_state_t &stepping = stepper_states.at(state_idx);
-                const auto &track = stepping();
-
-                /*const auto vol = navigation.get_volume();
-                const material<scalar_t> *vol_mat_ptr =
-                    vol.has_material() ? vol.material_parameters(track.pos())
-                                       : nullptr;*/
-
-                stepper.step(navigation(), stepping, *cfg, reset_stepsize,
-                             /*vol_mat_ptr*/ nullptr);
-
-                propagation_state_t propagation{stepping, navigation, gctx};
-                typename stepper_t::policy_type{}(stepping.policy_state(),
-                                                  propagation);
-            }
+            typename stepper_t::policy_type{}(stepping.policy_state(),
+                                              queue.get_data(i));
+            DETRAY_DEBUG_DEVICE(
+                "Thread %d (Step): Step length %f (iteration %d)", thread_idx,
+                stepping.step_size(), i);
         }
 
-        if (!(has_queue_0 && navigation_states.at(state_idx_0).is_alive()) &&
-            !(has_queue_1 && navigation_states.at(state_idx_1).is_alive())) {
-            printf("Thread %d (Step): Drop out of propagation\n", thread_idx);
-            needs_navigation[0].arrive_and_drop();
-            needs_navigation[1].arrive_and_drop();
-
-            needs_stepping[0].arrive_and_wait();
-            needs_stepping[1].arrive_and_wait();
-        } else {
-            printf("Thread %d (Step): Needs navigation (queue: %d)\n",
-                   thread_idx, queue_idx);
-            barrier_t::arrival_token token =
-                needs_navigation[queue_idx].arrive();
-        }
-        ++i;
-        if (blockIdx.x == 1) {
-            printf("Thread %d, block %d (Step): Iteration %d\n", thread_idx,
-                   blockIdx.x, i);
-        }
+        barrier_t::arrival_token token = queue.trigger_navigation(i);
     }
-    if (i >= 1000) {
-        printf("Thread %d, block %d  (Step): Reached hard limit\n", thread_idx,
-               blockIdx.x);
-        needs_navigation[0].arrive_and_drop();
-        needs_navigation[1].arrive_and_drop();
 
-        needs_stepping[0].arrive_and_wait();
-        needs_stepping[1].arrive_and_wait();
-    }
-    printf("Thread %d, block %d (Step): Stepping finished\n", thread_idx,
-           blockIdx.x);
+    DETRAY_DEBUG_DEVICE("Thread %d, block %d (Step): Stepping finished",
+                        thread_idx, blockIdx.x);
 }
 
 /// Run the navigator
 template <typename navigator_t, typename stepper_t, typename actor_chain_t>
-__device__ void navigate(
-    const navigation::config *cfg, cooperative_groups::thread_block block,
-    const std::array<int, 2> queues[],
-    ::cuda::barrier<::cuda::thread_scope_block> needs_stepping[],
-    ::cuda::barrier<::cuda::thread_scope_block> needs_navigation[],
-    const vecmem::device_vector<typename stepper_t::state> stepper_states,
-    // vecmem::device_vector<unsigned int> stepper_res_view,
-    vecmem::device_vector<typename navigator_t::state> navigation_states
-    // vecmem::device_vector<unsigned int> navigator_res_view
-) {
+__device__ DETRAY_INLINE void navigate(
+    const navigation::config *cfg,
+    propagation_queue<navigator_t, stepper_t, actor_chain_t> &queue,
+    [[maybe_unused]] int thread_idx) {
 
     using barrier_t = ::cuda::barrier<::cuda::thread_scope_block>;
 
     using detector_t = typename navigator_t::detector_type;
     using stepper_state_t = typename stepper_t::state;
     using navigation_state_t = typename navigator_t::state;
+    using propagation_state_t = propagation_state<navigator_t, stepper_t>;
 
     assert(cfg != nullptr);
-    assert(stepper_states.size() == navigation_states.size());
-    assert(static_cast<int>(stepper_states.size()) > 512 * blockIdx.x);
-
-    typename detector_t::geometry_context gctx{};
-    constexpr navigator_t navigator{};
+    // assert(static_cast<int>(queue.size()) > 512 * blockIdx.x);
 
     // Block-local thread index (adjusted for the start of the warp
     // specialization)
-    const int thread_idx = block.thread_rank() - blockDim.x / 2;
+    // const int thread_idx =
+    //    cooperative_groups::this_thread_block().thread_rank() - blockDim.x /
+    //    2;
     assert(thread_idx >= 0);
 
-    // Wait for all threads in the block to arrive for stepping
-    printf("Thread %d (Nav): Needs stepping (queue: 0)\n", thread_idx);
-    barrier_t::arrival_token token1 = needs_stepping[0].arrive();
-    printf("Thread %d (Nav): Needs stepping (queue: 1)\n", thread_idx);
-    barrier_t::arrival_token token2 = needs_stepping[1].arrive();
+    barrier_t::arrival_token token1 = queue.trigger_stepping(0);
+    barrier_t::arrival_token token2 = queue.trigger_stepping(1);
+    for (int i = 0; i < 100; ++i) {
 
-    // Does this thread have work in either queue ?
-    const int state_idx_0{thread_idx + queues[0][0]};
-    const int state_idx_1{thread_idx + queues[1][0]};
+        queue.wait_for_stepping(i);
 
-    const bool has_queue_0{state_idx_1 < queues[0][1]};
-    const bool has_queue_1{state_idx_1 < queues[1][1]};
+        if (queue.is_alive(i)) {
+            navigation_state_t &navigation = queue.navigation_states(i);
+            const stepper_state_t &stepper_state = queue.stepper_states(i);
 
-    if (blockIdx.x == 1) {
-        printf(
-            "Thread %d, block %d (Nav): has queue 0 %d (state idx %d [%d, "
-            "%d])\n",
-            thread_idx, blockIdx.x, has_queue_0, state_idx_0, queues[0][0],
-            queues[0][1]);
-        printf(
-            "Thread %d, block %d (Nav): has queue 1 %d (state idx %d [%d, "
-            "%d])\n",
-            thread_idx, blockIdx.x, has_queue_1, state_idx_1, queues[1][0],
-            queues[1][1]);
-    }
+            DETRAY_DEBUG_DEVICE(
+                "Thread %d (Nav): Run navigation (iteration % d) ", thread_idx,
+                i);
 
-    // Run while either at least one of the two navigation streams monitored by
-    // this thread is alive
-    int i{0};
-    while ((has_queue_0 && navigation_states.at(state_idx_0).is_alive() ||
-            (has_queue_1 && navigation_states.at(state_idx_1).is_alive())) &&
-           i < 1000) {
-        // Queue for this iteration
-        const int queue_idx{i % 2};
-        const std::array<int, 2> &current_queue{queues[queue_idx]};
-        // Which state to get
-        auto state_idx = thread_idx + current_queue[0];
-
-        printf("Thread %d (Nav): Wait for stepping (queue: %d)\n", thread_idx,
-               queue_idx);
-        // Wait for stepping to fill the queue
-        needs_navigation[queue_idx].arrive_and_wait();
-        printf("Thread %d (Nav): Run state index %d (queue: %d)\n", thread_idx,
-               state_idx, queue_idx);
-
-        // If eligible to do work: navigate
-        if (state_idx < current_queue[1]) {
-
-            navigation_state_t &navigation = navigation_states.at(state_idx);
-
-            if (navigation.is_alive()) {
-                const auto &stepper_state = stepper_states.at(state_idx);
-                navigator.update(stepper_state(), navigation, *cfg, gctx);
-            }
+            constexpr navigator_t navigator{};
+            typename detector_t::geometry_context gctx{};
+            navigator.update(stepper_state(), navigation, *cfg, gctx);
         }
 
-        if (!(has_queue_0 && navigation_states.at(state_idx_0).is_alive()) &&
-            !(has_queue_1 && navigation_states.at(state_idx_1).is_alive())) {
-            printf("Thread %d (Nav): Drop out of propagation\n", thread_idx);
-            // No more stepping needed
-            needs_stepping[0].arrive_and_drop();
-            needs_stepping[1].arrive_and_drop();
-
-            // Wait for stepping to signal 'no more navigation needed'
-            needs_navigation[0].arrive_and_wait();
-            needs_navigation[1].arrive_and_wait();
-        } else {
-            printf("Thread %d (Nav): Needs stepping (queue: %d)\n", thread_idx,
-                   queue_idx);
-            barrier_t::arrival_token token = needs_stepping[queue_idx].arrive();
-        }
-        ++i;
-        if (blockIdx.x == 1) {
-            printf("Thread %d, block %d (Nav): Iteration %d\n", thread_idx,
-                   blockIdx.x, i);
-        }
-    }
-    if (i >= 1000) {
-        printf("Thread %d, block %d  (Nav): Reached hard limit\n", thread_idx,
-               blockIdx.x);
-        needs_stepping[0].arrive_and_drop();
-        needs_stepping[1].arrive_and_drop();
-
-        needs_navigation[0].arrive_and_wait();
-        needs_navigation[1].arrive_and_wait();
+        barrier_t::arrival_token token = queue.trigger_stepping(i);
     }
 
-    printf("Thread %d, block %d (Nav): Navigation finished\n", thread_idx,
-           blockIdx.x);
+    DETRAY_DEBUG_DEVICE("Thread %d, block %d (Nav): Navigation finished",
+                        thread_idx, blockIdx.x);
 }
 
 /// Specialize the warps to run stepping, navigation and actors independently
 template <typename navigator_t, typename stepper_t, typename actor_chain_t>
 __global__ void __launch_bounds__(256, 4) propagation_kernel(
     const propagation::config *pinned_cfg,
-    vecmem::data::vector_view<typename stepper_t::state> stepper_states_view,
+    const typename navigator_t::detector_type *pinned_detector_ptr,
+    vecmem::data::vector_view<propagation_state<navigator_t, stepper_t>>
+        propagation_states_view,
     // vecmem::data::vector_view<unsigned int> stepper_res_view,
-    vecmem::data::vector_view<typename navigator_t::state>
-        navigator_states_view,
     // vecmem::data::vector_view<unsigned int> navigator_res_view,
     vecmem::data::vector_view<typename actor_chain_t::state_tuple>
         actor_states_view) {
@@ -370,90 +398,45 @@ __global__ void __launch_bounds__(256, 4) propagation_kernel(
     /// Register the actor types
     const actor_chain_t run_actors{};
 
-    vecmem::device_vector<typename stepper_t::state> stepper_states(
-        stepper_states_view);
+    vecmem::device_vector<propagation_state<navigator_t, stepper_t>>
+        propagation_states(propagation_states_view);
     // vecmem::device_vector<unsigned int> stepper_results(stepper_res_view);
-    vecmem::device_vector<typename navigator_t::state> navigation_states(
-        navigator_states_view);
-
-    int gid = threadIdx.x + blockIdx.x * blockDim.x;
 
     assert(blockDim.y == blockDim.z == 1);
+
+    int gid = threadIdx.x + blockIdx.x * blockDim.x;
+    if (gid > 2 * propagation_states.size()) {
+        return;
+    }
+
+    auto block = cooperative_groups::this_thread_block();
 
     __shared__ stepping::config step_cfg[1];
     __shared__ navigation::config nav_cfg[1];
 
-    // In each iteration, handles only half of the tracks (two queues: try to
-    // avoid stalls)
-    constexpr int queue_length{256};
-
-    // Map the two queues onto the state containers
-    using queue_t = std::array<int, 2>;
-
-    __shared__ queue_t queues[2];
-
-    auto block = cooperative_groups::this_thread_block();
     if (block.thread_rank() == 0) {
-
-        printf("This is block %d\n", blockIdx.x);
         step_cfg[0] = pinned_cfg->stepping;
         nav_cfg[0] = pinned_cfg->navigation;
-
-        // Offset for this block's data into the state containers
-        const int trk_offset{512 * static_cast<int>(blockIdx.x)};
-        // Number of tracks this block handles (comes in chunks of 512 tracks)
-        const int n_tracks{math::min(
-            static_cast<int>(stepper_states.size()) - trk_offset, 512)};
-
-        const queue_t first_queue = {
-            trk_offset, trk_offset + math::min(n_tracks, queue_length)};
-        const queue_t second_queue = {
-            trk_offset + queue_length,
-            trk_offset + queue_length +
-                math::min(math::max(0, n_tracks - queue_length), queue_length)};
-
-        printf("Block %d queue 0: [%d, %d]\n", blockIdx.x, first_queue[0],
-               first_queue[1]);
-        printf("Block %d queue 1: [%d, %d]\n", blockIdx.x, second_queue[0],
-               second_queue[1]);
-
-        queues[0] = first_queue;
-        queues[1] = second_queue;
     }
     block.sync();
-
-    // vecmem::device_vector<unsigned int>
-    // navigation_results(navigator_res_view);
-
-    /*if (gid < navigator_states_view.size()) {
-        const auto dir = stepper_states.at(gid)().dir();
-        printf("%f: [%f, %f, %f]\n", navigation_states.at(gid)(), dir[0],
-               dir[1], dir[2]);
-    }*/
 
     // bar[0] and bar[1] track if buffers buffer_0 and buffer_1 are ready to be
     // filled, while bar[2] and bar[3] track if buffers buffer_0 and buffer_1
     // are filled-in respectively
-    __shared__ barrier_t bar[4];
+    __shared__ barrier_t barriers[4];
 
-    if (block.thread_rank() < 4) {
-        init(bar + block.thread_rank(), block.size());
-    }
-    block.sync();
+    propagation_queue<navigator_t, stepper_t, actor_chain_t> queue{
+        propagation_states, block, barriers};
 
     const int split_idx = blockDim.x / 2;
     if (block.thread_rank() < split_idx) {
-        printf("Thread %d (%d) in block %d doing stepping\n", gid,
-               block.thread_rank(), blockIdx.x);
-        take_step<navigator_t, stepper_t, actor_chain_t>(
-            step_cfg, block, queues, bar, bar + 2, stepper_states,
-            navigation_states);
+        DETRAY_DEBUG_DEVICE("Thread %d (%d) in block %d doing stepping", gid,
+                            block.thread_rank(), blockIdx.x);
+        take_step(step_cfg, queue, gid);
     } else {
-        printf("Thread %d (%d) in block %d doing navigation\n", gid,
-               block.thread_rank(), blockIdx.x);
-        navigate<navigator_t, stepper_t, actor_chain_t>(
-            nav_cfg, block, queues, bar, bar + 2, stepper_states,
-            navigation_states);
+        DETRAY_DEBUG_DEVICE("Thread %d (%d) in block %d doing navigation", gid,
+                            block.thread_rank(), blockIdx.x);
+        navigate(nav_cfg, queue, gid);
     }
 }
 
@@ -479,21 +462,31 @@ void release_config(typename propagation::config *pinned_config_ptr) {
 }
 
 template <typename device_detector_t>
-typename device_detector_t *allocate_device_detector() {
+device_detector_t *setup_device_detector(
+    typename device_detector_t::view_type det_view) {
+
+    // Build a device detector type (the interal pointers and capacities refer
+    // to the already allocated vecmem device buffers)
+    device_detector_t device_det{det_view};
 
     // Allocate global memory space for the device detector to be shared by
     // kernels
-    device_detector_t *device_detector_ptr{nullptr};
+    device_detector_t *pinned_detector_ptr{nullptr};
 
-    DETRAY_CUDA_ERROR_CHECK(
-        cudaAlloc((void **)&device_detector_ptr, sizeof(device_detector_t)));
+    DETRAY_CUDA_ERROR_CHECK(cudaHostAlloc((void **)&pinned_detector_ptr,
+                                          sizeof(device_detector_t),
+                                          cudaHostAllocPortable));
 
-    return device_detector_ptr;
+    DETRAY_CUDA_ERROR_CHECK(cudaMemcpy(pinned_detector_ptr, &device_det,
+                                       sizeof(device_detector_t),
+                                       cudaMemcpyHostToDevice));
+
+    return pinned_detector_ptr;
 }
 
 template <typename device_detector_t>
-void release_detector(typename device_detector_t *device_detector_ptr) {
-    DETRAY_CUDA_ERROR_CHECK(cudaFree(device_detector_ptr));
+void release_device_detector(device_detector_t *pinned_detector_ptr) {
+    DETRAY_CUDA_ERROR_CHECK(cudaFreeHost(pinned_detector_ptr));
 }
 
 template <typename actor_chain_t>
@@ -524,13 +517,13 @@ void release_actor_states(
 template <typename navigator_t, typename stepper_t, typename actor_chain_t>
 void run_propagation_init_kernel(
     const propagation::config *pinned_cfg,
+    typename navigator_t::detector_type *pinned_detector_ptr,
     typename navigator_t::detector_type::view_type det_view,
     typename stepper_t::magnetic_field_type field_view,
     vecmem::data::vector_view<typename stepper_t::free_track_parameters_type>
         tracks_view,
-    vecmem::data::vector_view<typename stepper_t::state> stepper_states_view,
-    vecmem::data::vector_view<typename navigator_t::state>
-        navigator_states_view,
+    vecmem::data::vector_view<propagation_state<navigator_t, stepper_t>>
+        propagation_states_view,
     vecmem::data::vector_view<typename actor_chain_t::state_tuple>
         actor_states_view,
     typename actor_chain_t::state_tuple *pinned_actor_state_ptr) {
@@ -541,8 +534,8 @@ void run_propagation_init_kernel(
     // run the test kernel
     propagation_init_kernel<navigator_t, stepper_t, actor_chain_t>
         <<<block_dim, thread_dim>>>(
-            pinned_cfg, det_view, field_view, tracks_view, stepper_states_view,
-            navigator_states_view, actor_states_view, pinned_actor_state_ptr);
+            pinned_cfg, pinned_detector_ptr, det_view, field_view, tracks_view,
+            propagation_states_view, actor_states_view, pinned_actor_state_ptr);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
@@ -552,28 +545,29 @@ void run_propagation_init_kernel(
 template <typename navigator_t, typename stepper_t, typename actor_chain_t>
 void run_propagation_kernel(
     const propagation::config *pinned_cfg,
-    vecmem::data::vector_view<typename stepper_t::state> stepper_states_view,
+    const typename navigator_t::detector_type *pinned_detector_ptr,
+    vecmem::data::vector_view<propagation_state<navigator_t, stepper_t>>
+        propagation_states_view,
     vecmem::data::vector_view<unsigned int> stepper_res_view,
-    vecmem::data::vector_view<typename navigator_t::state>
-        navigator_states_view,
     vecmem::data::vector_view<unsigned int> navigator_res_view,
     vecmem::data::vector_view<typename actor_chain_t::state_tuple>
         actor_states_view) {
 
-    constexpr int thread_dim = 256;
-    // One block handles 512 tracks
-    int block_dim =
-        (stepper_states_view.size() + 2 * thread_dim - 1) / (2 * thread_dim);
+    int thread_dim =
+        math::min(256, static_cast<int>(propagation_states_view.size()));
+    // One block handles 256 tracks
+    int block_dim = static_cast<int>(
+        (propagation_states_view.size() + thread_dim - 1) / thread_dim);
 
-    std::cout << "# Tracks: " << stepper_states_view.size() << std::endl;
-    std::cout << "# threads per block: " << thread_dim
-              << "\n# blocks: " << block_dim
-              << "\n# threads: " << thread_dim * block_dim << std::endl;
+    DETRAY_INFO_HOST_DEVICE("# Tracks: %ld", propagation_states_view.size());
+    DETRAY_INFO_HOST_DEVICE("# threads per block: %ld", thread_dim);
+    DETRAY_INFO_HOST_DEVICE("# blocks: %ld", block_dim);
+    DETRAY_INFO_HOST_DEVICE("# threads: %ld", thread_dim * block_dim);
 
     // run the propagation loop
     propagation_kernel<navigator_t, stepper_t, actor_chain_t>
-        <<<block_dim, thread_dim>>>(pinned_cfg, stepper_states_view,
-                                    navigator_states_view, actor_states_view);
+        <<<block_dim, thread_dim>>>(pinned_cfg, pinned_detector_ptr,
+                                    propagation_states_view, actor_states_view);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
@@ -581,49 +575,53 @@ void run_propagation_kernel(
 }
 
 /// Macro declaring the template instantiations for the different detector types
-#define DECLARE_PROPAGATOR(METADATA, CHAIN, FIELD)                            \
-                                                                              \
-    template void run_propagation_init_kernel<                                \
-        navigator_type<METADATA>, stepper_type<METADATA, FIELD>,              \
-        CHAIN<detector<METADATA>::algebra_type>>(                             \
-        const propagation::config *, typename detector<METADATA>::view_type,  \
-        covfie::field_view<FIELD>,                                            \
-        vecmem::data::vector_view<                                            \
-            free_track_parameters<detector<METADATA>::algebra_type>>,         \
-        vecmem::data::vector_view<                                            \
-            typename stepper_type<METADATA, FIELD>::state>,                   \
-        vecmem::data::vector_view<typename navigator_type<METADATA>::state>,  \
-        vecmem::data::vector_view<                                            \
-            typename CHAIN<detector<METADATA>::algebra_type>::state_tuple>,   \
-        typename CHAIN<detector<METADATA>::algebra_type>::state_tuple *);     \
-                                                                              \
-    template void run_propagation_kernel<                                     \
-        navigator_type<METADATA>, stepper_type<METADATA, FIELD>,              \
-        CHAIN<detector<METADATA>::algebra_type>>(                             \
-        const propagation::config *,                                          \
-        vecmem::data::vector_view<                                            \
-            typename stepper_type<METADATA, FIELD>::state>,                   \
-        vecmem::data::vector_view<unsigned int>,                              \
-        vecmem::data::vector_view<typename navigator_type<METADATA>::state>,  \
-        vecmem::data::vector_view<unsigned int>,                              \
-        vecmem::data::vector_view<                                            \
-            typename CHAIN<detector<METADATA>::algebra_type>::state_tuple>);  \
-                                                                              \
-    template detector<METADATA, device_container_types> *                     \
-    allocate_device_detector<detector<METADATA, device_container_types>>();   \
-                                                                              \
-    template void                                                             \
-    release_device_detector<detector<METADATA, device_container_types>>(      \
-        detector<METADATA, device_container_types> *);                        \
-                                                                              \
-    #define DECLARE_ACTOR_CHAIN_SETUP(METADATA, CHAIN) template               \
-        typename CHAIN<detector<METADATA>::algebra_type>::state_tuple *       \
-        setup_actor_states<CHAIN<detector<METADATA>::algebra_type>>(          \
-            typename CHAIN<detector<METADATA>::algebra_type>::state_tuple *); \
-                                                                              \
-    template void                                                             \
-    release_actor_states<CHAIN<detector<METADATA>::algebra_type>>(            \
+#define DECLARE_PROPAGATOR(METADATA, CHAIN, FIELD)                          \
+                                                                            \
+    template void run_propagation_init_kernel<                              \
+        navigator_type<METADATA>, stepper_type<METADATA, FIELD>,            \
+        CHAIN<detector<METADATA>::algebra_type>>(                           \
+        const propagation::config *,                                        \
+        detector<METADATA, device_container_types> *,                       \
+        typename detector<METADATA>::view_type, covfie::field_view<FIELD>,  \
+        vecmem::data::vector_view<                                          \
+            free_track_parameters<detector<METADATA>::algebra_type>>,       \
+        vecmem::data::vector_view<propagation_state<                        \
+            navigator_type<METADATA>, stepper_type<METADATA, FIELD>>>,      \
+        vecmem::data::vector_view<                                          \
+            typename CHAIN<detector<METADATA>::algebra_type>::state_tuple>, \
+        typename CHAIN<detector<METADATA>::algebra_type>::state_tuple *);   \
+                                                                            \
+    template void run_propagation_kernel<                                   \
+        navigator_type<METADATA>, stepper_type<METADATA, FIELD>,            \
+        CHAIN<detector<METADATA>::algebra_type>>(                           \
+        const propagation::config *,                                        \
+        const detector<METADATA, device_container_types> *,                 \
+        vecmem::data::vector_view<propagation_state<                        \
+            navigator_type<METADATA>, stepper_type<METADATA, FIELD>>>,      \
+        vecmem::data::vector_view<unsigned int>,                            \
+        vecmem::data::vector_view<unsigned int>,                            \
+        vecmem::data::vector_view<                                          \
+            typename CHAIN<detector<METADATA>::algebra_type>::state_tuple>);
+
+#define DECLARE_ACTOR_CHAIN_SETUP(METADATA, CHAIN)                           \
+                                                                             \
+    template typename CHAIN<detector<METADATA>::algebra_type>::state_tuple * \
+    setup_actor_states<CHAIN<detector<METADATA>::algebra_type>>(             \
+        typename CHAIN<detector<METADATA>::algebra_type>::state_tuple *);    \
+                                                                             \
+    template void                                                            \
+    release_actor_states<CHAIN<detector<METADATA>::algebra_type>>(           \
         typename CHAIN<detector<METADATA>::algebra_type>::state_tuple *);
+
+#define DECLARE_DETECTOR_ALLOCATION(METADATA)                                \
+                                                                             \
+    template detector<METADATA, device_container_types>                      \
+        *setup_device_detector<detector<METADATA, device_container_types>>(  \
+            typename detector<METADATA, device_container_types>::view_type); \
+                                                                             \
+    template void                                                            \
+    release_device_detector<detector<METADATA, device_container_types>>(     \
+        detector<METADATA, device_container_types> *);
 
 DECLARE_PROPAGATOR(benchmarks::default_metadata, empty_chain, const_field_t)
 DECLARE_PROPAGATOR(benchmarks::default_metadata, default_chain, const_field_t)
@@ -634,5 +632,8 @@ DECLARE_PROPAGATOR(benchmarks::toy_metadata, default_chain, const_field_t)
 // Declare only once per algebra type
 DECLARE_ACTOR_CHAIN_SETUP(benchmarks::toy_metadata, empty_chain)
 DECLARE_ACTOR_CHAIN_SETUP(benchmarks::toy_metadata, default_chain)
+
+DECLARE_DETECTOR_ALLOCATION(benchmarks::default_metadata)
+DECLARE_DETECTOR_ALLOCATION(benchmarks::toy_metadata)
 
 }  // namespace detray

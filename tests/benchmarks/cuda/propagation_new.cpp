@@ -54,27 +54,11 @@ int main(int argc, char** argv) {
     vecmem::cuda::host_memory_resource host_mr;  //< pinned memory
     vecmem::cuda::device_memory_resource dev_mr;
 
-    // Device info
-    /*int nDevices;
-    cudaGetDeviceCount(&nDevices);
-    for (int i = 0; i < nDevices; i++) {
-        cudaDeviceProp prop;
-        cudaGetDeviceProperties(&prop, i);
-        std::cout << "Device Number: " << i << std::endl;
-        std::cout << "  Device name: " << prop.name<< std::endl;
-        std::cout << "  Memory Clock Rate (KHz): " <<
-            prop.memoryClockRate<< std::endl;
-        std::cout << "  Memory Bus Width (bits): " <<
-            prop.memoryBusWidth<< std::endl;
-        std::cout << "  Peak Memory Bandwidth (GB/s): " <<
-            2.0*prop.memoryClockRate*(prop.memoryBusWidth/8)/1.0e6<< std::endl;
-    }*/
-
     //
     // Configuration
     //
 
-    std::size_t n_tracks{10000u};
+    std::size_t n_tracks{262144u};
     if (argc > 1) {
         n_tracks = static_cast<std::size_t>(atoi(argv[1]));
     }
@@ -115,8 +99,10 @@ int main(int argc, char** argv) {
     auto bfield = create_const_field<scalar>(B);
 
     pointwise_material_interactor<algebra_t>::state interactor_state{};
+    parameter_resetter<algebra_t>::state resetter_state{};
 
-    auto actor_states = detail::make_tuple<dtuple>(interactor_state);
+    auto actor_states =
+        detail::make_tuple<dtuple>(interactor_state, resetter_state);
 
     //
     // Register benchmarks
@@ -145,6 +131,6 @@ int main(int argc, char** argv) {
 
     // Assumption: 1 event = 3000 truth tracks + 2 seeds per track
     std::cout << "It took: " << total_time_ms << "ms ("
-              << total_time_ms / (static_cast<double>(n_tracks) / 9000.)
+              << total_time_ms / (static_cast<double>(n_tracks) / 3000.)
               << " ms/evt)" << std::endl;
 }
