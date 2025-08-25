@@ -14,9 +14,9 @@ include(CMakeFindDependencyMacro)
 find_dependency(Boost COMPONENTS program_options REQUIRED)
 
 if(DETRAY_BUILD_TESTING)
-    # Build the detector validation executable.
-    detray_add_executable(detector_validation_cuda
-                        "detector_validation_cuda.cpp"
+    # Build the navigation validation executable.
+    detray_add_executable(navigation_validation_cuda
+                        "navigation_validation_cuda.cpp"
                         LINK_LIBRARIES GTest::gtest GTest::gtest_main
                         Boost::program_options detray::test_cuda detray::tools
     )
