@@ -214,7 +214,8 @@ inline auto record_propagation(
     }
 
     // Set the initial covariances
-    if (!stddevs.empty()) {
+    if (!stddevs.empty() &&
+        !std::ranges::all_of(stddevs, [](scalar_t s) { return s == 0.f; })) {
         std::random_device rd{};
         std::mt19937 generator{rd()};
 
@@ -377,6 +378,31 @@ auto compare_traces(
         }
     };
 
+    // Intersection records at portal boundary might be flipped
+    // (the portals overlap completely)
+    auto is_swapped_surfaces = [&recorded_trace, &truth_trace](const long j) {
+        const auto idx_j{static_cast<std::size_t>(j)};
+        const std::size_t next_idx{idx_j + 1u};
+
+        if (next_idx < truth_trace.size() && next_idx < recorded_trace.size()) {
+
+            const auto &current_nav_inters =
+                recorded_trace.at(idx_j).intersection.sf_desc.barcode();
+            const auto &current_truth_inters =
+                truth_trace.at(idx_j).intersection.sf_desc.barcode();
+
+            const auto &next_nav_inters =
+                recorded_trace.at(next_idx).intersection.sf_desc.barcode();
+            const auto &next_truth_inters =
+                truth_trace.at(next_idx).intersection.sf_desc.barcode();
+
+            return ((current_nav_inters == next_truth_inters) &&
+                    (next_nav_inters == current_truth_inters));
+        } else {
+            return false;
+        }
+    };
+
     // Iterate until 'max_entries', because dummy records will be added to the
     // shorter trace
     for (long i = 0; i < static_cast<long>(max_entries); ++i) {
@@ -418,34 +444,6 @@ auto compare_traces(
             long missed_sn_tr{0};
             long missed_ps_tr{0};
 
-            // Intersection records at portal boundary might be flipped
-            // (the portals overlap completely)
-            auto is_swapped_portals = [&recorded_trace,
-                                       &truth_trace](const long j) {
-                const auto idx_j{static_cast<std::size_t>(j)};
-                const std::size_t next_idx{idx_j + 1u};
-
-                if (next_idx < truth_trace.size() &&
-                    next_idx < recorded_trace.size()) {
-
-                    const auto &current_nav_inters =
-                        recorded_trace.at(idx_j).intersection.sf_desc.barcode();
-                    const auto &current_truth_inters =
-                        truth_trace.at(idx_j).intersection.sf_desc.barcode();
-
-                    const auto &next_nav_inters =
-                        recorded_trace.at(next_idx)
-                            .intersection.sf_desc.barcode();
-                    const auto &next_truth_inters =
-                        truth_trace.at(next_idx).intersection.sf_desc.barcode();
-
-                    return ((current_nav_inters == next_truth_inters) &&
-                            (next_nav_inters == current_truth_inters));
-                } else {
-                    return false;
-                }
-            };
-
             // Count a missed surface by surface type
             auto count_one_missed = []<typename insers_t>(const insers_t &intr,
                                                           long int &missed_pt,
@@ -474,7 +472,7 @@ auto compare_traces(
 
             // Compare two traces and insert dummy records for any skipped cand.
             auto compare_and_equalize =
-                [&i, &handle_counting_error, &is_swapped_portals,
+                [&i, &handle_counting_error, &is_swapped_surfaces,
                  &count_one_missed,
                  &missed_intersections]<typename trace_t,
                                         typename other_trace_t>(
@@ -496,7 +494,7 @@ auto compare_traces(
 
                         // Portals may be swapped and wrongfully included in the
                         // range of missed surfaces - skip them
-                        if (sfi.sf_desc.is_portal() && is_swapped_portals(j)) {
+                        if (sfi.sf_desc.is_portal() && is_swapped_surfaces(j)) {
                             ++j;
                             continue;
                         }
@@ -544,9 +542,16 @@ auto compare_traces(
             // Check if the portal order is swapped or the surface appears
             // later in the truth/navigation trace (this means one or
             // multiple surfaces were skipped respectively)
-            if (is_swapped_portals(i)) {
+            if (is_swapped_surfaces(i)) {
                 // Was not wrong after all
                 matching_traces = true;
+                if (!recorded_trace.at(idx).intersection.sf_desc.is_portal() ||
+                    !truth_trace.at(idx).intersection.sf_desc.is_portal()) {
+                    std::cout
+                        << "WARNING: Non-portal surfaces are swapped in trace, "
+                           "possibly due to overlaps or large mask tolerances."
+                        << std::endl;
+                }
                 // Have already checked the next record
                 ++i;
             } else if (auto last_missed_by_nav = std::ranges::find_if(
@@ -698,8 +703,10 @@ auto compare_traces(
                          (missed_stats_tr.n_total() != 0u) || (n_errors != 0u)};
 
     // Print debugging information if anything went wrong
-    if (any_error && cfg.verbose()) {
-        std::cout << "--------\n" << matching_stream.str() << std::endl;
+    if (any_error) {
+        if (cfg.verbose()) {
+            std::cout << "--------\n" << matching_stream.str() << std::endl;
+        }
         if (debug_file) {
             *debug_file << "\n>>>>>>>>>>>>>>>>>>\nFAILURE\n<<<<<<<<<<<<<<<<<<\n"
                         << "\nSUMMARY:\n--------\n"
@@ -777,15 +784,25 @@ auto compare_traces(
             if (truth_desc.barcode() != nav_desc.barcode() &&
                 !(truth_desc.barcode().is_invalid() ||
                   nav_desc.barcode().is_invalid())) {
-                n_miss_truth++;
-                n_miss_nav++;
+
+                // Swapped in trace, possibly due to overlaps
+                if (!is_swapped_surfaces(static_cast<long>(i))) {
+                    n_miss_truth++;
+                    n_miss_nav++;
+                } else {
+                    // If the surfaces were swapped, we already know the next
+                    // element to be correct
+                    ++i;
+                }
             }
         }
 
         if (n_miss_truth != missed_stats_tr.n_total()) {
             is_counting_error = true;
             const std::string msg{
-                "Missed truth surfaces not counted correctly"};
+                "Missed truth surfaces not counted correctly. Was " +
+                std::to_string(missed_stats_tr.n_total()) + ", should be " +
+                std::to_string(n_miss_truth)};
             if (cfg.fail_on_diff()) {
                 throw std::runtime_error(msg);
             } else {
@@ -795,7 +812,9 @@ auto compare_traces(
         if (n_miss_nav != missed_stats_nav.n_total()) {
             is_counting_error = true;
             const std::string msg{
-                "Missed navigation surfaces not counted correctly"};
+                "Missed navigation surfaces not counted correctly. Was " +
+                std::to_string(missed_stats_nav.n_total()) + ", should be " +
+                std::to_string(n_miss_nav)};
             if (cfg.fail_on_diff()) {
                 throw std::runtime_error(msg);
             } else {
@@ -1161,14 +1180,16 @@ auto compare_to_navigation(
         // After dummy records insertion, traces should have the same size
         if (truth_trace.size() != recorded_trace.size()) {
             throw std::runtime_error(
-                "ERROR: Trace comparison failed: Trace do not have the same "
+                "ERROR: Track " + std::to_string(i) +
+                ": Trace comparison failed: Trace do not have the same "
                 "size after intersection matching");
         }
 
         // Internal error during trace matching
         if (n_error_trace != 0u) {
             throw std::runtime_error(
-                "FATAL: Error during track comparison. Please check log "
+                "FATAL: Track " + std::to_string(i) +
+                ": Error during track comparison. Please check log "
                 "files");
         }
 
