@@ -14,6 +14,7 @@
 #include "detray/definitions/track_parametrization.hpp"
 #include "detray/propagator/detail/jacobian.hpp"
 #include "detray/propagator/detail/jacobian_cartesian.hpp"
+#include "detray/propagator/detail/jacobian_concentric_cylindrical.hpp"
 #include "detray/propagator/detail/jacobian_cylindrical.hpp"
 #include "detray/propagator/detail/jacobian_line.hpp"
 #include "detray/propagator/detail/jacobian_polar.hpp"
