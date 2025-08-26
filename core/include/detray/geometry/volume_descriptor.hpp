@@ -13,6 +13,7 @@
 #include "detray/definitions/indexing.hpp"
 
 // System include(s)
+#include <ostream>
 #include <utility>
 
 namespace detray {
@@ -52,8 +53,8 @@ class volume_descriptor {
     ///          surface store.
     ///
     /// E.g. a 'portal' can be found under @c ID::e_portal in this link,
-    /// and will then receive link to the @c brute_force_searcher that holds the
-    /// portals (the accelerator structure's id and index).
+    /// and will then receive link to the @c brute_force acceleration structure
+    /// that holds the portals (the accelerator structure's id and index).
     using accel_link_type = dmulti_index<acc_link_t, ID::e_size>;
 
     /// How to link to the volume material, if any
@@ -279,7 +280,7 @@ class volume_descriptor {
     /// Set link for a type of surfaces ( @param obj_id ) from @param id
     /// and @param index of the acceleration data structure (e.g. type and
     /// index of a grid in the accelerator store)
-    DETRAY_HOST constexpr auto set_link(
+    DETRAY_HOST constexpr auto set_accel_link(
         const ID obj_id, const typename acc_link_t::id_type accel_id,
         const typename acc_link_t::index_type index) -> void {
         m_accel_links[obj_id] = acc_link_t{accel_id, index};
@@ -308,6 +309,20 @@ class volume_descriptor {
         } else {
             __builtin_unreachable();
         }
+    }
+
+    /// @returns a string stream that prints the volume details
+    DETRAY_HOST
+    friend std::ostream& operator<<(std::ostream& os,
+                                    const volume_descriptor& vol) {
+        os << "id: " << static_cast<int>(vol.m_id);
+        os << " | index: " << vol.m_index;
+        os << " | trf.: " << vol.m_transform;
+        os << " | sf.: " << vol.m_sf_links;
+        os << " | mat.: " << vol.m_mat_link;
+        os << " | accel.: " << vol.m_accel_links;
+
+        return os;
     }
 
     /// How to interpret the boundary values

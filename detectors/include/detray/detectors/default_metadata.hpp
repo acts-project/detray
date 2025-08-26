@@ -21,8 +21,8 @@
 #include "detray/materials/material_map.hpp"
 #include "detray/materials/material_rod.hpp"
 #include "detray/materials/material_slab.hpp"
-#include "detray/navigation/accelerators/brute_force_searcher.hpp"
-#include "detray/navigation/accelerators/grid_searcher.hpp"
+#include "detray/navigation/accelerators/brute_force.hpp"
+#include "detray/navigation/accelerators/spatial_grid.hpp"
 
 namespace detray {
 
@@ -276,8 +276,8 @@ unbounded_cell, unmasked_plane*/>;
     // surface grid definition: bin-content: darray<surface_type, 9>
     template <typename axes_t, typename bin_entry_t, typename container_t>
     using surface_grid_t =
-        grid_searcher<algebra_type, axes_t, bins::dynamic_array<bin_entry_t>,
-                      simple_serializer, container_t, false>;
+        spatial_grid<algebra_type, axes_t, bins::dynamic_array<bin_entry_t>,
+                     simple_serializer, container_t, false>;
 
     // 2D cylindrical grid for the barrel layers
     template <typename bin_entry_t, typename container_t>
@@ -318,7 +318,7 @@ unbounded_cell, unmasked_plane*/>;
     /// @}
 
     /// How to link to the entries in the data stores
-    using transform_link = typename transform_store<>::link_type;
+    using transform_link = typename transform_store<>::single_link;
     using mask_link = typename mask_store<>::range_link;
     using material_link = typename material_store<>::single_link;
     /// Surface type used for sensitives, passives and portals
@@ -334,8 +334,9 @@ unbounded_cell, unmasked_plane*/>;
     /// same acceleration data structure (brute force is always at 0)
     enum geo_objects : std::uint_least8_t {
         e_portal = 0u,     // Brute force search
-        e_sensitive = 1u,  // Grid accelerated search (can be different types)
         e_passive = 0u,    // Brute force search
+        e_sensitive = 1u,  // Grid accelerated search (can be different types)
+        e_volume = 2u,
         e_size = 2u,     // Every volume holds two acceleration data structures
         e_all = e_size,  // i.e. the brute force method and one grid type
     };
@@ -350,6 +351,9 @@ unbounded_cell, unmasked_plane*/>;
                 break;
             case geo_objects::e_sensitive:
                 os << "e_sensitive";
+                break;
+            case geo_objects::e_volume:
+                os << "e_volume";
                 break;
             case geo_objects::e_size:
                 // e_all has same value (2u)
@@ -372,6 +376,7 @@ unbounded_cell, unmasked_plane*/>;
         // e_irr_cylinder3_grid = 8,
         // ... e.g. frustum navigation types
         e_default = e_brute_force,
+        e_default_volume_searcher = e_volume_cylinder3_grid,
     };
 
     DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
@@ -381,17 +386,23 @@ unbounded_cell, unmasked_plane*/>;
             case accel_ids::e_brute_force:
                 os << "e_brute_force";
                 break;
-            case accel_ids::e_cylinder2_grid:
-                os << "e_cylinder2_grid";
-                break;
             case accel_ids::e_disc_grid:
                 os << "e_disc_grid";
+                break;
+            case accel_ids::e_cylinder2_grid:
+                os << "e_cylinder2_grid";
                 break;
             case accel_ids::e_irr_cylinder2_grid:
                 os << "e_irr_cylinder2_grid";
                 break;
             case accel_ids::e_irr_disc_grid:
                 os << "e_irr_disc_grid";
+                break;
+            case accel_ids::e_volume_brute_force:
+                os << "e_volume_brute_force";
+                break;
+            case accel_ids::e_volume_cylinder3_grid:
+                os << "e_volume_cylinder3_grid";
                 break;
         }
         return os;
@@ -405,11 +416,11 @@ unbounded_cell, unmasked_plane*/>;
     /// Volume search grid
     template <typename container_t = host_container_types>
     using volume_accelerator =
-        grid_searcher<algebra_type,
-                      axes<cylinder3D, axis::bounds::e_open, axis::irregular,
-                           axis::regular, axis::irregular>,
-                      bins::single<dindex>, simple_serializer, container_t,
-                      false>;
+        spatial_grid<algebra_type,
+                     axes<cylinder3D, axis::bounds::e_open, axis::irregular,
+                          axis::regular, axis::irregular>,
+                     bins::single<dindex>, simple_serializer, container_t,
+                     false>;
 
     /// How to store the acceleration data structures
     template <typename container_t = host_container_types>

@@ -14,6 +14,7 @@
 #include "detray/definitions/indexing.hpp"
 #include "detray/geometry/detail/volume_kernels.hpp"
 #include "detray/materials/material.hpp"
+#include "detray/navigation/accelerators/search_window.hpp"
 #include "detray/utils/ranges.hpp"
 
 // System include(s)
@@ -88,6 +89,12 @@ class tracking_volume {
     DETRAY_HOST_DEVICE
     constexpr auto index() const -> dindex { return m_desc.index(); }
 
+    /// @returns the volume name (add an offset for the detector name).
+    DETRAY_HOST
+    auto name(const name_map &names) const -> std::string {
+        return names.empty() ? "unknown volume" : names.at(m_desc.index() + 1u);
+    }
+
     /// @returns the (non contextual) transform for the placement of the
     /// volume in the detector geometry.
     DETRAY_HOST_DEVICE
@@ -161,17 +168,18 @@ class tracking_volume {
     /// @tparam I type of object to retrieve (surface types, daughters etc)
     /// @tparam functor_t the prescription to be applied to the acc structure
     /// @tparam Args      types of additional arguments to the functor
-    template <typename functor_t,
-              int I = static_cast<int>(object_id::e_all) - 1, typename... Args>
+    template <typename functor_t, typename... Args>
     DETRAY_HOST_DEVICE constexpr void visit_accelerators(Args &&...args) const {
         // Get the acceleration data structures for this volume and only visit,
         // if object type is contained in volume
-        visit_accelerator<static_cast<object_id>(I), functor_t>(
-            std::forward<Args>(args)...);
-        // Check the next surface type
-        if constexpr (I > 0) {
-            visit_accelerators<functor_t, I - 1, Args...>(
-                std::forward<Args>(args)...);
+        for (std::size_t id = 0u;
+             id < static_cast<std::size_t>(object_id::e_size); ++id) {
+            if (const auto &link{m_desc.accel_link()[id]}; !link.is_invalid()) {
+                // Run over the surfaces in a single acceleration data structure
+                // and apply the functor to the resulting neighborhood
+                m_detector.accelerator_store().template visit<functor_t>(
+                    link, std::forward<Args>(args)...);
+            }
         }
     }
 
@@ -208,9 +216,11 @@ class tracking_volume {
                 // (e.g. daughter volumes)
                 visit_accelerator<object_id::e_portal, surface_getter_t>(
                     std::forward<Args>(args)...);
+                if constexpr (object_id::e_portal != object_id::e_passive) {
+                    visit_accelerator<object_id::e_passive, surface_getter_t>(
+                        std::forward<Args>(args)...);
+                }
                 visit_accelerator<object_id::e_sensitive, surface_getter_t>(
-                    std::forward<Args>(args)...);
-                visit_accelerator<object_id::e_passive, surface_getter_t>(
                     std::forward<Args>(args)...);
             }
         }
@@ -220,7 +230,7 @@ class tracking_volume {
     ///
     /// @tparam functor_t the prescription to be applied to the daughter volumes
     /// @tparam Args      types of additional arguments to the functor
-    template <surface_id I, typename functor_t, typename... Args>
+    template <typename functor_t, typename... Args>
     DETRAY_HOST_DEVICE constexpr void visit_daughter_volumes(
         Args &&...args) const {
         using volume_getter_t = detail::volume_getter<functor_t>;
@@ -241,18 +251,17 @@ class tracking_volume {
     /// @tparam track_t   the track around which to build up the neighborhood
     /// @tparam Args      types of additional arguments to the functor
     template <object_id I, typename functor_t, typename track_t,
-              typename config_t, typename... Args>
-    DETRAY_HOST_DEVICE constexpr void visit_neighborhood(const track_t &track,
-                                                         const config_t &cfg,
-                                                         const context_t &ctx,
-                                                         Args &&...args) const {
+              concepts::arithmetic window_size_t, typename... Args>
+    DETRAY_HOST_DEVICE constexpr void visit_neighborhood(
+        const track_t &track, const search_window<window_size_t, 2> &win_size,
+        const context_t &ctx, Args &&...args) const {
         if constexpr (I == object_id::e_all) {
             visit_accelerators<detail::neighborhood_getter<functor_t>>(
-                m_detector, m_desc, track, cfg, ctx,
+                m_detector, m_desc, track, win_size, ctx,
                 std::forward<Args>(args)...);
         } else {
             visit_accelerator<I, detail::neighborhood_getter<functor_t>>(
-                m_detector, m_desc, track, cfg, ctx,
+                m_detector, m_desc, track, win_size, ctx,
                 std::forward<Args>(args)...);
         }
     }
@@ -370,12 +379,6 @@ class tracking_volume {
         }
 
         return true;
-    }
-
-    /// @returns the volume name (add an offset for the detector name).
-    DETRAY_HOST_DEVICE
-    auto name(const name_map &names) const -> std::string {
-        return names.empty() ? "" : names.at(m_desc.index() + 1u);
     }
 
     /// @returns a string stream that prints the volume details

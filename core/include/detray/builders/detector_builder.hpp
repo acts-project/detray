@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2025 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -8,13 +8,9 @@
 #pragma once
 
 // Project include(s).
-#include "detray/builders/grid_factory.hpp"
 #include "detray/builders/volume_builder.hpp"
 #include "detray/builders/volume_builder_interface.hpp"
 #include "detray/core/detector.hpp"
-#include "detray/definitions/geometry.hpp"
-#include "detray/utils/grid/detail/concepts.hpp"
-#include "detray/utils/type_traits.hpp"
 
 // Vecmem include(s)
 #include <detray/utils/log.hpp>
@@ -31,7 +27,6 @@ namespace detray {
 /// @brief Provides functionality to build a detray detector volume by volume
 ///
 /// @tparam metadata the type definitions for the detector
-/// @tparam bfield_bknd_t the type of magnetic field to be used
 /// @tparam volume_builder_t the basic volume builder to be used for the
 ///                          geometry data
 /// @tparam volume_data_t the data structure that holds the volume builders
@@ -151,49 +146,12 @@ class detector_builder {
         return build(resource);
     }
 
-    /// Put the volumes into a search data structure
-    /*template <typename... Args>
-    DETRAY_HOST void set_volume_accelerator([[maybe_unused]] Args&&... args) {
-        DETRAY_DEBUG("Setting volume finder for detector " << name());
-
-        using vol_finder_t = typename detector_type::volume_accelerator;
-
-        // Add dummy volume grid for now
-        if constexpr (concepts::grid<vol_finder_t>) {
-
-            // TODO: Construct it correctly with the grid builder
-            mask<cylinder3D, algebra_type> vgrid_dims{
-                0u,      0.f,   -constant<scalar_type>::pi,
-                -2000.f, 180.f, constant<scalar_type>::pi,
-                2000.f};
-            darray<std::size_t, 3> n_vgrid_bins{1u, 1u, 1u};
-
-            darray<std::vector<scalar_type>, 3UL> bin_edges{
-                std::vector<scalar_type>{0.f, 180.f},
-                std::vector<scalar_type>{-constant<scalar_type>::pi,
-                                         constant<scalar_type>::pi},
-                std::vector<scalar_type>{-2000.f, 2000.f}};
-
-            grid_factory_type<vol_finder_t> vgrid_factory{};
-            m_vol_finder = vgrid_factory.template new_grid<
-                axis::open<axis::label::e_r>,
-                axis::circular<axis::label::e_phi>,
-                axis::open<axis::label::e_z>, axis::irregular<scalar_type>,
-                axis::regular<scalar_type>, axis::irregular<scalar_type>>(
-                vgrid_dims, n_vgrid_bins, {}, bin_edges);
-        } else {
-            m_vol_finder = vol_finder_t{args...};
-        }
-    }*/
-
     private:
     /// Name of the new detector
     std::string m_detector_name{"detray_detector"};
     /// Data structure that holds a volume builder for every detector volume
     volume_data_t<std::unique_ptr<volume_builder_interface<detector_type>>>
         m_volumes{};
-    /// Data structure to find volumes
-    // typename detector_type::volume_accelerator m_vol_finder{};
 };
 
 }  // namespace detray

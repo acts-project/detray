@@ -12,6 +12,7 @@
 #include "detray/core/detail/container_views.hpp"
 #include "detray/definitions/grid_axis.hpp"
 #include "detray/definitions/indexing.hpp"
+#include "detray/geometry/surface_descriptor.hpp"
 #include "detray/utils/concepts.hpp"
 #include "detray/utils/ranges/ranges.hpp"
 
@@ -107,5 +108,21 @@ concept grid = viewable<G> && bufferable<G> && requires(const G g) {
         g.at(typename G::glob_bin_index(), dindex())
     } -> concepts::same_as_cvref<typename G::value_type>;
 };
+
+/// Grid that contains surfaces (used e.g. for grid acceleration structures)
+/// TODO: Add surface descriptor concept to geometry package
+template <class G>
+concept surface_grid =
+    concepts::grid<G> &&
+    std::same_as<typename G::value_type,
+                 surface_descriptor<typename G::value_type::mask_link,
+                                    typename G::value_type::material_link,
+                                    typename G::value_type::transform_link,
+                                    typename G::value_type::navigation_link>>;
+
+/// Acceleration structure that contains volumes (volume indices)
+template <class G>
+concept volume_grid =
+    concepts::grid<G> && std::same_as<typename G::value_type, dindex>;
 
 }  // namespace detray::concepts

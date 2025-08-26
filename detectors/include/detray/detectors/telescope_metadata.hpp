@@ -18,7 +18,7 @@
 #include "detray/geometry/surface_descriptor.hpp"
 #include "detray/materials/material_rod.hpp"
 #include "detray/materials/material_slab.hpp"
-#include "detray/navigation/accelerators/brute_force_searcher.hpp"
+#include "detray/navigation/accelerators/brute_force.hpp"
 
 namespace detray {
 
@@ -153,7 +153,7 @@ struct telescope_metadata {
     //
 
     /// How to link to the entries in the data stores
-    using transform_link = typename transform_store<>::link_type;
+    using transform_link = typename transform_store<>::single_link;
     using mask_link = typename mask_store<>::single_link;
     using material_link = typename material_store<>::single_link;
     /// Surface type used for sensitives, passives and portals
@@ -181,7 +181,7 @@ struct telescope_metadata {
                 os << "e_portal";
                 break;
             case geo_objects::e_sensitive:
-                os << "e_sensitive";
+                os << "e_passive/e_sensitive";
                 break;
             case geo_objects::e_size:
                 // e_all has same value (2u)
@@ -194,7 +194,9 @@ struct telescope_metadata {
     /// Acceleration data structures
     enum class accel_ids {
         e_brute_force = 0u,  // test all surfaces in a volume (brute force)
+        e_volume_brute_force = 1u,
         e_default = e_brute_force,
+        e_default_volume_searcher = e_volume_brute_force,
     };
 
     DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
@@ -204,6 +206,10 @@ struct telescope_metadata {
             case accel_ids::e_brute_force:
                 // e_default has same value (0u)
                 os << "e_brute_force/e_default";
+                break;
+            case accel_ids::e_volume_brute_force:
+                // e_default_volume_searcher has same value (1u)
+                os << "e_volume_brute_force";
                 break;
         }
         return os;

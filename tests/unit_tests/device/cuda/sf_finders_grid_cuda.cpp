@@ -86,7 +86,7 @@ TEST(grids_cuda, grid3_replace_populator) {
     for (unsigned int i_x = 0u; i_x < axis_x.nbins(); i_x++) {
         for (unsigned int i_y = 0u; i_y < axis_y.nbins(); i_y++) {
             for (unsigned int i_z = 0u; i_z < axis_z.nbins(); i_z++) {
-                const auto& bin = g3.bin({i_x, i_y, i_z});
+                const auto& bin = g3.bin(i_x, i_y, i_z);
                 auto invalid_bin = bin_t{};
                 test_content(bin.value(), invalid_bin.value());
             }
@@ -149,7 +149,7 @@ TEST(grids_cuda, grid2_replace_populator_ci) {
     // pre-check
     for (unsigned int i_r = 0u; i_r < axis_r.nbins(); i_r++) {
         for (unsigned int i_phi = 0u; i_phi < axis_phi.nbins(); i_phi++) {
-            const auto& bin = g2.bin({i_r, i_phi});
+            const auto& bin = g2.bin(i_r, i_phi);
             auto invalid_bin = bin_t{};
 
             test_content(bin.value(), invalid_bin.value());
@@ -215,7 +215,7 @@ TEST(grids_cuda, grid2_complete_populator) {
     // pre-check
     for (unsigned int i_r = 0u; i_r < axis_r.nbins(); i_r++) {
         for (unsigned int i_phi = 0u; i_phi < axis_phi.nbins(); i_phi++) {
-            const auto& bin = g2.bin({i_r, i_phi});
+            const auto& bin = g2.bin(i_r, i_phi);
             auto invalid_bin = bin_t{}.init(first_tp);
 
             test_entry_collection(bin, invalid_bin);
@@ -293,7 +293,7 @@ TEST(grids_cuda, grid2_attach_populator) {
     // pre-check
     for (unsigned int i_r = 0u; i_r < axis_r.nbins(); i_r++) {
         for (unsigned int i_phi = 0u; i_phi < axis_phi.nbins(); i_phi++) {
-            auto bin = g2.bin({i_r, i_phi});
+            auto bin = g2.bin(i_r, i_phi);
             auto invalid_bin = bin_t{}.init(first_tp);
 
             test_entry_collection(bin, invalid_bin);
@@ -400,7 +400,7 @@ TEST(grids_cuda, grid2_dynamic_attach_populator) {
         for (unsigned int i_r = 0u; i_r < axis_r.nbins(); i_r++) {
 
             int pt_idx{0};
-            for (auto e : g2.bin({i_r, i_phi})) {
+            for (auto e : g2.bin(i_r, i_phi)) {
                 if (pt_idx == 0) {
                     EXPECT_EQ(e, first_tp);
                 } else {
