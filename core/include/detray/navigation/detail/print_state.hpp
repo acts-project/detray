@@ -163,7 +163,7 @@ DETRAY_HOST inline std::string print_candidates(const state_type &state,
     constexpr int cw{20};
 
     debug_stream << std::left << std::setw(cw) << "Overstep tol.:"
-                 << cfg.overstep_tolerance / detray::unit<scalar_t>::mm << " mm"
+                 << cfg.overstep_tolerance / detray::unit<scalar_t>::um << " um"
                  << std::endl;
 
     debug_stream << std::setw(cw) << "Track:"
@@ -191,7 +191,11 @@ DETRAY_HOST inline std::string print_candidates(const state_type &state,
                         .local_to_global(geo_ctx_t{}, local, track_dir);
                 debug_stream << " glob: [r = " << vector::perp(pos)
                              << ", z = " << pos[2] << "]" << std::endl;
+            } else {
+                debug_stream << "Invalid barcode" << std::endl;
             }
+        } else {
+            debug_stream << std::endl;
         }
     }
 

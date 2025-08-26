@@ -476,6 +476,7 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
     propagation::config direct_cfg{};
     direct_cfg.navigation.min_mask_tolerance = 1.f * unit<float>::mm;
     direct_cfg.navigation.max_mask_tolerance = 1.f * unit<float>::mm;
+    direct_cfg.navigation.overstep_tolerance = -15.f * unit<float>::mm;
     propagator_t p{cfg};
     direct_propagator_t direct_p{direct_cfg};
 
@@ -511,10 +512,12 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
         auto actor_states = detray::tie(interactor_state, sequencer_state);
 
         propagator_t::state state(track, bfield, det);
+        navigator_t::state& navigation = state._navigation;
 
         // Propagate the entire detector
         // state.do_debug = true;
-        ASSERT_TRUE(p.propagate(state, actor_states));
+        ASSERT_TRUE(p.propagate(state, actor_states))
+            << navigation.inspector().to_string();
         // std::cout << "Normal Navigation" << std::endl;
         // std::cout << state.debug_stream.str() << std::endl;
 
