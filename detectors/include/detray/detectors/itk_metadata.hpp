@@ -21,8 +21,8 @@
 #include "detray/geometry/surface_descriptor.hpp"
 #include "detray/materials/material_map.hpp"
 #include "detray/materials/material_slab.hpp"
-#include "detray/navigation/accelerators/brute_force_searcher.hpp"
-#include "detray/navigation/accelerators/grid_searcher.hpp"
+#include "detray/navigation/accelerators/brute_force.hpp"
+#include "detray/navigation/accelerators/spatial_grid.hpp"
 
 // Linear algebra types
 #include "detray/definitions/algebra.hpp"
@@ -135,7 +135,7 @@ struct itk_metadata {
     /// Surface descriptor type used for sensitives, passives and portals
     /// It holds the indices to the surface data in the detector data stores
     /// that were defined above
-    using transform_link = typename transform_store<>::link_type;
+    using transform_link = typename transform_store<>::single_link;
     using mask_link = typename mask_store<>::range_link;
     using material_link = typename material_store<>::single_link;
     /// Surface type used for sensitives, passives and portals
@@ -174,7 +174,9 @@ struct itk_metadata {
         e_brute_force = 0u,     // test all surfaces in a volume (brute force)
         e_cylinder2_grid = 1u,  // barrel
         e_disc_grid = 2u,       // endcap
+        e_volume_cylinder3_grid = 3u,
         e_default = e_brute_force,
+        e_default_volume_searcher = e_volume_cylinder3_grid,
     };
 
     /// How a volume finds its constituent objects in the detector containers
@@ -190,11 +192,11 @@ struct itk_metadata {
     /// given position. Here: Uniform grid with a 3D cylindrical shape
     template <typename container_t = host_container_types>
     using volume_accelerator =
-        grid_searcher<algebra_type,
-                      axes<cylinder3D, axis::bounds::e_open, axis::irregular,
-                           axis::regular, axis::irregular>,
-                      bins::single<dindex>, simple_serializer, container_t,
-                      false>;
+        spatial_grid<algebra_type,
+                     axes<cylinder3D, axis::bounds::e_open, axis::irregular,
+                          axis::regular, axis::irregular>,
+                     bins::single<dindex>, simple_serializer, container_t,
+                     false>;
 
     /// The tuple store that hold the acceleration data structures for all
     /// volumes. Every collection of accelerationdata structures defines its

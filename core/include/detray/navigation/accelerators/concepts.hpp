@@ -12,6 +12,7 @@
 #include "detray/core/detail/container_views.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/geometry/surface_descriptor.hpp"
+#include "detray/navigation/accelerators/search_window.hpp"
 #include "detray/utils/concepts.hpp"
 #include "detray/utils/grid/detail/concepts.hpp"
 #include "detray/utils/ranges/ranges.hpp"
@@ -21,37 +22,45 @@
 
 namespace detray::concepts {
 
-/// Concept for a detray geometry acceleration structures
+/// Concept for detray geometry acceleration structures
 template <class A>
 concept accelerator = requires(const A acc) {
-
     typename A::value_type;
+    typename A::query_type;
 
     // Iterate through all contained geometry objects
-    { acc.all() }
-    ->ranges::range_of<typename A::value_type>;
+    { acc.all() } -> ranges::range_of<typename A::value_type>;
 
-    // TODO: In order to require the search method, we need to pass a detector
-    // which is auto-deduced
+    // Get the geometry objects close to the given query point
+    {
+        acc.search(typename A::query_type())
+    } -> ranges::range_of<typename A::value_type>;
+
+    {
+        acc.search(typename A::query_type(), detray::search_window<dindex, 2>())
+    } -> ranges::range_of<typename A::value_type>;
+
+    // TODO: In order to require the final search method, we need to
+    // pass a detector, which is auto-deduced...
 };
 
 /// Concept for a collection of accelerator (data) that can be stored in the
 /// detector
 template <class AC>
-concept accelerator_collection = viewable<AC>&& bufferable<AC>&& requires(
-    const AC accel_coll, unsigned int idx) {
+concept accelerator_collection =
+    viewable<AC> && bufferable<AC> &&
+    requires(const AC accel_coll, unsigned int idx) {
+        typename AC::size_type;
+        requires concepts::accelerator<typename AC::value_type>;
 
-    typename AC::size_type;
-    requires concepts::accelerator<typename AC::value_type>;
-
-    { accel_coll[idx] }
-    ->concepts::accelerator;
-};
+        { accel_coll[idx] } -> concepts::accelerator;
+    };
 
 /// Acceleration structure that contains surfaces (surface descriptors)
 /// TODO: Add surface descriptor concept to geometry package
 template <class A>
-concept surface_accelerator = concepts::accelerator<A>&&
+concept surface_accelerator =
+    concepts::accelerator<A> &&
     std::same_as<typename A::value_type,
                  surface_descriptor<typename A::value_type::mask_link,
                                     typename A::value_type::material_link,
@@ -61,26 +70,6 @@ concept surface_accelerator = concepts::accelerator<A>&&
 /// Acceleration structure that contains volumes (volume indices)
 template <class A>
 concept volume_accelerator =
-    concepts::accelerator<A>&& std::same_as<typename A::value_type, dindex>;
-
-/// Brute force acceleration structures
-/// @{
-template <class A>
-concept brute_force_surface_searcher =
-    !concepts::grid<A> && concepts::volume_accelerator<A>;
-
-template <class A>
-concept brute_force_volume_searcher =
-    !concepts::grid<A> && concepts::surface_accelerator<A>;
-/// @}
-
-/// Grid based acceleration structures
-/// @{
-template <class A>
-concept surface_grid = concepts::grid<A>&& concepts::surface_accelerator<A>;
-
-template <class A>
-concept volume_grid = concepts::grid<A>&& concepts::volume_accelerator<A>;
-/// @}
+    concepts::accelerator<A> && std::same_as<typename A::value_type, dindex>;
 
 }  // namespace detray::concepts

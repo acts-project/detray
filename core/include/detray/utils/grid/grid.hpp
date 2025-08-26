@@ -149,7 +149,7 @@ class grid_impl {
     DETRAY_HOST_DEVICE point_type project(const transform3_t &trf,
                                           const point3_t &p,
                                           const vector3_t &d) const {
-        return this->get_local_frame().global_to_local(trf, p, d);
+        return grid_impl::get_local_frame().global_to_local(trf, p, d);
     }
 
     /// @returns an axis object, corresponding to the index.
@@ -245,7 +245,7 @@ class grid_impl {
     }
 
     /// @param indices the single indices corresponding to a multi_bin
-    template <typename... I>
+    template <concepts::index... I>
         requires(sizeof...(I) == dim)
     DETRAY_HOST_DEVICE decltype(auto) bin(I... indices) const {
         return bin(loc_bin_index{indices...});

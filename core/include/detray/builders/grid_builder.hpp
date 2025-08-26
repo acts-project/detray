@@ -14,6 +14,8 @@
 #include "detray/builders/volume_builder.hpp"
 #include "detray/builders/volume_builder_interface.hpp"
 #include "detray/geometry/tracking_volume.hpp"
+#include "detray/navigation/accelerators/concepts.hpp"
+#include "detray/navigation/accelerators/spatial_grid.hpp"
 #include "detray/utils/grid/detail/concepts.hpp"
 
 // System include(s)
@@ -40,7 +42,7 @@ class grid_builder : public volume_decorator<detector_t> {
     using value_type = typename detector_type::surface_type;
     using scalar_type = dscalar<algebra_type>;
 
-    /// Decorate a volume with a grid
+    /// Decorate a volume with a surface accelerator grid
     DETRAY_HOST
     explicit grid_builder(
         std::unique_ptr<volume_builder_interface<detector_t>> vol_builder)
@@ -58,13 +60,13 @@ class grid_builder : public volume_decorator<detector_t> {
     }
 
     /// Set the surface category this grid should contain (type id in the
-    /// accelrator link in the volume)
+    /// accelerator link in the volume descriptor)
     void set_type(std::size_t sf_id) {
         set_type(static_cast<link_id_t>(sf_id));
     }
 
     /// Set the surface category this grid should contain (type id in the
-    /// accelrator link in the volume)
+    /// accelerator link in the volume descriptor)
     void set_type(link_id_t sf_id) {
         // Exclude zero, it is reserved for the brute force method
         assert(static_cast<int>(sf_id) > 0);
@@ -182,11 +184,19 @@ class grid_builder : public volume_decorator<detector_t> {
             }
         }
 
-        // Add the grid to the detector and link it to its volume
-        constexpr auto gid{detector_t::accel::template get_id<grid_t>()};
+        // Is the given grid type already an acceleration structure?
+        using spatial_grid_t =
+            std::conditional_t<concepts::surface_accelerator<grid_t>, grid_t,
+                               spatial_grid_impl<grid_t>>;
+        constexpr auto gid{
+            detector_t::accel::template get_id<spatial_grid_t>()};
+        const dindex grid_idx{det.accelerator_store().template size<gid>()};
+
+        // Set: contained surface type, grid type, grid instance index
+        vol_ptr->set_accel_link(m_id, gid, grid_idx);
+
+        // Add to detector
         det._accelerators.template push_back<gid>(m_grid);
-        vol_ptr->set_link(m_id, gid,
-                          det.accelerator_store().template size<gid>() - 1);
 
         return vol_ptr;
     }
@@ -198,6 +208,7 @@ class grid_builder : public volume_decorator<detector_t> {
     private:
     link_id_t m_id{link_id_t::e_sensitive};
     grid_factory_t m_factory{};
+    // Data owning grid type, so that surface data can be filled into memory
     typename grid_t::template type<true> m_grid{};
     bin_filler_t m_bin_filler{};
     bool m_add_passives{false};

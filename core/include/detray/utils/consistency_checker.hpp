@@ -233,11 +233,7 @@ inline void check_empty(const detector_t &det, const bool verbose) {
     };
 
     // Check if there is at least one volume in the detector volume finder
-    /*auto find_volumes = [](const typename detector_t::volume_accelerator &vf)
-    { return std::ranges::any_of(vf.all(), [](const auto &v) { return
-    !detail::is_invalid_value(v);
-        });
-    };*/
+    // TODO: Implement
 
     // Fatal errors
     if (det.volumes().empty()) {
@@ -281,9 +277,7 @@ inline void check_empty(const detector_t &det, const bool verbose) {
     }
 
     // Check volume search data structure
-    /*if (!find_volumes(det.get_volume_accelerator())) {
-        std::cout << "WARNING: No entries in volume finder\n" << std::endl;
-    }*/
+    // TODO: Implement
 }
 
 /// @brief Checks the internal consistency of a detector

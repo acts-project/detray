@@ -221,15 +221,16 @@ class detector {
     /// @return the volume by global cartesian @param position - const access
     DETRAY_HOST_DEVICE
     inline const auto &volume(const point3_type &p) const {
-        volume_type v_desc{};
         // Allow to call the volume search data structure
+        // TODO: Add volume accelerator builder
+        volume_type v_desc{};
         v_desc.template set_accel_link<geo_obj_ids::e_volume>(
-            accel::id::e_volume_brute_force, 0u);
-        tracking_volume world{v_desc, *this};
+            accel::id::e_default_volume_searcher, 0u);
+        tracking_volume world{*this, v_desc};
 
-        const dindex volume_index =
-            world.template visit_accelerator<geo_obj_ids::e_volume,
-                                             volume_search>(p);
+        dindex volume_index{0u};
+        world.template visit_accelerator<geo_obj_ids::e_volume, volume_search>(
+            p, &volume_index);
         return _volumes[volume_index];
     }
 
@@ -309,19 +310,20 @@ class detector {
         ///@TODO: Move this to a volume search grid type
         template <concepts::accelerator_collection accel_coll_t,
                   typename accel_index_t>
-        DETRAY_HOST_DEVICE inline dindex operator()(
-            const accel_coll_t &coll, const accel_index_t index,
-            const point3_type &p) const {
+        DETRAY_HOST_DEVICE inline void operator()(const accel_coll_t &coll,
+                                                  const accel_index_t index,
+                                                  const point3_type &p,
+                                                  dindex *const result) const {
 
-            const auto volume_accelerator = coll[index];
+            using accel_type = typename accel_coll_t::value_type;
 
-            // The 3D cylindrical volume search grid is concentric
-            const transform3_type identity{};
-            const auto loc_pos =
-                volume_accelerator.project(identity, p, identity.translation());
+            if constexpr (concepts::volume_accelerator<accel_type>) {
 
-            // Only one entry per bin
-            return volume_accelerator.search(loc_pos).value();
+                const auto volume_accelerator = coll[index];
+
+                // Only one entry per bin
+                *result = volume_accelerator.search(p).value();
+            }
         }
     };
 

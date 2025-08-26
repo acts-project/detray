@@ -18,7 +18,7 @@
 #include "detray/geometry/surface_descriptor.hpp"
 #include "detray/io/backend/detail/type_info.hpp"  // mask_info
 #include "detray/materials/material_slab.hpp"
-#include "detray/navigation/accelerators/brute_force_searcher.hpp"
+#include "detray/navigation/accelerators/brute_force.hpp"
 
 // Linear algebra types
 #include "detray/tutorial/types.hpp"
@@ -108,17 +108,20 @@ struct my_metadata {
     // Acceleration structures
     //
 
-    /// The acceleration data structures live in another tuple that needs to
-    /// indexed correctly
-    enum class accel_ids : std::uint_least8_t {
-        e_brute_force = 0u,  //< test all surfaces in a volume (brute force)
-        e_default = e_brute_force,
+    /// Portals and passives in the brute froce search, sensitives in the grids
+    enum geo_objects : std::uint_least8_t {
+        e_portal = 0u,
+        e_passive = 0u,
+        e_sensitive = 1u,
+        e_volume = 2u,
+        e_size = 3u,
+        e_all = e_size,
     };
 
     /// Surface descriptor type used for sensitives, passives and portals
     /// It holds the indices to the surface data in the detector data stores
     /// that were defined above
-    using transform_link = typename transform_store<>::link_type;
+    using transform_link = typename transform_store<>::single_link;
     using mask_link = typename mask_store<>::single_link;
     using material_link = typename material_store<>::single_link;
     using surface_type =
@@ -127,29 +130,36 @@ struct my_metadata {
     /// The acceleration data structures live in another tuple that needs to
     /// indexed correctly
     enum class accel_ids : std::uint_least8_t {
-        e_brute_force = 0,  //< test all surfaces in a volume (brute force)
-        e_volume_accelerator = 1,
+        e_brute_force = 0u,  //< test all surfaces in a volume (brute force)
+        e_volume_cylinder3_grid = 1u,
         e_default = e_brute_force,
+        e_default_volume_searcher = e_volume_cylinder3_grid,
     };
+
+    /// One link for portals/passives and one sensitive surfaces
+    using object_link_type =
+        dmulti_index<dtyped_index<accel_ids, dindex>, geo_objects::e_size>;
 
     /// Data structure that allows to find the current detector volume from a
     /// given position. Here: Uniform grid with a 3D cylindrical shape
     template <typename container_t = host_container_types>
     using volume_accelerator =
-        grid<algebra_type,
-             axes<cylinder3D, axis::bounds::e_open, axis::irregular,
-                  axis::regular, axis::irregular>,
-             bins::single<dindex>, simple_serializer, container_t>;
+        spatial_grid<algebra_type,
+                     axes<cylinder3D, axis::bounds::e_open, axis::irregular,
+                          axis::regular, axis::irregular>,
+                     bins::single<dindex>, simple_serializer, container_t,
+                     false>;
 
     /// The tuple store that hold the acceleration data structures for all
     /// volumes. Every collection of accelerationdata structures defines its
     /// own container and view type. Does not make use of conditions data
     /// ( @c empty_context )
+    /// How to store the acceleration data structures
     template <typename container_t = host_container_types>
     using accelerator_store =
         multi_store<accel_ids, empty_context, dtuple,
                     brute_force_collection<surface_type, container_t>,
-                    volume_accelerator<container_t>>;
+                    grid_collection<volume_accelerator<container_t>>>;
 };
 
 }  // namespace tutorial
