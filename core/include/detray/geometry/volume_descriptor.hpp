@@ -52,8 +52,8 @@ class volume_descriptor {
     ///          surface store.
     ///
     /// E.g. a 'portal' can be found under @c ID::e_portal in this link,
-    /// and will then receive link to the @c brute_force_searcher that holds the
-    /// portals (the accelerator structure's id and index).
+    /// and will then receive link to the @c brute_force acceleration structure
+    /// that holds the portals (the accelerator structure's id and index).
     using accel_link_type = dmulti_index<acc_link_t, ID::e_size>;
 
     /// How to link to the volume material, if any

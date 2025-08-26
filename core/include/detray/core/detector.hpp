@@ -220,16 +220,17 @@ class detector {
 
     /// @return the volume by global cartesian @param position - const access
     DETRAY_HOST_DEVICE
-    inline const auto &volume(const point3_type &p) const {
+    inline const auto &volume(const point3_type & /*p*/) const {
         volume_type v_desc{};
         // Allow to call the volume search data structure
         v_desc.template set_accel_link<geo_obj_ids::e_volume>(
-            accel::id::e_volume_brute_force, 0u);
-        tracking_volume world{v_desc, *this};
+            accel::id::e_default_volume_searcher, 0u);
+        tracking_volume world{*this, v_desc};
 
-        const dindex volume_index =
+        const dindex volume_index{0u};
+        /*const dindex volume_index =
             world.template visit_accelerator<geo_obj_ids::e_volume,
-                                             volume_search>(p);
+                                             volume_search>(p);*/
         return _volumes[volume_index];
     }
 

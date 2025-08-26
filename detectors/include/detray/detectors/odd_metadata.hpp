@@ -13,16 +13,16 @@
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/indexing.hpp"
-#include "detray/geometry/surface_descriptor.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes/concentric_cylinder2D.hpp"
 #include "detray/geometry/shapes/rectangle2D.hpp"
 #include "detray/geometry/shapes/ring2D.hpp"
 #include "detray/geometry/shapes/trapezoid2D.hpp"
+#include "detray/geometry/surface_descriptor.hpp"
 #include "detray/materials/material_map.hpp"
 #include "detray/materials/material_slab.hpp"
-#include "detray/navigation/accelerators/brute_force_searcher.hpp"
-#include "detray/navigation/accelerators/grid_searcher.hpp"
+#include "detray/navigation/accelerators/brute_force.hpp"
+#include "detray/navigation/accelerators/spatial_grid.hpp"
 
 namespace detray {
 
@@ -67,8 +67,8 @@ struct odd_metadata {
     // Surface grid definition: bin-content: darray<sf_descriptor, 1>
     template <typename axes_t, typename bin_entry_t, typename container_t>
     using surface_grid_t =
-        grid_searcher<algebra_type, axes_t, bins::static_array<bin_entry_t, 1>,
-                      simple_serializer, container_t, false>;
+        spatial_grid<algebra_type, axes_t, bins::static_array<bin_entry_t, 1>,
+                     simple_serializer, container_t, false>;
 
     // cylindrical grid for the barrel layers
     template <typename bin_entry_t, typename container_t>
@@ -88,11 +88,11 @@ struct odd_metadata {
 
     /// Mask type ids
     enum class mask_ids : std::uint_least8_t {
-        e_rectangle2 = 0,
-        e_trapezoid2 = 1,
-        e_portal_cylinder2 = 2,
-        e_portal_ring2 = 3,
-        e_cylinder2 = 2,
+        e_rectangle2 = 0u,
+        e_trapezoid2 = 1u,
+        e_portal_cylinder2 = 2u,
+        e_portal_ring2 = 3u,
+        e_cylinder2 = 2u,
     };
 
     /// How to store masks
@@ -120,8 +120,8 @@ struct odd_metadata {
                     typename container_t::template vector_type<slab>>;
 
     /// How to link to the entries in the data stores
-    using transform_link = typename transform_store<>::link_type;
-    using mask_link = typename mask_store<>::single_link;
+    using transform_link = typename transform_store<>::single_link;
+    using mask_link = typename mask_store<>::range_link;
     using material_link = typename material_store<>::single_link;
     /// Surface type used for sensitives, passives and portals
     using surface_type =
@@ -139,11 +139,12 @@ struct odd_metadata {
 
     /// Acceleration data structures
     enum class accel_ids : std::uint_least8_t {
-        e_brute_force = 0,     // test all surfaces in a volume (brute force)
-        e_disc_grid = 1,       // endcap
-        e_cylinder2_grid = 2,  // barrel
-        e_volume_cylinder3_grid = 3,
+        e_brute_force = 0u,     // test all surfaces in a volume (brute force)
+        e_disc_grid = 1u,       // endcap
+        e_cylinder2_grid = 2u,  // barrel
+        e_volume_cylinder3_grid = 3u,
         e_default = e_brute_force,
+        e_default_volume_searcher = e_volume_cylinder3_grid,
     };
 
     /// One link for portals/passives and one sensitive surfaces
@@ -153,11 +154,11 @@ struct odd_metadata {
     /// Volume search grid
     template <typename container_t = host_container_types>
     using volume_accelerator =
-        grid_searcher<algebra_type,
-                      axes<cylinder3D, axis::bounds::e_open, axis::irregular,
-                           axis::regular, axis::irregular>,
-                      bins::single<dindex>, simple_serializer, container_t,
-                      false>;
+        spatial_grid<algebra_type,
+                     axes<cylinder3D, axis::bounds::e_open, axis::irregular,
+                          axis::regular, axis::irregular>,
+                     bins::single<dindex>, simple_serializer, container_t,
+                     false>;
 
     /// How to store the acceleration data structures
     template <typename container_t = host_container_types>

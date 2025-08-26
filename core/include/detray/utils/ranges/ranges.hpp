@@ -98,7 +98,7 @@ concept range = std::ranges::range<R>;
 /// Range of a given type
 template <typename R, typename T>
 concept range_of =
-    detray::ranges::range<R>&& std::same_as<std::ranges::range_value_t<R>, T>;
+    detray::ranges::range<R> && std::same_as<std::ranges::range_value_t<R>, T>;
 
 /// Range category concepts
 /// @{

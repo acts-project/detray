@@ -179,7 +179,8 @@ class grid_writer {
 
             using coll_value_t = typename grid_group_t::value_type;
 
-            // Only try convert grids that match the converter that was passed
+            // Only try to convert grids that match the converter that was
+            // passed
             constexpr bool is_convertible{
                 std::invocable<converter_t, content_t>};
 
