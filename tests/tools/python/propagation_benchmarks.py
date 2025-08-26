@@ -31,7 +31,7 @@ import subprocess
 import sys
 
 # Known hardware backend types
-bknd_types = ["cpu", "cuda", "sycl"]
+bknd_types = ["cpu", "cuda", "hip_amd", "hip_nvidia", "sycl"]
 
 # Patterns to be removed from processor names for simplicity
 bknd_patterns = [
@@ -119,6 +119,10 @@ def __generate_benchmark_dict(
     benchmarks = {"CPU": {}}
     if args.cuda:
         benchmarks["CUDA"] = {}
+    if args.hip_amd:
+        benchmarks["HIP_AMD"] = {}
+    if args.hip_nvidia:
+        benchmarks["HIP_NVIDIA"] = {}
     if args.sycl:
         # benchmarks["SYCL"] = {}
         logging.error(f"SYCL propagation {bench_type} is not implemented")
@@ -158,7 +162,7 @@ def __generate_benchmark_dict(
 
         # Try to find the processor name
         bknd_name = "Unknown"
-        if bknd == "CUDA" or bknd == "SYCL":
+        if bknd == "CUDA" or bknd == "HIP_NVIDIA" or bknd == "SYCL":
             # Try to get the GPU name
             try:
                 gpu_str = str(
@@ -180,6 +184,12 @@ def __generate_benchmark_dict(
             except Exception as e:
                 # Name remains 'Unknown'
                 print(e)
+
+            bknd_name = f"{bknd.removesuffix('_NVIDIA')} {bknd_name}"
+
+        elif bknd == "HIP_AMD":
+            bknd_name = "AMD card"
+            bknd_name = f"{bknd.removesuffix('_AMD')} {bknd_name}"
         else:
             bknd_name = __compactify_bknd_name(platform.processor())
 
@@ -287,6 +297,18 @@ def __main__():
     parser.add_argument(
         "--cuda",
         help=("Run the CUDA propagation benchmarks."),
+        action="store_true",
+        default=False,
+    )
+    parser.add_argument(
+        "--hip_amd",
+        help=("Run the HIP AMD propagation benchmarks."),
+        action="store_true",
+        default=False,
+    )
+    parser.add_argument(
+        "--hip_nvidia",
+        help=("Run the HIP NVIDIA propagation benchmarks."),
         action="store_true",
         default=False,
     )
