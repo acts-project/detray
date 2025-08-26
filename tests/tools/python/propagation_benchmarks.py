@@ -163,32 +163,88 @@ def __generate_benchmark_dict(
         # Try to find the processor name
         bknd_name = "Unknown"
         if bknd == "CUDA" or bknd == "HIP_NVIDIA" or bknd == "SYCL":
-            # Try to get the GPU name
+            bknd_name = "Unknown NVIDIA GPU"
             try:
-                gpu_str = str(
-                    subprocess.check_output(
-                        ["nvidia-smi", "--query-gpu", "name", "--format=csv,noheader"]
-                    )
+                import nvidia_smi
+
+                try:
+                    nvidia_smi.nvmlInit()
+                    handle = nvidia_smi.nvmlDeviceGetHandleByIndex(0)
+
+                    bknd_name = nvidia_smi.nvmlDeviceGetName(handle)
+
+                    nvidia_smi.nvmlShutdown()
+
+                except NVMLError as e:
+                    print(e)
+
+            except ModuleNotFoundError:
+                print(
+                    "Python module 'nvidia_smi' is not installed: Falling back on running nvidia-smi as subprocess"
                 )
-                gpu_str = __compactify_bknd_name(gpu_str[2:])
+                # Try to get the GPU name by calling nvidia smi as subprocess
+                try:
+                    gpu_str = str(
+                        subprocess.check_output(
+                            [
+                                "nvidia-smi",
+                                "--query-gpu",
+                                "name",
+                                "--format=csv,noheader",
+                            ]
+                        )
+                    )
+                    gpu_str = __compactify_bknd_name(gpu_str[2:])
 
-                # Strip some unwanted characters
-                if gpu_str[-1] == '"' or gpu_str[-1] == "'":
-                    gpu_str = gpu_str[:-1]
-                if gpu_str[-2:] == "\\n":
-                    gpu_str = gpu_str[:-2]
+                    # Strip some unwanted characters
+                    if gpu_str[-1] == '"' or gpu_str[-1] == "'":
+                        gpu_str = gpu_str[:-1]
+                    if gpu_str[-2:] == "\\n":
+                        gpu_str = gpu_str[:-2]
 
-                if len(gpu_str) != 0:
-                    bknd_name = gpu_str.rstrip(os.linesep)
+                    if len(gpu_str) != 0:
+                        bknd_name = gpu_str.rstrip(os.linesep)
 
-            except Exception as e:
-                # Name remains 'Unknown'
-                print(e)
+                except Exception as e:
+                    # Name remains 'Unknown'
+                    print(e)
 
             bknd_name = f"{bknd.removesuffix('_NVIDIA')} {bknd_name}"
 
         elif bknd == "HIP_AMD":
-            bknd_name = "AMD card"
+            bknd_name = "Unknown AMD GPU"
+            try:
+                # Get AMD GPU info
+                from amdsmi import (
+                    amdsmi_init,
+                    amdsmi_shut_down,
+                    amdsmi_get_processor_handles,
+                    amdsmi_get_gpu_asic_info,
+                    AmdSmiException,
+                )
+
+                try:
+                    amdsmi_init()
+                    devices = amdsmi_get_processor_handles()
+                    if len(devices) == 0:
+                        print("No AMD GPUs on machine")
+                    else:
+                        asic_info = amdsmi_get_gpu_asic_info(devices[0])
+                        bknd_name = asic_info["market_name"]
+
+                except AmdSmiException as e:
+                    print(e)
+                finally:
+                    try:
+                        amdsmi_shut_down()
+                    except AmdSmiException as e:
+                        print(e)
+
+            except ModuleNotFoundError:
+                print(
+                    "Python module 'amdsmi' is not installed: Cannot find AMD GPU name"
+                )
+
             bknd_name = f"{bknd.removesuffix('_AMD')} {bknd_name}"
         else:
             bknd_name = __compactify_bknd_name(platform.processor())
