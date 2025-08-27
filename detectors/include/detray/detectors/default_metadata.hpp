@@ -21,8 +21,8 @@
 #include "detray/materials/material_map.hpp"
 #include "detray/materials/material_rod.hpp"
 #include "detray/materials/material_slab.hpp"
-#include "detray/navigation/accelerators/brute_force_finder.hpp"
-#include "detray/navigation/accelerators/surface_grid.hpp"
+#include "detray/navigation/accelerators/brute_force.hpp"
+#include "detray/navigation/accelerators/spatial_grid.hpp"
 
 namespace detray {
 
@@ -201,8 +201,8 @@ unbounded_cell, unmasked_plane*/>;
     // surface grid definition: bin-content: darray<surface_type, 9>
     template <typename axes_t, typename bin_entry_t, typename container_t>
     using surface_grid_t =
-        grid<algebra_type, axes_t, bins::dynamic_array<bin_entry_t>,
-             simple_serializer, container_t, false>;
+        spatial_grid<algebra_type, axes_t, bins::dynamic_array<bin_entry_t>,
+                     simple_serializer, container_t, false>;
 
     // 2D cylindrical grid for the barrel layers
     template <typename bin_entry_t, typename container_t>
@@ -242,43 +242,13 @@ unbounded_cell, unmasked_plane*/>;
 
     /// @}
 
-    /// Acceleration data structures
-    enum class accel_ids : std::uint_least8_t {
-        e_brute_force = 0u,     // test all surfaces in a volume (brute force)
-        e_cylinder2_grid = 1u,  // e.g. barrel layers
-        e_disc_grid = 2u,       // e.g. endcap layers
-        e_irr_cylinder2_grid = 3u,
-        e_irr_disc_grid = 4u,
-        // e_cylinder3_grid = 5u,
-        // e_irr_cylinder3_grid = 6u,
-        // ... e.g. frustum navigation types
-        e_default = e_brute_force,
-    };
-
     /// How to link to the entries in the data stores
-    using transform_link = typename transform_store<>::link_type;
+    using transform_link = typename transform_store<>::single_link;
     using mask_link = typename mask_store<>::range_link;
     using material_link = typename material_store<>::single_link;
     /// Surface type used for sensitives, passives and portals
     using surface_type =
         surface_descriptor<mask_link, material_link, transform_link, nav_link>;
-
-    /// How to store the acceleration data structures
-    template <typename container_t = host_container_types>
-    using accelerator_store =
-        multi_store<accel_ids, empty_context, dtuple,
-                    brute_force_collection<surface_type, container_t>,
-                    grid_collection<
-                        cylinder2D_sf_grid<surface_type, container_t>>,
-                    grid_collection<disc_sf_grid<surface_type, container_t>>,
-                    grid_collection<
-                        irr_cylinder2D_sf_grid<surface_type, container_t>>,
-                    grid_collection<
-                        irr_disc_sf_grid<surface_type, container_t>> /*,
-grid_collection<cylinder3D_sf_grid<surface_type,
-container_t>>,
-grid_collection<irr_cylinder3D_sf_grid<surface_type,
-container_t>>*/>;
 
     //
     // Volume descriptors
@@ -295,22 +265,53 @@ container_t>>*/>;
         e_all = e_size,  // i.e. the brute force method and one grid type
     };
 
+    /// Acceleration data structures
+    enum class accel_ids : std::uint_least8_t {
+        e_brute_force = 0u,     // test all surfaces in a volume (brute force)
+        e_disc_grid = 1u,       // e.g. endcap layers
+        e_cylinder2_grid = 2u,  // e.g. barrel layers
+        e_irr_disc_grid = 3u,
+        e_irr_cylinder2_grid = 4u,
+        e_volume_brute_force = 5u,
+        e_volume_cylinder3_grid = 6u,
+        // e_cylinder3_grid = 7,
+        // e_irr_cylinder3_grid = 8,
+        // ... e.g. frustum navigation types
+        e_default = e_brute_force,
+        e_default_volume_searcher = e_volume_cylinder3_grid,
+    };
+
     /// How a volume links to the accelration data structures
     /// In this case: One link for portals/passives and one sensitive surfaces
     using object_link_type =
         dmulti_index<dtyped_index<accel_ids, dindex>, geo_objects::e_size>;
 
-    //
-    // Volume acceleration structure
-    //
-
     /// Volume search grid
     template <typename container_t = host_container_types>
-    using volume_finder =
-        grid<algebra_type,
-             axes<cylinder3D, axis::bounds::e_open, axis::irregular,
-                  axis::regular, axis::irregular>,
-             bins::single<dindex>, simple_serializer, container_t>;
+    using volume_accelerator =
+        spatial_grid<algebra_type,
+                     axes<cylinder3D, axis::bounds::e_open, axis::irregular,
+                          axis::regular, axis::irregular>,
+                     bins::single<dindex>, simple_serializer, container_t,
+                     false>;
+
+    /// How to store the acceleration data structures
+    template <typename container_t = host_container_types>
+    using accelerator_store =
+        multi_store<accel_ids, empty_context, dtuple,
+                    brute_force_collection<surface_type, container_t>,
+                    grid_collection<disc_sf_grid<surface_type, container_t>>,
+                    grid_collection<
+                        cylinder2D_sf_grid<surface_type, container_t>>,
+                    grid_collection<
+                        irr_disc_sf_grid<surface_type, container_t>>,
+                    grid_collection<
+                        irr_cylinder2D_sf_grid<surface_type, container_t>>,
+                    grid_collection<volume_accelerator<container_t>> /*,
+grid_collection<cylinder3D_sf_grid<surface_type,
+container_t>>,
+grid_collection<irr_cylinder3D_sf_grid<surface_type,
+container_t>>*/>;
 };
 
 }  // namespace detray

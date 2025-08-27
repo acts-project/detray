@@ -52,8 +52,8 @@ class volume_descriptor {
     ///          surface store.
     ///
     /// E.g. a 'portal' can be found under @c ID::e_portal in this link,
-    /// and will then receive link to the @c brute_force_finder that holds the
-    /// portals (the accelerator structure's id and index).
+    /// and will then receive link to the @c brute_force acceleration structure
+    /// that holds the portals (the accelerator structure's id and index).
     using accel_link_type = dmulti_index<acc_link_t, ID::e_size>;
 
     /// How to link to the volume material, if any
@@ -67,6 +67,17 @@ class volume_descriptor {
     ///
     /// @param id id values that determines how to interpret the bounds.
     explicit constexpr volume_descriptor(const volume_id id) : m_id{id} {}
+
+    /// @returns true if the object ID corresponds to a surface
+    static consteval bool is_surface_id(const object_id id) {
+        return (id == object_id::e_portal || id == object_id::e_sensitive ||
+                id == object_id::e_passive);
+    }
+
+    /// @returns true if the object ID corresponds to a [daughter] volume
+    static consteval bool is_volume_id(const object_id id) {
+        return (id == object_id::e_volume);
+    }
 
     /// @returns the volume shape id, e.g. 'cylinder'
     DETRAY_HOST_DEVICE
