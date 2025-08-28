@@ -11,6 +11,8 @@ set(DETRAY_CUSTOM_SCALARTYPE
     "Scalar type to use in the Detray code"
 )
 
+message(STATUS "Using detray scalar type: ${DETRAY_CUSTOM_SCALARTYPE}")
+
 # Add all subdirectories.
 add_subdirectory(array)
 if(DETRAY_EIGEN_PLUGIN)
