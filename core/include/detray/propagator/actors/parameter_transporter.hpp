@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "./codegen/covariance_transport.hpp"
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
@@ -81,15 +82,11 @@ struct parameter_transporter : actor {
         // actual tracking surface. (i.e. This disables the covariance transport
         // from curvilinear frame)
         if (!bound_params.surface_link().is_invalid()) {
-
             const auto full_jacobian = get_full_jacobian(propagation);
+            const bound_matrix_t old_cov = stepping.bound_params().covariance();
 
-            // Calculate surface-to-surface covariance transport
-            const bound_matrix_t new_cov = full_jacobian *
-                                           bound_params.covariance() *
-                                           matrix::transpose(full_jacobian);
-
-            stepping.bound_params().set_covariance(new_cov);
+            detail::transport_covariance_to_bound_impl(
+                old_cov, full_jacobian, stepping.bound_params().covariance());
         }
 
         // Convert free to bound vector
@@ -168,7 +165,6 @@ struct parameter_transporter : actor {
         return (free_to_bound_jacobian * correction_term) *
                free_transport_jacobian;
     }
-
 };  // namespace detray
 
 }  // namespace detray
