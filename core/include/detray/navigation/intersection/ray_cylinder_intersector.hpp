@@ -69,25 +69,29 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
         const auto qe = solve_intersection(ray, mask, trf);
 
         darray<intersection_type<surface_descr_t>, 2> ret;
+
         switch (qe.solutions()) {
-            case 2:
-                ret[1] = build_candidate<surface_descr_t>(
-                    ray, mask, trf, qe.larger(), mask_tolerance,
-                    mask_tol_scalor, overstep_tol);
-                ret[1].sf_desc = sf;
+            case 2: {
+                point3_type glob_pos = ray.pos() + qe.larger() * ray.dir();
+                build_intersection(ray, ret[1], glob_pos, qe.larger(), sf, mask,
+                                   trf, mask_tolerance, mask_tol_scalor,
+                                   overstep_tol);
                 // If there are two solutions, reuse the case for a single
                 // solution to setup the intersection with the smaller path
                 // in ret[0]
                 [[fallthrough]];
-            case 1:
-                ret[0] = build_candidate<surface_descr_t>(
-                    ray, mask, trf, qe.smaller(), mask_tolerance,
-                    mask_tol_scalor, overstep_tol);
-                ret[0].sf_desc = sf;
+            }
+            case 1: {
+                point3_type glob_pos = ray.pos() + qe.smaller() * ray.dir();
+                build_intersection(ray, ret[0], glob_pos, qe.smaller(), sf,
+                                   mask, trf, mask_tolerance, mask_tol_scalor,
+                                   overstep_tol);
                 break;
-            case 0:
+            }
+            case 0: {
                 ret[0].status = false;
                 ret[1].status = false;
+            }
         }
 
         // Even if there are two geometrically valid solutions, the smaller one
@@ -130,13 +134,17 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
         const auto qe = solve_intersection(ray, mask, trf);
 
         switch (qe.solutions()) {
-            case 1:
-                sfi = build_candidate<surface_descr_t>(
-                    ray, mask, trf, qe.smaller(), mask_tolerance,
-                    mask_tol_scalor, overstep_tol);
+            case 1: {
+                const point3_type glob_pos =
+                    ray.pos() + qe.smaller() * ray.dir();
+                build_intersection(ray, sfi, glob_pos, qe.smaller(),
+                                   sfi.sf_desc, mask, trf, mask_tolerance,
+                                   mask_tol_scalor, overstep_tol);
                 break;
-            case 0:
+            }
+            case 0: {
                 sfi.status = false;
+            }
         }
     }
 
@@ -163,49 +171,6 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
         const scalar_type c{vector::dot(pc_cross_sz, pc_cross_sz) - (r * r)};
 
         return detail::quadratic_equation<scalar_type>{a, b, c};
-    }
-
-    /// From the intersection path, construct an intersection candidate and
-    /// check it against the surface boundaries (mask).
-    ///
-    /// @returns the intersection candidate. Might be (partially) uninitialized
-    /// if the overstepping tolerance is not met or the intersection lies
-    /// outside of the mask.
-    template <typename surface_descr_t, typename mask_t>
-    DETRAY_HOST_DEVICE inline intersection_type<surface_descr_t>
-    build_candidate(const ray_type &ray, mask_t &mask,
-                    const transform3_type &trf, const scalar_type path,
-                    const darray<scalar_type, 2u> mask_tolerance,
-                    const scalar_type mask_tol_scalor,
-                    const scalar_type overstep_tol) const {
-
-        intersection_type<surface_descr_t> is;
-
-        // Construct the candidate only when needed
-        if (path >= overstep_tol) {
-
-            const point3_type &ro = ray.pos();
-            const vector3_type &rd = ray.dir();
-
-            const point3_type p3 = ro + path * rd;
-
-            if constexpr (intersection_type<surface_descr_t>::is_debug()) {
-                is.local = mask_t::to_local_frame3D(trf, p3);
-            }
-            // Tolerance: per mille of the distance
-            is.status = mask.is_inside(
-                trf, p3,
-                math::max(mask_tolerance[0],
-                          math::min(mask_tolerance[1],
-                                    mask_tol_scalor * math::fabs(path))));
-            is.direction = !detail::signbit(path);
-            is.volume_link = mask.volume_link();
-        } else {
-            is.status = false;
-        }
-
-        is.path = path;
-        return is;
     }
 };
 

@@ -76,30 +76,16 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, do_debug> {
         const scalar_type denom = vector::dot(rd, sn);
 
         // this is dangerous
-        if (denom != 0.f) {
-            is.path = vector::dot(sn, st - ro) / denom;
-
-            // Intersection is valid for navigation - continue
-            if (is.path >= overstep_tol) {
-
-                const point3_type p3 = ro + is.path * rd;
-                if constexpr (intersection_type<surface_descr_t>::is_debug()) {
-                    is.local = mask_t::to_local_frame3D(trf, p3, rd);
-                }
-                // Tolerance: per mille of the distance
-                is.status = mask.is_inside(
-                    trf, p3,
-                    math::max(
-                        mask_tolerance[0],
-                        math::min(mask_tolerance[1],
-                                  mask_tol_scalor * math::fabs(is.path))));
-                is.sf_desc = sf;
-                is.direction = !detail::signbit(is.path);
-                is.volume_link = mask.volume_link();
-            }
-        } else {
+        if (denom == 0.f) {
             is.status = false;
+            return is;
         }
+
+        const scalar_type s{vector::dot(sn, st - ro) / denom};
+        const point3_type glob_pos = ro + s * rd;
+
+        build_intersection(ray, is, glob_pos, s, sf, mask, trf, mask_tolerance,
+                           mask_tol_scalor, overstep_tol);
 
         return is;
     }
