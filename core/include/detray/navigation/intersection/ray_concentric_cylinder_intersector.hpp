@@ -110,8 +110,7 @@ struct ray_concentric_cylinder_intersector {
             if (t01[0] > overstep_tolerance || t01[1] > overstep_tolerance) {
 
                 const point3_type p3 = candidates[cindex];
-                const scalar_type phi{vector::phi(p3)};
-                const point3_type loc{r * phi, p3[2], r};
+                const point3_type loc = {r * vector::phi(p3), p3[2], r};
                 if constexpr (intersection_type<surface_descr_t>::is_debug()) {
                     is.local = loc;
                 }

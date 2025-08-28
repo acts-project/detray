@@ -75,7 +75,7 @@ GTEST_TEST(detray_masks, ring2D_ratio_test) {
         bool operator()(const point3 &p, const mask<ring2D, test_algebra> &r,
                         const test::transform3 &trf, const scalar t) {
 
-            const point3 loc_p{r.to_local_frame(trf, p)};
+            const point3 loc_p{r.to_local_frame3D(trf, p)};
             return r.is_inside(loc_p, t);
         }
     };
