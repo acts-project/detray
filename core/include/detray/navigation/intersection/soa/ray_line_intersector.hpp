@@ -98,27 +98,10 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t, do_debug> {
         is.path = (t2l_on_track - t2l_on_line * zd) / denom;
 
         // point of closest approach on the track
-        const point3_type m = ro + rd * is.path;
-        if constexpr (intersection_type<surface_descr_t>::is_debug()) {
-            is.local = mask_t::to_local_frame3D(trf, m, rd);
-        }
-        is.status = mask.is_inside(
-            trf, m,
-            math::max(mask_tolerance[0],
-                      math::min(mask_tolerance[1],
-                                mask_tol_scalor * math::fabs(is.path))));
+        const point3_type glob_pos = ro + is.path * rd;
 
-        // Early return, in case all intersections are invalid
-        if (detray::detail::none_of(is.status)) {
-            return is;
-        }
-
-        is.sf_desc = sf;
-        is.direction = math::signbit(is.path);
-        is.volume_link = mask.volume_link();
-
-        // Mask the values where the overstepping tolerance was not met
-        is.status &= (is.path >= overstep_tol);
+        build_intersection(ray, is, glob_pos, is.path, sf, mask, trf,
+                           mask_tolerance, mask_tol_scalor, overstep_tol);
 
         return is;
     }

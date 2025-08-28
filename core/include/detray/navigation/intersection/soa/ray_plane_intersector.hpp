@@ -75,33 +75,16 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, do_debug> {
 
         const scalar_type denom = vector::dot(rd, sn);
         const vector3_type diff = st - ro;
-        is.path = vector::dot(sn, diff) / denom;
+        const scalar_type s = vector::dot(sn, diff) / denom;
 
         // Check if we divided by zero
-        const auto check_sum = is.path.sum();
+        const auto check_sum = s.sum();
         if (!std::isnan(check_sum) && !std::isinf(check_sum)) {
 
-            const point3_type p3 = ro + is.path * rd;
-            if constexpr (intersection_type<surface_descr_t>::is_debug()) {
-                is.local = mask_t::to_local_frame3D(trf, p3, rd);
-            }
-            is.status = mask.is_inside(
-                trf, p3,
-                math::max(mask_tolerance[0],
-                          math::min(mask_tolerance[1],
-                                    mask_tol_scalor * math::fabs(is.path))));
+            const point3_type glob_pos = ro + s * rd;
 
-            // Early return, if no intersection was found
-            if (detray::detail::none_of(is.status)) {
-                return is;
-            }
-
-            is.sf_desc = sf;
-            is.direction = !math::signbit(is.path);
-            is.volume_link = mask.volume_link();
-
-            // Mask the values where the overstepping tolerance was not met
-            is.status &= (is.path >= overstep_tol);
+            build_intersection(ray, is, glob_pos, s, sf, mask, trf,
+                               mask_tolerance, mask_tol_scalor, overstep_tol);
         } else {
             is.status = decltype(is.status)(false);
         }

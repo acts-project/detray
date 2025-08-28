@@ -132,23 +132,11 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
             }
         }
 
-        if constexpr (intersection_type<surface_descr_t>::is_debug()) {
-            is.local = mask_t::to_local_frame3D(trf, ro + path * rd);
-        }
+        // Only need the global z-component for the mask check
+        const point2_type loc_pos{0.f, ro[2] + path * rd[2]};
 
-        // Tolerance: per mille of the distance, scaled with distance
-        const auto base_tol =
-            math::max(mask_tolerance[0],
-                      math::min(mask_tolerance[1],
-                                mask_tol_scalor * math::fabs(is.path)));
-        // Portal cylinder is closed in phi, only need to check z
-        is.status =
-            mask.is_inside(point2_type{0.f, ro[2] + path * rd[2]}, base_tol);
-        is.direction = !detail::signbit(path);
-        is.volume_link = mask.volume_link();
-
-        is.path = path;
-        is.sf_desc = sf;
+        build_intersection(ray, is, loc_pos, path, sf, mask, trf,
+                           mask_tolerance, mask_tol_scalor, overstep_tol);
 
         return is;
     }
