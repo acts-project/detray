@@ -82,12 +82,11 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, do_debug> {
         if (!std::isnan(check_sum) && !std::isinf(check_sum)) {
 
             const point3_type p3 = ro + is.path * rd;
-            const auto loc = mask_t::to_local_frame(trf, p3, rd);
             if constexpr (intersection_type<surface_descr_t>::is_debug()) {
-                is.local = loc;
+                is.local = mask_t::to_local_frame3D(trf, p3, rd);
             }
             is.status = mask.is_inside(
-                loc,
+                trf, p3,
                 math::max(mask_tolerance[0],
                           math::min(mask_tolerance[1],
                                     mask_tol_scalor * math::fabs(is.path))));

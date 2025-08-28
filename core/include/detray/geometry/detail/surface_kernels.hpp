@@ -234,7 +234,7 @@ struct surface_kernels {
             const vector3_type& dir) const {
             using mask_t = typename mask_group_t::value_type;
 
-            return mask_t::to_local_frame(trf3, global, dir);
+            return mask_t::to_local_frame3D(trf3, global, dir);
         }
     };
 

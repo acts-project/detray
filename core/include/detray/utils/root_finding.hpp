@@ -276,7 +276,8 @@ DETRAY_HOST_DEVICE inline void build_intersection(
     // Build intersection struct from test trajectory, if the distance is valid
     if (!detail::is_invalid_value(s)) {
         sfi.path = s;
-        sfi.local = mask_t::to_local_frame(trf, traj.pos(s), traj.dir(s));
+        const auto p3 = traj.pos(s);
+        sfi.local = mask_t::to_local_frame3D(trf, p3, traj.dir(s));
         const scalar_t cos_incidence_angle = vector::dot(
             mask_t::get_local_frame().normal(trf, sfi.local), traj.dir(s));
 
@@ -288,7 +289,7 @@ DETRAY_HOST_DEVICE inline void build_intersection(
 
             tol = math::fabs(ds * math::sqrt(sin_inc2));
         }
-        sfi.status = mask.is_inside(sfi.local, tol);
+        sfi.status = mask.is_inside(trf, p3, tol);
         sfi.sf_desc = sf_desc;
         sfi.direction = !math::signbit(s);
         sfi.volume_link = mask.volume_link();
