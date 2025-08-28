@@ -82,7 +82,7 @@ GTEST_TEST(detray_masks, line_circular_ratio_test) {
                         const test::transform3 &trf, const test::vector3 &dir,
                         const scalar t) {
 
-            const point3 loc_p{st.to_local_frame(trf, p, dir)};
+            const point3 loc_p{st.to_local_frame3D(trf, p, dir)};
             return st.is_inside(loc_p, t);
         }
     };
@@ -158,7 +158,7 @@ GTEST_TEST(detray_masks, line_square_ratio_test) {
                         const test::transform3 &trf, const test::vector3 &dir,
                         const scalar t) {
 
-            const point3 loc_p{dcl.to_local_frame(trf, p, dir)};
+            const point3 loc_p{dcl.to_local_frame3D(trf, p, dir)};
             return dcl.is_inside(loc_p, t);
         }
     };

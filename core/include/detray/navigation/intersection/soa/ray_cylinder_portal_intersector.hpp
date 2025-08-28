@@ -72,11 +72,10 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
         const auto &pos = ray.pos();
         const auto &dir = ray.dir();
 
-        const scalar_type rd_perp_2 = dir[0] * dir[0] + dir[1] * dir[1];
+        const value_type rd_perp_2{dir[0] * dir[0] + dir[1] * dir[1]};
 
         // The ray is parallel to all/any cylinder axes (z-axis)...
-        if (detray::detail::all_of(rd_perp_2 <
-                                   std::numeric_limits<scalar_type>::epsilon()))
+        if (rd_perp_2 < std::numeric_limits<value_type>::epsilon())
             [[unlikely]] {
             is.status = decltype(is.status)(false);
             return is;
@@ -125,26 +124,12 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
             }
         }
 
-        if constexpr (intersection_type<surface_descr_t>::is_debug()) {
-            is.local = mask_t::to_local_frame(trf, pos + is.path * dir);
-        }
-
-        const auto base_tol =
-            math::max(mask_tolerance[0],
-                      math::min(mask_tolerance[1],
-                                mask_tol_scalor * math::fabs(is.path)));
         point2_type loc;
         loc[0] = 0.f;
         loc[1] = pos[2] + path * dir[2];
-        is.status = mask.is_inside(loc, base_tol);
 
-        is.direction = !math::signbit(is.path);
-        is.volume_link = mask.volume_link();
-
-        // Mask the values where the overstepping tolerance was not met
-        is.status &= (is.path >= overstep_tol);
-        is.path = path;
-        is.sf_desc = sf;
+        build_intersection(ray, is, loc, path, sf, mask, trf, mask_tolerance,
+                           mask_tol_scalor, overstep_tol);
 
         return is;
     }

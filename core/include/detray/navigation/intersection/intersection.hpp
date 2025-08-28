@@ -158,4 +158,74 @@ struct intersection2D<surface_descr_t, algebra_t, true>
     }
 };
 
+/// @brief Fill an intersection with the result of the intersection alg.
+///
+/// @param [in] traj the test trajectory that intersects the surface
+/// @param [out] sfi the surface intersection
+/// @param [in] s path length to the intersection point
+/// @param [in] mask the mask of the surface
+/// @param [in] trf the transform of the surface
+/// @param [in] mask_tol_scalor scale factor for adaptive mask tolerance
+/// @param [in] mask_tolerance minimal and maximal mask tolerance
+template <typename trajectory_t, typename intersection_t,
+          concepts::point point_t, concepts::scalar scalar_t,
+          typename surface_descr_t, typename mask_t,
+          concepts::transform3D transform3_t>
+DETRAY_HOST_DEVICE constexpr void build_intersection(
+    const trajectory_t &traj, intersection_t &is, const point_t &pos,
+    const scalar_t s, const surface_descr_t sf_desc, const mask_t &mask,
+    const transform3_t &trf, const darray<scalar_t, 2> &mask_tolerance,
+    const scalar_t mask_tol_scalor = 0.f, const scalar_t overstep_tol = 0.f) {
+
+    using algebra_t = typename intersection_t::algebra_type;
+
+    // Build intersection struct from test trajectory, if the distance is valid
+    if (detray::detail::none_of(s >= overstep_tol)) {
+        // Not a valid intersection
+        is.status = decltype(is.status)(false);
+        return;
+    }
+
+    // Save local position for debug evaluation
+    if constexpr (intersection_t::is_debug()) {
+        // Global position on the surface
+        dpoint3D<algebra_t> glob_pos;
+        if constexpr (concepts::soa<algebra_t>) {
+            // The trajectory is given in AoS layout. Translate...
+            const auto &origin = traj.pos();
+            const auto &dir = traj.dir();
+
+            // Broadcast
+            const dvector3D<algebra_t> ro{origin[0], origin[1], origin[2]};
+            const dvector3D<algebra_t> rd{dir[0], dir[1], dir[2]};
+
+            glob_pos = ro + s * rd;
+        } else {
+            // Works for any parameterized trajectory
+            glob_pos = traj.pos(s);
+        }
+        is.local = mask_t::to_local_frame3D(trf, glob_pos, traj.dir(s));
+    }
+
+    // Tol.: scale with distance of surface to account for track bending
+    const scalar_t base_tol = math::max(
+        mask_tolerance[0],
+        math::min(mask_tolerance[1], mask_tol_scalor * math::fabs(s)));
+
+    // Intersector provides specialized local point
+    if constexpr (std::same_as<point_t, dpoint2D<algebra_t>>) {
+        is.status = mask.is_inside(pos, base_tol);
+    } else {
+        // Otherwise, let the shape transform the point to local
+        is.status = mask.is_inside(trf, pos, base_tol);
+    }
+    // Mask out solutions that don't meet the overstepping tolerance (SoA)
+    is.status &= (is.path >= overstep_tol);
+
+    is.path = s;
+    is.sf_desc = sf_desc;
+    is.direction = !detail::signbit(is.path);
+    is.volume_link = mask.volume_link();
+}
+
 }  // namespace detray

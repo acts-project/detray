@@ -178,7 +178,7 @@ GTEST_TEST(detray_intersection, line_intersector_square_scope) {
 
     EXPECT_TRUE(is[0].status);
     EXPECT_NEAR(is[0].path, constant<scalar>::sqrt2, tol);
-    const auto local0 = ln.to_local_frame(
+    const auto local0 = ln.to_local_frame3D(
         tf,
         detail::ray(trks[0]).pos() + is[0].path * detail::ray(trks[0]).dir(),
         detail::ray(trks[0]).dir());
