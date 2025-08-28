@@ -70,6 +70,16 @@ class unbounded {
     /// @note the parameters are ignored
     ///
     /// @return always true
+    /// @{
+    template <concepts::algebra algebra_t>
+    DETRAY_HOST_DEVICE constexpr auto check_boundaries(
+        const bounds_type<dscalar<algebra_t>>& /*bounds*/,
+        const dtransform3D<algebra_t>& /*trf*/,
+        const dpoint3D<algebra_t>& /*glob_p*/,
+        const dscalar<algebra_t> /*tol*/) const {
+        return true;
+    }
+
     template <typename bounds_t, concepts::point point_t,
               concepts::scalar scalar_t>
     DETRAY_HOST_DEVICE constexpr auto check_boundaries(
@@ -77,6 +87,7 @@ class unbounded {
         const scalar_t /*tol*/) const {
         return true;
     }
+    /// @}
 
     /// @brief Measure of the shape: Inf
     ///

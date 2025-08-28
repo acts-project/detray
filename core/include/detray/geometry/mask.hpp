@@ -47,6 +47,7 @@ class mask {
     using point2_type = dpoint2D<algebra_t>;
     using point3_type = dpoint3D<algebra_t>;
     using vector3_type = dvector3D<algebra_t>;
+    using transform3_type = dtransform3D<algebra_t>;
 
     using links_type = links_t;
     using shape = shape_t;
@@ -125,23 +126,36 @@ class mask {
         return local_frame{};
     }
 
-    /// @returns the global point projected onto the surface
-    template <typename transform3D_t>
-    DETRAY_HOST_DEVICE inline static auto to_local_frame(
-        const transform3D_t& trf, const point3_type& glob_p,
+    /// @returns the global point projected onto the surface (3D)
+    DETRAY_HOST_DEVICE constexpr static auto to_local_frame3D(
+        const transform3_type& trf, const point3_type& glob_p,
         const point3_type& glob_dir = {}) -> point3_type {
         return get_local_frame().global_to_local_3D(trf, glob_p, glob_dir);
     }
 
-    /// @returns the global point for a local position on the surface
-    template <typename transform3D_t>
-    DETRAY_HOST_DEVICE inline static auto to_global_frame(
-        const transform3D_t& trf, const point3_type& loc) -> point3_type {
+    /// @returns the global point projected onto the surface (2D)
+    DETRAY_HOST_DEVICE constexpr static auto to_local_frame(
+        const transform3_type& trf, const point3_type& glob_p,
+        const point3_type& glob_dir = {}) -> point2_type {
+        return get_local_frame().global_to_local(trf, glob_p, glob_dir);
+    }
+
+    /// @returns the global point for a 3D local position on the surface
+    DETRAY_HOST_DEVICE constexpr static auto to_global_frame(
+        const transform3_type& trf, const point3_type& loc) -> point3_type {
         return get_local_frame().local_to_global(trf, loc);
     }
 
+    /// @returns the global point for a 2D local position on the surface
+    DETRAY_HOST_DEVICE constexpr auto to_global_frame(
+        const transform3_type& trf, const point2_type& loc,
+        const vector3_type& dir) const -> point3_type {
+        return get_local_frame().local_to_global(trf, *this, loc, dir);
+    }
+
     /// @brief Mask this shape onto a surface.
-    ///
+    /// @{
+
     /// @note the point is expected to be given in local coordinates and to lie
     /// on the underlying surface geometry.
     /// For the projection from global to local coordinates, the method
@@ -149,17 +163,29 @@ class mask {
     /// To check that a point lies on the surface, use the corresponding
     /// intersector.
     ///
-    /// @param loc_p the point to be checked in the local system
+    /// @param loc_p the point to be checked in the local system (2D or 3D)
     /// @param tol dynamic tolerance determined by caller
     ///
     /// @return an intersection status e_inside / e_outside
     template <concepts::point point_t>
-    DETRAY_HOST_DEVICE inline auto is_inside(
+    DETRAY_HOST_DEVICE constexpr dbool<algebra_type> is_inside(
         const point_t& loc_p,
         const scalar_type t =
             std::numeric_limits<scalar_type>::epsilon()) const {
-
         return get_shape().check_boundaries(_values, loc_p, t);
+    }
+
+    /// @param trf the (contextual) surface transform
+    /// @param glob_p the point to be checked in the global cartesian system
+    /// @param tol dynamic tolerance determined by caller
+    ///
+    /// @return an intersection status e_inside / e_outside
+    DETRAY_HOST_DEVICE constexpr dbool<algebra_type> is_inside(
+        const transform3_type& trf, const point3_type& glob_p,
+        const scalar_type t =
+            std::numeric_limits<scalar_type>::epsilon()) const {
+        return get_shape().template check_boundaries<algebra_type>(_values, trf,
+                                                                   glob_p, t);
     }
     /// @}
 

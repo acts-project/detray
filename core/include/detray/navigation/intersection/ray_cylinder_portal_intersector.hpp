@@ -133,7 +133,7 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
         }
 
         if constexpr (intersection_type<surface_descr_t>::is_debug()) {
-            is.local = mask_t::to_local_frame(trf, ro + path * rd);
+            is.local = mask_t::to_local_frame3D(trf, ro + path * rd);
         }
 
         // Tolerance: per mille of the distance, scaled with distance

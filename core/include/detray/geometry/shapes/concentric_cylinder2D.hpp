@@ -67,7 +67,26 @@ class concentric_cylinder2D {
     }
 
     /// @brief Check boundary values for a local point.
+    /// @{
+    /// @param bounds the boundary values for this shape
+    /// @param trf the surface transform
+    /// @param glob_p the point to be checked in the global coordinate system
+    /// @param tol dynamic tolerance determined by caller
     ///
+    /// @return true if the local point lies within the given boundaries.
+    template <concepts::algebra algebra_t>
+    DETRAY_HOST_DEVICE constexpr auto check_boundaries(
+        const bounds_type<dscalar<algebra_t>> &bounds,
+        const dtransform3D<algebra_t> & /*trf*/,
+        const dpoint3D<algebra_t> &glob_p,
+        const dscalar<algebra_t> tol =
+            std::numeric_limits<dscalar<algebra_t>>::epsilon()) const {
+
+        // Only need the z-position for the check
+        return check_boundaries(bounds, dpoint2D<algebra_t>{0.f, glob_p[2]},
+                                tol);
+    }
+
     /// @note the point is expected to be given in local coordinates by the
     /// caller. For the conversion from global cartesian coordinates, the
     /// nested @c shape struct can be used. The point is assumed to be in
@@ -82,13 +101,14 @@ class concentric_cylinder2D {
     ///
     /// @return true if the local point lies within the given boundaries.
     template <concepts::scalar scalar_t, concepts::point point_t>
-    DETRAY_HOST_DEVICE inline auto check_boundaries(
+    DETRAY_HOST_DEVICE constexpr auto check_boundaries(
         const bounds_type<scalar_t> &bounds, const point_t &loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
 
         return (bounds[e_lower_z] - tol <= loc_p[1] &&
                 loc_p[1] <= bounds[e_upper_z] + tol);
     }
+    /// @}
 
     /// @brief Measure of the shape: Area
     ///
