@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2024 CERN for the benefit of the ACTS project
+ * (c) 2024-2025 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -28,13 +28,13 @@ namespace detray {
 /// intersection points is needed in the case of a cylinderical portal surface.
 template <algebra::concepts::soa algebra_t, bool do_debug>
 struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
-                            do_debug>
-    : public ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t,
-                                  do_debug> {
+                            do_debug> {
 
     /// Linear algebra types
     /// @{
+    using value_type = dvalue<algebra_t>;
     using scalar_type = dscalar<algebra_t>;
+    using point2_type = dpoint2D<algebra_t>;
     using point3_type = dpoint3D<algebra_t>;
     using vector3_type = dvector3D<algebra_t>;
     using transform3_type = dtransform3D<algebra_t>;
@@ -67,26 +67,83 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
 
         intersection_type<surface_descr_t> is;
 
-        // Intersecting the cylinder from the inside yield one intersection
-        // along the direction of the track and one behind it
-        const auto qe = this->solve_intersection(ray, mask, trf);
+        const scalar_type r = mask[mask_t::shape::e_r];
 
-        // None of the cylinders has a valid intersection
-        if (detray::detail::all_of(qe.solutions() <= 0) ||
-            detray::detail::all_of(qe.larger() <= overstep_tol)) {
+        const auto &pos = ray.pos();
+        const auto &dir = ray.dir();
+
+        const scalar_type rd_perp_2 = dir[0] * dir[0] + dir[1] * dir[1];
+
+        // The ray is parallel to all/any cylinder axes (z-axis)...
+        if (detray::detail::all_of(rd_perp_2 <
+                                   std::numeric_limits<scalar_type>::epsilon()))
+            [[unlikely]] {
             is.status = decltype(is.status)(false);
             return is;
         }
 
-        // Only the closest intersection that is outside the overstepping
-        // tolerance is needed
-        const auto valid_smaller = (qe.smaller() > overstep_tol);
-        scalar_type t = 0.f;
-        t(valid_smaller) = qe.smaller();
-        t(!valid_smaller) = qe.larger();
+        // ...otherwise, two solutions should exist, if the descriminator is
+        // greater than zero
+        const scalar_type ro_perp_2 = pos[0] * pos[0] + pos[1] * pos[1];
+        const scalar_type rad_diff = r * r - ro_perp_2;
 
-        is = this->template build_candidate<surface_descr_t>(
-            ray, mask, trf, t, mask_tolerance, mask_tol_scalor, overstep_tol);
+        const scalar_type rd_perp_inv_2 = 1.f / rd_perp_2;
+        const scalar_type k =
+            -rd_perp_inv_2 * (pos[0] * dir[0] + pos[1] * dir[1]);
+        const scalar_type discr = rd_perp_inv_2 * rad_diff + k * k;
+
+        // No intersection found for any cylinder
+        if (detray::detail::all_of(discr < 0.f)) [[unlikely]] {
+            is.status = decltype(is.status)(false);
+            return is;
+        }
+
+        const scalar_type sqrt_discr = math::sqrt(discr);
+        const scalar_type s1 = k + sqrt_discr;
+        const scalar_type s2 = k - sqrt_discr;
+
+        // Take the nearest solution in every lane
+        auto is_smaller_sol = s1 < s2;
+
+        scalar_type path = 0.f;
+        path(is_smaller_sol) = s1;
+        path(!is_smaller_sol) = s2;
+
+        // If any of the the near solutions is outside the overstepping
+        // tolerance, take the far solution (if it exists)
+        const auto outside_overstep_tol = path < overstep_tol;
+        if (detray::detail::any_of(outside_overstep_tol)) {
+            is_smaller_sol = (s1 >= s2) && outside_overstep_tol;
+            path(is_smaller_sol) = s1;
+            path(!is_smaller_sol) = s2;
+            // Ray is outside of all cylinders or second solutions do not
+            // exist: Should not happen for portal
+            if (detray::detail::all_of(path < overstep_tol) ||
+                detray::detail::all_of(discr == 0.f)) {
+                is.status = decltype(is.status)(false);
+                return is;
+            }
+        }
+
+        if constexpr (intersection_type<surface_descr_t>::is_debug()) {
+            is.local = mask_t::to_local_frame(trf, pos + is.path * dir);
+        }
+
+        const auto base_tol =
+            math::max(mask_tolerance[0],
+                      math::min(mask_tolerance[1],
+                                mask_tol_scalor * math::fabs(is.path)));
+        point2_type loc;
+        loc[0] = 0.f;
+        loc[1] = pos[2] + path * dir[2];
+        is.status = mask.is_inside(loc, base_tol);
+
+        is.direction = !math::signbit(is.path);
+        is.volume_link = mask.volume_link();
+
+        // Mask the values where the overstepping tolerance was not met
+        is.status &= (is.path >= overstep_tol);
+        is.path = path;
         is.sf_desc = sf;
 
         return is;
