@@ -62,20 +62,16 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t, do_debug> {
 
         intersection_type<surface_descr_t> is;
 
+        const vector3_type &rd = ray.dir();
+        const point3_type &ro = ray.pos();
+
         // line direction
         const vector3_type &_z = trf.z();
-
         // line center
         const point3_type &_t = trf.translation();
 
-        // track direction
-        const vector3_type &_d = ray.dir();
-
-        // track position
-        const point3_type &_p = ray.pos();
-
         // Projection of line to track direction
-        const scalar_type zd{vector::dot(_z, _d)};
+        const scalar_type zd{vector::dot(_z, rd)};
 
         const scalar_type denom{1.f - (zd * zd)};
 
@@ -86,37 +82,21 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t, do_debug> {
         }
 
         // vector from track position to line center
-        const point3_type t2l = _t - _p;
+        const point3_type t2l = _t - ro;
 
         // t2l projection on line direction
         const scalar_type t2l_on_line{vector::dot(t2l, _z)};
 
         // t2l projection on track direction
-        const scalar_type t2l_on_track{vector::dot(t2l, _d)};
+        const scalar_type t2l_on_track{vector::dot(t2l, rd)};
 
         // path length to the point of closest approach on the track
-        const scalar_type A{1.f / denom * (t2l_on_track - t2l_on_line * zd)};
+        const scalar_type s{1.f / denom * (t2l_on_track - t2l_on_line * zd)};
+        const point3_type glob_pos = ro + s * rd;
 
-        is.path = A;
-        // Intersection is not valid for navigation - return early
-        if (is.path >= overstep_tol) {
+        build_intersection(ray, is, glob_pos, s, sf, mask, trf, mask_tolerance,
+                           mask_tol_scalor, overstep_tol);
 
-            // point of closest approach on the track
-            const point3_type m = _p + _d * A;
-
-            if constexpr (intersection_type<surface_descr_t>::is_debug()) {
-                is.local = mask_t::to_local_frame3D(trf, m, _d);
-            }
-            // Tolerance: per mille of the distance
-            is.status = mask.is_inside(
-                trf, m,
-                math::max(mask_tolerance[0],
-                          math::min(mask_tolerance[1],
-                                    mask_tol_scalor * math::fabs(is.path))));
-            is.sf_desc = sf;
-            is.direction = !detail::signbit(is.path);
-            is.volume_link = mask.volume_link();
-        }
         return is;
     }
 
