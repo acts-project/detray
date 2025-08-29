@@ -35,7 +35,7 @@ __global__ void __launch_bounds__(256, 4) propagator_benchmark_kernel(
         tracks_view);
 
     int gid = threadIdx.x + blockIdx.x * blockDim.x;
-    if (gid >= tracks.size()) {
+    if (gid >= static_cast<int>(tracks.size())) {
         return;
     }
 
@@ -73,7 +73,7 @@ typename propagator_t::actor_chain_type::state_tuple *setup_actor_states(
     using actor_state_t = typename propagator_t::actor_chain_type::state_tuple;
     actor_state_t *device_actor_state_ptr{nullptr};
 
-    hipError_t success =
+    [[maybe_unused]] hipError_t success =
         hipMalloc((void **)&device_actor_state_ptr, sizeof(actor_state_t));
     assert(success == hipSuccess);
 
