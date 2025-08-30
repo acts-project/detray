@@ -99,14 +99,14 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t, do_debug> {
 
         // point of closest approach on the track
         const point3_type m = ro + rd * is.path;
-        const auto loc = mask_t::to_local_frame(trf, m, rd);
         if constexpr (intersection_type<surface_descr_t>::is_debug()) {
-            is.local = loc;
+            is.local = mask_t::to_local_frame3D(trf, m, rd);
         }
         is.status = mask.is_inside(
-            loc, math::max(mask_tolerance[0],
-                           math::min(mask_tolerance[1],
-                                     mask_tol_scalor * math::fabs(is.path))));
+            trf, m,
+            math::max(mask_tolerance[0],
+                      math::min(mask_tolerance[1],
+                                mask_tol_scalor * math::fabs(is.path))));
 
         // Early return, in case all intersections are invalid
         if (detray::detail::none_of(is.status)) {

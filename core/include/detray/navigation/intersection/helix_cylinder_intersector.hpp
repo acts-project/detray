@@ -167,7 +167,7 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
                 // Build intersection struct from helix parameters
                 sfi.path = s;
                 const auto p3 = h.pos(s);
-                sfi.local = mask_t::to_local_frame(trf, p3);
+                sfi.local = mask_t::to_local_frame3D(trf, p3);
                 const scalar_type cos_incidence_angle = vector::dot(
                     mask_t::get_local_frame().normal(trf, sfi.local), h.dir(s));
 
@@ -180,7 +180,7 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
 
                     tol = math::fabs((s - s_prev) * math::sqrt(sin_inc2));
                 }
-                sfi.status = mask.is_inside(sfi.local, tol);
+                sfi.status = mask.is_inside(trf, p3, tol);
                 sfi.sf_desc = sf_desc;
                 sfi.direction = !math::signbit(s);
                 sfi.volume_link = mask.volume_link();
