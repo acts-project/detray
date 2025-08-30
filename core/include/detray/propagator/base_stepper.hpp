@@ -188,6 +188,12 @@ class base_stepper {
             return m_jac_transport;
         }
 
+        /// @returns the current transport Jacbian.
+        DETRAY_HOST_DEVICE
+        inline free_matrix_type &transport_jacobian() {
+            return m_jac_transport;
+        }
+
         /// Reset transport Jacbian.
         DETRAY_HOST_DEVICE
         inline void reset_transport_jacobian() {

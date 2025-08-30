@@ -6,6 +6,7 @@
  */
 
 // Project include(s).
+#include "./codegen/update_rk_transport_jacobian.hpp"
 #include "detray/geometry/tracking_volume.hpp"
 #include "detray/materials/interaction.hpp"
 #include "detray/materials/predefined_materials.hpp"
@@ -77,26 +78,12 @@ DETRAY_HOST_DEVICE inline void detray::rk_stepper<
     /// constant offset does not exist for rectangular matrix dGdu' (due to the
     /// missing Lambda part) and only exists for dFdu' in dlambda/dlambda.
 
-    // Set transport matrix (D) and update Jacobian transport
-    //( JacTransport = D * JacTransport )
-    auto D = matrix::identity<free_matrix<algebra_t>>();
+    using mat_helper = matrix_helper<algebra_t>;
 
     const scalar_type h{this->step_size()};
-    auto& track = (*this)();
-
-    // Half step length
     const scalar_type h2{h * h};
     const scalar_type half_h{h * 0.5f};
     const scalar_type h_6{h * (1.f / 6.f)};
-
-    // 3X3 Identity matrix
-    const auto I33 = matrix::identity<matrix_type<3, 3>>();
-
-    // Initialize derivatives
-    darray<matrix_type<3u, 3u>, 4u> dkndt{I33, I33, I33, I33};
-    darray<vector3_type, 4u> dkndqop;
-    darray<matrix_type<3u, 3u>, 4u> dkndr;
-    darray<scalar_type, 4u> dqopn_dqop{1.f, 1.f, 1.f, 1.f};
 
     /*---------------------------------------------------------------------------
      *  dk_n/dt1
@@ -187,79 +174,118 @@ DETRAY_HOST_DEVICE inline void detray::rk_stepper<
      *  d(dqop4/ds)/dqop1 = d(dqop4/ds)/dqop4 * (1 + h * d(dqop3/ds)/dqop1)
     ---------------------------------------------------------------------------*/
 
-    if (!cfg.use_eloss_gradient) {
-        getter::element(D, e_free_qoverp, e_free_qoverp) = 1.f;
-    } else {
-        // Pre-calculate dqop_n/dqop1
-        const scalar_type d2qop1dsdqop1 =
-            this->d2qopdsdqop(sd.qop[0u], vol_mat_ptr);
+    scalar_type dqopqop;
+    vector3_type dFdqop;
+    vector3_type dGdqop;
 
-        dqopn_dqop[0u] = 1.f;
-        dqopn_dqop[1u] = 1.f + half_h * d2qop1dsdqop1;
+    {
+        darray<scalar_type, 4u> dqopn_dqop{1.f, 1.f, 1.f, 1.f};
 
-        const scalar_type d2qop2dsdqop1 =
-            this->d2qopdsdqop(sd.qop[1u], vol_mat_ptr) * dqopn_dqop[1u];
-        dqopn_dqop[2u] = 1.f + half_h * d2qop2dsdqop1;
+        if (!cfg.use_eloss_gradient) {
+            dqopqop = 1.f;
+        } else {
+            // Pre-calculate dqop_n/dqop1
+            const scalar_type d2qop1dsdqop1 =
+                this->d2qopdsdqop(sd.qop[0u], vol_mat_ptr);
 
-        const scalar_type d2qop3dsdqop1 =
-            this->d2qopdsdqop(sd.qop[2u], vol_mat_ptr) * dqopn_dqop[2u];
-        dqopn_dqop[3u] = 1.f + h * d2qop3dsdqop1;
+            dqopn_dqop[0u] = 1.f;
+            dqopn_dqop[1u] = 1.f + half_h * d2qop1dsdqop1;
 
-        const scalar_type d2qop4dsdqop1 =
-            this->d2qopdsdqop(sd.qop[3u], vol_mat_ptr) * dqopn_dqop[3u];
+            const scalar_type d2qop2dsdqop1 =
+                this->d2qopdsdqop(sd.qop[1u], vol_mat_ptr) * dqopn_dqop[1u];
+            dqopn_dqop[2u] = 1.f + half_h * d2qop2dsdqop1;
+
+            const scalar_type d2qop3dsdqop1 =
+                this->d2qopdsdqop(sd.qop[2u], vol_mat_ptr) * dqopn_dqop[2u];
+            dqopn_dqop[3u] = 1.f + h * d2qop3dsdqop1;
+
+            const scalar_type d2qop4dsdqop1 =
+                this->d2qopdsdqop(sd.qop[3u], vol_mat_ptr) * dqopn_dqop[3u];
+
+            /*-----------------------------------------------------------------
+             * Calculate the first terms of d(dqop_n/ds)/dqop1
+            -------------------------------------------------------------------*/
+
+            dqopqop = 1.f + h_6 * (d2qop1dsdqop1 +
+                                   2.f * (d2qop2dsdqop1 + d2qop3dsdqop1) +
+                                   d2qop4dsdqop1);
+        }
 
         /*-----------------------------------------------------------------
-         * Calculate the first terms of d(dqop_n/ds)/dqop1
+         * Calculate the first and second terms of dk_n/dqop1
         -------------------------------------------------------------------*/
 
-        getter::element(D, e_free_qoverp, e_free_qoverp) =
-            1.f + h_6 * (d2qop1dsdqop1 + 2.f * (d2qop2dsdqop1 + d2qop3dsdqop1) +
-                         d2qop4dsdqop1);
+        {
+            darray<vector3_type, 4u> dkndqop;
+
+            // dk1/dqop1
+            dkndqop[0u] = dqopn_dqop[0u] * vector::cross(sd.t[0u], sd.b_first);
+
+            // dk2/dqop1
+            dkndqop[1u] =
+                dqopn_dqop[1u] * vector::cross(sd.t[1u], sd.b_middle) +
+                sd.qop[1u] * half_h * vector::cross(dkndqop[0u], sd.b_middle);
+
+            // dk3/dqop1
+            dkndqop[2u] =
+                dqopn_dqop[2u] * vector::cross(sd.t[2u], sd.b_middle) +
+                sd.qop[2u] * half_h * vector::cross(dkndqop[1u], sd.b_middle);
+
+            // dk4/dqop1
+            dkndqop[3u] =
+                dqopn_dqop[3u] * vector::cross(sd.t[3u], sd.b_last) +
+                sd.qop[3u] * h * vector::cross(dkndqop[2u], sd.b_last);
+
+            // Set dF/dqop1 and dG/dqop1
+            dFdqop = h * h_6 * (dkndqop[0u] + dkndqop[1u] + dkndqop[2u]);
+            dGdqop = h_6 * (dkndqop[0u] + 2.f * (dkndqop[1u] + dkndqop[2u]) +
+                            dkndqop[3u]);
+        }
     }
 
     /*-----------------------------------------------------------------
      * Calculate the first terms of dk_n/dt1
     -------------------------------------------------------------------*/
-    using mat_helper = matrix_helper<algebra_t>;
-    // dk1/dt1
-    dkndt[0u] =
-        sd.qop[0u] * mat_helper().column_wise_cross(dkndt[0u], sd.b_first);
+    // Set dF/dt1 and dG/dt1
+    auto dFdt = matrix::identity<matrix_type<3, 3>>();
+    auto dGdt = matrix::identity<matrix_type<3, 3>>();
 
-    // dk2/dt1
-    dkndt[1u] = dkndt[1u] + half_h * dkndt[0u];
-    dkndt[1u] =
-        sd.qop[1u] * mat_helper().column_wise_cross(dkndt[1u], sd.b_middle);
+    {
+        const auto I33 = matrix::identity<matrix_type<3, 3>>();
+        darray<matrix_type<3u, 3u>, 4u> dkndt{I33, I33, I33, I33};
 
-    // dk3/dt1
-    dkndt[2u] = dkndt[2u] + half_h * dkndt[1u];
-    dkndt[2u] =
-        sd.qop[2u] * mat_helper().column_wise_cross(dkndt[2u], sd.b_middle);
+        // dk1/dt1
+        dkndt[0u] =
+            sd.qop[0u] * mat_helper().column_wise_cross(dkndt[0u], sd.b_first);
 
-    // dk4/dt1
-    dkndt[3u] = dkndt[3u] + h * dkndt[2u];
-    dkndt[3u] =
-        sd.qop[3u] * mat_helper().column_wise_cross(dkndt[3u], sd.b_last);
+        // dk2/dt1
+        dkndt[1u] = dkndt[1u] + half_h * dkndt[0u];
+        dkndt[1u] =
+            sd.qop[1u] * mat_helper().column_wise_cross(dkndt[1u], sd.b_middle);
 
-    /*-----------------------------------------------------------------
-     * Calculate the first and second terms of dk_n/dqop1
-    -------------------------------------------------------------------*/
-    // dk1/dqop1
-    dkndqop[0u] = dqopn_dqop[0u] * vector::cross(sd.t[0u], sd.b_first);
+        // dk3/dt1
+        dkndt[2u] = dkndt[2u] + half_h * dkndt[1u];
+        dkndt[2u] =
+            sd.qop[2u] * mat_helper().column_wise_cross(dkndt[2u], sd.b_middle);
 
-    // dk2/dqop1
-    dkndqop[1u] = dqopn_dqop[1u] * vector::cross(sd.t[1u], sd.b_middle) +
-                  sd.qop[1u] * half_h * vector::cross(dkndqop[0u], sd.b_middle);
+        // dk4/dt1
+        dkndt[3u] = dkndt[3u] + h * dkndt[2u];
+        dkndt[3u] =
+            sd.qop[3u] * mat_helper().column_wise_cross(dkndt[3u], sd.b_last);
 
-    // dk3/dqop1
-    dkndqop[2u] = dqopn_dqop[2u] * vector::cross(sd.t[2u], sd.b_middle) +
-                  sd.qop[2u] * half_h * vector::cross(dkndqop[1u], sd.b_middle);
-
-    // dk4/dqop1
-    dkndqop[3u] = dqopn_dqop[3u] * vector::cross(sd.t[3u], sd.b_last) +
-                  sd.qop[3u] * h * vector::cross(dkndqop[2u], sd.b_last);
+        dFdt = dFdt + h_6 * (dkndt[0u] + dkndt[1u] + dkndt[2u]);
+        dFdt = h * dFdt;
+        dGdt = dGdt +
+               h_6 * (dkndt[0u] + 2.f * (dkndt[1u] + dkndt[2u]) + dkndt[3u]);
+    }
 
     // Calculate dkndr in case of considering B field gradient
+    auto dFdr = matrix::identity<matrix_type<3, 3>>();
+    auto dGdr = matrix::zero<matrix_type<3, 3>>();
+
     if (cfg.use_field_gradient) {
+        darray<matrix_type<3u, 3u>, 4u> dkndr;
+        auto& track = (*this)();
 
         // Positions and field gradients at initial, middle and final points of
         // the fourth order RKN
@@ -275,26 +301,27 @@ DETRAY_HOST_DEVICE inline void detray::rk_stepper<
         /*-----------------------------------------------------------------
          * Calculate all terms of dk_n/dr1
         -------------------------------------------------------------------*/
+        const auto I33 = matrix::identity<matrix_type<3, 3>>();
 
         // dk1/dr1
         dkndr[0u] =
             -sd.qop[0u] * mat_helper().column_wise_cross(dBdr_ini, sd.t[0u]);
 
+        const auto dkndr0_tmp = (I33 + h2 * 0.125f * dkndr[0u]);
+
         // dk2/dr1
         dkndr[1u] = sd.qop[1u] * mat_helper().column_wise_cross(
                                      half_h * dkndr[0u], sd.b_middle);
-        dkndr[1u] = dkndr[1u] -
-                    sd.qop[1u] * mat_helper().column_wise_cross(
-                                     dBdr_mid * (I33 + h2 * 0.125f * dkndr[0u]),
-                                     sd.t[1u]);
+        dkndr[1u] =
+            dkndr[1u] - sd.qop[1u] * mat_helper().column_wise_cross(
+                                         dBdr_mid * dkndr0_tmp, sd.t[1u]);
 
         // dk3/dr1
         dkndr[2u] = sd.qop[2u] * mat_helper().column_wise_cross(
                                      half_h * dkndr[1u], sd.b_middle);
-        dkndr[2u] = dkndr[2u] -
-                    sd.qop[2u] * mat_helper().column_wise_cross(
-                                     dBdr_mid * (I33 + h2 * 0.125f * dkndr[0u]),
-                                     sd.t[2u]);
+        dkndr[2u] =
+            dkndr[2u] - sd.qop[2u] * mat_helper().column_wise_cross(
+                                         dBdr_mid * dkndr0_tmp, sd.t[2u]);
 
         // dk4/dr1
         dkndr[3u] = sd.qop[3u] *
@@ -305,33 +332,15 @@ DETRAY_HOST_DEVICE inline void detray::rk_stepper<
                             dBdr_fin * (I33 + h2 * 0.5f * dkndr[2u]), sd.t[3u]);
 
         // Set dF/dr1 and dG/dr1
-        auto dFdr = matrix::identity<matrix_type<3, 3>>();
-        auto dGdr = matrix::identity<matrix_type<3, 3>>();
         dFdr = dFdr + h * h_6 * (dkndr[0u] + dkndr[1u] + dkndr[2u]);
         dGdr = h_6 * (dkndr[0u] + 2.f * (dkndr[1u] + dkndr[2u]) + dkndr[3u]);
-
-        getter::set_block(D, dFdr, 0u, 0u);
-        getter::set_block(D, dGdr, 4u, 0u);
     }
 
-    // Set dF/dt1 and dG/dt1
-    auto dFdt = matrix::identity<matrix_type<3, 3>>();
-    auto dGdt = matrix::identity<matrix_type<3, 3>>();
-    dFdt = dFdt + h_6 * (dkndt[0u] + dkndt[1u] + dkndt[2u]);
-    dFdt = h * dFdt;
-    dGdt = dGdt + h_6 * (dkndt[0u] + 2.f * (dkndt[1u] + dkndt[2u]) + dkndt[3u]);
+    const auto old_jacobian = this->transport_jacobian();
 
-    getter::set_block(D, dFdt, 0u, 4u);
-    getter::set_block(D, dGdt, 4u, 4u);
-
-    // Set dF/dqop1 and dG/dqop1
-    vector3_type dFdqop = h * h_6 * (dkndqop[0u] + dkndqop[1u] + dkndqop[2u]);
-    vector3_type dGdqop =
-        h_6 * (dkndqop[0u] + 2.f * (dkndqop[1u] + dkndqop[2u]) + dkndqop[3u]);
-    getter::set_block(D, dFdqop, 0u, 7u);
-    getter::set_block(D, dGdqop, 4u, 7u);
-
-    this->set_transport_jacobian(D * this->transport_jacobian());
+    detail::update_transport_jacobian_with_gradient_impl(
+        old_jacobian, dFdt, dGdt, dFdr, dGdr, dFdqop, dGdqop, dqopqop,
+        this->transport_jacobian());
 }
 
 template <typename magnetic_field_t, detray::concepts::algebra algebra_t,
