@@ -16,6 +16,10 @@
 #include "detray/tracks/tracks.hpp"
 
 namespace detray {
+enum class rk_stepper_flags : uint32_t {
+    ALLOW_COVARIANCE_TRANSPORT = 1,
+    ALLOW_FIELD_GRADIENT = 2,
+};
 
 /// Runge-Kutta-Nystrom 4th order stepper implementation
 ///
@@ -25,7 +29,11 @@ namespace detray {
 template <typename magnetic_field_t, concepts::algebra algebra_t,
           typename constraint_t = unconstrained_step<dscalar<algebra_t>>,
           typename policy_t = stepper_rk_policy<dscalar<algebra_t>>,
-          typename inspector_t = stepping::void_inspector>
+          typename inspector_t = stepping::void_inspector,
+          uint32_t flags_v =
+              (static_cast<uint32_t>(
+                   rk_stepper_flags::ALLOW_COVARIANCE_TRANSPORT) |
+               static_cast<uint32_t>(rk_stepper_flags::ALLOW_FIELD_GRADIENT))>
 class rk_stepper final
     : public base_stepper<algebra_t, constraint_t, policy_t, inspector_t> {
 
