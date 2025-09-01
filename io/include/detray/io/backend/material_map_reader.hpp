@@ -91,7 +91,7 @@ class material_map_reader {
             for (const auto &[idx, grid_data] :
                  detray::views::enumerate(mat_grids)) {
 
-                DETRAY_DEBUG("- grid link.index=" << grid_data.grid_link.index);
+                DETRAY_DEBUG("- grid owner =" << grid_data.owner_link.link);
 
                 mat_id map_id =
                     from_payload<io::material_id::n_mats, detector_t>(
