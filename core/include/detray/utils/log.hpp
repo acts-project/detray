@@ -9,6 +9,7 @@
 
 #ifdef DETRAY_ENABLE_LOGGING
 #include <cxxabi.h>
+#include <string.h>
 
 #include <iostream>
 #include <regex>

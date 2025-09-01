@@ -107,9 +107,13 @@ class homogeneous_material_builder final : public volume_decorator<detector_t> {
         DETRAY_DEBUG("Appending "
                      << m_materials.template size<material_id::e_slab>()
                      << " slabs into detector materials");
-        DETRAY_DEBUG("Appending "
-                     << m_materials.template size<material_id::e_rod>()
-                     << " rods into detector materials");
+
+        if constexpr (detector_t::materials::template is_defined<
+                          material_rod<scalar_type>>()) {
+            DETRAY_DEBUG("Appending "
+                         << m_materials.template size<material_id::e_rod>()
+                         << " rods into detector materials");
+        }
         det._materials.append(std::move(m_materials));
         m_materials.clear_all();
 
