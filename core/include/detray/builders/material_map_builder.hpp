@@ -325,9 +325,8 @@ struct add_sf_material_map {
                 typename decltype(mat_grid)::template type<false>;
 
             // Not every mask shape might be used for material maps
-            if constexpr (materials_t::template is_defined<non_owning_t>()) {
+            if constexpr (materials_t::template contains<non_owning_t>()) {
                 DETRAY_VERBOSE_HOST("Filling material grid...");
-
                 // Add the material slabs to the grid
                 for (const auto& bin : bin_data) {
                     mat_grid.template populate<replace<>>(bin.local_bin_idx,

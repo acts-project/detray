@@ -103,7 +103,7 @@ class homogeneous_material_builder final : public volume_decorator<detector_t> {
                 sf.update_material(offset);
                 DETRAY_DEBUG_HOST("-> material now: " << sf.material());
             }
-            if constexpr (detector_t::materials::template is_defined<
+            if constexpr (detector_t::materials::template contains<
                               material_rod<scalar_type>>()) {
                 if (sf.material().id() == material_id::e_rod) {
                     DETRAY_DEBUG_HOST(
@@ -120,7 +120,7 @@ class homogeneous_material_builder final : public volume_decorator<detector_t> {
                           << m_materials.template size<material_id::e_slab>()
                           << " slabs into detector materials");
 
-        if constexpr (detector_t::materials::template is_defined<
+        if constexpr (detector_t::materials::template contains<
                           material_rod<scalar_type>>()) {
             DETRAY_DEBUG_HOST("-> Appending "
                               << m_materials.template size<material_id::e_rod>()

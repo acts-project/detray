@@ -192,7 +192,7 @@ class endcap_generator final : public surface_factory_interface<detector_t> {
 
         // The type id of the surface mask shape
         constexpr auto mask_id{detector_t::mask_container::template get_id<
-            mask<mask_shape_t, algebra_t>>::value};
+            mask<mask_shape_t, algebra_t>>};
         // The material will be added in a later step
         constexpr auto no_material{surface_t::material_id::e_none};
         // Modules link back to mother volume in navigation
