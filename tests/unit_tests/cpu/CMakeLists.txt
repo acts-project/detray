@@ -15,6 +15,7 @@ detray_add_unit_test(cpu
    "utils/ranges.cpp"
    "utils/tuple_helpers.cpp"
    "utils/type_list.cpp"
+   "utils/type_registry.cpp"
    "utils/sort.cpp"
    LINK_LIBRARIES GTest::gtest GTest::gtest_main detray::test_utils detray::core
 )

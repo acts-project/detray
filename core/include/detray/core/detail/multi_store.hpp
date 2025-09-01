@@ -61,11 +61,7 @@ class multi_store {
 
     /// Allow matching between IDs and collection value types
     /// @{
-    using value_types = type_registry<ID, detail::get_value_t<Ts>...>;
-    template <ID id>
-    using get_type = typename value_types::template get_type<id>::type;
-    template <typename T>
-    using get_id = typename value_types::template get_index<T>;
+    using value_types = types::registry<ID, detail::get_value_t<Ts>...>;
     /// @}
 
     /// Underlying tuple container that can handle vecmem views
@@ -131,28 +127,33 @@ class multi_store {
     /// @returns the collections iterator at the start position.
     template <ID id = ID{0}>
     DETRAY_HOST_DEVICE constexpr auto begin(const context_type & /*ctx*/ = {}) {
-        return detail::get<value_types::to_index(id)>(m_tuple_container)
+        return detail::get<types::index_cast<value_types, id>>(
+                   m_tuple_container)
             .begin();
     }
 
     /// @returns the collections iterator sentinel.
     template <ID id = ID{0}>
     DETRAY_HOST_DEVICE constexpr auto end(const context_type & /*ctx*/ = {}) {
-        return detail::get<value_types::to_index(id)>(m_tuple_container).end();
+        return detail::get<types::index_cast<value_types, id>>(
+                   m_tuple_container)
+            .end();
     }
 
     /// @returns a data collection by @tparam ID - const
     template <ID id>
     DETRAY_HOST_DEVICE constexpr decltype(auto) get(
         const context_type & /*ctx*/ = {}) const noexcept {
-        return detail::get<value_types::to_index(id)>(m_tuple_container);
+        return detail::get<types::index_cast<value_types, id>>(
+            m_tuple_container);
     }
 
     /// @returns a data collection by @tparam ID - non-const
     template <ID id>
     DETRAY_HOST_DEVICE constexpr decltype(auto) get(
         const context_type & /*ctx*/ = {}) noexcept {
-        return detail::get<value_types::to_index(id)>(m_tuple_container);
+        return detail::get<types::index_cast<value_types, id>>(
+            m_tuple_container);
     }
 
     /// @returns the size of a data collection by @tparam ID
@@ -160,14 +161,15 @@ class multi_store {
     DETRAY_HOST_DEVICE constexpr auto size(
         const context_type & /*ctx*/ = {}) const noexcept -> dindex {
         return static_cast<dindex>(
-            detail::get<value_types::to_index(id)>(m_tuple_container).size());
+            detail::get<types::index_cast<value_types, id>>(m_tuple_container)
+                .size());
     }
 
     /// @returns the number of elements in all collections
     template <std::size_t current_idx = 0>
     DETRAY_HOST_DEVICE auto total_size(const context_type &ctx = {},
                                        dindex n = 0u) const noexcept -> dindex {
-        n += size<value_types::to_id(current_idx)>(ctx);
+        n += size<types::id_cast<value_types, current_idx>>(ctx);
 
         if constexpr (current_idx < sizeof...(Ts) - 1) {
             return total_size<current_idx + 1>(ctx, n);
@@ -179,7 +181,8 @@ class multi_store {
     template <ID id>
     DETRAY_HOST_DEVICE constexpr auto empty(
         const context_type & /*ctx*/ = {}) const noexcept -> bool {
-        return detail::get<value_types::to_index(id)>(m_tuple_container)
+        return detail::get<types::index_cast<value_types, id>>(
+                   m_tuple_container)
             .empty();
     }
 
@@ -187,7 +190,7 @@ class multi_store {
     template <std::size_t current_idx = 0>
     DETRAY_HOST_DEVICE constexpr bool all_empty(const context_type &ctx = {},
                                                 bool is_empty = true) const {
-        is_empty &= empty<value_types::to_id(current_idx)>(ctx);
+        is_empty &= empty<types::id_cast<value_types, current_idx>>(ctx);
 
         if constexpr (current_idx < sizeof...(Ts) - 1) {
             return all_empty<current_idx + 1>(ctx, is_empty);
@@ -198,13 +201,14 @@ class multi_store {
     /// Removes and destructs all elements in a specific collection.
     template <ID id>
     DETRAY_HOST void clear(const context_type & /*ctx*/) {
-        detail::get<value_types::to_index(id)>(m_tuple_container).clear();
+        detail::get<types::index_cast<value_types, id>>(m_tuple_container)
+            .clear();
     }
 
     /// Removes and destructs all elements in the container.
     template <std::size_t current_idx = 0>
     DETRAY_HOST void clear_all(const context_type &ctx = {}) {
-        clear<value_types::to_id(current_idx)>(ctx);
+        clear<types::id_cast<value_types, current_idx>>(ctx);
 
         if constexpr (current_idx < sizeof...(Ts) - 1) {
             clear_all<current_idx + 1>(ctx);
@@ -214,14 +218,16 @@ class multi_store {
     /// Reserve memory of size @param n for a collection given by @tparam id
     template <ID id>
     DETRAY_HOST void reserve(std::size_t n, const context_type & /*ctx*/) {
-        detail::get<value_types::to_index(id)>(m_tuple_container).reserve(n);
+        detail::get<types::index_cast<value_types, id>>(m_tuple_container)
+            .reserve(n);
     }
 
     /// Resize the underlying container to @param n for a collection given by
     /// @tparam id
     template <ID id>
     DETRAY_HOST void resize(std::size_t n, const context_type & /*ctx*/) {
-        detail::get<value_types::to_index(id)>(m_tuple_container).resize(n);
+        detail::get<types::index_cast<value_types, id>>(m_tuple_container)
+            .resize(n);
     }
 
     /// Add a new element to a collection
@@ -236,7 +242,8 @@ class multi_store {
     DETRAY_HOST constexpr auto push_back(
         const T &arg,
         const context_type & /*ctx*/ = {}) noexcept(false) -> void {
-        auto &coll = detail::get<value_types::to_index(id)>(m_tuple_container);
+        auto &coll =
+            detail::get<types::index_cast<value_types, id>>(m_tuple_container);
         return coll.push_back(arg);
     }
 
@@ -251,7 +258,8 @@ class multi_store {
     template <ID id, typename... Args>
     DETRAY_HOST constexpr decltype(auto) emplace_back(
         const context_type & /*ctx*/ = {}, Args &&...args) noexcept(false) {
-        auto &coll = detail::get<value_types::to_index(id)>(m_tuple_container);
+        auto &coll =
+            detail::get<types::index_cast<value_types, id>>(m_tuple_container);
         return coll.emplace_back(std::forward<Args>(args)...);
     }
 
@@ -291,7 +299,8 @@ class multi_store {
     template <std::size_t current_idx = 0>
     DETRAY_HOST void append(const multi_store &other,
                             const context_type &ctx = {}) noexcept(false) {
-        auto &coll = other.template get<value_types::to_id(current_idx)>();
+        auto &coll =
+            other.template get<types::id_cast<value_types, current_idx>>();
         insert(coll, ctx);
 
         if constexpr (current_idx < sizeof...(Ts) - 1) {
@@ -309,7 +318,8 @@ class multi_store {
     template <std::size_t current_idx = 0>
     DETRAY_HOST void append(multi_store &&other,
                             const context_type &ctx = {}) noexcept(false) {
-        auto &coll = other.template get<value_types::to_id(current_idx)>();
+        auto &coll =
+            other.template get<types::id_cast<value_types, current_idx>>();
         insert(std::move(coll), ctx);
 
         if constexpr (current_idx < sizeof...(Ts) - 1) {

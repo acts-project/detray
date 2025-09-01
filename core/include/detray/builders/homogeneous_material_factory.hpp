@@ -359,8 +359,8 @@ class homogeneous_material_factory final
                 mat_idx = this->insert_in_container(mat_coll, mat_slab,
                                                     m_links.at(sf_idx).second);
             }
-            if constexpr (detector_t::materials::template is_defined<
-                              material_rod<scalar_type>>()) {
+            if constexpr (types::contains<typename detector_t::materials,
+                                          material_rod<scalar_type>>) {
                 if (m_links.at(sf_idx).first == material_id::e_rod) {
                     auto &mat_coll =
                         materials.template get<material_id::e_rod>();

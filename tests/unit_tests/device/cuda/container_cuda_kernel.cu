@@ -46,12 +46,14 @@ __global__ void test_reg_multi_store_kernel(
     reg_multi_store_t::view_type store_view,
     vecmem::data::vector_view<double> sum_data) {
 
+    using enum reg_type_ids;
+
     reg_multi_store_dev_t store(store_view);
     vecmem::device_vector<double> sum(sum_data);
 
-    const auto& vec0 = store.get<0>();
-    const auto& vec1 = store.get<1>();
-    const auto& vec2 = store.get<2>();
+    const auto& vec0 = store.get<e_size>();
+    const auto& vec1 = store.get<e_float>();
+    const auto& vec2 = store.get<e_double>();
 
     for (const auto e : vec0) {
         sum[0] += e;
@@ -68,12 +70,14 @@ __global__ void test_multi_store_kernel(
     multi_store_t::view_type store_view,
     vecmem::data::vector_view<double> sum_data) {
 
+    using enum type_ids;
+
     multi_store_dev_t store(store_view);
     vecmem::device_vector<double> sum(sum_data);
 
-    const auto& vec0 = store.get<0>();
-    const auto& vec1 = store.get<1>().first;
-    const auto& vec2 = store.get<1>().second;
+    const auto& vec0 = store.get<e_float>();
+    const auto& vec1 = store.get<e_test_class>().first;
+    const auto& vec2 = store.get<e_test_class>().second;
 
     for (const auto e : vec0) {
         sum[0] += e;

@@ -14,6 +14,7 @@
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/utils/log.hpp"
 #include "detray/utils/ranges.hpp"
+#include "detray/utils/type_registry.hpp"
 
 // System include(s)
 #include <iostream>
@@ -40,18 +41,19 @@ void report_empty(const store_t &store,
                   [[maybe_unused]] const std::string &store_name,
                   std::index_sequence<I...> /*seq*/) {
 
-    ((store.template empty<store_t::value_types::to_id(I)>() ?
+    ((store.template empty<types::id_cast<typename store_t::value_types, I>>()
+          ?
 #if DETRAY_LOG_LVL < 0
-                                                             std::clog << ""
+          std::clog << ""
 #else
-                                                             // The log macro
-                                                             // does not compile
-                                                             // here...
+          // The log macro
+          // does not compile
+          // here...
           std::clog << "DETRAY WARNING (HOST): " << __FILENAME__ << ":"
                     << __LINE__ << " " << store_name
                     << " has empty collection no. " << I << std::endl
 #endif
-                                                             : std::clog << ""),
+          : std::clog << ""),
      ...);
 }
 
