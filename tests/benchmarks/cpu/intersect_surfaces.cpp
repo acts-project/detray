@@ -11,7 +11,6 @@
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes.hpp"
 #include "detray/geometry/surface_descriptor.hpp"
-#include "detray/navigation/intersection/ray_concentric_cylinder_intersector.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
 #include "detray/tracks/ray.hpp"
 
@@ -209,57 +208,6 @@ void BM_INTERSECT_PORTAL_CYLINDERS(benchmark::State &state) {
 }
 
 BENCHMARK(BM_INTERSECT_PORTAL_CYLINDERS)
-#ifdef DETRAY_BENCHMARK_MULTITHREAD
-    ->ThreadRange(1, benchmark::CPUInfo::Get().num_cpus)
-#endif
-    ->Unit(benchmark::kMillisecond);
-
-/// This benchmark runs intersection with the concentric cylinder intersector
-void BM_INTERSECT_CONCENTRIC_CYLINDERS(benchmark::State &state) {
-    unsigned int sfhit = 0u;
-    unsigned int sfmiss = 0u;
-
-    using cylinder_mask = mask<concentric_cylinder2D, bench_algebra>;
-
-    dvector<cylinder_mask> cylinders;
-    for (benchmarks::scalar r : dists) {
-        cylinders.push_back(cylinder_mask(0u, r, -10.f, 10.f));
-    }
-
-    benchmarks::transform3 trf{};
-
-    mask_link_t mask_link{mask_ids::e_conc_cylinder3, 0u};
-    material_link_t material_link{material_ids::e_slab, 0u};
-    surface_desc_t sf_desc(0u, mask_link, material_link, 0u,
-                           surface_id::e_sensitive);
-
-    // Iterate through uniformly distributed momentum directions
-    auto ray_generator = ray_generator_t{};
-    ray_generator.config().theta_steps(theta_steps).phi_steps(phi_steps);
-
-    for (auto _ : state) {
-
-        // Iterate through uniformly distributed momentum directions
-        for (const auto ray : ray_generator) {
-
-            for (const auto &cylinder : cylinders) {
-                auto cci = ray_concentric_cylinder_intersector<bench_algebra>{};
-                auto is = cci(ray, sf_desc, cylinder, trf);
-
-                benchmark::DoNotOptimize(sfhit);
-                benchmark::DoNotOptimize(sfmiss);
-                if (is.status) {
-                    ++sfhit;
-                } else {
-                    ++sfmiss;
-                }
-                benchmark::ClobberMemory();
-            }
-        }
-    }
-}
-
-BENCHMARK(BM_INTERSECT_CONCENTRIC_CYLINDERS)
 #ifdef DETRAY_BENCHMARK_MULTITHREAD
     ->ThreadRange(1, benchmark::CPUInfo::Get().num_cpus)
 #endif

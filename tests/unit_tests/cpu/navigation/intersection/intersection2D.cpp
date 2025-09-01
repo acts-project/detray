@@ -54,12 +54,14 @@ using surface_t =
 // This tests the construction of a intresection
 GTEST_TEST(detray_intersection, intersection2D) {
 
-    using intersection_t = intersection2D<surface_t, test_algebra, true>;
-    using nominal_inters_t = intersection2D<surface_t, test_algebra, false>;
+    using intersection_t =
+        intersection2D<surface_t, test_algebra, intersection::contains_pos>;
+    using nominal_inters_t =
+        intersection2D<surface_t, test_algebra, !intersection::contains_pos>;
 
     // Check memory layout of intersection struct
     static_assert(offsetof(nominal_inters_t, sf_desc) == 0);
-    static_assert(offsetof(nominal_inters_t, path) == 16);
+    static_assert(offsetof(nominal_inters_t, ip) == 16);
     // Depends on floating point precision of 'path' member variable
     static_assert((offsetof(nominal_inters_t, volume_link) == 20) ||
                   (offsetof(nominal_inters_t, volume_link) == 24));
@@ -75,8 +77,8 @@ GTEST_TEST(detray_intersection, intersection2D) {
     const surface_t sf{};
     const point3 test_pt{0.2f, 0.4f, 0.f};
 
-    intersection_t i0{{sf, 2.f, 1u, false, true}, test_pt};
-    intersection_t i1{{sf, 1.7f, 0u, true, false}, test_pt};
+    intersection_t i0{sf, {2.f, test_pt}, 1u, false, true};
+    intersection_t i1{sf, {1.7f, test_pt}, 0u, true, false};
 
     intersection_t invalid{};
     ASSERT_FALSE(invalid.status);
@@ -84,7 +86,7 @@ GTEST_TEST(detray_intersection, intersection2D) {
     dvector<intersection_t> intersections = {invalid, i0, i1};
     std::ranges::sort(intersections);
 
-    ASSERT_NEAR(intersections[0].path, 1.7f, tol);
-    ASSERT_NEAR(intersections[1].path, 2.f, tol);
-    ASSERT_TRUE(detail::is_invalid_value(intersections[2].path));
+    ASSERT_NEAR(intersections[0].path(), 1.7f, tol);
+    ASSERT_NEAR(intersections[1].path(), 2.f, tol);
+    ASSERT_TRUE(detail::is_invalid_value(intersections[2].path()));
 }

@@ -39,34 +39,27 @@ struct helix_intersector_impl<line2D<algebra_t>, algebra_t> {
     using transform3_type = dtransform3D<algebra_t>;
 
     template <typename surface_descr_t>
-    using intersection_type = intersection2D<surface_descr_t, algebra_t, true>;
+    using intersection_type =
+        intersection2D<surface_descr_t, algebra_t, intersection::contains_pos>;
     using helix_type = detail::helix<algebra_t>;
 
-    /// Operator function to find intersections between helix and line mask
-    ///
-    /// @tparam mask_t is the input mask type
-    /// @tparam surface_desc_t is the input surface descriptor type
+    // Maximum number of solutions this intersector can produce
+    static constexpr std::uint8_t n_solutions{1u};
+
+    using result_type = intersection_point_err<algebra_t>;
+
+    /// Operator function to find intersections between ray and planar mask
     ///
     /// @param h is the input helix trajectory
-    /// @param sf_desc is the surface descriptor
-    /// @param mask is the input mask
-    /// @param trf is the transform
+    /// @param sf the surface handle the mask is associated with
+    /// @param trf is the surface placement transform
     /// @param mask_tolerance is the tolerance for mask edges
+    /// @param overstep_tol negative cutoff for the path
     ///
     /// @return the intersection
-    template <typename surface_descr_t, typename mask_t>
-    DETRAY_HOST_DEVICE inline intersection_type<surface_descr_t> operator()(
-        const helix_type &h, const surface_descr_t &sf_desc, const mask_t &mask,
-        const transform3_type &trf,
-        const darray<scalar_type, 2u> mask_tolerance =
-            {detail::invalid_value<scalar_type>(),
-             detail::invalid_value<scalar_type>()},
-        const scalar_type = 0.f, const scalar_type = 0.f) const {
-
-        assert((mask_tolerance[0] == mask_tolerance[1]) &&
-               "Helix intersectors use only one mask tolerance value");
-
-        intersection_type<surface_descr_t> sfi{};
+    DETRAY_HOST_DEVICE constexpr result_type point_of_intersection(
+        const helix_type &h, const transform3_type &trf,
+        const scalar_type = 0.f) const {
 
         if (!run_rtsafe) {
             // line axis direction
@@ -90,8 +83,7 @@ struct helix_intersector_impl<line2D<algebra_t>, algebra_t> {
             // @NOTE We might not have to call this which is meant to be for ray
             // intersection...
             if (denom < 1e-5f) {
-                sfi.status = false;
-                return sfi;
+                return {};
             }
 
             // vector from track position to line center
@@ -149,14 +141,10 @@ struct helix_intersector_impl<line2D<algebra_t>, algebra_t> {
 
             // No intersection found within max number of trials
             if (n_tries == max_n_tries) {
-                return sfi;
+                return {};
             }
 
-            // Build intersection struct from helix parameters
-            build_intersection(h, sfi, s, s - s_prev, sf_desc, mask, trf,
-                               mask_tolerance);
-
-            return sfi;
+            return {s, h.pos(s), s - s_prev};
         } else {
             // line axis direction
             const vector3_type l = getter::vector<3>(trf.matrix(), 0u, 2u);
@@ -184,8 +172,7 @@ struct helix_intersector_impl<line2D<algebra_t>, algebra_t> {
                              "invalid value!"
                           << std::endl;
 #endif
-                sfi.status = false;
-                return sfi;
+                return {};
             }
 
             // vector from track position to line center
@@ -238,12 +225,41 @@ struct helix_intersector_impl<line2D<algebra_t>, algebra_t> {
                                                      convergence_tolerance,
                                                      max_n_tries, max_path);
 
-            // Build intersection struct from the root
-            build_intersection(h, sfi, s, ds, sf_desc, mask, trf,
-                               mask_tolerance);
-
-            return sfi;
+            return {s, h.pos(s), ds};
         }
+    }
+
+    /// Operator function to find intersections between helix and line mask
+    ///
+    /// @tparam mask_t is the input mask type
+    /// @tparam surface_desc_t is the input surface descriptor type
+    ///
+    /// @param h is the input helix trajectory
+    /// @param sf_desc is the surface descriptor
+    /// @param mask is the input mask
+    /// @param trf is the transform
+    /// @param mask_tolerance is the tolerance for mask edges
+    ///
+    /// @return the intersection
+    template <typename surface_descr_t, typename mask_t>
+    DETRAY_HOST_DEVICE inline intersection_type<surface_descr_t> operator()(
+        const helix_type &h, const surface_descr_t &sf_desc, const mask_t &mask,
+        const transform3_type &trf,
+        const darray<scalar_type, 2u> mask_tolerance =
+            {detail::invalid_value<scalar_type>(),
+             detail::invalid_value<scalar_type>()},
+        const scalar_type = 0.f, const scalar_type = 0.f) const {
+
+        assert((mask_tolerance[0] == mask_tolerance[1]) &&
+               "Helix intersectors use only one mask tolerance value");
+
+        auto result = point_of_intersection(h, trf, 0.f);
+
+        intersection_type<surface_descr_t> is;
+
+        resolve_mask(is, h, result, sf_desc, mask, trf, mask_tolerance);
+
+        return is;
     }
 
     /// Interface to use fixed mask tolerance

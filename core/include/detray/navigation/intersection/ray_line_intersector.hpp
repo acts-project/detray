@@ -21,12 +21,12 @@
 
 namespace detray {
 
-template <typename frame_t, concepts::algebra algebra_t, bool do_debug>
+template <typename frame_t, concepts::algebra algebra_t, bool resolve_pos>
 struct ray_intersector_impl;
 
 /// A functor to find intersections between trajectory and line mask
-template <algebra::concepts::aos algebra_t, bool do_debug>
-struct ray_intersector_impl<line2D<algebra_t>, algebra_t, do_debug> {
+template <algebra::concepts::aos algebra_t, bool resolve_pos>
+struct ray_intersector_impl<line2D<algebra_t>, algebra_t, resolve_pos> {
 
     using scalar_type = dscalar<algebra_t>;
     using point3_type = dpoint3D<algebra_t>;
@@ -35,13 +35,16 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t, do_debug> {
 
     template <typename surface_descr_t>
     using intersection_type =
-        intersection2D<surface_descr_t, algebra_t, do_debug>;
+        intersection2D<surface_descr_t, algebra_t, resolve_pos>;
     using ray_type = detail::ray<algebra_t>;
 
+    // Maximum number of solutions this intersector can produce
+    static constexpr std::uint8_t n_solutions{1u};
+
+    using result_type =
+        intersection_point<algebra_t, point3_type, intersection::contains_pos>;
+
     /// Operator function to find intersections between ray and line mask
-    ///
-    /// @tparam mask_t is the input mask type
-    /// @tparam surface_descr_t is the type of surface handle
     ///
     /// @param ray is the input ray trajectory
     /// @param sf the surface handle the mask is associated with
@@ -51,16 +54,9 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t, do_debug> {
     /// @param overstep_tol negative cutoff for the path
     //
     /// @return the intersection
-    template <typename surface_descr_t, typename mask_t>
-    DETRAY_HOST_DEVICE inline intersection_type<surface_descr_t> operator()(
-        const ray_type &ray, const surface_descr_t &sf, const mask_t &mask,
-        const transform3_type &trf,
-        const darray<scalar_type, 2u> mask_tolerance =
-            {0.f, 1.f * unit<scalar_type>::mm},
-        const scalar_type mask_tol_scalor = 0.f,
-        const scalar_type overstep_tol = 0.f) const {
-
-        intersection_type<surface_descr_t> is;
+    DETRAY_HOST_DEVICE constexpr result_type point_of_intersection(
+        const ray_type &ray, const transform3_type &trf,
+        const scalar_type /*overstep_tol*/ = 0.f) const {
 
         const vector3_type &rd = ray.dir();
         const point3_type &ro = ray.pos();
@@ -77,8 +73,7 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t, do_debug> {
 
         // Case for wire is parallel to track
         if (denom < 1e-5f) {
-            is.status = false;
-            return is;
+            return {};
         }
 
         // vector from track position to line center
@@ -94,8 +89,37 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t, do_debug> {
         const scalar_type s{1.f / denom * (t2l_on_track - t2l_on_line * zd)};
         const point3_type glob_pos = ro + s * rd;
 
-        build_intersection(ray, is, glob_pos, s, sf, mask, trf, mask_tolerance,
-                           mask_tol_scalor, overstep_tol);
+        return {s, glob_pos};
+    }
+
+    /// Operator function to find intersections between ray and planar mask
+    ///
+    /// @tparam mask_t is the input mask type
+    /// @tparam surface_descr_t is the type of surface handle
+    ///
+    /// @param ray is the input ray trajectory
+    /// @param sf the surface handle the mask is associated with
+    /// @param mask is the input mask that defines the surface extent
+    /// @param trf is the surface placement transform
+    /// @param mask_tolerance is the tolerance for mask edges
+    /// @param overstep_tol negative cutoff for the path
+    ///
+    /// @return the intersection
+    template <typename surface_descr_t, typename mask_t>
+    DETRAY_HOST_DEVICE inline intersection_type<surface_descr_t> operator()(
+        const ray_type &ray, const surface_descr_t &sf, const mask_t &mask,
+        const transform3_type &trf,
+        const darray<scalar_type, 2u> mask_tolerance =
+            {0.f, 1.f * unit<scalar_type>::mm},
+        const scalar_type mask_tol_scalor = 0.f,
+        const scalar_type overstep_tol = 0.f) const {
+
+        const auto result = point_of_intersection(ray, trf, overstep_tol);
+
+        intersection_type<surface_descr_t> is;
+
+        resolve_mask(is, ray, result, sf, mask, trf, mask_tolerance,
+                     mask_tol_scalor, overstep_tol);
 
         return is;
     }
@@ -128,7 +152,6 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t, do_debug> {
             {0.f, 1.f * unit<scalar_type>::mm},
         const scalar_type mask_tol_scalor = 0.f,
         const scalar_type overstep_tol = 0.f) const {
-
         sfi = this->operator()(ray, sfi.sf_desc, mask, trf, mask_tolerance,
                                mask_tol_scalor, overstep_tol);
     }

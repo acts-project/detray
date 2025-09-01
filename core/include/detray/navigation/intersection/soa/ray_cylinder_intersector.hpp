@@ -22,12 +22,12 @@
 
 namespace detray {
 
-template <typename frame_t, concepts::algebra algebra_t, bool do_debug>
+template <typename frame_t, concepts::algebra algebra_t, bool resolve_pos>
 struct ray_intersector_impl;
 
 /// A functor to find intersections between straight line and planar surface
-template <algebra::concepts::soa algebra_t, bool do_debug>
-struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
+template <algebra::concepts::soa algebra_t, bool resolve_pos>
+struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, resolve_pos> {
 
     /// Linear algebra types
     /// @{
@@ -39,7 +39,14 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
 
     template <typename surface_descr_t>
     using intersection_type =
-        intersection2D<surface_descr_t, algebra_t, do_debug>;
+        intersection2D<surface_descr_t, algebra_t, resolve_pos>;
+
+    // Maximum number of solutions this intersector can produce
+    static constexpr std::uint8_t n_solutions{2u};
+
+    using result_type = darray<
+        intersection_point<algebra_t, point3_type, intersection::contains_pos>,
+        n_solutions>;
 
     /// Operator function to find intersections between a ray and a 2D cylinder
     ///
@@ -63,6 +70,8 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
                const scalar_type mask_tol_scalor = 0.f,
                const scalar_type overstep_tol = 0.f) const {
 
+        using result_value_t = typename result_type::value_type;
+
         // One or both of these solutions might be invalid
         const auto qe = solve_intersection(ray, mask, trf);
 
@@ -74,12 +83,12 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
         const vector3_type rd{dir[0], dir[1], dir[2]};
 
         point3_type glob_pos = ro + qe.larger() * rd;
-        build_intersection(ray, ret[1], glob_pos, qe.larger(), sf, mask, trf,
-                           mask_tolerance, mask_tol_scalor, overstep_tol);
+        resolve_mask(ret[1], ray, result_value_t{qe.larger(), glob_pos}, sf,
+                     mask, trf, mask_tolerance, mask_tol_scalor, overstep_tol);
 
         glob_pos = ro + qe.smaller() * rd;
-        build_intersection(ray, ret[0], glob_pos, qe.larger(), sf, mask, trf,
-                           mask_tolerance, mask_tol_scalor, overstep_tol);
+        resolve_mask(ret[0], ray, result_value_t{qe.smaller(), glob_pos}, sf,
+                     mask, trf, mask_tolerance, mask_tol_scalor, overstep_tol);
 
         // Even if there are two geometrically valid solutions, the smaller one
         // might not be passed on if it is below the overstepping tolerance:
@@ -122,8 +131,8 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
         const vector3_type rd{dir[0], dir[1], dir[2]};
 
         point3_type glob_pos = ro + qe.smaller() * rd;
-        build_intersection(ray, sfi, glob_pos, qe.smaller(), sfi.sf_desc, mask,
-                           trf, mask_tolerance, mask_tol_scalor, overstep_tol);
+        resolve_mask(sfi, ray, result_type{qe.smaller(), glob_pos}, sfi.sf_desc,
+                     mask, trf, mask_tolerance, mask_tol_scalor, overstep_tol);
     }
 
     protected:

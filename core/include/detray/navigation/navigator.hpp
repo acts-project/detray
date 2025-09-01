@@ -91,9 +91,9 @@ struct void_inspector {
 template <typename detector_t,
           std::size_t k_cache_capacity = navigation::default_cache_size,
           typename inspector_t = navigation::void_inspector,
-          typename intersection_t =
-              intersection2D<typename detector_t::surface_type,
-                             typename detector_t::algebra_type, false>>
+          typename intersection_t = intersection2D<
+              typename detector_t::surface_type,
+              typename detector_t::algebra_type, !intersection::contains_pos>>
 class navigator {
 
     static_assert(k_cache_capacity >= 2u,
@@ -223,8 +223,8 @@ class navigator {
         /// @returns distance to next
         DETRAY_HOST_DEVICE
         scalar_type operator()() const {
-            assert(math::isfinite(target().path));
-            return static_cast<scalar_type>(direction()) * target().path;
+            assert(math::isfinite(target().path()));
+            return static_cast<scalar_type>(direction()) * target().path();
         }
 
         /// @returns current volume (index) - const
@@ -480,7 +480,7 @@ class navigator {
         DETRAY_HOST_DEVICE inline auto is_on_surface(
             const intersection_type &candidate,
             const navigation::config &cfg) const -> bool {
-            return (math::fabs(candidate.path) < cfg.path_tolerance);
+            return (math::fabs(candidate.path()) < cfg.path_tolerance);
         }
 
         /// @returns currently cached candidates
@@ -588,7 +588,8 @@ class navigator {
         inline void clear() {
             // Mark all data in the cache as unreachable
             for (std::size_t i = 0u; i < k_cache_capacity; ++i) {
-                m_candidates[i].path = std::numeric_limits<scalar_type>::max();
+                m_candidates[i].set_path(
+                    std::numeric_limits<scalar_type>::max());
             }
             m_next = 0;
             m_last = -1;
@@ -915,7 +916,7 @@ class navigator {
                 if (!update_candidate(navigation.direction(), candidate, track,
                                       det, cfg, ctx)) {
                     // Forcefully set dist to numeric max for sorting
-                    candidate.path = std::numeric_limits<scalar_type>::max();
+                    candidate.set_path(std::numeric_limits<scalar_type>::max());
                 }
             }
             detray::sequential_sort(navigation.begin(), navigation.end());
@@ -1030,7 +1031,7 @@ class navigator {
         typename state::candidate_cache_t &candidates) const {
         // Depends on previous invalidation of unreachable candidates!
         auto not_reachable = [](const intersection_type &candidate) {
-            return candidate.path == std::numeric_limits<scalar_type>::max();
+            return candidate.path() == std::numeric_limits<scalar_type>::max();
         };
 
         return detray::find_if(candidates.begin(), candidates.end(),

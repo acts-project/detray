@@ -20,12 +20,12 @@
 
 namespace detray {
 
-template <typename frame_t, concepts::algebra algebra_t, bool do_debug>
+template <typename frame_t, concepts::algebra algebra_t, bool resolve_pos>
 struct ray_intersector_impl;
 
 /// A functor to find intersections between straight line and planar surface
-template <algebra::concepts::soa algebra_t, bool do_debug>
-struct ray_intersector_impl<line2D<algebra_t>, algebra_t, do_debug> {
+template <algebra::concepts::soa algebra_t, bool resolve_pos>
+struct ray_intersector_impl<line2D<algebra_t>, algebra_t, resolve_pos> {
 
     /// Linear algebra types
     /// @{
@@ -37,7 +37,13 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t, do_debug> {
 
     template <typename surface_descr_t>
     using intersection_type =
-        intersection2D<surface_descr_t, algebra_t, do_debug>;
+        intersection2D<surface_descr_t, algebra_t, resolve_pos>;
+
+    // Maximum number of solutions this intersector can produce
+    static constexpr std::uint8_t n_solutions{1u};
+
+    using result_type =
+        intersection_point<algebra_t, point3_type, intersection::contains_pos>;
 
     /// Operator function to find intersections between ray and line mask
     ///
@@ -95,13 +101,13 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t, do_debug> {
         const scalar_type t2l_on_track = vector::dot(t2l, rd);
 
         // path length to the point of closest approach on the track
-        is.path = (t2l_on_track - t2l_on_line * zd) / denom;
+        is.set_path((t2l_on_track - t2l_on_line * zd) / denom);
 
         // point of closest approach on the track
         const point3_type glob_pos = ro + is.path * rd;
 
-        build_intersection(ray, is, glob_pos, is.path, sf, mask, trf,
-                           mask_tolerance, mask_tol_scalor, overstep_tol);
+        resolve_mask(is, ray, result_type{is.path, glob_pos}, sf, mask, trf,
+                     mask_tolerance, mask_tol_scalor, overstep_tol);
 
         return is;
     }
