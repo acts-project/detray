@@ -72,8 +72,9 @@ class homogeneous_material_builder final : public volume_decorator<detector_t> {
 
     /// Add the volume and the material to the detector @param det
     DETRAY_HOST
-    auto build(detector_t &det, typename detector_t::geometry_context ctx = {})
-        -> typename detector_t::volume_type * override {
+    auto build(detector_t &det,
+               typename detector_t::geometry_context ctx = {}) ->
+        typename detector_t::volume_type * override {
         DETRAY_DEBUG("homogeneous_material_builder::build()");
 
         const auto &material = det.material_store();

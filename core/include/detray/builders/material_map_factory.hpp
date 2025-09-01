@@ -76,9 +76,9 @@ class material_map_factory final : public factory_decorator<detector_t> {
 
     /// @returns the material links to the surfaces (counted for this volume)
     DETRAY_HOST
-    auto links() const
-        -> const std::map<std::size_t,
-                          std::pair<material_id, std::vector<index_type>>> & {
+    auto links() const -> const
+        std::map<std::size_t, std::pair<material_id, std::vector<index_type>>>
+            & {
         return m_links;
     }
 
