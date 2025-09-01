@@ -54,12 +54,22 @@ using default_chain = actor_chain<parameter_transporter<algebra_t>,
 using const_field_t = bfield::const_bknd_t<benchmarks::scalar>;
 
 template <typename metadata_t, typename bfield_t,
-          template <typename> class actor_chain_t>
-using cuda_propagator_type =
-    propagator<rk_stepper<covfie::field_view<bfield_t>,
-                          typename detector<metadata_t>::algebra_type>,
-               navigator<detector<metadata_t>>,
-               actor_chain_t<typename detector<metadata_t>::algebra_type>>;
+          template <typename> class actor_chain_t,
+          bool allow_cov_transport = true>
+using cuda_propagator_type = propagator<
+    rk_stepper<
+        covfie::field_view<bfield_t>,
+        typename detector<metadata_t>::algebra_type,
+        unconstrained_step<
+            dscalar<typename detector<metadata_t>::algebra_type>>,
+        stepper_rk_policy<dscalar<typename detector<metadata_t>::algebra_type>>,
+        stepping::void_inspector,
+        (allow_cov_transport
+             ? static_cast<std::uint32_t>(
+                   rk_stepper_flags::e_allow_covariance_transport)
+             : 0u)>,
+    navigator<detector<metadata_t>>,
+    actor_chain_t<typename detector<metadata_t>::algebra_type>>;
 
 /// Launch the propagation kernelfor benchmarking
 ///
