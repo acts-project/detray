@@ -141,8 +141,8 @@ class wire_layer_generator final
         constexpr auto invalid_src_link{detail::invalid_value<std::uint64_t>()};
 
         // The type id of the surface mask shape (drift cell or straw tube)
-        constexpr auto mask_id{detector_t::mask_container::template get_id<
-            mask<mask_shape_t, algebra_t>>::value};
+        constexpr auto mask_id{types::id<typename detector_t::masks,
+                                         mask<mask_shape_t, algebra_t>>};
         // Modules link back to mother volume in navigation
         const auto mask_volume_link{static_cast<nav_link_t>(volume_idx)};
 

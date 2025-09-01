@@ -168,6 +168,8 @@ TEST(container_cuda, tuple_container) {
 /// Test the regular multi store functionality
 TEST(container_cuda, regular_multi_store) {
 
+    using enum reg_type_ids;
+
     // Vecmem memory resources
     vecmem::host_memory_resource host_mr;
     vecmem::cuda::managed_memory_resource mng_mr;
@@ -180,18 +182,18 @@ TEST(container_cuda, regular_multi_store) {
 
     // Base store function check
     EXPECT_EQ(mng_store.n_collections(), 3u);
-    EXPECT_EQ(mng_store.empty<0>(), true);
-    EXPECT_EQ(mng_store.empty<1>(), true);
-    EXPECT_EQ(mng_store.empty<2>(), true);
+    EXPECT_EQ(mng_store.empty<e_size>(), true);
+    EXPECT_EQ(mng_store.empty<e_float>(), true);
+    EXPECT_EQ(mng_store.empty<e_double>(), true);
 
     // Add elements to the store
     empty_context ctx{};
-    mng_store.emplace_back<0>(ctx, 1u);
-    mng_store.push_back<0>(2u, ctx);
-    mng_store.emplace_back<1>(ctx, 3.1f);
-    mng_store.push_back<1>(4.5f, ctx);
-    mng_store.emplace_back<2>(ctx, 5.5);
-    mng_store.push_back<2>(6.0, ctx);
+    mng_store.emplace_back<e_size>(ctx, 1u);
+    mng_store.push_back<e_size>(2u, ctx);
+    mng_store.emplace_back<e_float>(ctx, 3.1f);
+    mng_store.push_back<e_float>(4.5f, ctx);
+    mng_store.emplace_back<e_double>(ctx, 5.5);
+    mng_store.push_back<e_double>(6.0, ctx);
 
     vecmem::vector<std::size_t> int_vec{3u, 4u, 5u};
     mng_store.insert(int_vec);
@@ -203,20 +205,20 @@ TEST(container_cuda, regular_multi_store) {
 
     store.append(mng_store, ctx);
 
-    EXPECT_EQ(mng_store.size<0>(), 5u);
-    EXPECT_EQ(mng_store.size<1>(), 4u);
-    EXPECT_EQ(mng_store.size<2>(), 4u);
-    EXPECT_EQ(store.size<0>(), 5u);
-    EXPECT_EQ(store.size<1>(), 4u);
-    EXPECT_EQ(store.size<2>(), 4u);
+    EXPECT_EQ(mng_store.size<e_size>(), 5u);
+    EXPECT_EQ(mng_store.size<e_float>(), 4u);
+    EXPECT_EQ(mng_store.size<e_double>(), 4u);
+    EXPECT_EQ(store.size<e_size>(), 5u);
+    EXPECT_EQ(store.size<e_float>(), 4u);
+    EXPECT_EQ(store.size<e_double>(), 4u);
 
     // CPU sum check
-    double cpu_sum{std::accumulate(mng_store.get<0>().begin(),
-                                   mng_store.get<0>().end(), 0.)};
-    cpu_sum = std::accumulate(mng_store.get<1>().begin(),
-                              mng_store.get<1>().end(), cpu_sum);
-    cpu_sum = std::accumulate(mng_store.get<2>().begin(),
-                              mng_store.get<2>().end(), cpu_sum);
+    double cpu_sum{std::accumulate(mng_store.get<e_size>().begin(),
+                                   mng_store.get<e_size>().end(), 0.)};
+    cpu_sum = std::accumulate(mng_store.get<e_float>().begin(),
+                              mng_store.get<e_float>().end(), cpu_sum);
+    cpu_sum = std::accumulate(mng_store.get<e_double>().begin(),
+                              mng_store.get<e_double>().end(), cpu_sum);
     EXPECT_NEAR(cpu_sum, 69.9, tol);
 
     // CUDA sum check
@@ -248,6 +250,8 @@ TEST(container_cuda, regular_multi_store) {
 /// Tets the multi store with a hierarchical memory type ( @c test<> )
 TEST(container_cuda, multi_store) {
 
+    using enum type_ids;
+
     // Vecmem memory resources
     vecmem::host_memory_resource host_mr;
     vecmem::cuda::managed_memory_resource mng_mr;
@@ -260,32 +264,35 @@ TEST(container_cuda, multi_store) {
 
     // Base store function check
     EXPECT_EQ(mng_store.n_collections(), 2u);
-    EXPECT_EQ(mng_store.empty<0>(), true);
+    EXPECT_EQ(mng_store.empty<e_float>(), true);
 
     // Add elements to the store
     vecmem::vector<float> float_vec{12.1f, 5.6f};
     mng_store.insert(float_vec);
 
-    mng_store.get<1>().first = vecmem::vector<int>{2, 3};
-    mng_store.get<1>().second = vecmem::vector<double>{18., 42.6};
+    mng_store.get<e_test_class>().first = vecmem::vector<int>{2, 3};
+    mng_store.get<e_test_class>().second = vecmem::vector<double>{18., 42.6};
 
-    std::ranges::copy(mng_store.get<0>(), std::back_inserter(store.get<0>()));
-    store.get<1>() = mng_store.get<1>();
+    std::ranges::copy(mng_store.get<e_float>(),
+                      std::back_inserter(store.get<e_float>()));
+    store.get<e_test_class>() = mng_store.get<e_test_class>();
 
-    EXPECT_EQ(mng_store.size<0>(), 2u);
-    EXPECT_EQ(mng_store.get<1>().first.size(), 2u);
-    EXPECT_EQ(mng_store.get<1>().second.size(), 2u);
-    EXPECT_EQ(store.size<0>(), 2u);
-    EXPECT_EQ(store.get<1>().first.size(), 2u);
-    EXPECT_EQ(store.get<1>().second.size(), 2u);
+    EXPECT_EQ(mng_store.size<e_float>(), 2u);
+    EXPECT_EQ(mng_store.get<e_test_class>().first.size(), 2u);
+    EXPECT_EQ(mng_store.get<e_test_class>().second.size(), 2u);
+    EXPECT_EQ(store.size<e_float>(), 2u);
+    EXPECT_EQ(store.get<e_test_class>().first.size(), 2u);
+    EXPECT_EQ(store.get<e_test_class>().second.size(), 2u);
 
     // CPU sum check
-    double cpu_sum{std::accumulate(mng_store.get<0>().begin(),
-                                   mng_store.get<0>().end(), 0.)};
-    cpu_sum = std::accumulate(mng_store.get<1>().first.begin(),
-                              mng_store.get<1>().first.end(), cpu_sum);
-    cpu_sum = std::accumulate(mng_store.get<1>().second.begin(),
-                              mng_store.get<1>().second.end(), cpu_sum);
+    double cpu_sum{std::accumulate(mng_store.get<e_float>().begin(),
+                                   mng_store.get<e_float>().end(), 0.)};
+    cpu_sum =
+        std::accumulate(mng_store.get<e_test_class>().first.begin(),
+                        mng_store.get<e_test_class>().first.end(), cpu_sum);
+    cpu_sum =
+        std::accumulate(mng_store.get<e_test_class>().second.begin(),
+                        mng_store.get<e_test_class>().second.end(), cpu_sum);
     EXPECT_NEAR(cpu_sum, 83.3, tol);
 
     // CUDA sum check

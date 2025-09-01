@@ -31,9 +31,9 @@ constexpr auto rectangle_id = mask_defs::id::e_rectangle2;
 constexpr auto disc_id = mask_defs::id::e_portal_ring2;
 constexpr auto cylinder_id = mask_defs::id::e_portal_cylinder2;
 
-using rectangle_t = typename mask_defs::template get_type<rectangle_id>::type;
-using disc_t = typename mask_defs::template get_type<disc_id>::type;
-using cylinder_t = typename mask_defs::template get_type<cylinder_id>::type;
+using rectangle_t = types::get<mask_defs, rectangle_id>;
+using disc_t = types::get<mask_defs, disc_id>;
+using cylinder_t = types::get<mask_defs, cylinder_id>;
 
 /// declaration of a test function for detector
 void detector_test(typename detector_host_t::view_type det_data,

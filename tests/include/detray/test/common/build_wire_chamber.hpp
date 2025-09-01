@@ -169,8 +169,7 @@ inline auto build_wire_chamber(
 
     // Prepare grid building
     constexpr auto grid_id{detector_t::accel::id::e_cylinder2_grid};
-    using cyl_grid_t =
-        typename detector_t::accelerator_container::template get_type<grid_id>;
+    using cyl_grid_t = types::get<typename detector_t::accel, grid_id>;
     using loc_bin_idx_t = typename cyl_grid_t::loc_bin_index;
     static_assert(cyl_grid_t::dim == 2);
     using grid_builder_t =

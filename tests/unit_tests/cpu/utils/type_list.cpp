@@ -19,6 +19,31 @@ GTEST_TEST(detray_utils, type_list) {
     using namespace detray;
 
     using list = types::list<float, int, double>;
+    static_assert(types::contains<list, float>,
+                  "List should contain type 'float'");
+    static_assert(types::position<list, float> == 0u,
+                  "Wrong position for type 'float'");
+
+    static_assert(types::contains<list, int>, "List should contain type 'int'");
+    static_assert(types::position<list, int> == 1u,
+                  "Wrong position for type 'int'");
+
+    static_assert(types::contains<list, double>,
+                  "List should contain type 'double'");
+    static_assert(types::position<list, double> == 2u,
+                  "Wrong position for type 'double'");
+
+    static_assert(!types::contains<list, char>,
+                  "List should not contain type 'char'");
+    static_assert(
+        types::position<list, char> == std::numeric_limits<std::size_t>::max(),
+        "Wrong position for type 'char'");
+
+    static_assert(!types::contains<list, bool>,
+                  "List should not contain type 'bool'");
+    static_assert(
+        types::position<list, bool> == std::numeric_limits<std::size_t>::max(),
+        "Wrong position for type 'bool'");
 
     static_assert(std::is_same_v<types::front<list>, float>,
                   "Could not access type list front");
