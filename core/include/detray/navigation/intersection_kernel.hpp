@@ -104,13 +104,14 @@ struct intersection_initialize {
         }
 
         // Resolve the masks that belong to the surface
-        for (const auto &mask :
-             detray::ranges::subrange(mask_group, mask_range)) {
+        if constexpr (n_sol > 1) {
+            for (const auto &mask :
+                 detray::ranges::subrange(mask_group, mask_range)) {
 
-            intersection_t is{};
+                intersection_t is{};
 
-            // Build the resulting intersecion(s) from the intersection point
-            if constexpr (n_sol > 1) {
+                // Build the resulting intersecion(s) from the intersection
+                // point
                 std::uint8_t n_found{0u};
 
                 for (std::size_t i = 0u; i < n_sol; ++i) {
@@ -125,14 +126,27 @@ struct intersection_initialize {
                         return;
                     }
                 }
-            } else {
+            }
+        } else {
+            intersection_t is{};
+            bool found = false;
+
+            for (const auto &mask :
+                 detray::ranges::subrange(mask_group, mask_range)) {
+
+                // Build the resulting intersecion(s) from the intersection
+                // point
                 resolve_mask(is, traj, result, sf_desc, mask, ctf,
                              mask_tolerance, mask_tol_scalor, overstep_tol);
 
                 if (is.is_inside()) {
-                    insert_sorted(is, is_container);
-                    return;
+                    found = true;
+                    break;
                 }
+            }
+
+            if (found) {
+                insert_sorted(is, is_container);
             }
         }
     }
