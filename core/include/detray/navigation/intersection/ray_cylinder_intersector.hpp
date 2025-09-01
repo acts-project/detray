@@ -189,15 +189,15 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
 
             const point3_type p3 = ro + path * rd;
 
-            const auto loc{mask_t::to_local_frame(trf, p3)};
             if constexpr (intersection_type<surface_descr_t>::is_debug()) {
-                is.local = loc;
+                is.local = mask_t::to_local_frame3D(trf, p3);
             }
             // Tolerance: per mille of the distance
             is.status = mask.is_inside(
-                loc, math::max(mask_tolerance[0],
-                               math::min(mask_tolerance[1],
-                                         mask_tol_scalor * math::fabs(path))));
+                trf, p3,
+                math::max(mask_tolerance[0],
+                          math::min(mask_tolerance[1],
+                                    mask_tol_scalor * math::fabs(path))));
             is.direction = !detail::signbit(path);
             is.volume_link = mask.volume_link();
         } else {

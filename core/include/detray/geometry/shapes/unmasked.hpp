@@ -64,12 +64,23 @@ class unmasked {
     /// @note the parameters are ignored
     ///
     /// @return always true
+    /// @{
+    template <concepts::algebra algebra_t>
+    DETRAY_HOST_DEVICE constexpr auto check_boundaries(
+        const bounds_type<dscalar<algebra_t>>& /*bounds*/,
+        const dtransform3D<algebra_t>& /*trf*/,
+        const dpoint3D<algebra_t>& /*glob_p*/,
+        const dscalar<algebra_t> /*tol*/) const {
+        return true;
+    }
+
     template <concepts::scalar scalar_t, concepts::point point_t>
-    DETRAY_HOST_DEVICE inline auto check_boundaries(
+    DETRAY_HOST_DEVICE constexpr auto check_boundaries(
         const bounds_type<scalar_t>& /*bounds*/, const point_t& /*loc_p*/,
         const scalar_t /*tol*/) const {
         return true;
     }
+    /// @}
 
     /// @brief Measure of the shape: Inf
     ///

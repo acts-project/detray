@@ -79,7 +79,7 @@ GTEST_TEST(detray_masks, trapezoid2D_ratio_test) {
                         const mask<trapezoid2D, test_algebra> &tp,
                         const test::transform3 &trf, const scalar t) {
 
-            const point3 loc_p{tp.to_local_frame(trf, p)};
+            const point3 loc_p{tp.to_local_frame3D(trf, p)};
             return tp.is_inside(loc_p, t);
         }
     };
