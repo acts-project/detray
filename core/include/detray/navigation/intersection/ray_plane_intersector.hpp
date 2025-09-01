@@ -22,12 +22,12 @@
 
 namespace detray {
 
-template <typename frame_t, concepts::algebra algebra_t, bool do_debug>
+template <typename frame_t, concepts::algebra algebra_t, bool resolve_pos>
 struct ray_intersector_impl;
 
 /// A functor to find intersections between straight line and planar surface
-template <algebra::concepts::aos algebra_t, bool do_debug>
-struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, do_debug> {
+template <algebra::concepts::aos algebra_t, bool resolve_pos>
+struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, resolve_pos> {
 
     /// linear algebra types
     /// @{
@@ -39,8 +39,49 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, do_debug> {
 
     template <typename surface_descr_t>
     using intersection_type =
-        intersection2D<surface_descr_t, algebra_t, do_debug>;
+        intersection2D<surface_descr_t, algebra_t, resolve_pos>;
     using ray_type = detail::ray<algebra_t>;
+
+    // Maximum number of solutions this intersector can produce
+    static constexpr std::uint8_t n_solutions{1u};
+
+    /// Always includes the intersection position, in order to resolve the mask
+    using result_type =
+        intersection_point<algebra_t, point3_type, intersection::contains_pos>;
+
+    /// Operator function to find intersections between ray and planar mask
+    ///
+    /// @param ray is the input ray trajectory
+    /// @param sf the surface handle the mask is associated with
+    /// @param mask is the input mask that defines the surface extent
+    /// @param trf is the surface placement transform
+    /// @param mask_tolerance is the tolerance for mask edges
+    /// @param overstep_tol negative cutoff for the path
+    ///
+    /// @return the intersection
+    DETRAY_HOST_DEVICE constexpr result_type point_of_intersection(
+        const ray_type &ray, const transform3_type &trf,
+        const scalar_type /*overstep_tol*/ = 0.f) const {
+
+        // Retrieve the surface normal & translation (context resolved)
+        const vector3_type &sn = trf.z();
+        const vector3_type &st = trf.translation();
+
+        // Intersection code
+        const point3_type &ro = ray.pos();
+        const vector3_type &rd = ray.dir();
+        const scalar_type denom = vector::dot(rd, sn);
+
+        // this is dangerous
+        if (denom == 0.f) {
+            return {};
+        }
+
+        scalar_type s{vector::dot(sn, st - ro) / denom};
+        point3_type glob_pos = ro + s * rd;
+
+        return {s, glob_pos};
+    }
 
     /// Operator function to find intersections between ray and planar mask
     ///
@@ -64,28 +105,12 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, do_debug> {
         const scalar_type mask_tol_scalor = 0.f,
         const scalar_type overstep_tol = 0.f) const {
 
+        result_type result = point_of_intersection(ray, trf, overstep_tol);
+
         intersection_type<surface_descr_t> is;
 
-        // Retrieve the surface normal & translation (context resolved)
-        const vector3_type &sn = trf.z();
-        const vector3_type &st = trf.translation();
-
-        // Intersection code
-        const point3_type &ro = ray.pos();
-        const vector3_type &rd = ray.dir();
-        const scalar_type denom = vector::dot(rd, sn);
-
-        // this is dangerous
-        if (denom == 0.f) {
-            is.status = false;
-            return is;
-        }
-
-        const scalar_type s{vector::dot(sn, st - ro) / denom};
-        const point3_type glob_pos = ro + s * rd;
-
-        build_intersection(ray, is, glob_pos, s, sf, mask, trf, mask_tolerance,
-                           mask_tol_scalor, overstep_tol);
+        resolve_mask(is, ray, result, sf, mask, trf, mask_tolerance,
+                     mask_tol_scalor, overstep_tol);
 
         return is;
     }
@@ -124,9 +149,9 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, do_debug> {
     }
 };
 
-template <algebra::concepts::aos algebra_t, bool do_debug>
-struct ray_intersector_impl<polar2D<algebra_t>, algebra_t, do_debug>
-    : public ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, do_debug> {
-};
+template <algebra::concepts::aos algebra_t, bool resolve_pos>
+struct ray_intersector_impl<polar2D<algebra_t>, algebra_t, resolve_pos>
+    : public ray_intersector_impl<cartesian2D<algebra_t>, algebra_t,
+                                  resolve_pos> {};
 
 }  // namespace detray

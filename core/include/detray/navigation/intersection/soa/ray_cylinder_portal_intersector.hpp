@@ -26,9 +26,9 @@ namespace detray {
 ///
 /// With the way the navigation works, only the closest one of the two possible
 /// intersection points is needed in the case of a cylinderical portal surface.
-template <algebra::concepts::soa algebra_t, bool do_debug>
+template <algebra::concepts::soa algebra_t, bool resolve_pos>
 struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
-                            do_debug> {
+                            resolve_pos> {
 
     /// Linear algebra types
     /// @{
@@ -42,7 +42,13 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
 
     template <typename surface_descr_t>
     using intersection_type =
-        intersection2D<surface_descr_t, algebra_t, do_debug>;
+        intersection2D<surface_descr_t, algebra_t, resolve_pos>;
+
+    // Maximum number of solutions this intersector can produce
+    static constexpr std::uint8_t n_solutions{1u};
+
+    using result_type =
+        intersection_point<algebra_t, point2_type, intersection::contains_pos>;
 
     /// Operator function to find intersections between ray and cylinder mask
     ///
@@ -111,25 +117,19 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
         // If any of the the near solutions is outside the overstepping
         // tolerance, take the far solution (if it exists)
         const auto outside_overstep_tol = path < overstep_tol;
-        if (detray::detail::any_of(outside_overstep_tol)) {
+        if (detray::detail::any_of(outside_overstep_tol) &&
+            detray::detail::all_of((discr > 0.f) || !outside_overstep_tol)) {
             is_smaller_sol = (s1 >= s2) && outside_overstep_tol;
             path(is_smaller_sol) = s1;
             path(!is_smaller_sol) = s2;
-            // Ray is outside of all cylinders or second solutions do not
-            // exist: Should not happen for portal
-            if (detray::detail::all_of(path < overstep_tol) ||
-                detray::detail::all_of(discr == 0.f)) {
-                is.status = decltype(is.status)(false);
-                return is;
-            }
         }
 
         point2_type loc;
         loc[0] = 0.f;
         loc[1] = pos[2] + path * dir[2];
 
-        build_intersection(ray, is, loc, path, sf, mask, trf, mask_tolerance,
-                           mask_tol_scalor, overstep_tol);
+        resolve_mask(is, ray, result_type{path, loc}, sf, mask, trf,
+                     mask_tolerance, mask_tol_scalor, overstep_tol);
 
         return is;
     }

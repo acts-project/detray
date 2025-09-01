@@ -183,8 +183,8 @@ DETRAY_HOST inline std::string print_candidates(const state_type &state,
         assert(!sf_cand.sf_desc.barcode().is_invalid());
 
         // Use additional debug information that was gathered on the cand.
-        if constexpr (state_type::value_type::is_debug()) {
-            const auto &local = sf_cand.local;
+        if constexpr (state_type::value_type::contains_pos()) {
+            const auto &local = sf_cand.local();
             if (!sf_cand.sf_desc.barcode().is_invalid()) {
                 point3_t pos =
                     geometry::surface{state.detector(), sf_cand.sf_desc}

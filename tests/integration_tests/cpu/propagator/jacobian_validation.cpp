@@ -637,7 +637,7 @@ bound_track_parameters<test_algebra> get_initial_parameter(
         << " Mom [GeV/c]: " << vertex.p(ptc.charge()) << std::endl
         << sfi;
 
-    const auto path_length = sfi.path;
+    const auto path_length = sfi.path();
     // As we don't rotate or shift the initial surface anymore, the path_length
     // should be 0
     EXPECT_FLOAT_EQ(static_cast<float>(path_length), 0.f);
@@ -1001,7 +1001,7 @@ bound_param_vector_type get_displaced_bound_vector_helix(
     hlx_is.convergence_tolerance = helix_tolerance;
     auto sfi =
         hlx_is(hlx, destination_sf, destination_mask, destination_trf, 0.f);
-    const auto path_length = sfi.path;
+    const auto path_length = sfi.path();
     const auto pos = hlx(path_length);
     const auto dir = hlx.dir(path_length);
 
@@ -1065,7 +1065,7 @@ void evaluate_jacobian_difference_helix(
         << " Phi: " << track.phi() << " Theta: " << track.theta()
         << " Mom [GeV/c]: " << track.p(ptc.charge());
 
-    const auto path_length = sfi.path;
+    const auto path_length = sfi.path();
 
     // Get transport Jacobi
     const auto transport_jacobi = hlx.jacobian(path_length);

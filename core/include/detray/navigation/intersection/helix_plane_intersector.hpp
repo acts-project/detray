@@ -40,8 +40,106 @@ struct helix_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
     using transform3_type = dtransform3D<algebra_t>;
 
     template <typename surface_descr_t>
-    using intersection_type = intersection2D<surface_descr_t, algebra_t, true>;
+    using intersection_type =
+        intersection2D<surface_descr_t, algebra_t, intersection::contains_pos>;
     using helix_type = detail::helix<algebra_t>;
+
+    // Maximum number of solutions this intersector can produce
+    static constexpr std::uint8_t n_solutions{1u};
+
+    using result_type = intersection_point_err<algebra_t>;
+
+    /// Operator function to find intersections between ray and planar mask
+    ///
+    /// @param ray is the input ray trajectory
+    /// @param sf the surface handle the mask is associated with
+    /// @param mask is the input mask that defines the surface extent
+    /// @param trf is the surface placement transform
+    /// @param mask_tolerance is the tolerance for mask edges
+    /// @param overstep_tol negative cutoff for the path
+    ///
+    /// @return the intersection
+    DETRAY_HOST_DEVICE constexpr result_type point_of_intersection(
+        const helix_type &h, const transform3_type &trf,
+        const scalar_type = 0.f) const {
+
+        if (!run_rtsafe) {
+            // Get the surface info
+            const auto &sm = trf.matrix();
+            // Surface normal
+            const vector3_type sn = getter::vector<3>(sm, 0u, 2u);
+            // Surface translation
+            const point3_type st = getter::vector<3>(sm, 0u, 3u);
+
+            // Starting point on the helix for the Newton iteration
+            const vector3_type dist{st - h.pos(0.f)};
+            scalar_type denom{vector::dot(sn, h.dir(0.f))};
+
+            scalar_type s;
+            if (denom == 0.f) {
+                s = vector::norm(dist);
+            }
+            s = math::fabs(vector::dot(sn, dist) / denom);
+
+            scalar_type s_prev{0.f};
+
+            // f(s) = sn * (h.pos(s) - st) == 0
+            // Run the iteration on s
+            std::size_t n_tries{0u};
+            while (math::fabs(s - s_prev) > convergence_tolerance &&
+                   n_tries < max_n_tries) {
+                // f'(s) = sn * h.dir(s)
+                denom = vector::dot(sn, h.dir(s));
+                // No intersection can be found if dividing by zero
+                if (denom == 0.f) {
+                    return {};
+                }
+                // x_n+1 = x_n - f(s) / f'(s)
+                s_prev = s;
+                s -= vector::dot(sn, h.pos(s) - st) / denom;
+                ++n_tries;
+            }
+            // No intersection found within max number of trials
+            if (n_tries == max_n_tries) {
+                return {};
+            }
+
+            return {s, h.pos(s), s - s_prev};
+        } else {
+            // Surface normal
+            const vector3_type sn = trf.z();
+            // Surface translation
+            const point3_type st = trf.translation();
+
+            // Starting point on the helix for the Newton iteration
+            const vector3_type dist{st - h.pos(0.f)};
+            scalar_type denom{
+                vector::dot(sn, h.dir(0.5f * vector::norm(dist)))};
+            scalar_type s_ini;
+            if (denom == 0.f) {
+                s_ini = vector::norm(dist);
+            } else {
+                s_ini = vector::dot(sn, dist) / denom;
+            }
+
+            /// Evaluate the function and its derivative at the point @param x
+            auto plane_inters_func = [&h, &st, &sn](const scalar_type x) {
+                // f(s) = sn * (h.pos(s) - st) == 0
+                const scalar_type f_s{vector::dot(sn, (h.pos(x) - st))};
+                // f'(s) = sn * h.dir(s)
+                const scalar_type df_s{vector::dot(sn, h.dir(x))};
+
+                return std::make_tuple(f_s, df_s);
+            };
+
+            // Run the root finding algorithm
+            const auto [s, ds] = newton_raphson_safe(plane_inters_func, s_ini,
+                                                     convergence_tolerance,
+                                                     max_n_tries, max_path);
+
+            return {s, h.pos(s), ds};
+        }
+    }
 
     /// Operator function to find intersections between helix and planar mask
     ///
@@ -68,94 +166,13 @@ struct helix_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
         assert((mask_tolerance[0] == mask_tolerance[1]) &&
                "Helix intersectors use only one mask tolerance value");
 
-        intersection_type<surface_descr_t> sfi{};
+        auto result = point_of_intersection(h, trf, 0.f);
 
-        if (!run_rtsafe) {
-            // Get the surface info
-            const auto &sm = trf.matrix();
-            // Surface normal
-            const vector3_type sn = getter::vector<3>(sm, 0u, 2u);
-            // Surface translation
-            const point3_type st = getter::vector<3>(sm, 0u, 3u);
+        intersection_type<surface_descr_t> is;
 
-            // Starting point on the helix for the Newton iteration
-            const vector3_type dist{trf.point_to_global(mask.centroid()) -
-                                    h.pos(0.f)};
-            scalar_type denom{vector::dot(sn, h.dir(0.f))};
+        resolve_mask(is, h, result, sf_desc, mask, trf, mask_tolerance);
 
-            scalar_type s;
-            if (denom == 0.f) {
-                s = vector::norm(dist);
-            }
-            s = math::fabs(vector::dot(sn, dist) / denom);
-
-            scalar_type s_prev{0.f};
-
-            // f(s) = sn * (h.pos(s) - st) == 0
-            // Run the iteration on s
-            std::size_t n_tries{0u};
-            while (math::fabs(s - s_prev) > convergence_tolerance &&
-                   n_tries < max_n_tries) {
-                // f'(s) = sn * h.dir(s)
-                denom = vector::dot(sn, h.dir(s));
-                // No intersection can be found if dividing by zero
-                if (denom == 0.f) {
-                    return sfi;
-                }
-                // x_n+1 = x_n - f(s) / f'(s)
-                s_prev = s;
-                s -= vector::dot(sn, h.pos(s) - st) / denom;
-                ++n_tries;
-            }
-            // No intersection found within max number of trials
-            if (n_tries == max_n_tries) {
-                return sfi;
-            }
-
-            // Build intersection struct from helix parameters
-            build_intersection(h, sfi, s, s - s_prev, sf_desc, mask, trf,
-                               mask_tolerance);
-
-            return sfi;
-        } else {
-            // Surface normal
-            const vector3_type sn = trf.z();
-            // Surface translation
-            const point3_type st = trf.translation();
-
-            // Starting point on the helix for the Newton iteration
-            const vector3_type dist{trf.point_to_global(mask.centroid()) -
-                                    h.pos(0.f)};
-            scalar_type denom{
-                vector::dot(sn, h.dir(0.5f * vector::norm(dist)))};
-            scalar_type s_ini;
-            if (denom == 0.f) {
-                s_ini = vector::norm(dist);
-            } else {
-                s_ini = vector::dot(sn, dist) / denom;
-            }
-
-            /// Evaluate the function and its derivative at the point @param x
-            auto plane_inters_func = [&h, &st, &sn](const scalar_type x) {
-                // f(s) = sn * (h.pos(s) - st) == 0
-                const scalar_type f_s{vector::dot(sn, (h.pos(x) - st))};
-                // f'(s) = sn * h.dir(s)
-                const scalar_type df_s{vector::dot(sn, h.dir(x))};
-
-                return std::make_tuple(f_s, df_s);
-            };
-
-            // Run the root finding algorithm
-            const auto [s, ds] = newton_raphson_safe(plane_inters_func, s_ini,
-                                                     convergence_tolerance,
-                                                     max_n_tries, max_path);
-
-            // Build intersection struct from the root
-            build_intersection(h, sfi, s, ds, sf_desc, mask, trf,
-                               mask_tolerance);
-
-            return sfi;
-        }
+        return is;
     }
 
     /// Interface to use fixed mask tolerance

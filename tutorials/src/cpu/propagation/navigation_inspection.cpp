@@ -7,6 +7,7 @@
 
 // Project include(s)
 #include "detray/definitions/units.hpp"
+#include "detray/navigation/intersection/intersection.hpp"
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/line_stepper.hpp"
@@ -40,7 +41,7 @@ int main() {
     /// Type that holds the intersection information
     using intersection_t =
         detray::intersection2D<typename toy_detector_t::surface_type, algebra_t,
-                               true>;
+                               detray::intersection::contains_pos>;
 
     /// Inspector that records all encountered surfaces
     using object_tracer_t = detray::navigation::object_tracer<
