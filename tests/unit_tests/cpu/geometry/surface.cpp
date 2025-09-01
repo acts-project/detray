@@ -29,10 +29,20 @@ enum class mask_ids : unsigned int {
     e_unmasked = 0u,
 };
 
+std::ostream& operator<<(std::ostream& os, mask_ids /*mid*/) {
+    os << "e_unmasked";
+    return os;
+}
+
 /// Define material types
 enum class material_ids : unsigned int {
     e_slab = 0u,
 };
+
+std::ostream& operator<<(std::ostream& os, material_ids /*mid*/) {
+    os << "e_slab";
+    return os;
+}
 
 constexpr detray::test::scalar tol{5e-5f};
 

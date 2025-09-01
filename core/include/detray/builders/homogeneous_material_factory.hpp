@@ -303,10 +303,12 @@ class homogeneous_material_factory final
 
         DETRAY_DEBUG("- n_materials=" << n_materials());
         DETRAY_DEBUG("links:");
+#if defined(DETRAY_ENABLE_LOGGING)
         for (const auto &[i, link] : detray::views::enumerate(m_links)) {
             DETRAY_DEBUG("- #" << i << ": " << link.first << " "
                                << link.second);
         }
+#endif
 
         // Check that the surfaces were set up correctly
         const std::size_t n_materials{this->n_materials()};

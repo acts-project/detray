@@ -26,6 +26,11 @@ enum class mask_ids : std::uint8_t {
     e_unmasked = 0u,
 };
 
+std::ostream& operator<<(std::ostream& os, mask_ids /*mid*/) {
+    os << "e_unmasked";
+    return os;
+}
+
 }  // namespace
 
 /// Test the index range

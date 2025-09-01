@@ -76,9 +76,9 @@ class material_map_factory final : public factory_decorator<detector_t> {
 
     /// @returns the material links to the surfaces (counted for this volume)
     DETRAY_HOST
-    auto links() const -> const
-        std::map<std::size_t, std::pair<material_id, std::vector<index_type>>>
-            & {
+    auto links() const
+        -> const std::map<std::size_t,
+                          std::pair<material_id, std::vector<index_type>>> & {
         return m_links;
     }
 
@@ -168,9 +168,8 @@ class material_map_factory final : public factory_decorator<detector_t> {
         // Add the material only to those surfaces that the data links against
         for (auto &[i, materials] : m_materials) {
             const auto sf_idx{static_cast<dindex>(i)};
-            auto &sf = surfaces.at(sf_idx);
 
-            DETRAY_DEBUG("- sf=" << sf);
+            DETRAY_DEBUG("- sf=" << surfaces.at(sf_idx));
 
             // Copy the number of bins to the builder
             assert(m_n_bins.at(sf_idx).size() == N);
