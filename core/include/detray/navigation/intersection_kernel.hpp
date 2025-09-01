@@ -59,42 +59,80 @@ struct intersection_initialize {
 
         const auto &ctf = contextual_transforms.at(surface.transform(), ctx);
 
-        // Run over the masks that belong to the surface (only one can be hit)
-        for (const auto &mask :
-             detray::ranges::subrange(mask_group, mask_range)) {
+        /*
+         * Obtain the return type of the intersector; this must always be
+         * either a single intersector, or an array of two intersections.
+         */
+        using this_intersector_t =
+            intersector_t<typename mask_t::shape, algebra_t,
+                          intersection_t::is_debug()>;
+        using intersector_return_t = std::decay_t<decltype(this_intersector_t{}(
+            traj, surface,
+            *detray::ranges::subrange(mask_group, mask_range).begin(), ctf,
+            mask_tolerance, mask_tol_scalor, overstep_tol))>;
+        static_assert(
+            std::is_same_v<intersector_return_t,
+                           typename is_container_t::value_type> ||
+            std::is_same_v<intersector_return_t,
+                           darray<typename is_container_t::value_type, 2>>);
 
-            if (place_in_collection(
-                    intersector_t<typename mask_t::shape, algebra_t,
-                                  intersection_t::is_debug()>{}(
-                        traj, surface, mask, ctf, mask_tolerance,
-                        mask_tol_scalor, overstep_tol),
-                    is_container)) {
-                return;
+        /*
+         * For single or double intersections, there is fundamentally
+         * different behaviour, so we branch at compile time.
+         */
+        if constexpr (std::is_same_v<intersector_return_t,
+                                     typename is_container_t::value_type>) {
+            /*
+             * If the intersector only returns a single value, we always
+             * select the first intersection that we find. We store it in a
+             * temporary, so that we can move the intersection out of the loop
+             * to make the compiler's life easier.
+             */
+            typename is_container_t::value_type sfi;
+            bool success = false;
+
+            for (const auto &mask :
+                 detray::ranges::subrange(mask_group, mask_range)) {
+                typename is_container_t::value_type tsfi = this_intersector_t{}(
+                    traj, surface, mask, ctf, mask_tolerance, mask_tol_scalor,
+                    overstep_tol);
+
+                /*
+                 * As we only need the first succesful intersection, we can
+                 * simply exit the loop immediately.
+                 */
+                if (tsfi.status) {
+                    success = true;
+                    sfi = tsfi;
+                    break;
+                }
+            }
+
+            /*
+             * If an intersection was found, we proceed by inserting it into
+             * the intersection storage.
+             */
+            if (success) {
+                insert_sorted(sfi, is_container);
+            }
+        } else {
+            /*
+             * For intersectors returning two intersections, we will need to
+             * iterate through the entire range and consider adding each and
+             * every surface.
+             */
+            for (const auto &mask :
+                 detray::ranges::subrange(mask_group, mask_range)) {
+
+                for (auto &sfi : this_intersector_t{}(
+                         traj, surface, mask, ctf, mask_tolerance,
+                         mask_tol_scalor, overstep_tol)) {
+                    if (sfi.status) {
+                        insert_sorted(sfi, is_container);
+                    }
+                }
             }
         }
-    }
-
-    private:
-    template <typename is_container_t>
-    DETRAY_HOST_DEVICE bool place_in_collection(
-        const typename is_container_t::value_type &sfi,
-        is_container_t &intersections) const {
-        if (sfi.status) {
-            insert_sorted(sfi, intersections);
-        }
-        return sfi.status;
-    }
-
-    template <typename is_container_t>
-    DETRAY_HOST_DEVICE bool place_in_collection(
-        darray<typename is_container_t::value_type, 2> &&solutions,
-        is_container_t &intersections) const {
-        for (auto &sfi : std::move(solutions)) {
-            if (sfi.status) {
-                insert_sorted(sfi, intersections);
-            }
-        }
-        return false;
     }
 
     template <typename is_container_t>
