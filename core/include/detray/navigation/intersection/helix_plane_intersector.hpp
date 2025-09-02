@@ -34,6 +34,7 @@ struct helix_intersector_impl;
 template <algebra::concepts::aos algebra_t>
 struct helix_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
 
+    using algebra_type = algebra_t;
     using scalar_type = dscalar<algebra_t>;
     using point3_type = dpoint3D<algebra_t>;
     using vector3_type = dvector3D<algebra_t>;
@@ -42,7 +43,9 @@ struct helix_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
     template <typename surface_descr_t>
     using intersection_type =
         intersection2D<surface_descr_t, algebra_t, intersection::contains_pos>;
-    using helix_type = detail::helix<algebra_t>;
+
+    template <typename other_algebra_t>
+    using trajectory_type = detail::helix<other_algebra_t>;
 
     // Maximum number of solutions this intersector can produce
     static constexpr std::uint8_t n_solutions{1u};
@@ -60,7 +63,7 @@ struct helix_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
     ///
     /// @return the intersection
     DETRAY_HOST_DEVICE constexpr result_type point_of_intersection(
-        const helix_type &h, const transform3_type &trf,
+        const trajectory_type<algebra_t> &h, const transform3_type &trf,
         const scalar_type = 0.f) const {
 
         if (!run_rtsafe) {
@@ -139,50 +142,6 @@ struct helix_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
 
             return {s, h.pos(s), ds};
         }
-    }
-
-    /// Operator function to find intersections between helix and planar mask
-    ///
-    /// @tparam mask_t is the input mask type
-    /// @tparam surface_desc_t is the input surface descriptor type
-    ///
-    /// @param h is the input helix trajectory
-    /// @param sf_desc is the surface descriptor
-    /// @param mask is the input mask
-    /// @param trf is the transform
-    /// @param mask_tolerance is the tolerance for mask edges
-    /// @param overstep_tolerance is the tolerance for track overstepping
-    ///
-    /// @return the intersection
-    template <typename surface_descr_t, typename mask_t>
-    DETRAY_HOST_DEVICE inline intersection_type<surface_descr_t> operator()(
-        const helix_type &h, const surface_descr_t &sf_desc, const mask_t &mask,
-        const transform3_type &trf,
-        const darray<scalar_type, 2u> mask_tolerance =
-            {detail::invalid_value<scalar_type>(),
-             detail::invalid_value<scalar_type>()},
-        const scalar_type = 0.f, const scalar_type = 0.f) const {
-
-        assert((mask_tolerance[0] == mask_tolerance[1]) &&
-               "Helix intersectors use only one mask tolerance value");
-
-        auto result = point_of_intersection(h, trf, 0.f);
-
-        intersection_type<surface_descr_t> is;
-
-        resolve_mask(is, h, result, sf_desc, mask, trf, mask_tolerance);
-
-        return is;
-    }
-
-    /// Interface to use fixed mask tolerance
-    template <typename surface_descr_t, typename mask_t>
-    DETRAY_HOST_DEVICE inline intersection_type<surface_descr_t> operator()(
-        const helix_type &h, const surface_descr_t &sf_desc, const mask_t &mask,
-        const transform3_type &trf, const scalar_type mask_tolerance,
-        const scalar_type = 0.f, const scalar_type = 0.f) const {
-        return this->operator()(h, sf_desc, mask, trf,
-                                {mask_tolerance, mask_tolerance}, 0.f);
     }
 
     /// Tolerance for convergence
