@@ -189,7 +189,7 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
     // The status is towards beampipe
     // Two candidates: beampipe and portal
     // First candidate is the beampipe
-    // check_towards_surface<navigator_t>(navigation, 0u, 2u, 0u);
+    check_towards_surface<navigator_t>(navigation, 0u, 2u, 0u);
     // Distance to beampipe surface
     ASSERT_NEAR(navigation(), 19.f, tol);
 
@@ -208,7 +208,7 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
     // Trust level is restored
     ASSERT_EQ(navigation.trust_level(), trust_level::e_full);
     // The status remains: towards surface
-    // check_towards_surface<navigator_t>(navigation, 0u, 2u, 0u);
+    check_towards_surface<navigator_t>(navigation, 0u, 2u, 0u);
     // Distance to beampipe is now halved
     ASSERT_NEAR(navigation(), 9.5f, tol);
 
