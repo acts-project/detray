@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/definitions/algebra.hpp"
+#include "detray/navigation/intersection/intersector_base.hpp"
 #include "detray/navigation/intersection/ray_cylinder_intersector.hpp"
 #include "detray/navigation/intersection/ray_cylinder_portal_intersector.hpp"
 #include "detray/navigation/intersection/ray_line_intersector.hpp"
@@ -30,8 +31,8 @@ struct ray_intersector_impl {};
 
 template <typename shape_t, concepts::algebra algebra_t,
           bool resolve_pos = false>
-using ray_intersector =
+using ray_intersector = intersector_base<
     ray_intersector_impl<typename shape_t::template local_frame_type<algebra_t>,
-                         algebra_t, resolve_pos>;
+                         algebra_t, resolve_pos>>;
 
 }  // namespace detray

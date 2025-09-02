@@ -13,13 +13,12 @@
 #include "detray/definitions/math.hpp"
 #include "detray/geometry/coordinates/concentric_cylindrical2D.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
-#include "detray/navigation/intersection/soa/ray_cylinder_intersector.hpp"
 #include "detray/tracks/ray.hpp"
 
-// System include(s)
-#include <type_traits>
-
 namespace detray {
+
+template <typename frame_t, concepts::algebra algebra_t, bool resolve_pos>
+struct ray_intersector_impl;
 
 /// @brief A functor to find intersections between a straight line and a
 /// cylindrical portal surface.
@@ -32,6 +31,7 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
 
     /// Linear algebra types
     /// @{
+    using algebra_type = algebra_t;
     using value_type = dvalue<algebra_t>;
     using scalar_type = dscalar<algebra_t>;
     using point2_type = dpoint2D<algebra_t>;
@@ -44,34 +44,31 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
     using intersection_type =
         intersection2D<surface_descr_t, algebra_t, resolve_pos>;
 
+    template <typename other_algebra_t>
+    using trajectory_type = detail::ray<other_algebra_t>;
+
     // Maximum number of solutions this intersector can produce
     static constexpr std::uint8_t n_solutions{1u};
 
+    /// Always includes the intersection position, in order to resolve the mask
     using result_type =
         intersection_point<algebra_t, point2_type, intersection::contains_pos>;
 
-    /// Operator function to find intersections between ray and cylinder mask
-    ///
-    /// @tparam mask_t is the input mask type
-    /// @tparam surface_t is the type of surface handle
+    /// Operator function to find intersections between ray and planar mask
     ///
     /// @param ray is the input ray trajectory
     /// @param sf the surface handle the mask is associated with
     /// @param mask is the input mask that defines the surface extent
     /// @param trf is the surface placement transform
     /// @param mask_tolerance is the tolerance for mask edges
+    /// @param overstep_tol negative cutoff for the path
     ///
-    /// @return the closest intersection
-    template <typename surface_descr_t, typename mask_t,
-              typename other_algebra_t>
-    DETRAY_HOST_DEVICE inline intersection_type<surface_descr_t> operator()(
-        const detail::ray<other_algebra_t> &ray, const surface_descr_t &sf,
-        const mask_t &mask, const transform3_type &trf,
-        const darray<scalar_type, 2u> &mask_tolerance = {0.f, 1.f},
-        const scalar_type mask_tol_scalor = 0.f,
+    /// @return the intersection
+    template <typename mask_t, concepts::algebra other_algebra_t>
+    DETRAY_HOST_DEVICE constexpr result_type point_of_intersection(
+        const trajectory_type<other_algebra_t> &ray,
+        const transform3_type & /*trf*/, const mask_t &mask,
         const scalar_type overstep_tol = 0.f) const {
-
-        intersection_type<surface_descr_t> is;
 
         const scalar_type r = mask[mask_t::shape::e_r];
 
@@ -83,8 +80,7 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
         // The ray is parallel to all/any cylinder axes (z-axis)...
         if (rd_perp_2 < std::numeric_limits<value_type>::epsilon())
             [[unlikely]] {
-            is.status = decltype(is.status)(false);
-            return is;
+            return {};
         }
 
         // ...otherwise, two solutions should exist, if the descriminator is
@@ -99,8 +95,7 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
 
         // No intersection found for any cylinder
         if (detray::detail::all_of(discr < 0.f)) [[unlikely]] {
-            is.status = decltype(is.status)(false);
-            return is;
+            return {};
         }
 
         const scalar_type sqrt_discr = math::sqrt(discr);
@@ -128,32 +123,7 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
         loc[0] = 0.f;
         loc[1] = pos[2] + path * dir[2];
 
-        resolve_mask(is, ray, result_type{path, loc}, sf, mask, trf,
-                     mask_tolerance, mask_tol_scalor, overstep_tol);
-
-        return is;
-    }
-
-    /// Operator function to find intersections between a ray and a 2D cylinder
-    ///
-    /// @tparam mask_t is the input mask type
-    ///
-    /// @param ray is the input ray trajectory
-    /// @param sfi the intersection to be updated
-    /// @param mask is the input mask that defines the surface extent
-    /// @param trf is the surface placement transform
-    /// @param mask_tolerance is the tolerance for mask edges
-    template <typename surface_descr_t, typename mask_t,
-              typename other_algebra_t>
-    DETRAY_HOST_DEVICE inline void update(
-        const detail::ray<other_algebra_t> &ray,
-        intersection_type<surface_descr_t> &sfi, const mask_t &mask,
-        const transform3_type &trf,
-        const darray<scalar_type, 2u> &mask_tolerance = {0.f, 1.f},
-        const scalar_type mask_tol_scalor = 0.f,
-        const scalar_type overstep_tol = 0.f) const {
-        sfi = this->operator()(ray, sfi.sf_desc, mask, trf, mask_tolerance,
-                               mask_tol_scalor, overstep_tol);
+        return {path, loc};
     }
 };
 
