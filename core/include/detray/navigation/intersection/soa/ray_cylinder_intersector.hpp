@@ -68,8 +68,6 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, resolve_pos> {
         const trajectory_type<other_algebra_t> &ray, const transform3_type &trf,
         const mask_t &mask, const scalar_type /*overstep_tol*/ = 0.f) const {
 
-        using result_value_t = typename result_type::value_type;
-
         // One or both of these solutions might be invalid
         const auto qe = solve_intersection(ray, mask, trf);
 
