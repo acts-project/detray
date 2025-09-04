@@ -36,14 +36,14 @@ void add_json_writers(detector_components_writer<detector_t>& writers,
     // Find other writers, depending on the detector type
     if (cfg.write_material()) {
         // Simple material
-        if constexpr (detray::detail::has_homogeneous_material_v<detector_t>) {
+        if constexpr (detray::detail::has_homogeneous_material<detector_t>::value ) {
             using json_homogeneous_material_writer =
                 json_writer<detector_t, homogeneous_material_writer>;
 
             writers.template add<json_homogeneous_material_writer>();
         }
         // Material maps
-        if constexpr (detray::detail::has_material_grids_v<detector_t>) {
+        if constexpr (detray::detail::has_material_grids<detector_t>::value ) {
             using json_material_map_writer =
                 json_writer<detector_t, material_map_writer>;
 
@@ -51,7 +51,7 @@ void add_json_writers(detector_components_writer<detector_t>& writers,
         }
     }
     // Navigation acceleration structures
-    if constexpr (detray::detail::has_surface_grids_v<detector_t>) {
+    if constexpr (detray::detail::has_surface_grids<detector_t>::value ) {
         using json_surface_grid_writer =
             json_writer<detector_t, surface_grid_writer>;
 

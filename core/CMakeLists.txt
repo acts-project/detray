@@ -26,6 +26,7 @@ file( GLOB _detray_core_public_headers
    "include/detray/tools/*.hpp"
    "include/detray/tracks/*.hpp"
    "include/detray/utils/ranges/*.hpp"
+   "include/detray/utils/std_replacements/*.hpp"
    "include/detray/utils/*.hpp" )
 file( GLOB _detray_core_private_headers
    "include/detray/*/detail/*.hpp"

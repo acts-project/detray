@@ -8,8 +8,11 @@
 #pragma once
 
 // Project include(s)
+#ifndef DETRAY_COMPILE_VITIS
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#endif // DETRAY_COMPILE_VITIS
+
 #include "detray/utils/type_list.hpp"
 
 // System include(s)
@@ -137,11 +140,11 @@ class type_registry {
     template <typename object_t, typename first_t = empty_type,
               typename... remaining_types>
     DETRAY_HOST_DEVICE static constexpr ID unroll_ids() {
-        if constexpr (not std::is_same_v<first_t, empty_type> and
-                      not std::is_same_v<object_t, first_t>) {
+        if constexpr (not std::is_same<first_t, empty_type>::value  and
+                      not std::is_same<object_t, first_t>::value ) {
             return unroll_ids<object_t, remaining_types...>();
         }
-        if constexpr (std::is_same_v<object_t, first_t>) {
+        if constexpr (std::is_same<object_t, first_t>::value ) {
             return static_cast<ID>(n_types - sizeof...(remaining_types) - 1);
         }
         return static_cast<ID>(e_unknown);

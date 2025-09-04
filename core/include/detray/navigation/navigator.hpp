@@ -27,9 +27,14 @@
 #include "detray/navigation/navigation_config.hpp"
 #include "detray/utils/ranges.hpp"
 
+#include "detray/geometry/tracking_surface.hpp"
+#include "detray/geometry/tracking_volume.hpp"
+
 // vecmem include(s)
+#ifndef DETRAY_COMPILE_VITIS
 #include <vecmem/containers/data/jagged_vector_buffer.hpp>
 #include <vecmem/memory/memory_resource.hpp>
+#endif // DETRAY_COMPILE_VITIS
 
 namespace detray {
 
@@ -137,10 +142,10 @@ class navigator {
             const scalar_type mask_tol_scalor,
             const scalar_type overstep_tol) const {
 
-            const auto sf = tracking_surface{det, sf_descr};
+            const auto sf = tracking_surface<decltype(det)>{det, sf_descr};
 
             sf.template visit_mask<intersection_initialize<ray_intersector>>(
-                candidates, detail::ray(track), sf_descr, det.transform_store(),
+                candidates, detail::ray<decltype(track)>(track), sf_descr, det.transform_store(),
                 sf.is_portal() ? std::array<scalar_type, 2>{0.f, 0.f}
                                : mask_tol,
                 mask_tol_scalor, overstep_tol);
@@ -170,11 +175,13 @@ class navigator {
         public:
         using detector_type = navigator::detector_type;
 
+#ifndef DETRAY_COMPILE_VITIS
         using view_type = dmulti_view<djagged_vector_view<intersection_type>,
                                       detail::get_view_t<inspector_t>>;
         using const_view_type =
             dmulti_view<djagged_vector_view<const intersection_type>,
                         detail::get_view_t<const inspector_t>>;
+#endif // DETRAY_COMPILE_VITIS
 
         /// Default constructor
         state() = default;
@@ -182,9 +189,11 @@ class navigator {
         state(const detector_type &det) : m_detector(&det) {}
 
         /// Constructor with memory resource
+#ifndef DETRAY_COMPILE_VITIS
         DETRAY_HOST
         state(const detector_type &det, vecmem::memory_resource &resource)
             : m_detector(&det), m_candidates(&resource) {}
+#endif // DETRAY_COMPILE_VITIS
 
         /// Constructor from candidates vector
         DETRAY_HOST_DEVICE state(const detector_type &det,
@@ -194,7 +203,7 @@ class navigator {
         /// Constructor from candidates vector_view
         template <
             typename view_t,
-            std::enable_if_t<detail::is_device_view_v<view_t>, bool> = true>
+            std::enable_if_t<detail::is_device_view<view_t>::value , bool> = true>
         DETRAY_HOST_DEVICE state(const detector_type &det,
                                  std::size_t track_idx, view_t view)
             : m_detector(&det),
@@ -259,8 +268,10 @@ class navigator {
         inline auto last() const -> const_candidate_itr_t { return m_last; }
 
         /// @returns the navigation inspector
+#ifndef DETRAY_COMPILE_VITIS
         DETRAY_HOST
         inline auto &inspector() { return m_inspector; }
+#endif // DETRAY_COMPILE_VITIS
 
         /// @returns current volume (index) - const
         DETRAY_HOST_DEVICE
@@ -460,8 +471,8 @@ class navigator {
             [[maybe_unused]] const point3_type &track_pos,
             [[maybe_unused]] const vector3_type &track_dir,
             [[maybe_unused]] const char *message) {
-            if constexpr (not std::is_same_v<inspector_t,
-                                             navigation::void_inspector>) {
+            if constexpr (not std::is_same<inspector_t,
+                                             navigation::void_inspector>::value ) {
                 m_inspector(*this, cfg, track_pos, track_dir, message);
             }
         }
@@ -516,7 +527,7 @@ class navigator {
         state &navigation = propagation._navigation;
         const auto det = navigation.detector();
         const auto &track = propagation._stepping();
-        const auto volume = tracking_volume{*det, navigation.volume()};
+        const auto volume = tracking_volume<decltype(det)>{*det, navigation.volume()};
 
         // Clean up state
         navigation.clear();
@@ -784,11 +795,11 @@ class navigator {
             return false;
         }
 
-        const auto sf = tracking_surface{*det, candidate.sf_desc};
+        const auto sf = tracking_surface<decltype(det)>{*det, candidate.sf_desc};
 
         // Check whether this candidate is reachable by the track
         return sf.template visit_mask<intersection_update<ray_intersector>>(
-            detail::ray(track), candidate, det->transform_store(),
+            detail::ray<decltype(track)>(track), candidate, det->transform_store(),
             sf.is_portal() ? std::array<scalar_type, 2>{0.f, 0.f}
                            : std::array<scalar_type, 2>{cfg.min_mask_tolerance,
                                                         cfg.max_mask_tolerance},
@@ -817,6 +828,7 @@ class navigator {
 // TODO: det.get_n_max_objects_per_volume() is way too many for
 // candidates size allocation. With the local navigation, the size can be
 // restricted to much smaller value
+#ifndef DETRAY_COMPILE_VITIS
 template <typename detector_t>
 DETRAY_HOST vecmem::data::jagged_vector_buffer<intersection2D<
     typename detector_t::surface_type, typename detector_t::algebra_type>>
@@ -831,5 +843,6 @@ create_candidates_buffer(
         device_resource, host_access_resource,
         vecmem::data::buffer_type::resizable);
 }
+#endif // DETRAY_COMPILE_VITIS
 
 }  // namespace detray

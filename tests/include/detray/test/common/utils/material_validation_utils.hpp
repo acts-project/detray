@@ -75,7 +75,7 @@ struct get_material_params {
         constexpr auto inv{detail::invalid_value<scalar_t>()};
 
         // Access homogeneous surface material or material maps
-        if constexpr (detail::is_surface_material_v<material_t>) {
+        if constexpr (detail::is_surface_material<material_t>::value ) {
 
             // Slab or rod
             const auto mat =
@@ -149,10 +149,10 @@ struct material_tracer : detray::actor {
 
         // Get the local track position from the bound track parameters,
         // if covariance transport is enabled in the propagation
-        if constexpr (detail::has_type_v<
+        if constexpr (detail::has_type<
                           typename parameter_transporter<algebra_t>::state &,
                           typename propagator_state_t::actor_chain_type::
-                              state>) {
+                              state>::value ) {
             const auto &track_param = prop_state._stepping._bound_params;
             loc_pos = track_param.bound_local();
         } else {

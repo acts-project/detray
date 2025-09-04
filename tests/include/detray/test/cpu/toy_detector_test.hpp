@@ -54,8 +54,8 @@ inline void test_finder(const acc_t& finder, const dindex volume_index,
 
 /// Call for material grid types
 template <typename scalar_t, typename mat_map_t,
-          std::enable_if_t<std::is_same_v<typename mat_map_t::value_type,
-                                          material_slab<scalar_t>>,
+          std::enable_if_t<std::is_same<typename mat_map_t::value_type,
+                                          material_slab<scalar_t>>::value ,
                            bool> = true>
 inline void test_mat_map(const mat_map_t& mat_map, const bool is_cyl) {
 

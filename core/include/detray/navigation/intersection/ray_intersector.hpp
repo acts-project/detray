@@ -30,6 +30,6 @@ struct ray_intersector_impl {};
 template <typename shape_t, typename algebra_t>
 using ray_intersector =
     ray_intersector_impl<typename shape_t::template local_frame_type<algebra_t>,
-                         algebra_t, detail::is_soa_v<algebra_t>>;
+                         algebra_t, detail::is_soa<algebra_t>::value >;
 
 }  // namespace detray

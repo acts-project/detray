@@ -5,6 +5,9 @@ Detray is part of the ACTS project (R&D line for parallelization), the ACTS proj
 This is a C++17 header only library for detector surface intersections using different algebra plugin libraries. It follows the navigation and propagation concept of ACTS, however, with an attempt to create
 a geometry without polymorphic inheritance structure.
 
+## Detray HLS
+Together with [Vecmem](https://github.com/acts-project/vecmem/tree/hls) this branch implements a Vitis compatible version of Detray. 
+Instructions and the environment to compile the kernel and host can be found in [this repository](https://github.com/JasmijnB/detray-fpga).
 
 ## Requirements and dependencies
 #### OS & compilers:
@@ -17,7 +20,7 @@ a geometry without polymorphic inheritance structure.
 
 ## Getting started
 
-The respository is meant to be possible to build "out of the box", with standard
+The repository is meant to be possible to build "out of the box", with standard
 CMake build procedures.
 
 ```shell

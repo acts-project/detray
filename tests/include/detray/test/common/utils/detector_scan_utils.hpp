@@ -439,11 +439,11 @@ inline auto trace_intersections(const record_container &intersection_records,
 template <
     dindex invalid_value = dindex_invalid, typename portal_trace_type,
     typename module_trace_type, typename entry_type = std::pair<dindex, dindex>,
-    std::enable_if_t<std::is_same_v<typename portal_trace_type::value_type,
-                                    std::pair<entry_type, entry_type>>,
+    std::enable_if_t<std::is_same<typename portal_trace_type::value_type,
+                                    std::pair<entry_type, entry_type>>::value ,
                      bool> = true,
     std::enable_if_t<
-        std::is_same_v<typename module_trace_type::value_type, entry_type>,
+        std::is_same<typename module_trace_type::value_type, entry_type>::value ,
         bool> = true>
 inline auto build_adjacency(
     const portal_trace_type &portal_trace,
@@ -499,11 +499,11 @@ inline auto build_adjacency(
 template <
     dindex invalid_value = dindex_invalid, typename portal_trace_type,
     typename module_trace_type, typename entry_type = std::pair<dindex, dindex>,
-    std::enable_if_t<std::is_same_v<typename portal_trace_type::value_type,
-                                    std::pair<entry_type, entry_type>>,
+    std::enable_if_t<std::is_same<typename portal_trace_type::value_type,
+                                    std::pair<entry_type, entry_type>>::value ,
                      bool> = true,
     std::enable_if_t<
-        std::is_same_v<typename module_trace_type::value_type, entry_type>,
+        std::is_same<typename module_trace_type::value_type, entry_type>::value ,
         bool> = true>
 inline auto build_adjacency(const portal_trace_type &portal_trace,
                             const module_trace_type &module_trace,
@@ -620,8 +620,8 @@ inline void display_error(const typename detector_t::geometry_context gctx,
 
     std::string track_type{};
     static constexpr auto is_ray{
-        std::is_same_v<trajectory_t,
-                       detray::detail::ray<typename detector_t::algebra_type>>};
+        std::is_same<trajectory_t,
+                       detray::detail::ray<typename detector_t::algebra_type>>::value };
     if constexpr (is_ray) {
         track_type = "ray";
     } else {

@@ -19,7 +19,9 @@
 #include "detray/utils/ranges.hpp"
 
 // VecMem include(s).
+#ifndef DETRAY_COMPILE_VITIS
 #include <vecmem/memory/memory_resource.hpp>
+#endif // DETRAY_COMPILE_VITIS
 
 // System include(s).
 #include <array>
@@ -77,8 +79,10 @@ class grid_impl {
     using const_view_type = dmulti_view<typename bin_storage::const_view_type,
                                         typename axes_type::const_view_type>;
     /// Vecmem based buffer type
+#ifndef DETRAY_COMPILE_VITIS
     using buffer_type = dmulti_buffer<typename bin_storage::buffer_type,
                                       typename axes_type::buffer_type>;
+#endif
 
     /// Find the corresponding (non-)owning grid type
     template <bool owning>
@@ -89,9 +93,11 @@ class grid_impl {
     grid_impl() = default;
 
     /// Create empty grid with empty axes from specific vecmem memory resource
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     explicit grid_impl(vecmem::memory_resource &resource)
         : m_bins(resource), m_axes(resource) {}
+#endif // DETRAY_COMPILE_VITIS
 
     /// Create grid with well defined @param axes and @param bins_data - move
     DETRAY_HOST_DEVICE
@@ -127,7 +133,7 @@ class grid_impl {
 
     /// Device-side construction from a vecmem based view type
     template <typename grid_view_t,
-              typename std::enable_if_t<detail::is_device_view_v<grid_view_t>,
+              typename std::enable_if_t<detail::is_device_view<grid_view_t>::value ,
                                         bool> = true>
     DETRAY_HOST_DEVICE grid_impl(grid_view_t &view)
         : m_bins(detray::detail::get<0>(view.m_view)),
@@ -166,9 +172,11 @@ class grid_impl {
 
     /// @returns the total number of values in the grid
     /// @note this has to query every bin for the number of elements
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST_DEVICE inline constexpr auto size() const -> dindex {
         return static_cast<dindex>(all().size());
     }
+#endif
 
     /// @returns an instance of the grid serializer
     static constexpr auto serializer() -> serializer_t<dim> { return {}; }
@@ -248,10 +256,12 @@ class grid_impl {
     /// @}
 
     /// @returns a view over the flatened bin content by joining the bin ranges
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST_DEVICE auto all() { return detray::views::join(bins()); }
 
     /// @returns a view over the flatened bin content by joining the bin ranges
     DETRAY_HOST_DEVICE auto all() const { return detray::views::join(bins()); }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Transform a point in global cartesian coordinates to bound coordinates
     ///
@@ -309,6 +319,7 @@ class grid_impl {
     /// @param win_size size of the binned/scalar search window
     ///
     /// @return the sequence of values
+#ifndef DETRAY_COMPILE_VITIS
     template <typename neighbor_t>
     DETRAY_HOST_DEVICE auto search(
         const point_type &p, const std::array<neighbor_t, 2> &win_size) const {
@@ -320,6 +331,7 @@ class grid_impl {
         // Join the respective bins to a single iteration
         return detray::views::join(std::move(search_area));
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Poupulate a bin with a single one of its corresponding values @param v
     /// @{
@@ -353,19 +365,23 @@ class grid_impl {
     /// @returns view of a grid, including the grids multi_axis. Also valid if
     /// the value type of the grid is cv qualified (then value_t propagates
     /// quialifiers) - non-const
+#ifndef DETRAY_COMPILE_VITIS
     template <bool owning = is_owning, std::enable_if_t<owning, bool> = true>
     DETRAY_HOST auto get_data() -> view_type {
         return view_type{detray::get_data(m_bins), detray::get_data(m_axes)};
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns view of a grid, including the grids multi_axis. Also valid if
     /// the value type of the grid is cv qualified (then value_t propagates
     /// quialifiers) - const
+#ifndef DETRAY_COMPILE_VITIS
     template <bool owning = is_owning, std::enable_if_t<owning, bool> = true>
     DETRAY_HOST auto get_data() const -> const_view_type {
         return const_view_type{detray::get_data(m_bins),
                                detray::get_data(m_axes)};
     }
+#endif // DETRAY_COMPILE_VITIS
 
     private:
     /// Struct that contains the grid's data state

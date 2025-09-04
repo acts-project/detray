@@ -38,12 +38,14 @@ struct surface_kernels {
 
     /// A functor to retrieve the masks shape name
     struct get_shape_name {
+#ifndef DETRAY_COMPILE_VITIS
         template <typename mask_group_t, typename index_t>
         DETRAY_HOST inline std::string operator()(const mask_group_t&,
                                                   const index_t&) const {
 
             return mask_group_t::value_type::shape::name;
         }
+#endif // DETRAY_COMPILE_VITIS
     };
 
     /// A functor that checks if a local point @param loc_p is within the
@@ -92,6 +94,7 @@ struct surface_kernels {
 
     /// A functor to retrieve the mask boundaries (host only)
     struct get_mask_values {
+#ifndef DETRAY_COMPILE_VITIS
         template <typename mask_group_t, typename index_t>
         DETRAY_HOST inline auto operator()(const mask_group_t& mask_group,
                                            const index_t& index) const {
@@ -103,6 +106,7 @@ struct surface_kernels {
 
             return values;
         }
+#endif // DETRAY_COMPILE_VITIS
     };
 
     /// A functor to retrieve the material parameters
@@ -114,7 +118,7 @@ struct surface_kernels {
 
             using material_t = typename mat_group_t::value_type;
 
-            if constexpr (detail::is_surface_material_v<material_t>) {
+            if constexpr (detail::is_surface_material<material_t>::value ) {
                 return &(detail::material_accessor::get(mat_group, idx, loc_p)
                              .get_material());
             } else {

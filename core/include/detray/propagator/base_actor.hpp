@@ -69,7 +69,7 @@ class composite_actor final : public actor_impl_t {
         // Do your own work ...
         // Two cases: This is a simple actor or observing actor (pass on its
         // subject's state)
-        if constexpr (std::is_same_v<subj_state_t, typename actor::state>) {
+        if constexpr (std::is_same<subj_state_t, typename actor::state>::value ) {
             actor_type::operator()(actor_state, p_state);
         } else {
             actor_type::operator()(actor_state, p_state, subject_state);

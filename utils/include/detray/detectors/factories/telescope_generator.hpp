@@ -41,18 +41,21 @@ class telescope_generator final : public surface_factory_interface<detector_t> {
     public:
     /// Build a surface at with extent given in @param boundaries at every
     /// position in @param positions along the pilot-track @param traj.
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     telescope_generator(
         std::vector<scalar_t> positions,
         std::array<scalar_t, mask_shape_t::boundaries::e_size> boundaries,
         trajectory_t traj)
         : m_traj{traj}, m_positions{positions}, m_boundaries{boundaries} {}
+#endif // DETRAY_COMPILE_VITIS
 
     /// Infer the sensitive surface placement from the telescope @param length
     /// if no concrete positions were given.
     /// @param n_surfaces number of surfaces to be generated
     /// @param boundaries mask boundaries of the surfaces
     /// @param traj pilot track along which to build the telescope
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     telescope_generator(
         scalar_t length, std::size_t n_surfaces,
@@ -68,29 +71,38 @@ class telescope_generator final : public surface_factory_interface<detector_t> {
             pos += dist;
         }
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns the number of surfaces this factory will produce
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto size() const -> dindex override {
         return static_cast<dindex>(m_positions.size());
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Clear the positions and boundaries of the surfaces.
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     void clear() override {
         m_positions.clear();
         m_boundaries = {};
     };
+#endif // DETRAY_COMPILE_VITIS
 
     /// This is a surface generator, no external surface data needed
     /// @{
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     void push_back(surface_data<detector_t> &&) override { /*Do nothing*/
     }
+#endif // DETRAY_COMPILE_VITIS
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto push_back(std::vector<surface_data<detector_t>> &&)
         -> void override { /*Do nothing*/
     }
+#endif // DETRAY_COMPILE_VITIS
     /// @}
 
     /// Create a surface telescope.
@@ -100,6 +112,7 @@ class telescope_generator final : public surface_factory_interface<detector_t> {
     /// @param transforms the transforms of the surfaces.
     /// @param masks the masks of the surfaces.
     /// @param ctx the geometry context (not needed for portals).
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto operator()(typename detector_t::volume_type &volume,
                     typename detector_t::surface_lookup_container &surfaces,
@@ -150,8 +163,8 @@ class telescope_generator final : public surface_factory_interface<detector_t> {
             // Local z axis is the global normal vector
             vector3_t m_local_z = algebra::vector::normalize(mod_placement.dir);
 
-            if constexpr (std::is_same_v<mask_shape_t, detray::line_square> ||
-                          std::is_same_v<mask_shape_t, detray::line_circular>) {
+            if constexpr (std::is_same<mask_shape_t, detray::line_square>::value  ||
+                          std::is_same<mask_shape_t, detray::line_circular>::value ) {
 
                 // For a telescope with wires, rotate z axis 90
                 // degree around vector on x-y plane
@@ -174,6 +187,7 @@ class telescope_generator final : public surface_factory_interface<detector_t> {
 
         return {surfaces_offset, static_cast<dindex>(surfaces.size())};
     }
+#endif // DETRAY_COMPILE_VITIS
 
     private:
     /// Where and how to place the telescope modules.

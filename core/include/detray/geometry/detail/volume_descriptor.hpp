@@ -71,18 +71,22 @@ class volume_descriptor {
     constexpr auto index() const -> dindex { return m_index; }
 
     /// @param index the index of the volume in the detector volume container.
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     constexpr auto set_index(const dindex index) -> void { m_index = index; }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns the index of the volume tranform in the transform store.
     DETRAY_HOST_DEVICE
     constexpr auto transform() const -> dindex { return m_transform; }
 
     /// @param index the index of the volume in the detector volume container.
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     constexpr auto set_transform(const dindex trf_idx) -> void {
         m_transform = trf_idx;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns surface link for all object types - const
     DETRAY_HOST_DEVICE constexpr auto sf_link() const -> const sf_link_type& {
@@ -166,6 +170,7 @@ class volume_descriptor {
     /// types. Use with care!
     ///
     /// @param other Surface index range
+#ifndef DETRAY_COMPILE_VITIS
     template <surface_id id>
     DETRAY_HOST auto update_sf_link(
         const typename sf_link_type::index_type& other) noexcept -> void {
@@ -180,6 +185,7 @@ class volume_descriptor {
             detail::get<1>(rg) = detail::get<1>(other);
         }
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Set or update the index into a geometry container identified by the
     /// obj_id.
@@ -189,6 +195,7 @@ class volume_descriptor {
     ///
     /// @param shift shift of the surface range in a larger container.
     /// @param n_surfaces the number of surfaces in this range.
+#ifndef DETRAY_COMPILE_VITIS
     template <surface_id id>
     DETRAY_HOST auto update_sf_link(std::size_t shift,
                                     std::size_t n_surfaces = 0) noexcept
@@ -203,6 +210,7 @@ class volume_descriptor {
         detail::get<0>(rg) += static_cast<dindex>(shift);
         detail::get<1>(rg) += static_cast<dindex>(shift);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns the volume material link
     DETRAY_HOST_DEVICE
@@ -211,19 +219,23 @@ class volume_descriptor {
     }
 
     /// Set the volume material link to @param mat_link
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     constexpr auto set_material(const material_link& mat_link) -> void {
         m_mat_link = mat_link;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Set the volume material link using the given material type id
     /// @param mat_id and index of the material instance @param mat_idx
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     constexpr auto set_material(const material_id mat_id, const dindex mat_idx)
         -> void {
         m_mat_link = {mat_id,
                       static_cast<typename material_link::index_type>(mat_idx)};
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns link to all acceleration data structures - const access
     DETRAY_HOST_DEVICE constexpr auto accel_link() const
@@ -238,28 +250,34 @@ class volume_descriptor {
     }
 
     /// Set surface finder link from @param link
+#ifndef DETRAY_COMPILE_VITIS
     template <ID obj_id>
     DETRAY_HOST constexpr auto set_accel_link(const acc_link_t link) -> void {
         detail::get<obj_id>(m_accel_links) = link;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Set link from @param id and @param index of the acceleration data
     /// structure (e.g. type and index of a grid in the accelerator store)
+#ifndef DETRAY_COMPILE_VITIS
     template <ID obj_id>
     DETRAY_HOST constexpr auto set_accel_link(
         const typename acc_link_t::id_type id,
         const typename acc_link_t::index_type index) -> void {
         detail::get<obj_id>(m_accel_links) = acc_link_t{id, index};
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Set link for a type of surfaces ( @param obj_id ) from @param id
     /// and @param index of the acceleration data structure (e.g. type and
     /// index of a grid in the accelerator store)
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST constexpr auto set_link(
         const ID obj_id, const typename acc_link_t::id_type accel_id,
         const typename acc_link_t::index_type index) -> void {
         m_accel_links[obj_id] = acc_link_t{accel_id, index};
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Equality operator
     ///

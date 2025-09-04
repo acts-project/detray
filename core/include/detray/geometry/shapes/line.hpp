@@ -18,8 +18,10 @@
 // System include(s)
 #include <limits>
 #include <ostream>
-#include <string_view>
 #include <type_traits>
+#ifndef DETRAY_COMPILE_VITIS
+#include <string_view>
+#endif // DETRAY_COMPILE_VITIS
 
 namespace detray {
 
@@ -36,8 +38,9 @@ template <bool kSquareCrossSect = false>
 class line {
     public:
     /// The name for this shape
+    #ifndef DETRAY_COMPILE_VITIS
     static constexpr std::string_view name = "line";
-
+    #endif // DETRAY_COMPILE_VITIS
     /// Geometrical cross section of the line
     static constexpr bool square_cross_sect = kSquareCrossSect;
 
@@ -206,6 +209,7 @@ class line {
     /// @param n_seg is the number of line segments
     ///
     /// @return a generated list of vertices
+#ifndef DETRAY_COMPILE_VITIS
     template <typename algebra_t>
     DETRAY_HOST dvector<dpoint3D<algebra_t>> vertices(
         const bounds_type<dscalar<algebra_t>> &bounds,
@@ -218,6 +222,7 @@ class line {
 
         return {lc, rc};
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @brief Check consistency of boundary values.
     ///
@@ -225,6 +230,7 @@ class line {
     /// @param os output stream for error messages
     ///
     /// @return true if the bounds are consistent.
+#ifndef DETRAY_COMPILE_VITIS
     template <typename scalar_t>
     DETRAY_HOST constexpr bool check_consistency(
         const bounds_type<scalar_t> &bounds, std::ostream &os) const {
@@ -244,6 +250,7 @@ class line {
 
         return true;
     }
+#endif // DETRAY_COMPILE_VITIS
 };
 
 // Radial crossection, boundary check in polar coordiantes

@@ -8,18 +8,24 @@
 #pragma once
 
 // Project include(s)
-#include "detray/core/detail/container_buffers.hpp"
-#include "detray/core/detail/container_views.hpp"
 #include "detray/definitions/detail/indexing.hpp"
+#include "detray/core/detail/container_views.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/geometry/barcode.hpp"
 
+#ifndef DETRAY_COMPILE_VITIS
+#include "detray/core/detail/container_buffers.hpp"
+#endif
+
 // Vecmem include(s)
+#ifndef DETRAY_COMPILE_VITIS
 #include <vecmem/memory/memory_resource.hpp>
+#endif // DETRAY_COMPILE_VITIS
 
 // System include(s)
 #include <iostream>
 #include <type_traits>
+#include <cstdint>
 
 namespace detray {
 
@@ -30,7 +36,7 @@ struct default_searcher {
     auto operator()(const source_link_contianer_t &sf_container) {
         // Check that this searcher can be used on the passed surface container
         static_assert(
-            std::is_same_v<decltype(sf_container[0].source), std::uint64_t>,
+            std::is_same<decltype(sf_container[0].source), std::uint64_t>::value ,
             "Source link searcher not compatible with detector");
 
         // Cannot assume any sorting
@@ -68,7 +74,6 @@ struct source_link : sf_desc_t {
 template <typename sf_desc_t,
           template <typename...> class container_t = dvector>
 class surface_lookup {
-
     public:
     /// Underlying container type that can handle vecmem views
     using base_type = container_t<source_link<sf_desc_t>>;
@@ -81,34 +86,40 @@ class surface_lookup {
     using view_type = detail::get_view_t<container_t<source_link<sf_desc_t>>>;
     using const_view_type =
         detail::get_view_t<const container_t<source_link<sf_desc_t>>>;
+#ifndef DETRAY_COMPILE_VITIS
     using buffer_type =
         detail::get_buffer_t<container_t<source_link<sf_desc_t>>>;
+#endif
 
     /// Empty container
     constexpr surface_lookup() = default;
 
     /// Construct with a specific memory resource @param resource
     /// (host-side only)
+#ifndef DETRAY_COMPILE_VITIS
     template <typename allocator_t = vecmem::memory_resource,
-              std::enable_if_t<not detail::is_device_view_v<allocator_t>,
+              std::enable_if_t<not detail::is_device_view<allocator_t>::value ,
                                bool> = true>
     DETRAY_HOST explicit surface_lookup(allocator_t &resource)
         : m_container(&resource) {}
+#endif // DETRAY_COMPILE_VITIS
 
     /// Copy Construct with a specific memory resource @param resource
     /// (host-side only)
+#ifndef DETRAY_COMPILE_VITIS
     template <
         typename allocator_t = vecmem::memory_resource,
         typename C = container_t<source_link<sf_desc_t>>,
-        std::enable_if_t<std::is_same_v<C, std::vector<source_link<sf_desc_t>>>,
+        std::enable_if_t<std::is_same<C, std::vector<source_link<sf_desc_t>>>::value ,
                          bool> = true>
     DETRAY_HOST explicit surface_lookup(allocator_t &resource,
                                         const source_link<sf_desc_t> &arg)
         : m_container(&resource, arg) {}
+#endif // DETRAY_COMPILE_VITIS
 
     /// Construct from the container @param view . Mainly used device-side.
     template <typename container_view_t,
-              std::enable_if_t<detail::is_device_view_v<container_view_t>,
+              std::enable_if_t<detail::is_device_view<container_view_t>::value ,
                                bool> = true>
     DETRAY_HOST_DEVICE surface_lookup(container_view_t &view)
         : m_container(view) {}
@@ -126,13 +137,19 @@ class surface_lookup {
     }
 
     /// Reserve memory of size @param n for a given geometry context
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST void reserve(std::size_t n) { m_container.reserve(n); }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Resize the underlying container to @param n for a given geometry context
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST void resize(std::size_t n) { m_container.resize(n); }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Removes and destructs all elements in the container.
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST void clear() { m_container.clear(); }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns the collections iterator at the start position.
     DETRAY_HOST_DEVICE
@@ -208,31 +225,38 @@ class surface_lookup {
     ///
     /// @param sf_desc the surface descriptor
     /// @param src the source index
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST constexpr auto push_back(sf_desc_t sf_desc,
                                          std::uint64_t src) noexcept(false)
         -> void {
         m_container.push_back({sf_desc, src});
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Add a new element to the collection - copy
     ///
     /// @param sf_link the detray source link
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST constexpr auto push_back(
         source_link<sf_desc_t> sf_link) noexcept(false) -> void {
         m_container.push_back(sf_link);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Insert a surface descriptor @param sf_desc and its source index
     /// @param src into the container
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST void insert(
         sf_desc_t sf_desc,
         std::uint64_t src =
             detail::invalid_value<std::uint64_t>()) noexcept(false) {
         insert({sf_desc, src});
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Insert a source link @param sf_link at the position of its surface
     /// index.
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST void insert(source_link<sf_desc_t> sf_link) noexcept(false) {
         if (detail::is_invalid_value(sf_link.index())) {
             std::cout << "ERROR: Invalid surface descriptor: " << sf_link
@@ -243,16 +267,21 @@ class surface_lookup {
         }
         m_container.at(sf_link.index()) = sf_link;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @return the view on the underlying container - non-const
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST auto get_data() -> view_type {
         return detray::get_data(m_container);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @return the view on the underlying container - const
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST auto get_data() const -> const_view_type {
         return detray::get_data(m_container);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     private:
     /// The underlying container implementation

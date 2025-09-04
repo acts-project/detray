@@ -38,6 +38,7 @@ class surface_data {
     /// @param mask_boundaries define the extent of the surface
     /// @param idx the index of the surface in the global detector lookup, needs
     ///            to be passed only if a special ordering should be observed
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     surface_data(
         const surface_id type, const typename detector_t::transform3_type &trf,
@@ -51,8 +52,10 @@ class surface_data {
           m_source{source},
           m_boundaries{mask_boundaries},
           m_transform{trf} {}
+#endif // DETRAY_COMPILE_VITIS
 
     /// Access the contained data through structured binding
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto get_data()
         -> std::tuple<surface_id &, navigation_link &, dindex &,
@@ -62,6 +65,7 @@ class surface_data {
         return std::tie(m_type, m_volume_link, m_index, m_source, m_boundaries,
                         m_transform);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     private:
     /// Surface type
@@ -92,24 +96,33 @@ class surface_factory_interface {
     virtual ~surface_factory_interface() = default;
 
     /// @returns the number of surfaces the factory will produce
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     virtual dindex size() const = 0;
+#endif // DETRAY_COMPILE_VITIS
 
     /// Add data to the factory
     /// @{
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     virtual void push_back(surface_data<detector_t> &&) = 0;
+#endif // DETRAY_COMPILE_VITIS
 
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     virtual void push_back(std::vector<surface_data<detector_t>> &&) = 0;
+#endif // DETRAY_COMPILE_VITIS
     /// @}
 
     /// Clear all data in the factory
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     virtual void clear() = 0;
+#endif // DETRAY_COMPILE_VITIS
 
     /// Construct detector components from the data in the factory and add them
     /// the containers of a volume builder.
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     virtual auto operator()(
         typename detector_t::volume_type &volume,
@@ -117,6 +130,7 @@ class surface_factory_interface {
         typename detector_t::transform_container &transforms,
         typename detector_t::mask_container &masks,
         typename detector_t::geometry_context ctx = {}) -> dindex_range = 0;
+#endif // DETRAY_COMPILE_VITIS
 
     protected:
     /// Insert a value in a container at a specific index
@@ -127,6 +141,7 @@ class surface_factory_interface {
     /// @param args optional additional parameters for the container access
     ///
     /// @returns the position where the value has been copied.
+#ifndef DETRAY_COMPILE_VITIS
     template <typename container_t, typename... Args>
     DETRAY_HOST dindex insert_in_container(
         container_t &cont, const typename container_t::value_type value,
@@ -147,6 +162,7 @@ class surface_factory_interface {
             return idx;
         }
     }
+#endif // DETRAY_COMPILE_VITIS
 };
 
 /// @brief Decorator for the surface factories.
@@ -156,35 +172,48 @@ template <typename detector_t>
 class factory_decorator : public surface_factory_interface<detector_t> {
 
     public:
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     factory_decorator(
         std::unique_ptr<surface_factory_interface<detector_t>> factory)
         : m_factory(std::move(factory)) {}
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns access to the underlying factory
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     const surface_factory_interface<detector_t> *get_factory() const {
         return m_factory.get();
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Overwrite interface functions using callbacks to the base factory
     /// @{
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     dindex size() const override { return m_factory->size(); }
+#endif // DETRAY_COMPILE_VITIS
 
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     void push_back(surface_data<detector_t> &&data) override {
         m_factory->push_back(std::move(data));
     }
+#endif // DETRAY_COMPILE_VITIS
 
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     void push_back(std::vector<surface_data<detector_t>> &&data) override {
         m_factory->push_back(std::move(data));
     }
+#endif // DETRAY_COMPILE_VITIS
 
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     void clear() override { m_factory->clear(); }
+#endif // DETRAY_COMPILE_VITIS
 
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto operator()(typename detector_t::volume_type &volume,
                     typename detector_t::surface_lookup_container &surfaces,
@@ -194,6 +223,7 @@ class factory_decorator : public surface_factory_interface<detector_t> {
         -> dindex_range override {
         return (*m_factory)(volume, surfaces, transforms, masks, ctx);
     }
+#endif // DETRAY_COMPILE_VITIS
     /// @}
 
     protected:

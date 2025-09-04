@@ -86,6 +86,7 @@ class ray {
     constexpr scalar_type charge() const { return 1.f; }
 
     /// Print
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     friend std::ostream &operator<<(std::ostream &os, const ray &r) {
         os << "ray: ";
@@ -96,6 +97,7 @@ class ray {
 
         return os;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     private:
     /// origin of ray

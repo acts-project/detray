@@ -51,14 +51,17 @@ class material_map_factory final : public factory_decorator<detector_t> {
 
     /// Factory with surfaces potentially already filled or empty placeholder
     /// that will not be used.
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     material_map_factory(
         std::unique_ptr<surface_factory_interface<detector_t>> sf_factory =
             std::make_unique<placeholder_factory_t>())
         : base_factory(std::move(sf_factory)) {}
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns the number of material instances that will be built by the
     /// factory
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto n_materials() const -> dindex {
 
@@ -72,28 +75,35 @@ class material_map_factory final : public factory_decorator<detector_t> {
 
         return n_surfaces;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns the material links to the surfaces (counted for this volume)
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto links() const
         -> const std::map<std::size_t,
                           std::pair<material_id, std::vector<index_type>>> & {
         return m_links;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns the raw materials that are currently in the factory
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto materials() const
         -> const std::map<std::size_t, std::vector<material<scalar_type>>> & {
         return m_materials;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns the material thickness currently held by the factory
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto thickness() const
         -> const std::map<std::size_t, std::vector<scalar_type>> & {
         return m_thickness;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Add all necessary compontents to the factory for a material map
     ///
@@ -102,6 +112,7 @@ class material_map_factory final : public factory_decorator<detector_t> {
     /// @param axis_spans the axis ranges for the material grid axes
     /// @param mat_data contains the material data
     /// @param indices local bin indices in the same order as the material data
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     void add_material(material_id id, data_type &&mat_data,
                       std::vector<std::size_t> &&n_bins,
@@ -116,8 +127,10 @@ class material_map_factory final : public factory_decorator<detector_t> {
         m_materials[sf_index] = std::move(mat);
         m_thickness[sf_index] = std::move(thickness);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Clear old data
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto clear() -> void override {
         m_links.clear();
@@ -126,6 +139,7 @@ class material_map_factory final : public factory_decorator<detector_t> {
         m_materials.clear();
         m_thickness.clear();
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @brief Add data for material maps to the containers of a volume builder.
     ///
@@ -140,6 +154,7 @@ class material_map_factory final : public factory_decorator<detector_t> {
     ///                 decorated with material maps.
     /// @param materials map the local bin indices and their content to a
     ///                  volume local surface index.
+#ifndef DETRAY_COMPILE_VITIS
     template <typename bin_data_t, std::size_t N>
     DETRAY_HOST auto operator()(
         typename detector_t::surface_lookup_container &surfaces,
@@ -197,6 +212,7 @@ class material_map_factory final : public factory_decorator<detector_t> {
             surfaces[sf_idx].material() = link_t{map_id, dindex_invalid};
         }
     }
+#endif // DETRAY_COMPILE_VITIS
 
     protected:
     /// Type and position(s) of the material in the detector material collection

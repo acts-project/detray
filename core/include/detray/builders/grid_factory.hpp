@@ -20,7 +20,9 @@
 #include "detray/utils/grid/serializers.hpp"
 
 // Vecmem include(s)
+#ifndef DETRAY_COMPILE_VITIS
 #include <vecmem/memory/memory_resource.hpp>
+#endif // DETRAY_COMPILE_VITIS
 
 // System include(s)
 #include <cassert>
@@ -79,7 +81,7 @@ class grid_factory {
         typename phi_bounds = axis::circular<>,
         typename r_binning = axis::regular<host_container_types, scalar_type>,
         typename phi_binning = axis::regular<host_container_types, scalar_type>,
-        std::enable_if_t<std::is_enum_v<decltype(r_bounds::label)>, bool> =
+        std::enable_if_t<std::is_enum<decltype(r_bounds::label)>::value , bool> =
             true>
     auto new_grid(
         const mask<annulus2D> &grid_bounds,
@@ -91,7 +93,7 @@ class grid_factory {
             {}}) const {
 
         static_assert(
-            std::is_same_v<phi_bounds, axis::circular<>>,
+            std::is_same<phi_bounds, axis::circular<>>::value ,
             "Phi axis bounds need to be circular for stereo annulus shape");
 
         // Axes boundaries and local indices
@@ -138,7 +140,7 @@ class grid_factory {
         typename x_binning = axis::regular<host_container_types, scalar_type>,
         typename y_binning = axis::regular<host_container_types, scalar_type>,
         typename z_binning = axis::regular<host_container_types, scalar_type>,
-        std::enable_if_t<std::is_enum_v<decltype(x_bounds::label)>, bool> =
+        std::enable_if_t<std::is_enum<decltype(x_bounds::label)>::value , bool> =
             true>
     auto new_grid(
         const mask<cuboid3D> &grid_bounds,
@@ -195,7 +197,7 @@ class grid_factory {
         typename rphi_binning =
             axis::regular<host_container_types, scalar_type>,
         typename z_binning = axis::regular<host_container_types, scalar_type>,
-        std::enable_if_t<std::is_enum_v<decltype(rphi_bounds::label)>, bool> =
+        std::enable_if_t<std::is_enum<decltype(rphi_bounds::label)>::value , bool> =
             true>
     auto new_grid(
         const mask<cylinder2D> &grid_bounds,
@@ -207,7 +209,7 @@ class grid_factory {
             {}}) const {
 
         static_assert(
-            std::is_same_v<rphi_bounds, axis::circular<axis::label::e_rphi>>,
+            std::is_same<rphi_bounds, axis::circular<axis::label::e_rphi>>::value ,
             "Phi axis bounds need to be circular for cylinder2D shape");
 
         // Axes boundaries and local indices
@@ -242,7 +244,7 @@ class grid_factory {
         typename rphi_binning =
             axis::regular<host_container_types, scalar_type>,
         typename z_binning = axis::regular<host_container_types, scalar_type>,
-        std::enable_if_t<std::is_enum_v<decltype(rphi_bounds::label)>, bool> =
+        std::enable_if_t<std::is_enum<decltype(rphi_bounds::label)>::value , bool> =
             true>
     auto new_grid(
         const mask<concentric_cylinder2D> &grid_bounds,
@@ -254,7 +256,7 @@ class grid_factory {
             {}}) const {
 
         static_assert(
-            std::is_same_v<rphi_bounds, axis::circular<axis::label::e_rphi>>,
+            std::is_same<rphi_bounds, axis::circular<axis::label::e_rphi>>::value ,
             "Phi axis bounds need to be circular for cylinder2D portal shape");
 
         // Axes boundaries and local indices
@@ -291,7 +293,7 @@ class grid_factory {
         typename r_binning = axis::regular<host_container_types, scalar_type>,
         typename phi_binning = axis::regular<host_container_types, scalar_type>,
         typename z_binning = axis::regular<host_container_types, scalar_type>,
-        std::enable_if_t<std::is_enum_v<decltype(r_bounds::label)>, bool> =
+        std::enable_if_t<std::is_enum<decltype(r_bounds::label)>::value , bool> =
             true>
     auto new_grid(
         const mask<cylinder3D> &grid_bounds,
@@ -303,7 +305,7 @@ class grid_factory {
             {}}) const {
 
         static_assert(
-            std::is_same_v<phi_bounds, axis::circular<>>,
+            std::is_same<phi_bounds, axis::circular<>>::value ,
             "Phi axis bounds need to be circular for cylinder3D shape");
 
         // Axes boundaries and local indices
@@ -354,7 +356,7 @@ class grid_factory {
         typename phi_bounds = axis::circular<>,
         typename r_binning = axis::regular<host_container_types, scalar_type>,
         typename phi_binning = axis::regular<host_container_types, scalar_type>,
-        std::enable_if_t<std::is_enum_v<decltype(r_bounds::label)>, bool> =
+        std::enable_if_t<std::is_enum<decltype(r_bounds::label)>::value , bool> =
             true>
     auto new_grid(
         const mask<ring2D> &grid_bounds,
@@ -365,7 +367,7 @@ class grid_factory {
         const std::array<std::vector<scalar_type>, 2UL> &axis_spans = {
             {}}) const {
 
-        static_assert(std::is_same_v<phi_bounds, axis::circular<>>,
+        static_assert(std::is_same<phi_bounds, axis::circular<>>::value ,
                       "Phi axis bounds need to be circular for ring shape");
 
         // Axes boundaries and local indices
@@ -401,7 +403,7 @@ class grid_factory {
         typename y_bounds = axis::closed<axis::label::e_y>,
         typename x_binning = axis::regular<host_container_types, scalar_type>,
         typename y_binning = axis::regular<host_container_types, scalar_type>,
-        std::enable_if_t<std::is_enum_v<decltype(x_bounds::label)>, bool> =
+        std::enable_if_t<std::is_enum<decltype(x_bounds::label)>::value , bool> =
             true>
     auto new_grid(
         const mask<rectangle2D> &grid_bounds,
@@ -447,7 +449,7 @@ class grid_factory {
         typename y_bounds = axis::closed<axis::label::e_y>,
         typename x_binning = axis::regular<host_container_types, scalar_type>,
         typename y_binning = axis::regular<host_container_types, scalar_type>,
-        std::enable_if_t<std::is_enum_v<decltype(x_bounds::label)>, bool> =
+        std::enable_if_t<std::is_enum<decltype(x_bounds::label)>::value , bool> =
             true>
     auto new_grid(
         const mask<trapezoid2D> &grid_bounds,
@@ -504,7 +506,7 @@ class grid_factory {
     ///                     last bin), otherwise ignored.
     template <
         typename grid_frame_t, typename... bound_ts, typename... binning_ts,
-        std::enable_if_t<std::is_object_v<typename grid_frame_t::loc_point>,
+        std::enable_if_t<std::is_object<typename grid_frame_t::loc_point>::value ,
                          bool> = true>
     auto new_grid(
         const std::vector<scalar_type> spans,
@@ -530,7 +532,7 @@ class grid_factory {
     /// Helper to build grid from shape plus binning and bounds types
     template <
         typename grid_shape_t, typename... bound_ts, typename... binning_ts,
-        std::enable_if_t<std::is_enum_v<typename grid_shape_t::boundaries>,
+        std::enable_if_t<std::is_enum<typename grid_shape_t::boundaries>::value ,
                          bool> = true>
     auto new_grid(
         const std::vector<scalar_type> spans,
@@ -549,7 +551,7 @@ class grid_factory {
     /// Helper overload for grid builder: Build from mask and resolve bounds
     /// and binnings from concrete grid type
     template <typename grid_t, typename grid_shape_t,
-              std::enable_if_t<detail::is_grid_v<grid_t>, bool> = true>
+              std::enable_if_t<detail::is_grid<grid_t>::value , bool> = true>
     auto new_grid(
         const mask<grid_shape_t> &spans,
         const std::array<std::size_t, grid_t::dim> &n_bins,
@@ -567,7 +569,7 @@ class grid_factory {
     /// and binnings
     template <
         typename grid_shape_t, typename... bound_ts, typename... binning_ts,
-        std::enable_if_t<std::is_enum_v<typename grid_shape_t::boundaries>,
+        std::enable_if_t<std::is_enum<typename grid_shape_t::boundaries>::value ,
                          bool> = true>
     auto new_grid(const mask<grid_shape_t> &spans,
                   const std::array<std::size_t, grid_shape_t::dim> &n_bins,
@@ -594,7 +596,7 @@ class grid_factory {
     ///                     (lower bin edges + the the upper edge of the
     ///                     last bin), otherwise ignored.
     template <typename grid_t,
-              std::enable_if_t<detail::is_grid_v<grid_t>, bool> = true>
+              std::enable_if_t<detail::is_grid<grid_t>::value , bool> = true>
     auto new_grid(
         const std::vector<scalar_type> spans,
         const std::vector<std::size_t> n_bins,
@@ -621,8 +623,8 @@ class grid_factory {
         typename owning_grid_t::bin_container_type bin_data{};
 
         // Bins with dynamic capacity and "index grids" need different treatment
-        if constexpr (std::is_same_v<bin_t, bins::dynamic_array<
-                                                typename grid_t::value_type>>) {
+        if constexpr (std::is_same<bin_t, bins::dynamic_array<
+                                                typename grid_t::value_type>>::value ) {
             // Bin and bin entries vector are separate containers
             bin_data.bins.resize(axes.nbins());
             // Set correct bin capacities, if they were provided
@@ -665,9 +667,9 @@ class grid_factory {
                        &ax_bin_edges,
                    vector_type<dindex_range> &axes_data,
                    vector_type<scalar_type> &bin_edges) const {
-        if constexpr (std::is_same_v<
+        if constexpr (std::is_same<
                           types::at<binnings, I>,
-                          axis::regular<host_container_types, scalar_type>>) {
+                          axis::regular<host_container_types, scalar_type>>::value ) {
             axes_data.push_back({static_cast<dindex>(bin_edges.size()),
                                  static_cast<dindex>(n_bins.at(I))});
             bin_edges.push_back(spans.at(I * 2u));

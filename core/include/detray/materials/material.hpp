@@ -148,6 +148,7 @@ struct material {
     }
 
     /// @returns a string that contains the material details
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     std::string to_string() const {
         std::stringstream strm;
@@ -182,13 +183,16 @@ struct material {
 
         return strm.str();
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns a string stream that prints the material details
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     friend std::ostream &operator<<(std::ostream &os, const material &mat) {
         os << mat.to_string();
         return os;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     DETRAY_HOST_DEVICE
     bool has_density_effect_data() const { return m_has_density_effect_data; }

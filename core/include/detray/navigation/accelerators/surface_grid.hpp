@@ -23,14 +23,14 @@ template <class accelerator_t>
 struct is_surface_grid<
     accelerator_t,
     std::enable_if_t<
-        is_grid_v<accelerator_t> &&
-            std::is_same_v<
+        is_grid<accelerator_t>::value  &&
+            std::is_same<
                 typename accelerator_t::value_type,
                 surface_descriptor<
                     typename accelerator_t::value_type::mask_link,
                     typename accelerator_t::value_type::material_link,
                     typename accelerator_t::value_type::transform_link,
-                    typename accelerator_t::value_type::navigation_link>>,
+                    typename accelerator_t::value_type::navigation_link>>::value ,
         void>> : public std::true_type {};
 
 }  // namespace detray::detail

@@ -25,7 +25,7 @@ struct mixture
     public:
     using ratio = typename ratio_sum<typename material_types::ratio...>::ratio;
 
-    static_assert(is_ratio_one_v<ratio>,
+    static_assert(is_ratio_one<ratio>::value ,
                   "Sumation of ratios should be equal to 1");
 
     /// Constructor

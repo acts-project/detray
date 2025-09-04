@@ -113,6 +113,7 @@ using push_front = typename do_push_front<N, L>::type;
 
 /// @see
 /// https://stackoverflow.com/questions/281818/unmangling-the-result-of-stdtype-infoname
+#ifndef DETRAY_COMPILE_VITIS
 template <typename T>
 std::string demangle_type_name() {
 #if defined(__clang__)
@@ -141,10 +142,12 @@ std::string demangle_type_name() {
 
     return std::string{function.substr(start, size)};
 }
+#endif
 
 template <typename = void>
 struct print {};
 
+# ifndef DETRAY_COMPILE_VITIS
 template <typename... Ts>
 struct print<list<Ts...>> {
 
@@ -167,5 +170,6 @@ struct print<list<Ts...>> {
     }
 };
 /// @}
+#endif
 
 }  // namespace detray::types

@@ -75,7 +75,7 @@ struct telescope_metadata {
     template <template <typename...> class tuple_t = dtuple,
               template <typename...> class vector_t = dvector>
     using mask_store = std::conditional_t<
-        std::is_same_v<mask<mask_shape_t, nav_link>, rectangle>,
+        std::is_same<mask<mask_shape_t, nav_link>, rectangle>::value ,
         regular_multi_store<mask_ids, empty_context, tuple_t, vector_t,
                             rectangle>,
         regular_multi_store<mask_ids, empty_context, tuple_t, vector_t,
@@ -93,8 +93,8 @@ struct telescope_metadata {
     template <template <typename...> class tuple_t = dtuple,
               typename container_t = host_container_types>
     using material_store = std::conditional_t<
-        std::is_same_v<mask<mask_shape_t, nav_link>, drift_cell> |
-            std::is_same_v<mask<mask_shape_t, nav_link>, straw_tube>,
+        std::is_same<mask<mask_shape_t, nav_link>, drift_cell>::value  |
+            std::is_same<mask<mask_shape_t, nav_link>, straw_tube>::value ,
         regular_multi_store<material_ids, empty_context, tuple_t,
                             container_t::template vector_type, slab,
                             material<detray::scalar>, rod>,

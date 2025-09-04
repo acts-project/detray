@@ -12,7 +12,9 @@
 #include "detray/utils/grid/grid.hpp"
 
 // VecMem include(s).
+#ifndef DETRAY_COMPILE_VITIS
 #include <vecmem/memory/memory_resource.hpp>
+#endif // DETRAY_COMPILE_VITIS
 
 // System include(s).
 #include <cstddef>
@@ -132,22 +134,26 @@ class grid_collection<
                     detail::get_view_t<const edges_container_type>>;
 
     /// Vecmem based buffer type
+#ifndef DETRAY_COMPILE_VITIS
     using buffer_type =
         dmulti_buffer<dvector_buffer<size_type>,
                       detail::get_buffer_t<bin_container_type>,
                       detail::get_buffer_t<edge_offset_container_type>,
                       detail::get_buffer_t<edges_container_type>>;
+#endif
 
     /// Make grid collection default constructible: Empty
     grid_collection() = default;
 
     /// Create empty grid collection from specific vecmem memory resource
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     explicit grid_collection(vecmem::memory_resource *resource)
         : m_bin_offsets(resource),
           m_bins(resource),
           m_bin_edge_offsets(resource),
           m_bin_edges(resource) {}
+#endif // DETRAY_COMPILE_VITIS
 
     /// Create grid colection from existing data - move
     DETRAY_HOST_DEVICE
@@ -161,7 +167,7 @@ class grid_collection<
 
     /// Device-side construction from a vecmem based view type
     template <typename coll_view_t,
-              typename std::enable_if_t<detail::is_device_view_v<coll_view_t>,
+              typename std::enable_if_t<detail::is_device_view<coll_view_t>::value ,
                                         bool> = true>
     DETRAY_HOST_DEVICE grid_collection(coll_view_t &view)
         : m_bin_offsets(detail::get<0>(view.m_view)),
@@ -270,14 +276,17 @@ class grid_collection<
     }
 
     /// @returns a vecmem view on the grid collection data - non-const
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST auto get_data() -> view_type {
         return view_type{detray::get_data(m_bin_offsets),
                          detray::get_data(m_bins),
                          detray::get_data(m_bin_edge_offsets),
                          detray::get_data(m_bin_edges)};
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns a vecmem view on the grid collection data - const
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto get_data() const -> const_view_type {
         return const_view_type{detray::get_data(m_bin_offsets),
@@ -285,9 +294,11 @@ class grid_collection<
                                detray::get_data(m_bin_edge_offsets),
                                detray::get_data(m_bin_edges)};
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Add a new grid @param gr to the collection.
     /// @note this takes a data owning grid to transcribe the data from.
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST constexpr auto push_back(
         const typename grid_type::template type<true> &gr) noexcept(false)
         -> void {
@@ -319,24 +330,29 @@ class grid_collection<
         m_bin_edges.insert(m_bin_edges.end(), bin_edges.begin(),
                            bin_edges.end());
     }
+#endif // DETRAY_COMPILE_VITIS
 
     private:
     /// Insert data into a vector of bins
+#ifndef DETRAY_COMPILE_VITIS
     template <typename grid_bin_range_t>
     DETRAY_HOST void insert_bin_data(
         vector_type<typename grid_type::bin_type> &bin_data,
         const grid_bin_range_t &grid_bins) {
         bin_data.insert(bin_data.end(), grid_bins.begin(), grid_bins.end());
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Insert data into the backend containers of a grid with dynamic bin
     /// capacities
+#ifndef DETRAY_COMPILE_VITIS
     template <typename container_t, typename grid_bin_range_t>
     DETRAY_HOST void insert_bin_data(
         detray::detail::dynamic_bin_container<bin_t, container_t> &bin_data,
         const grid_bin_range_t &grid_bins) {
         bin_data.append(grid_bins);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Offsets for the respective grids into the bin storage
     vector_type<size_type> m_bin_offsets{};

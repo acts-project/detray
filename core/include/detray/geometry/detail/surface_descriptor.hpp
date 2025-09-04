@@ -52,6 +52,7 @@ class surface_descriptor {
     /// @param vol the volume this surface belongs to
     /// @param src the source object/source link this surface is representing
     /// @param sf_id remember whether this is a portal or not
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     constexpr surface_descriptor(transform_link &&trf, mask_link &&mask,
                                  material_link &&material, dindex volume,
@@ -62,6 +63,7 @@ class surface_descriptor {
 
         m_barcode = geometry::barcode{}.set_volume(volume).set_id(sf_id);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Constructor with full arguments - copy semantics
     ///
@@ -71,6 +73,7 @@ class surface_descriptor {
     /// @param vol the volume this surface belongs to
     /// @param src the source object/source link this surface is representing
     /// @param sf_id remember whether this is a portal or not
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     constexpr surface_descriptor(const transform_link trf,
                                  const mask_link &mask,
@@ -79,6 +82,7 @@ class surface_descriptor {
         : _mask(mask), _material(material), _trf(trf) {
         m_barcode = geometry::barcode{}.set_volume(volume).set_id(sf_id);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     constexpr surface_descriptor() = default;
     surface_descriptor(const surface_descriptor &lhs) = default;
@@ -110,10 +114,12 @@ class surface_descriptor {
     constexpr auto id() const -> surface_id { return m_barcode.id(); }
 
     /// Sets a new volume link (index in volume collection of detector)
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto set_volume(const dindex new_idx) -> void {
         m_barcode.set_volume(new_idx);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns the surface id (sensitive, passive or portal)
     DETRAY_HOST_DEVICE
@@ -132,8 +138,10 @@ class surface_descriptor {
     /// Update the transform index
     ///
     /// @param offset update the position when move into new collection
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto update_transform(dindex offset) -> void { _trf += offset; }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @return the transform index
     DETRAY_HOST_DEVICE
@@ -142,8 +150,10 @@ class surface_descriptor {
     /// Update the mask link
     ///
     /// @param offset update the position when move into new collection
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto update_mask(dindex offset) -> void { _mask += offset; }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @return the mask link
     DETRAY_HOST_DEVICE
@@ -152,8 +162,10 @@ class surface_descriptor {
     /// Update the material link
     ///
     /// @param offset update the position when move into new collection
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto update_material(dindex offset) -> void { _material += offset; }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Access to the material
     DETRAY_HOST_DEVICE
@@ -184,6 +196,7 @@ class surface_descriptor {
     }
 
     /// @returns a string stream that prints the surface details
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     friend std::ostream &operator<<(std::ostream &os,
                                     const surface_descriptor &sf) {
@@ -193,6 +206,7 @@ class surface_descriptor {
         os << " | mat.: " << sf._material;
         return os;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     private:
     geometry::barcode m_barcode{};

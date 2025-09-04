@@ -31,7 +31,9 @@
 #include "detray/utils/ranges.hpp"
 
 // Vecmem include(s)
+#ifndef DETRAY_COMPILE_VITIS
 #include <vecmem/memory/memory_resource.hpp>
+#endif // DETRAY_COMPILE_VITIS
 
 // System include(s)
 #include <limits>
@@ -319,7 +321,7 @@ volume_builder_interface<detector_t> *decorate_material(
     volume_builder_interface<detector_t> *v_builder) {
 
     static_assert(
-        std::is_same_v<detector_t, typename detector_builder_t::detector_type>,
+        std::is_same<detector_t, typename detector_builder_t::detector_type>::value ,
         "Detector builder and volume builder/surface factory have different "
         "detector type");
 
@@ -1193,7 +1195,7 @@ inline auto build_toy_detector(vecmem::memory_resource &resource,
     using vol_extent_container_t =
         std::vector<std::pair<dindex, detail::extent2D<scalar_t>>>;
 
-    static_assert(std::is_same_v<typename detector_t::scalar_type, scalar_t>,
+    static_assert(std::is_same<typename detector_t::scalar_type, scalar_t>::value ,
                   "Scalar type used for toy detector config does not match the "
                   "detector algebra type");
 

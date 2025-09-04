@@ -22,7 +22,7 @@ namespace material_accessor {
 /// description
 template <class material_coll_t, typename point_t = void,
           std::enable_if_t<
-              detail::is_hom_material_v<typename material_coll_t::value_type>,
+              detail::is_hom_material<typename material_coll_t::value_type>::value ,
               bool> = true>
 DETRAY_HOST_DEVICE inline constexpr decltype(auto) get(
     const material_coll_t &material_coll, const dindex idx,
@@ -34,7 +34,7 @@ DETRAY_HOST_DEVICE inline constexpr decltype(auto) get(
 /// Access to material slabs in a material map or volume material
 template <
     class material_coll_t,
-    std::enable_if_t<detail::is_grid_v<typename material_coll_t::value_type>,
+    std::enable_if_t<detail::is_grid<typename material_coll_t::value_type>::value ,
                      bool> = true>
 DETRAY_HOST_DEVICE inline constexpr decltype(auto) get(
     const material_coll_t &material_coll, const dindex idx,

@@ -33,10 +33,12 @@ class material_data {
     ///
     /// @param sf_idx the index of the surface this material belongs to, needs
     ///               to be passed only if a special oredering must be observed
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     constexpr material_data(
         const std::size_t sf_idx = detail::invalid_value<std::size_t>())
         : m_sf_index{sf_idx}, m_mat{}, m_thickness{} {}
+#endif // DETRAY_COMPILE_VITIS
 
     /// Construct from a predefined material
     ///
@@ -45,11 +47,13 @@ class material_data {
     /// @param thickness of the material slab/rod
     /// @param sf_idx the index of the surface this material belongs to, needs
     ///               to be passed only if a special oredering must be observed
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     constexpr material_data(
         const scalar_t thickness, const material<scalar_t> &mat,
         const std::size_t sf_idx = detail::invalid_value<std::size_t>())
         : m_sf_index{sf_idx}, m_mat{mat}, m_thickness{thickness} {}
+#endif // DETRAY_COMPILE_VITIS
 
     /// Construct from all parameters:
     ///
@@ -62,6 +66,7 @@ class material_data {
     /// @param state of the material (liquid, solid etc.)
     /// @param sf_idx the index of the surface this material belongs to, needs
     ///               to be passed only if a special oredering must be observed
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     constexpr material_data(
         const scalar_t thickness,
@@ -69,31 +74,37 @@ class material_data {
         const material_state state = material_state::e_solid,
         const std::size_t sf_idx = detail::invalid_value<std::size_t>())
         : m_sf_index{sf_idx},
+#endif // DETRAY_COMPILE_VITIS
           m_mat{material<scalar_t>{material_paramters[0], material_paramters[1],
                                    material_paramters[2], material_paramters[3],
                                    material_paramters[4], state}},
           m_thickness{thickness} {}
 
     /// @returns tuple based access to the contained material data.
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     constexpr auto get_data()
         -> std::tuple<std::size_t &, std::vector<material<scalar_t>> &,
                       std::vector<scalar_t> &> {
         return std::tie(m_sf_index, m_mat, m_thickness);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Append new material
     ///
     /// @param thickness of the material slab/rod
     /// @param mat predefined material, see
     ///            'detray/materials/predefined_materials.hpp'
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     void append(const scalar_t thickness, const material<scalar_t> &mat) {
         m_mat.push_back(mat);
         m_thickness.push_back(thickness);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Append new material from @param other @c material_data - move
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     void append(material_data &&other) {
         m_mat.reserve(m_mat.size() + other.m_mat.size());
@@ -104,6 +115,7 @@ class material_data {
         std::move(other.m_thickness.begin(), other.m_thickness.end(),
                   std::back_inserter(m_thickness));
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Append new material
     ///
@@ -114,6 +126,7 @@ class material_data {
     /// @param material_paramters3 z is the nuclear charge number
     /// @param material_paramters4 molarRho is the molar density
     /// @param state of the material (liquid, solid etc.)
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     void append(const scalar_t thickness,
                 const std::vector<scalar_t> &material_paramters,
@@ -123,6 +136,7 @@ class material_data {
             material_paramters[3], material_paramters[4], state});
         m_thickness.push_back(thickness);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     private:
     /// Volume local index of the surface this material belongs to
@@ -158,14 +172,17 @@ class homogeneous_material_factory final
 
     /// Factory with surfaces potentially already filled or empty placeholder
     /// that will not be used.
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     homogeneous_material_factory(
         std::unique_ptr<surface_factory_interface<detector_t>> sf_factory =
             std::make_unique<placeholder_factory_t>())
         : base_factory(std::move(sf_factory)) {}
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns the number of material instances that will be built by the
     /// factory
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto n_materials() const -> dindex {
 
@@ -179,25 +196,33 @@ class homogeneous_material_factory final
 
         return n_surfaces;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns the material links to the surfaces (counted for this volume)
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto links() const -> const std::vector<material_id> & { return m_links; }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns the raw materials that are currently in the factory
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto materials() const -> const std::vector<material<scalar_type>> & {
         return m_materials;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns the material thickness currently held by the factory
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto thickness() const -> const std::vector<scalar_type> & {
         return m_thickness;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Add all necessary compontents to the factory for a single material slab
     /// or rod (determined by the @param id)
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     void add_material(
         material_id id, material_data<scalar_type> &&mat_data,
@@ -210,9 +235,11 @@ class homogeneous_material_factory final
         m_materials.push_back(mat[0]);
         m_thickness.push_back(thickness[0]);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Add all necessary compontents to the factory for multiple material slabs
     /// or rods (determined by the @param id)
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     void add_material(material_id id,
                       std::vector<material_data<scalar_type>> &&mat_data_vec) {
@@ -226,14 +253,17 @@ class homogeneous_material_factory final
             this->add_material(id, std::move(mat_data));
         }
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Clear old data
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto clear() -> void override {
         m_links.clear();
         m_materials.clear();
         m_thickness.clear();
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @brief Add material to the containers of a volume builder.
     ///
@@ -250,6 +280,7 @@ class homogeneous_material_factory final
     ///                 decorated with material.
     /// @param material material store of the volume builder that the new
     ///                 materials get added to.
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto operator()(typename detector_t::surface_lookup_container &surfaces,
                     typename detector_t::material_container &materials) {
@@ -311,6 +342,7 @@ class homogeneous_material_factory final
                 link_t{m_links[sf_idx].first, mat_idx};
         }
     }
+#endif // DETRAY_COMPILE_VITIS
 
     protected:
     /// Material links of surfaces

@@ -227,6 +227,7 @@ struct attach_populator {
      * @param stored the stored value for the population
      * @param bvalue the new value to be added
      **/
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     void operator()(store_value &stored, bare_value &&bvalue) const {
         stored.push_back(bvalue);
@@ -234,6 +235,7 @@ struct attach_populator {
             std::sort(stored.begin(), stored.end());
         }
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /** Add a new value to the stored value - for device vector
      *

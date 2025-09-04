@@ -61,6 +61,7 @@ namespace {
 /// @brief A functor to fill the material proto grid with proto material slabs
 struct material_converter {
 
+#ifndef DETRAY_COMPILE_VITIS
     template <typename mat_coll_t, typename index_t, typename transform_t>
     DETRAY_HOST inline auto operator()(const mat_coll_t& mat_coll,
                                        const index_t& index,
@@ -69,7 +70,7 @@ struct material_converter {
 
         std::vector<std::vector<actsvg::proto::material_slab>> m_matrix;
 
-        if constexpr (detray::detail::is_grid_v<material_t>) {
+        if constexpr (detray::detail::is_grid<material_t>::value ) {
 
             using loc_bin_idx_t = typename material_t::loc_bin_index;
             using algebra_t =
@@ -84,10 +85,10 @@ struct material_converter {
             // In the svg convention the phi axis has to be the second axis to
             // loop over
             constexpr bool is_cyl{
-                std::is_same_v<typename material_t::local_frame_type,
-                               detray::cylindrical2D<algebra_t>> ||
-                std::is_same_v<typename material_t::local_frame_type,
-                               detray::concentric_cylindrical2D<algebra_t>>};
+                std::is_same<typename material_t::local_frame_type,
+                               detray::cylindrical2D<algebra_t>>::value  ||
+                std::is_same<typename material_t::local_frame_type,
+                               detray::concentric_cylindrical2D<algebra_t>>::value };
             if constexpr (is_cyl) {
                 edges0.swap(edges1);
             }
@@ -128,6 +129,7 @@ struct material_converter {
 
         return m_matrix;
     }
+#endif // DETRAY_COMPILE_VITIS
 };
 
 }  // namespace

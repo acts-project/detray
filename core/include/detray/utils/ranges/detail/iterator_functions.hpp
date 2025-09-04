@@ -42,12 +42,23 @@ using std::end;
 using std::rbegin;
 using std::rend;
 
+#ifndef DETRAY_COMPILE_VITIS
 using std::size;
 // ranges::ssize;
 using std::data;
-using std::empty;
+#endif // DETRAY_COMPILE_VITIS
 // ranges::cdata
 /// @}
+
+#ifdef DETRAY_COMPILE_VITIS
+template<class C>
+[[nodiscard]] constexpr auto empty(const C& c) -> decltype(c.empty())
+{
+    return c.empty();
+}
+#else
+using std::empty;
+#endif // DETRAY_COMPILE_VITIS
 
 ///  @brief Reimplement std::distance.
 /// @{
@@ -78,9 +89,9 @@ DETRAY_HOST_DEVICE inline constexpr
 
 template <
     class iterator_t,
-    std::enable_if_t<std::is_base_of_v<detray::ranges::input_iterator_tag,
+    std::enable_if_t<std::is_base_of<detray::ranges::input_iterator_tag,
                                        typename std::iterator_traits<
-                                           iterator_t>::iterator_category>,
+                                           iterator_t>::iterator_category>::value ,
                      bool> = true>
 DETRAY_HOST_DEVICE inline constexpr
     typename std::iterator_traits<iterator_t>::difference_type
@@ -96,7 +107,7 @@ DETRAY_HOST_DEVICE inline constexpr
 template <class input_iterator_t, typename dist_t>
 DETRAY_HOST_DEVICE inline constexpr void advance_impl(
     input_iterator_t& itr, dist_t d, detray::ranges::input_iterator_tag) {
-    static_assert(std::is_integral_v<dist_t>);
+    static_assert(std::is_integral<dist_t>::value );
     assert(d > 0);
     // simply count
     while (d--) {
@@ -109,7 +120,7 @@ template <class bidirectional_iterator_t, typename dist_t>
 DETRAY_HOST_DEVICE inline constexpr void advance_impl(
     bidirectional_iterator_t& itr, dist_t d,
     detray::ranges::bidirectional_iterator_tag) {
-    static_assert(std::is_integral_v<dist_t>);
+    static_assert(std::is_integral<dist_t>::value );
     if (d > 0) {
         while (d--) {
             ++itr;
@@ -126,11 +137,11 @@ template <class random_access_iterator_t, typename dist_t>
 DETRAY_HOST_DEVICE inline constexpr void advance_impl(
     random_access_iterator_t& itr, dist_t d,
     detray::ranges::random_access_iterator_tag) {
-    static_assert(std::is_integral_v<dist_t>);
+    static_assert(std::is_integral<dist_t>::value );
     if (d == static_cast<dist_t>(1)) {
         ++itr;
     } else {
-        if constexpr (std::is_signed_v<dist_t>) {
+        if constexpr (std::is_signed<dist_t>::value ) {
             if (d == static_cast<dist_t>(-1)) {
                 --itr;
                 return;
@@ -142,9 +153,9 @@ DETRAY_HOST_DEVICE inline constexpr void advance_impl(
 
 template <
     class iterator_t, typename dist_t,
-    std::enable_if_t<std::is_base_of_v<detray::ranges::input_iterator_tag,
+    std::enable_if_t<std::is_base_of<detray::ranges::input_iterator_tag,
                                        typename std::iterator_traits<
-                                           iterator_t>::iterator_category>,
+                                           iterator_t>::iterator_category>::value ,
                      bool> = true>
 DETRAY_HOST_DEVICE inline constexpr void advance(iterator_t& itr, dist_t d) {
     return advance_impl(
@@ -165,9 +176,9 @@ DETRAY_HOST_DEVICE inline constexpr input_iterator_t next(
 template <
     class bidirectional_iterator_t,
     std::enable_if_t<
-        std::is_base_of_v<detray::ranges::bidirectional_iterator_tag,
+        std::is_base_of<detray::ranges::bidirectional_iterator_tag,
                           typename std::iterator_traits<
-                              bidirectional_iterator_t>::iterator_category>,
+                              bidirectional_iterator_t>::iterator_category>::value ,
         bool> = true>
 DETRAY_HOST_DEVICE inline constexpr bidirectional_iterator_t prev(
     bidirectional_iterator_t itr,

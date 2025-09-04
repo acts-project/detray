@@ -145,6 +145,7 @@ struct static_join : public ranges::static_join_view<I, range_itr_t> {
 
 // deduction guides
 
+#ifndef DETRAY_COMPILE_VITIS
 template <typename... ranges_t>
 DETRAY_HOST_DEVICE static_join(const ranges_t &... ranges)
     ->static_join<sizeof...(ranges_t),
@@ -156,6 +157,7 @@ DETRAY_HOST_DEVICE static_join(ranges_t &&... ranges)
     ->static_join<sizeof...(ranges_t),
                   typename detray::ranges::iterator_t<
                       detray::detail::first_t<ranges_t...>>>;
+#endif // DETRAY_COMPILE_VITIS
 
 }  // namespace views
 

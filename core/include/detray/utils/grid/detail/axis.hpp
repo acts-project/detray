@@ -8,7 +8,9 @@
 #pragma once
 
 // Project include(s).
+#ifndef DETRAY_COMPILE_VITIS
 #include "detray/core/detail/container_buffers.hpp"
+#endif
 #include "detray/core/detail/container_views.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
@@ -21,7 +23,9 @@
 #include "detray/utils/type_traits.hpp"
 
 // VecMem include(s).
+#ifndef DETRAY_COMPILE_VITIS
 #include <vecmem/memory/memory_resource.hpp>
+#endif // DETRAY_COMPILE_VITIS
 
 // System include(s).
 #include <cstddef>
@@ -234,9 +238,11 @@ class multi_axis {
         dmulti_view<dvector_view<dindex_range>, dvector_view<scalar_type>>;
     using const_view_type = dmulti_view<dvector_view<const dindex_range>,
                                         dvector_view<const scalar_type>>;
+#ifndef DETRAY_COMPILE_VITIS
     /// Vecmem based buffer type
     using buffer_type = dmulti_buffer<dvector_buffer<dindex_range>,
                                       dvector_buffer<scalar_type>>;
+#endif
 
     /// Find the corresponding (non-)owning type
     template <bool owning>
@@ -246,9 +252,11 @@ class multi_axis {
     constexpr multi_axis() = default;
 
     /// Construct containers using a specific memory resources
+#ifndef DETRAY_COMPILE_VITIS
     template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
     DETRAY_HOST multi_axis(vecmem::memory_resource &resource)
         : m_edge_offsets(&resource), m_edges(&resource) {}
+#endif // DETRAY_COMPILE_VITIS
 
     /// Construct from containers - move
     template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
@@ -273,7 +281,7 @@ class multi_axis {
     /// @param view vecmem view on the axes data
     template <typename view_t,
               typename std::enable_if_t<
-                  detray::detail::is_device_view_v<view_t>, bool> = true>
+                  detray::detail::is_device_view<view_t>::value , bool> = true>
     DETRAY_HOST_DEVICE multi_axis(const view_t &view)
         : m_edge_offsets(detray::detail::get<0>(view.m_view)),
           m_edges(detray::detail::get<1>(view.m_view)) {}
@@ -386,19 +394,23 @@ class multi_axis {
     }
 
     /// @returns a vecmem view on the axes data. Only allowed if it owns data.
+#ifndef DETRAY_COMPILE_VITIS
     template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
     DETRAY_HOST auto get_data() -> view_type {
         return view_type{detray::get_data(m_edge_offsets),
                          detray::get_data(m_edges)};
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns a vecmem const view on the axes data. Only allowed if it is
     /// owning data.
+#ifndef DETRAY_COMPILE_VITIS
     template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
     DETRAY_HOST auto get_data() const -> const_view_type {
         return const_view_type{detray::get_data(m_edge_offsets),
                                detray::get_data(m_edges)};
     }
+#endif // DETRAY_COMPILE_VITIS
 
     private:
     /// Get the number of bins for a single axis.

@@ -116,17 +116,17 @@ class tracking_volume {
     template <surface_id sf_type = surface_id::e_all>
     DETRAY_HOST_DEVICE constexpr decltype(auto) surfaces() const {
         if constexpr (sf_type == surface_id::e_all) {
-            return detray::ranges::subrange{m_detector.surfaces(),
+            return detray::ranges::subrange<decltype(m_desc.full_sf_range)>{m_detector.surfaces(),
                                             m_desc.full_sf_range()};
         } else {
-            return detray::ranges::subrange{m_detector.surfaces(),
+            return detray::ranges::subrange<decltype(m_desc.template sf_links<sf_type>)>{m_detector.surfaces(),
                                             m_desc.template sf_link<sf_type>()};
         }
     }
 
     /// @returns an iterator pair for the requested type of surfaces.
     DETRAY_HOST_DEVICE constexpr decltype(auto) portals() const {
-        return detray::ranges::subrange{
+        return detray::ranges::subrange<decltype(m_desc.template sf_link<surface_id::e_portal>)>{
             m_detector.surfaces(),
             m_desc.template sf_link<surface_id::e_portal>()};
     }
@@ -204,6 +204,7 @@ class tracking_volume {
     /// @param os output stream for error messages.
     ///
     /// @returns true if the volume is consistent
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST bool self_check(std::ostream &os) const {
         if (id() == volume_id::e_unknown) {
             os << "ERROR: Unknown volume shape type in volume:\n"
@@ -302,6 +303,7 @@ class tracking_volume {
 
         return true;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns the volume name (add an offset for the detector name).
     DETRAY_HOST_DEVICE
@@ -310,6 +312,7 @@ class tracking_volume {
     }
 
     /// @returns a string stream that prints the volume details
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     friend std::ostream &operator<<(std::ostream &os,
                                     const tracking_volume &v) {
@@ -322,6 +325,7 @@ class tracking_volume {
 
         return os;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     private:
     /// Apply a functor to all acceleration structures of this volume.

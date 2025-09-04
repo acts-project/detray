@@ -258,6 +258,7 @@ class helix {
     }
 
     /// Print
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     friend std::ostream &operator<<(std::ostream &os, const helix &h) {
         os << "helix: ";
@@ -268,6 +269,7 @@ class helix {
 
         return os;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// origin
     point3_type _pos;

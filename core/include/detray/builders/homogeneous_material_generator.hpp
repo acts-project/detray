@@ -81,11 +81,13 @@ class homogeneous_material_generator final
 
     public:
     /// Construct from configuration @param cfg
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     homogeneous_material_generator(
         std::unique_ptr<surface_factory_interface<detector_t>> factory,
         const hom_material_config<scalar_t> cfg)
         : factory_decorator<detector_t>(std::move(factory)), m_cfg{cfg} {}
+#endif // DETRAY_COMPILE_VITIS
 
     /// Call the underlying surface factory and record the surface range that
     /// was produced
@@ -95,6 +97,7 @@ class homogeneous_material_generator final
     /// @param transforms the transforms of the surfaces.
     /// @param masks the masks of the surfaces.
     /// @param ctx the geometry context (not needed for portals).
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto operator()(typename detector_t::volume_type &volume,
                     typename detector_t::surface_lookup_container &surfaces,
@@ -110,6 +113,7 @@ class homogeneous_material_generator final
 
         return {lower, upper};
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Create material slabs or rods for all surfaces that the undelying
     /// surface factory builds.
@@ -118,6 +122,7 @@ class homogeneous_material_generator final
     ///                 decorated with material.
     /// @param material material store of the volume builder that the new
     ///                 materials get added to.
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto operator()(typename detector_t::surface_lookup_container &surfaces,
                     typename detector_t::material_container &materials) {
@@ -205,6 +210,7 @@ class homogeneous_material_generator final
             sf.material() = mat_link;
         }
     }
+#endif // DETRAY_COMPILE_VITIS
 
     private:
     /// Material generator configuration

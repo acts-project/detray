@@ -23,7 +23,9 @@
 #include "detray/tracks/tracks.hpp"
 
 // Vecmem include(s)
+#ifndef DETRAY_COMPILE_VITIS
 #include <vecmem/memory/memory_resource.hpp>
+#endif // DETRAY_COMPILE_VITIS
 
 // Covfie include(s)
 #include <covfie/core/field.hpp>

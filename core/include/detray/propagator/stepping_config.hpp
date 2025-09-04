@@ -47,6 +47,7 @@ struct config {
 };
 
 /// Print the stepping configuration
+#ifndef DETRAY_COMPILE_VITIS
 DETRAY_HOST
 inline std::ostream& operator<<(std::ostream& out,
                                 const detray::stepping::config& cfg) {
@@ -73,5 +74,6 @@ inline std::ostream& operator<<(std::ostream& out,
 
     return out;
 }
+#endif // DETRAY_COMPILE_VITIS
 
 }  // namespace detray::stepping

@@ -40,7 +40,7 @@ struct bin_association_getter {
 
         using accel_t = typename group_t::value_type;
 
-        if constexpr (detray::detail::is_grid_v<accel_t>) {
+        if constexpr (detray::detail::is_grid<accel_t>::value ) {
 
             using transform3_t =
                 typename accel_t::local_frame_type::transform3_type;
@@ -69,10 +69,10 @@ struct bin_association_getter {
             // In the svg convention the phi axis has to be the second axis to
             // loop over
             constexpr bool is_cyl{
-                std::is_same_v<typename accel_t::local_frame_type,
-                               detray::cylindrical2D<algebra_t>> ||
-                std::is_same_v<typename accel_t::local_frame_type,
-                               detray::concentric_cylindrical2D<algebra_t>>};
+                std::is_same<typename accel_t::local_frame_type,
+                               detray::cylindrical2D<algebra_t>>::value  ||
+                std::is_same<typename accel_t::local_frame_type,
+                               detray::concentric_cylindrical2D<algebra_t>>::value };
             if constexpr (is_cyl) {
                 edges0.swap(edges1);
             }

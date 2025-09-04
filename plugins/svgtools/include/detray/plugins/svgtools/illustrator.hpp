@@ -303,7 +303,7 @@ class illustrator {
         actsvg::svg::object sheet;
 
         // zr and xy - views of volume including the portals
-        if constexpr (!std::is_same_v<view_t, actsvg::views::z_phi>) {
+        if constexpr (!std::is_same<view_t, actsvg::views::z_phi>::value ) {
 
             vol_svg.add_object(actsvg::display::volume(id, p_volume, view));
 
@@ -321,7 +321,7 @@ class illustrator {
                 p_volume._name + "_sheet_zphi", p_volume, {800, 800},
                 display_mode);
         }
-        if constexpr (std::is_same_v<view_t, actsvg::views::x_y>) {
+        if constexpr (std::is_same<view_t, actsvg::views::x_y>::value ) {
             if (gr_type == conversion::detail::grid_type::e_endcap) {
                 p_volume._name = det_name() + "_" + p_volume._name;
                 sheet = actsvg::display::endcap_sheet(
@@ -357,7 +357,7 @@ class illustrator {
             auto [vol_svg, sheet] = draw_volume(index, view, gctx);
 
             // The general volume display
-            if constexpr (!std::is_same_v<view_t, actsvg::views::z_phi>) {
+            if constexpr (!std::is_same<view_t, actsvg::views::z_phi>::value ) {
                 vol_group.add_object(vol_svg);
             }
             sheets.push_back(std::move(sheet));
@@ -386,7 +386,7 @@ class illustrator {
         auto det_svg =
             actsvg::display::detector(std::move(id), p_detector, view);
 
-        if constexpr (std::is_same_v<view_t, actsvg::views::z_r>) {
+        if constexpr (std::is_same<view_t, actsvg::views::z_r>::value ) {
             if (!_hide_eta_lines) {
 
                 auto p_eta_lines = svgtools::meta::proto::eta_lines{};

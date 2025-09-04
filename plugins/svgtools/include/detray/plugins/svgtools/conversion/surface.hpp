@@ -70,8 +70,8 @@ auto inline surface(const transform_t& transform, const mask_t& m) {
 
 /// @brief Returns the proto surface for 2D cylinders.
 template <typename transform_t, typename shape_t,
-          std::enable_if_t<std::is_same_v<shape_t, cylinder2D> ||
-                               std::is_same_v<shape_t, concentric_cylinder2D>,
+          std::enable_if_t<std::is_same<shape_t, cylinder2D>::value  ||
+                               std::is_same<shape_t, concentric_cylinder2D>::value ,
                            bool> = true>
 auto inline surface(const transform_t& transform, const mask<shape_t>& m) {
 
@@ -186,6 +186,7 @@ namespace {
 /// @brief A functor to set the proto surfaces type and bounds to be equivalent
 /// to the mask.
 struct surface_converter {
+#ifndef DETRAY_COMPILE_VITIS
     template <typename mask_group_t, typename index_t, typename transform_t>
     DETRAY_HOST inline auto operator()(const mask_group_t& mask_group,
                                        const index_t& index,
@@ -193,6 +194,7 @@ struct surface_converter {
 
         return svgtools::conversion::surface(transform, mask_group[index]);
     }
+#endif // DETRAY_COMPILE_VITIS
 };
 }  // namespace
 

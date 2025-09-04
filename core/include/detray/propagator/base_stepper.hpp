@@ -69,7 +69,7 @@ class base_stepper {
             : _bound_params(bound_params) {
 
             // Surface
-            const auto sf = tracking_surface{det, bound_params.surface_link()};
+            const auto sf = tracking_surface<decltype(det)>{det, bound_params.surface_link()};
 
             const typename detector_t::geometry_context ctx{};
             sf.template visit_mask<
@@ -183,15 +183,17 @@ class base_stepper {
         inline scalar_type path_length() const { return _path_length; }
 
         /// @returns the stepping inspector
+#ifndef DETRAY_COMPILE_VITIS
         DETRAY_HOST
         inline constexpr auto &inspector() { return _inspector; }
+#endif // DETRAY_COMPILE_VITIS
 
         /// Call the stepping inspector
         DETRAY_HOST_DEVICE
         inline void run_inspector([[maybe_unused]] const stepping::config &cfg,
                                   [[maybe_unused]] const char *message) {
-            if constexpr (not std::is_same_v<inspector_t,
-                                             stepping::void_inspector>) {
+            if constexpr (not std::is_same<inspector_t,
+                                             stepping::void_inspector>::value ) {
                 _inspector(*this, cfg, message);
             }
         }

@@ -126,8 +126,10 @@ struct pointer : public detray::ranges::pointer_view<const value_t> {
 
 // deduction guides
 
+#ifndef DETRAY_COMPILE_VITIS
 template <typename deduced_value_t>
 pointer(deduced_value_t&) -> pointer<deduced_value_t>;
+#endif // DETRAY_COMPILE_VITIS
 
 }  // namespace views
 
