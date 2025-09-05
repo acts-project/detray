@@ -65,7 +65,9 @@ inline std::string_view process_typename() {
     }()
 
 #else
-#define DETRAY_LOG(lvl, x)
+#define DETRAY_LOG(lvl, x) \
+    do {                   \
+    } while (0)
 #define DETRAY_TYPENAME(type)
 #endif
 
