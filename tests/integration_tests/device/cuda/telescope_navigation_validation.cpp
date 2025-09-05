@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
     // Navigation link consistency, discovered by ray intersection
     test::ray_scan<tel_detector_t>::config cfg_ray_scan{};
     cfg_ray_scan.name("telescope_detector_ray_scan_for_cuda");
-    cfg_ray_scan.track_generator().n_tracks(1000u);
+    cfg_ray_scan.track_generator().n_tracks(10000u);
     cfg_ray_scan.overlaps_tol(min_stepsize);
     // The first surface is at z=0, so shift the track origin back
     cfg_ray_scan.track_generator().origin(0.f, 0.f, -0.05f * unit<scalar>::mm);
@@ -97,7 +97,7 @@ int main(int argc, char **argv) {
     // Let the Newton algorithm dynamically choose tol. based on approx. error
     cfg_hel_scan.mask_tolerance({detray::detail::invalid_value<scalar>(),
                                  detray::detail::invalid_value<scalar>()});
-    cfg_hel_scan.track_generator().n_tracks(1000u);
+    cfg_hel_scan.track_generator().n_tracks(10000u);
     cfg_hel_scan.overlaps_tol(min_stepsize);
     cfg_hel_scan.track_generator().p_tot(10.f * unit<scalar>::GeV);
     cfg_hel_scan.track_generator().origin(0.f, 0.f, -0.05f * unit<scalar>::mm);

@@ -191,7 +191,7 @@ class material_scan : public test::fixture_base<> {
                     continue;
                 }
 
-                const auto &p = record.intersection.local;
+                const auto &p = record.intersection.local();
                 const auto mat_params = sf.template visit_material<
                     material_validator::get_material_params>(
                     point2_t{p[0], p[1]}, cos_angle(m_gctx, sf, ray.dir(), p));

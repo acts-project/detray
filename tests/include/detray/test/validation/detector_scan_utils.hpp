@@ -57,7 +57,7 @@ inline dindex_range overlaps_removal(record_container &intersection_records,
 
         // This record and the following are overlapping: Count until we reach
         // the end of the overlapping surfaces or end of trace
-        if (math::fabs(next_rec.intersection.path - rec.intersection.path) <
+        if (math::fabs(next_rec.intersection.path() - rec.intersection.path()) <
                 tol &&
             i != (n_rec - 2u)) {
             ++n_eq_intrs;
@@ -83,9 +83,10 @@ inline dindex_range overlaps_removal(record_container &intersection_records,
                 err_stream << "The following surfaces overlap at\n"
                            << "POS:\n"
                            << "glob: " << prev_rec.track_param.pos()
-                           << ", loc: " << prev_rec.intersection.local
+                           << ", loc: " << prev_rec.intersection.local()
                            << "\nvs.\nglob: " << rec.track_param.pos()
-                           << ", loc: " << rec.intersection.local << std::endl;
+                           << ", loc: " << rec.intersection.local()
+                           << std::endl;
                 err_stream << "SURFACES:\n -> " << prev_sf_desc << std::endl;
                 err_stream << " -> " << sf_desc << std::endl;
 
@@ -369,7 +370,7 @@ inline auto trace_intersections(const record_container &intersection_records,
         inline auto &volume_link() const {
             return entry.intersection.volume_link;
         }
-        inline auto &dist() const { return entry.intersection.path; }
+        inline auto dist() const { return entry.intersection.path(); }
         inline bool is_portal() const {
             return entry.intersection.sf_desc.is_portal();
         }

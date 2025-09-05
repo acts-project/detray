@@ -33,9 +33,9 @@ class direct_navigator {
     using context_type = detector_type::geometry_context;
     using algebra_type = typename detector_type::algebra_type;
     using scalar_type = dscalar<algebra_type>;
-    using intersection_type =
-        intersection2D<typename detector_t::surface_type,
-                       typename detector_t::algebra_type, false>;
+    using intersection_type = intersection2D<typename detector_t::surface_type,
+                                             typename detector_t::algebra_type,
+                                             !intersection::contains_pos>;
 
     class state : public detray::ranges::view_interface<state> {
 
@@ -73,7 +73,7 @@ class direct_navigator {
         /// @returns distance to next
         DETRAY_HOST_DEVICE
         scalar_type operator()() const {
-            return static_cast<scalar_type>(direction()) * target().path;
+            return static_cast<scalar_type>(direction()) * target().path();
         }
 
         /// @returns a pointer of detector
@@ -97,7 +97,30 @@ class direct_navigator {
         /// @returns current/previous object that was reached
         DETRAY_HOST_DEVICE
         inline auto current() const -> const candidate_t & {
+            assert(is_on_surface());
             return m_candidate_prev;
+        }
+
+        /// @returns true if the current candidate lies on the surface edge
+        DETRAY_HOST_DEVICE
+        inline bool is_edge_candidate() const {
+            assert(is_on_surface());
+            return current().is_edge();
+        }
+
+        /// @returns true if the current candidate lies on the surface
+        DETRAY_HOST_DEVICE
+        inline bool is_good_candidate() const {
+            assert(is_on_surface());
+            return current().is_inside();
+        }
+
+        /// @returns true if the current candidate lies on the surface,
+        /// inlcuding its edge
+        DETRAY_HOST_DEVICE
+        inline bool is_probably_candidate() const {
+            assert(is_on_surface());
+            return current().is_probably_inside();
         }
 
         /// @returns next object that we want to reach (current target) - const
@@ -126,7 +149,7 @@ class direct_navigator {
                 m_candidate.sf_desc = m_detector->surface(get_target_barcode());
                 m_candidate.volume_link =
                     detail::invalid_value<nav_link_type>();
-                m_candidate.path = std::numeric_limits<scalar_type>::max();
+                m_candidate.set_path(std::numeric_limits<scalar_type>::max());
                 set_volume(m_candidate.sf_desc.volume());
             }
         }
@@ -212,6 +235,14 @@ class direct_navigator {
             return m_direction;
         }
 
+        /// @returns the externally set mask tolerance - const
+        DETRAY_HOST_DEVICE
+        constexpr scalar_type external_tol() const { return 0.f; }
+
+        /// Set externally provided mask tolerance according to noise prediction
+        DETRAY_HOST_DEVICE
+        constexpr void set_external_tol(const scalar_type) { /* Do nothing */ }
+
         /// Helper method to check the track has reached a module surface
         DETRAY_HOST_DEVICE
         inline auto is_on_surface() const -> bool {
@@ -223,7 +254,7 @@ class direct_navigator {
         DETRAY_HOST_DEVICE inline auto is_on_surface(
             const intersection_type &candidate,
             const navigation::config &cfg) const -> bool {
-            return (math::fabs(candidate.path) < cfg.path_tolerance);
+            return (math::fabs(candidate.path()) < cfg.path_tolerance);
         }
 
         /// Helper method to check the track has encountered material
@@ -413,15 +444,16 @@ class direct_navigator {
                 darray<scalar_type, 2>{cfg.min_mask_tolerance,
                                        cfg.max_mask_tolerance},
                 static_cast<scalar_type>(cfg.mask_tolerance_scalor),
+                scalar_type{0.f},
                 static_cast<scalar_type>(cfg.overstep_tolerance));
 
         // If an intersection is not found, proceed the track with safe step
         // size
         if (!res) {
-            const auto path = navigation.target().path;
+            const auto path = navigation.target().path();
             navigation.update_candidate(false);
-            navigation.target().path =
-                math::copysign(navigation.safe_step_size, path);
+            navigation.target().set_path(
+                math::copysign(navigation.safe_step_size, path));
         }
     }
 };

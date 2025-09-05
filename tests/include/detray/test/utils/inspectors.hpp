@@ -16,6 +16,7 @@
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/math.hpp"
 #include "detray/navigation/detail/print_state.hpp"
+#include "detray/navigation/intersection/intersection.hpp"
 #include "detray/navigation/navigation_config.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/base_stepper.hpp"

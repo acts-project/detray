@@ -57,7 +57,8 @@ inline auto read_intersection2D(const std::string &file_name) {
     using mask_id_t = typename detector_t::masks::id;
     using material_id_t = typename detector_t::materials::id;
 
-    using intersection_t = detray::intersection2D<surface_t, algebra_t, true>;
+    using intersection_t = detray::intersection2D<surface_t, algebra_t,
+                                                  intersection::contains_pos>;
 
     dfe::NamedTupleCsvReader<io::csv::intersection2D> inters_reader(file_name);
 
@@ -91,12 +92,13 @@ inline auto read_intersection2D(const std::string &file_name) {
         inters.sf_desc = {inters_data.transform_index, mask_link, material_link,
                           dindex_invalid, surface_id::e_unknown};
         inters.sf_desc.set_barcode(geometry::barcode{inters_data.identifier});
-        inters.local = {static_cast<scalar_t>(inters_data.loc_0),
-                        static_cast<scalar_t>(inters_data.loc_1), 0.f};
-        inters.path = static_cast<scalar_t>(inters_data.path);
+        inters.set_local({static_cast<scalar_t>(inters_data.loc_0),
+                          static_cast<scalar_t>(inters_data.loc_1), 0.f});
+        inters.set_path(static_cast<scalar_t>(inters_data.path));
         inters.volume_link = static_cast<nav_link_t>(inters_data.volume_link);
         inters.direction = static_cast<bool>(inters_data.direction);
-        inters.status = static_cast<bool>(inters_data.status);
+        inters.set_status(
+            static_cast<intersection::status>(inters_data.status));
 
         // Add to collection
         intersections_per_track[trk_index].push_back(inters);
@@ -165,9 +167,9 @@ inline void write_intersection2D(
             inters_data.material_id =
                 static_cast<unsigned int>(inters.sf_desc.material().id());
             inters_data.material_index = inters.sf_desc.material().index();
-            inters_data.loc_0 = inters.local[0];
-            inters_data.loc_1 = inters.local[1];
-            inters_data.path = inters.path;
+            inters_data.loc_0 = inters.local()[0];
+            inters_data.loc_1 = inters.local()[1];
+            inters_data.path = inters.path();
             inters_data.volume_link = inters.volume_link;
             inters_data.direction = static_cast<int>(inters.direction);
             inters_data.status = static_cast<int>(inters.status);

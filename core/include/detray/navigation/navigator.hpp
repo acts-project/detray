@@ -27,7 +27,7 @@ namespace detray {
 
 namespace navigation {
 
-static constexpr std::size_t default_cache_size{10u};
+static constexpr std::size_t default_cache_size{8u};
 
 /// A void inpector that does nothing.
 ///
@@ -91,9 +91,9 @@ struct void_inspector {
 template <typename detector_t,
           std::size_t k_cache_capacity = navigation::default_cache_size,
           typename inspector_t = navigation::void_inspector,
-          typename intersection_t =
-              intersection2D<typename detector_t::surface_type,
-                             typename detector_t::algebra_type, false>>
+          typename intersection_t = intersection2D<
+              typename detector_t::surface_type,
+              typename detector_t::algebra_type, !intersection::contains_pos>>
 class navigator {
 
     static_assert(k_cache_capacity >= 2u,
@@ -122,7 +122,7 @@ class navigator {
     /// towards the navigation. The navigator is responsible for updating the
     /// elements in the state's cache with every navigation call, establishing
     /// 'full trust' after changes to the track state reduced the trust level.
-    class state : public detray::ranges::view_interface<state> {
+    class alignas(128) state : public detray::ranges::view_interface<state> {
 
         friend class navigator;
 
@@ -203,6 +203,28 @@ class navigator {
             return m_candidates[curr_idx];
         }
 
+        /// @returns true if the current candidate lies on the surface edge
+        DETRAY_HOST_DEVICE
+        inline bool is_edge_candidate() const {
+            assert(is_on_surface());
+            return current().is_edge();
+        }
+
+        /// @returns true if the current candidate lies on the surface
+        DETRAY_HOST_DEVICE
+        inline bool is_good_candidate() const {
+            assert(is_on_surface());
+            return current().is_inside();
+        }
+
+        /// @returns true if the current candidate lies on the surface,
+        /// inlcuding its edge
+        DETRAY_HOST_DEVICE
+        inline bool is_probably_candidate() const {
+            assert(is_on_surface());
+            return current().is_probably_inside();
+        }
+
         /// @returns next object that we want to reach (target) - const
         DETRAY_HOST_DEVICE
         inline auto target() const -> const candidate_t & {
@@ -223,8 +245,8 @@ class navigator {
         /// @returns distance to next
         DETRAY_HOST_DEVICE
         scalar_type operator()() const {
-            assert(math::isfinite(target().path));
-            return static_cast<scalar_type>(direction()) * target().path;
+            assert(math::isfinite(target().path()));
+            return static_cast<scalar_type>(direction()) * target().path();
         }
 
         /// @returns current volume (index) - const
@@ -285,6 +307,18 @@ class navigator {
         inline void set_direction(const navigation::direction dir) {
             m_direction = dir;
             set_no_trust();
+        }
+
+        /// @returns the externally provided mask tolerance - const
+        DETRAY_HOST_DEVICE
+        constexpr scalar_type external_tol() const {
+            return m_external_mask_tol;
+        }
+
+        /// Set externally provided mask tolerance according to noise prediction
+        DETRAY_HOST_DEVICE
+        constexpr void set_external_tol(const scalar_type tol) {
+            m_external_mask_tol = tol;
         }
 
         /// @returns navigation trust level - const
@@ -480,7 +514,7 @@ class navigator {
         DETRAY_HOST_DEVICE inline auto is_on_surface(
             const intersection_type &candidate,
             const navigation::config &cfg) const -> bool {
-            return (math::fabs(candidate.path) < cfg.path_tolerance);
+            return (math::fabs(candidate.path()) < cfg.path_tolerance);
         }
 
         /// @returns currently cached candidates
@@ -588,7 +622,8 @@ class navigator {
         inline void clear() {
             // Mark all data in the cache as unreachable
             for (std::size_t i = 0u; i < k_cache_capacity; ++i) {
-                m_candidates[i].path = std::numeric_limits<scalar_type>::max();
+                m_candidates[i].set_path(
+                    std::numeric_limits<scalar_type>::max());
             }
             m_next = 0;
             m_last = -1;
@@ -627,17 +662,6 @@ class navigator {
         /// Detector pointer
         const detector_type *m_detector{nullptr};
 
-        /// Index in the detector volume container of current navigation volume
-        nav_link_type m_volume_index{0u};
-
-        /// The next best candidate (target): m_next <= m_last + 1.
-        /// m_next can be larger than m_last when the cache is exhausted
-        dist_t m_next{0};
-
-        /// The last reachable candidate: m_last < k_cache_capacity
-        /// Can never be advanced beyond the last element
-        dist_t m_last{-1};
-
         /// The navigation status
         navigation::status m_status{navigation::status::e_unknown};
 
@@ -651,6 +675,20 @@ class navigator {
 
         /// Heartbeat of this navigation flow signals navigation is alive
         bool m_heartbeat{false};
+
+        /// External mask tolerance, that models noise during track transport
+        scalar_type m_external_mask_tol{0.f * unit<scalar_type>::mm};
+
+        /// The next best candidate (target): m_next <= m_last + 1.
+        /// m_next can be larger than m_last when the cache is exhausted
+        dist_t m_next{0};
+
+        /// The last reachable candidate: m_last < k_cache_capacity
+        /// Can never be advanced beyond the last element
+        dist_t m_last{-1};
+
+        /// Index in the detector volume container of current navigation volume
+        nav_link_type m_volume_index{0u};
 
         /// The inspector type of this navigation engine
         [[no_unique_address]] inspector_type m_inspector;
@@ -681,7 +719,8 @@ class navigator {
                         track.dir()),
                 sf_descr, det.transform_store(), ctx,
                 sf.is_portal() ? darray<scalar_type, 2>{0.f, 0.f} : mask_tol,
-                mask_tol_scalor, overstep_tol);
+                mask_tol_scalor,
+                sf.is_portal() ? 0.f : nav_state.external_tol(), overstep_tol);
         }
     };
 
@@ -870,7 +909,8 @@ class navigator {
         if (navigation.trust_level() == navigation::trust_level::e_high) {
             // Update next candidate: If not reachable, 'high trust' is broken
             if (!update_candidate(navigation.direction(), navigation.target(),
-                                  track, det, cfg, ctx)) {
+                                  track, det, cfg, navigation.external_tol(),
+                                  ctx)) {
                 navigation.m_status = navigation::status::e_unknown;
                 navigation.set_fair_trust();
             } else {
@@ -894,7 +934,7 @@ class navigator {
                 // Ready the next candidate after the current module
                 if (update_candidate(navigation.direction(),
                                      navigation.target(), track, det, cfg,
-                                     ctx)) {
+                                     navigation.external_tol(), ctx)) {
                     return false;
                 }
 
@@ -913,9 +953,10 @@ class navigator {
             for (auto &candidate : navigation) {
                 // Disregard this candidate if it is not reachable
                 if (!update_candidate(navigation.direction(), candidate, track,
-                                      det, cfg, ctx)) {
+                                      det, cfg, navigation.external_tol(),
+                                      ctx)) {
                     // Forcefully set dist to numeric max for sorting
-                    candidate.path = std::numeric_limits<scalar_type>::max();
+                    candidate.set_path(std::numeric_limits<scalar_type>::max());
                 }
             }
             detray::sequential_sort(navigation.begin(), navigation.end());
@@ -1001,7 +1042,9 @@ class navigator {
     DETRAY_HOST_DEVICE inline bool update_candidate(
         const navigation::direction nav_dir, intersection_type &candidate,
         const track_t &track, const detector_type &det,
-        const navigation::config &cfg, const context_type &ctx) const {
+        const navigation::config &cfg,
+        const scalar_type external_mask_tolerance,
+        const context_type &ctx) const {
 
         if (candidate.sf_desc.barcode().is_invalid()) {
             return false;
@@ -1018,6 +1061,7 @@ class navigator {
                            : darray<scalar_type, 2>{cfg.min_mask_tolerance,
                                                     cfg.max_mask_tolerance},
             static_cast<scalar_type>(cfg.mask_tolerance_scalor),
+            sf.is_portal() ? 0.f : external_mask_tolerance,
             static_cast<scalar_type>(cfg.overstep_tolerance));
     }
 
@@ -1030,7 +1074,7 @@ class navigator {
         typename state::candidate_cache_t &candidates) const {
         // Depends on previous invalidation of unreachable candidates!
         auto not_reachable = [](const intersection_type &candidate) {
-            return candidate.path == std::numeric_limits<scalar_type>::max();
+            return candidate.path() == std::numeric_limits<scalar_type>::max();
         };
 
         return detray::find_if(candidates.begin(), candidates.end(),

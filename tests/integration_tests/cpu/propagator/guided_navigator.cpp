@@ -55,7 +55,8 @@ GTEST_TEST(detray_navigation, guided_navigator) {
     // Inspectors are optional, of course
     using detector_t = decltype(telescope_det);
     using intersection_t =
-        intersection2D<typename detector_t::surface_type, test_algebra>;
+        intersection2D<typename detector_t::surface_type, test_algebra,
+                       intersection::contains_pos>;
     using object_tracer_t =
         object_tracer<intersection_t, dvector, status::e_on_portal,
                       status::e_on_module>;
@@ -65,7 +66,8 @@ GTEST_TEST(detray_navigation, guided_navigator) {
         rk_stepper<b_field_t::view_t, test_algebra, unconstrained_step<scalar>,
                    guided_navigation>;
     using guided_navigator =
-        navigator<detector_t, navigation::default_cache_size, inspector_t>;
+        navigator<detector_t, navigation::default_cache_size, inspector_t,
+                  intersection_t>;
     using pathlimit_aborter_t = pathlimit_aborter<scalar>;
     using actor_chain_t = actor_chain<pathlimit_aborter_t>;
     using propagator_t =
