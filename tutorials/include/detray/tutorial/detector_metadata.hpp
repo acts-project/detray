@@ -75,6 +75,24 @@ struct my_metadata {
         e_portal_rectangle2 = 2u
     };
 
+    friend std::ostream& operator<<(std::ostream& os, const mask_ids& id) {
+        switch (id) {
+            case mask_ids::e_square2:
+                os << "e_square2";
+                break;
+            case mask_ids::e_trapezoid2:
+                os << "e_trapezoid2";
+                break;
+            case mask_ids::e_portal_rectangle2:
+                os << "e_portal_rectangle2";
+                break;
+            default:
+                os << "Unknown mask_id";
+                break;
+        }
+        return os;
+    }
+
     /// This is the mask collections tuple (in the detector called 'mask store')
     /// the @c regular_multi_store is a vecemem-ready tuple of vectors of
     /// the detector masks.
@@ -97,6 +115,21 @@ struct my_metadata {
         e_none = 1u,
     };
 
+    friend std::ostream& operator<<(std::ostream& os, const material_ids& id) {
+        switch (id) {
+            case material_ids::e_slab:
+                os << "e_slab";
+                break;
+            case material_ids::e_none:
+                os << "e_none";
+                break;
+            default:
+                os << "Unknown material_id";
+                break;
+        }
+        return os;
+    }
+
     /// How to store and link materials. The material does not make use of
     /// conditions data ( @c empty_context )
     template <typename container_t = host_container_types>
@@ -114,6 +147,21 @@ struct my_metadata {
         e_brute_force = 0u,  //< test all surfaces in a volume (brute force)
         e_default = e_brute_force,
     };
+
+    friend std::ostream& operator<<(std::ostream& os, const accel_ids& id) {
+        switch (id) {
+            case accel_ids::e_brute_force:
+                os << "e_brute_force";
+                break;
+            case accel_ids::e_default:
+                os << "e_default";
+                break;
+            default:
+                os << "Unknown accel_id";
+                break;
+        }
+        return os;
+    }
 
     /// Surface descriptor type used for sensitives, passives and portals
     /// It holds the indices to the surface data in the detector data stores
