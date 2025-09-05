@@ -248,9 +248,9 @@ class grid_reader {
         detector_builder<typename detector_t::metadata, volume_builder>
             &det_builder) {
 
-        using grid_io_id_t = grid_payload<content_t>::grid_type;
         DETRAY_DEBUG("Build frame for grid of io id="
-                     << DETRAY_TYPENAME(grid_io_id_t) << ", dim=" << dim
+                     << DETRAY_TYPENAME(grid_payload<content_t>::grid_type)
+                     << ", dim=" << dim
                      << ", link=" << grid_data.second.grid_link.type);
 
         using algebra_t = typename detector_t::algebra_type;
@@ -371,9 +371,9 @@ class grid_reader {
             "- binning: " << DETRAY_TYPENAME(types::list<binning_ts...>));
         DETRAY_DEBUG("- frame:   " << DETRAY_TYPENAME(local_frame_t));
         DETRAY_DEBUG("- bins:    " << DETRAY_TYPENAME(bin_t));
-        using axes_out_t =
-            types::list<axis::single_axis<bounds_ts, binning_ts>...>;
-        DETRAY_DEBUG("-> axes=" << DETRAY_TYPENAME(axes_out_t));
+        DETRAY_DEBUG(
+            "-> axes=" << DETRAY_TYPENAME(
+                (types::list<axis::single_axis<bounds_ts, binning_ts>...>)));
 
         using grid_t = grid<algebra_t, axes_t, bin_t, serializer_t>;
 
