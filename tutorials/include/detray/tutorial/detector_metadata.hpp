@@ -151,10 +151,7 @@ struct my_metadata {
     friend std::ostream& operator<<(std::ostream& os, const accel_ids& id) {
         switch (id) {
             case accel_ids::e_brute_force:
-                os << "e_brute_force";
-                break;
-            case accel_ids::e_default:
-                os << "e_default";
+                os << "e_brute_force/e_default";
                 break;
             default:
                 os << "Unknown accel_id";
