@@ -476,7 +476,7 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
     propagation::config direct_cfg{};
     direct_cfg.navigation.min_mask_tolerance = 1.f * unit<float>::mm;
     direct_cfg.navigation.max_mask_tolerance = 1.f * unit<float>::mm;
-    direct_cfg.navigation.overstep_tolerance = -15.f * unit<float>::mm;
+    direct_cfg.navigation.overstep_tolerance = -30.f * unit<float>::mm;
     propagator_t p{cfg};
     direct_propagator_t direct_p{direct_cfg};
 
@@ -666,6 +666,7 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
     propagation::config direct_cfg{};
     direct_cfg.navigation.min_mask_tolerance = 10.f * unit<float>::mm;
     direct_cfg.navigation.max_mask_tolerance = 10.f * unit<float>::mm;
+    direct_cfg.navigation.overstep_tolerance = -20.f * unit<float>::mm;
     propagator_t p{cfg};
     direct_propagator_t direct_p{direct_cfg};
 

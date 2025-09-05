@@ -151,7 +151,8 @@ inline auto record_propagation(
 
     /// Type that holds the intersection information
     using intersection_t =
-        intersection2D<typename detector_t::surface_type, algebra_t, true>;
+        intersection2D<typename detector_t::surface_type, algebra_t,
+                       intersection::contains_pos>;
 
     /// Inspector that records all encountered surfaces
     using object_tracer_t =
@@ -900,16 +901,16 @@ auto write_dist_to_boundary(
                 geometry::surface{det, missed_sfi.sf_desc.barcode()};
             const auto vol = tracking_volume{det, sf.volume()};
 
-            const auto dist =
-                sf.template visit_mask<min_dist_to_boundary>(missed_sfi.local);
+            const auto dist = sf.template visit_mask<min_dist_to_boundary>(
+                missed_sfi.local());
             const auto glob_pos = sf.local_to_global(
-                gctx, missed_sfi.local, track.dir(missed_sfi.path));
+                gctx, missed_sfi.local(), track.dir(missed_sfi.path()));
 
             *dist_file << i << "," << sf.volume() << ", " << vol.name(names)
                        << "," << vector::phi(glob_pos) << ", "
-                       << vector::eta(glob_pos) << "," << missed_sfi.path
+                       << vector::eta(glob_pos) << "," << missed_sfi.path()
                        << ", " << dist << ", " << std::boolalpha
-                       << sf.is_inside(missed_sfi.local, 0.f) << ", "
+                       << sf.is_inside(missed_sfi.local(), 0.f) << ", "
                        << static_cast<int>(sf.shape_id()) << std::endl;
         }
     }

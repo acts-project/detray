@@ -30,7 +30,8 @@ using test_algebra = test::algebra;
 using scalar = test::scalar;
 using transform3 = test::transform3;
 using vector3 = test::vector3;
-using intersection_t = intersection2D<surface_descriptor<>, test_algebra, true>;
+using intersection_t = intersection2D<surface_descriptor<>, test_algebra,
+                                      intersection::contains_pos>;
 
 // Mask types to be tested
 // @TODO: Remove unbounded tag
@@ -191,7 +192,7 @@ class detray_propagation_HelixCovarianceTransportValidation
         sfis.push_back(is);
 
         // Helical path length between two surfaces
-        const auto path_length = is.path;
+        const auto path_length = is.path();
 
         // Add the path length to the total path length
         total_path_length += path_length;

@@ -213,7 +213,7 @@ class endcap_generator final : public surface_factory_interface<detector_t> {
             for (const auto &bounds : m_cfg.module_bounds()) {
                 // Add an extra buffer, so that the trapezoid corners don't poke
                 // out of the cylinder portals
-                tot_length += 2.f * bounds[trapezoid2D::e_half_length_2] +
+                tot_length += 2.f * bounds.at(trapezoid2D::e_half_length_2) +
                               1.f * unit<scalar_t>::mm;
             }
 
@@ -229,7 +229,7 @@ class endcap_generator final : public surface_factory_interface<detector_t> {
 
             for (const auto &bounds : m_cfg.module_bounds()) {
                 const scalar_t mod_hlength{
-                    bounds[trapezoid2D::e_half_length_2]};
+                    bounds.at(trapezoid2D::e_half_length_2)};
                 // Calculate the radius
                 radii.push_back(prev_r + prev_hl - prev_ol + mod_hlength);
                 prev_r = radii.back();
@@ -252,12 +252,12 @@ class endcap_generator final : public surface_factory_interface<detector_t> {
 
             // Generate the ring module positions (observe phi stagger)
             const scalar_t sub_stagger{m_cfg.phi_sub_stagger().size() > 1u
-                                           ? m_cfg.phi_sub_stagger()[ir]
+                                           ? m_cfg.phi_sub_stagger().at(ir)
                                            : 0.f};
 
-            std::vector<point3_t> module_positions =
-                module_positions_ring(rz, radii[ir], m_cfg.phi_stagger()[ir],
-                                      sub_stagger, m_cfg.binning()[ir]);
+            std::vector<point3_t> module_positions = module_positions_ring(
+                rz, radii.at(ir), m_cfg.phi_stagger().at(ir), sub_stagger,
+                m_cfg.binning().at(ir));
 
             // Build the modules
             for (const point3_t &mod_position : module_positions) {
@@ -291,12 +291,12 @@ class endcap_generator final : public surface_factory_interface<detector_t> {
             }
 
             // Build the mask for this ring
-            std::vector<scalar_t> mask_values{m_cfg.module_bounds()[ir]};
+            std::vector<scalar_t> mask_values{m_cfg.module_bounds().at(ir)};
 
             // Precompute trapezoid divisor
             if constexpr (std::is_same_v<mask_shape_t, trapezoid2D>) {
                 const scalar_t div{
-                    1.f / (2.f * mask_values[trapezoid2D::e_half_length_2])};
+                    1.f / (2.f * mask_values.at(trapezoid2D::e_half_length_2))};
 
                 mask_values.insert(mask_values.begin() + trapezoid2D::e_divisor,
                                    div);
