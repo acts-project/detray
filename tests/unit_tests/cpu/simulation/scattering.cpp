@@ -74,13 +74,11 @@ GTEST_TEST(detray_simulation, scattering_helper) {
         angle_diffs.push_back(angle);
     }
 
-    const scalar mean = statistics::mean(angle_diffs);
-    EXPECT_NEAR(mean, 0.f, 1e-3f);
+    EXPECT_NEAR(statistics::mean(angle_diffs), 0.f, 1e-3f);
 
     // Tolerate upto 1% difference
-    const scalar rms = statistics::rms(angle_diffs, 0.f);
-    EXPECT_NEAR((std::sqrt(rms) - scattering_angle) / scattering_angle, 0.f,
-                1e-2f);
+    const scalar stddev = std::sqrt(statistics::rms(angle_diffs, 0.f));
+    EXPECT_NEAR((stddev - scattering_angle) / scattering_angle, 0.f, 1e-2f);
 }
 
 // Test angle update

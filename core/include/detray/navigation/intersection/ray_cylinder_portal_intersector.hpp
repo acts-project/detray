@@ -79,10 +79,11 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
         const mask_t &mask, const scalar_type overstep_tol = 0.f) const {
 
         const scalar_type r{mask[mask_t::shape::e_r]};
+        constexpr scalar_type inv{detail::invalid_value<dvalue<algebra_t>>()};
 
         const point3_type &ro = ray.pos();
         const vector3_type &rd = ray.dir();
-        scalar_type path{0.f};
+        scalar_type path{inv};
 
         const scalar_type rd_perp_2{rd[0] * rd[0] + rd[1] * rd[1]};
 
@@ -95,7 +96,8 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
         // ...otherwise, two solutions should exist, if the descriminator is
         // greater than zero
         const scalar_type ro_perp_2{ro[0] * ro[0] + ro[1] * ro[1]};
-        const scalar_type rad_diff{r * r - ro_perp_2};
+        // This leads to numerical instabilites in single precision on the GPU
+        const double rad_diff{r * r - ro_perp_2};
 
         // Only calculate the path, when not already on surface
         if (math::fabs(rad_diff) > 1.f * unit<scalar_type>::um) {
@@ -103,7 +105,8 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
             const scalar_type rd_perp_inv_2{1.f / rd_perp_2};
             const scalar_type k{-rd_perp_inv_2 *
                                 (ro[0] * rd[0] + ro[1] * rd[1])};
-            const scalar_type discr{rd_perp_inv_2 * rad_diff + k * k};
+            const auto discr{
+                static_cast<scalar_type>(rd_perp_inv_2 * rad_diff + k * k)};
 
             // No intersection found
             if (discr < 0.f) [[unlikely]] {
@@ -115,17 +118,23 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
             const scalar_type s2{k - sqrt_discr};
 
             // Take the nearest solution
-            path = (s1 < s2) ? s1 : s2;
+            path = (math::fabs(s1) < math::fabs(s2)) ? s1 : s2;
 
             // If the near solution is outside the overstepping tolerance, take
             // the far solution (if it exists)
-            if ((path < overstep_tol) && (discr > 0.f)) {
-                path = (s1 >= s2) ? s1 : s2;
+            if (path < overstep_tol && sqrt_discr > 0.f) {
+                path = (math::fabs(s1) >= math::fabs(s2)) ? s1 : s2;
             }
+        } else {
+            path = static_cast<scalar_type>(rad_diff);
+        }
+
+        if (path < overstep_tol) {
+            path = inv;
         }
 
         // Only need the global z-component for the mask check
-        return {path, point2_type{0.f, ro[2] + path * rd[2]}};
+        return {path, point2_type{inv, ro[2] + path * rd[2]}};
     }
 };
 

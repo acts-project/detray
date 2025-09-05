@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
     test::ray_scan<wire_chamber_t>::config cfg_ray_scan{};
     cfg_ray_scan.name("wire_chamber_ray_scan_for_cuda");
     cfg_ray_scan.track_generator().seed(42u);
-    cfg_ray_scan.track_generator().n_tracks(1000u);
+    cfg_ray_scan.track_generator().n_tracks(10000u);
     cfg_ray_scan.overlaps_tol(min_stepsize);
 
     test::register_checks<test::ray_scan>(det, names, cfg_ray_scan, ctx,
@@ -94,8 +94,14 @@ int main(int argc, char **argv) {
     // Let the Newton algorithm dynamically choose tol. based on approx. error
     cfg_hel_scan.mask_tolerance({detray::detail::invalid_value<scalar>(),
                                  detray::detail::invalid_value<scalar>()});
-    cfg_hel_scan.track_generator().n_tracks(1000u);
+    // Run only 1000 track in double precision in the CI (time limit)
+    if constexpr (std::same_as<scalar, double>) {
+        cfg_hel_scan.track_generator().n_tracks(1000u);
+    } else {
+        cfg_hel_scan.track_generator().n_tracks(10000u);
+    }
     cfg_hel_scan.overlaps_tol(min_stepsize);
+    cfg_hel_scan.track_generator().randomize_charge(true);
     cfg_hel_scan.track_generator().eta_range(-1.f, 1.f);
     // TODO: Fails for smaller momenta
     cfg_hel_scan.track_generator().p_T(4.f * unit<scalar>::GeV);
