@@ -123,19 +123,20 @@ void BM_GRID_REGULAR_BIN_CAP1(benchmark::State &state) {
     vecmem::host_memory_resource host_mr;
     auto g2r = make_regular_grid<bins::single<dindex>>(host_mr);
     populate_grid<replace<>>(g2r);
+    spatial_grid_impl g2r_acc{std::move(g2r)};
 
     // Prepare test points
     auto points = make_random_points();
 
     for (auto _ : state) {
         for (const auto &p : points) {
-            benchmark::DoNotOptimize(g2r.search(p).value());
+            benchmark::DoNotOptimize(g2r_acc.search(p).value());
         }
     }
 
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
     std::cout << "BM_GRID_REGULAR_BIN_CAP1:" << std::endl;
-    std::cout << g2r.search(p).value() << std::endl;
+    std::cout << g2r_acc.search(p).value() << std::endl;
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 
@@ -146,12 +147,13 @@ void BM_GRID_REGULAR_BIN_CAP4(benchmark::State &state) {
     vecmem::host_memory_resource host_mr;
     auto g2r = make_regular_grid<bins::static_array<dindex, 4>>(host_mr);
     populate_grid<complete<>>(g2r);
+    spatial_grid_impl g2r_acc{std::move(g2r)};
 
     auto points = make_random_points();
 
     for (auto _ : state) {
         for (const auto &p : points) {
-            for (dindex entry : g2r.search(p)) {
+            for (dindex entry : g2r_acc.search(p)) {
                 benchmark::DoNotOptimize(entry);
             }
         }
@@ -160,7 +162,7 @@ void BM_GRID_REGULAR_BIN_CAP4(benchmark::State &state) {
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
     std::cout << "BM_GRID_REGULAR_BIN_CAP4:" << std::endl;
     std::size_t count{0u};
-    for (const dindex entry : g2r.search(tp)) {
+    for (const dindex entry : g2r_acc.search(tp)) {
         std::cout << entry << ", ";
         ++count;
     }
@@ -175,12 +177,13 @@ void BM_GRID_REGULAR_BIN_CAP25(benchmark::State &state) {
     vecmem::host_memory_resource host_mr;
     auto g2r = make_regular_grid<bins::static_array<dindex, 25>>(host_mr);
     populate_grid<complete<>>(g2r);
+    spatial_grid_impl g2r_acc{std::move(g2r)};
 
     auto points = make_random_points();
 
     for (auto _ : state) {
         for (const auto &p : points) {
-            for (dindex entry : g2r.search(p)) {
+            for (dindex entry : g2r_acc.search(p)) {
                 benchmark::DoNotOptimize(entry);
             }
         }
@@ -189,7 +192,7 @@ void BM_GRID_REGULAR_BIN_CAP25(benchmark::State &state) {
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
     std::cout << "BM_GRID_REGULAR_BIN_CAP25:" << std::endl;
     std::size_t count{0u};
-    for (const dindex entry : g2r.search(tp)) {
+    for (const dindex entry : g2r_acc.search(tp)) {
         std::cout << entry << ", ";
         ++count;
     }
@@ -204,12 +207,13 @@ void BM_GRID_REGULAR_BIN_CAP100(benchmark::State &state) {
     vecmem::host_memory_resource host_mr;
     auto g2r = make_regular_grid<bins::static_array<dindex, 100>>(host_mr);
     populate_grid<complete<>>(g2r);
+    spatial_grid_impl g2r_acc{std::move(g2r)};
 
     auto points = make_random_points();
 
     for (auto _ : state) {
         for (const auto &p : points) {
-            for (dindex entry : g2r.search(p)) {
+            for (dindex entry : g2r_acc.search(p)) {
                 benchmark::DoNotOptimize(entry);
             }
         }
@@ -218,7 +222,7 @@ void BM_GRID_REGULAR_BIN_CAP100(benchmark::State &state) {
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
     std::cout << "BM_GRID_REGULAR_BIN_CAP100:" << std::endl;
     std::size_t count{0u};
-    for (const dindex entry : g2r.search(tp)) {
+    for (const dindex entry : g2r_acc.search(tp)) {
         std::cout << entry << ", ";
         ++count;
     }
@@ -232,6 +236,7 @@ void BM_GRID_REGULAR_NEIGHBOR_CAP1(benchmark::State &state) {
     vecmem::host_memory_resource host_mr;
     auto g2r = make_regular_grid<bins::single<dindex>>(host_mr);
     populate_grid<replace<>>(g2r);
+    spatial_grid_impl g2r_acc{std::move(g2r)};
 
     auto points = make_random_points();
 
@@ -240,7 +245,7 @@ void BM_GRID_REGULAR_NEIGHBOR_CAP1(benchmark::State &state) {
 
     for (auto _ : state) {
         for (const auto &p : points) {
-            for (dindex entry : g2r.search(p, window)) {
+            for (dindex entry : g2r_acc.search(p, window)) {
                 benchmark::DoNotOptimize(entry);
             }
         }
@@ -249,7 +254,7 @@ void BM_GRID_REGULAR_NEIGHBOR_CAP1(benchmark::State &state) {
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
     std::cout << "BM_GRID_REGULAR_NEIGHBOR_CAP1:" << std::endl;
     std::size_t count{0u};
-    for (const dindex entry : g2r.search(tp, window)) {
+    for (const dindex entry : g2r_acc.search(tp, window)) {
         std::cout << entry << ", ";
         ++count;
     }
@@ -263,6 +268,7 @@ void BM_GRID_REGULAR_NEIGHBOR_CAP4(benchmark::State &state) {
     vecmem::host_memory_resource host_mr;
     auto g2r = make_regular_grid<bins::static_array<dindex, 4>>(host_mr);
     populate_grid<complete<>>(g2r);
+    spatial_grid_impl g2r_acc{std::move(g2r)};
 
     auto points = make_random_points();
 
@@ -271,7 +277,7 @@ void BM_GRID_REGULAR_NEIGHBOR_CAP4(benchmark::State &state) {
 
     for (auto _ : state) {
         for (const auto &p : points) {
-            for (dindex entry : g2r.search(p, window)) {
+            for (dindex entry : g2r_acc.search(p, window)) {
                 benchmark::DoNotOptimize(entry);
             }
         }
@@ -280,7 +286,7 @@ void BM_GRID_REGULAR_NEIGHBOR_CAP4(benchmark::State &state) {
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
     std::cout << "BM_GRID_REGULAR_NEIGHBOR_CAP4:" << std::endl;
     std::size_t count{0u};
-    for (const dindex entry : g2r.search(tp, window)) {
+    for (const dindex entry : g2r_acc.search(tp, window)) {
         std::cout << entry << ", ";
         ++count;
     }
@@ -295,18 +301,19 @@ void BM_GRID_IRREGULAR_BIN_CAP1(benchmark::State &state) {
     vecmem::host_memory_resource host_mr;
     auto g2irr = make_irregular_grid<bins::single<dindex>>(host_mr);
     populate_grid<replace<>>(g2irr);
+    spatial_grid_impl g2irr_acc{std::move(g2irr)};
 
     auto points = make_random_points();
 
     for (auto _ : state) {
         for (const auto &p : points) {
-            benchmark::DoNotOptimize(g2irr.search(p).value());
+            benchmark::DoNotOptimize(g2irr_acc.search(p).value());
         }
     }
 
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
     std::cout << "BM_GRID_IRREGULAR_BIN_CAP1:" << std::endl;
-    std::cout << g2irr.search(tp).value() << std::endl;
+    std::cout << g2irr_acc.search(tp).value() << std::endl;
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 
@@ -316,6 +323,7 @@ void BM_GRID_IRREGULAR_NEIGHBOR_CAP1(benchmark::State &state) {
     vecmem::host_memory_resource host_mr;
     auto g2irr = make_irregular_grid<bins::single<dindex>>(host_mr);
     populate_grid<replace<>>(g2irr);
+    spatial_grid_impl g2irr_acc{std::move(g2irr)};
 
     auto points = make_random_points();
 
@@ -324,7 +332,7 @@ void BM_GRID_IRREGULAR_NEIGHBOR_CAP1(benchmark::State &state) {
 
     for (auto _ : state) {
         for (const auto &p : points) {
-            for (dindex entry : g2irr.search(p, window)) {
+            for (dindex entry : g2irr_acc.search(p, window)) {
                 benchmark::DoNotOptimize(entry);
             }
         }
@@ -333,7 +341,7 @@ void BM_GRID_IRREGULAR_NEIGHBOR_CAP1(benchmark::State &state) {
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
     std::cout << "BM_GRID_IRREGULAR_NEIGHBOR_CAP1:" << std::endl;
     std::size_t count{0u};
-    for (const dindex entry : g2irr.search(tp, window)) {
+    for (const dindex entry : g2irr_acc.search(tp, window)) {
         std::cout << entry << ", ";
         ++count;
     }

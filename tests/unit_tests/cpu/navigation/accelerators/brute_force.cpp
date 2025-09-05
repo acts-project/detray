@@ -6,8 +6,9 @@
  */
 
 // Detray include(s)
-#include "detray/navigation/accelerators/brute_force_finder.hpp"
+#include "detray/navigation/accelerators/brute_force.hpp"
 
+#include "detray/navigation/accelerators/concepts.hpp"
 #include "detray/tracks/ray.hpp"
 
 // Detray test include(s)
@@ -39,14 +40,21 @@ struct neighbor_visit_test {
     DETRAY_HOST_DEVICE void operator()(const surfaces_descriptor_t& sf,
                                        const dindex test_vol_idx) const {
         EXPECT_EQ(sf.volume(), test_vol_idx)
-            << " surface barcode: " << sf.barcode();
+            << " surface barcode found: " << sf.barcode();
+    }
+
+    /// Test the volume links
+    DETRAY_HOST_DEVICE void operator()(const dindex& vol_index,
+                                       const dindex test_vol_idx) const {
+        EXPECT_EQ(vol_index, test_vol_idx)
+            << " volume index found: " << vol_index;
     }
 };
 
 }  // anonymous namespace
 
 /// Test retrieval of surface from collection using brute force searching
-GTEST_TEST(detray_navigation, brute_force_collection) {
+GTEST_TEST(detray_acceleration_structures, brute_force_collection) {
 
     // Where to place the surfaces
     dvector<scalar> distances1{0.f, 10.0f, 20.0f, 40.0f, 80.0f, 100.0f};
@@ -62,8 +70,13 @@ GTEST_TEST(detray_navigation, brute_force_collection) {
     auto [surfaces3, transforms3] =
         test::planes_along_direction(distances3, direction);
 
-    brute_force_collection<typename decltype(surfaces1)::value_type>
-        sf_collection(&host_mr);
+    using brute_force_coll_t =
+        brute_force_collection<typename decltype(surfaces1)::value_type>;
+
+    brute_force_coll_t sf_collection(&host_mr);
+
+    static_assert(
+        concepts::surface_accelerator<typename brute_force_coll_t::value_type>);
 
     // Check a few basics
     ASSERT_TRUE(sf_collection.empty());
@@ -99,17 +112,17 @@ GTEST_TEST(detray_navigation, brute_force_collection) {
 
 /// Integration test for the retrieval of surfaces in a volume during local
 /// navigation
-GTEST_TEST(detray_navigation, brute_force_search) {
+GTEST_TEST(detray_acceleration_structures, brute_force_search) {
 
     const auto [det, names] = build_toy_detector<test::algebra>(host_mr);
 
     using detector_t = decltype(det);
     using context_t = detector_t::geometry_context;
+    using object_id = typename detector_t::volume_type::object_id;
+
     context_t ctx{};
 
-    struct navigation_cfg {
-        std::array<dindex, 2> search_window;
-    };
+    constexpr detray::search_window<dindex, 2> win_size{0u, 0u};
 
     // Now run a brute force surface search in the first barrel layer
     dindex test_vol_idx{7UL};
@@ -119,6 +132,6 @@ GTEST_TEST(detray_navigation, brute_force_search) {
     detail::ray<typename detector_t::algebra_type> trk({0.f, 0.f, 0.f}, 0.f,
                                                        {1.f, 0.f, 0.f}, -1.f);
 
-    vol.template visit_neighborhood<neighbor_visit_test>(trk, navigation_cfg{},
-                                                         ctx, test_vol_idx);
+    vol.template visit_neighborhood<object_id::e_portal, neighbor_visit_test>(
+        trk, win_size, ctx, test_vol_idx);
 }
