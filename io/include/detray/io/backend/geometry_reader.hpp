@@ -91,7 +91,7 @@ class geometry_reader {
             // Add the surfaces to the factories
             DETRAY_DEBUG("Adding "
                          << vol_data.surfaces.size()
-                         << " surfaces to portal and surface factories")
+                         << " surfaces to portal and surface factories");
             for (const auto& [sf_idx, sf_data] :
                  detray::views::enumerate(vol_data.surfaces)) {
 
