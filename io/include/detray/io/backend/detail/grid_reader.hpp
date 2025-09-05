@@ -351,23 +351,22 @@ class grid_reader {
         using bin_t =
             std::conditional_t<bin_capacity == 0, bins::dynamic_array<value_t>,
                                bins::static_array<value_t, bin_capacity>>;
-        auto print_bounds = [&] {
-            std::stringstream os;
-            std::size_t i = 0;
-            auto helper = [&os, &i]<typename T>(T /*arg*/) {
-                if (i > 0) {
-                    os << ", ";
-                }
-                i++;
-                os << T::type << "<" << T::label << ">";
-            };
-
-            (helper(bounds_ts{}), ...);
-            return os.str();
-        };
 
         DETRAY_DEBUG("Now building grid. Recap:");
-        DETRAY_DEBUG("- bounds:  [" << print_bounds() << "]");
+        DETRAY_DEBUG("- bounds:  [" << ([&] {
+                         std::stringstream os;
+                         std::size_t i = 0;
+                         auto helper = [&os, &i]<typename T>(T /*arg*/) {
+                             if (i > 0) {
+                                 os << ", ";
+                             }
+                             i++;
+                             os << T::type << "<" << T::label << ">";
+                         };
+
+                         (helper(bounds_ts{}), ...);
+                         return os.str();
+                     }()) << "]");
         DETRAY_DEBUG(
             "- binning: " << DETRAY_TYPENAME(types::list<binning_ts...>));
         DETRAY_DEBUG("- frame:   " << DETRAY_TYPENAME(local_frame_t));
