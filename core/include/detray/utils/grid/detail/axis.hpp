@@ -185,10 +185,9 @@ struct single_axis {
     DETRAY_HOST
     friend std::ostream &operator<<(std::ostream &os, const single_axis &ax) {
 
-        os << "label: " << static_cast<unsigned int>(ax.label()) << std::endl;
-        os << "bounds: " << static_cast<unsigned int>(ax.bounds()) << std::endl;
-        os << "binning: " << static_cast<unsigned int>(ax.binning())
-           << std::endl;
+        os << "label: " << ax.label() << std::endl;
+        os << "bounds: " << ax.bounds() << std::endl;
+        os << "binning: " << ax.binning() << std::endl;
         os << "n-bins: " << ax.nbins() << std::endl;
         os << "min: " << ax.min() << ", max: " << ax.max() << std::endl;
 

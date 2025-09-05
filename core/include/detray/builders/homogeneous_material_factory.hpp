@@ -13,6 +13,7 @@
 #include "detray/definitions/indexing.hpp"
 #include "detray/geometry/shapes/unmasked.hpp"
 #include "detray/materials/material.hpp"
+#include "detray/utils/log.hpp"
 #include "detray/utils/ranges.hpp"
 
 // System include(s)
@@ -20,6 +21,7 @@
 #include <cassert>
 #include <memory>
 #include <numeric>
+#include <ostream>
 #include <tuple>
 #include <type_traits>
 #include <vector>
@@ -123,6 +125,33 @@ class material_data {
         m_thickness.push_back(thickness);
     }
 
+    /// Output stream operator for material_data
+    DETRAY_HOST friend std::ostream &operator<<(std::ostream &os,
+                                                const material_data &mat_data) {
+        os << "material_data{sf_index: ";
+        if (detail::is_invalid_value(mat_data.m_sf_index)) {
+            os << "invalid";
+        } else {
+            os << mat_data.m_sf_index;
+        }
+        os << ", materials: [";
+        for (std::size_t i = 0; i < mat_data.m_mat.size(); ++i) {
+            if (i > 0) {
+                os << ", ";
+            }
+            os << mat_data.m_mat[i];
+        }
+        os << "], thickness: [";
+        for (std::size_t i = 0; i < mat_data.m_thickness.size(); ++i) {
+            if (i > 0) {
+                os << ", ";
+            }
+            os << mat_data.m_thickness[i];
+        }
+        os << "]}";
+        return os;
+    }
+
     private:
     /// Volume local index of the surface this material belongs to
     std::size_t m_sf_index{detail::invalid_value<std::size_t>()};
@@ -202,7 +231,13 @@ class homogeneous_material_factory final
         material_id id, material_data<scalar_type> &&mat_data,
         std::size_t index = detail::invalid_value<std::size_t>()) {
 
+        DETRAY_DEBUG("homogeneous_material_factory::add_material single");
+
         auto [sf_index, mat, thickness] = std::move(mat_data).get_data();
+
+        DETRAY_DEBUG("- sf_index=" << sf_index);
+        DETRAY_DEBUG("- mat=" << mat.at(0));
+        DETRAY_DEBUG("- thickness=" << thickness.at(0));
 
         // Only one homogeneous material slab/rod per surface
         assert(mat.size() == 1u);
@@ -219,6 +254,7 @@ class homogeneous_material_factory final
     DETRAY_HOST
     void add_material(material_id id,
                       std::vector<material_data<scalar_type>> &&mat_data_vec) {
+        DETRAY_DEBUG("homogeneous_material_factory::add_material multiple");
         // Read the material containers
         m_links.reserve(m_links.size() + mat_data_vec.size());
         m_materials.reserve(m_materials.size() + mat_data_vec.size());
@@ -256,12 +292,23 @@ class homogeneous_material_factory final
     DETRAY_HOST
     auto operator()(typename detector_t::surface_lookup_container &surfaces,
                     typename detector_t::material_container &materials) {
+        DETRAY_DEBUG("homogeneous_material_factory::operator()");
 
         using link_t = typename detector_t::surface_type::material_link;
+        DETRAY_DEBUG("Have " << m_materials.size() << " materials");
 
         if (m_materials.empty()) {
             return;
         }
+
+        DETRAY_DEBUG("- n_materials=" << n_materials());
+        DETRAY_DEBUG("links:");
+#if defined(DETRAY_ENABLE_LOGGING)
+        for (const auto &[i, link] : detray::views::enumerate(m_links)) {
+            DETRAY_DEBUG("- #" << i << ": " << link.first << " "
+                               << link.second);
+        }
+#endif
 
         // Check that the surfaces were set up correctly
         const std::size_t n_materials{this->n_materials()};
@@ -273,25 +320,34 @@ class homogeneous_material_factory final
             std::ranges::find(m_indices,
                               detail::invalid_value<std::size_t>()) !=
                 m_indices.end()) {
+            DETRAY_DEBUG("Indices were empty or invalid, recalculating");
             m_indices.resize(n_materials);
             std::iota(std::begin(m_indices), std::end(m_indices),
                       surfaces.size() - n_materials);
         }
+        DETRAY_DEBUG("Indices: " << DETRAY_LOG_VECTOR(m_indices));
 
         // Correctly index the data in this factory
         std::size_t sf_offset{*std::ranges::min_element(m_indices)};
 
+        DETRAY_DEBUG("sf_offset=" << sf_offset);
+
         // Add the material to the surfaces that the data links against
         for (auto [i, sf] : detray::views::pick(surfaces, m_indices)) {
             if (sf.material().id() < detector_t::materials::id::e_none) {
-                // This surface already has a material link, skip it in this
-                // factory
+                DETRAY_DEBUG("Surface descriptor already has a material link:"
+                             << sf.material().id()
+                             << " skipping configured homogeneous assignment");
                 continue;
             }
 
             std::size_t sf_idx{i - sf_offset};
             const material<scalar_type> &mat = m_materials.at(sf_idx);
             scalar_type t = m_thickness.at(sf_idx);
+
+            DETRAY_DEBUG("Adding: sf_idx=" << sf_idx << ", i=" << i
+                                           << ", sf=" << sf);
+            DETRAY_DEBUG("        mat=" << mat << " thickness=" << t);
 
             dindex mat_idx{0u};
             if (m_links.at(sf_idx).first == material_id::e_slab) {
@@ -312,11 +368,16 @@ class homogeneous_material_factory final
                                                         m_links[sf_idx].second);
                 }
             }
+            DETRAY_DEBUG("After insert: mat_idx=" << mat_idx);
+            link_t new_link{m_links[sf_idx].first, mat_idx};
+
+            auto &sf_desc = surfaces.at(static_cast<dindex>(i));
+            DETRAY_DEBUG("Existing link: " << sf_desc.material());
+            DETRAY_DEBUG("Setting new link: " << new_link);
 
             // Set the initial surface material link (will be updated when
             // added to the detector)
-            surfaces.at(static_cast<dindex>(i)).material() =
-                link_t{m_links[sf_idx].first, mat_idx};
+            sf_desc.material() = new_link;
         }
     }
 
