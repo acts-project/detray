@@ -49,7 +49,7 @@ struct intersection_point<algebra_t, point_t, !intersection::contains_pos> {
     /// @returns true if the data represents a valid intersection solution
     constexpr bool is_valid() const {
         constexpr auto inv_path{10.f * unit<dvalue<algebra_t>>::m};
-        return detray::detail::any_of(path < inv_path);
+        return detray::detail::any_of(math::fabs(path) < inv_path);
     }
 
     /// Transform to a string for output debugging
@@ -79,7 +79,7 @@ struct intersection_point<algebra_t, point_t, intersection::contains_pos>
     constexpr intersection_point() = default;
 
     DETRAY_HOST_DEVICE
-    constexpr intersection_point(const base_type ip) : base_type{ip} {}
+    explicit constexpr intersection_point(const base_type ip) : base_type{ip} {}
 
     DETRAY_HOST_DEVICE
     constexpr intersection_point(const scalar_type p, const point_type &pnt)
@@ -89,7 +89,7 @@ struct intersection_point<algebra_t, point_t, intersection::contains_pos>
     static consteval bool contains_pos() { return intersection::contains_pos; }
 
     /// Local position of the intersection on the surface
-    point_type point{};
+    point_type point{init_point()};
 
     /// Transform to a string for output debugging
     DETRAY_HOST
@@ -109,6 +109,21 @@ struct intersection_point<algebra_t, point_t, intersection::contains_pos>
         }
 
         return out_stream;
+    }
+
+    private:
+    /// Initiliaze points of different dimensionality correctly
+    DETRAY_HOST_DEVICE
+    constexpr point_t init_point() const {
+        constexpr auto inv{detail::invalid_value<dvalue<algebra_t>>()};
+        if constexpr (std::same_as<point_t, dpoint2D<algebra_t>>) {
+            return {inv, inv};
+        } else if constexpr (std::same_as<point_t, dpoint3D<algebra_t>>) {
+            return {inv, inv, inv};
+        } else {
+            assert(false);
+            return {};
+        }
     }
 };
 
@@ -133,17 +148,17 @@ struct intersection_point_err
     constexpr intersection_point_err() = default;
 
     DETRAY_HOST_DEVICE
-    constexpr intersection_point_err(const base_type &base_ip)
+    explicit constexpr intersection_point_err(const base_type &base_ip)
         : base_type{base_ip} {}
 
     DETRAY_HOST_DEVICE
-    constexpr intersection_point_err(
+    explicit constexpr intersection_point_err(
         const intersection_point<algebra_t, point3_type,
                                  !intersection::contains_pos> &ip)
         : base_type{ip.path, point3_type{inv, inv, inv}} {}
 
     DETRAY_HOST_DEVICE
-    constexpr intersection_point_err(
+    explicit constexpr intersection_point_err(
         const intersection_point<algebra_t, point2_type,
                                  !intersection::contains_pos> &ip)
         : base_type{ip.path, point3_type{inv, inv, inv}} {}

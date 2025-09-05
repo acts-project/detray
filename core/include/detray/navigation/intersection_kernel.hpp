@@ -69,15 +69,17 @@ struct intersection_initialize {
 
         constexpr std::uint8_t n_sol{decltype(intersector)::n_solutions};
 
-        typename decltype(intersector)::result_type result;
+        typename decltype(intersector)::result_type result{};
 
         if constexpr (concepts::cylindrical<mask_t>) {
-            std::size_t mask_idx;
+            std::size_t mask_idx{detail::invalid_value<std::size_t>()};
             if constexpr (concepts::interval<mask_range_t>) {
                 mask_idx = mask_range.lower();
             } else {
                 mask_idx = mask_range;
             }
+            assert(mask_idx < mask_group.size());
+
             result = intersector.point_of_intersection(
                 traj, ctf, mask_group[mask_idx], overstep_tol);
         } else {
@@ -194,15 +196,17 @@ struct intersection_update {
             intersector{};
         constexpr std::uint8_t n_sol{decltype(intersector)::n_solutions};
 
-        typename decltype(intersector)::result_type result;
+        typename decltype(intersector)::result_type result{};
 
         if constexpr (concepts::cylindrical<mask_t>) {
-            std::size_t mask_idx;
+            std::size_t mask_idx{detail::invalid_value<std::size_t>()};
             if constexpr (concepts::interval<mask_range_t>) {
                 mask_idx = mask_range.lower();
             } else {
                 mask_idx = mask_range;
             }
+            assert(mask_idx < mask_group.size());
+
             result = intersector.point_of_intersection(
                 traj, ctf, mask_group[mask_idx], overstep_tol);
         } else {
