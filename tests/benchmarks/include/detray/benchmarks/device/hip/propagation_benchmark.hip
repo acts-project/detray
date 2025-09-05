@@ -77,9 +77,8 @@ typename propagator_t::actor_chain_type::state_tuple *setup_actor_states(
         hipMalloc((void **)&device_actor_state_ptr, sizeof(actor_state_t));
     assert(success == hipSuccess);
 
-
     success = hipMemcpy(device_actor_state_ptr, input_actor_states,
-                         sizeof(actor_state_t), hipMemcpyHostToDevice);
+                        sizeof(actor_state_t), hipMemcpyHostToDevice);
     assert(success == hipSuccess);
 
     return device_actor_state_ptr;
@@ -108,9 +107,9 @@ void run_propagation_kernel(
     int block_dim = (n_samples + thread_dim - 1) / thread_dim;
 
     // run the test kernel
-    hipLaunchKernelGGL((propagator_benchmark_kernel<propagator_t, kOPT>), dim3(block_dim), dim3(thread_dim),0,0 ,
-        cfg, det_view, field_view, device_actor_state_ptr, tracks_view);
-
+    hipLaunchKernelGGL((propagator_benchmark_kernel<propagator_t, kOPT>),
+                       dim3(block_dim), dim3(thread_dim), 0, 0, cfg, det_view,
+                       field_view, device_actor_state_ptr, tracks_view);
 
     // hip error check
     DETRAY_HIP_ERROR_CHECK(hipGetLastError());
@@ -118,28 +117,28 @@ void run_propagation_kernel(
 }
 
 /// Macro declaring the template instantiations for the different detector types
-#define DECLARE_PROPAGATION_BENCHMARK(METADATA, CHAIN, FIELD, OPT)             \
-                                                                               \
-    template void                                                              \
+#define DECLARE_PROPAGATION_BENCHMARK(METADATA, CHAIN, FIELD, OPT)            \
+                                                                              \
+    template void                                                             \
     run_propagation_kernel<hip_propagator_type<METADATA, FIELD, CHAIN>, OPT>( \
-        const propagation::config &, detector<METADATA>::view_type,            \
-        covfie::field_view<FIELD>,                                             \
+        const propagation::config &, detector<METADATA>::view_type,           \
+        covfie::field_view<FIELD>,                                            \
         hip_propagator_type<METADATA, FIELD,                                  \
-                             CHAIN>::actor_chain_type::state_tuple *,          \
-        vecmem::data::vector_view<                                             \
-            free_track_parameters<detector<METADATA>::algebra_type>>,          \
-        const int);                                                            \
-                                                                               \
+                            CHAIN>::actor_chain_type::state_tuple *,          \
+        vecmem::data::vector_view<                                            \
+            free_track_parameters<detector<METADATA>::algebra_type>>,         \
+        const int);                                                           \
+                                                                              \
     template hip_propagator_type<METADATA, FIELD,                             \
-                                  CHAIN>::actor_chain_type::state_tuple *      \
+                                 CHAIN>::actor_chain_type::state_tuple *      \
     setup_actor_states<hip_propagator_type<METADATA, FIELD, CHAIN>>(          \
         hip_propagator_type<METADATA, FIELD,                                  \
-                             CHAIN>::actor_chain_type::state_tuple *);         \
-                                                                               \
-    template void                                                              \
+                            CHAIN>::actor_chain_type::state_tuple *);         \
+                                                                              \
+    template void                                                             \
     release_actor_states<hip_propagator_type<METADATA, FIELD, CHAIN>>(        \
         hip_propagator_type<METADATA, FIELD,                                  \
-                             CHAIN>::actor_chain_type::state_tuple *);
+                            CHAIN>::actor_chain_type::state_tuple *);
 
 DECLARE_PROPAGATION_BENCHMARK(benchmarks::default_metadata, empty_chain,
                               const_field_t, propagation_opt::e_unsync)
