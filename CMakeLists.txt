@@ -301,6 +301,11 @@ if(DETRAY_SETUP_COVFIE)
         add_subdirectory(extern/covfie)
     endif()
 endif()
+option(
+    DETRAY_ENABLE_LOGGING
+    "Enable logging output to stdout. Useful for debugging"
+    OFF
+)
 
 # Set up all of the libraries of the project.
 add_subdirectory(core)

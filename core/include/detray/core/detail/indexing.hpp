@@ -529,12 +529,15 @@ struct typed_index {
     /// Print the index
     DETRAY_HOST
     friend std::ostream& operator<<(std::ostream& os, const typed_index ti) {
-        if (ti.is_invalid()) {
-            return (os << "undefined");
-        }
 
-        os << "[id = " << static_cast<value_t>(ti.id()) << " | "
-           << "index = " << ti.index() << "]";
+        os << "[id = " << ti.id() << "(" << static_cast<value_t>(ti.id())
+           << ") | "
+           << "index = " << ti.index();
+
+        if (ti.is_invalid()) {
+            os << " (invalid)";
+        }
+        os << "]";
 
         return os;
     }

@@ -12,6 +12,7 @@
 #include "detray/geometry/tracking_volume.hpp"
 #include "detray/materials/detail/concepts.hpp"
 #include "detray/materials/predefined_materials.hpp"
+#include "detray/utils/log.hpp"
 #include "detray/utils/ranges.hpp"
 
 // System include(s)
@@ -161,25 +162,33 @@ struct material_checker {
     DETRAY_HOST_DEVICE void operator()(const material_coll_t &material_coll,
                                        const index_t idx, const id_t id) const {
 
-        const auto mat_map = material_coll[idx];
+        try {
+            const auto mat_map = material_coll.at(idx);
 
-        // Check whether there are any entries in the bins
-        if (mat_map.size() == 0u) {
-            std::stringstream err_stream{};
-            err_stream << "Empty material grid: " << static_cast<int>(id)
-                       << " at index " << idx;
+            // Check whether there are any entries in the bins
+            if (mat_map.size() == 0u) {
+                std::stringstream err_stream{};
+                err_stream << "Empty material grid: " << static_cast<int>(id)
+                           << " at index " << idx;
 
-            throw std::invalid_argument(err_stream.str());
-        } else {
-            for (const auto &bin : mat_map.bins()) {
-                if (bin.size() == 0u) {
-                    std::stringstream err_stream{};
-                    err_stream << "Empty material bin: " << static_cast<int>(id)
-                               << " at index " << idx;
+                throw std::invalid_argument(err_stream.str());
+            } else {
+                for (const auto &bin : mat_map.bins()) {
+                    if (bin.size() == 0u) {
+                        std::stringstream err_stream{};
+                        err_stream
+                            << "Empty material bin: " << static_cast<int>(id)
+                            << " at index " << idx;
 
-                    throw std::invalid_argument(err_stream.str());
+                        throw std::invalid_argument(err_stream.str());
+                    }
                 }
             }
+        } catch (std::out_of_range &) {
+            std::stringstream err_stream{};
+            err_stream << "Out of range material access in: "
+                       << "binned material collection at index " << idx;
+            throw std::invalid_argument(err_stream.str());
         }
     }
 
@@ -196,20 +205,29 @@ struct material_checker {
         using material_t = typename material_coll_t::value_type;
         using scalar_t = typename material_t::scalar_type;
 
-        const material_t &mat = material_coll.at(idx);
+        try {
+            const material_t &mat = material_coll.at(idx);
 
-        // Homogeneous volume material
-        if constexpr (concepts::material_params<material_t>) {
+            // Homogeneous volume material
+            if constexpr (concepts::material_params<material_t>) {
 
-            if (mat == detray::vacuum<scalar_t>{}) {
-                throw_material_error("homogeneous volume material", idx, mat);
+                if (mat == detray::vacuum<scalar_t>{}) {
+                    throw_material_error("homogeneous volume material", idx,
+                                         mat);
+                }
+
+            } else {
+                // Material slabs and rods
+                if (!mat) {
+                    throw_material_error("homogeneous surface material", idx,
+                                         mat);
+                }
             }
-
-        } else {
-            // Material slabs and rods
-            if (!mat) {
-                throw_material_error("homogeneous surface material", idx, mat);
-            }
+        } catch (std::out_of_range &) {
+            std::stringstream err_stream{};
+            err_stream << "Out of range material access in: "
+                       << "homogeneous material collection at index " << idx;
+            throw std::invalid_argument(err_stream.str());
         }
     }
 };
@@ -362,6 +380,7 @@ inline bool check_consistency(const detector_t &det, const bool verbose = false,
 
         // Check the surface material, if present
         if (sf.has_material()) {
+            DETRAY_DEBUG("Checking surface sf=" << sf);
             sf.template visit_material<detail::material_checker>(
                 sf_desc.material().id());
         }

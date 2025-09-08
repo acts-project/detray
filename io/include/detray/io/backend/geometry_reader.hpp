@@ -60,18 +60,26 @@ class geometry_reader {
                                               volume_builder>& det_builder,
                              const payload_type& det_data) {
 
+        DETRAY_DEBUG("Geometry reader from_payload");
+
         // Can hold all types of surface fatory needed for the detector
         using sf_factory_ptr_t =
             std::shared_ptr<surface_factory_interface<detector_t>>;
 
+        DETRAY_DEBUG("Have " << det_data.volumes.size() << " input volumes");
+
         // Convert the volumes one-by-one
         for (const auto& vol_data : det_data.volumes) {
             // Get a generic volume builder first and decorate it later
+            DETRAY_DEBUG("Configuring detector builder with new volume '"
+                         << vol_data.name << "' of type " << vol_data.type);
             auto vbuilder = det_builder.new_volume(vol_data.type);
 
             // Set the volume name
             vbuilder->set_name(vol_data.name);
 
+            DETRAY_DEBUG("Volume placement for " << vol_data.name << " is\n"
+                                                 << vol_data.transform);
             // Volume placement
             vbuilder->add_volume_placement(
                 from_payload<detector_t>(vol_data.transform));
@@ -81,7 +89,11 @@ class geometry_reader {
             std::map<io_shape_id, sf_factory_ptr_t> sf_factories;
 
             // Add the surfaces to the factories
-            for (const auto& sf_data : vol_data.surfaces) {
+            DETRAY_DEBUG("Adding "
+                         << vol_data.surfaces.size()
+                         << " surfaces to portal and surface factories");
+            for (const auto& [sf_idx, sf_data] :
+                 detray::views::enumerate(vol_data.surfaces)) {
 
                 const std::vector<mask_payload>& mask_data = sf_data.masks;
 
@@ -90,16 +102,21 @@ class geometry_reader {
                                     ? pt_factories
                                     : sf_factories};
 
+                DETRAY_DEBUG("- #" << sf_idx << " is " << sf_data.type);
+
                 // @TODO use portal cylinders until intersectors are fixed
                 auto shape_id{mask_data.front().shape == io_shape_id::cylinder2
                                   ? io_shape_id::portal_cylinder2
                                   : mask_data.front().shape};
+                DETRAY_DEBUG("--> shape=" << shape_id);
 
                 // Check if a fitting factory already exists. If not, add it
                 // dynamically
                 const auto key{shape_id};
                 if (auto search = factories.find(key);
                     search == factories.end()) {
+                    DETRAY_DEBUG("Adding new factory for shape id with key "
+                                 << key);
                     factories[key] = std::move(
                         init_factory<io_shape_id::n_shapes, detector_t>(
                             shape_id));
@@ -111,15 +128,20 @@ class geometry_reader {
 
             // Add all portals and surfaces to the volume
             typename detector_t::geometry_context geo_ctx{};
+            DETRAY_DEBUG("Adding " << pt_factories.size()
+                                   << " portal factories to volume builder");
             for (auto [key, pt_factory] : pt_factories) {
                 vbuilder->add_surfaces(pt_factory, geo_ctx);
             }
+            DETRAY_DEBUG("Adding " << sf_factories.size()
+                                   << " surface factories to volume builder");
             for (auto [key, sf_factory] : sf_factories) {
                 vbuilder->add_surfaces(sf_factory, geo_ctx);
             }
         }
 
-        // @TODO: Implement voume finder IO
+        // @TODO: Implement volume finder IO
+        DETRAY_DEBUG("Setting empty volume finder (no volume finder IO yet)");
         det_builder.set_volume_finder();
     }
 

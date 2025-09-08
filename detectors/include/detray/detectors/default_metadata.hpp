@@ -102,6 +102,40 @@ struct default_metadata {
         e_unmasked2 = 18u,*/
     };
 
+    DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
+                                                       mask_ids mid) {
+
+        switch (mid) {
+            case mask_ids::e_rectangle2:
+                // e_portal_rectangle2 has same value (0u)
+                os << "e_rectangle2/e_portal_rectangle2";
+                break;
+            case mask_ids::e_trapezoid2:
+                os << "e_trapezoid2";
+                break;
+            case mask_ids::e_annulus2:
+                os << "e_annulus2";
+                break;
+            case mask_ids::e_cylinder2:
+                os << "e_cylinder2";
+                break;
+            case mask_ids::e_portal_cylinder2:
+                os << "e_portal_cylinder2";
+                break;
+            case mask_ids::e_ring2:
+                // e_portal_ring2 has same value (5u)
+                os << "e_ring2/e_portal_ring2";
+                break;
+            case mask_ids::e_straw_tube:
+                os << "e_straw_tube";
+                break;
+            case mask_ids::e_drift_cell:
+                os << "e_drift_cell";
+                break;
+        }
+        return os;
+    }
+
     /// How to store masks
     template <template <typename...> class vector_t = dvector>
     using mask_store = regular_multi_store<mask_ids, empty_context, dtuple,
@@ -168,12 +202,53 @@ unbounded_cell, unmasked_plane*/>;
         // Volume material
         e_cuboid3_map = 7,
         e_cylinder3_map = 8u,
-        // Homogeneous mapetrial
+        // Homogeneous material
         e_slab = 4u,
         e_rod = 5u,
         e_raw_material = 6u,
         e_none = 9u,
     };
+
+    DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
+                                                       material_ids mid) {
+
+        switch (mid) {
+            case material_ids::e_concentric_cylinder2_map:
+                os << "e_concentric_cylinder2_map";
+                break;
+            case material_ids::e_disc2_map:
+                // e_annulus2_map has same value (1u)
+                os << "e_disc2_map/e_annulus2_map";
+                break;
+            case material_ids::e_cylinder2_map:
+                os << "e_cylinder2_map";
+                break;
+            case material_ids::e_rectangle2_map:
+                // e_trapezoid2_map has same value (3u)
+                os << "e_rectangle2_map/e_trapezoid2_map";
+                break;
+            case material_ids::e_slab:
+                os << "e_slab";
+                break;
+            case material_ids::e_drift_cell_map:
+                // e_straw_tube_map and e_rod have same value (5u)
+                os << "e_drift_cell_map/e_straw_tube_map/e_rod";
+                break;
+            case material_ids::e_raw_material:
+                os << "e_raw_material";
+                break;
+            case material_ids::e_cuboid3_map:
+                os << "e_cuboid3_map";
+                break;
+            case material_ids::e_cylinder3_map:
+                os << "e_cylinder3_map";
+                break;
+            case material_ids::e_none:
+                os << "e_none";
+                break;
+        }
+        return os;
+    }
 
     /// How to store materials
     template <typename container_t = host_container_types>
@@ -255,6 +330,29 @@ unbounded_cell, unmasked_plane*/>;
         e_default = e_brute_force,
     };
 
+    DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
+                                                       accel_ids aid) {
+
+        switch (aid) {
+            case accel_ids::e_brute_force:
+                os << "e_brute_force";
+                break;
+            case accel_ids::e_cylinder2_grid:
+                os << "e_cylinder2_grid";
+                break;
+            case accel_ids::e_disc_grid:
+                os << "e_disc_grid";
+                break;
+            case accel_ids::e_irr_cylinder2_grid:
+                os << "e_irr_cylinder2_grid";
+                break;
+            case accel_ids::e_irr_disc_grid:
+                os << "e_irr_disc_grid";
+                break;
+        }
+        return os;
+    }
+
     /// How to link to the entries in the data stores
     using transform_link = typename transform_store<>::link_type;
     using mask_link = typename mask_store<>::range_link;
@@ -294,6 +392,25 @@ container_t>>*/>;
         e_size = 2u,     // Every volume holds two acceleration data structures
         e_all = e_size,  // i.e. the brute force method and one grid type
     };
+
+    DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
+                                                       geo_objects gobj) {
+
+        switch (gobj) {
+            case geo_objects::e_portal:
+                // e_passive has same value (0u)
+                os << "e_portal/e_passive";
+                break;
+            case geo_objects::e_sensitive:
+                os << "e_sensitive";
+                break;
+            case geo_objects::e_size:
+                // e_all has same value (2u)
+                os << "e_size/e_all";
+                break;
+        }
+        return os;
+    }
 
     /// How a volume links to the accelration data structures
     /// In this case: One link for portals/passives and one sensitive surfaces

@@ -63,6 +63,27 @@ struct toy_metadata {
         e_cylinder2 = 2u,
     };
 
+    DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
+                                                       mask_ids mid) {
+
+        switch (mid) {
+            case mask_ids::e_rectangle2:
+                os << "e_rectangle2";
+                break;
+            case mask_ids::e_trapezoid2:
+                os << "e_trapezoid2";
+                break;
+            case mask_ids::e_portal_cylinder2:
+                // e_cylinder2 has same value (2u)
+                os << "e_portal_cylinder2/e_cylinder2";
+                break;
+            case mask_ids::e_portal_ring2:
+                os << "e_portal_ring2";
+                break;
+        }
+        return os;
+    }
+
     /// How to store masks
     template <template <typename...> class vector_t = dvector>
     using mask_store =
@@ -92,6 +113,26 @@ struct toy_metadata {
         e_slab = 2u,
         e_none = 3u,
     };
+
+    DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
+                                                       material_ids mid) {
+
+        switch (mid) {
+            case material_ids::e_concentric_cylinder2_map:
+                os << "e_concentric_cylinder2_map";
+                break;
+            case material_ids::e_disc2_map:
+                os << "e_disc2_map";
+                break;
+            case material_ids::e_slab:
+                os << "e_slab";
+                break;
+            case material_ids::e_none:
+                os << "e_none";
+                break;
+        }
+        return os;
+    }
 
     /// How to store materials
     template <typename container_t = host_container_types>
@@ -133,6 +174,24 @@ struct toy_metadata {
         e_default = e_brute_force,
     };
 
+    DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
+                                                       accel_ids aid) {
+
+        switch (aid) {
+            case accel_ids::e_brute_force:
+                // e_default has same value (0u)
+                os << "e_brute_force/e_default";
+                break;
+            case accel_ids::e_cylinder2_grid:
+                os << "e_cylinder2_grid";
+                break;
+            case accel_ids::e_disc_grid:
+                os << "e_disc_grid";
+                break;
+        }
+        return os;
+    }
+
     /// How to link to the entries in the data stores
     using transform_link = typename transform_store<>::link_type;
     using mask_link = typename mask_store<>::range_link;
@@ -161,6 +220,25 @@ struct toy_metadata {
         e_size = 2u,
         e_all = e_size,
     };
+
+    DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
+                                                       geo_objects gobj) {
+
+        switch (gobj) {
+            case geo_objects::e_portal:
+                // e_passive has same value (0u)
+                os << "e_portal/e_passive";
+                break;
+            case geo_objects::e_sensitive:
+                os << "e_sensitive";
+                break;
+            case geo_objects::e_size:
+                // e_all has same value (2u)
+                os << "e_size/e_all";
+                break;
+        }
+        return os;
+    }
 
     /// One link for portals/passives and one sensitive surfaces
     using object_link_type =
