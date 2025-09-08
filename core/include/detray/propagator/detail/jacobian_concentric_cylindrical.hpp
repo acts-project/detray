@@ -36,6 +36,10 @@ struct jacobian<concentric_cylindrical2D<algebra_t>> {
     using bound_to_free_matrix_type = bound_to_free_matrix<algebra_t>;
     using free_to_bound_matrix_type = free_to_bound_matrix<algebra_t>;
     using free_to_path_matrix_type = free_to_path_matrix<algebra_t>;
+    using bound_to_free_jacobian_submatrix_type =
+        bound_to_free_jacobian_submatrix<algebra_type>;
+    using free_to_bound_jacobian_submatrix_type =
+        free_to_bound_jacobian_submatrix<algebra_type>;
 
     DETRAY_HOST_DEVICE static constexpr free_to_path_matrix_type
     path_derivative(const transform3_type & /*trf*/, const point3_type &pos,
@@ -63,45 +67,82 @@ struct jacobian<concentric_cylindrical2D<algebra_t>> {
     }
 
     DETRAY_HOST_DEVICE
-    static constexpr void set_bound_pos_to_free_pos_derivative(
-        bound_to_free_matrix_type &bound_to_free_jacobian,
-        const transform3_type & /*trf*/, const point3_type &pos,
-        const vector3_type & /*dir*/) {
+    static constexpr bound_to_free_jacobian_submatrix_type
+    get_derivative_dpos_dloc(const transform3_type & /*trf*/,
+                             const point3_type &pos,
+                             const vector3_type & /*dir*/) {
+
+        bound_to_free_jacobian_submatrix_type bound_pos_to_free_pos_derivative =
+            matrix::zero<bound_to_free_jacobian_submatrix_type>();
 
         const scalar_type r{vector::perp(pos)};
         const scalar_type phi{vector::phi(pos)};
 
-        getter::element(bound_to_free_jacobian, e_free_pos0, 0u) =
-            -r * math::sin(phi);
-        getter::element(bound_to_free_jacobian, e_free_pos1, 0u) =
-            r * math::cos(phi);
-        getter::element(bound_to_free_jacobian, e_free_pos2, e_bound_loc1) =
-            1.f;
+        // Assert the integrity of the local matrix wrt to the globally
+        // defined track parameterization.
+        static_assert(e_bound_loc1 == e_bound_loc0 + 1);
+        static_assert(e_free_pos1 == e_free_pos0 + 1);
+        static_assert(e_free_pos2 == e_free_pos0 + 2);
+
+        constexpr unsigned int e_submatrix_bound_loc0 = 0u;
+        constexpr unsigned int e_submatrix_bound_loc1 = 1u;
+        constexpr unsigned int e_submatrix_free_pos0 = 0u;
+        constexpr unsigned int e_submatrix_free_pos1 = 1u;
+        constexpr unsigned int e_submatrix_free_pos2 = 2u;
+
+        getter::element(bound_pos_to_free_pos_derivative, e_submatrix_free_pos0,
+                        e_submatrix_bound_loc0) = -r * math::sin(phi);
+        getter::element(bound_pos_to_free_pos_derivative, e_submatrix_free_pos1,
+                        e_submatrix_bound_loc0) = r * math::cos(phi);
+        getter::element(bound_pos_to_free_pos_derivative, e_submatrix_free_pos2,
+                        e_submatrix_bound_loc1) = 1.f;
+
+        return bound_pos_to_free_pos_derivative;
     }
 
     DETRAY_HOST_DEVICE
-    static constexpr void set_free_pos_to_bound_pos_derivative(
-        free_to_bound_matrix_type &free_to_bound_jacobian,
-        const transform3_type & /*trf*/, const point3_type &pos,
-        const vector3_type & /*dir*/) {
+    static constexpr bound_to_free_jacobian_submatrix_type
+    get_derivative_dpos_dangle(const transform3_type &, const point3_type &,
+                               const vector3_type &,
+                               const bound_to_free_jacobian_submatrix_type &) {
+
+        return matrix::zero<bound_to_free_jacobian_submatrix_type>();
+    }
+
+    DETRAY_HOST_DEVICE
+    static constexpr free_to_bound_jacobian_submatrix_type
+    get_derivative_dloc_dpos(const transform3_type &, const point3_type &pos,
+                             const vector3_type &) {
+
+        // Get d(loc0, loc1)/d(x,y,z)
+        free_to_bound_jacobian_submatrix_type free_pos_to_bound_pos_derivative =
+            matrix::zero<free_to_bound_jacobian_submatrix_type>();
 
         const scalar_type r_inv{1.f / vector::perp(pos)};
         const scalar_type phi{vector::phi(pos)};
 
-        getter::element(free_to_bound_jacobian, 0u, e_free_pos0) =
-            -r_inv * math::sin(phi);
-        getter::element(free_to_bound_jacobian, 0u, e_free_pos1) =
-            r_inv * math::cos(phi);
-        getter::element(free_to_bound_jacobian, e_bound_loc1, e_free_pos2) =
-            1.f;
-    }
+        // Assert the integrity of the local matrix wrt to the globally
+        // defined track parameterization.
+        static_assert(e_bound_loc1 == e_bound_loc0 + 1);
+        static_assert(e_free_pos1 == e_free_pos0 + 1);
+        static_assert(e_free_pos2 == e_free_pos0 + 2);
 
-    DETRAY_HOST_DEVICE
-    static constexpr void set_bound_angle_to_free_pos_derivative(
-        bound_to_free_matrix_type & /*bound_to_free_jacobian*/,
-        const transform3_type & /*trf3*/, const point3_type & /*pos*/,
-        const vector3_type & /*dir*/) {
-        // Do nothing
+        constexpr unsigned int e_submatrix_bound_loc0 = 0u;
+        constexpr unsigned int e_submatrix_bound_loc1 = 1u;
+        constexpr unsigned int e_submatrix_free_pos0 = 0u;
+        constexpr unsigned int e_submatrix_free_pos1 = 1u;
+        constexpr unsigned int e_submatrix_free_pos2 = 2u;
+
+        getter::element(free_pos_to_bound_pos_derivative,
+                        e_submatrix_bound_loc0, e_submatrix_free_pos0) =
+            -r_inv * math::sin(phi);
+        getter::element(free_pos_to_bound_pos_derivative,
+                        e_submatrix_bound_loc0, e_submatrix_free_pos1) =
+            r_inv * math::cos(phi);
+        getter::element(free_pos_to_bound_pos_derivative,
+                        e_submatrix_bound_loc1, e_submatrix_free_pos2) = 1.f;
+
+        return free_pos_to_bound_pos_derivative;
     }
 };
 

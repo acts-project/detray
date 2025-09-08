@@ -83,9 +83,19 @@ using bound_matrix = dmatrix<algebra_t, e_bound_size, e_bound_size>;
 template <concepts::algebra algebra_t>
 using bound_to_free_matrix = dmatrix<algebra_t, e_free_size, e_bound_size>;
 
+/// Submatrix for bound to free Jacobians for d(x,y,z) or d(nx, ny, nz) over
+/// d(l0, l1) or d(phi, theta)
+template <concepts::algebra algebra_t>
+using bound_to_free_jacobian_submatrix = dmatrix<algebra_t, 3, 2>;
+
 /// Mapping from free to bound track parameters.
 template <concepts::algebra algebra_t>
 using free_to_bound_matrix = dmatrix<algebra_t, e_bound_size, e_free_size>;
+
+/// Submatrix for free to bound Jacobians d(l0, l1) or d(phi, theta) over
+/// d(x,y,z) or d(nx, ny, nz)
+template <concepts::algebra algebra_t>
+using free_to_bound_jacobian_submatrix = dmatrix<algebra_t, 2, 3>;
 
 /// Mapping from free to path
 template <concepts::algebra algebra_t>

@@ -9,6 +9,8 @@
 
 // Project include(s).
 #include "./codegen/covariance_transport.hpp"
+#include "./codegen/full_jacobian.hpp"
+#include "algebra/utils/approximately_equal.hpp"
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
@@ -36,25 +38,51 @@ struct parameter_transporter : actor {
     using free_to_bound_matrix_t = free_to_bound_matrix<algebra_t>;
     /// @}
 
-    struct get_free_to_bound_jacobian_dlocal_dfree_kernel {
+    struct get_bound_to_free_dpos_dloc_kernel {
         template <typename mask_group_t, typename index_t,
                   typename stepper_state_t>
-        DETRAY_HOST_DEVICE inline free_to_bound_matrix_t operator()(
+        DETRAY_HOST_DEVICE constexpr dmatrix<algebra_t, 3, 2> operator()(
             const mask_group_t& /*mask_group*/, const index_t& /*index*/,
             const transform3_type& trf3,
             const stepper_state_t& stepping) const {
             using frame_t = typename mask_group_t::value_type::shape::
                 template local_frame_type<algebra_t>;
 
-            // Declare jacobian for free to bound coordinate transform
-            free_to_bound_matrix_t jac_to_local =
-                matrix::zero<free_to_bound_matrix_t>();
+            return detail::jacobian_engine<algebra_t>::
+                template bound_to_free_jacobian_submatrix_dpos_dloc<frame_t>(
+                    trf3, stepping().pos(), stepping().dir());
+        }
+    };
 
-            detail::jacobian_engine<algebra_t>::
-                template free_to_bound_jacobian_set_dlocal_dfree<frame_t>(
-                    jac_to_local, trf3, stepping().pos(), stepping().dir());
+    struct get_bound_to_free_dpos_dangle_kernel {
+        template <typename mask_group_t, typename index_t,
+                  typename stepper_state_t>
+        DETRAY_HOST_DEVICE constexpr dmatrix<algebra_t, 3, 2> operator()(
+            const mask_group_t& /*mask_group*/, const index_t& /*index*/,
+            const transform3_type& trf3, const stepper_state_t& stepping,
+            const dmatrix<algebra_t, 3, 2>& ddir_dangle) const {
+            using frame_t = typename mask_group_t::value_type::shape::
+                template local_frame_type<algebra_t>;
 
-            return jac_to_local;
+            return detail::jacobian_engine<algebra_t>::
+                template bound_to_free_jacobian_submatrix_dpos_dangle<frame_t>(
+                    trf3, stepping().pos(), stepping().dir(), ddir_dangle);
+        }
+    };
+
+    struct get_free_to_bound_dloc_dpos_kernel {
+        template <typename mask_group_t, typename index_t,
+                  typename stepper_state_t>
+        DETRAY_HOST_DEVICE constexpr dmatrix<algebra_t, 2, 3> operator()(
+            const mask_group_t& /*mask_group*/, const index_t& /*index*/,
+            const transform3_type& trf3,
+            const stepper_state_t& stepping) const {
+            using frame_t = typename mask_group_t::value_type::shape::
+                template local_frame_type<algebra_t>;
+
+            return detail::jacobian_engine<algebra_t>::
+                template free_to_bound_jacobian_submatrix_dloc_dpos<frame_t>(
+                    trf3, stepping().pos(), stepping().dir());
         }
     };
 
@@ -100,25 +128,6 @@ struct parameter_transporter : actor {
     }
 
     template <typename propagator_state_t>
-    DETRAY_HOST_DEVICE inline free_to_bound_matrix_t get_free_to_bound_jacobian(
-        propagator_state_t& propagation) const {
-        const auto& stepping = propagation._stepping;
-        const auto& navigation = propagation._navigation;
-        const auto& gctx = propagation._context;
-        const auto sf = navigation.get_surface();
-
-        auto free_to_bound_jacobian = sf.template visit_mask<
-            get_free_to_bound_jacobian_dlocal_dfree_kernel>(
-            sf.transform(gctx), propagation._stepping);
-
-        detail::jacobian_engine<algebra_t>::
-            free_to_bound_jacobian_set_dangle_dfree_dir(free_to_bound_jacobian,
-                                                        stepping().dir());
-
-        return free_to_bound_jacobian;
-    }
-
-    template <typename propagator_state_t>
     DETRAY_HOST_DEVICE inline bound_matrix_t get_full_jacobian(
         propagator_state_t& propagation) const {
 
@@ -127,6 +136,18 @@ struct parameter_transporter : actor {
 
         // Geometry context for this track
         const auto& gctx = propagation._context;
+
+        // Our goal here is to compute the full Jacobian, which is given as:
+        //
+        // J_full = J_F2B * (D + I) * J_transport * J_B2F
+        //
+        // The transport Jacobian is given, but the free-to-bound and
+        // bound-to-free matrices as well as the derivative matrix $D$ need to
+        // be computed still. In order to avoid full-rank matrix
+        // multiplications, we use the known substructure of the
+        // aforementioned matrices in order to perform fewer operations. We
+        // describe in detail the mathematics performed throughout the
+        // remainder of this function.
 
         // Current Surface
         const auto sf = navigation.get_surface();
@@ -138,32 +159,98 @@ struct parameter_transporter : actor {
         tracking_surface prev_sf{navigation.detector(),
                                  bound_params.surface_link()};
 
-        const bound_to_free_matrix_t bound_to_free_jacobian =
-            prev_sf.bound_to_free_jacobian(gctx, bound_params);
+        // First, we will compute the bound-to-free Jacobian, which is given
+        // by three sub-Jacobians. In particular, the matrix has an 8x6 shape
+        // and looks like this:
+        //
+        //        l0  l1 phi  th q/p   t
+        //  px [[  A,  A,  B,  B,  0,  0],
+        //  py  [  A,  A,  B,  B,  0,  0],
+        //  pz  [  A,  A,  B,  B,  0,  0],
+        //   t  [  0,  0,  0,  0,  0,  1],
+        //  dx  [  0,  0,  C,  C,  0,  0],
+        //  dy  [  0,  0,  C,  C,  0,  0],
+        //  dz  [  0,  0,  0,  C,  0,  0],
+        // q/p  [  0,  0,  0,  0,  1,  0]]
+        //
+        // Note that we thus only have 17 out of 48 non-trivial matrix
+        // elements.
+        //
+        // In this matrix, A represents the d(pos)/d(loc) submatrix, B is the
+        // d(pos)/d(angle) submatrix, and C is the d(dir)/d(angle) submatrix,
+        // all of which are 3x2 in size. Also, A and B depend on the frame
+        // type while C is computed in the same way for all frames. Finally,
+        // note that submatrix B is the zero matrix for most frame types.
+        const dmatrix<algebra_t, 3, 2> b2f_dpos_dloc =
+            sf.template visit_mask<get_bound_to_free_dpos_dloc_kernel>(
+                sf.transform(gctx), propagation._stepping);
+        const dmatrix<algebra_t, 3, 2> b2f_ddir_dangle =
+            detail::jacobian_engine<algebra_t>::
+                bound_to_free_jacobian_submatrix_ddir_dangle(bound_params);
+        const dmatrix<algebra_t, 3, 2> b2f_dpos_dangle =
+            sf.template visit_mask<get_bound_to_free_dpos_dangle_kernel>(
+                sf.transform(gctx), propagation._stepping, b2f_ddir_dangle);
 
-        const bound_to_free_matrix_t free_transport_jacobian =
-            stepping.transport_jacobian() * bound_to_free_jacobian;
-
+        // Next, we compute the derivative which is defined as the outer
+        // product of the two 8x1 vectors representing the path to free
+        // derivative and the free to path derivative. Thus, it is the product
+        // of the following two vectors:
+        //
+        //  px [[ A],  [[ B],^T
+        //  py  [ A],   [ B],
+        //  pz  [ A],   [ B],
+        //   t  [ 0]]   [ 0],
+        //  dx  [ A],   [ C],
+        //  dy  [ A],   [ C],
+        //  dz  [ A],   [ C],
+        // q/p  [ A],   [ 0]]
+        //
+        // Where A is frame independent and non-zero, B is frame-dependent and
+        // non-zero, while C is frame-dependent and non-zero only for line
+        // frames.
         auto vol = navigation.get_volume();
         const auto vol_mat_ptr = vol.has_material()
                                      ? vol.material_parameters(stepping().pos())
                                      : nullptr;
 
-        const free_matrix_t derivative =
+        const auto path_to_free_derivative =
             detail::jacobian_engine<algebra_t>::path_to_free_derivative(
                 stepping().dir(), stepping.dtds(),
-                stepping.dqopds(vol_mat_ptr)) *
-            sf.free_to_path_derivative(gctx, stepping().pos(), stepping().dir(),
-                                       stepping.dtds());
+                stepping.dqopds(vol_mat_ptr));
+        const auto free_to_path_derivative = sf.free_to_path_derivative(
+            gctx, stepping().pos(), stepping().dir(), stepping.dtds());
 
-        const free_matrix_t correction_term =
-            derivative + matrix::identity<free_matrix_t>();
+        // Now, we compute the free-to-bound Jacobian which is of size 6x8 and
+        // has the following structure:
+        //
+        //        px  py  pz   t  dx  dy  dz q/p
+        //  l0 [[  A,  A,  A,  0,  0,  0,  0,  0],
+        //  l1  [  A,  A,  A,  0,  0,  0,  0,  0],
+        // phi  [  0,  0,  0,  0,  B,  B,  0,  0],
+        //  th  [  0,  0,  0,  0,  B,  B,  B,  0],
+        // q/p  [  0,  0,  0,  0,  0,  0,  0,  1],
+        //   t  [  0,  0,  0,  0,  0,  0,  0,  0]]
+        //
+        // Thus, the number of non-trivial elements is only 11 out of the 48
+        // matrix elements. Also, submatrix A depends on the frame type while
+        // submatrix B is the same for all frame types.
+        const dmatrix<algebra_t, 2, 3> f2b_dloc_dpos =
+            sf.template visit_mask<get_free_to_bound_dloc_dpos_kernel>(
+                sf.transform(gctx), propagation._stepping);
+        const dmatrix<algebra_t, 2, 3> f2b_dangle_ddir =
+            detail::jacobian_engine<algebra_t>::
+                free_to_bound_jacobian_submatrix_dangle_ddir(stepping().dir());
 
-        const free_to_bound_matrix_t free_to_bound_jacobian =
-            get_free_to_bound_jacobian(propagation);
+        // Finally, we can use our Sympy-generated full Jacobian computation
+        // and return its result.
+        bound_matrix_t full_jacobian;
 
-        return (free_to_bound_jacobian * correction_term) *
-               free_transport_jacobian;
+        detail::update_full_jacobian_impl(
+            stepping.transport_jacobian(), b2f_dpos_dloc, b2f_ddir_dangle,
+            b2f_dpos_dangle, path_to_free_derivative, free_to_path_derivative,
+            f2b_dloc_dpos, f2b_dangle_ddir, full_jacobian);
+
+        return full_jacobian;
     }
 };  // namespace detray
 

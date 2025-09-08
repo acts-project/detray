@@ -36,6 +36,10 @@ struct jacobian<line2D<algebra_t>> {
     using bound_to_free_matrix_type = bound_to_free_matrix<algebra_t>;
     using free_to_bound_matrix_type = free_to_bound_matrix<algebra_t>;
     using free_to_path_matrix_type = free_to_path_matrix<algebra_t>;
+    using bound_to_free_jacobian_submatrix_type =
+        bound_to_free_jacobian_submatrix<algebra_type>;
+    using free_to_bound_jacobian_submatrix_type =
+        free_to_bound_jacobian_submatrix<algebra_type>;
     /// @}
 
     DETRAY_HOST_DEVICE
@@ -107,45 +111,22 @@ struct jacobian<line2D<algebra_t>> {
     }
 
     DETRAY_HOST_DEVICE
-    static inline void set_bound_pos_to_free_pos_derivative(
-        bound_to_free_matrix_type &bound_to_free_jacobian,
-        const transform3_type &trf3, const point3_type &pos,
-        const vector3_type &dir) {
+    static constexpr bound_to_free_jacobian_submatrix_type
+    get_derivative_dpos_dloc(const transform3_type &trf3,
+                             const point3_type &pos, const vector3_type &dir) {
 
         const rotation_matrix frame = reference_frame(trf3, pos, dir);
 
         // Get d(x,y,z)/d(loc0, loc1)
-        const auto bound_pos_to_free_pos_derivative =
-            getter::block<3, 2>(frame, 0u, 0u);
-
-        getter::set_block(bound_to_free_jacobian,
-                          bound_pos_to_free_pos_derivative, e_free_pos0,
-                          e_bound_loc0);
+        return getter::block<3, 2>(frame, 0u, 0u);
     }
 
     DETRAY_HOST_DEVICE
-    static inline void set_free_pos_to_bound_pos_derivative(
-        free_to_bound_matrix_type &free_to_bound_jacobian,
+    static constexpr bound_to_free_jacobian_submatrix_type
+    get_derivative_dpos_dangle(
         const transform3_type &trf3, const point3_type &pos,
-        const vector3_type &dir) {
-
-        const rotation_matrix frame = reference_frame(trf3, pos, dir);
-        const rotation_matrix frameT = matrix::transpose(frame);
-
-        // Get d(loc0, loc1)/d(x,y,z)
-        const auto free_pos_to_bound_pos_derivative =
-            getter::block<2, 3>(frameT, 0u, 0u);
-
-        getter::set_block(free_to_bound_jacobian,
-                          free_pos_to_bound_pos_derivative, e_bound_loc0,
-                          e_free_pos0);
-    }
-
-    DETRAY_HOST_DEVICE
-    static inline void set_bound_angle_to_free_pos_derivative(
-        bound_to_free_matrix_type &bound_to_free_jacobian,
-        const transform3_type &trf3, const point3_type &pos,
-        const vector3_type &dir) {
+        const vector3_type &dir,
+        const bound_to_free_jacobian_submatrix_type &ddir_dangle) {
 
         const auto local2 = coordinate_frame::global_to_local(trf3, pos, dir);
 
@@ -161,15 +142,17 @@ struct jacobian<line2D<algebra_t>> {
         const scalar_type ipdn{1.f / vector::dot(dir, new_zaxis)};
 
         // d(n_x,n_y,n_z)/dPhi
-        const vector3_type dNdPhi =
-            getter::vector<3>(bound_to_free_jacobian, e_free_dir0, e_bound_phi);
+        const vector3_type dNdPhi{getter::element(ddir_dangle, 0u, 0u),
+                                  getter::element(ddir_dangle, 1u, 0u),
+                                  getter::element(ddir_dangle, 2u, 0u)};
 
         // Get new_yaxis X d(n_x,n_y,n_z)/dPhi
         const vector3_type y_cross_dNdPhi = vector::cross(new_yaxis, dNdPhi);
 
         // d(n_x,n_y,n_z)/dTheta
-        const vector3_type dNdTheta = getter::vector<3>(
-            bound_to_free_jacobian, e_free_dir0, e_bound_theta);
+        const vector3_type dNdTheta{getter::element(ddir_dangle, 0u, 1u),
+                                    getter::element(ddir_dangle, 1u, 1u),
+                                    getter::element(ddir_dangle, 2u, 1u)};
 
         // Build the cross product of d(D)/d(eBoundPhi) components with y axis
         auto y_cross_dNdTheta = vector::cross(new_yaxis, dNdTheta);
@@ -187,19 +170,47 @@ struct jacobian<line2D<algebra_t>> {
 
         theta_to_free_pos_derivative = C * theta_to_free_pos_derivative;
 
+        // Assert the integrity of the local matrix wrt to the globally
+        // defined track parameterization.
+        static_assert(e_bound_theta == e_bound_phi + 1);
+        static_assert(e_free_pos1 == e_free_pos0 + 1);
+        static_assert(e_free_pos2 == e_free_pos0 + 2);
+
+        constexpr unsigned int e_submatrix_bound_phi = 0u;
+        constexpr unsigned int e_submatrix_bound_theta = 1u;
+        constexpr unsigned int e_submatrix_free_pos0 = 0u;
+        constexpr unsigned int e_submatrix_free_pos1 = 1u;
+        constexpr unsigned int e_submatrix_free_pos2 = 2u;
+
+        bound_to_free_jacobian_submatrix_type rv;
+
         // Set the jacobian components
-        getter::element(bound_to_free_jacobian, e_free_pos0, e_bound_phi) =
+        getter::element(rv, e_submatrix_free_pos0, e_submatrix_bound_phi) =
             phi_to_free_pos_derivative[0];
-        getter::element(bound_to_free_jacobian, e_free_pos1, e_bound_phi) =
+        getter::element(rv, e_submatrix_free_pos1, e_submatrix_bound_phi) =
             phi_to_free_pos_derivative[1];
-        getter::element(bound_to_free_jacobian, e_free_pos2, e_bound_phi) =
+        getter::element(rv, e_submatrix_free_pos2, e_submatrix_bound_phi) =
             phi_to_free_pos_derivative[2];
-        getter::element(bound_to_free_jacobian, e_free_pos0, e_bound_theta) =
+        getter::element(rv, e_submatrix_free_pos0, e_submatrix_bound_theta) =
             theta_to_free_pos_derivative[0];
-        getter::element(bound_to_free_jacobian, e_free_pos1, e_bound_theta) =
+        getter::element(rv, e_submatrix_free_pos1, e_submatrix_bound_theta) =
             theta_to_free_pos_derivative[1];
-        getter::element(bound_to_free_jacobian, e_free_pos2, e_bound_theta) =
+        getter::element(rv, e_submatrix_free_pos2, e_submatrix_bound_theta) =
             theta_to_free_pos_derivative[2];
+
+        return rv;
+    }
+
+    DETRAY_HOST_DEVICE
+    static constexpr free_to_bound_jacobian_submatrix_type
+    get_derivative_dloc_dpos(const transform3_type &trf3,
+                             const point3_type &pos, const vector3_type &dir) {
+
+        const rotation_matrix frame = reference_frame(trf3, pos, dir);
+        const rotation_matrix frameT = matrix::transpose(frame);
+
+        // Get d(loc0, loc1)/d(x,y,z)
+        return getter::block<2, 3>(frameT, 0, 0);
     }
 };
 
