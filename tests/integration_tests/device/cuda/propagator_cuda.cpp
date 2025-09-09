@@ -176,6 +176,6 @@ TEST(CudaPropagatorValidation9, inhomogeneous_bfield_cpy) {
 
     auto det_buff = detray::get_buffer(det, dev_mr, cuda_cpy);
 
-    run_propagation_test<bfield::cuda::inhom_bknd_t>(
+    run_propagation_test<bfield::cuda::inhom_bknd_t<scalar>>(
         &mng_mr, det, cfg, detray::get_data(det_buff), std::move(field));
 }

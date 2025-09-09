@@ -53,8 +53,8 @@ int main() {
 
     // Get data for device
     auto det_data = detray::get_data(det);
-    covfie::field<detray::tutorial::bfield::cuda::inhom_bknd_t> device_bfield(
-        bfield);
+    covfie::field<detray::bfield::cuda::inhom_bknd_t<detray::tutorial::scalar>>
+        device_bfield(bfield);
     auto tracks_data = detray::get_data(tracks);
 
     // Run the propagator test for GPU device
