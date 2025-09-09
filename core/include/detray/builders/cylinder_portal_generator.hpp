@@ -133,25 +133,35 @@ class cylinder_portal_generator final
     };
 
     /// Construct from configuration @param cfg
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     explicit cylinder_portal_generator(
         const cylinder_portal_config<scalar_t> cfg)
         : m_cfg{cfg} {}
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns the number of portals this factory will produce
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto size() const -> dindex override { return 4u; }
+#endif // DETRAY_COMPILE_VITIS
 
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     void clear() override{/*Do nothing*/};
+#endif // DETRAY_COMPILE_VITIS
 
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     void push_back(surface_data<detector_t> &&) override { /*Do nothing*/
     }
+#endif // DETRAY_COMPILE_VITIS
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto push_back(std::vector<surface_data<detector_t>> &&)
         -> void override { /*Do nothing*/
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @brief Access the volume boundaries after fitting
     const boundaries &volume_boundaries() const { return m_boundaries; }
@@ -165,6 +175,7 @@ class cylinder_portal_generator final
     /// @param transforms the transforms of the surfaces.
     /// @param masks the masks of the surfaces.
     /// @param ctx the geometry context (not needed for portals).
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto operator()(typename detector_t::volume_type &volume,
                     typename detector_t::surface_lookup_container &surfaces,
@@ -246,6 +257,7 @@ class cylinder_portal_generator final
         return {static_cast<dindex>(n_surfaces),
                 static_cast<dindex>(surfaces.size())};
     }
+#endif // DETRAY_COMPILE_VITIS
 
     private:
     /// @brief Add a single cylinder portal to the internal data storage

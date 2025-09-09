@@ -17,7 +17,9 @@
 // VecMem include(s).
 #include <vecmem/containers/data/vector_view.hpp>
 #include <vecmem/containers/device_vector.hpp>
+#ifndef DETRAY_COMPILE_VITIS
 #include <vecmem/memory/memory_resource.hpp>
+#endif // DETRAY_COMPILE_VITIS
 
 // System include(s).
 #include <algorithm>
@@ -49,27 +51,33 @@ struct regular {
           max(static_cast<scalar>(n_bins)) {}
 
     /** Constructor with vecmem memory resource **/
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     regular(vecmem::memory_resource & /*resource*/)
         : n_bins(detail::invalid_value<dindex>()),
           min(static_cast<scalar>(0.)),
           max(static_cast<scalar>(n_bins)) {}
+#endif // DETRAY_COMPILE_VITIS
 
     /** Constructor with vecmem memory resource **/
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     regular(dindex axis_bins, scalar axis_min, scalar axis_max,
             vecmem::memory_resource & /*resource*/)
         : n_bins(axis_bins), min(axis_min), max(axis_max) {}
+#endif // DETRAY_COMPILE_VITIS
 
     /** Constructor with vecmem memory resource **/
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     regular(const regular &axis, vecmem::memory_resource & /*resource*/)
         : n_bins(axis.n_bins), min(axis.min), max(axis.max) {}
+#endif // DETRAY_COMPILE_VITIS
 
     /** Constructor with axis_data **/
     template <
         typename axis_data_t,
-        std::enable_if_t<!std::is_same_v<regular, axis_data_t>, bool> = true>
+        std::enable_if_t<!std::is_same<regular, axis_data_t>::value , bool> = true>
     DETRAY_HOST_DEVICE regular(const axis_data_t &axis_data)
         : n_bins(axis_data.n_bins), min(axis_data.min), max(axis_data.max) {}
 
@@ -234,27 +242,33 @@ struct circular {
           max(static_cast<scalar>(n_bins)) {}
 
     /** Constructor with vecmem memory resource **/
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     circular(vecmem::memory_resource & /*resource*/)
         : n_bins(detail::invalid_value<dindex>()),
           min(static_cast<scalar>(0.)),
           max(static_cast<scalar>(n_bins)) {}
+#endif // DETRAY_COMPILE_VITIS
 
     /** Constructor with vecmem memory resource **/
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     circular(dindex axis_bins, scalar axis_min, scalar axis_max,
              vecmem::memory_resource & /*resource*/)
         : n_bins(axis_bins), min(axis_min), max(axis_max) {}
+#endif // DETRAY_COMPILE_VITIS
 
     /** Constructor with vecmem memory resource **/
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     circular(const circular &axis, vecmem::memory_resource & /*resource*/)
         : n_bins(axis.n_bins), min(axis.min), max(axis.max) {}
+#endif // DETRAY_COMPILE_VITIS
 
     /** Constructor with axis_data **/
     template <
         typename axis_data_t,
-        std::enable_if_t<!std::is_same_v<circular, axis_data_t>, bool> = true>
+        std::enable_if_t<!std::is_same<circular, axis_data_t>::value , bool> = true>
     DETRAY_HOST_DEVICE circular(const axis_data_t &axis_data)
         : n_bins(axis_data.n_bins), min(axis_data.min), max(axis_data.max) {}
 
@@ -445,41 +459,49 @@ struct irregular {
           boundaries({}) {}
 
     /** Constructor with vecmem memory resource **/
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     irregular(vecmem::memory_resource &resource)
         : n_bins(detail::invalid_value<dindex>()),
           min(0.f),
           max(static_cast<scalar>(n_bins)),
           boundaries(&resource) {}
+#endif // DETRAY_COMPILE_VITIS
 
     /** Constructor with vecmem memory resource - rvalue **/
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST irregular(vector_t<scalar> &&bins,
                           vecmem::memory_resource &resource)
         : n_bins(static_cast<dindex>(bins.size()) - 1u),
           min(bins[0]),
           max(bins[n_bins]),
           boundaries(bins, &resource) {}
+#endif // DETRAY_COMPILE_VITIS
 
     /** Constructor with vecmem memory resource - lvalue **/
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST irregular(const vector_t<scalar> &bins,
                           vecmem::memory_resource &resource)
         : n_bins(static_cast<dindex>(bins.size()) - 1u),
           min(bins[0]),
           max(bins[n_bins]),
           boundaries(bins, &resource) {}
+#endif // DETRAY_COMPILE_VITIS
 
     /** Constructor with vecmem memory resource **/
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     irregular(const irregular &axis, vecmem::memory_resource &resource)
         : n_bins(axis.n_bins),
           min(axis.min),
           max(axis.max),
           boundaries(axis.boundaries, &resource) {}
+#endif // DETRAY_COMPILE_VITIS
 
     /** Constructor with axis_data **/
     template <
         typename axis_data_t,
-        std::enable_if_t<!std::is_same_v<irregular, axis_data_t>, bool> = true>
+        std::enable_if_t<!std::is_same<irregular, axis_data_t>::value , bool> = true>
     DETRAY_HOST_DEVICE irregular(const axis_data_t &axis_data)
         : n_bins(axis_data.n_bins),
           min(axis_data.min),
@@ -601,8 +623,10 @@ struct irregular {
     }
 
     /** @return the values of the borders of all bins */
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     vector_t<scalar> all_borders() const { return boundaries; }
+#endif // DETRAY_COMPILE_VITIS
 
     /** @return the range  */
     DETRAY_HOST_DEVICE

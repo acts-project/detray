@@ -148,11 +148,13 @@ class material_map_generator final : public factory_decorator<detector_t> {
 
     public:
     /// Construct from configuration @param cfg
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     material_map_generator(
         std::unique_ptr<surface_factory_interface<detector_t>> factory,
         const material_map_config<scalar_t> cfg)
         : factory_decorator<detector_t>(std::move(factory)), m_cfg{cfg} {}
+#endif // DETRAY_COMPILE_VITIS
 
     /// Call the underlying surface factory and record the surface range that
     /// was produced
@@ -162,6 +164,7 @@ class material_map_generator final : public factory_decorator<detector_t> {
     /// @param transforms the transforms of the surfaces.
     /// @param masks the masks of the surfaces.
     /// @param ctx the geometry context (not needed for portals).
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto operator()(typename detector_t::volume_type &volume,
                     typename detector_t::surface_lookup_container &surfaces,
@@ -177,6 +180,7 @@ class material_map_generator final : public factory_decorator<detector_t> {
 
         return {lower, upper};
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Create material maps for all surfaces that the undelying surface
     /// factory builds.
@@ -188,6 +192,7 @@ class material_map_generator final : public factory_decorator<detector_t> {
     /// @param material_map map the local bin indices and their content to a
     ///                  volume local surface index.
     /// @param n_bins the number of bins per axis per surface.
+#ifndef DETRAY_COMPILE_VITIS
     template <typename bin_data_t, std::size_t N>
     DETRAY_HOST auto operator()(
         typename detector_t::surface_lookup_container &surfaces,
@@ -269,6 +274,7 @@ class material_map_generator final : public factory_decorator<detector_t> {
                 static_cast<material_id>(map_cfg.map_id), dindex_invalid};
         }
     }
+#endif // DETRAY_COMPILE_VITIS
 
     private:
     /// Material generator configuration

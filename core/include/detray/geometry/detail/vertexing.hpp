@@ -76,6 +76,7 @@ struct vertexer {
     /// @param range is the range list of masks to be processed
     ///
     /// @return a jagged vector of points of the mask vertices (one per maks)
+#ifndef DETRAY_COMPILE_VITIS
     template <typename mask_group_t, typename mask_range_t>
     dvector<dvector<point3_t>> operator()(const mask_group_t &masks,
                                           const mask_range_t &range,
@@ -86,6 +87,7 @@ struct vertexer {
         }
         return mask_vertices;
     }
+#endif // DETRAY_COMPILE_VITIS
 };
 
 }  // namespace detray::detail

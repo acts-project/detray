@@ -43,7 +43,7 @@ struct join_view : public detray::ranges::view_interface<join_view<range_t>> {
     using outer_iterator_t = detray::ranges::iterator_t<range_t>;
     // Type of a single range
     using outer_value_t =
-        std::conditional_t<std::is_const_v<range_t>,
+        std::conditional_t<std::is_const<range_t>::value ,
                            const detray::ranges::range_value_t<range_t>,
                            detray::ranges::range_value_t<range_t>>;
     // Iterator over a single range
@@ -136,10 +136,13 @@ struct join : public ranges::join_view<range_t> {
 };
 
 // deduction guides
+#ifndef DETRAY_COMPILE_VITIS
 template <typename R>
 DETRAY_HOST_DEVICE join(R &&ranges)->join<std::remove_reference_t<R>>;
+#endif
 
 }  // namespace views
+
 
 namespace detail {
 
@@ -153,13 +156,13 @@ template <typename range_t>
 struct join_iterator {
 
     using outer_iterator_t =
-        std::conditional_t<std::is_const_v<range_t>,
+        std::conditional_t<std::is_const<range_t>::value ,
                            detray::ranges::const_iterator_t<range_t>,
                            detray::ranges::iterator_t<range_t>>;
     using outer_value_t = decltype(*std::declval<outer_iterator_t>());
     using inner_iterator_t = std::conditional_t<
-        std::is_same_v<outer_iterator_t,
-                       detray::ranges::const_iterator_t<range_t>>,
+        std::is_same<outer_iterator_t,
+                       detray::ranges::const_iterator_t<range_t>>::value ,
         detray::ranges::const_iterator_t<outer_value_t>,
         detray::ranges::iterator_t<outer_value_t>>;
 

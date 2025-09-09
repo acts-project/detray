@@ -8,15 +8,20 @@
 #pragma once
 
 // Detray include(s)
+#ifndef DETRAY_COMPILE_VITIS
 #include "detray/core/detail/container_buffers.hpp"
+#endif // DETRAY_COMPILE_VITIS
 #include "detray/core/detail/container_views.hpp"
 #include "detray/definitions/detail/containers.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/utils/tuple_helpers.hpp"
 #include "detray/utils/type_traits.hpp"
+#include "detray/utils/std_replacements/type_traits.hpp"
 
 // Vecmem include(s)
+#ifndef DETRAY_COMPILE_VITIS
 #include <vecmem/memory/memory_resource.hpp>
+#endif // DETRAY_COMPILE_VITIS
 
 // System include(s)
 #include <memory>
@@ -39,7 +44,9 @@ class tuple_container {
     using tuple_type = tuple_t<detray::detail::unwrap_decay_t<Ts>...>;
     using view_type = dmulti_view<get_view_t<Ts>...>;
     using const_view_type = dmulti_view<get_view_t<const Ts>...>;
+#ifndef DETRAY_COMPILE_VITIS
     using buffer_type = dmulti_buffer<get_buffer_t<Ts>...>;
+#endif // DETRAY_COMPILE_VITIS
 
     /// Empty container - default alloc
     constexpr tuple_container() = default;
@@ -53,24 +60,28 @@ class tuple_container {
 
     /// Construct with a specific vecmem memory resource @param resource
     /// (host-side only)
+#ifndef DETRAY_COMPILE_VITIS
     template <typename allocator_t = vecmem::memory_resource,
-              std::enable_if_t<not is_device_view_v<allocator_t>, bool> = true>
+              std::enable_if_t<not is_device_view<allocator_t>::value , bool> = true>
     DETRAY_HOST explicit tuple_container(allocator_t &resource)
         : _tuple(Ts(&resource)...) {}
+#endif // DETRAY_COMPILE_VITIS
 
     /// Copy Construct with a specific (vecmem) memory resource @param resource
     /// (host-side only)
+#ifndef DETRAY_COMPILE_VITIS
     template <
         typename allocator_t = vecmem::memory_resource,
         typename T = tuple_t<Ts...>,
-        std::enable_if_t<std::is_same_v<T, std::tuple<Ts...>>, bool> = true>
+        std::enable_if_t<std::is_same<T, std::tuple<Ts...>>::value , bool> = true>
     DETRAY_HOST explicit tuple_container(allocator_t &resource,
                                          const Ts &... args)
         : _tuple(std::allocator_arg, resource, args...) {}
+#endif // DETRAY_COMPILE_VITIS
 
     /// Construct from the container @param view type. Mainly used device-side.
     template <typename tuple_view_t,
-              std::enable_if_t<is_device_view_v<tuple_view_t>, bool> = true>
+              std::enable_if_t<is_device_view<tuple_view_t>::value , bool> = true>
     DETRAY_HOST_DEVICE tuple_container(tuple_view_t &view)
         : _tuple(
               unroll_views(view, std::make_index_sequence<sizeof...(Ts)>{})) {}
@@ -106,14 +117,18 @@ class tuple_container {
     }
 
     /// @returns a tuple of the views of all elements - non-const
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST auto get_data() -> view_type {
         return get_data(std::make_index_sequence<sizeof...(Ts)>{});
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns a tuple of the views of all elements - const
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST auto get_data() const -> const_view_type {
         return get_data(std::make_index_sequence<sizeof...(Ts)>{});
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Calls a functor with a all elements as parameters.
     ///
@@ -140,23 +155,27 @@ class tuple_container {
 
     private:
     /// @returns the view for all contained types.
-    template <bool all_viewable = std::conjunction_v<detail::has_view<Ts>...>,
+#ifndef DETRAY_COMPILE_VITIS
+    template <bool all_viewable = std::conjunction<detail::has_view<Ts>...>::value ,
               std::size_t... I, std::enable_if_t<all_viewable, bool> = true>
     DETRAY_HOST view_type get_data(std::index_sequence<I...> /*seq*/) noexcept {
         return view_type{detray::get_data(detail::get<I>(_tuple))...};
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns the const view for all contained types.
-    template <bool all_viewable = std::conjunction_v<detail::has_view<Ts>...>,
+#ifndef DETRAY_COMPILE_VITIS
+    template <bool all_viewable = std::conjunction<detail::has_view<Ts>...>::value ,
               std::size_t... I, std::enable_if_t<all_viewable, bool> = true>
     DETRAY_HOST const_view_type
     get_data(std::index_sequence<I...> /*seq*/) const noexcept {
         return const_view_type{detray::get_data(detail::get<I>(_tuple))...};
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns a tuple constructed from the elements @param view s.
     template <typename tuple_view_t, std::size_t... I,
-              std::enable_if_t<is_device_view_v<tuple_view_t>, bool> = true>
+              std::enable_if_t<is_device_view<tuple_view_t>::value , bool> = true>
     DETRAY_HOST_DEVICE auto unroll_views(tuple_view_t &view,
                                          std::index_sequence<I...> /*seq*/) {
         return detail::make_tuple<tuple_t>(Ts(detail::get<I>(view.m_view))...);
@@ -187,7 +206,7 @@ class tuple_container {
     /// @see https://godbolt.org/z/qd6xns7KG
     template <typename functor_t, typename... Args, std::size_t first_idx,
               std::size_t... remaining_idcs>
-    DETRAY_HOST_DEVICE std::invoke_result_t<
+    DETRAY_HOST_DEVICE detray::utils::std::invoke_result_t<
         functor_t, const detail::tuple_element_t<0, tuple_type> &, Args...>
     visit(const std::size_t idx,
           std::index_sequence<first_idx, remaining_idcs...> /*seq*/,
@@ -204,12 +223,12 @@ class tuple_container {
                                     std::forward<Args>(As)...);
         }
         // If there is no matching ID, return default output
-        if constexpr (not std::is_same_v<
-                          std::invoke_result_t<
+        if constexpr (not std::is_same<
+                          detray::utils::std::invoke_result_t<
                               functor_t,
                               const detail::tuple_element_t<0, tuple_type> &,
                               Args...>,
-                          void>) {
+                          void>::value ) {
             return {};
         }
     }

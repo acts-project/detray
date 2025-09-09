@@ -43,9 +43,11 @@ using detray::ranges::detail::end;
 using detray::ranges::detail::rbegin;
 using detray::ranges::detail::rend;
 
+#ifndef DETRAY_COMPILE_VITIS
 using detray::ranges::detail::data;
-using detray::ranges::detail::empty;
 using detray::ranges::detail::size;
+#endif
+using detray::ranges::detail::empty;
 
 // These are the only ones that are reimplemented using device quilifiers
 using detray::ranges::detail::advance;
@@ -68,7 +70,11 @@ using const_iterator_t = decltype(
     detray::ranges::begin(std::declval<const std::remove_reference_t<R>&>()));
 
 template <class R>
+#ifndef DETRAY_COMPILE_VITIS
 using range_size_t = decltype(detray::ranges::size(std::declval<R&>()));
+#else
+using range_size_t = std::size_t;
+#endif // DETRAY_COMPILE_VITIS
 
 template <class R>
 using range_difference_t =
@@ -110,10 +116,10 @@ struct range : public std::false_type {
 template <class R>
 struct range<R,
              std::enable_if_t<
-                 (std::is_class_v<detray::ranges::iterator_t<R>> or
-                  std::is_pointer_v<detray::ranges::iterator_t<
-                      R>>)and(std::is_class_v<detray::ranges::sentinel_t<R>> or
-                              std::is_pointer_v<detray::ranges::sentinel_t<R>>),
+                 (std::is_class<detray::ranges::iterator_t<R>>::value  or
+                  std::is_pointer<detray::ranges::iterator_t<
+                      R>>::value )and(std::is_class<detray::ranges::sentinel_t<R>>::value  or
+                              std::is_pointer<detray::ranges::sentinel_t<R>>::value ),
                  void>> : public std::true_type {};
 
 // Range
@@ -123,48 +129,48 @@ inline constexpr bool range_v = detray::ranges::range<R>::value;
 // Iterator categories
 template <class I>
 inline constexpr bool input_iterator_v =
-    std::is_base_of_v<detray::ranges::input_iterator_tag,
-                      typename std::iterator_traits<I>::iterator_category>;
+    std::is_base_of<detray::ranges::input_iterator_tag,
+                      typename std::iterator_traits<I>::iterator_category>::value ;
 
 template <class I>
 inline constexpr bool output_iterator_v =
-    std::is_base_of_v<detray::ranges::output_iterator_tag,
-                      typename std::iterator_traits<I>::iterator_category>;
+    std::is_base_of<detray::ranges::output_iterator_tag,
+                      typename std::iterator_traits<I>::iterator_category>::value ;
 
 template <class I>
 inline constexpr bool forward_iterator_v =
-    std::is_base_of_v<detray::ranges::forward_iterator_tag,
-                      typename std::iterator_traits<I>::iterator_category>;
+    std::is_base_of<detray::ranges::forward_iterator_tag,
+                      typename std::iterator_traits<I>::iterator_category>::value ;
 
 template <class I>
 inline constexpr bool bidirectional_iterator_v =
-    std::is_base_of_v<detray::ranges::bidirectional_iterator_tag,
-                      typename std::iterator_traits<I>::iterator_category>;
+    std::is_base_of<detray::ranges::bidirectional_iterator_tag,
+                      typename std::iterator_traits<I>::iterator_category>::value ;
 
 template <class I>
 inline constexpr bool random_access_iterator_v =
-    std::is_base_of_v<detray::ranges::random_access_iterator_tag,
-                      typename std::iterator_traits<I>::iterator_category>;
+    std::is_base_of<detray::ranges::random_access_iterator_tag,
+                      typename std::iterator_traits<I>::iterator_category>::value ;
 
 // Range categories
 template <class R>
-inline constexpr bool input_range_v = detray::ranges::range_v<R>and
+inline constexpr bool input_range_v = detray::ranges::range<R>::value and
     input_iterator_v<detray::ranges::iterator_t<R>>;
 
 template <class R>
-inline constexpr bool output_range_v = detray::ranges::range_v<R>and
+inline constexpr bool output_range_v = detray::ranges::range<R>::value and
     output_iterator_v<detray::ranges::iterator_t<R>>;
 
 template <class R>
-inline constexpr bool forward_range_v = detray::ranges::range_v<R>and
+inline constexpr bool forward_range_v = detray::ranges::range<R>::value and
     forward_iterator_v<detray::ranges::iterator_t<R>>;
 
 template <class R>
-inline constexpr bool bidirectional_range_v = detray::ranges::range_v<R>and
+inline constexpr bool bidirectional_range_v = detray::ranges::range<R>::value and
     bidirectional_iterator_v<detray::ranges::iterator_t<R>>;
 
 template <class R>
-inline constexpr bool random_access_range_v = detray::ranges::range_v<R>and
+inline constexpr bool random_access_range_v = detray::ranges::range<R>::value and
     random_access_iterator_v<detray::ranges::iterator_t<R>>;
 
 // Contiguous iterator trait is only available in c++20
@@ -181,8 +187,8 @@ inline constexpr bool disable_sized_range = false;
 template <class R>
 inline constexpr bool sized_range =
     not ranges::disable_sized_range<detray::detail::remove_cvref_t<R>> and
-    (detray::ranges::range_v<R> and
-     std::is_integral_v<detray::ranges::range_size_t<R>>);
+    (detray::ranges::range<R>::value  and
+     std::is_integral<detray::ranges::range_size_t<R>>::value );
 
 /// @see https://en.cppreference.com/w/cpp/ranges/borrowed_range
 template <class R>
@@ -190,8 +196,8 @@ inline constexpr bool enable_borrowed_range = false;
 
 template <class R>
 inline constexpr bool borrowed_range =
-    detray::ranges::range_v<R> &&
-    (std::is_lvalue_reference_v<R> ||
+    detray::ranges::range<R>::value  &&
+    (std::is_lvalue_reference<R>::value  ||
      ranges::enable_borrowed_range<detray::detail::remove_cvref_t<R>>);
 
 /// @brief models a dangling iterator
@@ -210,8 +216,8 @@ using borrowed_iterator_t =
 /// @see https://en.cppreference.com/w/cpp/ranges/common_range
 template <class R>
 inline constexpr bool common_range =
-    detray::ranges::range_v<R>&& std::is_same_v<detray::ranges::iterator_t<R>,
-                                                detray::ranges::sentinel_t<R>>;
+    detray::ranges::range<R>::value && std::is_same<detray::ranges::iterator_t<R>,
+                                                detray::ranges::sentinel_t<R>>::value ;
 /// @}
 
 /// Definition of 'view'
@@ -341,15 +347,15 @@ class view_interface : public base_view {
 /// @{
 template <typename R>
 inline constexpr bool enable_view =
-    std::is_base_of_v<base_view, R> or std::is_base_of_v<view_interface<R>, R>;
+    std::is_base_of<base_view, R>::value  or std::is_base_of<view_interface<R>, R>::value ;
 
 template <class R>
-inline constexpr bool view = detray::ranges::range_v<R>and std::is_object_v<R>&&
-    std::is_move_constructible_v<R>and enable_view<R>;
+inline constexpr bool view = detray::ranges::range<R>::value and std::is_object<R>::value &&
+    std::is_move_constructible<R>::value and enable_view<R>;
 
 template <class R>
 inline constexpr bool viewable_range =
-    detray::ranges::range_v<R> &&
+    detray::ranges::range<R>::value  &&
     (borrowed_range<R> || view<detray::detail::remove_cvref_t<R>>);
 /// @}
 

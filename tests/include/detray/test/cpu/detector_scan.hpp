@@ -47,7 +47,7 @@ class detector_scan : public test::fixture_base<> {
 
     /// Switch between rays and helices
     static constexpr auto k_use_rays{
-        std::is_same_v<detail::ray<algebra_t>, trajectory_type>};
+        std::is_same<detail::ray<algebra_t>, trajectory_type>::value };
 
     public:
     using fixture_type = test::fixture_base<>;

@@ -23,6 +23,7 @@ struct bin_iterator;
 
 /// @returns the local bin indexer for the given @param search_window.
 /// (cartesian product of the bin index ranges on the respective axes)
+#ifndef DETRAY_COMPILE_VITIS
 template <std::size_t... I>
 DETRAY_HOST_DEVICE inline auto get_bin_indexer(
     const axis::multi_bin_range<sizeof...(I)> &search_window,
@@ -31,6 +32,7 @@ DETRAY_HOST_DEVICE inline auto get_bin_indexer(
     return detray::views::cartesian_product{
         detray::views::iota{detray::detail::get<I>(search_window)}...};
 }
+#endif // DETRAY_COMPILE_VITIS
 
 /// @brief Range adaptor that fetches grid bins according to a search window.
 template <typename grid_t>

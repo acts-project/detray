@@ -23,12 +23,12 @@ template <typename A, typename = void>
 struct get_bool {};
 
 template <typename A>
-struct get_bool<A, std::enable_if_t<!detray::detail::is_soa_v<A>, void>> {
+struct get_bool<A, std::enable_if_t<!detray::detail::is_soa<A>::value , void>> {
     using boolean = bool;
 };
 
 template <typename A>
-struct get_bool<A, std::enable_if_t<detray::detail::is_soa_v<A>, void>> {
+struct get_bool<A, std::enable_if_t<detray::detail::is_soa<A>::value , void>> {
     using boolean = typename A::boolean;
 };
 /// @}

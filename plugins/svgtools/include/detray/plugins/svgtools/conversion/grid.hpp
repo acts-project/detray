@@ -34,13 +34,13 @@ enum grid_type : std::uint8_t { e_barrel = 0, e_endcap = 1, e_unknown = 2 };
 template <
     typename grid_t, typename view_t,
     std::enable_if_t<
-        std::is_same_v<typename grid_t::local_frame_type,
+        std::is_same<typename grid_t::local_frame_type,
                        detray::concentric_cylindrical2D<
-                           typename grid_t::local_frame_type::algebra_type>> ||
-            std::is_same_v<
+                           typename grid_t::local_frame_type::algebra_type>>::value  ||
+            std::is_same<
                 typename grid_t::local_frame_type,
                 detray::cylindrical2D<
-                    typename grid_t::local_frame_type::algebra_type>>,
+                    typename grid_t::local_frame_type::algebra_type>>::value ,
         bool> = true>
 inline auto grid_type_and_edges(const grid_t& grid, const view_t&) {
 
@@ -52,16 +52,16 @@ inline auto grid_type_and_edges(const grid_t& grid, const view_t&) {
     // Unknown for 2D cylinder
     dvector<scalar_t> edges_r{};
 
-    if constexpr (std::is_same_v<view_t, actsvg::views::x_y>) {
+    if constexpr (std::is_same<view_t, actsvg::views::x_y>::value ) {
         return std::tuple(grid_type::e_barrel, actsvg::proto::grid::e_r_phi,
                           edges_r, edges_phi);
     }
-    if constexpr (std::is_same_v<view_t, actsvg::views::z_r>) {
+    if constexpr (std::is_same<view_t, actsvg::views::z_r>::value ) {
         return std::tuple(grid_type::e_barrel, actsvg::proto::grid::e_x_y,
                           edges_z, edges_r);
     }
-    if constexpr (std::is_same_v<view_t, actsvg::views::z_phi> ||
-                  std::is_same_v<view_t, typename actsvg::views::z_rphi>) {
+    if constexpr (std::is_same<view_t, actsvg::views::z_phi>::value  ||
+                  std::is_same<view_t, typename actsvg::views::z_rphi>::value ) {
         return std::tuple(grid_type::e_barrel, actsvg::proto::grid::e_z_phi,
                           edges_z, edges_phi);
     }
@@ -74,9 +74,9 @@ inline auto grid_type_and_edges(const grid_t& grid, const view_t&) {
 template <
     typename grid_t, typename view_t,
     std::enable_if_t<
-        std::is_same_v<
+        std::is_same<
             typename grid_t::local_frame_type,
-            detray::polar2D<typename grid_t::local_frame_type::algebra_type>>,
+            detray::polar2D<typename grid_t::local_frame_type::algebra_type>>::value ,
         bool> = true>
 inline auto grid_type_and_edges(const grid_t& grid, const view_t&) {
 
@@ -86,7 +86,7 @@ inline auto grid_type_and_edges(const grid_t& grid, const view_t&) {
     auto edges_r = grid.template get_axis<axis_label::e_r>().bin_edges();
     auto edges_phi = grid.template get_axis<axis_label::e_phi>().bin_edges();
 
-    if constexpr (std::is_same_v<view_t, typename actsvg::views::x_y>) {
+    if constexpr (std::is_same<view_t, typename actsvg::views::x_y>::value ) {
         return std::tuple(grid_type::e_endcap, actsvg::proto::grid::e_r_phi,
                           edges_r, edges_phi);
     }
@@ -99,9 +99,9 @@ inline auto grid_type_and_edges(const grid_t& grid, const view_t&) {
 template <
     typename grid_t, typename view_t,
     std::enable_if_t<
-        std::is_same_v<typename grid_t::local_frame_type,
+        std::is_same<typename grid_t::local_frame_type,
                        detray::cartesian2D<
-                           typename grid_t::local_frame_type::algebra_type>>,
+                           typename grid_t::local_frame_type::algebra_type>>::value ,
         bool> = true>
 inline auto grid_type_and_edges(const grid_t& grid, const view_t&) {
 
@@ -111,7 +111,7 @@ inline auto grid_type_and_edges(const grid_t& grid, const view_t&) {
     auto edges_x = grid.template get_axis<axis_label::e_x>().bin_edges();
     auto edges_y = grid.template get_axis<axis_label::e_y>().bin_edges();
 
-    if constexpr (std::is_same_v<view_t, typename actsvg::views::x_y>) {
+    if constexpr (std::is_same<view_t, typename actsvg::views::x_y>::value ) {
         return std::tuple(grid_type::e_endcap, actsvg::proto::grid::e_x_y,
                           edges_x, edges_y);
     }
@@ -132,7 +132,7 @@ struct type_and_edge_getter {
 
         using value_t = typename group_t::value_type;
 
-        if constexpr (detray::detail::is_grid_v<value_t>) {
+        if constexpr (detray::detail::is_grid<value_t>::value ) {
             // Only two dimensional grids for actsvg
             if constexpr (value_t::dim == 2) {
                 return grid_type_and_edges(group[index], view);
@@ -178,12 +178,12 @@ auto grid(const store_t& store, const link_t& link, const view_t& view,
         p_grid._reference_r = static_cast<actsvg::scalar>(ref_radius);
 
         // Add the cylinder radius to the axis binning
-        if constexpr (std::is_same_v<view_t, actsvg::views::x_y>) {
+        if constexpr (std::is_same<view_t, actsvg::views::x_y>::value ) {
             if (edges0.empty()) {
                 edges0 = {p_grid._reference_r, p_grid._reference_r};
             }
         }
-        if constexpr (std::is_same_v<view_t, actsvg::views::z_r>) {
+        if constexpr (std::is_same<view_t, actsvg::views::z_r>::value ) {
             if (edges1.empty()) {
                 edges1 = {p_grid._reference_r, p_grid._reference_r};
             }
@@ -195,7 +195,7 @@ auto grid(const store_t& store, const link_t& link, const view_t& view,
     }
 
     // Transform cylinder grid to rphi edges, if rphi view is requested
-    if constexpr (std::is_same_v<view_t, typename actsvg::views::z_rphi>) {
+    if constexpr (std::is_same<view_t, typename actsvg::views::z_rphi>::value ) {
         if (gr_type == detail::grid_type::e_barrel) {
             for (auto& e : edges1) {
                 e *= p_grid._reference_r;

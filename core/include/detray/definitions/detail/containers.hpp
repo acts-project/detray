@@ -12,8 +12,8 @@
 #include "detray/utils/tuple.hpp"
 
 // Vecmem include(s)
-#include <vecmem/containers/jagged_vector.hpp>
-#include <vecmem/containers/vector.hpp>
+// #include <vecmem/containers/jagged_vector.hpp>
+// #include <vecmem/containers/vector.hpp>
 
 // System include(s)
 #include <array>
@@ -27,10 +27,11 @@ template <typename value_t, std::size_t kDIM>
 using darray = std::array<value_t, kDIM>;
 
 template <typename value_t>
-using dvector = vecmem::vector<value_t>;
+// using dvector = vecmem::vector<value_t>;
+using dvector = std::vector<value_t>;
 
-template <typename value_t>
-using djagged_vector = vecmem::jagged_vector<value_t>;
+// template <typename value_t>
+// using djagged_vector = vecmem::jagged_vector<value_t>;
 
 template <typename key_t, typename value_t>
 using dmap = std::map<key_t, value_t>;
@@ -42,7 +43,6 @@ using dtuple = detray::tuple<types...>;
 template <template <typename...> class vector_t = dvector,
           template <typename...> class tuple_t = dtuple,
           template <typename, std::size_t> class array_t = darray,
-          template <typename...> class jagged_vector_t = djagged_vector,
           template <typename, typename> class map_t = dmap>
 struct container_types {
     template <typename T>
@@ -53,9 +53,6 @@ struct container_types {
 
     template <typename T, std::size_t kDIM>
     using array_type = array_t<T, kDIM>;
-
-    template <typename T>
-    using jagged_vector_type = jagged_vector_t<T>;
 
     template <typename K, typename T>
     using map_type = map_t<K, T>;

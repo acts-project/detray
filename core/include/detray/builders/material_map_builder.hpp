@@ -55,26 +55,33 @@ class material_map_builder : public volume_decorator<detector_t> {
 
     /// @param vol_builder volume builder that should be decorated with material
     /// maps
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     material_map_builder(
         std::unique_ptr<volume_builder_interface<detector_t>> vol_builder)
         : volume_decorator<detector_t>(std::move(vol_builder)) {}
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns the raw materials and their local bin indices that are
     /// currently staged in the builder
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto data() const -> const std::map<dindex, std::vector<bin_data_type>>& {
         return m_bin_data;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Not needed for material maps builder
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST void init_grid(const std::vector<scalar_type>&,
                                const std::vector<std::size_t>&,
                                const std::vector<std::vector<scalar_type>>& = {
                                    {}}) {}
+#endif // DETRAY_COMPILE_VITIS
 
     /// Overwrite, to add material maps in addition to surfaces
     /// @{
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     void add_surfaces(
         std::shared_ptr<surface_factory_interface<detector_t>> sf_factory,
@@ -99,9 +106,11 @@ class material_map_builder : public volume_decorator<detector_t> {
             return;
         }
     }
+#endif // DETRAY_COMPILE_VITIS
     /// @}
 
     /// Add the volume and the material maps to the detector @param det
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto build(detector_t& det, typename detector_t::geometry_context ctx = {})
         -> typename detector_t::volume_type* override {
@@ -145,6 +154,7 @@ class material_map_builder : public volume_decorator<detector_t> {
         // Give the volume to the next decorator
         return vol_ptr;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     private:
     /// Check whether a surface with a given index @param sf_idx should receive
@@ -208,18 +218,21 @@ namespace detail {
 /// A functor to obtain the material collection sizes for every collection
 struct material_coll_size {
 
+#ifndef DETRAY_COMPILE_VITIS
     template <typename... coll_ts, std::size_t... I>
     DETRAY_HOST inline void operator()(std::map<std::size_t, dindex>& size_map,
                                        std::index_sequence<I...> /*seq*/,
                                        const coll_ts&... coll) const {
         (size_map.emplace(I, static_cast<dindex>(coll.size())), ...);
     }
+#endif // DETRAY_COMPILE_VITIS
 };
 
 /// A functor to add a material map to a surface
 template <typename materials_t>
 struct add_sf_material_map {
 
+#ifndef DETRAY_COMPILE_VITIS
     template <typename coll_t, typename index_t, typename mat_factory_t,
               typename bin_data_t, std::size_t DIM, typename material_store_t,
               typename scalar_t>
@@ -236,8 +249,8 @@ struct add_sf_material_map {
         using mask_shape_t = typename coll_t::value_type::shape;
 
         constexpr bool is_line{
-            std::is_same_v<mask_shape_t, detray::line_square> ||
-            std::is_same_v<mask_shape_t, detray::line_circular>};
+            std::is_same<mask_shape_t, detray::line_square>::value  ||
+            std::is_same<mask_shape_t, detray::line_circular>::value };
 
         // No material maps for line surfaces
         if constexpr (!is_line && mask_shape_t::dim == DIM) {
@@ -268,6 +281,7 @@ struct add_sf_material_map {
             return {materials_t::id::e_none, dindex_invalid};
         }
     }
+#endif // DETRAY_COMPILE_VITIS
 };
 
 }  // namespace detail

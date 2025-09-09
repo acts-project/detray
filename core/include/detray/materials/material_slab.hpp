@@ -96,6 +96,7 @@ struct material_slab {
     }
 
     /// @returns a string stream that prints the material details
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     friend std::ostream& operator<<(std::ostream& os,
                                     const material_slab& mat) {
@@ -105,6 +106,7 @@ struct material_slab {
 
         return os;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     private:
     material_type m_material = {};

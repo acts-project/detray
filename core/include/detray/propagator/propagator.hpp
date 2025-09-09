@@ -17,6 +17,8 @@
 #include "detray/propagator/propagation_config.hpp"
 #include "detray/tracks/tracks.hpp"
 
+#include "detray/geometry/tracking_surface.hpp"
+#include "detray/geometry/tracking_volume.hpp"
 // System include(s).
 #include <iomanip>
 
@@ -272,6 +274,7 @@ struct propagator {
         return propagation._navigation.is_complete();
     }
 
+#ifndef DETRAY_COMPILE_VITIS
     template <typename state_t>
     DETRAY_HOST void inspect(state_t &propagation) {
         const auto &navigation = propagation._navigation;
@@ -321,6 +324,7 @@ struct propagator {
                                  << detail::ray<algebra_type>(stepping())
                                  << std::endl;
     }
+#endif // DETRAY_COMPILE_VITIS
 };
 
 }  // namespace detray

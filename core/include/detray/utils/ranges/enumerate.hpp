@@ -176,7 +176,7 @@ class enumerate_view : public detray::ranges::view_interface<
 
     /// Construct from a @param range that will be enumerated beginning at 0
     template <typename range_t,
-              std::enable_if_t<detray::ranges::range_v<range_t>, bool> = true>
+              std::enable_if_t<detray::ranges::range<range_t>::value , bool> = true>
     DETRAY_HOST_DEVICE constexpr explicit enumerate_view(range_t &&rng)
         : m_begin{detray::ranges::begin(std::forward<range_t>(rng))},
           m_end{detray::ranges::end(std::forward<range_t>(rng)),
@@ -185,7 +185,7 @@ class enumerate_view : public detray::ranges::view_interface<
     /// Construct from a @param range that will be enumerated beginning at
     /// @param start.
     template <typename range_t,
-              std::enable_if_t<detray::ranges::range_v<range_t>, bool> = true>
+              std::enable_if_t<detray::ranges::range<range_t>::value , bool> = true>
     DETRAY_HOST_DEVICE constexpr enumerate_view(range_t &&rng, dindex start)
         : m_begin{detray::ranges::begin(std::forward<range_t>(rng)), start},
           m_end{detray::ranges::end(std::forward<range_t>(rng)),
@@ -224,9 +224,9 @@ namespace views {
 
 template <
     typename range_itr_t, typename incr_t = dindex,
-    std::enable_if_t<std::is_convertible_v<typename std::iterator_traits<
+    std::enable_if_t<std::is_convertible<typename std::iterator_traits<
                                                range_itr_t>::difference_type,
-                                           incr_t>,
+                                           incr_t>::value ,
                      bool> = true>
 struct enumerate : public enumerate_view<range_itr_t, incr_t> {
 
@@ -235,41 +235,49 @@ struct enumerate : public enumerate_view<range_itr_t, incr_t> {
     constexpr enumerate() = default;
 
     template <typename range_t,
-              std::enable_if_t<detray::ranges::range_v<range_t>, bool> = true>
+              std::enable_if_t<detray::ranges::range<range_t>::value , bool> = true>
     DETRAY_HOST_DEVICE constexpr explicit enumerate(range_t &&rng)
         : base_type(std::forward<range_t>(rng)) {}
 
     template <typename range_t,
-              std::enable_if_t<detray::ranges::range_v<range_t>, bool> = true>
+              std::enable_if_t<detray::ranges::range<range_t>::value , bool> = true>
     DETRAY_HOST_DEVICE constexpr enumerate(range_t &&rng, incr_t start)
         : base_type(std::forward<range_t>(rng), start) {}
 
     /// Construct from a @param range and an index range provided by a volume
     /// @param vol.
+#ifndef DETRAY_COMPILE_VITIS
     template <typename deduced_range_t, typename volume_t,
               typename = typename std::remove_reference_t<volume_t>::volume_def>
     DETRAY_HOST_DEVICE enumerate(deduced_range_t &&range, const volume_t &vol)
         : enumerate(detray::ranges::subrange(
                         std::forward<deduced_range_t>(range), vol),
                     detray::detail::get<0>(vol.full_range())) {}
+#endif // DETRAY_COMPILE_VITIS
 };
 
 // deduction guides
 
+#ifndef DETRAY_COMPILE_VITIS
 template <typename range_t,
-          std::enable_if_t<detray::ranges::range_v<range_t>, bool> = true>
+          std::enable_if_t<detray::ranges::range<range_t>::value , bool> = true>
 DETRAY_HOST_DEVICE enumerate(range_t &&rng)
     ->enumerate<detray::ranges::const_iterator_t<range_t>, dindex>;
+#endif // DETRAY_COMPILE_VITIS
 
+#ifndef DETRAY_COMPILE_VITIS
 template <typename range_t, typename volume_t,
           typename = typename std::remove_reference_t<volume_t>::volume_def>
 DETRAY_HOST_DEVICE enumerate(range_t &&range, const volume_t &vol)
     ->enumerate<detray::ranges::const_iterator_t<range_t>, dindex>;
+#endif // DETRAY_COMPILE_VITIS
 
+#ifndef DETRAY_COMPILE_VITIS
 template <typename range_t,
-          std::enable_if_t<detray::ranges::range_v<range_t>, bool> = true>
+          std::enable_if_t<detray::ranges::range<range_t>::value , bool> = true>
 DETRAY_HOST_DEVICE enumerate(range_t &&rng, dindex start)
     ->enumerate<detray::ranges::const_iterator_t<range_t>, dindex>;
+#endif // DETRAY_COMPILE_VITIS
 
 }  // namespace views
 

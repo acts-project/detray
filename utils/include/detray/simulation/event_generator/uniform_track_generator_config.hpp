@@ -214,6 +214,7 @@ struct uniform_track_generator_config {
 };
 
 /// Print the unifrom track generator configuration
+#ifndef DETRAY_COMPILE_VITIS
 DETRAY_HOST
 inline std::ostream& operator<<(std::ostream& out,
                                 const uniform_track_generator_config& cfg) {
@@ -262,5 +263,6 @@ inline std::ostream& operator<<(std::ostream& out,
 
     return out;
 }
+#endif // DETRAY_COMPILE_VITIS
 
 }  // namespace detray

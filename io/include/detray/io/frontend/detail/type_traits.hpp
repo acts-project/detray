@@ -24,7 +24,7 @@ struct contains_grids;
 
 template <template <typename, typename...> class R, class ID, typename... Ts>
 struct contains_grids<R<ID, Ts...>> {
-    static constexpr bool value{std::disjunction_v<detail::is_grid<Ts>...>};
+    static constexpr bool value{std::disjunction<detail::is_grid<Ts>...>::value };
 };
 
 template <typename T>
@@ -39,7 +39,7 @@ struct has_surface_grids : public std::false_type {};
 template <class detector_t>
 struct has_surface_grids<
     detector_t,
-    std::enable_if_t<contains_grids_v<typename detector_t::accel>, void>>
+    std::enable_if_t<contains_grids<typename detector_t::accel>::value , void>>
     : public std::true_type {};
 
 template <typename T>
@@ -79,8 +79,8 @@ struct has_homogeneous_material : public std::false_type {};
 
 template <class detector_t>
 struct has_homogeneous_material<
-    detector_t, std::enable_if_t<has_material_slabs_v<detector_t> or
-                                     has_material_rods_v<detector_t>,
+    detector_t, std::enable_if_t<has_material_slabs<detector_t>::value  or
+                                     has_material_rods<detector_t>::value ,
                                  void>> : public std::true_type {};
 
 template <typename T>
@@ -93,7 +93,7 @@ struct has_material_grids : public std::false_type {};
 template <class detector_t>
 struct has_material_grids<
     detector_t,
-    std::enable_if_t<contains_grids_v<typename detector_t::materials>, void>>
+    std::enable_if_t<contains_grids<typename detector_t::materials>::value , void>>
     : public std::true_type {};
 
 template <typename T>

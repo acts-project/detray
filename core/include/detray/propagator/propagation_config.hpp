@@ -24,6 +24,7 @@ struct config {
 };
 
 /// Print the propagation configuration
+#ifndef DETRAY_COMPILE_VITIS
 DETRAY_HOST
 inline std::ostream& operator<<(std::ostream& out,
                                 const detray::propagation::config& cfg) {
@@ -35,5 +36,6 @@ inline std::ostream& operator<<(std::ostream& out,
 
     return out;
 }
+#endif // DETRAY_COMPILE_VITIS
 
 }  // namespace detray::propagation

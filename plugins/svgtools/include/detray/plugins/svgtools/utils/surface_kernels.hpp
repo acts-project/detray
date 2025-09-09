@@ -25,11 +25,13 @@ namespace detray::svgtools::utils {
 struct outer_radius_getter {
 
     public:
+#ifndef DETRAY_COMPILE_VITIS
     template <typename mask_group_t, typename index_t>
     DETRAY_HOST inline std::optional<detray::scalar> operator()(
         const mask_group_t& mask_group, const index_t& index) const {
         return outer_radius(mask_group[index]);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     private:
     // The remaining shapes do not have an outer radius.
@@ -71,11 +73,13 @@ struct outer_radius_getter {
 
 /// @brief Functor to obtain the volume link.
 struct link_getter {
+#ifndef DETRAY_COMPILE_VITIS
     template <typename mask_group_t, typename index_t>
     DETRAY_HOST inline auto operator()(const mask_group_t& mask_group,
                                        const index_t& index) const {
         return mask_group[index].volume_link();
     }
+#endif // DETRAY_COMPILE_VITIS
 };
 
 /// @brief Functor to calculate a suitable starting point for displaying the
@@ -83,12 +87,14 @@ struct link_getter {
 struct link_start_getter {
 
     public:
+#ifndef DETRAY_COMPILE_VITIS
     template <typename mask_group_t, typename index_t, typename transform_t>
     DETRAY_HOST inline auto operator()(const mask_group_t& mask_group,
                                        const index_t& index,
                                        const transform_t& transform) const {
         return link_start(mask_group[index], transform);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     private:
     // Calculates the link starting location of the remaining shapes.
@@ -188,6 +194,7 @@ struct link_start_getter {
 struct link_end_getter {
 
     public:
+#ifndef DETRAY_COMPILE_VITIS
     template <typename mask_group_t, typename index_t, typename detector_t,
               typename point3_t, typename vector3_t, typename scalar_t>
     DETRAY_HOST inline auto operator()(
@@ -202,6 +209,7 @@ struct link_end_getter {
                    link_length +
                surface_point;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     private:
     /// @brief Calculates the direction of the link for remaining shapes.
@@ -224,8 +232,8 @@ struct link_end_getter {
     template <
         typename detector_t, typename point3_t, typename vector3_t,
         typename shape_t,
-        std::enable_if_t<std::is_same_v<shape_t, cylinder2D> ||
-                             std::is_same_v<shape_t, concentric_cylinder2D>,
+        std::enable_if_t<std::is_same<shape_t, cylinder2D>::value  ||
+                             std::is_same<shape_t, concentric_cylinder2D>::value ,
                          bool> = true>
     inline auto link_dir(const detray::mask<shape_t>& mask,
                          const detector_t& detector,

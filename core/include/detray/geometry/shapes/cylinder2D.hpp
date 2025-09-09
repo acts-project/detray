@@ -18,8 +18,9 @@
 // System include(s)
 #include <limits>
 #include <ostream>
+#ifndef DETRAY_COMPILE_VITIS
 #include <string_view>
-
+#endif // DETRAY_COMPILE_VITIS
 namespace detray {
 
 /// @brief Geometrical shape of a 2D cylinder.
@@ -28,8 +29,9 @@ namespace detray {
 class cylinder2D {
     public:
     /// The name for this shape
+    #ifndef DETRAY_COMPILE_VITIS
     static constexpr std::string_view name = "cylinder2D";
-
+    #endif // DETRAY_COMPILE_VITIS
     enum boundaries : unsigned int {
         e_r = 0u,
         e_lower_z = 1u,
@@ -147,6 +149,7 @@ class cylinder2D {
     /// @param n_seg is the number of line segments
     ///
     /// @return a generated list of vertices
+#ifndef DETRAY_COMPILE_VITIS
     template <typename algebra_t>
     DETRAY_HOST dvector<dpoint3D<algebra_t>> vertices(
         const bounds_type<dscalar<algebra_t>> &, dindex) const {
@@ -154,6 +157,7 @@ class cylinder2D {
             "Vertex generation for cylinders is not implemented");
         return {};
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @brief Check consistency of boundary values.
     ///
@@ -161,6 +165,7 @@ class cylinder2D {
     /// @param os output stream for error messages
     ///
     /// @return true if the bounds are consistent.
+#ifndef DETRAY_COMPILE_VITIS
     template <typename scalar_t>
     DETRAY_HOST constexpr bool check_consistency(
         const bounds_type<scalar_t> &bounds, std::ostream &os) const {
@@ -181,6 +186,7 @@ class cylinder2D {
 
         return true;
     }
+#endif // DETRAY_COMPILE_VITIS
 };
 
 }  // namespace detray

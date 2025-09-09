@@ -81,6 +81,7 @@ struct intersection2D {
     constexpr bool is_inside() const { return detail::any_of(this->status); }
 
     /// Transform to a string for output debugging
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     friend std::ostream &operator<<(std::ostream &out_stream,
                                     const intersection2D &is) {
@@ -91,7 +92,7 @@ struct intersection2D {
                    << ", loc [" << is.local[0] << ", " << is.local[1] << ", "
                    << is.local[2] << "], ";
 
-        if constexpr (std::is_scalar_v<bool_t>) {
+        if constexpr (std::is_scalar<bool_t>::value ) {
             out_stream << (is.status ? ", status: inside"
                                      : ", status: outside");
             out_stream << (is.direction ? ", status: along"
@@ -104,6 +105,7 @@ struct intersection2D {
         out_stream << std::endl;
         return out_stream;
     }
+#endif // DETRAY_COMPILE_VITIS
 };
 
 }  // namespace detray

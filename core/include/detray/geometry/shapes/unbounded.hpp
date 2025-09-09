@@ -19,8 +19,9 @@
 #include <limits>
 #include <ostream>
 #include <string>
+#ifndef DETRAY_COMPILE_VITIS
 #include <string_view>
-
+#endif // DETRAY_COMPILE_VITIS
 namespace detray {
 
 /// @brief Wraps any shape, but does not enforce boundaries
@@ -35,8 +36,9 @@ class unbounded {
     using bounds_type = darray<scalar_t, boundaries::e_size>;
 
     /// Convenience member to construct the name
+    #ifndef DETRAY_COMPILE_VITIS
     static constexpr std::string_view name_prefix = "unbounded ";
-
+    #endif // DETRAY_COMPILE_VITIS
     /// The name for this shape
     static constexpr string_view_concat2 name{name_prefix, shape::name};
 
@@ -151,11 +153,13 @@ class unbounded {
     /// @param ls is the number of line segments
     ///
     /// @return a generated list of vertices
+#ifndef DETRAY_COMPILE_VITIS
     template <typename algebra_t>
     DETRAY_HOST dvector<dpoint3D<algebra_t>> vertices(
         const bounds_type<dscalar<algebra_t>>& bounds, dindex n_seg) const {
         return shape{}.template vertices<algebra_t>(bounds, n_seg);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @brief Check consistency of boundary values.
     ///
@@ -163,11 +167,13 @@ class unbounded {
     /// @param os output stream for error messages
     ///
     /// @return true if the bounds are consistent.
+#ifndef DETRAY_COMPILE_VITIS
     template <typename scalar_t>
     DETRAY_HOST constexpr bool check_consistency(
         const bounds_type<scalar_t>& /*bounds*/, std::ostream& /*os*/) const {
         return true;
     }
+#endif // DETRAY_COMPILE_VITIS
 };
 
 }  // namespace detray

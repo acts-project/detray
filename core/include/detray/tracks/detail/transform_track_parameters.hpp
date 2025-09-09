@@ -38,8 +38,8 @@ DETRAY_HOST_DEVICE inline auto free_to_bound_position(
     const dvector3D<typename local_frame_t::algebra_type>& dir) {
 
     static_assert(
-        std::is_same_v<typename local_frame_t::loc_point,
-                       dpoint2D<typename local_frame_t::algebra_type>>,
+        std::is_same<typename local_frame_t::loc_point,
+                       dpoint2D<typename local_frame_t::algebra_type>>::value ,
         "Cannot define a bound position on this shape");
 
     return local_frame_t::global_to_local(trf, p, dir);

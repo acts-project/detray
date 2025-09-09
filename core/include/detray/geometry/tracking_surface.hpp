@@ -74,7 +74,7 @@ class tracking_surface {
 
     /// Conversion to surface interface around constant detector type
     template <typename detector_type = detector_t,
-              std::enable_if_t<!std::is_const_v<detector_type>, bool> = true>
+              std::enable_if_t<!std::is_const<detector_type>::value , bool> = true>
     DETRAY_HOST_DEVICE constexpr
     operator tracking_surface<const detector_type>() const {
         return tracking_surface<const detector_type>{this->m_detector,
@@ -155,10 +155,12 @@ class tracking_surface {
     }
 
     /// @returns the mask shape name
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     std::string shape_name() const {
         return visit_mask<typename kernels::get_shape_name>();
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns the coordinate transform matrix of the surface
     DETRAY_HOST_DEVICE
@@ -169,8 +171,8 @@ class tracking_surface {
 
     /// @returns the mask volume link
     template <typename point_t = point2_type,
-              std::enable_if_t<std::is_same_v<point_t, point3_type> or
-                                   std::is_same_v<point_t, point2_type>,
+              std::enable_if_t<std::is_same<point_t, point3_type>::value  or
+                                   std::is_same<point_t, point2_type>::value ,
                                bool> = true>
     DETRAY_HOST_DEVICE constexpr bool is_inside(const point_t &loc_p,
                                                 const scalar_type tol) const {
@@ -200,8 +202,8 @@ class tracking_surface {
     /// @returns the surface normal in global coordinates at a given bound/local
     /// position @param p
     template <typename point_t = point2_type,
-              std::enable_if_t<std::is_same_v<point_t, point3_type> or
-                                   std::is_same_v<point_t, point2_type>,
+              std::enable_if_t<std::is_same<point_t, point3_type>::value  or
+                                   std::is_same<point_t, point2_type>::value ,
                                bool> = true>
     DETRAY_HOST_DEVICE constexpr auto normal(const context &ctx,
                                              const point_t &p) const
@@ -213,8 +215,8 @@ class tracking_surface {
     /// @param p and a global direction @param dir
     /// @note The direction has to be normalized
     template <typename point_t = point2_type,
-              std::enable_if_t<std::is_same_v<point_t, point3_type> or
-                                   std::is_same_v<point_t, point2_type>,
+              std::enable_if_t<std::is_same<point_t, point3_type>::value  or
+                                   std::is_same<point_t, point2_type>::value ,
                                bool> = true>
     DETRAY_HOST_DEVICE constexpr auto cos_angle(const context &ctx,
                                                 const vector3_type &dir,
@@ -314,13 +316,16 @@ class tracking_surface {
 
     /// @returns the vertices in local frame with @param n_seg the number of
     /// segments used along acrs
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     constexpr auto local_vertices(const dindex n_seg) const {
         return visit_mask<typename kernels::vertices>(n_seg);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns the vertices in global frame with @param n_seg the number of
     /// segments used along acrs
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     constexpr auto global_vertices(const context &ctx,
                                    const dindex n_seg) const {
@@ -330,25 +335,30 @@ class tracking_surface {
         }
         return vertices;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns the vertices in local frame with @param n_seg the number of
     /// segments used along acrs
     /// @note the point has to be inside the surface mask
+#ifndef DETRAY_COMPILE_VITIS
     template <typename point_t>
     DETRAY_HOST constexpr auto min_dist_to_boundary(
         const point_t &loc_p) const {
         return visit_mask<typename kernels::min_dist_to_boundary>(loc_p);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @brief Lower and upper point for minimal axis aligned bounding box.
     ///
     /// Computes the min and max vertices in a local cartesian frame.
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     constexpr auto local_min_bounds(
         const scalar_type env =
             std::numeric_limits<scalar_type>::epsilon()) const {
         return visit_mask<typename kernels::local_min_bounds>(env);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Call a functor on the surfaces mask with additional arguments.
     ///
@@ -379,6 +389,7 @@ class tracking_surface {
     /// @param os output stream for error messages.
     ///
     /// @returns true if the surface is consistent
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST bool self_check(std::ostream &os) const {
         if (barcode().is_invalid()) {
             os << "ERROR: Invalid barcode for surface:\n" << *this << std::endl;
@@ -440,14 +451,17 @@ class tracking_surface {
 
         return true;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns a string stream that prints the surface details
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     friend std::ostream &operator<<(std::ostream &os,
                                     const tracking_surface &sf) {
         os << sf.m_desc;
         return os;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     private:
     /// Access to the detector stores
@@ -456,6 +470,7 @@ class tracking_surface {
     const descr_t &m_desc;
 };
 
+#ifndef DETRAY_COMPILE_VITIS
 template <typename detector_t, typename descr_t>
 DETRAY_HOST_DEVICE tracking_surface(const detector_t &, const descr_t &)
     ->tracking_surface<detector_t>;
@@ -463,5 +478,6 @@ DETRAY_HOST_DEVICE tracking_surface(const detector_t &, const descr_t &)
 template <typename detector_t>
 DETRAY_HOST_DEVICE tracking_surface(const detector_t &, const geometry::barcode)
     ->tracking_surface<detector_t>;
+#endif // DETRAY_COMPILE_VITIS
 
 }  // namespace detray

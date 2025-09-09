@@ -33,18 +33,23 @@ class homogeneous_volume_material_builder final
 
     /// @param vol_builder volume builder that should be decorated with volume
     /// material
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     homogeneous_volume_material_builder(
         std::unique_ptr<volume_builder_interface<detector_t>> vol_builder)
         : volume_decorator<detector_t>(std::move(vol_builder)) {}
+#endif // DETRAY_COMPILE_VITIS
 
     /// Add all necessary compontents for the volume material
     ///
     /// @param mat the material parameters
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     void set_material(material<scalar_type> mat) { m_volume_material = mat; }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Add the volume and the material to the detector @param det
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto build(detector_t &det, typename detector_t::geometry_context ctx = {})
         -> typename detector_t::volume_type * override {
@@ -73,6 +78,7 @@ class homogeneous_volume_material_builder final
         // Give the volume to the next decorator
         return vol;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     protected:
     // Material for this volume

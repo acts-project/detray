@@ -32,6 +32,7 @@ struct scattering_helper {
     /// @param angle  scattering angle
     /// @param generator random generator
     /// @returns the new direction from random scattering
+#ifndef DETRAY_COMPILE_VITIS
     template <typename generator_t>
     DETRAY_HOST inline vector3_type operator()(const vector3_type& dir,
                                                const scalar_type angle,
@@ -50,6 +51,7 @@ struct scattering_helper {
         vector3_type new_dir = axis_rotation<algebra_t>(u, r_theta)(dir);
         return axis_rotation<algebra_t>(dir, r_phi)(new_dir);
     }
+#endif // DETRAY_COMPILE_VITIS
 };
 
 }  // namespace detray

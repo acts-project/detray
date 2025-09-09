@@ -19,6 +19,7 @@
 
 namespace detray {
 
+#ifndef DETRAY_COMPILE_VITIS
 template <typename I>
 DETRAY_HOST inline std::ostream& operator<<(std::ostream& os,
                                             const darray<I, 2>& r) {
@@ -33,6 +34,7 @@ DETRAY_HOST inline std::ostream& operator<<(std::ostream& os,
     }
     return os;
 }
+#endif // DETRAY_COMPILE_VITIS
 
 namespace detail {
 
@@ -64,6 +66,7 @@ struct multi_index {
         return (indices == rhs.indices);
     }
 
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     friend std::ostream& operator<<(std::ostream& os, const multi_index mi) {
 
@@ -77,6 +80,7 @@ struct multi_index {
         }
         return os;
     }
+#endif // DETRAY_COMPILE_VITIS
 };
 
 /// @brief Ties an object type and an index into a container together.
@@ -229,6 +233,7 @@ struct typed_index {
         return encoder::template is_invalid<index_mask>(m_value);
     }
 
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     friend std::ostream& operator<<(std::ostream& os, const typed_index ti) {
         if (ti.is_invalid()) {
@@ -249,6 +254,7 @@ struct typed_index {
         }
         return os;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     private:
     /// The encoded value. Default: All bits set to 1 (invalid)

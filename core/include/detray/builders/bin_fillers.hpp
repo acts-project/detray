@@ -39,6 +39,7 @@ struct fill_by_bin {
     template <typename grid_t>
     using bin_data_type = bin_data<grid_t::dim, typename grid_t::value_type>;
 
+#ifndef DETRAY_COMPILE_VITIS
     template <typename grid_t, typename volume_t, typename surface_container_t,
               typename mask_container, typename transform_container,
               typename context_t, typename... Args>
@@ -53,6 +54,7 @@ struct fill_by_bin {
                                              bd.single_element);
         }
     }
+#endif // DETRAY_COMPILE_VITIS
 };
 
 /// Fill a surface grid using the surface translation.
@@ -63,6 +65,7 @@ struct fill_by_bin {
 /// @param ctx the geometry context
 struct fill_by_pos {
 
+#ifndef DETRAY_COMPILE_VITIS
     template <typename grid_t, typename volume_t, typename surface_container_t,
               typename mask_container, typename transform_container,
               typename context_t, typename... Args>
@@ -89,6 +92,7 @@ struct fill_by_pos {
             }
         }
     }
+#endif // DETRAY_COMPILE_VITIS
 };
 
 /// Fill a grid surface finder by bin association.
@@ -99,6 +103,7 @@ struct fill_by_pos {
 /// @param ctx the geometry context
 struct bin_associator {
 
+#ifndef DETRAY_COMPILE_VITIS
     template <typename detector_t, typename volume_type, typename grid_t,
               typename... Args>
     DETRAY_HOST auto operator()(grid_t &grid, detector_t &det,
@@ -108,7 +113,9 @@ struct bin_associator {
         this->operator()(grid, det.surfaces(vol), det.mask_store(),
                          det.transform_store(), ctx);
     }
+#endif // DETRAY_COMPILE_VITIS
 
+#ifndef DETRAY_COMPILE_VITIS
     template <typename grid_t, typename volume_t, typename surface_container_t,
               typename mask_container, typename transform_container,
               typename context_t, typename... Args>
@@ -122,6 +129,7 @@ struct bin_associator {
         bin_association(ctx, surfaces, transforms, masks, grid, {0.1f, 0.1f},
                         false);
     }
+#endif // DETRAY_COMPILE_VITIS
 };
 
 }  // namespace detray

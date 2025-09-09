@@ -229,6 +229,7 @@ struct random_track_generator_config {
 };
 
 /// Print the random track generator configuration
+#ifndef DETRAY_COMPILE_VITIS
 DETRAY_HOST
 inline std::ostream& operator<<(std::ostream& out,
                                 const random_track_generator_config& cfg) {
@@ -277,5 +278,6 @@ inline std::ostream& operator<<(std::ostream& out,
 
     return out;
 }
+#endif // DETRAY_COMPILE_VITIS
 
 }  // namespace detray

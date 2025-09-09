@@ -53,38 +53,51 @@ class volume_builder : public volume_builder_interface<detector_t> {
     };
 
     /// Adds the @param name of the volume to a @param name_map
+#ifndef DETRAY_COMPILE_VITIS
     template <typename name_map>
     DETRAY_HOST void add_name(const name_map& names, std::string&& name) {
         names.at(vol_index()) = std::move(name);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns the volume index in the detector volume container
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto vol_index() const -> dindex override { return m_volume.index(); }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Toggles whether sensitive surfaces are added to the brute force method
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     void has_accel(bool toggle) override { m_has_accel = toggle; }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns whether sensitive surfaces are added to the brute force method
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     bool has_accel() const override { return m_has_accel; }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Access to the volume under construction - const
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto operator()() const -> const
         typename detector_t::volume_type& override {
         return m_volume;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Access to the volume under construction - non-const
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto operator()() -> typename detector_t::volume_type& override {
         return m_volume;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Build the volume with internal surfaces and portals and add it to the
     /// detector instance @param det
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto build(detector_t& det, typename detector_t::geometry_context ctx = {})
         -> typename detector_t::volume_type* override {
@@ -105,24 +118,30 @@ class volume_builder : public volume_builder_interface<detector_t> {
         // Pass to decorator builders
         return &(det.volumes().back());
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Adds a placement transform @param trf for the volume
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     void add_volume_placement(
         const typename detector_t::transform3_type& trf = {}) override {
         m_trf = trf;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Constructs a placement transform with identity rotation and translation
     /// @param t for the volume
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     void add_volume_placement(
         const typename detector_t::point3_type& t) override {
         m_trf = typename detector_t::transform3_type{t};
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Constructs a placement transform from axes @param x and @param z
     /// and the translation @param t for the volume
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     void add_volume_placement(
         const typename detector_t::point3_type& t,
@@ -130,14 +149,17 @@ class volume_builder : public volume_builder_interface<detector_t> {
         const typename detector_t::vector3_type& z) override {
         m_trf = typename detector_t::transform3_type{t, z, x, true};
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Add data for (a) new surface(s) to the builder
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     void add_surfaces(
         std::shared_ptr<surface_factory_interface<detector_t>> sf_factory,
         typename detector_t::geometry_context ctx = {}) override {
         (*sf_factory)(m_volume, m_surfaces, m_transforms, m_masks, ctx);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     protected:
     /// @returns Access to the surface descriptor data
@@ -160,6 +182,7 @@ class volume_builder : public volume_builder_interface<detector_t> {
     /// @param det is the detector instance that the volume should be added to
     ///
     /// @note can throw an exception if input data is inconsistent
+#ifndef DETRAY_COMPILE_VITIS
     template <geo_obj_ids surface_id = static_cast<geo_obj_ids>(0)>
     DETRAY_HOST auto add_to_detector(
         const typename detector_t::geometry_context ctx,
@@ -265,6 +288,7 @@ class volume_builder : public volume_builder_interface<detector_t> {
         // Finally, add the volume descriptor to the detector
         det._volumes.push_back(m_volume);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Whether the volume will get an acceleration structure
     bool m_has_accel{false};
@@ -287,27 +311,31 @@ namespace detail {
 /// A functor to update the mask index in surface objects
 struct mask_index_update {
 
+#ifndef DETRAY_COMPILE_VITIS
     template <typename group_t, typename index_t, typename surface_t>
     DETRAY_HOST inline void operator()(const group_t& group,
                                        const index_t& /*index*/,
                                        surface_t& sf) const {
         sf.update_mask(static_cast<dindex>(group.size()));
     }
+#endif // DETRAY_COMPILE_VITIS
 };
 
 /// TODO: Remove once the material builder is used everywhere
 /// A functor to update the material index in surface objects
 struct material_index_update {
 
+#ifndef DETRAY_COMPILE_VITIS
     template <typename group_t, typename index_t, typename surface_t>
     DETRAY_HOST inline void operator()(
         [[maybe_unused]] const group_t& group,
         [[maybe_unused]] const index_t& /*index*/,
         [[maybe_unused]] surface_t& sf) const {
-        if constexpr (!detail::is_grid_v<typename group_t::value_type>) {
+        if constexpr (!detail::is_grid<typename group_t::value_type>::value ) {
             sf.update_material(static_cast<dindex>(group.size()));
         }
     }
+#endif // DETRAY_COMPILE_VITIS
 };
 
 }  // namespace detail

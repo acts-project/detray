@@ -8,7 +8,9 @@
 #pragma once
 
 // Detray include(s).
+#ifndef DETRAY_COMPILE_VITIS
 #include "detray/core/detail/container_buffers.hpp"
+#endif // DETRAY_COMPILE_VITIS
 #include "detray/core/detail/container_views.hpp"
 #include "detray/definitions/detail/algorithms.hpp"
 #include "detray/definitions/detail/containers.hpp"
@@ -17,7 +19,9 @@
 #include "detray/utils/ranges.hpp"
 
 // VecMem include(s).
+#ifndef DETRAY_COMPILE_VITIS
 #include <vecmem/memory/memory_resource.hpp>
+#endif // DETRAY_COMPILE_VITIS
 
 // System include(s)
 #include <type_traits>
@@ -93,8 +97,10 @@ class brute_force_collection {
         dmulti_view<dvector_view<size_type>, dvector_view<value_t>>;
     using const_view_type =
         dmulti_view<dvector_view<const size_type>, dvector_view<const value_t>>;
+#ifndef DETRAY_COMPILE_VITIS
     using buffer_type =
         dmulti_buffer<dvector_buffer<size_type>, dvector_buffer<value_t>>;
+#endif // DETRAY_COMPILE_VITIS
 
     /// Default constructor
     constexpr brute_force_collection() {
@@ -103,31 +109,39 @@ class brute_force_collection {
     };
 
     /// Constructor from memory resource
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     explicit constexpr brute_force_collection(vecmem::memory_resource* resource)
         : m_offsets(resource), m_surfaces(resource) {
         // Start of first subrange
         m_offsets.push_back(0u);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Constructor from memory resource
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     explicit constexpr brute_force_collection(vecmem::memory_resource& resource)
         : brute_force_collection(&resource) {}
+#endif // DETRAY_COMPILE_VITIS
 
     /// Device-side construction from a vecmem based view type
     template <typename coll_view_t,
-              typename std::enable_if_t<detail::is_device_view_v<coll_view_t>,
+              typename std::enable_if_t<detail::is_device_view<coll_view_t>::value ,
                                         bool> = true>
     DETRAY_HOST_DEVICE brute_force_collection(coll_view_t& view)
         : m_offsets(detail::get<0>(view.m_view)),
           m_surfaces(detail::get<1>(view.m_view)) {}
 
     /// @returns access to the volume offsets - const
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST const auto& offsets() const { return m_offsets; }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns access to the volume offsets
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST auto& offsets() { return m_offsets; }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns number of surface collections (at least on per volume) - const
     DETRAY_HOST_DEVICE
@@ -163,11 +177,12 @@ class brute_force_collection {
     }
 
     /// Add a new surface collection
+#ifndef DETRAY_COMPILE_VITIS
     template <typename sf_container_t,
-              typename std::enable_if_t<detray::ranges::range_v<sf_container_t>,
+              typename std::enable_if_t<detray::ranges::range<sf_container_t>::value ,
                                         bool> = true,
               typename std::enable_if_t<
-                  std::is_same_v<typename sf_container_t::value_type, value_t>,
+                  std::is_same<typename sf_container_t::value_type, value_t>::value ,
                   bool> = true>
     DETRAY_HOST auto push_back(const sf_container_t& surfaces) noexcept(false)
         -> void {
@@ -176,8 +191,10 @@ class brute_force_collection {
         // End of this range is the start of the next range
         m_offsets.push_back(static_cast<dindex>(m_surfaces.size()));
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Remove surface from collection
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST auto erase(
         typename vector_type<value_t>::iterator pos) noexcept(false) {
         // Remove one element
@@ -193,20 +210,25 @@ class brute_force_collection {
 
         return next;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @return the view on the brute force finders - non-const
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     constexpr auto get_data() noexcept -> view_type {
         return view_type{detray::get_data(m_offsets),
                          detray::get_data(m_surfaces)};
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @return the view on the brute force finders - const
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     constexpr auto get_data() const noexcept -> const_view_type {
         return const_view_type{detray::get_data(m_offsets),
                                detray::get_data(m_surfaces)};
     }
+#endif // DETRAY_COMPILE_VITIS
 
     private:
     /// Offsets for the respective volumes into the surface storage

@@ -73,6 +73,7 @@ class mask {
 
     /// Constructor from mask boundary vector @param values and
     /// volume link @param link
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST mask(const std::vector<scalar_type>& values,
                      const links_type& link)
         : _volume_link(link) {
@@ -80,16 +81,19 @@ class mask {
                " Given number of boundaries does not match mask shape.");
         std::copy(std::cbegin(values), std::cend(values), std::begin(_values));
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Assignment operator from an array, convenience function
     ///
     /// @param rhs is the right hand side object
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto operator=(const mask_values& rhs)
         -> mask<shape_t, links_t, algebra_t>& {
         _values = rhs;
         return (*this);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Equality operator
     ///
@@ -235,12 +239,15 @@ class mask {
     /// @param n_seg the number of segments in for arcs
     ///
     /// @returns a vector of vertices.
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto vertices(const dindex n_seg) const -> dvector<point3_type> {
         return _shape.template vertices<algebra_t>(_values, n_seg);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns true if the mask boundary values are consistent
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     constexpr bool self_check(std::ostream& os) const {
 
@@ -252,8 +259,10 @@ class mask {
 
         return result;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns a string representation of the mask
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto to_string() const -> std::string {
         std::stringstream ss;
@@ -263,13 +272,16 @@ class mask {
         }
         return ss.str();
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns a string stream that prints the mask details
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     friend std::ostream& operator<<(std::ostream& os, const mask& m) {
         os << m.to_string();
         return os;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     private:
     shape _shape;

@@ -16,8 +16,9 @@
 // System include(s)
 #include <limits>
 #include <ostream>
+#ifndef DETRAY_COMPILE_VITIS
 #include <string_view>
-
+#endif // DETRAY_COMPILE_VITIS
 namespace detray {
 
 /// @brief Geometrical shape of a rectangle2D.
@@ -26,8 +27,9 @@ namespace detray {
 class rectangle2D {
     public:
     /// The name for this shape
+    #ifndef DETRAY_COMPILE_VITIS
     static constexpr std::string_view name = "rectangle2D";
-
+    #endif // DETRAY_COMPILE_VITIS
     enum boundaries : unsigned int {
         e_half_x = 0u,
         e_half_y = 1u,
@@ -139,6 +141,7 @@ class rectangle2D {
     /// @param n_seg is the number of line segments
     ///
     /// @return a generated list of vertices
+#ifndef DETRAY_COMPILE_VITIS
     template <typename algebra_t>
     DETRAY_HOST dvector<dpoint3D<algebra_t>> vertices(
         const bounds_type<dscalar<algebra_t>> &bounds,
@@ -158,6 +161,7 @@ class rectangle2D {
         // Return the confining vertices
         return {lh_lc, rh_lc, rh_uc, lh_uc};
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// @brief Check consistency of boundary values.
     ///
@@ -165,6 +169,7 @@ class rectangle2D {
     /// @param os output stream for error messages
     ///
     /// @return true if the bounds are consistent.
+#ifndef DETRAY_COMPILE_VITIS
     template <typename scalar_t>
     DETRAY_HOST constexpr bool check_consistency(
         const bounds_type<scalar_t> &bounds, std::ostream &os) const {
@@ -179,6 +184,7 @@ class rectangle2D {
 
         return true;
     }
+#endif // DETRAY_COMPILE_VITIS
 };
 
 }  // namespace detray

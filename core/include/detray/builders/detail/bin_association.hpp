@@ -53,8 +53,8 @@ static inline void bin_association(const context_t & /*context*/,
     const auto &axis_1 = grid.template get_axis<1>();
 
     // Disk type bin association
-    if constexpr (std::is_same_v<typename grid_t::local_frame_type,
-                                 polar2D<algebra_t>>) {
+    if constexpr (std::is_same<typename grid_t::local_frame_type,
+                                 polar2D<algebra_t>>::value ) {
         // Run with two different associators: center of gravity and edge
         // intersection
         center_of_gravity_generic cgs_assoc;
@@ -119,10 +119,10 @@ static inline void bin_association(const context_t & /*context*/,
                 }
             }
         }
-    } else if constexpr (std::is_same_v<typename grid_t::local_frame_type,
-                                        cylindrical2D<algebra_t>> ||
-                         std::is_same_v<typename grid_t::local_frame_type,
-                                        concentric_cylindrical2D<algebra_t>>) {
+    } else if constexpr (std::is_same<typename grid_t::local_frame_type,
+                                        cylindrical2D<algebra_t>>::value  ||
+                         std::is_same<typename grid_t::local_frame_type,
+                                        concentric_cylindrical2D<algebra_t>>::value ) {
 
         center_of_gravity_rectangle cgs_assoc;
         edges_intersect_generic edges_assoc;

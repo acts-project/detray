@@ -135,11 +135,14 @@ class endcap_generator final : public surface_factory_interface<detector_t> {
 
     public:
     /// Build an endcap layer according to the parameters given in @param cfg
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     explicit endcap_generator(const endcap_generator_config<scalar_t> &cfg)
         : m_cfg{cfg} {}
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns the number of surfaces this factory will produce
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto size() const -> dindex override {
         dindex n_modules{0u};
@@ -148,18 +151,25 @@ class endcap_generator final : public surface_factory_interface<detector_t> {
         }
         return n_modules;
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// This is a surface generator, no external surface data needed
     /// @{
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     void clear() override{};
+#endif // DETRAY_COMPILE_VITIS
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     void push_back(surface_data<detector_t> &&) override { /*Do nothing*/
     }
+#endif // DETRAY_COMPILE_VITIS
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto push_back(std::vector<surface_data<detector_t>> &&)
         -> void override { /*Do nothing*/
     }
+#endif // DETRAY_COMPILE_VITIS
     /// @}
 
     /// Create a pixel tracker endcap layer with two rings.
@@ -169,6 +179,7 @@ class endcap_generator final : public surface_factory_interface<detector_t> {
     /// @param transforms the transforms of the surfaces.
     /// @param masks the masks of the surfaces.
     /// @param ctx the geometry context (not needed for portals).
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto operator()(typename detector_t::volume_type &volume,
                     typename detector_t::surface_lookup_container &surfaces,
@@ -291,7 +302,7 @@ class endcap_generator final : public surface_factory_interface<detector_t> {
             std::vector<scalar_t> mask_values{m_cfg.module_bounds()[ir]};
 
             // Precompute trapezoid divisor
-            if constexpr (std::is_same_v<mask_shape_t, trapezoid2D>) {
+            if constexpr (std::is_same<mask_shape_t, trapezoid2D>::value ) {
                 const scalar_t div{
                     1.f / (2.f * mask_values[trapezoid2D::e_half_length_2])};
 
@@ -305,6 +316,7 @@ class endcap_generator final : public surface_factory_interface<detector_t> {
 
         return {surfaces_offset, static_cast<dindex>(surfaces.size())};
     }
+#endif // DETRAY_COMPILE_VITIS
 
     private:
     /// Helper method for positioning of modules in an endcap ring

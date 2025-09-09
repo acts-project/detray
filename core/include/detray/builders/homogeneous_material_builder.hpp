@@ -32,14 +32,17 @@ class homogeneous_material_builder final : public volume_decorator<detector_t> {
     using scalar_type = typename detector_t::scalar_type;
 
     /// @param vol_builder volume builder that should be decorated with material
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     homogeneous_material_builder(
         std::unique_ptr<volume_builder_interface<detector_t>> vol_builder)
         : volume_decorator<detector_t>(std::move(vol_builder)) {}
+#endif // DETRAY_COMPILE_VITIS
 
     /// Overwrite, to add material in addition to surfaces (only if surfaces are
     /// present in the factory, otherwise only add material)
     /// @{
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     void add_surfaces(
         std::shared_ptr<surface_factory_interface<detector_t>> sf_factory,
@@ -63,9 +66,11 @@ class homogeneous_material_builder final : public volume_decorator<detector_t> {
             return;
         }
     }
+#endif // DETRAY_COMPILE_VITIS
     /// @}
 
     /// Add the volume and the material to the detector @param det
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto build(detector_t &det, typename detector_t::geometry_context ctx = {})
         -> typename detector_t::volume_type * override {
@@ -96,6 +101,7 @@ class homogeneous_material_builder final : public volume_decorator<detector_t> {
         // next decorator
         return volume_decorator<detector_t>::build(det, ctx);
     }
+#endif // DETRAY_COMPILE_VITIS
 
     protected:
     // Material container for this volume

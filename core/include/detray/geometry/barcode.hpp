@@ -139,6 +139,7 @@ class barcode {
         return lhs.m_value < rhs.m_value;
     }
 
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     friend std::ostream& operator<<(std::ostream& os, const barcode c) {
         if (c.is_invalid()) {
@@ -161,6 +162,7 @@ class barcode {
         os << " ";
         return os;
     }
+#endif // DETRAY_COMPILE_VITIS
 };
 
 }  // namespace detray::geometry

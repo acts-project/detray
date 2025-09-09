@@ -32,24 +32,34 @@ class square_surface_generator final
     using scalar_t = typename detector_t::scalar_type;
 
     /// Generate @param n square surfaces with half length @param hl .
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     square_surface_generator(std::size_t n, scalar_t hl)
         : m_n_squares{static_cast<dindex>(n)}, m_half_length{hl} {}
+#endif // DETRAY_COMPILE_VITIS
 
     /// @returns the number of surfaces this factory will produce
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto size() const -> dindex override { return m_n_squares; }
+#endif // DETRAY_COMPILE_VITIS
 
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     void clear() override{/*Do nothing*/};
+#endif // DETRAY_COMPILE_VITIS
 
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     void push_back(surface_data<detector_t> &&) override { /*Do nothing*/
     }
+#endif // DETRAY_COMPILE_VITIS
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto push_back(std::vector<surface_data<detector_t>> &&)
         -> void override { /*Do nothing*/
     }
+#endif // DETRAY_COMPILE_VITIS
 
     /// Generate the surfaces and add them to given data collections.
     ///
@@ -58,6 +68,7 @@ class square_surface_generator final
     /// @param transforms the transforms of the surfaces.
     /// @param masks the masks of the surfaces (all of the same shape).
     /// @param ctx the geometry context.
+#ifndef DETRAY_COMPILE_VITIS
     DETRAY_HOST
     auto operator()(typename detector_t::volume_type &volume,
                     typename detector_t::surface_lookup_container &surfaces,
@@ -104,6 +115,7 @@ class square_surface_generator final
 
         return {surfaces_offset, static_cast<dindex>(surfaces.size())};
     }
+#endif // DETRAY_COMPILE_VITIS
 
     private:
     /// How many surfaces should be produced

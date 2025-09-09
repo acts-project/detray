@@ -42,6 +42,7 @@ class single_view
         : m_value{std::move(value)} {}
 
     /// Construct value in place from @param args
+#ifndef DETRAY_COMPILE_VITIS
     template <class... Args>
     DETRAY_HOST_DEVICE constexpr single_view(std::in_place_t, Args&&... args)
         : m_value{std::in_place, std::forward<Args>(args)...} {}
@@ -49,6 +50,7 @@ class single_view
     /// Copy constructor
     DETRAY_HOST_DEVICE
     constexpr single_view(const single_view& other) : m_value{other.m_value} {}
+#endif // DETRAY_COMPILE_VITIS
 
     /// Move constructor for the single view
     constexpr single_view(single_view&& other) = default;
@@ -129,6 +131,7 @@ struct single : public detray::ranges::single_view<value_t> {
 
     constexpr single() = default;
 
+#ifndef DETRAY_COMPILE_VITIS
     template <typename deduced_value_t>
     DETRAY_HOST_DEVICE constexpr explicit single(const deduced_value_t& value)
         : base_type(value) {}
@@ -140,12 +143,15 @@ struct single : public detray::ranges::single_view<value_t> {
     template <class... Args>
     DETRAY_HOST_DEVICE constexpr single(std::in_place_t, Args&&... args)
         : base_type(std::in_place, std::forward<Args>(args)...) {}
+#endif // DETRAY_COMPILE_VITIS
 };
 
 // deduction guides
 
+#ifndef DETRAY_COMPILE_VITIS
 template <typename deduced_value_t>
 single(deduced_value_t) -> single<deduced_value_t>;
+#endif // DETRAY_COMPILE_VITIS
 
 }  // namespace views
 
