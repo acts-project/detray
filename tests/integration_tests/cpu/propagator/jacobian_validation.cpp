@@ -480,6 +480,7 @@ bound_getter<test_algebra>::state evaluate_bound_param(
     bound_getter_state.track_ID = trk_count;
     bound_getter_state.m_min_path_length = detector_length * 0.75f;
     parameter_resetter<test_algebra>::state resetter_state{};
+    resetter_state.estimate_scattering_noise = false;
     auto actor_states = detray::tie(bound_getter_state, resetter_state);
 
     // Init propagator states for the reference track
@@ -529,6 +530,7 @@ bound_param_vector_type get_displaced_bound_vector(
     bound_getter_state.track_ID = trk_count;
     bound_getter_state.m_min_path_length = detector_length * 0.75f;
     parameter_resetter<test_algebra>::state resetter_state{};
+    resetter_state.estimate_scattering_noise = false;
 
     auto actor_states = detray::tie(bound_getter_state, resetter_state);
     dstate.set_particle(ptc);

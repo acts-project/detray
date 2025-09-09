@@ -882,6 +882,36 @@ class navigator {
         return is_init;
     }
 
+    /// @brief Jump to the next candidate. only possible if stepsize is zero!
+    ///
+    /// In case of surface overlaps, allow the navigator to advance to the
+    /// current target, without updating the track position
+    ///
+    /// @param navigation the current navigation state
+    /// @param cfg the navigation configuration
+    DETRAY_HOST_DEVICE inline void jump_to_next(
+        state &navigation, const navigation::config &cfg) const {
+        // Make sure it is possible to jump ahead
+        if (navigation.trust_level() != navigation::trust_level::e_full ||
+            !(navigation.is_on_surface() &&
+              (math::fabs(navigation()) <= cfg.path_tolerance)) ||
+            navigation.n_candidates() <= 1u ||
+            navigation.target().sf_desc.barcode().is_invalid()) {
+            // Instance of 'distance to next' smaller than path tolerance after
+            // navigation update and not 'on surface' => This is not an overlap,
+            // so abort the navigaiton
+            navigation.abort(
+                "Navigator: Not possible to jump to next candidate");
+        }
+
+        // If the next target is "on surface", the state will automatically
+        // advance to it
+        update_navigation_state(navigation, cfg);
+
+        // Not a full navigator update: reduce trust level
+        navigation.set_high_trust();
+    }
+
     private:
     /// Helper method to update the candidates (surface intersections)
     /// based on an externally provided trust level. Will (re-)initialize the

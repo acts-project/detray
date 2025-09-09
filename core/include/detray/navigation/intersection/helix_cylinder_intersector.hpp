@@ -71,8 +71,7 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
     template <typename mask_t>
     DETRAY_HOST_DEVICE constexpr result_type point_of_intersection(
         const trajectory_type<algebra_t> &h, const transform3_type &trf,
-        const mask_t &mask, const scalar_type = 0.f,
-        const scalar_type = 0.f) const {
+        const mask_t &mask, const scalar_type = 0.f) const {
 
         result_type ret{};
 
@@ -299,8 +298,7 @@ struct helix_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t>
     template <typename mask_t>
     DETRAY_HOST_DEVICE constexpr result_type point_of_intersection(
         const trajectory_type<algebra_t> &h, const transform3_type &trf,
-        const mask_t &mask, const scalar_type = 0.f,
-        const scalar_type = 0.f) const {
+        const mask_t &mask, const scalar_type = 0.f) const {
 
         // Array of two solutions
         typename base_type::result_type results =

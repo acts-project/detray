@@ -64,6 +64,7 @@ GTEST_TEST(detray_intersection, translated_plane_ray) {
     mask<rectangle2D, test_algebra> rect_for_inside{0u, 3.f, 3.f};
     const auto hit_bound_inside =
         pi(r, surface_descriptor<>{}, rect_for_inside, shifted, tol);
+
     ASSERT_TRUE(hit_bound_inside.is_inside());
     // Global intersection information - unchanged
     const auto global1 =
