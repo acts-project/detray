@@ -16,6 +16,7 @@
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/coordinates/cartesian3D.hpp"
 #include "detray/geometry/coordinates/polar2D.hpp"
+#include "detray/geometry/detail/shape_utils.hpp"
 
 // System include(s)
 #include <limits>
@@ -47,6 +48,10 @@ class ring2D {
     template <concepts::algebra algebra_t>
     using local_frame_type = polar2D<algebra_t>;
 
+    /// Result type of a boundary check
+    template <typename bool_t>
+    using result_type = bool_t;
+
     /// Dimension of the local coordinate system
     static constexpr std::size_t dim{2u};
 
@@ -77,11 +82,12 @@ class ring2D {
     ///
     /// @return true if the local point lies within the given boundaries.
     template <concepts::algebra algebra_t>
-    DETRAY_HOST_DEVICE constexpr auto check_boundaries(
+    DETRAY_HOST_DEVICE constexpr result_type<dbool<algebra_t>> check_boundaries(
         const bounds_type<dscalar<algebra_t>> &bounds,
         const dtransform3D<algebra_t> &trf, const dpoint3D<algebra_t> &glob_p,
         const dscalar<algebra_t> tol =
-            std::numeric_limits<dscalar<algebra_t>>::epsilon()) const {
+            std::numeric_limits<dscalar<algebra_t>>::epsilon(),
+        const dscalar<algebra_t> /*edge_tol*/ = 0.f) const {
 
         // Rotate to the local cartesian frame
         const dpoint3D<algebra_t> loc_p =
@@ -104,7 +110,8 @@ class ring2D {
     template <concepts::scalar scalar_t, concepts::point point_t>
     DETRAY_HOST_DEVICE constexpr auto check_boundaries(
         const bounds_type<scalar_t> &bounds, const point_t &loc_p,
-        const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
+        const scalar_t tol = std::numeric_limits<scalar_t>::epsilon(),
+        const scalar_t /*edge_tol*/ = 0.f) const {
 
         return ((loc_p[0] + tol) >= bounds[e_inner_r] &&
                 loc_p[0] <= (bounds[e_outer_r] + tol));

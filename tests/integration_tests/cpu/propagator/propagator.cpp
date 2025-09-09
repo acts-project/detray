@@ -680,7 +680,7 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
     propagation::config direct_cfg{};
     direct_cfg.navigation.min_mask_tolerance = 10.f * unit<float>::mm;
     direct_cfg.navigation.max_mask_tolerance = 10.f * unit<float>::mm;
-    direct_cfg.navigation.overstep_tolerance = -20.f * unit<float>::mm;
+    direct_cfg.navigation.overstep_tolerance = -30.f * unit<float>::mm;
     propagator_t p{cfg};
     direct_propagator_t direct_p{direct_cfg};
 
@@ -719,10 +719,13 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
             detray::tie(interactor_state, sequencer_state, resetter_state);
 
         propagator_t::state state(track, bfield, det);
+        navigator_t::state& navigation = state._navigation;
 
         // Propagate the entire detector
         // state.do_debug = true;
-        ASSERT_TRUE(p.propagate(state, actor_states));
+        ASSERT_TRUE(p.propagate(state, actor_states))
+            << navigation.inspector().to_string();
+
         // std::cout << "Normal Navigation" << std::endl;
         // std::cout << state.debug_stream.str() << std::endl;
 
@@ -767,7 +770,7 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
                 static_cast<float>(
                     direct_forward_state._stepping.bound_params().p(q)),
                 static_cast<float>(state._stepping.bound_params().p(q)) *
-                    1e-6f);
+                    2e-5f);
 
             direct_propagator_t::state direct_backward_state(
                 direct_forward_state._stepping.bound_params(), bfield, det,

@@ -68,6 +68,10 @@ class annulus2D {
     template <concepts::algebra algebra_t>
     using local_frame_type = polar2D<algebra_t>;
 
+    /// Result type of a boundary check
+    template <typename bool_t>
+    using result_type = detail::boundary_check_result<bool_t>;
+
     /// Dimension of the local coordinate system
     static constexpr std::size_t dim{2u};
 
@@ -149,17 +153,18 @@ class annulus2D {
     ///
     /// @return true if the local point lies within the given boundaries.
     template <concepts::algebra algebra_t>
-    DETRAY_HOST_DEVICE constexpr auto check_boundaries(
+    DETRAY_HOST_DEVICE constexpr result_type<dbool<algebra_t>> check_boundaries(
         const bounds_type<dscalar<algebra_t>> &bounds,
         const dtransform3D<algebra_t> &trf, const dpoint3D<algebra_t> &glob_p,
         const dscalar<algebra_t> tol =
-            std::numeric_limits<dscalar<algebra_t>>::epsilon()) const {
+            std::numeric_limits<dscalar<algebra_t>>::epsilon(),
+        const dscalar<algebra_t> edge_tol = 0.f) const {
 
         // Get the full local position
         const dpoint2D<algebra_t> loc_p =
             local_frame_type<algebra_t>::global_to_local(trf, glob_p, {});
 
-        return check_boundaries(bounds, loc_p, tol);
+        return check_boundaries(bounds, loc_p, tol, edge_tol);
     }
 
     /// @note the point is expected to be given in local coordinates by the
@@ -174,7 +179,8 @@ class annulus2D {
     template <concepts::scalar scalar_t, concepts::point point_t>
     DETRAY_HOST_DEVICE constexpr auto check_boundaries(
         const bounds_type<scalar_t> &bounds, const point_t &loc_p,
-        const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
+        const scalar_t tol = std::numeric_limits<scalar_t>::epsilon(),
+        const scalar_t edge_tol = 0.f) const {
         // The two quantities to check: r^2 in beam system, phi in focal system:
 
         // Rotate by avr phi in the focal system (this is usually zero)
@@ -194,9 +200,25 @@ class annulus2D {
 
         assert(detail::all_of(minR_tol >= scalar_t(0.f)));
 
-        return ((r_beam2 >= (minR_tol * minR_tol)) &&
-                (r_beam2 <= (maxR_tol * maxR_tol))) &&
-               phi_check;
+        auto inside_mask{((r_beam2 >= (minR_tol * minR_tol)) &&
+                          (r_beam2 <= (maxR_tol * maxR_tol))) &&
+                         phi_check};
+
+        decltype(inside_mask) inside_edge{false};
+        if (detail::any_of(edge_tol > 0.f)) {
+            // Edge tolerance
+            const scalar_t full_tol{tol + edge_tol};
+            const scalar_t minR_tol_edge = bounds[e_min_r] - full_tol;
+            const scalar_t maxR_tol_edge = bounds[e_max_r] + full_tol;
+
+            assert(detail::all_of(minR_tol_edge >= scalar_t(0.f)));
+
+            inside_edge = ((r_beam2 >= (minR_tol_edge * minR_tol_edge)) &&
+                           (r_beam2 <= (maxR_tol_edge * maxR_tol_edge))) &&
+                          phi_check;
+        }
+
+        return result_type<decltype(inside_mask)>{inside_mask, inside_edge};
     }
     /// @}
 

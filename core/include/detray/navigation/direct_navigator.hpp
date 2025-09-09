@@ -426,6 +426,29 @@ class direct_navigator {
         return false;
     }
 
+    DETRAY_HOST_DEVICE inline void jump_to_next(
+        state &navigation, const navigation::config &cfg) const {
+        // Make sure it is possible to jump ahead
+        if (navigation.is_exhausted() ||
+            (math::fabs(navigation()) > cfg.path_tolerance) ||
+            navigation.target().sf_desc.barcode().is_invalid()) {
+            navigation.abort();
+        }
+
+        // Only jump ahead if currently 'on surface'. If the 'distance to next'
+        // is below the path tolerance and we are not 'on surface' something
+        // else went wrong...
+        if (navigation.is_on_surface()) {
+            navigation.next();
+            navigation.update_candidate(true);
+        }
+
+        if (!navigation.is_on_surface(navigation.current(), cfg)) {
+            navigation.abort();
+        }
+    }
+
+    private:
     template <typename track_t>
     DETRAY_HOST_DEVICE inline void update_intersection(
         const track_t &track, state &navigation, const navigation::config &cfg,

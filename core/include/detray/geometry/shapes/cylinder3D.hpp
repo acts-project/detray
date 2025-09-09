@@ -50,6 +50,10 @@ class cylinder3D {
     template <concepts::algebra algebra_t>
     using local_frame_type = cylindrical3D<algebra_t>;
 
+    /// Result type of a boundary check
+    template <typename bool_t>
+    using result_type = bool_t;
+
     /// Dimension of the local coordinate system
     static constexpr std::size_t dim{3u};
 
@@ -92,11 +96,12 @@ class cylinder3D {
     ///
     /// @return true if the local point lies within the given boundaries.
     template <concepts::algebra algebra_t>
-    DETRAY_HOST_DEVICE constexpr auto check_boundaries(
+    DETRAY_HOST_DEVICE constexpr result_type<dbool<algebra_t>> check_boundaries(
         const bounds_type<dscalar<algebra_t>> &bounds,
         const dtransform3D<algebra_t> &trf, const dpoint3D<algebra_t> &glob_p,
         const dscalar<algebra_t> tol =
-            std::numeric_limits<dscalar<algebra_t>>::epsilon()) const {
+            std::numeric_limits<dscalar<algebra_t>>::epsilon(),
+        const dscalar<algebra_t> /*edge_tol*/ = 0.f) const {
 
         // Get the full local position
         const auto loc_p =
@@ -118,7 +123,8 @@ class cylinder3D {
     template <concepts::scalar scalar_t, concepts::point point_t>
     DETRAY_HOST_DEVICE constexpr auto check_boundaries(
         const bounds_type<scalar_t> &bounds, const point_t &loc_p,
-        const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
+        const scalar_t tol = std::numeric_limits<scalar_t>::epsilon(),
+        const scalar_t /*edge_tol*/ = 0.f) const {
 
         const scalar_t phi_tol = detail::phi_tolerance(tol, loc_p[0]);
 

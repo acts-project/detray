@@ -70,6 +70,7 @@ void propagator_test(
                 pointwise_material_interactor<test_algebra>::state
                     interactor_state{};
                 parameter_resetter_t::state resetter_state{};
+                resetter_state.estimate_scattering_noise = false;
 
                 // Create the actor states
                 auto actor_states =

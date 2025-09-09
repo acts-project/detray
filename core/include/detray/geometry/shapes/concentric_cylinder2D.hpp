@@ -15,6 +15,7 @@
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/coordinates/concentric_cylindrical2D.hpp"
+#include "detray/geometry/detail/shape_utils.hpp"
 
 // System include(s)
 #include <limits>
@@ -46,6 +47,10 @@ class concentric_cylinder2D {
     template <concepts::algebra algebra_t>
     using local_frame_type = concentric_cylindrical2D<algebra_t>;
 
+    /// Result type of a boundary check
+    template <typename bool_t>
+    using result_type = bool_t;
+
     /// Dimension of the local coordinate system
     static constexpr std::size_t dim{2u};
 
@@ -75,12 +80,13 @@ class concentric_cylinder2D {
     ///
     /// @return true if the local point lies within the given boundaries.
     template <concepts::algebra algebra_t>
-    DETRAY_HOST_DEVICE constexpr auto check_boundaries(
+    DETRAY_HOST_DEVICE constexpr result_type<dbool<algebra_t>> check_boundaries(
         const bounds_type<dscalar<algebra_t>> &bounds,
         const dtransform3D<algebra_t> & /*trf*/,
         const dpoint3D<algebra_t> &glob_p,
         const dscalar<algebra_t> tol =
-            std::numeric_limits<dscalar<algebra_t>>::epsilon()) const {
+            std::numeric_limits<dscalar<algebra_t>>::epsilon(),
+        const dscalar<algebra_t> /*edge_tol*/ = 0.f) const {
 
         // Only need the z-position for the check
         return check_boundaries(bounds, dpoint2D<algebra_t>{0.f, glob_p[2]},
@@ -103,7 +109,8 @@ class concentric_cylinder2D {
     template <concepts::scalar scalar_t, concepts::point point_t>
     DETRAY_HOST_DEVICE constexpr auto check_boundaries(
         const bounds_type<scalar_t> &bounds, const point_t &loc_p,
-        const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
+        const scalar_t tol = std::numeric_limits<scalar_t>::epsilon(),
+        const scalar_t /*edge_tol*/ = 0.f) const {
 
         return (bounds[e_lower_z] - tol <= loc_p[1] &&
                 loc_p[1] <= bounds[e_upper_z] + tol);
