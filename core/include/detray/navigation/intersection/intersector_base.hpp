@@ -14,6 +14,7 @@
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/concepts.hpp"
+#include "detray/geometry/detail/shape_utils.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 #include "detray/utils/invalid_values.hpp"
 
@@ -134,8 +135,9 @@ struct intersector_base : public intersector_t {
         const scalar_type mask_tolerance,
         const scalar_type overstep_tol = 0.f) const {
 
-        return this->operator()(traj, sf, mask, trf, {mask_tolerance, 0.f}, 0.f,
-                                0.f, overstep_tol);
+        return this->operator()(traj, sf, mask, trf,
+                                {mask_tolerance, mask_tolerance}, 0.f, 0.f,
+                                overstep_tol);
     }
 
     private:
@@ -179,19 +181,20 @@ DETRAY_HOST_DEVICE constexpr void resolve_mask(
     const scalar_t external_mask_tolerance = 0.f,
     const scalar_t overstep_tol = 0.f) {
 
-    // Build intersection struct from test trajectory, if the distance is valid
-    if (detray::detail::none_of(ip.path >= overstep_tol)) {
-        // Not a valid intersection
-        is.set_status(intersection::status::e_outside);
-        return;
-    }
-
     // Mask out solutions that don't meet the overstepping tolerance (SoA)
     if constexpr (concepts::soa<algebra_t>) {
         using status_t = typename intersection_t::status_t;
 
         is.status(is.path() >= overstep_tol) =
             static_cast<status_t>(intersection::status::e_outside);
+    } else {
+        is.set_status(intersection::status::e_outside);
+    }
+
+    // Build intersection struct from test trajectory, if the distance is valid
+    if (detray::detail::none_of(ip.path >= overstep_tol)) {
+        // Not a valid intersection
+        return;
     }
 
     // Save local position for debug evaluation
@@ -222,27 +225,22 @@ DETRAY_HOST_DEVICE constexpr void resolve_mask(
         math::min(mask_tolerance[1], mask_tol_scalor * math::fabs(ip.path)));
 
     // Mask check results with and without external tolerance
-    dbool<algebra_t> check_mask{false};
-    dbool<algebra_t> check_edge{false};
+    typename mask_t::result_type mask_check{};
 
     // Intersector provides specialized local point
     if constexpr (std::same_as<point_t, dpoint2D<algebra_t>>) {
-        check_mask = mask.is_inside(ip.point, base_tol);
-        check_edge =
-            mask.is_inside(ip.point, base_tol + external_mask_tolerance);
+        mask_check = mask.resolve(ip.point, base_tol, external_mask_tolerance);
     } else {
         // Otherwise, let the shape transform the point to local
-        check_mask = mask.is_inside(trf, ip.point, base_tol);
-        check_edge =
-            mask.is_inside(trf, ip.point, base_tol + external_mask_tolerance);
+        mask_check =
+            mask.resolve(trf, ip.point, base_tol, external_mask_tolerance);
     }
 
-    // Set the less strict state first (if not in on the edge, then outside)
-    if (is.set_status_if(intersection::status::e_edge, check_edge)) {
-        is.set_status_if(intersection::status::e_inside, check_mask);
-    } else {
-        is.set_status(intersection::status::e_outside);
-    }
+    // Set the less strict status first, then overwrite with more strict
+    is.set_status_if(intersection::status::e_edge,
+                     detray::get<check_type::e_with_edge>(mask_check));
+    is.set_status_if(intersection::status::e_inside,
+                     detray::get<check_type::e_inside>(mask_check));
 
     is.set_path(ip.path);
     is.sf_desc = sf_desc;

@@ -248,23 +248,20 @@ struct intersection2D {
     }
 
     /// Set the intersection status according to enum value @param s
+    DETRAY_HOST_DEVICE
     constexpr void set_status(intersection::status s) {
         status = static_cast<status_t>(s);
     }
 
     /// Set the intersection status according to enum value @param s
-    constexpr bool set_status_if(intersection::status s,
-                                 dbool<algebra_t> mask) {
+    DETRAY_HOST_DEVICE
+    constexpr void set_status_if(intersection::status s,
+                                 dbool<algebra_t> result_mask) {
         // @TODO find a unified conditional assignment in algebra_plugins
         if constexpr (concepts::soa<algebra_t>) {
-            status(mask) = static_cast<status_t>(s);
-            // Always do the second mask check for the edge
-            return false;
+            status(result_mask) = static_cast<status_t>(s);
         } else {
-            if (mask) {
-                status = static_cast<status_t>(s);
-            }
-            return mask;
+            status = result_mask ? static_cast<status_t>(s) : status;
         }
     }
 
@@ -334,7 +331,7 @@ struct intersection2D {
     /// @returns true if all of the intersection results are 'outside'
     DETRAY_HOST_DEVICE
     constexpr bool is_outside() const {
-        const status_t comp(
+        const dsimd<algebra_t, status_t> comp(
             static_cast<status_t>(intersection::status::e_outside));
         return detail::all_of(this->status == comp);
     }

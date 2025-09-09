@@ -54,7 +54,7 @@ struct parameter_resetter : actor {
         // Reset jacobian transport to identity matrix
         stepping.reset_transport_jacobian();
 
-        // Track direction is known precisely, don't adjust tolerances
+        // Track pos/dir is not known precisely: adjust navigation tolerances
         if (resetter_state.estimate_scattering_noise) {
             estimate_external_mask_tolerance(
                 bound_params, propagation,
@@ -67,7 +67,7 @@ struct parameter_resetter : actor {
     /// Estimate the mask tolerance that is needed for the navigation to include
     /// the next surface from the current covariance
     template <typename propagator_state_t>
-    constexpr void estimate_external_mask_tolerance(
+    DETRAY_HOST_DEVICE constexpr void estimate_external_mask_tolerance(
         const bound_track_parameters<algebra_t>& bound_params,
         propagator_state_t& propagation, const dscalar<algebra_t> n_stddev,
         const dscalar<algebra_t> accumulated_error = 0.f) const {
@@ -97,23 +97,24 @@ struct parameter_resetter : actor {
             n_stddev *
             math::sqrt(getter::element(cov, e_bound_theta, e_bound_theta))};
 
-        const scalar_t theta{bound_params.theta()};
+        // Calculate the difference in cartesian coordinates, as the conversion
+        // uses less trigonometric functions than calculating the distance in
+        // spherical coordinates
+        const scalar_t phi_err{bound_params.phi() + delta_phi};
+        const scalar_t theta_err{bound_params.theta() + delta_theta};
+        const scalar_t sin_theta_err{math::sin(theta_err)};
 
-        // Distance in spherical coordinates
-        scalar_t dist_2{1.f -
-                        (math::sin(theta) * math::sin(theta + delta_theta) *
-                             math::cos(delta_phi) +
-                         math::cos(theta) * math::cos(theta + delta_theta))};
+        dvector3D<algebra_t> displ{math::cos(phi_err) * sin_theta_err,
+                                   math::sin(phi_err) * sin_theta_err,
+                                   math::cos(theta_err)};
+
         // Guess the portal envelope distance if there is no next target
         const scalar_t path{
             navigation.is_exhausted()
                 ? 5.f * unit<scalar_t>::mm
                 : math::fabs(std::as_const(navigation).target().path())};
 
-        // Noise component from the angle covariances
-        // Sometimes the dist_2 value drops below zero due to floating point
-        // errors,
-        scalar_t scattering_noise_2{2.f * path * path * math::fabs(dist_2)};
+        displ = path * (displ - stepping().dir());
 
         // Parametrized noise component that scales with the path length
         // Accounts for material/interaction mismodelling
@@ -123,8 +124,14 @@ struct parameter_resetter : actor {
                                          stepping.path_length()};
 
         navigation.set_external_tol(math::sqrt(
-            n_stddev * n_stddev * (var_loc0 + var_loc1) + scattering_noise_2 +
-            accumulated_noise * accumulated_noise));
+            n_stddev * n_stddev * (var_loc0 + var_loc1) +
+            vector::dot(displ, displ) + accumulated_noise * accumulated_noise));
+
+        // Clip to 10mm if the covariance are very large
+        constexpr auto max_tol{10.f * unit<scalar_t>::mm};
+        navigation.set_external_tol(navigation.external_tol() > max_tol
+                                        ? max_tol
+                                        : navigation.external_tol());
 
         assert(std::isfinite(navigation.external_tol()));
     }

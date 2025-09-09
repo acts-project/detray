@@ -54,6 +54,7 @@ class mask {
     using boundaries = typename shape::boundaries;
     using mask_values = typename shape::template bounds_type<scalar_type>;
     using local_frame = typename shape::template local_frame_type<algebra_t>;
+    using result_type = typename shape::template result_type<dbool<algebra_t>>;
 
     /// Default constructor
     constexpr mask() = default;
@@ -166,13 +167,39 @@ class mask {
     /// @param loc_p the point to be checked in the local system (2D or 3D)
     /// @param tol dynamic tolerance determined by caller
     ///
+    /// @return a mask check result (contains checks with and without edges)
+    template <concepts::point point_t>
+    DETRAY_HOST_DEVICE constexpr result_type resolve(
+        const point_t& loc_p,
+        const scalar_type tol = std::numeric_limits<scalar_type>::epsilon(),
+        const scalar_type edge_tol = 0.f) const {
+        return get_shape().check_boundaries(_values, loc_p, tol, edge_tol);
+    }
+
+    /// @param trf the (contextual) surface transform
+    /// @param glob_p the point to be checked in the global cartesian system
+    /// @param tol dynamic tolerance determined by caller
+    ///
+    /// @return a mask check result (contains checks with and without edges)
+    DETRAY_HOST_DEVICE constexpr result_type resolve(
+        const transform3_type& trf, const point3_type& glob_p,
+        const scalar_type tol = std::numeric_limits<scalar_type>::epsilon(),
+        const scalar_type edge_tol = 0.f) const {
+        return get_shape().template check_boundaries<algebra_type>(
+            _values, trf, glob_p, tol, edge_tol);
+    }
+
+    /// @param loc_p the point to be checked in the local system (2D or 3D)
+    /// @param tol dynamic tolerance determined by caller
+    ///
     /// @return an intersection status e_inside / e_outside
     template <concepts::point point_t>
-    DETRAY_HOST_DEVICE constexpr dbool<algebra_type> is_inside(
+    DETRAY_HOST_DEVICE constexpr dbool<algebra_t> is_inside(
         const point_t& loc_p,
-        const scalar_type t =
+        const scalar_type tol =
             std::numeric_limits<scalar_type>::epsilon()) const {
-        return get_shape().check_boundaries(_values, loc_p, t);
+        return detray::get<check_type::e_inside>(get_shape().check_boundaries(
+            _values, loc_p, tol, dscalar<algebra_t>{0.f}));
     }
 
     /// @param trf the (contextual) surface transform
@@ -180,12 +207,13 @@ class mask {
     /// @param tol dynamic tolerance determined by caller
     ///
     /// @return an intersection status e_inside / e_outside
-    DETRAY_HOST_DEVICE constexpr dbool<algebra_type> is_inside(
+    DETRAY_HOST_DEVICE constexpr dbool<algebra_t> is_inside(
         const transform3_type& trf, const point3_type& glob_p,
-        const scalar_type t =
+        const scalar_type tol =
             std::numeric_limits<scalar_type>::epsilon()) const {
-        return get_shape().template check_boundaries<algebra_type>(_values, trf,
-                                                                   glob_p, t);
+        return detray::get<check_type::e_inside>(
+            get_shape().template check_boundaries<algebra_type>(
+                _values, trf, glob_p, tol, dscalar<algebra_t>{0.f}));
     }
     /// @}
 
