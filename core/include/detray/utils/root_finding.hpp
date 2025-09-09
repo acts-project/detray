@@ -13,6 +13,7 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/navigation/intersection/intersection.hpp"
 #include "detray/utils/invalid_values.hpp"
 
 // System include(s).
@@ -258,28 +259,32 @@ DETRAY_HOST_DEVICE inline std::pair<scalar_t, scalar_t> newton_raphson_safe(
 
 /// @brief Fill an intersection with the result of the root finding
 ///
-/// @param [in] traj the test trajectory that intersects the surface
 /// @param [out] sfi the surface intersection
+/// @param [in] traj the test trajectory that intersects the surface
 /// @param [in] s path length to the root
 /// @param [in] ds approximation error for the root
 /// @param [in] mask the mask of the surface
 /// @param [in] trf the transform of the surface
 /// @param [in] mask_tolerance minimal and maximal mask tolerance
-template <concepts::scalar scalar_t, typename intersection_t,
+template <typename intersection_t, concepts::algebra algebra_t,
           typename surface_descr_t, typename mask_t, typename trajectory_t,
-          concepts::transform3D transform3_t>
-DETRAY_HOST_DEVICE inline void build_intersection(
-    const trajectory_t &traj, intersection_t &sfi, const scalar_t s,
-    const scalar_t ds, const surface_descr_t sf_desc, const mask_t &mask,
-    const transform3_t &trf, const darray<scalar_t, 2> &mask_tolerance) {
+          concepts::transform3D transform3_t, concepts::scalar scalar_t>
+DETRAY_HOST_DEVICE constexpr void resolve_mask(
+    intersection_t &is, const trajectory_t &traj,
+    const intersection_point_err<algebra_t> &ip, const surface_descr_t sf_desc,
+    const mask_t &mask, const transform3_t &trf,
+    const darray<scalar_t, 2> &mask_tolerance, const scalar_t = 0.f,
+    const scalar_t = 0.f) {
 
     // Build intersection struct from test trajectory, if the distance is valid
-    if (!detail::is_invalid_value(s)) {
-        sfi.path = s;
-        const auto p3 = traj.pos(s);
-        sfi.local = mask_t::to_local_frame3D(trf, p3, traj.dir(s));
-        const scalar_t cos_incidence_angle = vector::dot(
-            mask_t::get_local_frame().normal(trf, sfi.local), traj.dir(s));
+    if (!detail::is_invalid_value(ip.path)) {
+        is.set_path(ip.path);
+        is.set_local(mask_t::to_local_frame3D(trf, traj.pos(ip.path),
+                                              traj.dir(ip.path)));
+
+        const scalar_t cos_incidence_angle =
+            vector::dot(mask_t::get_local_frame().normal(trf, is.local()),
+                        traj.dir(ip.path));
 
         scalar_t tol{mask_tolerance[1]};
         if (detail::is_invalid_value(tol)) {
@@ -287,15 +292,15 @@ DETRAY_HOST_DEVICE inline void build_intersection(
             const scalar_t sin_inc2{
                 math::fabs(1.f - cos_incidence_angle * cos_incidence_angle)};
 
-            tol = math::fabs(ds * math::sqrt(sin_inc2));
+            tol = math::fabs(ip.path_err * math::sqrt(sin_inc2));
         }
-        sfi.status = mask.is_inside(trf, p3, tol);
-        sfi.sf_desc = sf_desc;
-        sfi.direction = !math::signbit(s);
-        sfi.volume_link = mask.volume_link();
+        is.status = mask.is_inside(is.local(), tol);
+        is.sf_desc = sf_desc;
+        is.direction = !math::signbit(ip.path);
+        is.volume_link = mask.volume_link();
     } else {
         // Not a valid intersection
-        sfi.status = false;
+        is.status = false;
     }
 }
 

@@ -35,7 +35,8 @@ struct intersection_record {
     using scalar_t = dscalar<algebra_t>;
     using track_parameter_type = free_track_parameters<algebra_t>;
     using intersection_type =
-        intersection2D<typename detector_t::surface_type, algebra_t, true>;
+        intersection2D<typename detector_t::surface_type, algebra_t,
+                       intersection::contains_pos>;
 
     /// The charge associated with the track parameters
     scalar_t charge{};
@@ -75,7 +76,8 @@ struct brute_force_scan {
         using sf_desc_t = typename detector_t::surface_type;
         using nav_link_t = typename detector_t::surface_type::navigation_link;
 
-        using intersection_t = intersection2D<sf_desc_t, algebra_t, true>;
+        using intersection_t =
+            typename intersection_record<detector_t>::intersection_type;
         using intersection_kernel_t = intersection_initialize<intersector>;
 
         intersection_trace_type<detector_t> intersection_trace;
@@ -102,11 +104,11 @@ struct brute_force_scan {
                 if (sfi.direction) {
                     sfi.sf_desc = sf_desc;
                     // Record the intersection
-                    intersection_trace.push_back(
-                        {q,
-                         {traj.pos(sfi.path), 0.f, p * traj.dir(sfi.path), q},
-                         sf.volume(),
-                         sfi});
+                    intersection_trace.push_back({q,
+                                                  {traj.pos(sfi.path()), 0.f,
+                                                   p * traj.dir(sfi.path()), q},
+                                                  sf.volume(),
+                                                  sfi});
                 }
             }
             intersections.clear();
@@ -130,8 +132,8 @@ struct brute_force_scan {
         start_intersection.sf_desc.material()
             .set_id(detector_t::materials::id::e_none)
             .set_index(dindex_invalid);
-        start_intersection.path = 0.f;
-        start_intersection.local = {0.f, 0.f, 0.f};
+        start_intersection.set_path(0.f);
+        start_intersection.set_local({0.f, 0.f, 0.f});
         start_intersection.volume_link =
             static_cast<nav_link_t>(first_record.vol_idx);
 

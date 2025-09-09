@@ -157,7 +157,9 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
         expected_cylinder1, expected_cylinder2, expected_cylinder_pt};
 
     // Initialize kernel
-    std::vector<intersection2D<surface_t, test_algebra, true>> sfi_init;
+    std::vector<
+        intersection2D<surface_t, test_algebra, intersection::contains_pos>>
+        sfi_init;
     sfi_init.reserve(expected_points.size());
 
     for (const auto &surface : surfaces) {
@@ -166,10 +168,11 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
             transform_store, static_context, std::array<scalar, 2>{tol, tol});
     }
 
-    ASSERT_TRUE(expected_points.size() == sfi_init.size());
+    EXPECT_TRUE(expected_points.size() == sfi_init.size());
 
     // Also check intersections
-    for (std::size_t i = 0u; i < expected_points.size(); ++i) {
+    for (std::size_t i = 0u;
+         i < math::min(expected_points.size(), sfi_init.size()); ++i) {
 
         EXPECT_TRUE(sfi_init[i].direction);
         EXPECT_EQ(sfi_init[i].volume_link, 0u);
@@ -177,21 +180,21 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
         vector3 global{0.f, 0.f, 0.f};
 
         if (sfi_init[i].sf_desc.mask().id() == mask_ids::e_rectangle2) {
-            global =
-                rect.to_global_frame(transform_store.at(0), sfi_init[i].local);
+            global = rect.to_global_frame(transform_store.at(0),
+                                          sfi_init[i].local());
         } else if (sfi_init[i].sf_desc.mask().id() == mask_ids::e_trapezoid2) {
-            global =
-                trap.to_global_frame(transform_store.at(1), sfi_init[i].local);
+            global = trap.to_global_frame(transform_store.at(1),
+                                          sfi_init[i].local());
         } else if (sfi_init[i].sf_desc.mask().id() == mask_ids::e_annulus2) {
-            global =
-                annl.to_global_frame(transform_store.at(2), sfi_init[i].local);
+            global = annl.to_global_frame(transform_store.at(2),
+                                          sfi_init[i].local());
         } else if (sfi_init[i].sf_desc.mask().id() == mask_ids::e_cylinder2) {
             global =
-                cyl.to_global_frame(transform_store.at(3), sfi_init[i].local);
+                cyl.to_global_frame(transform_store.at(3), sfi_init[i].local());
         } else if (sfi_init[i].sf_desc.mask().id() ==
                    mask_ids::e_cylinder2_portal) {
             global = cyl_portal.to_global_frame(transform_store.at(4),
-                                                sfi_init[i].local);
+                                                sfi_init[i].local());
         }
 
         EXPECT_NEAR(global[0], expected_points[i][0], 1e-3f)
@@ -234,8 +237,8 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
     ASSERT_EQ(sfi_update.size(), 5u);
     for (unsigned int i = 0u; i < 5u; i++) {
         ASSERT_EQ(sfi_init[i].p3, sfi_update[i].p3);
-        ASSERT_EQ(sfi_init[i].local, sfi_update[i].local);
-        ASSERT_EQ(sfi_init[i].path, sfi_update[i].path);
+        ASSERT_EQ(sfi_init[i].local(), sfi_update[i].local());
+        ASSERT_EQ(sfi_init[i].path(), sfi_update[i].path());
     }*/
 }
 
@@ -287,7 +290,9 @@ GTEST_TEST(detray_intersection, intersection_kernel_helix) {
     const point3 expected_annulus{0.03f, 0.03f, 30.f};
     const std::vector<point3> expected_points = {
         expected_rectangle, expected_trapezoid, expected_annulus};
-    std::vector<intersection2D<surface_t, test_algebra, true>> sfi_helix{};
+    std::vector<
+        intersection2D<surface_t, test_algebra, intersection::contains_pos>>
+        sfi_helix{};
     sfi_helix.reserve(expected_points.size());
 
     // Try the intersections - with automated dispatching via the kernel
@@ -300,14 +305,14 @@ GTEST_TEST(detray_intersection, intersection_kernel_helix) {
         vector3 global{0.f, 0.f, 0.f};
 
         if (surface.mask().id() == mask_ids::e_rectangle2) {
-            global =
-                rect.to_global_frame(transform_store.at(0), sfi_helix[0].local);
+            global = rect.to_global_frame(transform_store.at(0),
+                                          sfi_helix[0].local());
         } else if (surface.mask().id() == mask_ids::e_trapezoid2) {
-            global =
-                trap.to_global_frame(transform_store.at(1), sfi_helix[0].local);
+            global = trap.to_global_frame(transform_store.at(1),
+                                          sfi_helix[0].local());
         } else if (surface.mask().id() == mask_ids::e_annulus2) {
-            global =
-                annl.to_global_frame(transform_store.at(2), sfi_helix[0].local);
+            global = annl.to_global_frame(transform_store.at(2),
+                                          sfi_helix[0].local());
         }
 
         ASSERT_NEAR(global[0], expected_points[sf_idx][0], is_close);

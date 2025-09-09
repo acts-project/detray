@@ -282,12 +282,14 @@ GTEST_TEST(detray_material, telescope_geometry_volume_material) {
     // Propagator types
     using bfield_t = bfield::const_field_t<scalar>;
     using stepper_t = rk_stepper<bfield_t::view_t, test_algebra>;
+
     using pathlimit_aborter_t = pathlimit_aborter<scalar>;
     using actor_chain_t = actor_chain<pathlimit_aborter_t>;
-    using vector3 = test::vector3;
+
+    constexpr std::size_t cache_size{navigation::default_cache_size};
 
     // Bfield setup
-    vector3 B_z{0.f, 0.f, 2.f * unit<scalar>::T};
+    test::vector3 B_z{0.f, 0.f, 2.f * unit<scalar>::T};
     const bfield_t const_bfield = create_const_field<scalar>(B_z);
 
     // Track setup
@@ -306,14 +308,14 @@ GTEST_TEST(detray_material, telescope_geometry_volume_material) {
 
     // Build in x-direction from given module positions
     detail::ray<test_algebra> traj{{0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
-    std::vector<scalar> positions = {0.f, 10000.f * unit<scalar>::mm};
+    std::vector<scalar> positions = {0.f, 5000.f * unit<scalar>::mm};
 
     // NO material at modules
     const auto module_mat = vacuum<scalar>();
 
     // Create telescope geometry
     tel_det_config<test_algebra, rectangle2D> tel_cfg{
-        100000.f * unit<scalar>::mm, 100000.f * unit<scalar>::mm};
+        50000.f * unit<scalar>::mm, 50000.f * unit<scalar>::mm};
     tel_cfg.positions(positions).pilot_track(traj).module_material(module_mat);
 
     std::vector<material<scalar>> vol_mats = {
@@ -329,7 +331,9 @@ GTEST_TEST(detray_material, telescope_geometry_volume_material) {
         const bound_track_parameters<test_algebra> bound_param(
             det.surface(0u).barcode(), bound_vector, bound_cov);
 
-        using navigator_t = navigator<decltype(det)>;
+        using navigator_t =
+            navigator<decltype(det), cache_size, navigation::print_inspector>;
+
         using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
         // Propagator is built from the stepper and navigator
@@ -359,7 +363,9 @@ GTEST_TEST(detray_material, telescope_geometry_volume_material) {
         if (mat == vacuum<scalar>()) {
             ASSERT_FLOAT_EQ(float(eloss), 0.f);
         } else {
-            ASSERT_TRUE(eloss > 0.f);
+            ASSERT_TRUE(eloss > 0.f)
+                << "mat.: " << mat << "\n"
+                << state._navigation.inspector().to_string();
         }
 
         ASSERT_NEAR(eloss, eloss_approx, eloss * 0.01);

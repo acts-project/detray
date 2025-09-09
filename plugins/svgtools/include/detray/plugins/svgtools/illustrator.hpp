@@ -532,9 +532,9 @@ class illustrator {
                 _detector, intersections.front().sf_desc}};
 
             const auto pos_back = sf_back.local_to_global(
-                gctx, intersections.back().local, trajectory.dir(0.f));
+                gctx, intersections.back().local(), trajectory.dir(0.f));
             const auto pos_front = sf_front.local_to_global(
-                gctx, intersections.front().local, trajectory.dir(0.f));
+                gctx, intersections.front().local(), trajectory.dir(0.f));
 
             max_path = vector::norm(pos_back - trajectory.pos(0.f));
             max_path = math::max(max_path,

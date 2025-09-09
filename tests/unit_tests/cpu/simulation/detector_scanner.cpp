@@ -81,12 +81,14 @@ GTEST_TEST(detray_simulation, detector_scanner) {
         // Should have encountered the same number of tracks (vulnerable to
         // floating point errors)
         EXPECT_EQ(expected[n_tracks].size(), intersection_trace.size())
+            << "track: " << n_tracks << "\n"
             << test_helix;
 
         // Feedback if not the same number of intersections was found
         const std::size_t n_ray_inters{expected[n_tracks].size()};
         const std::size_t n_helix_inters{intersection_trace.size()};
         EXPECT_EQ(n_ray_inters, n_helix_inters)
+            << "track: " << n_tracks << "\n"
             << "Ray scan: " << n_ray_inters
             << ", helix scan: " << n_helix_inters << std::endl;
 
@@ -107,7 +109,10 @@ GTEST_TEST(detray_simulation, detector_scanner) {
                 }
             }
             EXPECT_EQ(expected[n_tracks][i].vol_idx,
-                      intersection_trace[i].vol_idx);
+                      intersection_trace[i].vol_idx)
+                << "track: " << n_tracks << ", intersection: " << i
+                << "\n - ray: " << expected[n_tracks][i].intersection
+                << "\n - helix: " << intersection_trace[i].intersection;
         }
 
         ++n_tracks;

@@ -60,8 +60,6 @@ concept axis = requires(const A ax) {
 
 template <typename G>
 concept grid = viewable<G> && bufferable<G> && requires(const G g) {
-    G::dim;
-
     typename G::bin_type;
     typename G::value_type;
     typename G::glob_bin_index;
@@ -70,6 +68,7 @@ concept grid = viewable<G> && bufferable<G> && requires(const G g) {
     typename G::algebra_type;
     typename G::point_type;
 
+    G::dim;
     G::is_owning;
 
     // TODO: Implement cooridnate frame concept
