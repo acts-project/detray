@@ -40,6 +40,10 @@ struct jacobian<polar2D<algebra_t>> {
     using bound_to_free_matrix_type = bound_to_free_matrix<algebra_t>;
     using free_to_bound_matrix_type = free_to_bound_matrix<algebra_t>;
     using free_to_path_matrix_type = free_to_path_matrix<algebra_t>;
+    using bound_to_free_jacobian_submatrix_type =
+        bound_to_free_jacobian_submatrix<algebra_type>;
+    using free_to_bound_jacobian_submatrix_type =
+        free_to_bound_jacobian_submatrix<algebra_type>;
     /// @}
 
     DETRAY_HOST_DEVICE
@@ -68,10 +72,9 @@ struct jacobian<polar2D<algebra_t>> {
     }
 
     DETRAY_HOST_DEVICE
-    static inline void set_bound_pos_to_free_pos_derivative(
-        bound_to_free_matrix_type &bound_to_free_jacobian,
-        const transform3_type &trf3, const point3_type &pos,
-        const vector3_type &dir) {
+    static constexpr bound_to_free_jacobian_submatrix_type
+    get_derivative_dpos_dloc(const transform3_type &trf3,
+                             const point3_type &pos, const vector3_type &dir) {
 
         matrix_type<3, 2> bound_pos_to_free_pos_derivative =
             matrix::zero<matrix_type<3, 2>>();
@@ -96,22 +99,33 @@ struct jacobian<polar2D<algebra_t>> {
         const vector3_type col0 = dxdL * lcos_phi + dydL * lsin_phi;
         const vector3_type col1 = (dydL * lcos_phi - dxdL * lsin_phi) * lrad;
 
+        static_assert(e_free_pos0 == 0);
+        static_assert(e_bound_loc0 == 0);
+        static_assert(e_bound_loc1 == 1);
+
         getter::set_block(bound_pos_to_free_pos_derivative, col0, e_free_pos0,
                           e_bound_loc0);
         getter::set_block(bound_pos_to_free_pos_derivative, col1, e_free_pos0,
                           e_bound_loc1);
 
-        getter::set_block(bound_to_free_jacobian,
-                          bound_pos_to_free_pos_derivative, e_free_pos0,
-                          e_bound_loc0);
+        return bound_pos_to_free_pos_derivative;
     }
 
     DETRAY_HOST_DEVICE
-    static inline void set_free_pos_to_bound_pos_derivative(
-        free_to_bound_matrix_type &free_to_bound_jacobian,
-        const transform3_type &trf3, const point3_type &pos,
-        const vector3_type &dir) {
+    static constexpr bound_to_free_jacobian_submatrix_type
+    get_derivative_dpos_dangle(const transform3_type &, const point3_type &,
+                               const vector3_type &,
+                               const bound_to_free_jacobian_submatrix_type &) {
 
+        return matrix::zero<bound_to_free_jacobian_submatrix_type>();
+    }
+
+    DETRAY_HOST_DEVICE
+    static constexpr free_to_bound_jacobian_submatrix_type
+    get_derivative_dloc_dpos(const transform3_type &trf3,
+                             const point3_type &pos, const vector3_type &dir) {
+
+        // Get d(loc0, loc1)/d(x,y,z)
         matrix_type<2, 3> free_pos_to_bound_pos_derivative =
             matrix::zero<matrix_type<2, 3>>();
 
@@ -137,22 +151,16 @@ struct jacobian<polar2D<algebra_t>> {
         const matrix_type<1, 3> row1 =
             (1.f / lrad) * (lcos_phi * dvdG - lsin_phi * dudG);
 
+        static_assert(e_free_pos0 == 0);
+        static_assert(e_bound_loc0 == 0);
+        static_assert(e_bound_loc1 == 1);
+
         getter::set_block(free_pos_to_bound_pos_derivative, row0, e_bound_loc0,
                           e_free_pos0);
         getter::set_block(free_pos_to_bound_pos_derivative, row1, e_bound_loc1,
                           e_free_pos0);
 
-        getter::set_block(free_to_bound_jacobian,
-                          free_pos_to_bound_pos_derivative, e_bound_loc0,
-                          e_free_pos0);
-    }
-
-    DETRAY_HOST_DEVICE
-    static inline void set_bound_angle_to_free_pos_derivative(
-        bound_to_free_matrix_type & /*bound_to_free_jacobian*/,
-        const transform3_type & /*trf3*/, const point3_type & /*pos*/,
-        const vector3_type & /*dir*/) {
-        // Do nothing
+        return free_pos_to_bound_pos_derivative;
     }
 };
 

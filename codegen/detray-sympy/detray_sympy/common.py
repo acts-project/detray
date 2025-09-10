@@ -47,7 +47,7 @@ class MyCXXCodePrinter(CXX17CodePrinter):
     def _print_MatrixElement(self, expr):
         from sympy.printing.precedence import PRECEDENCE
 
-        if expr.parent.shape[1] == 1:
+        if expr.parent.shape[1] == 1 and expr.parent.shape[0] <= 3:
             return "getter::element({}, {}u)".format(
                 self.parenthesize(expr.parent, PRECEDENCE["Atom"], strict=True),
                 expr.i,
