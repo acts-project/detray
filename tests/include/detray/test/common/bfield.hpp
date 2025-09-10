@@ -14,6 +14,7 @@
 // Covfie include(s)
 #include <covfie/core/backend/primitive/constant.hpp>
 #include <covfie/core/backend/transformer/affine.hpp>
+#include <covfie/core/backend/transformer/clamp.hpp>
 #include <covfie/core/backend/transformer/linear.hpp>
 #include <covfie/core/backend/transformer/nearest_neighbour.hpp>
 #include <covfie/core/backend/transformer/strided.hpp>
@@ -40,20 +41,51 @@ using const_field_t = covfie::field<const_bknd_t<T>>;
 
 /// Inhomogeneous field (host)
 template <typename T>
-using inhom_bknd_t =
+using inhom_bknd_t = covfie::backend::affine<
+    covfie::backend::linear<covfie::backend::clamp<covfie::backend::strided<
+        covfie::vector::vector_d<std::size_t, 3>,
+        covfie::backend::array<covfie::vector::vector_d<T, 3>>>>>>;
+
+// Test that the type is a valid backend for a field
+static_assert(covfie::concepts::field_backend<inhom_bknd_t<float>>,
+              "inhom_bknd_t is not a valid host field backend type");
+
+/// Inhomogeneous field (host) for IO
+template <typename T>
+using inhom_bknd_io_t =
     covfie::backend::affine<covfie::backend::linear<covfie::backend::strided<
         covfie::vector::vector_d<std::size_t, 3>,
         covfie::backend::array<covfie::vector::vector_d<T, 3>>>>>;
 
+static_assert(covfie::concepts::field_backend<inhom_bknd_io_t<float>>,
+              "inhom_bknd_io_t is not a valid host field backend type");
+
 /// Inhomogeneous field with nearest neighbor (host)
 template <typename T>
-using inhom_bknd_nn_t = covfie::backend::affine<
+using inhom_bknd_nn_t =
+    covfie::backend::affine<covfie::backend::nearest_neighbour<
+        covfie::backend::clamp<covfie::backend::strided<
+            covfie::vector::ulong3,
+            covfie::backend::array<covfie::vector::vector_d<T, 3>>>>>>;
+
+static_assert(covfie::concepts::field_backend<inhom_bknd_nn_t<float>>,
+              "inhom_bknd_nn_t is not a valid host field backend type");
+
+/// Inhomogeneous field with nearest neighbor (host) for IO
+template <typename T>
+using inhom_bknd_nn_io_t = covfie::backend::affine<
     covfie::backend::nearest_neighbour<covfie::backend::strided<
         covfie::vector::ulong3,
         covfie::backend::array<covfie::vector::vector_d<T, 3>>>>>;
 
+static_assert(covfie::concepts::field_backend<inhom_bknd_nn_io_t<float>>,
+              "inhom_bknd_nn_io_t is not a valid host field backend type");
+
 template <typename T>
 using inhom_field_t = covfie::field<inhom_bknd_t<T>>;
+
+template <typename T>
+using inhom_field_io_t = covfie::field<inhom_bknd_io_t<T>>;
 
 }  // namespace bfield
 
@@ -95,9 +127,10 @@ inline bfield::const_field_t<T> create_const_field(const vector3_t& B) {
 /// @returns a constant covfie field constructed from the field vector @param B
 template <typename T>
 inline bfield::inhom_field_t<T> create_inhom_field() {
-    return read_bfield<bfield::inhom_field_t<T>>(
-        !std::getenv("DETRAY_BFIELD_FILE") ? ""
-                                           : std::getenv("DETRAY_BFIELD_FILE"));
+    return bfield::inhom_field_t<T>(read_bfield<bfield::inhom_field_io_t<T>>(
+        !std::getenv("DETRAY_BFIELD_FILE")
+            ? ""
+            : std::getenv("DETRAY_BFIELD_FILE")));
 }
 
 }  // namespace detray

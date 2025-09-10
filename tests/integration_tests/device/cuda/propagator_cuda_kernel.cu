@@ -103,10 +103,11 @@ propagator_test<bfield::const_bknd_t<dscalar<test_algebra>>,
 
 /// Explicit instantiation for an inhomogeneous magnetic field
 template void
-propagator_test<bfield::cuda::inhom_bknd_t,
+propagator_test<bfield::cuda::inhom_bknd_t<dscalar<test_algebra>>,
                 detector<toy_metadata<test_algebra>, host_container_types>>(
     detector<toy_metadata<test_algebra>, host_container_types>::view_type,
-    const propagation::config&, covfie::field_view<bfield::cuda::inhom_bknd_t>,
+    const propagation::config&,
+    covfie::field_view<bfield::cuda::inhom_bknd_t<dscalar<test_algebra>>>,
     vecmem::data::vector_view<test_track>&,
     vecmem::data::jagged_vector_view<detail::step_data<test_algebra>>&);
 
