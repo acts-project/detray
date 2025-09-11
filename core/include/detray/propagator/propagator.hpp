@@ -225,10 +225,15 @@ struct propagator {
         //
         // ANSNANSNANSNANSNANSNANS...
         for (unsigned int i = 0; i % 2 == 0 || propagation.is_alive(); ++i) {
-            const auto dist{navigation()};
             if (i % 2 == 0) {
                 // Run all registered actors/aborters
                 run_actors(actor_state_refs, propagation);
+
+                // Don't run another navigation update, if already exited
+                if (!propagation.is_alive()) {
+                    continue;
+                }
+
                 assert(!track.is_invalid());
             } else {
                 assert(!track.is_invalid());
@@ -245,6 +250,7 @@ struct propagator {
                 const bool reset_stepsize{navigation.is_on_surface() ||
                                           is_init};
                 // Take the step
+                const auto dist{navigation()};
                 if (math::fabs(dist) > m_cfg.navigation.path_tolerance)
                     [[likely]] {
                     propagation._heartbeat &=
