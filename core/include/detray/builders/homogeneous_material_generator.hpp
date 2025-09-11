@@ -176,7 +176,7 @@ class homogeneous_material_generator final
             bool is_line{false};
             link_t mat_link;
 
-            if constexpr (detector_t::materials::template is_defined<
+            if constexpr (detector_t::materials::template contains<
                               material_rod<scalar_t>>()) {
 
                 using mask_id = typename detector_t::masks::id;
