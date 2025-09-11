@@ -56,6 +56,7 @@ concept shape = concepts::algebra<A> && requires(const S sh, std::ostream os) {
     requires concepts::coordinate_frame<
         typename S::template local_frame_type<A>>;
 
+    typename S::template result_type<dbool<A>>;
     typename S::template bounds_type<dscalar<A>>;
 
     S::dim;
@@ -68,13 +69,13 @@ concept shape = concepts::algebra<A> && requires(const S sh, std::ostream os) {
     {
         sh.check_boundaries(typename S::template bounds_type<dscalar<A>>(),
                             dpoint2D<A>(), dscalar<A>())
-    } -> std::same_as<dbool<A>>;
+    } -> std::same_as<typename S::template result_type<dbool<A>>>;
 
     {
         sh.template check_boundaries<A>(
             typename S::template bounds_type<dscalar<A>>(), dtransform3D<A>(),
             dpoint3D<A>(), dscalar<A>())
-    } -> std::same_as<dbool<A>>;
+    } -> std::same_as<typename S::template result_type<dbool<A>>>;
 
     {
         sh.measure(typename S::template bounds_type<dscalar<A>>())

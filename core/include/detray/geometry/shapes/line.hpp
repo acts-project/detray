@@ -16,6 +16,7 @@
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/coordinates/cartesian3D.hpp"
 #include "detray/geometry/coordinates/line2D.hpp"
+#include "detray/geometry/detail/shape_utils.hpp"
 
 // System include(s)
 #include <limits>
@@ -56,6 +57,10 @@ class line {
     /// Local coordinate frame for boundary checks
     template <concepts::algebra algebra_t>
     using local_frame_type = line2D<algebra_t>;
+
+    /// Result type of a boundary check
+    template <typename bool_t>
+    using result_type = detail::boundary_check_result<bool_t>;
 
     /// Dimension of the local coordinate system
     static constexpr std::size_t dim{2u};
@@ -101,25 +106,43 @@ class line {
     ///
     /// @return true if the local point lies within the given boundaries.
     template <concepts::algebra algebra_t>
-    DETRAY_HOST_DEVICE constexpr auto check_boundaries(
+    DETRAY_HOST_DEVICE constexpr result_type<dbool<algebra_t>> check_boundaries(
         const bounds_type<dscalar<algebra_t>> &bounds,
         const dtransform3D<algebra_t> &trf, const dpoint3D<algebra_t> &glob_p,
         const dscalar<algebra_t> tol =
-            std::numeric_limits<dscalar<algebra_t>>::epsilon()) const {
+            std::numeric_limits<dscalar<algebra_t>>::epsilon(),
+        const dscalar<algebra_t> edge_tol = 0.f) const {
 
         const auto loc_3D{
             cartesian3D<algebra_t>::global_to_local(trf, glob_p, {})};
 
         if constexpr (square_cross_sect) {
+            using scalar_t = dscalar<algebra_t>;
+
+            const scalar_t loc_0{math::fabs(loc_3D[0])};
+            const scalar_t loc_1{math::fabs(loc_3D[1])};
+            const scalar_t loc_2{math::fabs(loc_3D[2])};
+
             // Check in local cartesian coordinates instead of line coordinates
-            return (math::fabs(loc_3D[0]) <= (bounds[e_cross_section] + tol) &&
-                    math::fabs(loc_3D[1]) <= (bounds[e_cross_section] + tol) &&
-                    math::fabs(loc_3D[2]) <= (bounds[e_half_z] + tol));
+            auto inside_mask{(loc_0 <= (bounds[e_cross_section] + tol) &&
+                              loc_1 <= (bounds[e_cross_section] + tol) &&
+                              loc_2 <= (bounds[e_half_z] + tol))};
+
+            decltype(inside_mask) inside_edge{false};
+            if (detail::any_of(edge_tol > 0.f)) {
+                const scalar_t full_tol{tol + edge_tol};
+
+                inside_edge = (loc_0 <= (bounds[e_cross_section] + full_tol) &&
+                               loc_1 <= (bounds[e_cross_section] + full_tol) &&
+                               loc_2 <= (bounds[e_half_z] + full_tol));
+            }
+
+            return result_type<dbool<algebra_t>>{inside_mask, inside_edge};
         } else {
             // Check in local 2D line coordinates (sign not needed)
             return check_boundaries(
                 bounds, dpoint2D<algebra_t>{vector::perp(loc_3D), loc_3D[2]},
-                tol);
+                tol, edge_tol);
         }
     }
 
@@ -137,26 +160,54 @@ class line {
     template <concepts::scalar scalar_t, concepts::point point_t>
     DETRAY_HOST_DEVICE constexpr auto check_boundaries(
         const bounds_type<scalar_t> &bounds, const point_t &loc_p,
-        const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
+        const scalar_t tol = std::numeric_limits<scalar_t>::epsilon(),
+        const scalar_t edge_tol = 0.f) const {
 
         // For a square cross section (e.g. a cell of drift chamber), we check
         // if (1) x and y of the local cart. point is less than the half cell
         // size and (2) the distance to the point of closest approach on the
         // line from the line center is less than the half line length
         if constexpr (square_cross_sect) {
-            return (math::fabs(loc_p[0] * math::cos(loc_p[2])) <=
-                        (bounds[e_cross_section] + tol) &&
-                    math::fabs(loc_p[0] * math::sin(loc_p[2])) <=
-                        (bounds[e_cross_section] + tol) &&
-                    math::fabs(loc_p[1]) <= bounds[e_half_z] + tol);
+
+            const scalar_t loc_0{math::fabs(loc_p[0] * math::cos(loc_p[2]))};
+            const scalar_t loc_1{math::fabs(loc_p[0] * math::sin(loc_p[2]))};
+            const scalar_t loc_2{math::fabs(loc_p[1])};
+
+            auto inside_mask{(loc_0 <= (bounds[e_cross_section] + tol) &&
+                              loc_1 <= (bounds[e_cross_section] + tol) &&
+                              loc_2 <= bounds[e_half_z] + tol)};
+
+            decltype(inside_mask) inside_edge{false};
+            if (detail::any_of(edge_tol > 0.f)) {
+                const scalar_t full_tol{tol + edge_tol};
+
+                inside_edge = (loc_0 <= (bounds[e_cross_section] + full_tol) &&
+                               loc_1 <= (bounds[e_cross_section] + full_tol) &&
+                               loc_2 <= bounds[e_half_z] + full_tol);
+            }
+
+            return result_type<decltype(inside_mask)>{inside_mask, inside_edge};
         }
         // For a circular cross section (e.g. straw tube), we check if (1) the
         // radial distance is within the scope and (2) the distance to the point
         // of closest approach on the line from the line center is less than the
         // line half length
         else {
-            return (math::fabs(loc_p[0]) <= (bounds[e_cross_section] + tol) &&
-                    math::fabs(loc_p[1]) <= (bounds[e_half_z] + tol));
+            const scalar_t loc_0{math::fabs(loc_p[0])};
+            const scalar_t loc_1{math::fabs(loc_p[1])};
+
+            auto inside_mask{(loc_0 <= (bounds[e_cross_section] + tol) &&
+                              loc_1 <= (bounds[e_half_z] + tol))};
+
+            decltype(inside_mask) inside_edge{false};
+            if (detail::any_of(edge_tol > 0.f)) {
+                const scalar_t full_tol{tol + edge_tol};
+
+                inside_edge = (loc_0 <= (bounds[e_cross_section] + full_tol) &&
+                               loc_1 <= (bounds[e_half_z] + full_tol));
+            }
+
+            return result_type<decltype(inside_mask)>{inside_mask, inside_edge};
         }
     }
     /// @}
