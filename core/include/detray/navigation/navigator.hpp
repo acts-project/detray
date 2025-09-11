@@ -810,6 +810,7 @@ class navigator {
                const navigation::config &cfg, const context_type &ctx = {},
                const bool /*is_before_actor*/ = true) const {
 
+        assert(navigation.status() > navigation::status::e_on_target);
         assert(!track.is_invalid());
 
         // Candidates are re-evaluated based on the current trust level.
@@ -891,6 +892,9 @@ class navigator {
     /// @param cfg the navigation configuration
     DETRAY_HOST_DEVICE inline void jump_to_next(
         state &navigation, const navigation::config &cfg) const {
+
+        assert(navigation.status() > navigation::status::e_on_target);
+
         // Make sure it is possible to jump ahead
         if (navigation.trust_level() != navigation::trust_level::e_full ||
             !(navigation.is_on_surface() &&
@@ -910,6 +914,11 @@ class navigator {
 
         // Not a full navigator update: reduce trust level
         navigation.set_high_trust();
+
+        // Leave for debugging
+        // navigation.run_inspector(cfg, point3_type{0.f, 0.f, 0.f},
+        //                         vector3_type{0.f, 0.f, 0.f},
+        //                         "Jumped to next: ");
     }
 
     private:
