@@ -37,6 +37,32 @@ template <typename L>
 constexpr inline std::size_t size{get_size<L>()};
 /// @}
 
+/// Does the list contain a particular type?
+/// @{
+template <typename T, std::size_t = 0, typename = void>
+struct contains_impl : public std::false_type {};
+
+template <typename U, std::size_t I, typename T, typename... Ts>
+struct contains_impl<U, I, list<T, Ts...>>
+    : public contains_impl<U, I + 1u, list<Ts...>> {};
+
+template <typename T, std::size_t I, typename... Ts>
+struct contains_impl<T, I, list<T, Ts...>> : public std::true_type {
+    static constexpr std::size_t pos{I};
+};
+
+template <typename T, std::size_t I>
+struct contains_impl<T, I, list<>> : public std::false_type {
+    static constexpr auto pos{std::numeric_limits<std::size_t>::max()};
+};
+
+template <typename T, typename L>
+inline constexpr bool contains = contains_impl<T, 0u, L>::value;
+
+template <typename T, typename L>
+inline constexpr std::size_t position = contains_impl<T, 0u, L>::pos;
+/// @}
+
 /// Access the first type
 /// @{
 template <typename = void>
