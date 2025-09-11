@@ -162,15 +162,12 @@ class surface_factory : public surface_factory_interface<detector_t> {
             return {surfaces_offset, surfaces_offset};
         }
 
-        constexpr auto mask_id = detector_t::masks::template get_id<
-            mask<mask_shape_t, algebra_t, volume_link_t>>();
-        if constexpr (static_cast<std::size_t>(mask_id) >=
-                      detector_t::masks::n_types) {
+        using mask_t = mask<mask_shape_t, algebra_t, volume_link_t>;
+        if constexpr (!detector_t::masks::template is_defined<mask_t>()) {
 
             throw std::invalid_argument(
-                "ERROR: Cannot match shape type to mask ID: Found " +
-                std::string(mask_shape_t::name) + " at mask id " +
-                std::to_string(static_cast<std::size_t>(mask_id)));
+                "ERROR: Cannot match shape type to mask ID. Shape type: " +
+                std::string(mask_shape_t::name));
 
         } else {
 
@@ -180,6 +177,8 @@ class surface_factory : public surface_factory_interface<detector_t> {
 
             // The material will be added in a later step
             constexpr auto no_material{surface_t::material_id::e_none};
+            constexpr auto mask_id =
+                detector_t::masks::template get_id<mask_t>();
 
             for (const auto [idx, bounds_per_mask] :
                  detray::views::enumerate(m_bounds)) {

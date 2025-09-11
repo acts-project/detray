@@ -38,7 +38,12 @@ class type_registry {
     /// Get the index for a type. Needs to be unrolled in case of thrust tuple.
     template <typename object_t>
     DETRAY_HOST_DEVICE static constexpr ID get_id() {
-        return unroll_ids<std::decay_t<object_t>, registered_types...>();
+        constexpr ID obj_id{
+            unroll_ids<std::decay_t<object_t>, registered_types...>()};
+
+        static_assert(is_defined(obj_id), "Type not defined in registry");
+
+        return obj_id;
     }
 
     /// Get the index for a type. Use template parameter deduction.
@@ -52,13 +57,19 @@ class type_registry {
     template <typename object_t>
     DETRAY_HOST_DEVICE static constexpr bool is_defined(
         const object_t& /*obj*/) {
-        return (get_id<object_t>() != static_cast<ID>(e_unknown));
+        return (unroll_ids<std::decay_t<object_t>, registered_types...>() !=
+                static_cast<ID>(e_unknown));
     }
 
     /// Checks whether a given types is known in the registry.
     template <typename object_t>
     DETRAY_HOST_DEVICE static constexpr bool is_defined() {
-        return (get_id<object_t>() != static_cast<ID>(e_unknown));
+        return (unroll_ids<std::decay_t<object_t>, registered_types...>() !=
+                static_cast<ID>(e_unknown));
+    }
+
+    DETRAY_HOST_DEVICE static constexpr bool is_defined(const ID id) {
+        return (id != static_cast<ID>(e_unknown));
     }
 
     /// Checks whether a given index can be mapped to a type.

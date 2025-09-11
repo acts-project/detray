@@ -95,6 +95,11 @@ using range_rvalue_reference_t = std::add_rvalue_reference_t<range_value_t<R>>;
 template <class R>
 concept range = std::ranges::range<R>;
 
+/// Range of a given type
+template <typename R, typename T>
+concept range_of =
+    detray::ranges::range<R> && std::same_as<std::ranges::range_value_t<R>, T>;
+
 /// Range category concepts
 /// @{
 template <class R>

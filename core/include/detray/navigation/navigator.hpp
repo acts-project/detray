@@ -662,7 +662,7 @@ class navigator {
     /// the surfaces in the volume neighborhood
     struct candidate_search {
 
-        /// Test the volume links
+        /// Test the contained surfaces for intersection
         template <typename track_t>
         DETRAY_HOST_DEVICE void operator()(
             const typename detector_type::surface_type &sf_descr,
@@ -683,6 +683,19 @@ class navigator {
                 sf_descr, det.transform_store(), ctx,
                 sf.is_portal() ? darray<scalar_type, 2>{0.f, 0.f} : mask_tol,
                 mask_tol_scalor, overstep_tol);
+        }
+
+        /// Test the daughter volumes for intersection
+        template <typename track_t>
+        DETRAY_HOST_DEVICE void operator()(
+            const dindex & /*vol_idx*/, const detector_type & /*det*/,
+            const context_type & /*ctx*/, const track_t & /*track*/,
+            state & /*nav_state*/, const darray<scalar_type, 2> /*mask_tol*/,
+            const scalar_type /*mask_tol_scalor*/,
+            const scalar_type /*overstep_tol*/) const {
+
+            // Not implemented, yet
+            assert(false);
         }
     };
 
@@ -719,8 +732,9 @@ class navigator {
             use_path_tolerance_as_overstep_tolerance ? -cfg.path_tolerance
                                                      : cfg.overstep_tolerance;
 
-        volume.template visit_neighborhood<candidate_search>(
-            track, cfg, ctx, det, ctx, track, navigation,
+        volume.template visit_neighborhood<volume_type::object_id::e_all,
+                                           candidate_search>(
+            track, cfg.search_window, ctx, det, ctx, track, navigation,
             darray<scalar_type, 2u>{cfg.min_mask_tolerance,
                                     cfg.max_mask_tolerance},
             static_cast<scalar_type>(cfg.mask_tolerance_scalor),
