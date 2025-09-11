@@ -588,7 +588,7 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
                    const material<scalar_type>* vol_mat_ptr) const {
 
     // Check navigator and actor results
-    assert(dist_to_next != 0.f);
+    assert(math::fabs(dist_to_next) != 0.f);
     assert(!stepping().is_invalid());
 
     // Get stepper and navigator states
