@@ -39,34 +39,33 @@ struct parameter_transporter : actor {
     /// @}
 
     struct get_bound_to_free_dpos_dloc_kernel {
-        template <typename mask_group_t, typename index_t,
-                  typename stepper_state_t>
+        template <typename mask_group_t, typename index_t>
         DETRAY_HOST_DEVICE constexpr dmatrix<algebra_t, 3, 2> operator()(
             const mask_group_t& /*mask_group*/, const index_t& /*index*/,
             const transform3_type& trf3,
-            const stepper_state_t& stepping) const {
+            const free_track_parameters<algebra_t>& params) const {
             using frame_t = typename mask_group_t::value_type::shape::
                 template local_frame_type<algebra_t>;
 
             return detail::jacobian_engine<algebra_t>::
                 template bound_to_free_jacobian_submatrix_dpos_dloc<frame_t>(
-                    trf3, stepping().pos(), stepping().dir());
+                    trf3, params.pos(), params.dir());
         }
     };
 
     struct get_bound_to_free_dpos_dangle_kernel {
-        template <typename mask_group_t, typename index_t,
-                  typename stepper_state_t>
+        template <typename mask_group_t, typename index_t>
         DETRAY_HOST_DEVICE constexpr dmatrix<algebra_t, 3, 2> operator()(
             const mask_group_t& /*mask_group*/, const index_t& /*index*/,
-            const transform3_type& trf3, const stepper_state_t& stepping,
+            const transform3_type& trf3,
+            const free_track_parameters<algebra_t>& params,
             const dmatrix<algebra_t, 3, 2>& ddir_dangle) const {
             using frame_t = typename mask_group_t::value_type::shape::
                 template local_frame_type<algebra_t>;
 
             return detail::jacobian_engine<algebra_t>::
                 template bound_to_free_jacobian_submatrix_dpos_dangle<frame_t>(
-                    trf3, stepping().pos(), stepping().dir(), ddir_dangle);
+                    trf3, params.pos(), params.dir(), ddir_dangle);
         }
     };
 
@@ -159,6 +158,10 @@ struct parameter_transporter : actor {
         tracking_surface prev_sf{navigation.detector(),
                                  bound_params.surface_link()};
 
+        // Free track params of departure surface
+        const free_track_parameters<algebra_t> free_params =
+            prev_sf.bound_to_free_vector(gctx, bound_params);
+
         // First, we will compute the bound-to-free Jacobian, which is given
         // by three sub-Jacobians. In particular, the matrix has an 8x6 shape
         // and looks like this:
@@ -181,15 +184,16 @@ struct parameter_transporter : actor {
         // all of which are 3x2 in size. Also, A and B depend on the frame
         // type while C is computed in the same way for all frames. Finally,
         // note that submatrix B is the zero matrix for most frame types.
+        const auto& prev_trf3 = prev_sf.transform(gctx);
         const dmatrix<algebra_t, 3, 2> b2f_dpos_dloc =
-            sf.template visit_mask<get_bound_to_free_dpos_dloc_kernel>(
-                sf.transform(gctx), propagation._stepping);
+            prev_sf.template visit_mask<get_bound_to_free_dpos_dloc_kernel>(
+                prev_trf3, free_params);
         const dmatrix<algebra_t, 3, 2> b2f_ddir_dangle =
             detail::jacobian_engine<algebra_t>::
                 bound_to_free_jacobian_submatrix_ddir_dangle(bound_params);
         const dmatrix<algebra_t, 3, 2> b2f_dpos_dangle =
-            sf.template visit_mask<get_bound_to_free_dpos_dangle_kernel>(
-                sf.transform(gctx), propagation._stepping, b2f_ddir_dangle);
+            prev_sf.template visit_mask<get_bound_to_free_dpos_dangle_kernel>(
+                prev_trf3, free_params, b2f_ddir_dangle);
 
         // Next, we compute the derivative which is defined as the outer
         // product of the two 8x1 vectors representing the path to free
@@ -229,7 +233,7 @@ struct parameter_transporter : actor {
         // phi  [  0,  0,  0,  0,  B,  B,  0,  0],
         //  th  [  0,  0,  0,  0,  B,  B,  B,  0],
         // q/p  [  0,  0,  0,  0,  0,  0,  0,  1],
-        //   t  [  0,  0,  0,  0,  0,  0,  0,  0]]
+        //   t  [  0,  0,  0,  1,  0,  0,  0,  0]]
         //
         // Thus, the number of non-trivial elements is only 11 out of the 48
         // matrix elements. Also, submatrix A depends on the frame type while
