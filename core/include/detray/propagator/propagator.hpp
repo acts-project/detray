@@ -35,11 +35,12 @@ struct propagator {
 
     using stepper_type = stepper_t;
     using navigator_type = navigator_t;
-    using intersection_type = typename navigator_type::intersection_type;
-    using detector_type = typename navigator_type::detector_type;
     using actor_chain_type = actor_chain_t;
-    using algebra_type = typename stepper_t::algebra_type;
+
+    using detector_type = typename navigator_type::detector_type;
+    using algebra_type = typename detector_type::algebra_type;
     using scalar_type = dscalar<algebra_type>;
+    using intersection_type = typename navigator_type::intersection_type;
     using free_track_parameters_type =
         typename stepper_t::free_track_parameters_type;
     using bound_track_parameters_type =
@@ -63,6 +64,7 @@ struct propagator {
     struct state {
 
         using detector_type = typename navigator_t::detector_type;
+        using algebra_type = typename detector_type::algebra_type;
         using context_type = typename detector_type::geometry_context;
         using navigator_state_type = typename navigator_t::state;
         using actor_chain_type = actor_chain_t;
@@ -226,6 +228,12 @@ struct propagator {
             if (i % 2 == 0) {
                 // Run all registered actors/aborters
                 run_actors(actor_state_refs, propagation);
+
+                // Don't run another navigation update, if already exited
+                if (!propagation.is_alive()) {
+                    continue;
+                }
+
                 assert(!track.is_invalid());
             } else {
                 assert(!track.is_invalid());
@@ -242,13 +250,21 @@ struct propagator {
                 const bool reset_stepsize{navigation.is_on_surface() ||
                                           is_init};
                 // Take the step
-                propagation._heartbeat &=
-                    m_stepper.step(navigation(), stepping, m_cfg.stepping,
-                                   reset_stepsize, vol_mat_ptr);
+                const auto dist{navigation()};
+                if (math::fabs(dist) > m_cfg.navigation.path_tolerance)
+                    [[likely]] {
+                    propagation._heartbeat &=
+                        m_stepper.step(dist, stepping, m_cfg.stepping,
+                                       reset_stepsize, vol_mat_ptr);
 
-                // Reduce navigation trust level according to stepper update
-                typename stepper_t::policy_type{}(stepping.policy_state(),
-                                                  propagation);
+                    // Reduce navigation trust level according to stepper update
+                    typename stepper_t::policy_type{}(stepping.policy_state(),
+                                                      propagation);
+                } else {
+                    // Does not fully update the navigation state:
+                    // Run the 'm_navigator.update' below
+                    m_navigator.jump_to_next(navigation, m_cfg.navigation);
+                }
 
                 if (i > 0) {
                     is_init = false;

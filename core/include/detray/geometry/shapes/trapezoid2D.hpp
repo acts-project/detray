@@ -15,6 +15,7 @@
 #include "detray/definitions/math.hpp"
 #include "detray/geometry/coordinates/cartesian2D.hpp"
 #include "detray/geometry/coordinates/cartesian3D.hpp"
+#include "detray/geometry/detail/shape_utils.hpp"
 
 // System include(s)
 #include <limits>
@@ -49,6 +50,10 @@ class trapezoid2D {
     /// Local coordinate frame for boundary checks
     template <concepts::algebra algebra_t>
     using local_frame_type = cartesian2D<algebra_t>;
+
+    /// Result type of a boundary check
+    template <typename bool_t>
+    using result_type = detail::boundary_check_result<bool_t>;
 
     /// Dimension of the local coordinate system
     static constexpr std::size_t dim{2u};
@@ -90,17 +95,18 @@ class trapezoid2D {
     ///
     /// @return true if the local point lies within the given boundaries.
     template <concepts::algebra algebra_t>
-    DETRAY_HOST_DEVICE constexpr auto check_boundaries(
+    DETRAY_HOST_DEVICE constexpr result_type<dbool<algebra_t>> check_boundaries(
         const bounds_type<dscalar<algebra_t>> &bounds,
         const dtransform3D<algebra_t> &trf, const dpoint3D<algebra_t> &glob_p,
         const dscalar<algebra_t> tol =
-            std::numeric_limits<dscalar<algebra_t>>::epsilon()) const {
+            std::numeric_limits<dscalar<algebra_t>>::epsilon(),
+        const dscalar<algebra_t> edge_tol = 0.f) const {
 
         // Get the full local position
         const dpoint3D<algebra_t> loc_p =
             cartesian3D<algebra_t>::global_to_local(trf, glob_p, {});
 
-        return check_boundaries(bounds, loc_p, tol);
+        return check_boundaries(bounds, loc_p, tol, edge_tol);
     }
 
     /// @note the point is expected to be given in local coordinates by the
@@ -115,14 +121,29 @@ class trapezoid2D {
     template <concepts::scalar scalar_t, concepts::point point_t>
     DETRAY_HOST_DEVICE constexpr auto check_boundaries(
         const bounds_type<scalar_t> &bounds, const point_t &loc_p,
-        const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
+        const scalar_t tol = std::numeric_limits<scalar_t>::epsilon(),
+        const scalar_t edge_tol = 0.f) const {
+
         const scalar_t rel_y =
             (bounds[e_half_length_2] + loc_p[1]) * bounds[e_divisor];
-        return (math::fabs(loc_p[0]) <= (bounds[e_half_length_0] +
-                                         rel_y * (bounds[e_half_length_1] -
-                                                  bounds[e_half_length_0]) +
-                                         tol) &&
-                math::fabs(loc_p[1]) <= (bounds[e_half_length_2] + tol));
+        const scalar_t bound_x{
+            bounds[e_half_length_0] +
+            rel_y * (bounds[e_half_length_1] - bounds[e_half_length_0])};
+
+        auto inside_mask{
+            (math::fabs(loc_p[0]) <= (bound_x + tol) &&
+             math::fabs(loc_p[1]) <= (bounds[e_half_length_2] + tol))};
+
+        decltype(inside_mask) inside_edge{false};
+        if (detail::any_of(edge_tol > 0.f)) {
+            const scalar_t full_tol{tol + edge_tol};
+
+            inside_edge =
+                (math::fabs(loc_p[0]) <= (bound_x + full_tol) &&
+                 math::fabs(loc_p[1]) <= (bounds[e_half_length_2] + full_tol));
+        }
+
+        return result_type<decltype(inside_mask)>{inside_mask, inside_edge};
     }
     /// @}
 

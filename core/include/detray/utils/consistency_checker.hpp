@@ -39,7 +39,7 @@ template <typename store_t, std::size_t... I>
 void report_empty(const store_t &store, const std::string &store_name,
                   std::index_sequence<I...> /*seq*/) {
 
-    ((store.template empty<store_t::value_types::to_id(I)>()
+    ((store.template empty<store_t::value_types::template to_id<I>()>()
           ? std::cout << "WARNING: " << store_name
                       << " has empty collection no. " << I << std::endl
           : std::cout << ""),

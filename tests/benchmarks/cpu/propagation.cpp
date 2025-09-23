@@ -113,8 +113,12 @@ int main(int argc, char** argv) {
     dtuple<> empty_state{};
 
     pointwise_material_interactor<bench_algebra>::state interactor_state{};
+    parameter_resetter<bench_algebra>::state resetter_state{};
+    // No scattering in test tracks
+    resetter_state.estimate_scattering_noise = false;
 
-    auto actor_states = detail::make_tuple<dtuple>(interactor_state);
+    auto actor_states =
+        detail::make_tuple<dtuple>(interactor_state, resetter_state);
 
     //
     // Register benchmarks
