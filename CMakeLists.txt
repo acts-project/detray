@@ -27,6 +27,13 @@ if(${CMAKE_CXX_STANDARD} LESS 20)
     )
 endif()
 
+# Set the CUDA architecture to build code for.
+set(CMAKE_CUDA_ARCHITECTURES
+    75
+    CACHE STRING
+    "CUDA architectures to build device code for"
+)
+
 # CMake include(s).
 include(CMakeDependentOption)
 include(GNUInstallDirs)
