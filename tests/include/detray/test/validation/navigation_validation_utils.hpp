@@ -549,7 +549,8 @@ auto compare_traces(
                 if (!recorded_trace.at(idx).intersection.sf_desc.is_portal() ||
                     !truth_trace.at(idx).intersection.sf_desc.is_portal()) {
                     std::cout
-                        << "WARNING: Non-portal surfaces are swapped in trace, "
+                        << "WARNING: Track " << trk_no << ", inters. " << idx
+                        << ": Non-portal surfaces are swapped in trace, "
                            "possibly due to overlaps or large mask tolerances."
                         << std::endl;
                 }

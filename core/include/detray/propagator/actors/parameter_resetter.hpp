@@ -80,7 +80,7 @@ struct parameter_resetter : actor {
         // Set the noise to be expected by the navigator after all of the actors
         // are done and the covariance is up to date
 
-        // Positional error on the current surface as an estimete of the error
+        // Positional error on the current surface as an estimate of the error
         // on the next surface
         const auto& cov = bound_params.covariance();
 
@@ -127,8 +127,8 @@ struct parameter_resetter : actor {
             n_stddev * n_stddev * (var_loc0 + var_loc1) +
             vector::dot(displ, displ) + accumulated_noise * accumulated_noise));
 
-        // Clip to 10mm if the covariance are very large
-        constexpr auto max_tol{10.f * unit<scalar_t>::mm};
+        // Clip to 5mm if the covariances are very large
+        constexpr auto max_tol{5.f * unit<scalar_t>::mm};
         navigation.set_external_tol(navigation.external_tol() > max_tol
                                         ? max_tol
                                         : navigation.external_tol());

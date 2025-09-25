@@ -10,6 +10,7 @@
 // Project include(s).
 #include "detray/definitions/detail/macros.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/navigation/detail/print_state.hpp"
 #include "detray/navigation/direct_navigator.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 #include "detray/navigation/navigator.hpp"
@@ -250,21 +251,13 @@ struct propagator {
                 const bool reset_stepsize{navigation.is_on_surface() ||
                                           is_init};
                 // Take the step
-                const auto dist{navigation()};
-                if (math::fabs(dist) > m_cfg.navigation.path_tolerance)
-                    [[likely]] {
-                    propagation._heartbeat &=
-                        m_stepper.step(dist, stepping, m_cfg.stepping,
-                                       reset_stepsize, vol_mat_ptr);
+                propagation._heartbeat &=
+                    m_stepper.step(navigation(), stepping, m_cfg.stepping,
+                                   reset_stepsize, vol_mat_ptr);
 
-                    // Reduce navigation trust level according to stepper update
-                    typename stepper_t::policy_type{}(stepping.policy_state(),
-                                                      propagation);
-                } else {
-                    // Does not fully update the navigation state:
-                    // Run the 'm_navigator.update' below
-                    m_navigator.jump_to_next(navigation, m_cfg.navigation);
-                }
+                // Reduce navigation trust level according to stepper update
+                typename stepper_t::policy_type{}(stepping.policy_state(),
+                                                  propagation);
 
                 if (i > 0) {
                     is_init = false;
@@ -274,6 +267,7 @@ struct propagator {
             // Find next candidate
             is_init |= m_navigator.update(track, navigation, m_cfg.navigation,
                                           context, i % 2 == 1 || i == 0);
+
             propagation._heartbeat &= navigation.is_alive();
 
 #if defined(__NO_DEVICE__)

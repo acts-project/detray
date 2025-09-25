@@ -64,7 +64,7 @@ struct config {
     /// Percentage of total track path to assume as accumulated error
     float accumulated_error{0.001f};
     /// Number of standard deviations to assume to model the scattering noise
-    int n_scattering_stddev{1};
+    int n_scattering_stddev{2};
     /// Add adaptive mask tolerance to navigation
     bool estimate_scattering_noise{true};
 
@@ -83,10 +83,13 @@ struct config {
             << "  Search window         : " << cfg.search_window[0] << " x "
             << cfg.search_window[1] << "\n";
 
-        out << "Actor configuration:\n"
-            << "  Accumulated error     : " << cfg.accumulated_error * 100.f
-            << " %\n"
-            << "  No. scattering stddev : " << cfg.n_scattering_stddev << "\n";
+        if (cfg.estimate_scattering_noise) {
+            out << "Actor configuration:\n"
+                << "  Accumulated error     : " << cfg.accumulated_error * 100.f
+                << " %\n"
+                << "  No. scattering stddev : " << cfg.n_scattering_stddev
+                << "\n";
+        }
 
         return out;
     }
