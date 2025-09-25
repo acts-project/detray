@@ -26,7 +26,8 @@ template <concepts::scalar scalar_t>
 constexpr scalar_t phi_tolerance(scalar_t tol, scalar_t radius) {
     return radius > 0.f ? tol / radius : tol;
 }
-// Result of an 'inside' check
+// Result of an 'inside' check: First entry precise check, second entry with
+// tolerance
 template <typename bool_t>
 using boundary_check_result = darray<bool_t, 2>;
 
@@ -34,7 +35,7 @@ using boundary_check_result = darray<bool_t, 2>;
 
 /// Address different types of check results
 enum class check_type : std::uint_least8_t {
-    e_inside = 0u,
+    e_precise = 0u,
     e_with_edge = 1u,
 };
 
@@ -42,7 +43,7 @@ enum class check_type : std::uint_least8_t {
 template <check_type C, typename bool_t>
 DETRAY_HOST_DEVICE constexpr bool_t get(
     const detail::boundary_check_result<bool_t> result) {
-    if constexpr (C == check_type::e_inside) {
+    if constexpr (C == check_type::e_precise) {
         return result[0];
     } else if constexpr (C == check_type::e_with_edge) {
         return result[1];

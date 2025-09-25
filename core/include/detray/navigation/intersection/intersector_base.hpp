@@ -185,7 +185,7 @@ DETRAY_HOST_DEVICE constexpr void resolve_mask(
     if constexpr (concepts::soa<algebra_t>) {
         using status_t = typename intersection_t::status_t;
 
-        is.status(is.path() >= overstep_tol) =
+        is.status(is.path() < overstep_tol) =
             static_cast<status_t>(intersection::status::e_outside);
     } else {
         is.set_status(intersection::status::e_outside);
@@ -240,7 +240,7 @@ DETRAY_HOST_DEVICE constexpr void resolve_mask(
     is.set_status_if(intersection::status::e_edge,
                      detray::get<check_type::e_with_edge>(mask_check));
     is.set_status_if(intersection::status::e_inside,
-                     detray::get<check_type::e_inside>(mask_check));
+                     detray::get<check_type::e_precise>(mask_check));
 
     is.set_path(ip.path);
     is.sf_desc = sf_desc;

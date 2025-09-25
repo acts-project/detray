@@ -166,8 +166,9 @@ class mask {
     ///
     /// @param loc_p the point to be checked in the local system (2D or 3D)
     /// @param tol dynamic tolerance determined by caller
+    /// @param edge_tol tolerance that allows for an edge around the mask
     ///
-    /// @return a mask check result (contains checks with and without edges)
+    /// @returns a mask check result (contains checks with and without edges)
     template <concepts::point point_t>
     DETRAY_HOST_DEVICE constexpr result_type resolve(
         const point_t& loc_p,
@@ -179,8 +180,9 @@ class mask {
     /// @param trf the (contextual) surface transform
     /// @param glob_p the point to be checked in the global cartesian system
     /// @param tol dynamic tolerance determined by caller
+    /// @param edge_tol tolerance that allows for an edge around the mask
     ///
-    /// @return a mask check result (contains checks with and without edges)
+    /// @returns a mask check result (contains checks with and without edges)
     DETRAY_HOST_DEVICE constexpr result_type resolve(
         const transform3_type& trf, const point3_type& glob_p,
         const scalar_type tol = std::numeric_limits<scalar_type>::epsilon(),
@@ -192,28 +194,28 @@ class mask {
     /// @param loc_p the point to be checked in the local system (2D or 3D)
     /// @param tol dynamic tolerance determined by caller
     ///
-    /// @return an intersection status e_inside / e_outside
+    /// @returns an intersection status e_inside / e_outside
     template <concepts::point point_t>
-    DETRAY_HOST_DEVICE constexpr dbool<algebra_t> is_inside(
+    DETRAY_HOST_DEVICE constexpr dbool<algebra_type> is_inside(
         const point_t& loc_p,
         const scalar_type tol =
             std::numeric_limits<scalar_type>::epsilon()) const {
-        return detray::get<check_type::e_inside>(get_shape().check_boundaries(
-            _values, loc_p, tol, dscalar<algebra_t>{0.f}));
+        return detray::get<check_type::e_precise>(get_shape().check_boundaries(
+            _values, loc_p, tol, scalar_type{0.f}));
     }
 
     /// @param trf the (contextual) surface transform
     /// @param glob_p the point to be checked in the global cartesian system
     /// @param tol dynamic tolerance determined by caller
     ///
-    /// @return an intersection status e_inside / e_outside
-    DETRAY_HOST_DEVICE constexpr dbool<algebra_t> is_inside(
+    /// @returns an intersection status e_inside / e_outside
+    DETRAY_HOST_DEVICE constexpr dbool<algebra_type> is_inside(
         const transform3_type& trf, const point3_type& glob_p,
         const scalar_type tol =
             std::numeric_limits<scalar_type>::epsilon()) const {
-        return detray::get<check_type::e_inside>(
+        return detray::get<check_type::e_precise>(
             get_shape().template check_boundaries<algebra_type>(
-                _values, trf, glob_p, tol, dscalar<algebra_t>{0.f}));
+                _values, trf, glob_p, tol, scalar_type{0.f}));
     }
     /// @}
 

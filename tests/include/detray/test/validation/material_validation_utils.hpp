@@ -11,6 +11,7 @@
 #include "detray/definitions/algebra.hpp"
 #include "detray/materials/detail/concepts.hpp"
 #include "detray/materials/detail/material_accessor.hpp"
+#include "detray/navigation/detail/print_state.hpp"
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actors.hpp"
 #include "detray/propagator/line_stepper.hpp"

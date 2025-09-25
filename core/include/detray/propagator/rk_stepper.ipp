@@ -587,6 +587,11 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
                    const detray::stepping::config& cfg, const bool do_reset,
                    const material<scalar_type>* vol_mat_ptr) const {
 
+    // In case of an overlap do nothing
+    if (math::fabs(dist_to_next) <= 1e-5f) {
+        return true;
+    }
+
     // Check navigator and actor results
     assert(math::fabs(dist_to_next) != 0.f);
     assert(!stepping().is_invalid());

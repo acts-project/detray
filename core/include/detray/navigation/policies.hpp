@@ -113,6 +113,12 @@ struct stepper_rk_policy : actor {
         const auto &stepping = propagation._stepping;
         auto &navigation = propagation._navigation;
 
+        // In case of an overlap, have navigator re-evaluate the next candidate
+        if (math::fabs(navigation()) <= 1e-5f) {
+            navigation.set_high_trust();
+            return;
+        }
+
         // How strongly did the RKN algorithm reduce the step size?
         const scalar_t rel_correction{(stepping.step_size() - navigation()) /
                                       navigation()};
