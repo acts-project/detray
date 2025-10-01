@@ -64,9 +64,11 @@ __global__ void material_validation_kernel(
     typename pathlimit_aborter_t::state aborter_state{cfg.stepping.path_limit};
     typename pointwise_material_interactor<algebra_t>::state interactor_state{};
     typename material_tracer_t::state mat_tracer_state{mat_steps.at(trk_id)};
+    typename parameter_resetter<algebra_t>::state resetter_state{};
+    resetter_state.estimate_scattering_noise = false;
 
-    auto actor_states =
-        ::detray::tie(aborter_state, interactor_state, mat_tracer_state);
+    auto actor_states = ::detray::tie(aborter_state, interactor_state,
+                                      mat_tracer_state, resetter_state);
 
     // Run propagation
     typename navigator_t::state::view_type nav_view{};

@@ -25,6 +25,7 @@
 // Detray test include(s)
 #include "detray/test/common/build_telescope_detector.hpp"
 #include "detray/test/framework/types.hpp"
+#include "detray/test/utils/inspectors.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -52,6 +53,7 @@ using straw_tube_type = detray::mask<detray::line_circular, test_algebra>;
 using drift_cell_type = detray::mask<detray::line_square, test_algebra>;
 
 constexpr scalar tol{1e-6f};
+constexpr std::size_t cache_size{navigation::default_cache_size};
 
 GTEST_TEST(detray_propagator, covariance_transport) {
 
@@ -72,7 +74,8 @@ GTEST_TEST(detray_propagator, covariance_transport) {
     const auto [det, names] =
         build_telescope_detector<test_algebra>(host_mr, tel_cfg);
 
-    using navigator_t = navigator<decltype(det)>;
+    using navigator_t =
+        navigator<decltype(det), cache_size, navigation::print_inspector>;
     using cline_stepper_t = line_stepper<test_algebra>;
     using actor_chain_t = actor_chain<parameter_transporter<test_algebra>,
                                       parameter_resetter<test_algebra>>;
@@ -102,7 +105,9 @@ GTEST_TEST(detray_propagator, covariance_transport) {
     propagator_t::state propagation(bound_param0, det, prop_cfg.context);
 
     // Run propagator
-    p.propagate(propagation);
+    parameter_resetter<test_algebra>::state resetter_state{};
+    EXPECT_TRUE(p.propagate(propagation, detray::tie(resetter_state)))
+        << propagation._navigation.inspector().to_string();
 
     // Bound state after one turn propagation
     const auto& bound_param1 = propagation._stepping.bound_params();

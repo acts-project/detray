@@ -102,8 +102,10 @@ int main() {
             5.f * detray::unit<scalar>::m};
         detray::pointwise_material_interactor<algebra_t>::state
             interactor_state{};
+        detray::parameter_resetter<algebra_t>::state resetter_state{};
 
-        auto actor_states = detray::tie(aborter_state, interactor_state);
+        auto actor_states =
+            detray::tie(aborter_state, interactor_state, resetter_state);
 
         // Run the actual propagation
         prop.propagate(propagation, actor_states);

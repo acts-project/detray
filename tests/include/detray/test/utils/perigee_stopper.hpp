@@ -99,12 +99,13 @@ struct perigee_stopper : actor {
             perigee_intersector_t{}(trk_approx, inv_sf, perigee_mask, identity,
                                     mask_tolerance, overstep_tolerance);
 
-        scalar_t dist_to_cand{std::as_const(navigation).target().path};
-        if (perigee_intr.status &&
-            math::fabs(perigee_intr.path) < math::fabs(dist_to_cand)) {
+        scalar_t dist_to_cand{std::as_const(navigation).target().path()};
+        if (perigee_intr.is_probably_inside() &&
+            math::fabs(perigee_intr.path()) < math::fabs(dist_to_cand)) {
             // The track has reached the perigee: "exit success"
             assert(actor_state.m_on_perigee_tol > 0.f);
-            if (math::fabs(perigee_intr.path) <= actor_state.m_on_perigee_tol) {
+            if (math::fabs(perigee_intr.path()) <=
+                actor_state.m_on_perigee_tol) {
                 const curvilinear_frame<algebra_t> cf(track);
 
                 // @TODO: Transport covariance as well
@@ -116,7 +117,7 @@ struct perigee_stopper : actor {
                 // @TODO: Use a guided navigator for this in order to catch
                 // overstepping correctly
                 stepping.template set_constraint<step::constraint::e_actor>(
-                    perigee_intr.path);
+                    perigee_intr.path());
             }
         }
     }

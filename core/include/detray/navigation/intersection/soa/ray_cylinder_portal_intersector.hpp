@@ -103,7 +103,7 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
         const scalar_type s2 = k - sqrt_discr;
 
         // Take the nearest solution in every lane
-        auto is_smaller_sol = s1 < s2;
+        auto is_smaller_sol = math::fabs(s1) < math::fabs(s2);
 
         scalar_type path = 0.f;
         path(is_smaller_sol) = s1;
@@ -114,7 +114,8 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
         const auto outside_overstep_tol = path < overstep_tol;
         if (detray::detail::any_of(outside_overstep_tol) &&
             detray::detail::all_of((discr > 0.f) || !outside_overstep_tol)) {
-            is_smaller_sol = (s1 >= s2) && outside_overstep_tol;
+            is_smaller_sol =
+                (math::fabs(s1) >= math::fabs(s2)) && outside_overstep_tol;
             path(is_smaller_sol) = s1;
             path(!is_smaller_sol) = s2;
         }

@@ -187,7 +187,7 @@ class detray_propagation_HelixCovarianceTransportValidation
         const intersection_t is = get_intersection(helix_inters(
             hlx, surface_descriptor<>{}, mask_1, trf_1, this->mask_tolerance));
         // Check for successfull intersection
-        EXPECT_TRUE(is.status) << is;
+        EXPECT_TRUE(is.is_inside()) << is;
 
         sfis.push_back(is);
 
@@ -345,7 +345,7 @@ TYPED_TEST(detray_propagation_HelixCovarianceTransportValidation,
 
     ASSERT_EQ(sfis.size(), n_planes);
     for (std::size_t i = 0u; i < n_planes; i++) {
-        EXPECT_TRUE(sfis[i].status);
+        EXPECT_TRUE(sfis[i].is_inside());
         EXPECT_TRUE(sfis[i].direction);
     }
 

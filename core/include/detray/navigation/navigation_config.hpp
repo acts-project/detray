@@ -59,6 +59,15 @@ struct config {
     /// (0, 0): only look at current bin
     darray<dindex, 2> search_window = {0u, 0u};
 
+    // Actor configuration
+
+    /// Percentage of total track path to assume as accumulated error
+    float accumulated_error{0.001f};
+    /// Number of standard deviations to assume to model the scattering noise
+    int n_scattering_stddev{2};
+    /// Add adaptive mask tolerance to navigation
+    bool estimate_scattering_noise{true};
+
     /// Print the navigation configuration
     DETRAY_HOST
     friend std::ostream& operator<<(std::ostream& out, const config& cfg) {
@@ -73,6 +82,14 @@ struct config {
             << cfg.overstep_tolerance / detray::unit<float>::um << " [um]\n"
             << "  Search window         : " << cfg.search_window[0] << " x "
             << cfg.search_window[1] << "\n";
+
+        if (cfg.estimate_scattering_noise) {
+            out << "Actor configuration:\n"
+                << "  Accumulated error     : " << cfg.accumulated_error * 100.f
+                << " %\n"
+                << "  No. scattering stddev : " << cfg.n_scattering_stddev
+                << "\n";
+        }
 
         return out;
     }

@@ -101,9 +101,11 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
 
     pathlimit_aborter_t::state aborter_state{};
     interactor_t::state interactor_state{};
+    parameter_resetter<test_algebra>::state resetter_state{};
 
     // Create actor states tuples
-    auto actor_states = detray::tie(aborter_state, interactor_state);
+    auto actor_states =
+        detray::tie(aborter_state, interactor_state, resetter_state);
 
     propagator_t::state state(bound_param, det);
     state.do_debug = true;
@@ -232,9 +234,11 @@ GTEST_TEST(detray_material, telescope_geometry_scattering_angle) {
         // Seed = sample id
         simulator_t::state simulator_state{i};
         simulator_state.do_energy_loss = false;
+        parameter_resetter<test_algebra>::state resetter_state{};
 
         // Create actor states tuples
-        auto actor_states = detray::tie(aborter_state, simulator_state);
+        auto actor_states =
+            detray::tie(aborter_state, simulator_state, resetter_state);
 
         propagator_t::state state(bound_param, det);
         state.do_debug = true;

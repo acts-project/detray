@@ -91,6 +91,8 @@ TEST_P(BackwardPropagation, backward_propagation) {
 
     // Actors
     pointwise_material_interactor<test_algebra>::state interactor{};
+    parameter_resetter<test_algebra>::state resetter_state{};
+    resetter_state.estimate_scattering_noise = false;
 
     propagation::config prop_cfg{};
     prop_cfg.stepping.rk_error_tol = 1e-7f * unit<float>::mm;
@@ -104,7 +106,7 @@ TEST_P(BackwardPropagation, backward_propagation) {
     fw_state.do_debug = true;
 
     // Run propagator
-    p.propagate(fw_state, detray::tie(interactor));
+    p.propagate(fw_state, detray::tie(interactor, resetter_state));
 
     // Print the debug stream
     // std::cout << fw_state.debug_stream.str() << std::endl;
@@ -127,7 +129,7 @@ TEST_P(BackwardPropagation, backward_propagation) {
     bw_state._navigation.set_direction(navigation::direction::e_backward);
 
     // Run propagator
-    p.propagate(bw_state, detray::tie(interactor));
+    p.propagate(bw_state, detray::tie(interactor, resetter_state));
 
     // Print the debug stream
     // std::cout << bw_state.debug_stream.str() << std::endl;

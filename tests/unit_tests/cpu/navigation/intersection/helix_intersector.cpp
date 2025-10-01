@@ -86,7 +86,7 @@ GTEST_TEST(detray_intersection, helix_plane_intersector_no_bfield) {
     const auto hit_bound =
         pi(h, surface_descriptor<>{}, unmasked_bound, shifted, tol);
 
-    ASSERT_TRUE(hit_bound.status);
+    ASSERT_TRUE(hit_bound.is_inside());
     // Global intersection information - unchanged
     const auto global0 =
         unmasked_bound.to_global_frame(shifted, hit_bound.local());
@@ -101,7 +101,7 @@ GTEST_TEST(detray_intersection, helix_plane_intersector_no_bfield) {
     mask<rectangle2D, test_algebra> rect_for_inside{0u, 3.f, 3.f};
     const auto hit_bound_inside =
         pi(h, surface_descriptor<>{}, rect_for_inside, shifted, tol);
-    ASSERT_TRUE(hit_bound_inside.status);
+    ASSERT_TRUE(hit_bound_inside.is_inside());
     // Global intersection information - unchanged
     const auto global1 =
         rect_for_inside.to_global_frame(shifted, hit_bound_inside.local());
@@ -116,7 +116,7 @@ GTEST_TEST(detray_intersection, helix_plane_intersector_no_bfield) {
     mask<rectangle2D, test_algebra> rect_for_outside{0u, 0.5f, 3.5f};
     const auto hit_bound_outside =
         pi(h, surface_descriptor<>{}, rect_for_outside, shifted, tol);
-    ASSERT_FALSE(hit_bound_outside.status);
+    ASSERT_FALSE(hit_bound_outside.is_inside());
     const auto global2 =
         rect_for_outside.to_global_frame(shifted, hit_bound_outside.local());
     // Global intersection information - unchanged
@@ -147,7 +147,7 @@ GTEST_TEST(detray_intersection, helix_plane_intersector) {
     const auto is = hpi(hlx, surface_descriptor<>{}, rectangle, trf, tol);
 
     // Check the values
-    EXPECT_TRUE(is.status);
+    EXPECT_TRUE(is.is_inside());
     EXPECT_NEAR(is.path(), path, tol);
     EXPECT_NEAR(is.local()[0], 0.f, tol);
     EXPECT_NEAR(is.local()[1], 0.f, tol);
@@ -183,7 +183,7 @@ GTEST_TEST(detray_intersection, helix_cylinder_intersector_no_bfield) {
     // No magnetic field, so the solutions must be the same as for a ray
 
     // second intersection lies in front of the track
-    EXPECT_TRUE(hits_bound[0].status);
+    EXPECT_TRUE(hits_bound[0].is_inside());
     EXPECT_FALSE(hits_bound[0].direction);
 
     const auto global0 =
@@ -201,7 +201,7 @@ GTEST_TEST(detray_intersection, helix_cylinder_intersector_no_bfield) {
     // first intersection lies behind the track
     const auto global1 =
         cylinder.to_global_frame(shifted, hits_bound[1].local());
-    EXPECT_TRUE(hits_bound[1].status);
+    EXPECT_TRUE(hits_bound[1].is_inside());
     EXPECT_TRUE(hits_bound[1].direction);
     EXPECT_NEAR(global1[0], 7.f, tol);
     EXPECT_NEAR(global1[1], 2.f, tol);
@@ -234,7 +234,7 @@ GTEST_TEST(detray_intersection, helix_cylinder_intersector) {
     const scalar phi_near = std::acos(
         vector::dot(w, loc_near) / (vector::norm(w) * vector::norm(loc_near)));
 
-    EXPECT_TRUE(is[0].status);
+    EXPECT_TRUE(is[0].is_inside());
     // Not precise due to helix curvature
     EXPECT_NEAR(is[0].path(), path - r, 5000.f * tol);
     EXPECT_NEAR(is[0].local()[0], r * phi_near, tol);
@@ -250,7 +250,7 @@ GTEST_TEST(detray_intersection, helix_cylinder_intersector) {
     const scalar phi_far = std::acos(vector::dot(w, loc_far) /
                                      (vector::norm(w) * vector::norm(loc_far)));
 
-    EXPECT_TRUE(is[1].status);
+    EXPECT_TRUE(is[1].is_inside());
     // Not precise due to helix curvature
     EXPECT_NEAR(is[1].path(), path + r, 5000.f * tol);
     EXPECT_NEAR(is[1].local()[0], r * phi_far, tol);
@@ -287,7 +287,7 @@ GTEST_TEST(detray_intersection,
     // No magnetic field, so the solutions must be the same as for a ray
 
     // second intersection lies in front of the track
-    EXPECT_TRUE(hits_bound.status);
+    EXPECT_TRUE(hits_bound.is_inside());
     EXPECT_TRUE(hits_bound.direction);
 
     const auto global0 = cylinder.to_global_frame(identity, hits_bound.local());
@@ -344,7 +344,7 @@ GTEST_TEST(detray_intersection, helix_line_intersector) {
     // track (helix) is at the left side w.r.t wire
     EXPECT_NEAR(is.local()[0], offset, tol);
     EXPECT_NEAR(is.local()[1], 0.f, tol);
-    EXPECT_TRUE(is.status);
+    EXPECT_TRUE(is.is_inside());
     EXPECT_TRUE(is.direction);
 
     // Get the intersection on the next surface
@@ -354,7 +354,7 @@ GTEST_TEST(detray_intersection, helix_line_intersector) {
     // track (helix) is at the left side w.r.t wire
     EXPECT_NEAR(is.local()[0], offset, tol);
     EXPECT_NEAR(is.local()[1], 0.f, tol);
-    EXPECT_TRUE(is.status);
+    EXPECT_TRUE(is.is_inside());
     EXPECT_TRUE(is.direction);
 
     //---------------------
@@ -377,7 +377,7 @@ GTEST_TEST(detray_intersection, helix_line_intersector) {
     // track (helix) is at the right side w.r.t wire
     EXPECT_NEAR(is.local()[0], -offset, tol);
     EXPECT_NEAR(is.local()[1], 0.f, tol);
-    EXPECT_TRUE(is.status);
+    EXPECT_TRUE(is.is_inside());
     EXPECT_FALSE(is.direction);
 
     // Get the intersection on the next surface
@@ -387,6 +387,6 @@ GTEST_TEST(detray_intersection, helix_line_intersector) {
     // track (helix) is at the right side w.r.t wire
     EXPECT_NEAR(is.local()[0], -offset, tol);
     EXPECT_NEAR(is.local()[1], 0.f, tol);
-    EXPECT_TRUE(is.status);
+    EXPECT_TRUE(is.is_inside());
     EXPECT_FALSE(is.direction);
 }
