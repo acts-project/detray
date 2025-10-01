@@ -16,9 +16,11 @@
 #include "detray/geometry/tracking_surface.hpp"
 #include "detray/materials/material.hpp"
 #include "detray/propagator/constrained_step.hpp"
+#include "detray/propagator/detail/print_stepper_state.hpp"
 #include "detray/propagator/stepping_config.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/curvilinear_frame.hpp"
+#include "detray/utils/log.hpp"
 
 namespace detray {
 
@@ -213,11 +215,15 @@ class base_stepper {
         /// Call the stepping inspector
         DETRAY_HOST_DEVICE
         inline void run_inspector([[maybe_unused]] const stepping::config &cfg,
-                                  [[maybe_unused]] const char *message) {
+                                  [[maybe_unused]] const char *message,
+                                  [[maybe_unused]] const scalar_type dist) {
             if constexpr (!std::is_same_v<inspector_t,
                                           stepping::void_inspector>) {
-                m_inspector(*this, cfg, message);
+                m_inspector(*this, cfg, message, dist);
             }
+
+            DETRAY_DEBUG("" << message << "\n"
+                            << detray::stepping::print_state(*this, dist));
         }
 
         protected:

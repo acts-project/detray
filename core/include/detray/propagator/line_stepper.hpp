@@ -95,6 +95,13 @@ class line_stepper final
                                  const bool = true,
                                  const material<scalar_type>* = nullptr) const {
 
+        // In case of an overlap do nothing
+        if (math::fabs(dist_to_next) <= 1e-5f) {
+            stepping.run_inspector(cfg,
+                                   "Step skipped (Overlap): ", dist_to_next);
+            return true;
+        }
+
         // Straight line stepping: The distance given by the navigator is exact
         stepping.set_step_size(dist_to_next);
 
@@ -104,7 +111,7 @@ class line_stepper final
             math::fabs(stepping.step_size()) > math::fabs(max_step)) {
 
             // Run inspection before step size is cut
-            stepping.run_inspector(cfg, "Before constraint: ");
+            stepping.run_inspector(cfg, "Before constraint: ", dist_to_next);
 
             stepping.set_step_size(max_step);
         }
@@ -121,7 +128,7 @@ class line_stepper final
         stepping.count_trials();
 
         // Run inspection if needed
-        stepping.run_inspector(cfg, "Step complete: ");
+        stepping.run_inspector(cfg, "Step complete: ", dist_to_next);
 
         return true;
     }

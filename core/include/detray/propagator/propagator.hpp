@@ -10,7 +10,6 @@
 // Project include(s).
 #include "detray/definitions/detail/macros.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
-#include "detray/navigation/detail/print_state.hpp"
 #include "detray/navigation/direct_navigator.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 #include "detray/navigation/navigator.hpp"
@@ -207,6 +206,8 @@ struct propagator {
         const auto &track = stepping();
         assert(!track.is_invalid());
 
+        DETRAY_DEBUG("Starting propagation for track: " << track);
+
         // Initialize the navigation
         m_navigator.init(track, navigation, m_cfg.navigation, context);
         propagation._heartbeat = navigation.is_alive();
@@ -226,7 +227,10 @@ struct propagator {
         //
         // ANSNANSNANSNANSNANSNANS...
         for (unsigned int i = 0; i % 2 == 0 || propagation.is_alive(); ++i) {
+
             if (i % 2 == 0) {
+                DETRAY_DEBUG("Propagation step: " << i / 2);
+
                 // Run all registered actors/aborters
                 run_actors(actor_state_refs, propagation);
 
@@ -278,6 +282,15 @@ struct propagator {
         }
 
         // Pass on the whether the propagation was successful
+        DETRAY_DEBUG("Finished propagation for track:\n" << track);
+        if (is_complete(propagation)) {
+            DETRAY_DEBUG("Satus: COMPLETE");
+        } else if (is_paused(propagation)) {
+            DETRAY_DEBUG("Satus: PAUSED");
+        } else {
+            DETRAY_ERROR("Satus: ABORT");
+        }
+
         return is_complete(propagation) || is_paused(propagation);
     }
 

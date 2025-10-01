@@ -185,9 +185,9 @@ class grid_builder : public volume_decorator<detector_t> {
                 assert(new_sf_desc.index() == glob_idx);
                 assert(!new_sf_desc.barcode().is_invalid());
 
-                DETRAY_DEBUG("--> resetting sf_desc \n  old: "
+                /*DETRAY_DEBUG("--> resetting sf_desc \n  old: "
                              << sf_desc << "\n->\n  new: " << new_sf_desc
-                             << "");
+                             << "");*/
                 sf_desc = new_sf_desc;
             }
         }

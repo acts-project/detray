@@ -21,7 +21,16 @@ namespace detray::log::detail {
 template <typename T>
 inline std::string_view process_typename() {
     static const std::string type_name = [] {
-        std::string s = detray::types::demangle_type_name<T>();
+        std::string s{""};
+        try {
+            s = detray::types::demangle_type_name<T>();
+        } catch (...) {
+            return "unknown";
+        }
+
+        if (s.empty()) {
+            return "unknown";
+        }
 
         std::regex re{"detray::"};
         s = std::regex_replace(s, re, "");
@@ -46,6 +55,7 @@ inline std::string_view process_typename() {
 
 #define __FILENAME__ \
     (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
+
 #define DETRAY_LOG(lvl, x)                                                  \
     std::cout << __FILENAME__ << ":" << __LINE__ << " " << lvl << ": " << x \
               << std::endl;
