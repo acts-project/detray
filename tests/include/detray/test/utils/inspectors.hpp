@@ -20,6 +20,7 @@
 #include "detray/navigation/navigation_config.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/base_stepper.hpp"
+#include "detray/propagator/detail/print_stepper_state.hpp"
 #include "detray/propagator/stepping_config.hpp"
 #include "detray/tracks/ray.hpp"
 #include "detray/utils/tuple_helpers.hpp"
@@ -377,59 +378,25 @@ struct print_inspector {
     std::stringstream debug_stream{};
 
     /// Inspector interface. Gathers detailed information during stepping
-    template <typename state_type>
+    template <typename state_type, concepts::scalar scalar_t>
     void operator()(const state_type &state, const stepping::config &,
-                    const char *message) {
+                    const char *message, const scalar_t dist) {
         std::string msg(message);
-        std::string tabs = "\t\t\t\t";
 
         debug_stream << msg << std::endl;
-
-        debug_stream << "Step size" << tabs << state.step_size() << std::endl;
-        debug_stream << "Path length" << tabs << state.path_length()
-                     << std::endl;
-
-        switch (state.direction()) {
-            using enum step::direction;
-            case e_forward:
-                debug_stream << "direction" << tabs << "forward" << std::endl;
-                break;
-            case e_unknown:
-                debug_stream << "direction" << tabs << "unknown" << std::endl;
-                break;
-            case e_backward:
-                debug_stream << "direction" << tabs << "backward" << std::endl;
-                break;
-            default:
-                break;
-        }
-
-        auto pos = state().pos();
-
-        debug_stream << "Pos:\t[r = " << math::hypot(pos[0], pos[1])
-                     << ", z = " << pos[2] << "]" << std::endl;
-        debug_stream << "Tangent:\t" << detail::ray(state()) << std::endl;
-        debug_stream << std::endl;
+        debug_stream << detray::stepping::print_state(state, dist);
     }
 
     /// Inspector interface. Gathers detailed information during stepping
     template <typename state_type, concepts::scalar scalar_t>
     void operator()(const state_type &state, const stepping::config &,
-                    const char *message, const std::size_t n_trials,
-                    const scalar_t step_scalor) {
+                    const char *message, const scalar_t /*dist*/,
+                    const std::size_t n_trials, const scalar_t step_scalor) {
         std::string msg(message);
-        std::string tabs = "\t\t\t\t";
 
         debug_stream << msg << std::endl;
-
-        // Remove trailing newlines
-        debug_stream << "Step size" << tabs << state.step_size() << std::endl;
-        debug_stream << "no. RK adjustments"
-                     << "\t\t" << n_trials << std::endl;
-        debug_stream << "Step size scale factor"
-                     << "\t\t" << step_scalor << std::endl;
-
-        debug_stream << std::endl;
+        debug_stream << detray::stepping::print_state(state, n_trials,
+                                                      step_scalor);
     }
 
     /// @returns a string representation of the gathered information

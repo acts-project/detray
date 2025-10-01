@@ -13,7 +13,6 @@
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/surface.hpp"
-#include "detray/navigation/detail/print_state.hpp"
 #include "detray/navigation/navigation_config.hpp"
 
 // System include(s)

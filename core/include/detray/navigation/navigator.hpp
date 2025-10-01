@@ -16,11 +16,13 @@
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/barcode.hpp"
 #include "detray/geometry/tracking_surface.hpp"
+#include "detray/navigation/detail/print_state.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
 #include "detray/navigation/intersection_kernel.hpp"
 #include "detray/navigation/navigation_config.hpp"
 #include "detray/tracks/ray.hpp"
+#include "detray/utils/log.hpp"
 #include "detray/utils/ranges.hpp"
 
 namespace detray {
@@ -640,6 +642,11 @@ class navigator {
                                           navigation::void_inspector>) {
                 m_inspector(*this, cfg, track_pos, track_dir, message);
             }
+
+            DETRAY_DEBUG("" << message << "\n"
+                            << detray::navigation::print_state(*this)
+                            << detray::navigation::print_candidates(
+                                   *this, cfg, track_pos, track_dir));
         }
 
         /// Call the navigation inspector
@@ -654,6 +661,11 @@ class navigator {
                                           navigation::void_inspector>) {
                 m_inspector(*this, cfg, track_pos, track_dir, message, msg_gen);
             }
+
+            DETRAY_DEBUG("" << message << msg_gen() << "\n"
+                            << detray::navigation::print_state(*this)
+                            << detray::navigation::print_candidates(
+                                   *this, cfg, track_pos, track_dir));
         }
 
         /// Our cache of candidates (intersections with any kind of surface)

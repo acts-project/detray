@@ -60,9 +60,9 @@ class grid_reader {
             &det_builder,
         const detector_grids_payload<content_t, grid_id_t> &grids_data) {
 
-        DETRAY_DEBUG("Generic grid reader from_payload: content_t="
+        /*DETRAY_DEBUG("Generic grid reader from_payload: content_t="
                      << DETRAY_TYPENAME(content_t)
-                     << ", grid_id_t=" << DETRAY_TYPENAME(grid_id_t));
+                     << ", grid_id_t=" << DETRAY_TYPENAME(grid_id_t));*/
 
         // Convert the grids volume by volume
         DETRAY_DEBUG("Converting grids for " << grids_data.grids.size()
@@ -106,8 +106,9 @@ class grid_reader {
     static void from_payload(std::queue<axis::bounds> &bound_ids,
                              std::queue<axis::binning> &binning_ids,
                              Ts &&...data) {
-        DETRAY_DEBUG(
-            "Build bounds for axis: bounds_ts=" << DETRAY_TYPENAME(bounds_ts));
+        /*DETRAY_DEBUG(
+            "Build bounds for axis: bounds_ts=" <<
+           DETRAY_TYPENAME(bounds_ts));*/
 
         using namespace axis;
 
@@ -179,8 +180,8 @@ class grid_reader {
     static void from_payload(std::queue<axis::binning> &binning_ids,
                              Ts &&...data) {
 
-        DETRAY_DEBUG("Build binning ids for axis: binning_ts="
-                     << DETRAY_TYPENAME(binning_ts));
+        /*DETRAY_DEBUG("Build binning ids for axis: binning_ts="
+                     << DETRAY_TYPENAME(binning_ts));*/
 
         using namespace axis;
 
@@ -248,10 +249,10 @@ class grid_reader {
         detector_builder<typename detector_t::metadata, volume_builder>
             &det_builder) {
 
-        DETRAY_DEBUG("Build frame for grid of io id="
+        /*DETRAY_DEBUG("Build frame for grid of io id="
                      << DETRAY_TYPENAME(grid_payload<content_t>::grid_type)
                      << ", dim=" << dim
-                     << ", link=" << grid_data.second.grid_link.type);
+                     << ", link=" << grid_data.second.grid_link.type);*/
 
         using algebra_t = typename detector_t::algebra_type;
 
@@ -367,13 +368,13 @@ class grid_reader {
                          (helper(bounds_ts{}), ...);
                          return os.str();
                      }()) << "]");
-        DETRAY_DEBUG(
-            "- binning: " << DETRAY_TYPENAME(types::list<binning_ts...>));
-        DETRAY_DEBUG("- frame:   " << DETRAY_TYPENAME(local_frame_t));
-        DETRAY_DEBUG("- bins:    " << DETRAY_TYPENAME(bin_t));
-        DETRAY_DEBUG(
+        // DETRAY_DEBUG(
+        //     "- binning: " << DETRAY_TYPENAME(types::list<binning_ts...>));
+        // DETRAY_DEBUG("- frame:   " << DETRAY_TYPENAME(local_frame_t));
+        // DETRAY_DEBUG("- bins:    " << DETRAY_TYPENAME(bin_t));
+        /*DETRAY_DEBUG(
             "-> axes=" << DETRAY_TYPENAME(
-                (types::list<axis::single_axis<bounds_ts, binning_ts>...>)));
+                (types::list<axis::single_axis<bounds_ts, binning_ts>...>)));*/
 
         using grid_t = grid<algebra_t, axes_t, bin_t, serializer_t>;
 
@@ -405,8 +406,8 @@ class grid_reader {
             using builder_t = grid_builder_t<detector_t, grid_t, bin_filler_t,
                                              grid_factory_type<grid_t>>;
 
-            DETRAY_DEBUG("Decorating volume builder with builder_t="
-                         << DETRAY_TYPENAME(builder_t));
+            /*DETRAY_DEBUG("Decorating volume builder with builder_t="
+                         << DETRAY_TYPENAME(builder_t));*/
 
             auto vgr_builder =
                 det_builder.template decorate<builder_t>(volume_idx);
@@ -507,8 +508,8 @@ class grid_reader {
             types::print<types::list<grid_t>>();
             err_stream
                 << "Grid type in file does not match any grid type in detector";
-            DETRAY_ERROR(err_stream.str()
-                         << "grid_t=" << DETRAY_TYPENAME(grid_t));
+            /*DETRAY_ERROR(err_stream.str()
+                         << "grid_t=" << DETRAY_TYPENAME(grid_t));*/
             throw std::invalid_argument(err_stream.str());
         }
     }
