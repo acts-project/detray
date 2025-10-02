@@ -109,7 +109,7 @@ class material_map_factory final : public factory_decorator<detector_t> {
                       std::vector<std::vector<scalar_type>> &&axis_spans,
                       std::vector<index_type> &&indices) {
 
-        DETRAY_DEBUG("material_map_factory::add_material");
+        DETRAY_DEBUG_HOST("Add map data");
 
         auto [sf_index, mat, thickness] = std::move(mat_data).get_data();
 
@@ -150,7 +150,7 @@ class material_map_factory final : public factory_decorator<detector_t> {
         std::map<dindex, darray<std::size_t, N>> &n_bins,
         std::map<dindex, darray<std::vector<scalar_type>, N>> &axis_spans) {
 
-        DETRAY_DEBUG("material_map_factory::operator()");
+        DETRAY_DEBUG_HOST("Add material maps...");
 
         using link_t = typename detector_t::surface_type::material_link;
 
@@ -162,14 +162,14 @@ class material_map_factory final : public factory_decorator<detector_t> {
 
         assert(surfaces.size() >= n_materials);
 
-        DETRAY_DEBUG("Have " << m_materials.size()
-                             << " configured material maps to assign");
+        DETRAY_DEBUG_HOST("-> Have " << m_materials.size()
+                                     << " configured material maps to assign");
 
         // Add the material only to those surfaces that the data links against
         for (auto &[i, materials] : m_materials) {
             const auto sf_idx{static_cast<dindex>(i)};
 
-            DETRAY_DEBUG("- sf=" << surfaces.at(sf_idx));
+            DETRAY_DEBUG_HOST("-> sf=" << surfaces.at(sf_idx));
 
             // Copy the number of bins to the builder
             assert(m_n_bins.at(sf_idx).size() == N);
@@ -204,7 +204,7 @@ class material_map_factory final : public factory_decorator<detector_t> {
             }
 
             auto map_id{m_links.at(sf_idx).first};
-            DETRAY_DEBUG("material map factory sets map_id=" << map_id);
+            DETRAY_DEBUG_HOST("-> material map factory sets map_id=" << map_id);
             surfaces[sf_idx].material() = link_t{map_id, dindex_invalid};
         }
     }

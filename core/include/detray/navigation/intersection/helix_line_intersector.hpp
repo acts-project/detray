@@ -15,6 +15,7 @@
 #include "detray/geometry/coordinates/line2D.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 #include "detray/tracks/helix.hpp"
+#include "detray/utils/log.hpp"
 
 // System include(s)
 #include <iostream>
@@ -170,11 +171,9 @@ struct helix_intersector_impl<line2D<algebra_t>, algebra_t> {
             // @NOTE We might not have to call this which is meant to be for ray
             // intersection...
             if (denom < 1e-5f) {
-#ifndef NDEBUG
-                std::cout << "ERROR: Helix line intersector encountered "
-                             "invalid value!"
-                          << std::endl;
-#endif
+                DETRAY_ERROR_HOST(
+                    "Helix line intersector encountered "
+                    "invalid value!");
                 return {};
             }
 

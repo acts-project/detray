@@ -16,6 +16,7 @@
 #include "detray/definitions/math.hpp"
 #include "detray/geometry/shapes/cuboid3D.hpp"
 #include "detray/utils/bounding_volume.hpp"
+#include "detray/utils/log.hpp"
 #include "detray/utils/ranges.hpp"
 
 // System include(s)
@@ -90,6 +91,8 @@ class cuboid_portal_generator final
                     typename detector_t::mask_container &masks,
                     typename detector_t::geometry_context ctx = {})
         -> dindex_range override {
+
+        DETRAY_VERBOSE_HOST("Generate cuboid portals...");
 
         using point3_t = dpoint3D<algebra_type>;
         using vector3_t = dvector3D<algebra_type>;

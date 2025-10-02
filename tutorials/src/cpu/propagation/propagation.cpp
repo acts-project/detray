@@ -13,6 +13,7 @@
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
+#include "detray/utils/log.hpp"
 
 // Detray test include(s)
 #include "detray/test/common/bfield.hpp"
@@ -56,8 +57,8 @@ int main() {
 
     vecmem::host_memory_resource host_mr;
 
-    std::cout << "Propagation Tutorial\n====================\n\n";
-    std::cout << "Building toy detector:\n" << std::endl;
+    std::clog << "Propagation Tutorial\n====================\n\n";
+    std::clog << "Building toy detector:\n" << std::endl;
 
     const auto [det, _] = detray::build_toy_detector<algebra_t>(host_mr);
 
@@ -84,8 +85,8 @@ int main() {
     trck_cfg.pT_range(1.f * detray::unit<scalar>::GeV,
                       100.f * detray::unit<scalar>::GeV);
 
-    std::cout << prop_cfg;
-    std::cout << trck_cfg << std::endl;
+    std::clog << prop_cfg;
+    std::clog << trck_cfg << std::endl;
 
     // Iterate through uniformly distributed momentum directions
     bool success{true};
@@ -113,10 +114,9 @@ int main() {
     }
 
     if (success) {
-        std::cout << "Successfully propagated " << trck_cfg.n_tracks()
-                  << " tracks!" << std::endl;
+        DETRAY_INFO_HOST("Successfully propagated " << trck_cfg.n_tracks()
+                                                    << " tracks!");
     } else {
-        std::cout << "ERROR: Propagation did not complete successfully!"
-                  << std::endl;
+        DETRAY_ERROR_HOST("Propagation did not complete successfully!");
     }
 }

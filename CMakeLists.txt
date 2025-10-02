@@ -89,6 +89,11 @@ cmake_dependent_option(
     "DETRAY_BUILD_CUDA OR DETRAY_BUILD_SYCL OR DETRAY_BUILD_HIP"
     ON
 )
+set(DETRAY_SET_LOGGING "INFO" CACHE STRING "Set the log level")
+set_property(
+    CACHE DETRAY_SET_LOGGING
+    PROPERTY STRINGS "NONE" "WARNING" "INFO" "VERBOSE" "DEBUG"
+)
 option(DETRAY_BUILD_TEST_UTILS "Build the test utility library of Detray" OFF)
 option(DETRAY_BUILD_VALIDATION_TOOLS "Build the validation tools of Detray" OFF)
 option(DETRAY_BUILD_UNITTESTS "Build the unit tests of Detray" OFF)
@@ -301,11 +306,18 @@ if(DETRAY_SETUP_COVFIE)
         add_subdirectory(extern/covfie)
     endif()
 endif()
-option(
-    DETRAY_ENABLE_LOGGING
-    "Enable logging output to stdout. Useful for debugging"
-    OFF
-)
+
+# Resolve the internal log level from user input
+set(DETRAY_LOG_LVL -1 CACHE INTERNAL "Disable logging")
+if(DETRAY_SET_LOGGING STREQUAL "WARN")
+    set(DETRAY_LOG_LVL 0 CACHE INTERNAL "Print warnings and errors" FORCE)
+elseif(DETRAY_SET_LOGGING STREQUAL "INFO")
+    set(DETRAY_LOG_LVL 1 CACHE INTERNAL "Print general information" FORCE)
+elseif(DETRAY_SET_LOGGING STREQUAL "VERBOSE")
+    set(DETRAY_LOG_LVL 2 CACHE INTERNAL "Print detailed information" FORCE)
+elseif(DETRAY_SET_LOGGING STREQUAL "DEBUG")
+    set(DETRAY_LOG_LVL 3 CACHE INTERNAL "Print expert information" FORCE)
+endif()
 
 # Set up all of the libraries of the project.
 add_subdirectory(core)

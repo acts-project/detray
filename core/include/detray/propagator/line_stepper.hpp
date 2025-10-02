@@ -13,6 +13,7 @@
 #include "detray/definitions/math.hpp"
 #include "detray/navigation/policies.hpp"
 #include "detray/propagator/base_stepper.hpp"
+#include "detray/utils/log.hpp"
 
 namespace detray {
 
@@ -59,6 +60,8 @@ class line_stepper final
         DETRAY_HOST_DEVICE
         inline void advance_jacobian() {
 
+            DETRAY_VERBOSE_HOST_DEVICE("Advance Jacobian");
+
             // The step transport matrix in global coordinates
             free_matrix<algebra_t> D =
                 matrix::identity<free_matrix<algebra_t>>();
@@ -104,6 +107,8 @@ class line_stepper final
 
         // Straight line stepping: The distance given by the navigator is exact
         stepping.set_step_size(dist_to_next);
+
+        DETRAY_VERBOSE_HOST_DEVICE("Take step: %f mm", stepping.step_size());
 
         // Check constraints
         if (const scalar_type max_step =

@@ -83,7 +83,7 @@ GTEST_TEST(detray_core, index_range) {
     EXPECT_FALSE(ir == other);
 
     // Test print operator
-    std::cout << ir << std::endl;
+    std::clog << ir << std::endl;
 
     // Test arithmetic operators
     index_t ir2 = ir + index_t{3u, 5u};
@@ -167,7 +167,7 @@ GTEST_TEST(detray_core, sized_index_range) {
     EXPECT_FALSE(ir == other);
 
     // Test print operator
-    std::cout << ir << std::endl;
+    std::clog << ir << std::endl;
 
     // Test arithmetic operators
     index_t ir2 = ir + index_t{3u, 5u};
@@ -241,7 +241,7 @@ GTEST_TEST(detray_core, multi_index) {
     EXPECT_FALSE(mi == other);
 
     // Test print operator
-    std::cout << mi << std::endl;
+    std::clog << mi << std::endl;
 }
 
 /// Test the typed index
@@ -280,7 +280,7 @@ GTEST_TEST(detray_core, typed_index) {
     EXPECT_FALSE(ti == other);
 
     // Test print operator
-    std::cout << ti << std::endl;
+    std::clog << ti << std::endl;
 
     // Test arithmetic operators
     ti += 5u;
@@ -351,7 +351,7 @@ GTEST_TEST(detray_core, typed_index_range) {
     EXPECT_FALSE(tri == other);
 
     // Test print operator
-    std::cout << tri << std::endl;
+    std::clog << tri << std::endl;
 
     // Test arithmetic operators
     tri += 5u;

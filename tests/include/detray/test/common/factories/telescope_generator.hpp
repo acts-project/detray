@@ -17,6 +17,7 @@
 #include "detray/geometry/shapes/rectangle2D.hpp"
 #include "detray/tracks/ray.hpp"
 #include "detray/utils/axis_rotation.hpp"
+#include "detray/utils/log.hpp"
 #include "detray/utils/unit_vectors.hpp"
 
 // System include(s)
@@ -106,6 +107,9 @@ class telescope_generator final : public surface_factory_interface<detector_t> {
                     typename detector_t::mask_container &masks,
                     typename detector_t::geometry_context ctx = {})
         -> dindex_range override {
+
+        DETRAY_VERBOSE_HOST("Generate telescope modules...");
+        DETRAY_VERBOSE_HOST("-> Generate " << size() << " surfaces");
 
         using surface_t = typename detector_t::surface_type;
         using nav_link_t = typename surface_t::navigation_link;

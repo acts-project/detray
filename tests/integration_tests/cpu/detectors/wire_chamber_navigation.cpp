@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
     wire_chamber_config<scalar> wire_chamber_cfg{};
     wire_chamber_cfg.half_z(500.f * unit<scalar>::mm);
 
-    std::cout << wire_chamber_cfg << std::endl;
+    std::clog << wire_chamber_cfg << std::endl;
 
     auto [det, names] =
         build_wire_chamber<test_algebra>(host_mr, wire_chamber_cfg);

@@ -36,13 +36,22 @@ std::string print_volume_name(const tracking_volume<detector_t> &vol,
 
 /// Checks every collection in a multistore to be emtpy and prints a warning
 template <typename store_t, std::size_t... I>
-void report_empty(const store_t &store, const std::string &store_name,
+void report_empty(const store_t &store,
+                  [[maybe_unused]] const std::string &store_name,
                   std::index_sequence<I...> /*seq*/) {
 
-    ((store.template empty<store_t::value_types::to_id(I)>()
-          ? std::cout << "WARNING: " << store_name
-                      << " has empty collection no. " << I << std::endl
-          : std::cout << ""),
+    ((store.template empty<store_t::value_types::to_id(I)>() ?
+#if DETRAY_LOG_LVL < 0
+                                                             std::clog << ""
+#else
+                                                             // The log macro
+                                                             // does not compile
+                                                             // here...
+          std::clog << "DETRAY WARNING (HOST): " << __FILENAME__ << ":"
+                    << __LINE__ << " " << store_name
+                    << " has empty collection no. " << I << std::endl
+#endif
+                                                             : std::clog << ""),
      ...);
 }
 
@@ -67,9 +76,10 @@ struct surface_checker {
         }
 
         if (sf.volume() != vol_idx) {
-            err_stream << "ERROR: Incorrect volume index on surface: vol "
-                       << vol_idx << ", sf: " << sf;
+            err_stream << "Incorrect volume index on surface: vol " << vol_idx
+                       << ", sf: " << sf;
 
+            DETRAY_FATAL_HOST(err_stream.str());
             throw std::invalid_argument(err_stream.str());
         }
 
@@ -78,9 +88,10 @@ struct surface_checker {
         for (const auto vol_link : vol_links) {
             if (!detail::is_invalid_value(vol_link) &&
                 (vol_link >= det.volumes().size())) {
-                err_stream
-                    << "ERROR: Incorrect volume link to non-existent volume "
-                    << vol_link;
+                err_stream << "Incorrect volume link to non-existent volume "
+                           << vol_link;
+
+                DETRAY_FATAL_HOST(err_stream.str());
                 throw std::invalid_argument(err_stream.str());
             }
         }
@@ -89,10 +100,9 @@ struct surface_checker {
         // constructed with material
         if (!det.material_store().all_empty() &&
             (sf.is_passive() && !sf.has_material())) {
-            std::cout << err_stream.str()
-                      << "WARNING: Passive surface without material: "
-                      << sf_descr << "\n"
-                      << std::endl;
+            DETRAY_WARN_HOST(err_stream.str());
+            DETRAY_WARN_HOST("Passive surface without material: " << sf_descr
+                                                                  << "\n");
         }
 
         // Check that the same surface is registered in the detector surface
@@ -100,10 +110,11 @@ struct surface_checker {
         const auto sf_from_lkp =
             geometry::surface{det, det.surface(sf.barcode())};
         if (sf_from_lkp != sf) {
-            err_stream << "ERROR: Surfaces in volume and detector lookups "
+            err_stream << "Surfaces in volume and detector lookups "
                        << "differ:\n In volume acceleration data structure: "
                        << sf << "\nIn detector surface lookup: " << sf_from_lkp;
 
+            DETRAY_FATAL_HOST(err_stream.str());
             throw std::runtime_error(err_stream.str());
         }
     }
@@ -259,26 +270,36 @@ inline void check_empty(const detector_t &det, const bool verbose) {
 
     // Fatal errors
     if (det.volumes().empty()) {
-        throw std::runtime_error("ERROR: No volumes in detector");
+        std::string err_str{"No volumes in detector"};
+        DETRAY_FATAL_HOST(err_str);
+        throw std::runtime_error(err_str);
     }
     if (det.surfaces().empty()) {
-        throw std::runtime_error("ERROR: No surfaces found");
+        std::string err_str{"No surfaces found"};
+        DETRAY_FATAL_HOST(err_str);
+        throw std::runtime_error(err_str);
     }
     if (det.transform_store().empty()) {
-        throw std::runtime_error("ERROR: No transforms in detector");
+        std::string err_str{"No transforms in detector"};
+        DETRAY_FATAL_HOST(err_str);
+        throw std::runtime_error(err_str);
     }
     if (det.mask_store().all_empty()) {
-        throw std::runtime_error("ERROR: No masks in detector");
+        std::string err_str{"No masks in detector"};
+        DETRAY_FATAL_HOST(err_str);
+        throw std::runtime_error(err_str);
     }
     if (!find_portals()) {
-        throw std::runtime_error("ERROR: No portals in detector");
+        std::string err_str{"No portals in detector"};
+        DETRAY_FATAL_HOST(err_str);
+        throw std::runtime_error(err_str);
     }
 
     // Warnings
 
     // Check the material description
     if (det.material_store().all_empty()) {
-        std::cout << "WARNING: No material in detector" << std::endl;
+        DETRAY_WARN_HOST("No material in detector");
     } else if (verbose) {
         // Check for empty material collections
         detail::report_empty(
@@ -300,7 +321,7 @@ inline void check_empty(const detector_t &det, const bool verbose) {
 
     // Check volume search data structure
     if (!find_volumes(det.volume_search_grid())) {
-        std::cout << "WARNING: No entries in volume finder" << std::endl;
+        DETRAY_WARN_HOST("No entries in volume finder");
     }
 }
 
@@ -309,7 +330,7 @@ template <typename detector_t>
 inline bool check_consistency(const detector_t &det, const bool verbose = false,
                               const typename detector_t::name_map &names = {}) {
 
-    std::cout << "INFO: Checking detector consistency..." << std::endl;
+    DETRAY_INFO_HOST("Checking detector consistency...");
 
     check_empty(det, verbose);
 
@@ -322,13 +343,16 @@ inline bool check_consistency(const detector_t &det, const bool verbose = false,
 
         // Check that nothing is obviously broken
         if (!vol.self_check(err_stream)) {
+            DETRAY_FATAL_HOST(err_stream.str());
             throw std::invalid_argument(err_stream.str());
         }
 
         // Check consistency in the context of the owning detector
         if (vol.index() != idx) {
-            err_stream << "ERROR: Incorrect volume index! Found volume:\n"
+            err_stream << "Incorrect volume index! Found volume:\n"
                        << vol << "\nat index " << idx;
+
+            DETRAY_FATAL_HOST(err_stream.str());
             throw std::invalid_argument(err_stream.str());
         }
 
@@ -358,8 +382,10 @@ inline bool check_consistency(const detector_t &det, const bool verbose = false,
 
         // Check consistency in the context of the owning detector
         if (sf.index() != idx) {
-            err_stream << "ERROR: Incorrect surface index! Found surface:\n"
+            err_stream << "Incorrect surface index! Found surface:\n"
                        << sf << "\nat index " << idx;
+
+            DETRAY_FATAL_HOST(err_stream.str());
             throw std::invalid_argument(err_stream.str());
         }
 
@@ -372,21 +398,23 @@ inline bool check_consistency(const detector_t &det, const bool verbose = false,
             sf_desc, is_registered, det);
 
         if (!is_registered) {
-            err_stream << "ERROR: Found surface that is not part of its "
+            err_stream << "Found surface that is not part of its "
                        << "volume's navigation acceleration data structures:\n"
                        << "Surface: " << sf;
+
+            DETRAY_FATAL_HOST(err_stream.str());
             throw std::invalid_argument(err_stream.str());
         }
 
         // Check the surface material, if present
         if (sf.has_material()) {
-            DETRAY_DEBUG("Checking surface sf=" << sf);
+            DETRAY_DEBUG_HOST("Checking surface sf=" << sf);
             sf.template visit_material<detail::material_checker>(
                 sf_desc.material().id());
         }
     }
 
-    std::cout << "INFO: Consistency check: OK" << std::endl;
+    DETRAY_INFO_HOST("Detector consistency check: OK");
 
     return true;
 }

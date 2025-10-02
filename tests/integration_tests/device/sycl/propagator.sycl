@@ -5,6 +5,9 @@
  * Mozilla Public License Version 2.0
  */
 
+// Project indlude(s)
+#include "detray/utils/log.hpp"
+
 // Detray test include(s)
 #include "detray/test/common/build_toy_detector.hpp"
 #include "propagator_sycl_kernel.hpp"
@@ -26,8 +29,8 @@ auto handle_async_error = [](::sycl::exception_list elist) {
         try {
             std::rethrow_exception(e);
         } catch (::sycl::exception& e) {
-            std::cout << "ASYNC EXCEPTION!!\n";
-            std::cout << e.what() << "\n";
+            DETRAY_FATAL_HOST("ASYNC EXCEPTION!!\n");
+            DETRAY_FATAL_HOST(e.what() << "\n");
         }
     }
 };
@@ -38,8 +41,9 @@ TEST_P(SyclPropConstBFieldMng, propagator) {
 
     // Creating SYCL queue object
     ::sycl::queue q(handle_async_error);
-    std::cout << "Running constant bfield propagation on device (mng mem): "
-              << q.get_device().get_info<::sycl::info::device::name>() << "\n";
+    DETRAY_VERBOSE_HOST(
+        "Running constant bfield propagation on device(mng mem): "
+        << q.get_device().get_info<::sycl::info::device::name>() << "\n");
 
     // VecMem memory resource(s)
     vecmem::sycl::shared_memory_resource shared_mr;
@@ -74,8 +78,9 @@ TEST_P(SyclPropConstBFieldCpy, propagator) {
 
     // Creating SYCL queue object
     ::sycl::queue q(handle_async_error);
-    std::cout << "Running constant bfield propagation on device (cpy): "
-              << q.get_device().get_info<::sycl::info::device::name>() << "\n";
+    DETRAY_VERBOSE_HOST("Running constant bfield propagation on device (cpy): "
+                        << q.get_device().get_info<::sycl::info::device::name>()
+                        << "\n");
 
     // VecMem memory resource(s)
     vecmem::host_memory_resource host_mr;
@@ -172,8 +177,8 @@ TEST(SyclPropagatorValidation10, inhomogeneous_bfield_cpy) {
 
     // Creating SYCL queue object
     ::sycl::queue q(handle_async_error);
-    std::cout << "Running inhom bfield propagation on device (cpy): "
-              << q.get_device().get_info<::sycl::info::device::name>() << "\n";
+    DETRAY_VERBOSE_HOST("Running inhom bfield propagation on device (cpy): "
+              << q.get_device().get_info<::sycl::info::device::name>() << "\n");
 
     // VecMem memory resource(s)
     vecmem::host_memory_resource host_mr;

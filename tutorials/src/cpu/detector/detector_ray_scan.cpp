@@ -8,6 +8,7 @@
 // Project include(s)
 #include "detray/navigation/volume_graph.hpp"
 #include "detray/tracks/ray.hpp"
+#include "detray/utils/log.hpp"
 
 // Detray test include(s)
 #include "detray/test/common/build_toy_detector.hpp"
@@ -42,7 +43,7 @@ int main() {
     // Can also be performed with helices
     using ray_t = detray::detail::ray<algebra_t>;
 
-    std::cout << "Ray Scan Tutorial\n=================\n\n";
+    std::clog << "Ray Scan Tutorial\n=================\n\n";
 
     // Build the geometry
     vecmem::host_memory_resource host_mr;
@@ -72,13 +73,16 @@ int main() {
     using generator_t =
         detray::detail::random_numbers<scalar,
                                        std::uniform_real_distribution<scalar>>;
-    auto ray_generator = detray::random_track_generator<ray_t, generator_t>{};
-    ray_generator.config().n_tracks(10000).p_T(1.f * detray::unit<scalar>::GeV);
+    using ray_generator_t = detray::random_track_generator<ray_t, generator_t>;
+
+    ray_generator_t::configuration cfg{};
+    cfg.n_tracks(10000).p_T(1.f * detray::unit<scalar>::GeV);
+
+    ray_generator_t ray_generator{cfg};
 
     // Run the check
-    std::cout << "\nScanning " << det.name(names) << " ("
-              << ray_generator.size() << " rays) ...\n"
-              << std::endl;
+    DETRAY_INFO_HOST("\nScanning " << det.name(names) << " ("
+                                   << ray_generator.size() << " rays) ...\n");
 
     bool success = true;
     for (const auto ray : ray_generator) {
@@ -105,7 +109,7 @@ int main() {
     }
 
     // Check result
-    std::cout << "Ray scan: " << (success ? "OK" : "FAILURE") << std::endl;
+    DETRAY_INFO_HOST("Ray scan: " << (success ? "OK" : "FAILURE"));
 
     // Compare the adjacency that was discovered in the ray scan to the hashed
     // one for the toy detector.
@@ -113,6 +117,6 @@ int main() {
     auto geo_checker = detray::hash_tree(adj_mat);
     const bool check_links = (geo_checker.root() == root_hash);
 
-    std::cout << "All links reachable: " << (check_links ? "OK" : "FAILURE")
-              << std::endl;
+    DETRAY_INFO_HOST(
+        "All links reachable: " << (check_links ? "OK" : "FAILURE"));
 }

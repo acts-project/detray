@@ -43,7 +43,7 @@ GTEST_TEST(detray_utils, type_list) {
     types::print<list>(false);
 
     // Print with template params
-    std::cout << types::get_name<list>(true) << std::endl;
+    std::clog << types::get_name<list>(true) << std::endl;
     // Print without template params
-    std::cout << types::get_name<list>() << std::endl;
+    std::clog << types::get_name<list>() << std::endl;
 }

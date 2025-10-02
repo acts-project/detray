@@ -59,7 +59,7 @@ The following cmake options are available and can also be specified explicitly f
 
 | Option | Description | Default |
 | --- | --- | --- |
-| DETRAY_ENABLE_LOGGING  | Enable logging in host code | OFF |
+| DETRAY_SET_LOGGING  | Set log level (NONE, WARN, INFO, VERBOSE, DEBUG) | INFO |
 | DETRAY_BUILD_CUDA  | Build the CUDA sources included in detray | ON (if available) |
 | DETRAY_BUILD_SYCL  | Build the SYCL sources included in detray | OFF |
 | DETRAY_BUILD_TEST_UTILS  | Build the detray test utilities library (contains e.g. test detectors) | OFF |

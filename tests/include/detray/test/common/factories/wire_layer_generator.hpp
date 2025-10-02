@@ -17,6 +17,7 @@
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes/line.hpp"
 #include "detray/utils/axis_rotation.hpp"
+#include "detray/utils/log.hpp"
 #include "detray/utils/unit_vectors.hpp"
 
 // System include(s)
@@ -124,6 +125,9 @@ class wire_layer_generator final
                     typename detector_t::mask_container &masks,
                     typename detector_t::geometry_context ctx = {})
         -> dindex_range override {
+
+        DETRAY_VERBOSE_HOST("Generate modules for wire chamber layer...");
+        DETRAY_VERBOSE_HOST("-> Generate " << size() << " surfaces");
 
         using surface_t = typename detector_t::surface_type;
         using nav_link_t = typename surface_t::navigation_link;

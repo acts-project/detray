@@ -16,6 +16,7 @@
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
+#include "detray/utils/log.hpp"
 
 // Detray test include(s)
 #include "detray/test/common/track_generators.hpp"
@@ -148,10 +149,10 @@ inline auto run_propagation_host(vecmem::memory_resource *mr,
 
         // Run propagation
         if (!p.propagate(state, actor_states)) {
-            std::cout << state._navigation.inspector().to_string() << std::endl;
+            DETRAY_FATAL_HOST(state._navigation.inspector().to_string());
             throw std::runtime_error("Host propagation failed");
         } else if (tracer_state.get_step_data().empty()) {
-            std::cout << state._navigation.inspector().to_string() << std::endl;
+            DETRAY_FATAL_HOST(state._navigation.inspector().to_string());
             throw std::runtime_error(
                 "Host propagation did not record reference data correctly");
         }

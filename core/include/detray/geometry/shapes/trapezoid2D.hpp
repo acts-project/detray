@@ -278,13 +278,15 @@ class trapezoid2D {
         constexpr auto tol{10.f * std::numeric_limits<scalar_t>::epsilon()};
 
         if (bounds[e_half_length_0] < tol || bounds[e_half_length_1] < tol) {
-            os << "ERROR: Half length in x must be in the range (0, "
+            os << "DETRAY ERROR (HOST): Half length in x must be in the range "
+                  "(0, "
                   "numeric_max)"
                << std::endl;
             return false;
         }
         if (bounds[e_half_length_2] < tol) {
-            os << "ERROR: Half length in y must be in the range (0, "
+            os << "DETRAY ERROR (HOST): Half length in y must be in the range "
+                  "(0, "
                   "numeric_max)"
                << std::endl;
             return false;
@@ -292,7 +294,8 @@ class trapezoid2D {
 
         if (const auto div{1.f / (2.f * bounds[e_half_length_2])};
             math::fabs(bounds[e_divisor] - div) > tol) {
-            os << "ERROR: Divisor incorrect. Should be: " << div << std::endl;
+            os << "DETRAY ERROR (HOST): Divisor incorrect. Should be: " << div
+               << std::endl;
             return false;
         }
 

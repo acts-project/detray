@@ -13,6 +13,7 @@
 #include "detray/definitions/track_parametrization.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/detail/jacobian_engine.hpp"
+#include "detray/utils/log.hpp"
 
 namespace detray {
 
@@ -43,6 +44,7 @@ struct parameter_resetter : actor {
               navigation.encountered_sf_material())) {
             return;
         }
+        DETRAY_VERBOSE_HOST_DEVICE("Update the free track parameters");
 
         // Update free params after bound params were changed by actors
         const auto sf = navigation.get_surface();

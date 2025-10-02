@@ -10,6 +10,7 @@
 
 #include "detray/core/detail/alignment.hpp"
 #include "detray/test/common/build_toy_detector.hpp"
+#include "detray/utils/log.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/cuda/device_memory_resource.hpp>
@@ -35,8 +36,8 @@ int main() {
     // Helper object for performing memory copies to CUDA devices
     vecmem::cuda::copy cuda_cpy;
 
-    std::cout
-        << "Detector Device Construction Tutorial\n====================\n\n";
+    std::clog << "Detector Device Construction "
+                 "Tutorial\n=====================================\n\n";
 
     //
     // Managed Memory
@@ -49,7 +50,7 @@ int main() {
     auto det_mng_data = detray::get_data(det_mng);
 
     // Pass the view and call the kernel
-    std::cout << "Using CUDA unified memory:" << std::endl;
+    DETRAY_INFO_HOST("Using CUDA unified memory:");
     detray::tutorial::print(det_mng_data);
 
     //
@@ -64,7 +65,7 @@ int main() {
     auto det_fixed_buff = detray::get_buffer(det_host, dev_mr, cuda_cpy);
 
     // Get the detector view from the buffer and call the kernel
-    std::cout << "\nSynchronous copy, fixed size buffers:" << std::endl;
+    DETRAY_INFO_HOST("Synchronous copy, fixed size buffers:");
     detray::tutorial::print(detray::get_data(det_fixed_buff));
 
     // Copy the data to device in resizable buffers (synchronous copy)
@@ -72,7 +73,7 @@ int main() {
         detray::get_buffer(det_host, dev_mr, cuda_cpy, detray::copy::sync,
                            vecmem::data::buffer_type::resizable);
 
-    std::cout << "\nSynchronous copy, resizable buffers:" << std::endl;
+    DETRAY_INFO_HOST("Synchronous copy, resizable buffers:");
     detray::tutorial::print(detray::get_data(det_resz_buff));
 
     //
@@ -109,7 +110,7 @@ int main() {
         std::move(msk_buff), std::move(mat_buff), std::move(acc_buff),
         std::move(vgrid_buff));
 
-    std::cout << "\nCustom buffer setup:" << std::endl;
+    DETRAY_INFO_HOST("Custom buffer setup:");
     detray::tutorial::print(detray::get_data(det_custom_buff));
 
     // Construct an "aligned" transform store
@@ -137,6 +138,6 @@ int main() {
         detray::detail::misaligned_detector_view<host_detector_type>(
             det_custom_buff, trf_buff_shifted);
 
-    std::cout << "\nCustom buffer setup (shifted):" << std::endl;
+    DETRAY_INFO_HOST("Custom buffer setup (shifted):");
     detray::tutorial::print(detector_view);
 }

@@ -11,6 +11,7 @@
 #include "detray/materials/interaction.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/propagator/rk_stepper.hpp"
+#include "detray/utils/log.hpp"
 #include "detray/utils/matrix_helper.hpp"
 
 template <typename magnetic_field_t, detray::concepts::algebra algebra_t,
@@ -63,6 +64,9 @@ DETRAY_HOST_DEVICE inline void detray::rk_stepper<
                                       const intermediate_state& sd,
                                       const material<scalar_type>*
                                           vol_mat_ptr) {
+
+    DETRAY_VERBOSE_HOST_DEVICE("Advance Jacobian");
+
     /// The calculations are based on ATL-SOFT-PUB-2009-002. The update of the
     /// Jacobian matrix is requires only the calculation of eq. 17 and 18.
     /// Since the terms of eq. 18 are currently 0, this matrix is not needed
@@ -609,6 +613,8 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
         stepping.set_step_size(
             math::max(stepping.next_step_size(), dist_to_next));
     }
+
+    DETRAY_VERBOSE_HOST_DEVICE("Take step: %f mm", stepping.step_size());
 
     // Don't allow too small stepsizes, unless the navigation needs it
     const scalar_type min_stepsize{

@@ -57,8 +57,8 @@ class homogeneous_volume_material_builder final
 
         // Nothing left to do
         if (m_volume_material == detray::vacuum<scalar_type>{}) {
-            std::cout << "WARNING: Volume " << this->vol_index()
-                      << " has vacuum material";
+            DETRAY_WARN_HOST("Volume " << this->vol_index()
+                                       << " has vacuum material");
 
             return vol;
         }

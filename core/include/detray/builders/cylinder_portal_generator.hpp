@@ -17,6 +17,7 @@
 #include "detray/definitions/indexing.hpp"
 #include "detray/geometry/shapes/cuboid3D.hpp"
 #include "detray/utils/bounding_volume.hpp"
+#include "detray/utils/log.hpp"
 
 // System include(s)
 #include <cassert>
@@ -192,6 +193,8 @@ class cylinder_portal_generator final
                     typename detector_t::mask_container &masks,
                     typename detector_t::geometry_context ctx = {})
         -> dindex_range override {
+
+        DETRAY_VERBOSE_HOST("Generate cylinder portals...");
 
         using aabb_t = axis_aligned_bounding_volume<cuboid3D, algebra_t>;
 

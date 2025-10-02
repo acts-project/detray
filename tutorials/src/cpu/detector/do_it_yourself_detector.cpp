@@ -113,7 +113,7 @@ int main() {
                           .format(detray::io::format::json)
                           .replace_files(true);
 
-    std::cout << writer_cfg << std::endl;
+    std::clog << writer_cfg << std::endl;
 
     detray::io::write_detector(det, name_map, writer_cfg);
 }

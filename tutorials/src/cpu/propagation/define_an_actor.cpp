@@ -91,7 +91,7 @@ int main() {
     using composite =
         detray::composite_actor<example_actor_t, print_actor, print_actor>;
 
-    std::cout << "Actor Definition Tutorial\n=========================\n";
+    std::clog << "Actor Definition Tutorial\n=========================\n";
 
     example_actor_t::state example_state{};
     print_actor::state printer_state{};
@@ -105,7 +105,7 @@ int main() {
     actor_chain_t run_actors{};
     run_actors(actor_states, prop_state);
 
-    std::cout << "\nactor list: " << printer_state.to_string() << std::endl;
+    std::clog << "\nactor list: " << printer_state.to_string() << std::endl;
 
     // Test chaining of multiple actors
 
@@ -139,5 +139,5 @@ int main() {
     detray::actor_chain<chain> run_chain{};
     run_chain(actor_states, prop_state);
 
-    std::cout << "actor chain: " << printer_state.to_string() << std::endl;
+    std::clog << "actor chain: " << printer_state.to_string() << std::endl;
 }

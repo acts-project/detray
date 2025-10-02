@@ -227,7 +227,8 @@ class single3D {
         const bounds_type<scalar_t> &bounds, std::ostream &os) const {
 
         if (bounds[e_upper] < bounds[e_lower]) {
-            os << "ERROR: Upper bounds must be smaller than lower bounds ";
+            os << "DETRAY ERROR (HOST): Upper bounds must be smaller than "
+                  "lower bounds ";
             return false;
         }
 

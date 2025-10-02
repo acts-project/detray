@@ -141,6 +141,14 @@ class volume_descriptor {
         return idx_range_t{min, max};
     }
 
+    /// @returns the total number of surfaces contained in the volume
+    DETRAY_HOST_DEVICE constexpr dindex n_surfaces() const {
+        const auto sf_idx_range = full_sf_range();
+
+        assert(sf_idx_range[1] > sf_idx_range[0]);
+        return sf_idx_range[1] - sf_idx_range[0];
+    }
+
     /// @returns a surface index with respect to the volume surface range
     DETRAY_HOST_DEVICE constexpr dindex to_local_sf_index(dindex sf_idx) const {
 
@@ -281,6 +289,19 @@ class volume_descriptor {
     constexpr auto operator==(const volume_descriptor& rhs) const -> bool {
         return (m_id == rhs.m_id && m_index == rhs.m_index &&
                 m_accel_links == rhs.m_accel_links);
+    }
+
+    /// @returns a string stream that prints the volume details
+    DETRAY_HOST
+    friend std::ostream& operator<<(std::ostream& os,
+                                    const volume_descriptor& vol) {
+        os << vol.m_index;
+        os << " | id: " << vol.m_id;
+        os << " | transf.: " << vol.m_transform;
+        os << " | sf idx.: " << vol.m_sf_links;
+        os << " | mat.: " << vol.m_mat_link;
+        os << " | accel.: " << vol.m_accel_links;
+        return os;
     }
 
     private:

@@ -21,7 +21,7 @@
 /// Prepare the data and move it to device
 int main() {
 
-    std::cout << "Device Propagation Tutorial\n====================\n\n";
+    std::clog << "Device Propagation Tutorial\n====================\n\n";
 
     // VecMem memory resource(s)
     vecmem::cuda::managed_memory_resource mng_mr;

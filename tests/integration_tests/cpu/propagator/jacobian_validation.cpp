@@ -184,7 +184,7 @@ struct ridders_derivative {
                         /*
                         // Please leave this for debug
                         if (j == e_bound_theta && i == e_bound_loc0) {
-                            std::cout << q << " " << p << " "
+                            std::clog << q << " " << p << " "
                                       << getter::element(
                                              differentiated_jacobian, j, i)
                                       << "  " << math::fabs(Arr[j][q][p])
@@ -200,7 +200,7 @@ struct ridders_derivative {
             /*
             // Please leave this for debug
             if (j == e_bound_loc0 && i == e_bound_theta) {
-                std::cout << getter::element(differentiated_jacobian, j, i)
+                std::clog << getter::element(differentiated_jacobian, j, i)
                           << "  " << Arr[j][p][p] << "  "
                           << Arr[j][p - 1][p - 1] << "  "
                           << math::fabs(Arr[j][p][p] - Arr[j][p - 1][p - 1])
@@ -413,15 +413,15 @@ struct bound_getter : actor {
 
         // Warning for too many step counts
         if (actor_state.step_count > 1000000) {
-            std::cout << "Too many step counts!" << std::endl;
-            std::cout << "Track ID: " << actor_state.track_ID << std::endl;
-            std::cout << "Path length: " << actor_state.m_path_length
+            std::clog << "Too many step counts!" << std::endl;
+            std::clog << "Track ID: " << actor_state.track_ID << std::endl;
+            std::clog << "Path length: " << actor_state.m_path_length
                       << std::endl;
-            std::cout << "PhiI: " << actor_state.m_param_departure.phi()
+            std::clog << "PhiI: " << actor_state.m_param_departure.phi()
                       << std::endl;
-            std::cout << "ThetaI: " << actor_state.m_param_departure.theta()
+            std::clog << "ThetaI: " << actor_state.m_param_departure.theta()
                       << std::endl;
-            std::cout << "QopI: " << actor_state.m_param_departure.qop()
+            std::clog << "QopI: " << actor_state.m_param_departure.qop()
                       << std::endl;
             propagation._heartbeat &= navigation.exit();
         }
@@ -494,9 +494,6 @@ bound_getter<test_algebra>::state evaluate_bound_param(
             static_cast<float>(constraint_step));
 
     p.propagate(state, actor_states);
-    if (do_inspect) {
-        std::cout << state.debug_stream.str() << std::endl;
-    }
 
     return bound_getter_state;
 }
@@ -1435,7 +1432,7 @@ int main(int argc, char** argv) {
 
     // Help message
     if (vm.count("help")) {
-        std::cout << desc << std::endl;
+        std::clog << desc << std::endl;
         return EXIT_FAILURE;
     }
 
@@ -1741,47 +1738,47 @@ int main(int argc, char** argv) {
         track_count++;
 
         if (verbose_lvl >= 1) {
-            std::cout << "[Event Property]" << std::endl;
-            std::cout << "Track ID: " << track_count
+            std::clog << "[Event Property]" << std::endl;
+            std::clog << "Track ID: " << track_count
                       << "  Number of processed tracks per thread: "
                       << track_count - n_skips << std::endl;
         }
         if (verbose_lvl >= 2) {
-            std::cout << "[Detector Property]" << std::endl;
-            std::cout << "Path length for the final surface: "
+            std::clog << "[Detector Property]" << std::endl;
+            std::clog << "Path length for the final surface: "
                       << detector_length << std::endl;
-            std::cout << "Rect initial surface rotation: ("
+            std::clog << "Rect initial surface rotation: ("
                       << euler_rect_initial.alpha << " "
                       << euler_rect_initial.beta << " "
                       << euler_rect_initial.gamma << ")" << std::endl;
-            std::cout << "Rect initial surface shift: ("
+            std::clog << "Rect initial surface shift: ("
                       << shift_rect_initial[0u] << " " << shift_rect_initial[1u]
                       << " " << shift_rect_initial[2u] << ")" << std::endl;
-            std::cout << "Rect final surface rotation: ("
+            std::clog << "Rect final surface rotation: ("
                       << euler_rect_final.alpha << " " << euler_rect_final.beta
                       << " " << euler_rect_final.gamma << ")" << std::endl;
-            std::cout << "Rect final surface shift: (" << shift_rect_final[0u]
+            std::clog << "Rect final surface shift: (" << shift_rect_final[0u]
                       << " " << shift_rect_final[1u] << " "
                       << shift_rect_final[2u] << ")" << std::endl;
-            std::cout << "Wire initial surface rotation: ("
+            std::clog << "Wire initial surface rotation: ("
                       << euler_wire_initial.alpha << " "
                       << euler_wire_initial.beta << " "
                       << euler_wire_initial.gamma << ")" << std::endl;
-            std::cout << "Wire initial surface shift: ("
+            std::clog << "Wire initial surface shift: ("
                       << shift_wire_initial[0u] << " " << shift_wire_initial[1u]
                       << " " << shift_wire_initial[2u] << ")" << std::endl;
-            std::cout << "Wire final surface rotation: ("
+            std::clog << "Wire final surface rotation: ("
                       << euler_wire_final.alpha << " " << euler_wire_final.beta
                       << " " << euler_wire_final.gamma << ")" << std::endl;
-            std::cout << "Wire final surface shift: (" << shift_wire_final[0u]
+            std::clog << "Wire final surface shift: (" << shift_wire_final[0u]
                       << " " << shift_wire_final[1u] << " "
                       << shift_wire_final[2u] << ")" << std::endl;
         }
         if (verbose_lvl >= 3) {
-            std::cout << "[Track Property]" << std::endl;
-            std::cout << "Phi: " << vector::phi(track.dir()) << std::endl;
-            std::cout << "Theta: " << vector::theta(track.dir()) << std::endl;
-            std::cout << "Mom: " << track.p(ptc.charge()) << std::endl;
+            std::clog << "[Track Property]" << std::endl;
+            std::clog << "Phi: " << vector::phi(track.dir()) << std::endl;
+            std::clog << "Theta: " << vector::theta(track.dir()) << std::endl;
+            std::clog << "Mom: " << track.p(ptc.charge()) << std::endl;
         }
 
         /**********************************
@@ -1789,7 +1786,7 @@ int main(int argc, char** argv) {
          **********************************/
 
         if (verbose_lvl >= 3 && !skip_rect) {
-            std::cout << "Simulating rectangular telescope..." << std::endl;
+            std::clog << "Simulating rectangular telescope..." << std::endl;
         }
 
         // Get initial parameter
@@ -1876,7 +1873,7 @@ int main(int argc, char** argv) {
          **********************************/
 
         if (verbose_lvl >= 3 && !skip_wire) {
-            std::cout << "Simulating wire telescope..." << std::endl;
+            std::clog << "Simulating wire telescope..." << std::endl;
         }
 
         // Get initial parameter

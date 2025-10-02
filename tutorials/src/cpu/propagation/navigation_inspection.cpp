@@ -68,7 +68,7 @@ int main() {
     using propagator_t =
         detray::propagator<stepper_t, navigator_t, detray::actor_chain<>>;
 
-    std::cout << "Navigation Instepction "
+    std::clog << "Navigation Instepction "
                  "Tutorial\n===============================\n\n";
 
     vecmem::host_memory_resource host_mr;
@@ -81,7 +81,7 @@ int main() {
     detray::propagation::config prop_cfg{};
     propagator_t prop{prop_cfg};
 
-    std::cout << prop_cfg;
+    std::clog << prop_cfg;
 
     // Track generation config
     // Trivial example: Single track escapes through beampipe
@@ -127,7 +127,7 @@ int main() {
             debug_stream << "\n\nnavig.:  "
                          << obj_tracer[intr_idx - 1u].intersection;
         }
-        std::cout << debug_stream.str() << std::endl;
+        std::clog << debug_stream.str() << std::endl;
 
         // Compare intersection records
         //

@@ -245,18 +245,20 @@ class cylinder3D {
         constexpr auto tol{10.f * std::numeric_limits<scalar_t>::epsilon()};
 
         if (bounds[e_min_r] < tol) {
-            os << "ERROR: Radii must be in the range (0, numeric_max)"
+            os << "DETRAY ERROR (HOST): Radii must be in the range (0, "
+                  "numeric_max)"
                << std::endl;
             return false;
         }
         if (bounds[e_min_r] >= bounds[e_max_r] ||
             math::fabs(bounds[e_min_r] - bounds[e_max_r]) < tol) {
-            os << "ERROR: Min Radius must be smaller than max Radius.";
+            os << "DETRAY ERROR (HOST): Min Radius must be smaller than max "
+                  "Radius.";
             return false;
         }
         if (bounds[e_min_z] >= bounds[e_max_z] ||
             math::fabs(bounds[e_min_z] - bounds[e_max_z]) < tol) {
-            os << "ERROR: Min z must be smaller than max z.";
+            os << "DETRAY ERROR (HOST): Min z must be smaller than max z.";
             return false;
         }
 

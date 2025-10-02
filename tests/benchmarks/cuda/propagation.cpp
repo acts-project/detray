@@ -59,19 +59,19 @@ int main(int argc, char** argv) {
     toy_det_config<scalar> toy_cfg{};
     toy_cfg.use_material_maps(false).n_brl_layers(4u).n_edc_layers(7u);
 
-    std::cout << toy_cfg << std::endl;
+    std::clog << toy_cfg << std::endl;
 
     // Configure wire chamber
     wire_chamber_config<scalar> wire_chamber_cfg{};
     wire_chamber_cfg.half_z(500.f * unit<scalar>::mm);
 
-    std::cout << wire_chamber_cfg << std::endl;
+    std::clog << wire_chamber_cfg << std::endl;
 
     // Configure propagation
     propagation::config prop_cfg{};
     prop_cfg.navigation.search_window = {3u, 3u};
 
-    std::cout << prop_cfg << std::endl;
+    std::clog << prop_cfg << std::endl;
 
     // Benchmark config
     detray::benchmarks::benchmark_base::configuration bench_cfg{};
@@ -118,7 +118,7 @@ int main(int argc, char** argv) {
     //
     // Register benchmarks
     //
-    std::cout << "Propagation Benchmarks\n"
+    std::clog << "Propagation Benchmarks\n"
               << "----------------------\n\n";
 
     prop_cfg.stepping.do_covariance_transport = true;

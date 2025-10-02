@@ -16,6 +16,7 @@
 #include "detray/propagator/actors.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/propagator.hpp"
+#include "detray/utils/log.hpp"
 #include "detray/utils/type_list.hpp"
 
 // Detray IO include(s)
@@ -386,7 +387,7 @@ inline auto compare_traces(
     }
 
     if (verbose && (is_bad_comp || is_diff_mat)) {
-        std::cout << debug_msg.str() << std::endl;
+        DETRAY_INFO_HOST(debug_msg.str());
     }
 
     return std::make_tuple(is_bad_comp, is_diff_mat);

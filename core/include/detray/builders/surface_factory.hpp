@@ -16,6 +16,7 @@
 #include "detray/geometry/shapes/unmasked.hpp"
 #include "detray/materials/material_rod.hpp"
 #include "detray/materials/material_slab.hpp"
+#include "detray/utils/log.hpp"
 #include "detray/utils/ranges.hpp"
 
 // System include(s)
@@ -154,8 +155,12 @@ class surface_factory : public surface_factory_interface<detector_t> {
                     typename detector_t::geometry_context ctx = {})
         -> dindex_range override {
 
+        DETRAY_VERBOSE_HOST("Add geometric surfaces...");
+
         // In case the surfaces container is prefilled with other surfaces
         const auto surfaces_offset{static_cast<dindex>(surfaces.size())};
+
+        DETRAY_VERBOSE_HOST("-> Have " << size() << " surfaces");
 
         // Nothing to construct
         if (size() == 0u) {
@@ -166,12 +171,12 @@ class surface_factory : public surface_factory_interface<detector_t> {
             mask<mask_shape_t, algebra_t, volume_link_t>>();
         if constexpr (static_cast<std::size_t>(mask_id) >=
                       detector_t::masks::n_types) {
+            std::stringstream err_str{};
+            err_str << "Cannot match shape type to mask ID: Found "
+                    << mask_shape_t::name << " at mask id " << mask_id;
 
-            throw std::invalid_argument(
-                "ERROR: Cannot match shape type to mask ID: Found " +
-                std::string(mask_shape_t::name) + " at mask id " +
-                std::to_string(static_cast<std::size_t>(mask_id)));
-
+            DETRAY_FATAL_HOST(err_str.str());
+            throw std::invalid_argument(err_str.str());
         } else {
 
             using surface_t = typename detector_t::surface_type;

@@ -15,6 +15,7 @@
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
+#include "detray/utils/log.hpp"
 
 // Detray benchmark include(s)
 #include "detray/benchmarks/types.hpp"
@@ -79,10 +80,11 @@ void BM_MASK_CUBOID_3D(benchmark::State &state) {
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
     constexpr scalar volume{cb[3] * cb[4] * cb[5]};
     constexpr scalar rest{world * world * world - volume};
-    std::cout << "Cuboid : Inside/outside ... " << inside << " / " << outside
-              << " = "
-              << static_cast<scalar>(inside) / static_cast<scalar>(outside)
-              << " (theoretical = " << volume / rest << ") " << std::endl;
+    DETRAY_INFO_HOST("Cuboid : Inside/outside ... "
+                     << inside << " / " << outside << " = "
+                     << static_cast<scalar>(inside) /
+                            static_cast<scalar>(outside)
+                     << " (theoretical = " << volume / rest << ") ");
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 
@@ -130,10 +132,11 @@ void BM_MASK_RECTANGLE_2D(benchmark::State &state) {
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
     constexpr scalar area{4.f * r[0] * r[1]};
     constexpr scalar rest{world * world - area};
-    std::cout << "Rectangle : Inside/outside ... " << inside << " / " << outside
-              << " = "
-              << static_cast<scalar>(inside) / static_cast<scalar>(outside)
-              << " (theoretical = " << area / rest << ") " << std::endl;
+    DETRAY_INFO_HOST("Rectangle : Inside/outside ... "
+                     << inside << " / " << outside << " = "
+                     << static_cast<scalar>(inside) /
+                            static_cast<scalar>(outside)
+                     << " (theoretical = " << area / rest << ") ");
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 
@@ -181,10 +184,11 @@ void BM_MASK_TRAPEZOID_2D(benchmark::State &state) {
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
     constexpr scalar area{2.f * (t[0] + t[1]) * t[2]};
     constexpr scalar rest{world * world - area};
-    std::cout << "Trapezoid : Inside/outside ..." << inside << " / " << outside
-              << " = "
-              << static_cast<scalar>(inside) / static_cast<scalar>(outside)
-              << " (theoretical = " << area / rest << ") " << std::endl;
+    DETRAY_INFO_HOST("Trapezoid : Inside/outside ..."
+                     << inside << " / " << outside << " = "
+                     << static_cast<scalar>(inside) /
+                            static_cast<scalar>(outside)
+                     << " (theoretical = " << area / rest << ") ");
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 
@@ -232,10 +236,11 @@ void BM_MASK_DISC_2D(benchmark::State &state) {
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
     constexpr scalar area{r[1] * r[1] * constant<scalar>::pi};
     constexpr scalar rest{world * world - area};
-    std::cout << "Disc : Inside/outside ..." << inside << " / " << outside
-              << " = "
-              << static_cast<scalar>(inside) / static_cast<scalar>(outside)
-              << " (theoretical = " << area / rest << ") " << std::endl;
+    DETRAY_INFO_HOST("Disc : Inside/outside ..."
+                     << inside << " / " << outside << " = "
+                     << static_cast<scalar>(inside) /
+                            static_cast<scalar>(outside)
+                     << " (theoretical = " << area / rest << ") ");
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 
@@ -283,10 +288,11 @@ void BM_MASK_RING_2D(benchmark::State &state) {
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
     constexpr scalar area{(r[1] * r[1] - r[0] * r[0]) * constant<scalar>::pi};
     constexpr scalar rest{world * world - area};
-    std::cout << "Ring : Inside/outside ..." << inside << " / " << outside
-              << " = "
-              << static_cast<scalar>(inside) / static_cast<scalar>(outside)
-              << " (theoretical = " << area / rest << ") " << std::endl;
+    DETRAY_INFO_HOST("Ring : Inside/outside ..."
+                     << inside << " / " << outside << " = "
+                     << static_cast<scalar>(inside) /
+                            static_cast<scalar>(outside)
+                     << " (theoretical = " << area / rest << ") ");
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 
@@ -336,10 +342,11 @@ void BM_MASK_CYLINDER_3D(benchmark::State &state) {
     constexpr scalar volume{constant<scalar>::pi * (c[5] - c[2]) *
                             (c[3] * c[3] - c[0] * c[0])};
     constexpr scalar rest{world * world * world - volume};
-    std::cout << "Cylinder 3D : Inside/outside ... " << inside << " / "
-              << outside << " = "
-              << static_cast<scalar>(inside) / static_cast<scalar>(outside)
-              << " (theoretical = " << volume / rest << ") " << std::endl;
+    DETRAY_INFO_HOST("Cylinder 3D : Inside/outside ... "
+                     << inside << " / " << outside << " = "
+                     << static_cast<scalar>(inside) /
+                            static_cast<scalar>(outside)
+                     << " (theoretical = " << volume / rest << ") ");
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 
@@ -385,10 +392,11 @@ void BM_MASK_CYLINDER_2D(benchmark::State &state) {
     }
 
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
-    std::cout << "Cylinder 2D : Inside/outside ..." << inside << " / "
-              << outside << " = "
-              << static_cast<scalar>(inside) / static_cast<scalar>(outside)
-              << " (theoretical = " << 1.f << ") " << std::endl;
+    DETRAY_INFO_HOST("Cylinder 2D : Inside/outside ..."
+                     << inside << " / " << outside << " = "
+                     << static_cast<scalar>(inside) /
+                            static_cast<scalar>(outside)
+                     << " (theoretical = " << 1.f << ") ");
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 
@@ -434,10 +442,11 @@ void BM_MASK_CONCENTRIC_CYLINDER_2D(benchmark::State &state) {
     }
 
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
-    std::cout << "Concnetric Cylinder : Inside/outside ..." << inside << " / "
-              << outside << " = "
-              << static_cast<scalar>(inside) / static_cast<scalar>(outside)
-              << " (theoretical = " << 1.f << ") " << std::endl;
+    DETRAY_INFO_HOST("Concnetric Cylinder : Inside/outside ..."
+                     << inside << " / " << outside << " = "
+                     << static_cast<scalar>(inside) /
+                            static_cast<scalar>(outside)
+                     << " (theoretical = " << 1.f << ") ");
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 
@@ -483,10 +492,10 @@ void BM_MASK_ANNULUS_2D(benchmark::State &state) {
     }
 
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
-    std::cout << "Annulus : Inside/outside ..." << inside << " / " << outside
-              << " = "
-              << static_cast<scalar>(inside) / static_cast<scalar>(outside)
-              << std::endl;
+    DETRAY_INFO_HOST("Annulus : Inside/outside ..."
+                     << inside << " / " << outside << " = "
+                     << static_cast<scalar>(inside) /
+                            static_cast<scalar>(outside));
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 
@@ -534,10 +543,11 @@ void BM_MASK_LINE_CIRCULAR(benchmark::State &state) {
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
     constexpr scalar volume{constant<scalar>::pi * 2.f * st[1] * st[0] * st[0]};
     constexpr scalar rest{world * world * world - volume};
-    std::cout << "Straw Tube : Inside/outside ... " << inside << " / "
-              << outside << " = "
-              << static_cast<scalar>(inside) / static_cast<scalar>(outside)
-              << " (theoretical = " << volume / rest << ") " << std::endl;
+    DETRAY_INFO_HOST("Straw Tube : Inside/outside ... "
+                     << inside << " / " << outside << " = "
+                     << static_cast<scalar>(inside) /
+                            static_cast<scalar>(outside)
+                     << " (theoretical = " << volume / rest << ") ");
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 
@@ -585,10 +595,11 @@ void BM_MASK_LINE_SQUARE(benchmark::State &state) {
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
     constexpr scalar volume{8.f * dcl[1] * dcl[0] * dcl[0]};
     constexpr scalar rest{world * world * world - volume};
-    std::cout << "Drift Chamber Cell : Inside/outside ... " << inside << " / "
-              << outside << " = "
-              << static_cast<scalar>(inside) / static_cast<scalar>(outside)
-              << " (theoretical = " << volume / rest << ") " << std::endl;
+    DETRAY_INFO_HOST("Drift Chamber Cell : Inside/outside ... "
+                     << inside << " / " << outside << " = "
+                     << static_cast<scalar>(inside) /
+                            static_cast<scalar>(outside)
+                     << " (theoretical = " << volume / rest << ") ");
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 

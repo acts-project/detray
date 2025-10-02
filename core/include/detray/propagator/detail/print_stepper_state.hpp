@@ -60,8 +60,7 @@ DETRAY_HOST inline std::string print_state(const state_type &state,
     debug_stream << std::setw(cw)
                  << "Pos: " << "[r = " << math::hypot(pos[0], pos[1])
                  << ", z = " << pos[2] << "]" << std::endl;
-    debug_stream << std::setw(cw) << "Tangent:" << detail::ray(state())
-                 << std::endl;
+    debug_stream << std::setw(cw) << "Tangent:" << detail::ray(state());
 
     return debug_stream.str();
 }
@@ -81,8 +80,7 @@ DETRAY_HOST inline std::string print_state(const state_type &state,
                  << state.step_size() << std::endl;
     debug_stream << std::setw(cw) << "no. RK adjustments" << n_trials
                  << std::endl;
-    debug_stream << std::setw(cw) << "Step size scale factor" << step_scalor
-                 << std::endl;
+    debug_stream << std::setw(cw) << "Step size scale factor" << step_scalor;
 
     return debug_stream.str();
 }
