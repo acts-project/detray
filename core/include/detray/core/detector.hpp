@@ -38,10 +38,9 @@ namespace detail {
 /// @todo Remove as soon as contices can be registered!
 template <typename detector_t, concepts::transform3D transform3_t>
 void set_transform(detector_t &det, const transform3_t &trf, unsigned int i) {
-    std::cout
-        << "WARNING: Modifying transforms in the detector will be deprecated! "
-           "Please, use a separate geometry context in this case"
-        << std::endl;
+    DETRAY_WARN_HOST(
+        "Modifying transforms in the detector will be deprecated! "
+        "Please, use a separate geometry context in this case");
     det._transforms.at(i) = trf;
 }
 }  // namespace detail

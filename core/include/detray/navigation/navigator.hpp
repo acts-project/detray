@@ -643,10 +643,10 @@ class navigator {
                 m_inspector(*this, cfg, track_pos, track_dir, message);
             }
 
-            DETRAY_DEBUG("" << message << "\n"
-                            << detray::navigation::print_state(*this)
-                            << detray::navigation::print_candidates(
-                                   *this, cfg, track_pos, track_dir));
+            DETRAY_DEBUG_HOST("" << message << "\n"
+                                 << detray::navigation::print_state(*this)
+                                 << detray::navigation::print_candidates(
+                                        *this, cfg, track_pos, track_dir));
         }
 
         /// Call the navigation inspector
@@ -662,10 +662,10 @@ class navigator {
                 m_inspector(*this, cfg, track_pos, track_dir, message, msg_gen);
             }
 
-            DETRAY_DEBUG("" << message << msg_gen() << "\n"
-                            << detray::navigation::print_state(*this)
-                            << detray::navigation::print_candidates(
-                                   *this, cfg, track_pos, track_dir));
+            DETRAY_DEBUG_HOST("" << message << msg_gen() << "\n"
+                                 << detray::navigation::print_state(*this)
+                                 << detray::navigation::print_candidates(
+                                        *this, cfg, track_pos, track_dir));
         }
 
         /// Our cache of candidates (intersections with any kind of surface)
@@ -753,6 +753,9 @@ class navigator {
         const track_t &track, state &navigation, const navigation::config &cfg,
         const context_type &ctx,
         const bool use_path_tolerance_as_overstep_tolerance = true) const {
+
+        DETRAY_VERBOSE_HOST_DEVICE("Called 'init()'");
+
         const auto &det = navigation.detector();
         const auto volume = tracking_volume{det, navigation.volume()};
 
@@ -860,10 +863,17 @@ class navigator {
             // on inner portal
             navigation.m_trust_level = navigation::trust_level::e_full;
             navigation.m_heartbeat = true;
+
+            DETRAY_VERBOSE_HOST_DEVICE("Switched to volume %d",
+                                       navigation.volume());
         }
         // If no trust could be restored for the current state, (local)
         // navigation might be exhausted: re-initialize volume
         else {
+            DETRAY_VERBOSE_HOST_DEVICE(
+                "Full trust could not be restored! RESCURE MODE: Run init with "
+                "large tolerances");
+
             // Use overstep tolerance instead of path tolerance
             const bool use_path_tolerance_as_overstep_tolerance = false;
 
@@ -889,8 +899,10 @@ class navigator {
         // Unrecoverable
         if (navigation.trust_level() != navigation::trust_level::e_full ||
             navigation.is_exhausted()) {
-            navigation.abort("Navigator: No reachable surfaces");
+            navigation.abort("No reachable surfaces");
         }
+
+        DETRAY_VERBOSE_HOST_DEVICE("Update complete");
 
         return is_init;
     }
@@ -920,6 +932,9 @@ class navigator {
         // Update only the current candidate and the corresponding next target
         // - do this only when the navigation state is still coherent
         if (navigation.trust_level() == navigation::trust_level::e_high) {
+
+            DETRAY_VERBOSE_HOST_DEVICE("Called 'update()' - high trust");
+
             // Update next candidate: If not reachable, 'high trust' is broken
             if (!update_candidate(navigation.direction(), navigation.target(),
                                   track, det, cfg, navigation.external_tol(),
@@ -963,6 +978,8 @@ class navigator {
         if (navigation.trust_level() == navigation::trust_level::e_fair &&
             !navigation.is_exhausted()) {
 
+            DETRAY_VERBOSE_HOST_DEVICE("Called 'update()' - fair trust");
+
             for (auto &candidate : navigation) {
                 // Disregard this candidate if it is not reachable
                 if (!update_candidate(navigation.direction(), candidate, track,
@@ -991,6 +1008,9 @@ class navigator {
         // Actor flagged cache as broken (other cases of 'no trust' are
         // handeled after volume switch was checked in 'update()')
         if (navigation.trust_level() == navigation::trust_level::e_no_trust) {
+
+            DETRAY_VERBOSE_HOST_DEVICE("Called 'update()' - no trust");
+
             // Use overstep tolerance instead of path tolerance
             const bool use_path_tolerance_as_overstep_tolerance = false;
 

@@ -8,6 +8,7 @@
 // Project include(s)
 #include "detray/core/detector.hpp"
 #include "detray/navigation/volume_graph.hpp"
+#include "detray/utils/log.hpp"
 
 // Detray IO inlcude(s)
 #include "detray/io/frontend/detector_reader.hpp"
@@ -61,5 +62,5 @@ int main(int argc, char** argv) {
 
     *out_file << graph.to_dot_string() << std::endl;
 
-    std::cout << "\nWrote file: " << file_stem + ".txt" << std::endl;
+    DETRAY_INFO_HOST("Wrote file: " << file_stem + ".txt");
 }

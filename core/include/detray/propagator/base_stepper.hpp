@@ -222,8 +222,8 @@ class base_stepper {
                 m_inspector(*this, cfg, message, dist);
             }
 
-            DETRAY_DEBUG("" << message << "\n"
-                            << detray::stepping::print_state(*this, dist));
+            DETRAY_DEBUG_HOST("" << message << "\n"
+                                 << detray::stepping::print_state(*this, dist));
         }
 
         protected:

@@ -234,7 +234,8 @@ class rectangle2D {
 
         if (constexpr auto tol{10.f * std::numeric_limits<scalar_t>::epsilon()};
             bounds[e_half_x] < tol || bounds[e_half_y] < tol) {
-            os << "ERROR: Half lengths must be in the range (0, numeric_max)"
+            os << "DETRAY ERROR (HOST): Half lengths must be in the range (0, "
+                  "numeric_max)"
                << std::endl;
             return false;
         }

@@ -289,38 +289,45 @@ class surface {
     /// @returns true if the surface is consistent
     DETRAY_HOST bool self_check(std::ostream &os) const {
         if (barcode().is_invalid()) {
-            os << "ERROR: Invalid barcode for surface:\n" << *this << std::endl;
+            os << "DETRAY ERROR (HOST): Invalid barcode for surface:\n"
+               << *this << std::endl;
             return false;
         }
         if (index() >= m_detector.surfaces().size()) {
-            os << "ERROR: Surface index out of bounds for surface:\n"
+            os << "DETRAY ERROR (HOST): Surface index out of bounds for "
+                  "surface:\n"
                << *this << std::endl;
             return false;
         }
         if (volume() >= m_detector.volumes().size()) {
-            os << "ERROR: Surface volume index out of bounds for surface:\n"
+            os << "DETRAY ERROR (HOST): Surface volume index out of bounds for "
+                  "surface:\n"
                << *this << std::endl;
             return false;
         }
         if (detail::is_invalid_value(m_desc.transform())) {
-            os << "ERROR: Surface transform undefined for surface:\n"
+            os << "DETRAY ERROR (HOST): Surface transform undefined for "
+                  "surface:\n"
                << *this << std::endl;
             return false;
         }
         if (m_desc.transform() >= m_detector.transform_store().size()) {
-            os << "ERROR: Surface transform index out of bounds for surface:\n"
+            os << "DETRAY ERROR (HOST): Surface transform index out of bounds "
+                  "for surface:\n"
                << *this << std::endl;
             return false;
         }
         if (detail::is_invalid_value(m_desc.mask())) {
-            os << "ERROR: Surface does not have a valid mask link:\n"
+            os << "DETRAY ERROR (HOST): Surface does not have a valid mask "
+                  "link:\n"
                << *this << std::endl;
             return false;
         }
         // Only check, if there is material in the detector
         if (!m_detector.material_store().all_empty() && has_material() &&
             m_desc.material().is_invalid_index()) {
-            os << "ERROR: Surface does not have valid material link:\n"
+            os << "DETRAY ERROR (HOST): Surface does not have valid material "
+                  "link:\n"
                << *this << std::endl;
             return false;
         }
@@ -335,12 +342,14 @@ class surface {
         for (const auto vol_link : vol_links) {
             if (is_portal()) {
                 if (vol_link == volume()) {
-                    os << "ERROR: Portal surface links to mother volume:\n"
+                    os << "DETRAY ERROR (HOST): Portal surface links to mother "
+                          "volume:\n"
                        << *this << std::endl;
                     return false;
                 }
             } else if (vol_link != volume()) {
-                os << "ERROR: Passive/sensitive surface does not link to "
+                os << "DETRAY ERROR (HOST): Passive/sensitive surface does not "
+                      "link to "
                       "mother "
                       "volume:"
                    << "Mask volume link : " << vol_link << "\n"

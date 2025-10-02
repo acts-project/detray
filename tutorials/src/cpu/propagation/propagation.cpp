@@ -13,6 +13,7 @@
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
+#include "detray/utils/log.hpp"
 
 // Detray test include(s)
 #include "detray/test/common/bfield.hpp"
@@ -113,10 +114,9 @@ int main() {
     }
 
     if (success) {
-        std::cout << "Successfully propagated " << trck_cfg.n_tracks()
-                  << " tracks!" << std::endl;
+        DETRAY_INFO_HOST("Successfully propagated " << trck_cfg.n_tracks()
+                                                    << " tracks!");
     } else {
-        std::cout << "ERROR: Propagation did not complete successfully!"
-                  << std::endl;
+        DETRAY_ERROR_HOST("Propagation did not complete successfully!");
     }
 }

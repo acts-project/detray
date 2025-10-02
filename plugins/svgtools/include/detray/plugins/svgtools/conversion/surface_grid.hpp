@@ -12,6 +12,7 @@
 #include "detray/definitions/grid_axis.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/utils/grid/detail/concepts.hpp"
+#include "detray/utils/log.hpp"
 
 // PLugin include(s)
 #include "detray/plugins/svgtools/conversion/grid.hpp"
@@ -52,8 +53,7 @@ struct bin_association_getter {
 
             // The actsvg display only works for 2-dimensional grids
             if constexpr (accel_t::dim != 2u) {
-                std::cout << "WARNIGN: Only 2D grids can be displayed in actvg"
-                          << std::endl;
+                DETRAY_ERROR_HOST("Only 2D grids can be displayed in actvg");
                 return {};
             }
 

@@ -13,6 +13,7 @@
 #include "detray/io/frontend/detector_reader_config.hpp"
 #include "detray/io/frontend/impl/json_readers.hpp"
 #include "detray/utils/consistency_checker.hpp"
+#include "detray/utils/log.hpp"
 
 // System include(s)
 #include <filesystem>
@@ -41,12 +42,13 @@ void read_components_from_file(const std::vector<std::string>& file_names,
 
     // Make sure that all files will be read
     if (readers.size() != file_names.size()) {
-        std::cout << "WARNING: Not all files were registered to a reader. "
-                  << "Registered files: " << std::endl;
-
+        std::stringstream err_str{};
         for (const auto& [file_name, reader] : readers.readers_map()) {
-            std::cout << "\t" << file_name << std::endl;
+            err_str << "-> " << file_name << std::endl;
         }
+        DETRAY_WARN_HOST("Not all files were registered to a reader. "
+                         << "Successfully registered files:\n"
+                         << err_str.str());
     }
 
     // Read the data into the detector builder
@@ -76,26 +78,21 @@ auto read_detector(vecmem::memory_resource& resc,
     detector_builder<typename detector_t::metadata, volume_builder_t>
         det_builder;
 
-    std::cout << "INFO: Reading detector files... ";
+    DETRAY_INFO_HOST("Reading detector files... ");
 
     // Register readers for the respective detector component and file format
     // and read the data into the detector_builder
     read_components_from_file<detector_t, CAP, DIM>(cfg.files(), det_builder);
 
-    std::cout << "Done" << std::endl;
-    std::cout << "INFO: Building detector: " << det_builder.name() << "... ";
+    DETRAY_INFO_HOST("Done reading files");
 
     // Build and return the detector
     auto det = det_builder.build(resc, names);
-
-    std::cout << "Done" << std::endl;
 
     if (cfg.do_check()) {
         // This will throw an exception in case of inconsistencies
         detray::detail::check_consistency(det, cfg.verbose_check(), names);
     }
-
-    std::cout << "INFO: Host detector construction complete" << std::endl;
 
     return std::make_pair(std::move(det), std::move(names));
 }

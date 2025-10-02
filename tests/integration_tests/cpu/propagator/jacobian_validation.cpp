@@ -494,9 +494,6 @@ bound_getter<test_algebra>::state evaluate_bound_param(
             static_cast<float>(constraint_step));
 
     p.propagate(state, actor_states);
-    if (do_inspect) {
-        std::cout << state.debug_stream.str() << std::endl;
-    }
 
     return bound_getter_state;
 }

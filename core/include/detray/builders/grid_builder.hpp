@@ -46,7 +46,9 @@ class grid_builder : public volume_decorator<detector_t> {
     explicit grid_builder(
         std::unique_ptr<volume_builder_interface<detector_t>> vol_builder)
         : volume_decorator<detector_t>(std::move(vol_builder)) {
-        DETRAY_DEBUG("Grid builder created");
+
+        DETRAY_DEBUG_HOST("Grid builder created for volume: " << this->name());
+
         // The grid builder provides an acceleration structure to the
         // volume, so don't add sensitive surfaces to the brute force method
         if (this->get_builder()) {
@@ -140,7 +142,7 @@ class grid_builder : public volume_decorator<detector_t> {
                typename detector_t::geometry_context ctx = {}) ->
         typename detector_t::volume_type * override {
 
-        DETRAY_DEBUG("grid_builder::build called");
+        DETRAY_DEBUG_HOST("grid_builder::build called");
 
         using surface_desc_t = typename detector_t::surface_type;
 
@@ -153,7 +155,7 @@ class grid_builder : public volume_decorator<detector_t> {
 
         // Grid has not been filled previously, fill it automatically
         if (m_grid.size() == 0u) {
-            DETRAY_DEBUG("-> Filling grid automatically");
+            DETRAY_DEBUG_HOST("-> Filling grid automatically...");
 
             std::vector<surface_desc_t> surfaces{};
             for (auto &sf_desc : vol.surfaces()) {
@@ -169,7 +171,7 @@ class grid_builder : public volume_decorator<detector_t> {
                                 volume_decorator<detector_t>::operator()()},
                 surfaces, det.transform_store(), det.mask_store(), ctx);
         } else {
-            DETRAY_DEBUG("-> Grid is prefilled");
+            DETRAY_DEBUG_HOST("-> Grid is prefilled...");
 
             // The grid is prefilled with surface descriptors that contain the
             // correct LOCAL surface indices per bin (e.g. from file IO).
@@ -185,22 +187,21 @@ class grid_builder : public volume_decorator<detector_t> {
                 assert(new_sf_desc.index() == glob_idx);
                 assert(!new_sf_desc.barcode().is_invalid());
 
-                /*DETRAY_DEBUG("--> resetting sf_desc \n  old: "
-                             << sf_desc << "\n->\n  new: " << new_sf_desc
-                             << "");*/
                 sf_desc = new_sf_desc;
             }
         }
 
         // Add the grid to the detector and link it to its volume
         constexpr auto gid{detector_t::accel::template get_id<grid_t>()};
-        DETRAY_DEBUG("Adding grid to volume in detector. m_id="
-                     << m_id << ", gid=" << gid);
+        DETRAY_DEBUG_HOST("Grid indices: m_id=" << m_id << ", gid=" << gid);
+
         det._accelerators.template push_back<gid>(m_grid);
         vol_ptr->set_link(m_id, gid,
                           det.accelerator_store().template size<gid>() - 1);
 
-        DETRAY_DEBUG("Accelerator link: " << vol_ptr->accel_link());
+        DETRAY_DEBUG_HOST("Accelerator link: " << vol_ptr->accel_link());
+        DETRAY_VERBOSE_HOST("Successfully added "
+                            << gid << " grid to volume: " << this->name());
 
         return vol_ptr;
     }

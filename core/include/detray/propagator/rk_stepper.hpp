@@ -163,9 +163,10 @@ class rk_stepper final
             }
 
             if constexpr (sizeof...(Args) > 0u) {
-                DETRAY_DEBUG("" << message << "\n"
-                                << detray::stepping::print_state(
-                                       *this, std::forward<Args>(args)...));
+                DETRAY_DEBUG_HOST(""
+                                  << message << "\n"
+                                  << detray::stepping::print_state(
+                                         *this, std::forward<Args>(args)...));
             }
         }
 

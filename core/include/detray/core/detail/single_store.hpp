@@ -13,6 +13,7 @@
 #include "detray/core/detail/data_context.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/indexing.hpp"
+#include "detray/utils/log.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>
@@ -261,14 +262,16 @@ class single_store {
         -> void {
         // Cannot add context data to an empty store
         if (m_context_size == 0u) {
-            std::cout << "WARNING: Single Store. Cannot add a context to an "
-                         "empty store ";
+            DETRAY_WARN_HOST(
+                "Single Store. Cannot add a context to an "
+                "empty store ");
             return;
         }
         // Wrong size of the context_data vector
         if (context_data.size() % m_context_size != 0u) {
-            std::cout << "WARNING: Single Store. Wrong size of the inserted "
-                         "vector. Must be multiple of the context size";
+            DETRAY_WARN_HOST(
+                "Single Store. Wrong size of the inserted "
+                "vector. Must be multiple of the context size");
             return;
         }
         // Drop previous contexts if any

@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/definitions/algebra.hpp"
+#include "detray/utils/log.hpp"
 
 // Detray plugin include(s)
 #include "detray/plugins/svgtools/illustrator.hpp"
@@ -209,8 +210,7 @@ inline void svg_display(
         {zr_axis, vol_zr_svg, svg_traj});
 
     if (verbose) {
-        std::cout << "\nINFO: Wrote svgs for debugging in: " << path << "\n"
-                  << std::endl;
+        DETRAY_INFO_HOST("Wrote svgs for debugging in: " << path << "\n");
     }
 }
 

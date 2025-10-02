@@ -7,6 +7,7 @@
 
 // Project include(s)
 #include "detray/navigation/volume_graph.hpp"
+#include "detray/utils/log.hpp"
 
 // Detray test include(s)
 #include "detray/test/common/build_toy_detector.hpp"
@@ -49,10 +50,10 @@ int main() {
     auto geo_checker = detray::hash_tree(adj_mat);
 
     if (geo_checker.root() == root_hash) {
-        std::cout << "Geometry links are consistent" << std::endl;
+        DETRAY_INFO_HOST("Geometry links are consistent");
     } else {
-        std::cerr << "\nGeometry linking has changed! Root hash is "
-                  << geo_checker.root() << ". Please check geometry:\n"
-                  << graph.to_string() << std::endl;
+        DETRAY_ERROR_HOST("Geometry linking has changed! Root hash is "
+                          << geo_checker.root() << ". Please check geometry:\n"
+                          << graph.to_string());
     }
 }

@@ -371,6 +371,9 @@ class direct_navigator {
     DETRAY_HOST_DEVICE inline void init(const track_t &track, state &navigation,
                                         const navigation::config &cfg,
                                         const context_type &ctx) const {
+
+        DETRAY_VERBOSE_HOST_DEVICE("Called 'init()'");
+
         // Do not resurrect a failed/finished navigation state
         assert(navigation.status() > navigation::status::e_on_target);
         assert(!track.is_invalid());
@@ -383,6 +386,11 @@ class direct_navigator {
         navigation.m_heartbeat = true;
         navigation.update_candidate(!navigation.is_init());
         update(track, navigation, cfg, ctx);
+
+        DETRAY_VERBOSE_HOST_DEVICE("Init complete");
+        DETRAY_DEBUG_HOST(detray::navigation::print_state(navigation)
+                          << detray::navigation::print_candidates(
+                                 navigation, cfg, track.pos(), track.dir()));
     }
 
     template <typename track_t>
@@ -390,6 +398,8 @@ class direct_navigator {
         const track_t &track, state &navigation, const navigation::config &cfg,
         const context_type &ctx = {},
         const bool is_before_actor_run = true) const {
+
+        DETRAY_VERBOSE_HOST_DEVICE("Called 'update()'");
 
         assert(!track.is_invalid());
 
@@ -421,6 +431,11 @@ class direct_navigator {
 
         // Otherwise the track is moving towards a surface
         navigation.m_status = navigation::status::e_towards_object;
+
+        DETRAY_VERBOSE_HOST_DEVICE("Update complete");
+        DETRAY_DEBUG_HOST(detray::navigation::print_state(navigation)
+                          << detray::navigation::print_candidates(
+                                 navigation, cfg, track.pos(), track.dir()));
 
         // Return false to scale the step size with RK4
         return false;
