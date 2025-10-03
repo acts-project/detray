@@ -149,6 +149,10 @@ class navigator {
 
         /// Construct using a given detector @param det
         DETRAY_HOST_DEVICE
+        explicit state(const detector_type *det) : m_detector(det) {}
+
+        /// Construct using a given detector @param det
+        DETRAY_HOST_DEVICE
         explicit state(const detector_type &det) : m_detector(&det) {}
 
         /// Constructor from detector @param det and inspector view @param view
