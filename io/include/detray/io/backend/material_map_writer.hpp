@@ -78,6 +78,19 @@ class material_map_writer : public detail::grid_writer {
                     continue;
                 }
 
+                // Do not attempt to convert homogeneous material
+                if constexpr (detray::concepts::has_material_slabs<
+                                  detector_t>) {
+                    if (mat_link.id() == detector_t::materials::id::e_slab) {
+                        continue;
+                    }
+                }
+                if constexpr (detray::concepts::has_material_rods<detector_t>) {
+                    if (mat_link.id() == detector_t::materials::id::e_rod) {
+                        continue;
+                    }
+                }
+
                 // How to convert a material slab in the grid
                 auto mat_converter = [&sf_desc](const material_t& mat) {
                     return mat_writer_t::to_payload(mat, sf_desc.index());

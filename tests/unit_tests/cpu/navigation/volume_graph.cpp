@@ -89,5 +89,5 @@ GTEST_TEST(detray_navigation, volume_graph) {
                                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
     // Check this with graph
-    ASSERT_TRUE(adj_mat == adj_truth);
+    ASSERT_TRUE(adj_mat == adj_truth) << graph.to_string();
 }

@@ -14,6 +14,7 @@
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/indexing.hpp"
+#include "detray/navigation/accelerators/search_window.hpp"
 #include "detray/utils/ranges.hpp"
 
 // VecMem include(s).
@@ -45,6 +46,8 @@ class brute_force_collection {
         : public detray::ranges::subrange<const vector_type<value_t>> {
 
         using base = detray::ranges::subrange<const vector_type<value_t>>;
+        using value_type = value_t;
+        using query_type = bool;
 
         /// Default constructor
         brute_forcer() = default;
@@ -55,11 +58,26 @@ class brute_force_collection {
             : base(surfaces, range) {}
 
         /// @returns the complete surface range of the search volume
-        template <typename detector_t, typename track_t, typename config_t>
+        DETRAY_HOST_DEVICE constexpr auto search(query_type /*p*/) const {
+            return *this;
+        }
+
+        /// @returns the complete surface range of the search volume
+        template <concepts::arithmetic window_size_t>
+        DETRAY_HOST_DEVICE constexpr auto search(
+            query_type /*p*/,
+            search_window<window_size_t, 2> /*win_size*/) const {
+            return *this;
+        }
+
+        /// @returns the complete surface range of the search volume
+        template <typename detector_t, typename track_t,
+                  concepts::arithmetic window_size_t>
         DETRAY_HOST_DEVICE constexpr auto search(
             const detector_t& /*det*/,
             const typename detector_t::volume_type& /*volume*/,
-            const track_t& /*track*/, const config_t& /*navigation_config*/,
+            const track_t& /*track*/,
+            const search_window<window_size_t, 2>& /*win_size*/,
             const typename detector_t::geometry_context& /*ctx*/) const {
             return *this;
         }

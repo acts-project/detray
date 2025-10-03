@@ -14,6 +14,8 @@
 #include "detray/materials/detail/concepts.hpp"
 #include "detray/materials/detail/material_accessor.hpp"
 #include "detray/materials/material.hpp"
+#include "detray/navigation/accelerators/search_window.hpp"
+#include "detray/navigation/concepts.hpp"
 
 namespace detray::detail {
 
@@ -43,20 +45,46 @@ struct get_material_params {
     }
 };
 
-/// A functor to access the surfaces of a volume
+/// A functor to access the surfaces of a volume in a particular acceleration
+/// structure
 template <typename functor_t>
 struct surface_getter {
 
-    /// Call operator that forwards the neighborhood search call in a volume
-    /// to a surface finder data structure
-    template <typename accel_group_t, typename accel_index_t, typename... Args>
-    DETRAY_HOST_DEVICE inline void operator()(const accel_group_t &group,
+    /// Call operator that forwards the functor to all contained surfaces
+    template <concepts::accelerator_collection accel_coll_t,
+              typename accel_index_t, typename... Args>
+    DETRAY_HOST_DEVICE inline void operator()(const accel_coll_t &coll,
                                               const accel_index_t index,
                                               Args &&...args) const {
 
-        // Run over the surfaces in a single acceleration data structure
-        for (const auto &sf : group[index].all()) {
-            functor_t{}(sf, std::forward<Args>(args)...);
+        using accel_type = typename accel_coll_t::value_type;
+
+        if constexpr (concepts::surface_accelerator<accel_type>) {
+            // Run over the surfaces in a single acceleration data structure
+            for (const auto &sf : coll[index].all()) {
+                functor_t{}(sf, std::forward<Args>(args)...);
+            }
+        }
+    }
+};
+
+/// A functor to access the daughter volumes of a volume
+template <typename functor_t>
+struct volume_getter {
+
+    /// Call operator that forwards the functor call to all contained daughter
+    /// volumes
+    template <concepts::accelerator_collection accel_coll_t,
+              typename accel_index_t, typename... Args>
+    DETRAY_HOST_DEVICE inline void operator()(const accel_coll_t &,
+                                              const accel_index_t,
+                                              Args &&...) const {
+
+        using accel_type = typename accel_coll_t::value_type;
+
+        if constexpr (concepts::volume_accelerator<accel_type>) {
+            // Run over all the daughter volumes
+            // TODO: Implement e.g. BVH
         }
     }
 };
@@ -67,31 +95,34 @@ struct neighborhood_getter {
 
     /// Call operator that forwards the neighborhood search call in a volume
     /// to a surface finder data structure
-    template <typename accel_group_t, typename accel_index_t,
-              typename detector_t, typename track_t, typename config_t,
-              typename... Args>
+    template <concepts::accelerator_collection accel_coll_t,
+              typename accel_index_t, typename detector_t, typename track_t,
+              concepts::arithmetic window_size_t, typename... Args>
     DETRAY_HOST_DEVICE inline void operator()(
-        const accel_group_t &group, const accel_index_t index,
+        const accel_coll_t &coll, const accel_index_t index,
         const detector_t &det, const typename detector_t::volume_type &volume,
-        const track_t &track, const config_t &cfg,
+        const track_t &track, const search_window<window_size_t, 2> &win_size,
         const typename detector_t::geometry_context &ctx,
         Args &&...args) const {
 
-        decltype(auto) accel = group[index];
+        using accel_type = typename accel_coll_t::value_type;
 
-        // Run over the surfaces in a single acceleration data structure
-        for (const auto &sf : accel.search(det, volume, track, cfg, ctx)) {
-            functor_t{}(sf, std::forward<Args>(args)...);
+        decltype(auto) accel = coll[index];
+
+        if constexpr (concepts::surface_accelerator<accel_type>) {
+            // Run over the surfaces in a single acceleration data structure
+            for (const auto &sf :
+                 accel.search(det, volume, track, win_size, ctx)) {
+                functor_t{}(sf, std::forward<Args>(args)...);
+            }
+        } else if constexpr (concepts::volume_accelerator<accel_type>) {
+            // Run over the daughter volumes in a single acceleration data
+            // structure
+            for (const dindex daughter_idx :
+                 accel.search(det, volume, track, win_size, ctx)) {
+                functor_t{}(daughter_idx, std::forward<Args>(args)...);
+            }
         }
-    }
-};
-
-/// Query the maximal number of candidates from the acceleration
-struct n_candidates_getter {
-    template <typename accel_group_t, typename accel_index_t>
-    DETRAY_HOST_DEVICE inline auto operator()(const accel_group_t &group,
-                                              const accel_index_t index) const {
-        return group[index].n_max_candidates();
     }
 };
 

@@ -11,6 +11,7 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/navigation/accelerators/search_window.hpp"
 
 // System include(s)
 #include <ostream>
@@ -57,7 +58,7 @@ struct config {
     float overstep_tolerance{-1000.f * unit<float>::um};
     /// Search window size for grid based acceleration structures
     /// (0, 0): only look at current bin
-    darray<dindex, 2> search_window = {0u, 0u};
+    detray::search_window<dindex, 2> search_window = {0u, 0u};
 
     // Actor configuration
 
