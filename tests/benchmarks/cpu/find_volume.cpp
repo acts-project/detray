@@ -7,6 +7,7 @@
 
 // Detray benchmark include(s)
 #include "detray/benchmarks/types.hpp"
+#include "detray/utils/log.hpp"
 
 // Detray test include(s)
 #include "detray/test/common/build_toy_detector.hpp"
@@ -76,8 +77,8 @@ void BM_FIND_VOLUMES(benchmark::State &state) {
     }
 
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
-    std::cout << "Successful   : " << successful << std::endl;
-    std::cout << "Unsuccessful : " << unsuccessful << std::endl;
+    DETRAY_INFO_HOST("Successful   : " << successful);
+    DETRAY_INFO_HOST("Unsuccessful : " << unsuccessful);
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 

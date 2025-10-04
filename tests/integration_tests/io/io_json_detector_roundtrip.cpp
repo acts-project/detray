@@ -8,6 +8,7 @@
 // Project include(s)
 #include "detray/definitions/algebra.hpp"
 #include "detray/utils/consistency_checker.hpp"
+#include "detray/utils/log.hpp"
 
 // Detray IO include(s)
 #include "detray/io/backend/geometry_reader.hpp"
@@ -53,15 +54,16 @@ bool compare_files(const std::string& file_name1, const std::string& file_name2,
     while (std::getline(*file1, line1)) {
         if (std::getline(*file2, line2)) {
             if (skip < i && line1 != line2) {
-                std::cout << "In line " << i << ":" << std::endl
-                          << line1 << std::endl
-                          << line2 << std::endl;
+                DETRAY_ERROR_HOST("In line " << i << ":" << std::endl
+                                             << line1 << std::endl
+                                             << line2);
                 return false;
             }
         } else {
-            std::cout << "Could not read next line from file 2:" << std::endl
-                      << "In line " << i << ":" << std::endl
-                      << line1 << std::endl;
+            DETRAY_ERROR_HOST("Could not read next line from file 2:"
+                              << std::endl
+                              << "In line " << i << ":" << std::endl
+                              << line1);
             return false;
         }
         ++i;
@@ -69,9 +71,10 @@ bool compare_files(const std::string& file_name1, const std::string& file_name2,
 
     // Are there more lines in file2 than file1?
     if (std::getline(*file2, line2)) {
-        std::cout << "Could not read next line from file 1:" << std::endl
-                  << "In line " << i << ":" << std::endl
-                  << line2 << std::endl;
+        DETRAY_ERROR_HOST("Could not read next line from file 1:"
+                          << std::endl
+                          << "In line " << i << ":" << std::endl
+                          << line2);
         return false;
     }
 

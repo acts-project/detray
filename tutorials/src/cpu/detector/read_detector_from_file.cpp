@@ -9,6 +9,7 @@
 #include "detray/core/detector.hpp"
 #include "detray/io/frontend/detector_reader.hpp"
 #include "detray/navigation/volume_graph.hpp"
+#include "detray/utils/log.hpp"
 
 // Example linear algebra plugin: std::array
 #include "detray/tutorial/types.hpp"
@@ -50,7 +51,7 @@ int main(int argc, char** argv) {
 
     // Print the detector volume graph
     detray::volume_graph graph(det);
-    std::cout << "\nRead " << det.volumes().size() << " volumes from file "
-              << reader_cfg.files()[0u] << ":\n\n"
-              << graph.to_string() << std::endl;
+    DETRAY_INFO_HOST("Read " << det.volumes().size() << " volumes from file "
+                             << reader_cfg.files()[0u] << ":\n\n"
+                             << graph.to_string());
 }

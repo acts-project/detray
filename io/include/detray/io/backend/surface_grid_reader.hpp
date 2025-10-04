@@ -48,7 +48,7 @@ class surface_grid_reader
                                               volume_builder> &det_builder,
                              const payload_type &grids_data) {
 
-        DETRAY_DEBUG("Surface grid reader from_payload");
+        DETRAY_VERBOSE_HOST("Surface grid reader from_payload");
 
         grid_reader_t::template from_payload<detector_t>(det_builder,
                                                          grids_data);

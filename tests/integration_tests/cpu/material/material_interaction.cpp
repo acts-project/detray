@@ -111,8 +111,7 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
     state.do_debug = true;
 
     // Propagate the entire detector
-    ASSERT_TRUE(p.propagate(state, actor_states))
-        << state.debug_stream.str() << std::endl;
+    ASSERT_TRUE(p.propagate(state, actor_states));
 
     // new momentum
     const scalar newP{state._stepping.bound_params().p(ptc.charge())};
@@ -244,8 +243,7 @@ GTEST_TEST(detray_material, telescope_geometry_scattering_angle) {
         state.do_debug = true;
 
         // Propagate the entire detector
-        ASSERT_TRUE(p.propagate(state, actor_states))
-            << state.debug_stream.str() << std::endl;
+        ASSERT_TRUE(p.propagate(state, actor_states));
 
         const auto& final_param = state._stepping.bound_params();
 

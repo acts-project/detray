@@ -13,7 +13,6 @@
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/surface.hpp"
-#include "detray/navigation/detail/print_state.hpp"
 #include "detray/navigation/navigation_config.hpp"
 
 // System include(s)
@@ -40,7 +39,7 @@ DETRAY_HOST inline std::string print_state(const state_type &state) {
 
     debug_stream << std::setw(cw) << std::boolalpha
                  << "heartbeat:" << state.is_alive() << std::endl;
-    std::cout << std::noboolalpha;
+    debug_stream << std::noboolalpha;
 
     // Navigation direction
     debug_stream << std::setw(cw) << "direction:";

@@ -14,6 +14,7 @@
 #include "detray/definitions/indexing.hpp"
 #include "detray/geometry/detail/volume_kernels.hpp"
 #include "detray/materials/material.hpp"
+#include "detray/utils/log.hpp"
 #include "detray/utils/ranges.hpp"
 
 // System include(s)
@@ -182,48 +183,50 @@ class tracking_volume {
     /// @returns true if the volume is consistent
     DETRAY_HOST bool self_check(std::ostream &os) const {
         if (id() == volume_id::e_unknown) {
-            os << "ERROR: Unknown volume shape type in volume:\n"
+            os << "DETRAY ERROR (HOST): Unknown volume shape type in volume:\n"
                << *this << std::endl;
             return false;
         }
         if (detail::is_invalid_value(index())) {
-            os << "ERROR: Volume index undefined in volume:\n"
+            os << "DETRAY ERROR (HOST): Volume index undefined in volume:\n"
                << *this << std::endl;
             return false;
         }
         if (index() >= m_detector.volumes().size()) {
-            os << "ERROR: Volume index out of bounds in volume:\n"
+            os << "DETRAY ERROR (HOST): Volume index out of bounds in volume:\n"
                << *this << std::endl;
             return false;
         }
         if (detail::is_invalid_value(m_desc.transform())) {
-            os << "ERROR: Volume transform undefined in volume:\n"
+            os << "DETRAY ERROR (HOST): Volume transform undefined in volume:\n"
                << *this << std::endl;
             return false;
         }
         if (m_desc.transform() >= m_detector.transform_store().size()) {
-            os << "ERROR: Volume transform index out of bounds in volume:\n"
+            os << "DETRAY ERROR (HOST): Volume transform index out of bounds "
+                  "in volume:\n"
                << *this << std::endl;
             return false;
         }
         // Only check, if there is material in the detector
         if (!m_detector.material_store().all_empty() && has_material() &&
             m_desc.material().is_invalid_index()) {
-            os << "ERROR: Volume does not have valid material link:\n"
+            os << "DETRAY ERROR (HOST): Volume does not have valid material "
+                  "link:\n"
                << *this << std::endl;
             return false;
         }
         const auto &acc_link = m_desc.accel_link();
         if (detail::is_invalid_value(acc_link[0])) {
-            os << "ERROR: Link to portal lookup broken: " << acc_link[0]
-               << "\n in volume: " << *this << std::endl;
+            os << "DETRAY ERROR (HOST): Link to portal lookup broken: "
+               << acc_link[0] << "\n in volume: " << *this << std::endl;
             return false;
         }
         if (const auto &pt_link =
                 m_desc.template sf_link<surface_id::e_portal>();
             detail::is_invalid_value(pt_link)) {
-            os << "ERROR: Link to portal surfaces broken: " << pt_link
-               << "\n in volume: " << *this << std::endl;
+            os << "DETRAY ERROR (HOST): Link to portal surfaces broken: "
+               << pt_link << "\n in volume: " << *this << std::endl;
             return false;
         }
         // Check consistency of surface ranges
@@ -252,7 +255,7 @@ class tracking_volume {
 
         if ((sf_ranges.size() > 1 && sf_ranges[0][1] != sf_ranges[1][0]) ||
             (sf_ranges.size() > 2 && sf_ranges[1][1] != sf_ranges[2][0])) {
-            os << "ERROR: Surface index ranges not contigous: "
+            os << "DETRAY ERROR (HOST): Surface index ranges not contigous: "
                << m_desc.sf_link() << "\n in volume: " << *this << std::endl;
             return false;
         }
@@ -271,8 +274,7 @@ class tracking_volume {
             }
         }
         if (suspicious_links) {
-            std::cout << "WARNING: " << warnigns.str()
-                      << " in volume: " << *this << std::endl;
+            DETRAY_WARN_HOST(warnigns.str() << " in volume: " << *this);
         }
 
         return true;

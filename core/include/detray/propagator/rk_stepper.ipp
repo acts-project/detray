@@ -589,6 +589,7 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
 
     // In case of an overlap do nothing
     if (math::fabs(dist_to_next) <= 1e-5f) {
+        stepping.run_inspector(cfg, "Step skipped (Overlap): ", dist_to_next);
         return true;
     }
 
@@ -728,7 +729,7 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
                                    step_size_scaling(error));
 
             // Run inspection while the stepsize is getting adjusted
-            stepping.run_inspector(cfg, "Adjust stepsize: ", i,
+            stepping.run_inspector(cfg, "Adjust stepsize: ", dist_to_next, i,
                                    step_size_scaling(error));
         }
     }
@@ -742,7 +743,7 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
         math::fabs(stepping.step_size()) > math::fabs(max_step)) {
 
         // Run inspection before step size is cut
-        stepping.run_inspector(cfg, "Before constraint: ");
+        stepping.run_inspector(cfg, "Before constraint: ", dist_to_next);
 
         stepping.set_step_size(max_step);
     }
@@ -780,7 +781,7 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
     }
 
     // Run final inspection
-    stepping.run_inspector(cfg, "Step complete: ");
+    stepping.run_inspector(cfg, "Step complete: ", dist_to_next);
 
     return true;
 }

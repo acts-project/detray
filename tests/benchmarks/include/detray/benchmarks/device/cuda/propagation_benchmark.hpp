@@ -14,6 +14,7 @@
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
+#include "detray/utils/log.hpp"
 
 // Detray test include(s)
 #include "detray/test/common/bfield.hpp"
@@ -171,9 +172,9 @@ struct cuda_propagation_bm : public benchmark_base {
                 m_cfg.propagation(), det_view, *bfield, device_actor_state_ptr,
                 warmup_track_buffer, math::min(n_warmup, n_samples));
         } else {
-            std::cout << "WARNING: Running CUDA benchmarks without warmup is "
-                         "not recommended"
-                      << std::endl;
+            DETRAY_WARN_HOST(
+                "Running CUDA benchmarks without warmup is "
+                "not recommended");
         }
 
         // Calculate the propagation rate

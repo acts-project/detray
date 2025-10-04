@@ -331,12 +331,14 @@ class line {
         constexpr auto tol{10.f * std::numeric_limits<scalar_t>::epsilon()};
 
         if (bounds[e_cross_section] < tol) {
-            os << "ERROR: Radius/sides must be in the range (0, numeric_max)"
+            os << "DETRAY ERROR (HOST): Radius/sides must be in the range (0, "
+                  "numeric_max)"
                << std::endl;
             return false;
         }
         if (bounds[e_half_z] < tol) {
-            os << "ERROR: Half length z must be in the range (0, numeric_max)"
+            os << "DETRAY ERROR (HOST): Half length z must be in the range (0, "
+                  "numeric_max)"
                << std::endl;
             return false;
         }

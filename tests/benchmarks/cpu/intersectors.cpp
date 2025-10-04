@@ -19,6 +19,7 @@
 #include "detray/geometry/surface_descriptor.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
 #include "detray/tracks/ray.hpp"
+#include "detray/utils/log.hpp"
 
 // Detray benchmark include(s)
 #include "detray/benchmarks/types.hpp"
@@ -167,9 +168,9 @@ void BM_INTERSECT_PLANES_AOS(benchmark::State& state) {
         }
     }
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
-    std::cout << mask_t::shape::name << " AoS: hit/miss ... " << hit << " / "
-              << miss << " (total: " << rays.size() * masks.size() << ")"
-              << std::endl;
+    DETRAY_INFO_HOST(mask_t::shape::name
+                     << " AoS: hit/miss ... " << hit << " / " << miss
+                     << " (total: " << rays.size() * masks.size() << ")");
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 
@@ -226,9 +227,10 @@ void BM_INTERSECT_PLANES_SOA(benchmark::State& state) {
     }
 
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
-    std::cout << mask_t::shape::name << " SoA: hit/miss ... " << hit << " / "
-              << miss << " (total: " << rays.size() * masks.size() * simd_size
-              << ")" << std::endl;
+    DETRAY_INFO_HOST(mask_t::shape::name
+                     << " SoA: hit/miss ... " << hit << " / " << miss
+                     << " (total: " << rays.size() * masks.size() * simd_size
+                     << ")");
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 
@@ -292,9 +294,9 @@ void BM_INTERSECT_CYLINDERS_AOS(benchmark::State& state) {
         }
     }
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
-    std::cout << mask_t::shape::name << " AoS: hit/miss ... " << hit << " / "
-              << miss << " (total: " << rays.size() * masks.size() << ")"
-              << std::endl;
+    DETRAY_INFO_HOST(mask_t::shape::name
+                     << " AoS: hit/miss ... " << hit << " / " << miss
+                     << " (total: " << rays.size() * masks.size() << ")");
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 
@@ -355,9 +357,10 @@ void BM_INTERSECT_CYLINDERS_SOA(benchmark::State& state) {
         }
     }
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
-    std::cout << mask_t::shape::name << " SoA: hit/miss ... " << hit << " / "
-              << miss << " (total: " << rays.size() * masks.size() * simd_size
-              << ")" << std::endl;
+    DETRAY_INFO_HOST(mask_t::shape::name
+                     << " SoA: hit/miss ... " << hit << " / " << miss
+                     << " (total: " << rays.size() * masks.size() * simd_size
+                     << ")");
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 
@@ -417,9 +420,9 @@ void BM_INTERSECT_CONCENTRIC_CYLINDERS_AOS(benchmark::State& state) {
         }
     }
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
-    std::cout << mask_t::shape::name << " AoS: hit/miss ... " << hit << " / "
-              << miss << " (total: " << rays.size() * masks.size() << ")"
-              << std::endl;
+    DETRAY_INFO_HOST(mask_t::shape::name
+                     << " AoS: hit/miss ... " << hit << " / " << miss
+                     << " (total: " << rays.size() * masks.size() << ")");
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 
@@ -475,9 +478,10 @@ void BM_INTERSECT_CONCENTRIC_CYLINDERS_SOA(benchmark::State& state) {
         }
     }
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
-    std::cout << mask_t::shape::name << " SoA: hit/miss ... " << hit << " / "
-              << miss << " (total: " << rays.size() * masks.size() * simd_size
-              << ")" << std::endl;
+    DETRAY_INFO_HOST(mask_t::shape::name
+                     << " SoA: hit/miss ... " << hit << " / " << miss
+                     << " (total: " << rays.size() * masks.size() * simd_size
+                     << ")");
 #endif
 }
 

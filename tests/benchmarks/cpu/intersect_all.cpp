@@ -13,6 +13,7 @@
 #include "detray/navigation/intersection_kernel.hpp"
 #include "detray/tracks/ray.hpp"
 #include "detray/tracks/tracks.hpp"
+#include "detray/utils/log.hpp"
 #include "detray/utils/ranges.hpp"
 
 // Detray test include(s)
@@ -103,8 +104,8 @@ void BM_INTERSECT_ALL(benchmark::State &state) {
     }
 
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
-    std::cout << "[detray] hits / missed / total = " << hits << " / " << missed
-              << " / " << hits + missed << std::endl;
+    DETRAY_INFO_HOST("[detray] hits / missed / total = "
+                     << hits << " / " << missed << " / " << hits + missed);
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 

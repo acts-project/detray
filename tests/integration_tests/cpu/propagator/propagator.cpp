@@ -273,19 +273,16 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
         // Propagate the entire detector
         ASSERT_TRUE(
             p.propagate(state, actor_chain_t::setup_actor_states(actor_states)))
-            //<< state.debug_stream.str() << std::endl;
             << state._navigation.inspector().to_string() << std::endl;
 
         // Test propagate sync method
         ASSERT_TRUE(p.propagate_sync(
             sync_state, actor_chain_t::setup_actor_states(actor_states_sync)))
-            //<< state.debug_stream.str() << std::endl;
             << sync_state._navigation.inspector().to_string() << std::endl;
 
         // Propagate with path limit
         ASSERT_FALSE(p.propagate(
             lim_state, actor_chain_t::setup_actor_states(actor_states_lim)))
-            //<< lim_state.debug_stream.str() << std::endl;
             << lim_state._navigation.inspector().to_string() << std::endl;
 
         ASSERT_GE(std::abs(path_limit), lim_state._stepping.abs_path_length())
@@ -373,14 +370,12 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
         // Propagate the entire detector
         state.do_debug = true;
         ASSERT_TRUE(p.propagate(state, actor_states))
-            //<< state.debug_stream.str() << std::endl;
             << state._navigation.inspector().to_string() << std::endl;
 
         // Propagate with path limit
         ASSERT_NEAR(pathlimit_aborter_state.path_limit(), path_limit, tol);
         lim_state.do_debug = true;
         ASSERT_FALSE(p.propagate(lim_state, lim_actor_states))
-            //<< lim_state.debug_stream.str() << std::endl;
             << lim_state._navigation.inspector().to_string() << std::endl;
 
         ASSERT_TRUE(lim_state._stepping.path_length() <
@@ -532,8 +527,6 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
         // state.do_debug = true;
         ASSERT_TRUE(p.propagate(state, actor_states))
             << navigation.inspector().to_string();
-        // std::cout << "Normal Navigation" << std::endl;
-        // std::cout << state.debug_stream.str() << std::endl;
 
         if (seqs_device.size() > 0) {
 
@@ -548,9 +541,6 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
             // direct_forward_state.do_debug = true;
             ASSERT_TRUE(direct_p.propagate(direct_forward_state,
                                            direct_forward_actor_states));
-            // std::cout << "Direct navigaiton in forward direction" <<
-            // std::endl; std::cout << direct_forward_state.debug_stream.str()
-            // << std::endl;
 
             // Check if all surfaces in the sequence are encountered
             ASSERT_TRUE(direct_forward_state._navigation.is_complete());
@@ -726,9 +716,6 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
         ASSERT_TRUE(p.propagate(state, actor_states))
             << navigation.inspector().to_string();
 
-        // std::cout << "Normal Navigation" << std::endl;
-        // std::cout << state.debug_stream.str() << std::endl;
-
         if (seqs_device.size() > 0) {
 
             auto direct_forward_actor_states = detray::tie(
@@ -742,9 +729,6 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
             // direct_forward_state.do_debug = true;
             ASSERT_TRUE(direct_p.propagate(direct_forward_state,
                                            direct_forward_actor_states));
-            // std::cout << "Direct navigaiton in forward direction" <<
-            // std::endl; std::cout << direct_forward_state.debug_stream.str()
-            // << std::endl;
 
             // Check if all surfaces in the sequence are encountered
             ASSERT_TRUE(direct_forward_state._navigation.is_complete());

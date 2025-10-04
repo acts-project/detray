@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/navigation/volume_graph.hpp"
 #include "detray/tracks/ray.hpp"
+#include "detray/utils/log.hpp"
 
 // Detray IO inlcude(s)
 #include "detray/io/utils/create_path.hpp"
@@ -87,8 +88,7 @@ class detector_scan : public test::fixture_base<> {
         // Index of the volume that the test trajectory origin lies in
         dindex start_index{0u};
 
-        std::cout << "\nINFO: Running scan on: " << m_det.name(m_names) << "\n"
-                  << std::endl;
+        DETRAY_INFO_HOST("Running scan on: " << m_det.name(m_names) << "\n");
 
         // Fill detector scan data to white board
         const std::size_t n_helices = fill_scan_data();
@@ -111,7 +111,7 @@ class detector_scan : public test::fixture_base<> {
         detray::io::file_handle debug_file{
             data_path / (prefix + "_detector_scan.txt"), io_mode};
 
-        std::cout << "\nINFO: Checking trace data...\n" << std::endl;
+        DETRAY_INFO_HOST("Checking trace data...\n");
 
         // Iterate through the scan data and perfrom checks
         std::size_t n_tracks{0u};
@@ -165,8 +165,7 @@ class detector_scan : public test::fixture_base<> {
                 *debug_file
                     << detector_scanner::print_trace(intersection_trace, j);
 
-                std::cout << "WARNING: Skipped faulty trace no. " << j
-                          << std::endl;
+                DETRAY_ERROR_HOST("Skipped faulty trace no. " << j);
                 detector_scan_traces.erase(detector_scan_traces.begin() + i);
             } else {
                 ++n_tracks;
@@ -229,14 +228,14 @@ class detector_scan : public test::fixture_base<> {
 
         if (data_files_exist) {
 
-            std::cout << "INFO: Reading data from file..." << std::endl;
+            DETRAY_INFO_HOST("Reading data from file...");
 
             // Fill the intersection traces from file
             detector_scanner::read(intersection_file_name,
                                    track_param_file_name, intersection_traces);
         } else {
 
-            std::cout << "INFO: Generating trace data..." << std::endl;
+            DETRAY_INFO_HOST("Generating trace data...");
 
             for (auto trk : trk_state_generator) {
                 // Get ground truth from track
@@ -267,12 +266,12 @@ class detector_scan : public test::fixture_base<> {
             detector_scanner::write_intersections(intersection_file_name,
                                                   intersection_traces);
 
-            std::cout << "  ->Wrote  " << intersection_traces.size()
-                      << " intersection traces to file" << std::endl;
+            DETRAY_INFO_HOST("  ->Wrote  " << intersection_traces.size()
+                                           << " intersection traces to file");
         }
 
-        std::cout << "  ->Adding " << intersection_traces.size()
-                  << " intersection traces to whiteboard" << std::endl;
+        DETRAY_INFO_HOST("  ->Adding " << intersection_traces.size()
+                                       << " intersection traces to whiteboard");
 
         // Move the data to the whiteboard
         m_whiteboard->add(m_cfg.name(), std::move(intersection_traces));

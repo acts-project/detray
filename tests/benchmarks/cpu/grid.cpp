@@ -13,6 +13,7 @@
 #include "detray/definitions/indexing.hpp"
 #include "detray/geometry/shapes/rectangle2D.hpp"
 #include "detray/utils/grid/detail/concepts.hpp"
+#include "detray/utils/log.hpp"
 
 // Detray benchmark include(s)
 #include "detray/benchmarks/types.hpp"
@@ -134,8 +135,7 @@ void BM_GRID_REGULAR_BIN_CAP1(benchmark::State &state) {
     }
 
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
-    std::cout << "BM_GRID_REGULAR_BIN_CAP1:" << std::endl;
-    std::cout << g2r.search(p).value() << std::endl;
+    DETRAY_INFO_HOST("BM_GRID_REGULAR_BIN_CAP1: " << g2r.search(p).value());
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 
@@ -158,13 +158,14 @@ void BM_GRID_REGULAR_BIN_CAP4(benchmark::State &state) {
     }
 
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
-    std::cout << "BM_GRID_REGULAR_BIN_CAP4:" << std::endl;
+    std::stringstream out_str{};
     std::size_t count{0u};
     for (const dindex entry : g2r.search(tp)) {
-        std::cout << entry << ", ";
+        out_str << entry << ", ";
         ++count;
     }
-    std::cout << "\n=> Neighbors: " << count << std::endl;
+    DETRAY_INFO_HOST("BM_GRID_REGULAR_BIN_CAP4: \n" << out_str.str());
+    DETRAY_INFO_HOST("\n=> Neighbors: " << count);
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 
@@ -187,13 +188,14 @@ void BM_GRID_REGULAR_BIN_CAP25(benchmark::State &state) {
     }
 
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
-    std::cout << "BM_GRID_REGULAR_BIN_CAP25:" << std::endl;
+    std::stringstream out_str{};
     std::size_t count{0u};
     for (const dindex entry : g2r.search(tp)) {
-        std::cout << entry << ", ";
+        out_str << entry << ", ";
         ++count;
     }
-    std::cout << "\n=> Neighbors: " << count << std::endl;
+    DETRAY_INFO_HOST("BM_GRID_REGULAR_BIN_CAP25: \n" << out_str.str());
+    DETRAY_INFO_HOST("\n=> Neighbors: " << count);
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 
@@ -216,13 +218,14 @@ void BM_GRID_REGULAR_BIN_CAP100(benchmark::State &state) {
     }
 
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
-    std::cout << "BM_GRID_REGULAR_BIN_CAP100:" << std::endl;
+    std::stringstream out_str{};
     std::size_t count{0u};
     for (const dindex entry : g2r.search(tp)) {
-        std::cout << entry << ", ";
+        out_str << entry << ", ";
         ++count;
     }
-    std::cout << "\n=> Neighbors: " << count << std::endl;
+    DETRAY_INFO_HOST("BM_GRID_REGULAR_BIN_CAP100: \n" << out_str.str());
+    DETRAY_INFO_HOST("\n=> Neighbors: " << count);
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 
@@ -247,13 +250,14 @@ void BM_GRID_REGULAR_NEIGHBOR_CAP1(benchmark::State &state) {
     }
 
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
-    std::cout << "BM_GRID_REGULAR_NEIGHBOR_CAP1:" << std::endl;
+    std::stringstream out_str{};
     std::size_t count{0u};
     for (const dindex entry : g2r.search(tp, window)) {
-        std::cout << entry << ", ";
+        out_str << entry << ", ";
         ++count;
     }
-    std::cout << "\n=> Neighbors: " << count << std::endl;
+    DETRAY_INFO_HOST("BM_GRID_REGULAR_NEIGHBOR_CAP1: \n" << out_str.str());
+    DETRAY_INFO_HOST("\n=> Neighbors: " << count);
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 
@@ -278,13 +282,14 @@ void BM_GRID_REGULAR_NEIGHBOR_CAP4(benchmark::State &state) {
     }
 
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
-    std::cout << "BM_GRID_REGULAR_NEIGHBOR_CAP4:" << std::endl;
+    std::stringstream out_str{};
     std::size_t count{0u};
     for (const dindex entry : g2r.search(tp, window)) {
-        std::cout << entry << ", ";
+        out_str << entry << ", ";
         ++count;
     }
-    std::cout << "\n=> Neighbors: " << count << std::endl;
+    DETRAY_INFO_HOST("BM_GRID_REGULAR_NEIGHBOR_CAP4: \n" << out_str.str());
+    DETRAY_INFO_HOST("\n=> Neighbors: " << count);
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 
@@ -305,8 +310,8 @@ void BM_GRID_IRREGULAR_BIN_CAP1(benchmark::State &state) {
     }
 
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
-    std::cout << "BM_GRID_IRREGULAR_BIN_CAP1:" << std::endl;
-    std::cout << g2irr.search(tp).value() << std::endl;
+    DETRAY_INFO_HOST("BM_GRID_IRREGULAR_BIN_CAP1:\n"
+                     << g2irr.search(tp).value());
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 
@@ -331,13 +336,14 @@ void BM_GRID_IRREGULAR_NEIGHBOR_CAP1(benchmark::State &state) {
     }
 
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
-    std::cout << "BM_GRID_IRREGULAR_NEIGHBOR_CAP1:" << std::endl;
+    std::stringstream out_str{};
     std::size_t count{0u};
     for (const dindex entry : g2irr.search(tp, window)) {
-        std::cout << entry << ", ";
+        out_str << entry << ", ";
         ++count;
     }
-    std::cout << "\n=> Neighbors: " << count << std::endl;
+    DETRAY_INFO_HOST("BM_GRID_IRREGULAR_NEIGHBOR_CAP1: \n" << out_str.str());
+    DETRAY_INFO_HOST("\n=> Neighbors: " << count);
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 
