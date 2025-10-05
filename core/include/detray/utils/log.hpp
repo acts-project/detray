@@ -69,7 +69,8 @@ inline std::string_view process_typename() {
 }  // namespace detray::log::detail
 
 // Define a macro that enables device logging using printf
-#if defined(__CUDACC__) || defined(__HIP__)
+#if defined(__CUDACC__) || defined(__HIP__) || \
+    defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)
 #define __DEVICE_LOGGING__
 #endif
 
