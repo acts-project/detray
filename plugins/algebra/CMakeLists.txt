@@ -6,7 +6,7 @@
 
 # Temporary setting for the scalar type, until it can be removed.
 set(DETRAY_CUSTOM_SCALARTYPE
-    "double"
+    "float"
     CACHE STRING
     "Scalar type to use in the Detray code"
 )
