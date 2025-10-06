@@ -227,7 +227,9 @@ struct propagator {
         for (unsigned int i = 0; i % 2 == 0 || propagation.is_alive(); ++i) {
 
             if (i % 2 == 0) {
-                DETRAY_DEBUG_HOST("Propagation step: " << i / 2);
+                DETRAY_VERBOSE_HOST_DEVICE("Propagation step: %d", i / 2);
+                DETRAY_VERBOSE_HOST_DEVICE("Path length: %f mm",
+                                           stepping.path_length());
 
                 // Run all registered actors/aborters
                 run_actors(actor_state_refs, propagation);
@@ -280,11 +282,11 @@ struct propagator {
         // Pass on the whether the propagation was successful
         DETRAY_VERBOSE_HOST("Finished propagation for track:\n" << track);
         if (is_complete(propagation)) {
-            DETRAY_VERBOSE_HOST("Satus: COMPLETE");
+            DETRAY_VERBOSE_HOST_DEVICE("Satus: COMPLETE");
         } else if (is_paused(propagation)) {
-            DETRAY_VERBOSE_HOST("Satus: PAUSED");
+            DETRAY_VERBOSE_HOST_DEVICE("Satus: PAUSED");
         } else {
-            DETRAY_VERBOSE_HOST("Satus: ABORT");
+            DETRAY_VERBOSE_HOST_DEVICE("Satus: ABORT");
         }
 
         return is_complete(propagation) || is_paused(propagation);

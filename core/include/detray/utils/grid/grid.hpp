@@ -390,7 +390,7 @@ class grid_impl {
     /// @returns a string stream that prints the grid details
     DETRAY_HOST
     friend std::ostream &operator<<(std::ostream &os, const grid_impl &gr) {
-        os << gr.axes();
+        os << gr.axes() << std::endl;
 
         for (glob_bin_index gbin = 0; gbin < gr.nbins(); ++gbin) {
             os << "bin " << gbin << ": ";

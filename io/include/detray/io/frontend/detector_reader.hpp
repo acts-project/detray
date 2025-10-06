@@ -14,6 +14,7 @@
 #include "detray/io/frontend/impl/json_readers.hpp"
 #include "detray/utils/consistency_checker.hpp"
 #include "detray/utils/log.hpp"
+#include "detray/utils/print_detector.hpp"
 
 // System include(s)
 #include <filesystem>
@@ -46,9 +47,9 @@ void read_components_from_file(const std::vector<std::string>& file_names,
         for (const auto& [file_name, reader] : readers.readers_map()) {
             err_str << "-> " << file_name << std::endl;
         }
-        DETRAY_WARN_HOST("Not all files were registered to a reader. "
-                         << "Successfully registered files:\n"
-                         << err_str.str());
+        DETRAY_ERROR_HOST("Not all files were registered to a reader. "
+                          << "Successfully registered files:\n"
+                          << err_str.str());
     }
 
     // Read the data into the detector builder
@@ -93,6 +94,8 @@ auto read_detector(vecmem::memory_resource& resc,
         // This will throw an exception in case of inconsistencies
         detray::detail::check_consistency(det, cfg.verbose_check(), names);
     }
+
+    DETRAY_DEBUG_HOST("\n" << detray::utils::print_detector(det, names));
 
     return std::make_pair(std::move(det), std::move(names));
 }

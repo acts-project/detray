@@ -51,19 +51,18 @@ class material_map_reader {
     static void from_payload(detector_builder<typename detector_t::metadata,
                                               volume_builder> &det_builder,
                              payload_type &&grids_data) {
-        DETRAY_VERBOSE_HOST("Material map reader from_payload");
+
+        DETRAY_VERBOSE_HOST("Reading payload object...");
 
         using scalar_t = dscalar<typename detector_t::algebra_type>;
         using mat_factory_t = material_map_factory<detector_t, bin_index_type>;
         using mat_data_t = typename mat_factory_t::data_type;
         using mat_id = typename detector_t::materials::id;
 
-        DETRAY_DEBUG_HOST("Converting material grids for "
-                          << grids_data.grids.size() << " volumes");
+        DETRAY_VERBOSE_HOST("Converting material grids for "
+                            << grids_data.grids.size() << " volumes");
         // Convert the material volume by volume
         for (const auto &[vol_idx, mat_grids] : grids_data.grids) {
-
-            DETRAY_DEBUG_HOST(" - volume index from payload is " << vol_idx);
 
             if (!det_builder.has_volume(vol_idx)) {
                 std::stringstream err_stream;
@@ -74,74 +73,71 @@ class material_map_reader {
                 throw std::invalid_argument(err_stream.str());
             }
 
+            DETRAY_VERBOSE_HOST(
+                "Reading material maps in volume: "
+                << det_builder[static_cast<dindex>(vol_idx)]->name());
+
             // Decorate the current volume builder with material maps
             auto vm_builder =
                 det_builder
                     .template decorate<material_map_builder<detector_t, dim>>(
                         static_cast<dindex>(vol_idx));
 
+            DETRAY_VERBOSE_HOST("-> Found " << mat_grids.size()
+                                            << " material grids:");
+
             // Add the material data to the factory
             auto mat_factory = std::make_shared<
                 material_map_factory<detector_t, bin_index_type>>();
-
-            DETRAY_DEBUG_HOST("Converting " << mat_grids.size()
-                                            << " material grids");
 
             // Convert the material grid of each surface
             for (const auto &[idx, grid_data] :
                  detray::views::enumerate(mat_grids)) {
 
-                DETRAY_DEBUG_HOST(
-                    "- grid owner =" << grid_data.owner_link.link);
-
-                mat_id map_id =
-                    from_payload<io::material_id::n_mats, detector_t>(
-                        grid_data.grid_link.type);
-                DETRAY_DEBUG_HOST("-> Material map id: " << map_id);
-
+                DETRAY_VERBOSE_HOST("Reading material map payload #" << idx
+                                                                     << "...");
                 // Get the number of bins per axis
                 std::vector<std::size_t> n_bins{};
                 for (const auto &axis_data : grid_data.axes) {
                     n_bins.push_back(axis_data.bins);
                 }
 
-                DETRAY_DEBUG_HOST("--> num dims=" << n_bins.size() << " : " <<
-                                  [&] {
-                                      std::stringstream os;
-                                      for (const auto &[i, count] :
-                                           detray::views::enumerate(n_bins)) {
-                                          if (i > 0) {
-                                              os << ", ";
-                                          }
-                                          os << "#" << i << " -> " << count;
-                                      }
-                                      return os.str();
-                                  }());
+                DETRAY_VERBOSE_HOST("-> Belongs to "
+                                    << (dim == 2 ? "surface" : "volume")
+                                    << " = " << grid_data.owner_link.link);
 
+                mat_id map_id =
+                    from_payload<io::material_id::n_mats, detector_t>(
+                        grid_data.grid_link.type);
+                DETRAY_VERBOSE_HOST("-> Type id: " << map_id);
+
+                DETRAY_VERBOSE_HOST("-> Reading axis bins: Dims = " << dim);
+                for ([[maybe_unused]] const auto &[i, count] :
+                     detray::views::enumerate(n_bins)) {
+                    DETRAY_VERBOSE_HOST("--> Axis " << i << ": " << count
+                                                    << " bins");
+                }
                 // Get the axis spans
-                DETRAY_DEBUG_HOST("Converting axis spans:");
+                DETRAY_VERBOSE_HOST("-> Reading axis spans:");
                 std::vector<std::vector<scalar_t>> axis_spans = {};
                 for (const auto &[i, axis_data] :
                      detray::views::enumerate(grid_data.axes)) {
                     axis_spans.push_back(
                         {static_cast<scalar_t>(axis_data.edges.front()),
                          static_cast<scalar_t>(axis_data.edges.back())});
-                    DETRAY_DEBUG_HOST("- #" << i << " ["
-                                            << axis_spans.back().at(0) << ", "
-                                            << axis_spans.back().at(1) << "]");
+                    DETRAY_VERBOSE_HOST(
+                        "--> Axis " << i << " [" << axis_spans.back().at(0)
+                                    << ", " << axis_spans.back().at(1) << "]");
                 }
 
                 // Get the local bin indices and the material parametrization
-                DETRAY_DEBUG_HOST(
-                    "Get the local bin indices and the material "
-                    "parametrization");
+                DETRAY_VERBOSE_HOST("-> Reading bin content...");
 
                 std::vector<bin_index_type> loc_bins{};
                 mat_data_t mat_data{detail::basic_converter::from_payload(
                     grid_data.owner_link)};
-                DETRAY_DEBUG_HOST(
-                    "Material data with index: " << grid_data.owner_link.link);
-                DETRAY_DEBUG_HOST("Have " << grid_data.bins.size() << " bins");
+                DETRAY_VERBOSE_HOST("--> Found " << grid_data.bins.size()
+                                                 << " bins");
                 for (const auto &bin_data : grid_data.bins) {
 
                     assert(dim == bin_data.loc_index.size() &&
@@ -164,15 +160,18 @@ class material_map_reader {
                     }
                 }
 
-                DETRAY_DEBUG_HOST("Produced material data: " << mat_data);
+                DETRAY_VERBOSE_HOST("Finished reading data for material map #"
+                                    << idx);
+                DETRAY_DEBUG_HOST(mat_data);
 
+                DETRAY_VERBOSE_HOST("Add material data to factory...");
                 mat_factory->add_material(
                     map_id, std::move(mat_data), std::move(n_bins),
                     std::move(axis_spans), std::move(loc_bins));
             }
 
             // Add the material maps to the volume
-            DETRAY_DEBUG_HOST("Add the material maps to the volume");
+            DETRAY_VERBOSE_HOST("Add the material maps to the volume:");
             vm_builder->add_surfaces(mat_factory);
         }
     }

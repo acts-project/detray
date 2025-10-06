@@ -189,7 +189,7 @@ struct single_axis {
         os << "bounds: " << ax.bounds() << std::endl;
         os << "binning: " << ax.binning() << std::endl;
         os << "n-bins: " << ax.nbins() << std::endl;
-        os << "min: " << ax.min() << ", max: " << ax.max();
+        os << "span: [" << ax.min() << ", " << ax.max() << "]";
 
         return os;
     }

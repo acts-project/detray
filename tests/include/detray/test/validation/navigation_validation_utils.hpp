@@ -937,7 +937,7 @@ inline auto print_efficiency(std::size_t n_tracks,
     if (n_miss_nav.n_total() > 0u || n_miss_truth.n_total() > 0u ||
         n_fatal_error > 0u || n_matching_error > 0u) {
 
-        std::cout
+        std::clog
             << std::left << "-----------------------------------"
             << "Error Statistic:"
             << "\nTotal number of tracks: " << n_tracks

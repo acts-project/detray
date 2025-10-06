@@ -49,7 +49,7 @@ class homogeneous_material_reader {
                                               volume_builder>& det_builder,
                              const payload_type& det_mat_data) {
 
-        DETRAY_VERBOSE_HOST("Homogeneous material reader from_payload");
+        DETRAY_VERBOSE_HOST("Reading payload object...");
 
         using scalar_t = dscalar<typename detector_t::algebra_type>;
         using mat_id = typename detector_t::materials::id;
