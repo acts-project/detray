@@ -282,11 +282,11 @@ struct propagator {
         // Pass on the whether the propagation was successful
         DETRAY_VERBOSE_HOST("Finished propagation for track:\n" << track);
         if (is_complete(propagation)) {
-            DETRAY_VERBOSE_HOST_DEVICE("Satus: COMPLETE");
+            DETRAY_VERBOSE_HOST_DEVICE("Status: COMPLETE");
         } else if (is_paused(propagation)) {
-            DETRAY_VERBOSE_HOST_DEVICE("Satus: PAUSED");
+            DETRAY_VERBOSE_HOST_DEVICE("Status: PAUSED");
         } else {
-            DETRAY_VERBOSE_HOST_DEVICE("Satus: ABORT");
+            DETRAY_VERBOSE_HOST_DEVICE("Status: ABORT");
         }
 
         return is_complete(propagation) || is_paused(propagation);
