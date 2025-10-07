@@ -194,7 +194,7 @@ inline void svg_display(
         draw_intersection_and_traj_svg(gctx, il, truth_trace, traj, traj_name,
                                        recorded_trace, xy, highlight_idx);
 
-    const auto vol_xy_svg = il.draw_volumes(volumes, xy, gctx);
+    const auto [vol_xy_svg, _] = il.draw_volumes(volumes, xy, gctx);
     detray::svgtools::write_svg(
         path / (outfile + "_" + vol_xy_svg._id + "_" + traj_name),
         {xy_axis, vol_xy_svg, svg_traj});

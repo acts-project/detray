@@ -60,9 +60,13 @@ GTEST_TEST(svgtools, volumes) {
                        10u, 11u, 12u, 13u, 14u, 15u, 16u, 17u, 18u, 19u};
 
     for (detray::dindex i : indices) {
-        std::string name = "test_svgtools_volume" + std::to_string(i);
         // Visualization of volume i:
-        const auto vol_svg_xy = il.draw_volume(i, xy);
-        const auto vol_svg_zr = il.draw_volume(i, zr);
+        const auto [vol_svg_xy, xy_grid] = il.draw_volume(i, xy);
+        detray::svgtools::write_svg("test_svgtools_" + vol_svg_xy._id,
+                                    {axes, vol_svg_xy});
+
+        const auto [vol_svg_zr, zr_grid] = il.draw_volume(i, zr);
+        detray::svgtools::write_svg("test_svgtools_" + vol_svg_zr._id,
+                                    {axes, vol_svg_zr});
     }
 }

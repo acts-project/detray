@@ -135,7 +135,7 @@ struct type_and_edge_getter {
         if constexpr (concepts::grid<value_t>) {
             // Only two dimensional grids for actsvg
             if constexpr (value_t::dim == 2) {
-                return grid_type_and_edges(group[index], view);
+                return grid_type_and_edges(group.at(index), view);
             }
         }
 

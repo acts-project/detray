@@ -50,7 +50,7 @@ inline void set_vertices(
     // Approximate any arcs in the mask shape with ten line segments
     auto vertices = m.vertices(10u);
     for (std::size_t i = 0; i < vertices.size(); i++) {
-        p_surface._vertices.push_back(trf.point_to_global(vertices[i]));
+        p_surface._vertices.push_back(trf.point_to_global(vertices.at(i)));
     }
 }
 

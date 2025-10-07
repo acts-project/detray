@@ -72,7 +72,7 @@ GTEST_TEST(svgtools, web) {
 
     // Draw the volumes and include them in the svg vector.
     for (detray::dindex i : indices) {
-        const auto svg = il.draw_volume(i, view);
+        const auto [svg, _] = il.draw_volume(i, view);
         svgs.push_back(svg);
     }
 
