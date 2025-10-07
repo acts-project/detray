@@ -160,7 +160,7 @@ class surface_factory : public surface_factory_interface<detector_t> {
         // In case the surfaces container is prefilled with other surfaces
         const auto surfaces_offset{static_cast<dindex>(surfaces.size())};
 
-        DETRAY_VERBOSE_HOST("-> Have " << size() << " surfaces");
+        DETRAY_VERBOSE_HOST("-> Adding " << size() << " surfaces");
 
         // Nothing to construct
         if (size() == 0u) {

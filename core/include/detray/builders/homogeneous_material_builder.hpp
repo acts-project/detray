@@ -59,7 +59,7 @@ class homogeneous_material_builder final : public volume_decorator<detector_t> {
             std::dynamic_pointer_cast<homogeneous_material_factory<detector_t>>(
                 sf_factory);
         if (mat_factory) {
-            DETRAY_VERBOSE_HOST("-> found " << DETRAY_TYPENAME(
+            DETRAY_VERBOSE_HOST("-> found decoration: " << DETRAY_TYPENAME(
                                     homogeneous_material_factory<detector_t>));
             (*mat_factory)(this->surfaces(), m_materials);
             return;
@@ -68,7 +68,7 @@ class homogeneous_material_builder final : public volume_decorator<detector_t> {
             homogeneous_material_generator<detector_t>>(sf_factory);
         if (mat_generator) {
             DETRAY_VERBOSE_HOST(
-                "-> found "
+                "-> found decoration: "
                 << DETRAY_TYPENAME(homogeneous_material_generator<detector_t>));
             (*mat_generator)(this->surfaces(), m_materials);
             return;

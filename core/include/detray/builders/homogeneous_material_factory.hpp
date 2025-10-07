@@ -128,20 +128,20 @@ class material_data {
     /// Output stream operator for material_data
     DETRAY_HOST friend std::ostream &operator<<(std::ostream &os,
                                                 const material_data &mat_data) {
-        os << "material_data{sf_index: ";
+        os << "material_data{\nsf_index: ";
         if (detail::is_invalid_value(mat_data.m_sf_index)) {
             os << "invalid";
         } else {
             os << mat_data.m_sf_index;
         }
-        os << ", materials: [";
+        os << ", materials: [\n";
         for (std::size_t i = 0; i < mat_data.m_mat.size(); ++i) {
             if (i > 0) {
-                os << ", ";
+                os << ",\n";
             }
             os << mat_data.m_mat[i];
         }
-        os << "], thickness: [";
+        os << "],\nthickness: [\n";
         for (std::size_t i = 0; i < mat_data.m_thickness.size(); ++i) {
             if (i > 0) {
                 os << ", ";

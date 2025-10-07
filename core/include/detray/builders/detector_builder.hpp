@@ -135,6 +135,9 @@ class detector_builder {
         // TODO: Add sorting, data deduplication etc. here later...
 
         DETRAY_INFO_HOST("Detector building complete: " << name());
+        DETRAY_VERBOSE_HOST("-> Built " << det.volumes().size() << " volumes");
+        DETRAY_VERBOSE_HOST("-> Built " << det.surfaces().size()
+                                        << " surfaces");
 
         return det;
     }
@@ -163,7 +166,8 @@ class detector_builder {
     /// Put the volumes into a search data structure
     template <typename... Args>
     DETRAY_HOST void set_volume_finder([[maybe_unused]] Args&&... args) {
-        DETRAY_VERBOSE_HOST("Setting volume finder for detector " << name());
+        DETRAY_VERBOSE_HOST("Setting volume finder for detector: '" << name()
+                                                                    << "'");
 
         using vol_finder_t = typename detector_type::volume_finder;
 

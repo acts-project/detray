@@ -275,7 +275,8 @@ class volume_builder : public volume_builder_interface<detector_t> {
 
             // Add only the portals to the brute force method
             DETRAY_VERBOSE_HOST(
-                "-> Register portals/passives with brute force accelerator");
+                "-> Register only portals/passives with brute force "
+                "accelerator");
 
             det._accelerators.template push_back<default_acc_id>(
                 std::move(portals));

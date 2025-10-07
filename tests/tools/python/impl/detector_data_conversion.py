@@ -83,8 +83,12 @@ def merge_surfaces(logging, in_json):
                 continue
 
             # Add portals to shape dict
-            shape_id = surface["mask"]["shape"]
-            __add_to_dict(shape_id, surface, shape_dict)
+            if "mask" in surface:
+                shape_id = surface["mask"]["shape"]
+                __add_to_dict(shape_id, surface, shape_dict)
+            elif "masks" in surface:
+                shape_id = surface["masks"][0]["shape"]
+                __add_to_dict(shape_id, surface, shape_dict)
 
         # Create new surfaces of same shape by mergin masks into list
 
@@ -98,7 +102,11 @@ def merge_surfaces(logging, in_json):
         for rings in ring_dict.values():
             # Nothing to merge, just append to output
             if len(rings) == 1:
-                boundaries = rings[0]["mask"]["boundaries"]
+                boundaries = (
+                    rings[0]["mask"]["boundaries"]
+                    if "mask" in rings[0]
+                    else rings[0]["masks"][0]["boundaries"]
+                )
                 extent = [boundaries[0], boundaries[1]]
                 sf_idx = __append_surface(
                     volume, rings[0], extent, sf_idx, sf_index_dict
@@ -110,30 +118,44 @@ def merge_surfaces(logging, in_json):
             disc = copy.deepcopy(rings[0])
 
             # Remove old mask entry and replace by masks list
-            if "mask" not in disc:
+            if "mask" in disc:
+                del disc["mask"]
+                disc["masks"] = []
+            elif "masks" in disc and len(disc["masks"]) > 1:
                 logging.error(f"Geometry: surface already converted {disc}")
 
-            del disc["mask"]
-            disc["masks"] = []
-
             for ring in rings:
-                disc["masks"].append(ring["mask"])
+                disc["masks"].append(
+                    ring["mask"] if "mask" in ring else ring["masks"][0]
+                )
 
             # Copy disc into volume
-            boundaries = rings[0]["mask"]["boundaries"]
+            boundaries = (
+                rings[0]["mask"]["boundaries"]
+                if "mask" in ring
+                else ring["masks"][0]["boundaries"]
+            )
             extent = [boundaries[0], boundaries[1]]
             sf_idx = __append_surface(volume, disc, extent, sf_idx, sf_index_dict)
 
             # Add also the other surfaces to the dict
             for i in range(1, len(rings)):
-                boundaries = rings[i]["mask"]["boundaries"]
+                boundaries = (
+                    rings[i]["mask"]["boundaries"]
+                    if "mask" in ring
+                    else ring["masks"][0]["boundaries"]
+                )
                 extent = [boundaries[0], boundaries[1]]
                 sf_index_dict[rings[i]["index_in_coll"]] = (sf_idx - 1, extent)
 
         # Identify the rings that can be merged to a disc, by comparing the z-position (portals do not have rotations or x, y translation)
         cyl_dict = {}
         for cyl in shape_dict[4]:
-            rad = cyl["mask"]["boundaries"][0]
+            rad = (
+                cyl["mask"]["boundaries"][0]
+                if "mask" in cyl
+                else cyl["masks"][0]["boundaries"][0]
+            )
             __add_to_dict(rad, cyl, cyl_dict)
 
         for sub_cyls in cyl_dict.values():
@@ -141,15 +163,22 @@ def merge_surfaces(logging, in_json):
             for sub_cyl in sub_cyls:
                 # Apply the translation of the surface to the mask z-boundaries
                 z_shift = sub_cyl["transform"]["translation"][2]
-
-                sub_cyl["mask"]["boundaries"][1] += z_shift
-                sub_cyl["mask"]["boundaries"][2] += z_shift
+                if "mask" in sub_cyl:
+                    sub_cyl["mask"]["boundaries"][1] += z_shift
+                    sub_cyl["mask"]["boundaries"][2] += z_shift
+                else:
+                    sub_cyl["masks"][0]["boundaries"][1] += z_shift
+                    sub_cyl["masks"][0]["boundaries"][2] += z_shift
 
                 sub_cyl["transform"]["translation"] = [0.0, 0.0, 0.0]
 
             # Nothing to merge, just append to output
             if len(sub_cyls) == 1:
-                boundaries = sub_cyls[0]["mask"]["boundaries"]
+                boundaries = (
+                    sub_cyls[0]["mask"]["boundaries"]
+                    if "mask" in sub_cyl
+                    else sub_cyls[0]["masks"][0]["boundaries"]
+                )
                 extent = [boundaries[1], boundaries[2]]
                 sf_idx = __append_surface(
                     volume, sub_cyls[0], extent, sf_idx, sf_index_dict
@@ -160,21 +189,27 @@ def merge_surfaces(logging, in_json):
             cyl = copy.deepcopy(sub_cyls[0])
 
             # Remove old mask entry and replace by masks list
-            if "mask" not in cyl:
+            if "mask" in cyl:
+                del cyl["mask"]
+                cyl["masks"] = []
+            elif "masks" in cyl and len(cyl["masks"]) > 1:
                 logging.error(f"Geometry: surface already converted {cyl}")
-
-            del cyl["mask"]
-            cyl["masks"] = []
 
             # Remove translation of the merged cylinder
             cyl["transform"]["translation"] = [0.0, 0.0, 0.0]
 
             # Add the sub cylinders as masks
             for sub_cyl in sub_cyls:
-                cyl["masks"].append(sub_cyl["mask"])
+                cyl["masks"].append(
+                    sub_cyl["mask"] if "mask" in sub_cyl else sub_cyl["masks"][0]
+                )
 
             # Extent of the first cylinder
-            boundaries = sub_cyls[0]["mask"]["boundaries"]
+            boundaries = (
+                sub_cyls[0]["mask"]["boundaries"]
+                if "mask" in sub_cyl
+                else sub_cyl["masks"][0]["boundaries"]
+            )
             extent = [boundaries[1], boundaries[2]]
 
             # Copy disc into volume
@@ -182,7 +217,11 @@ def merge_surfaces(logging, in_json):
 
             # Add also the other surfaces to the dict
             for i in range(1, len(sub_cyls)):
-                boundaries = sub_cyls[i]["mask"]["boundaries"]
+                boundaries = (
+                    sub_cyls[i]["mask"]["boundaries"]
+                    if "mask" in sub_cyl
+                    else sub_cyl["masks"][0]["boundaries"]
+                )
                 extent = [boundaries[1], boundaries[2]]
                 sf_index_dict[sub_cyls[i]["index_in_coll"]] = (sf_idx - 1, extent)
 
@@ -192,7 +231,8 @@ def merge_surfaces(logging, in_json):
     logging.info(f"Geometry: Converted {len(out_json['data']['volumes'])} volumes")
 
     # Copy the volume search data structure
-    out_json["data"]["volume_grid"] = in_json["data"]["volume_grid"]
+    if "volume_grid" in in_json["data"]:
+        out_json["data"]["volume_grid"] = in_json["data"]["volume_grid"]
 
     logging.info("Geometry: Converted volume acceleration structure")
 

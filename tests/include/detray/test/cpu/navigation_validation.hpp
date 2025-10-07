@@ -328,7 +328,7 @@ class navigation_validation : public test::fixture_base<> {
         material_validator::write_material(mat_path.string(), mat_records);
 
         DETRAY_INFO_HOST(
-            "Wrote distance to boundary of missed intersections to: "
+            "Wrote distance to boundary of missed intersections in: "
             << missed_path);
         DETRAY_INFO_HOST("Wrote truth track states in: " << truth_trk_path);
         DETRAY_INFO_HOST("Wrote recorded track states in: " << trk_path);

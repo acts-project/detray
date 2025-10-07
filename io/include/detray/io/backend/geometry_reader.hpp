@@ -60,7 +60,7 @@ class geometry_reader {
                                               volume_builder>& det_builder,
                              const payload_type& det_data) {
 
-        DETRAY_VERBOSE_HOST("Geometry reader from_payload");
+        DETRAY_VERBOSE_HOST("Reading payload object...");
 
         // Can hold all types of surface fatory needed for the detector
         using sf_factory_ptr_t =
@@ -92,9 +92,8 @@ class geometry_reader {
             std::map<io_shape_id, sf_factory_ptr_t> sf_factories;
 
             // Add the surfaces to the factories
-            DETRAY_DEBUG_HOST("Adding "
-                              << vol_data.surfaces.size()
-                              << " surfaces to portal and surface factories");
+            DETRAY_DEBUG_HOST("Discovered " << vol_data.surfaces.size()
+                                            << " surfaces in volume payload");
             for (const auto& [sf_idx, sf_data] :
                  detray::views::enumerate(vol_data.surfaces)) {
 
@@ -105,13 +104,10 @@ class geometry_reader {
                                     ? pt_factories
                                     : sf_factories};
 
-                DETRAY_DEBUG_HOST("- #" << sf_idx << " is " << sf_data.type);
-
                 // @TODO use portal cylinders until intersectors are fixed
                 auto shape_id{mask_data.front().shape == io_shape_id::cylinder2
                                   ? io_shape_id::portal_cylinder2
                                   : mask_data.front().shape};
-                DETRAY_DEBUG_HOST("--> shape=" << shape_id);
 
                 // Check if a fitting factory already exists. If not, add it
                 // dynamically
@@ -119,11 +115,23 @@ class geometry_reader {
                 if (auto search = factories.find(key);
                     search == factories.end()) {
                     DETRAY_DEBUG_HOST(
-                        "Adding new factory for shape id with key " << key);
+                        "Creating new surface factory for shape id: " << key);
                     factories[key] = std::move(
                         init_factory<io_shape_id::n_shapes, detector_t>(
                             shape_id));
                 }
+
+                DETRAY_DEBUG_HOST("-> Surface #" << sf_idx << " is "
+                                                 << sf_data.type);
+                DETRAY_DEBUG_HOST("--> shape = " << shape_id);
+                for ([[maybe_unused]] const auto& m_data : mask_data) {
+                    DETRAY_DEBUG_HOST("--> boundaries = ["
+                                      << DETRAY_LOG_VECTOR(m_data.boundaries)
+                                      << "]");
+                }
+                DETRAY_DEBUG_HOST("--> pos = ["
+                                  << DETRAY_LOG_VECTOR(sf_data.transform.tr)
+                                  << "]");
 
                 // Add the data to the factory
                 factories.at(key)->push_back(from_payload<detector_t>(sf_data));
@@ -131,16 +139,15 @@ class geometry_reader {
 
             // Add all portals and surfaces to the volume
             typename detector_t::geometry_context geo_ctx{};
-            DETRAY_DEBUG_HOST("Adding "
-                              << pt_factories.size()
-                              << " portal factories to volume builder");
             for (auto [key, pt_factory] : pt_factories) {
+                DETRAY_DEBUG_HOST(
+                    "Adding '" << key << "' portal factory to volume builder");
                 vbuilder->add_surfaces(pt_factory, geo_ctx);
             }
-            DETRAY_DEBUG_HOST("Adding "
-                              << sf_factories.size()
-                              << " surface factories to volume builder");
+
             for (auto [key, sf_factory] : sf_factories) {
+                DETRAY_DEBUG_HOST(
+                    "Adding '" << key << "' surface factory to volume builder");
                 vbuilder->add_surfaces(sf_factory, geo_ctx);
             }
         }
@@ -263,12 +270,17 @@ class geometry_reader {
         }
         // Test some edge cases
         if (shape_id == io_shape_id::unknown) {
-            throw std::invalid_argument(
-                "Unknown mask shape id in geometry file!");
+            std::string err_str{"Unknown mask shape id in geometry file!"};
+
+            DETRAY_FATAL_HOST(err_str);
+            throw std::invalid_argument(err_str);
         } else {
-            throw std::invalid_argument(
+            std::string err_str{
                 "Given shape id could not be matched to a mask type: " +
-                std::to_string(static_cast<std::int64_t>(shape_id)));
+                std::to_string(static_cast<std::int64_t>(shape_id))};
+
+            DETRAY_FATAL_HOST(err_str);
+            throw std::invalid_argument(err_str);
         }
 
         // Cannot be reached
