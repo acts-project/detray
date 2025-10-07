@@ -48,7 +48,7 @@ inline auto information_section(
 
     const auto position =
         use_relative_offset
-            ? (screen_offset + view(std::vector{is._position})[0])
+            ? (screen_offset + view(std::vector{is._position}).at(0))
             : screen_offset;
 
     return actsvg::draw::connected_info_box(

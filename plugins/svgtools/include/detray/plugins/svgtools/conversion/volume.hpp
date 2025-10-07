@@ -90,7 +90,7 @@ auto volume(const typename detector_t::geometry_context& context,
 
             for (std::size_t i = 0u; i < p_surfaces.size(); ++i) {
                 auto& p_surface =
-                    p_volume._v_surfaces.emplace_back(p_surfaces[i]);
+                    p_volume._v_surfaces.emplace_back(p_surfaces.at(i));
 
                 std::string sf_info{"* index " + std::to_string(sf.index()) +
                                     "* mask " + std::to_string(i)};

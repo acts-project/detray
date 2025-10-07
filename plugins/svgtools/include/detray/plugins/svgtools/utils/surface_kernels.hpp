@@ -30,14 +30,14 @@ struct outer_radius_getter {
     template <typename mask_group_t, concepts::index index_t>
     DETRAY_HOST inline auto operator()(const mask_group_t& mask_group,
                                        const index_t& index) const {
-        return outer_radius(mask_group[index]);
+        return outer_radius(mask_group.at(index));
     }
 
     template <typename mask_group_t, concepts::interval idx_range_t>
     DETRAY_HOST inline auto operator()(const mask_group_t& mask_group,
                                        const idx_range_t& idx_range) const {
         // All masks on the same cylinder surface have the same radius
-        return outer_radius(mask_group[idx_range.lower()]);
+        return outer_radius(mask_group.at(idx_range.lower()));
     }
 
     private:
@@ -82,7 +82,7 @@ struct link_start_getter {
                                        const index_t& index,
                                        const transform3_t& transform,
                                        const std::size_t = 0) const {
-        return link_start(mask_group[index], transform);
+        return link_start(mask_group.at(index), transform);
     }
 
     template <typename mask_group_t, concepts::interval idx_range_t,
@@ -92,7 +92,8 @@ struct link_start_getter {
                                        const transform3_t& transform,
                                        const std::size_t mask_idx) const {
         assert(mask_idx < idx_range.size());
-        return link_start(mask_group[idx_range.lower() + mask_idx], transform);
+        return link_start(mask_group.at(idx_range.lower() + mask_idx),
+                          transform);
     }
 
     private:
@@ -206,7 +207,7 @@ struct link_end_getter {
         const point3_t& surface_point, const vector3_t& surface_normal,
         const scalar_t& link_length, const std::size_t = 0) const {
 
-        return link_dir(mask_group[index], detector, volume, surface_point,
+        return link_dir(mask_group.at(index), detector, volume, surface_point,
                         surface_normal) *
                    link_length +
                surface_point;
@@ -222,7 +223,7 @@ struct link_end_getter {
         const point3_t& surface_point, const vector3_t& surface_normal,
         const scalar_t& link_length, const std::size_t mask_idx) const {
         assert(mask_idx < idx_range.size());
-        return link_dir(mask_group[idx_range.lower() + mask_idx], detector,
+        return link_dir(mask_group.at(idx_range.lower() + mask_idx), detector,
                         volume, surface_point, surface_normal) *
                    link_length +
                surface_point;
