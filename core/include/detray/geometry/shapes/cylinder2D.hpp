@@ -231,13 +231,15 @@ class cylinder2D {
         constexpr auto tol{10.f * std::numeric_limits<scalar_t>::epsilon()};
 
         if (bounds[e_r] < tol) {
-            os << "ERROR: Radius must be in the range (0, numeric_max)"
+            os << "DETRAY ERROR (HOST): Radius must be in the range (0, "
+                  "numeric_max)"
                << std::endl;
             return false;
         }
         if (bounds[e_lower_z] >= bounds[e_upper_z] ||
             math::fabs(bounds[e_lower_z] - bounds[e_upper_z]) < tol) {
-            os << "ERROR: Neg. half length must be smaller than pos. half "
+            os << "DETRAY ERROR (HOST): Neg. half length must be smaller than "
+                  "pos. half "
                   "length.";
             return false;
         }

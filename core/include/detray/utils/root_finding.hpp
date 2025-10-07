@@ -15,11 +15,13 @@
 #include "detray/definitions/units.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 #include "detray/utils/invalid_values.hpp"
+#include "detray/utils/log.hpp"
 
 // System include(s).
 #include <algorithm>
 #include <iostream>
 #include <limits>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 
@@ -61,9 +63,7 @@ DETRAY_HOST_DEVICE inline bool expand_bracket(const scalar_t a,
         // No interval could be found to bracket the root
         // Might be correct, if there is not root
         if ((n_tries == 1000u) || !std::isfinite(f_l) || !std::isfinite(f_u)) {
-#ifndef NDEBUG
-            std::cout << "WARNING: Could not bracket a root" << std::endl;
-#endif
+            DETRAY_VERBOSE_HOST("Could not bracket a root");
             bracket = {a, b};
             return false;
         }
@@ -131,10 +131,7 @@ DETRAY_HOST_DEVICE inline std::pair<scalar_t, scalar_t> newton_raphson_safe(
                                  ((br[0] < -max_path && br[1] < -max_path) ||
                                   (br[0] > max_path && br[1] > max_path))};
         if (bracket_outside_tol) {
-#ifndef NDEBUG
-            std::cout << "INFO: Root outside maximum search area - skipping"
-                      << std::endl;
-#endif
+            DETRAY_VERBOSE_HOST("Root outside maximum search area - skipping");
             return std::make_pair(inv, inv);
         }
 
@@ -201,9 +198,8 @@ DETRAY_HOST_DEVICE inline std::pair<scalar_t, scalar_t> newton_raphson_safe(
         } else {
             // No intersection can be found if dividing by zero
             if (!is_bracketed && math::fabs(df_s) == 0.f) {
-                std::cout
-                    << "WARNING: Encountered invalid derivative - skipping"
-                    << std::endl;
+                DETRAY_VERBOSE_HOST(
+                    "Encountered invalid derivative - skipping");
 
                 return std::make_pair(inv, inv);
             }
@@ -223,11 +219,10 @@ DETRAY_HOST_DEVICE inline std::pair<scalar_t, scalar_t> newton_raphson_safe(
         if (math::fabs(s) > max_path && math::fabs(s_prev) > max_path &&
             ((a < -max_path && b < -max_path) ||
              (a > max_path && b > max_path))) {
-#ifndef NDEBUG
-            std::cout
-                << "WARNING: Root finding left the search space - skipping"
-                << std::endl;
-#endif
+
+            DETRAY_VERBOSE_HOST(
+                "Root finding left the search space - skipping");
+
             return std::make_pair(inv, inv);
         }
 
@@ -237,18 +232,17 @@ DETRAY_HOST_DEVICE inline std::pair<scalar_t, scalar_t> newton_raphson_safe(
 
             // Should have found the root
             if (is_bracketed) {
-                throw std::runtime_error(
-                    "ERROR: Helix intersector did not "
-                    "find root for s=" +
-                    std::to_string(s) + " in [" + std::to_string(a) + ", " +
-                    std::to_string(b) + "]");
+                std::stringstream err_str{};
+                err_str << "Helix intersector did not find root for s=" << s
+                        << " in [" << a << ", " << b << "]";
+
+                DETRAY_FATAL_HOST(err_str.str());
+                throw std::runtime_error(err_str.str());
             } else {
-#ifndef NDEBUG
-                std::cout << "WARNING: Helix intersector did not "
-                             "converge after "
-                          << n_tries << " steps unbracketed search - skipping"
-                          << std::endl;
-#endif
+                DETRAY_VERBOSE_HOST(
+                    "Helix intersector did not "
+                    "converge after "
+                    << n_tries << " steps unbracketed search - skipping");
             }
             return std::make_pair(inv, inv);
         }

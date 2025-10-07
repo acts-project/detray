@@ -10,7 +10,6 @@
 // Project include(s).
 #include "detray/definitions/detail/macros.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
-#include "detray/navigation/detail/print_state.hpp"
 #include "detray/navigation/direct_navigator.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 #include "detray/navigation/navigator.hpp"
@@ -19,6 +18,7 @@
 #include "detray/propagator/concepts.hpp"
 #include "detray/propagator/propagation_config.hpp"
 #include "detray/tracks/tracks.hpp"
+#include "detray/utils/log.hpp"
 
 // System include(s).
 #include <iomanip>
@@ -160,9 +160,6 @@ struct propagator {
         context_type _context;
 
         bool do_debug = false;
-#if defined(__NO_DEVICE__)
-        std::stringstream debug_stream{};
-#endif
     };
 
     /// Propagate method finale: Return whether or not the propagation
@@ -207,6 +204,8 @@ struct propagator {
         const auto &track = stepping();
         assert(!track.is_invalid());
 
+        DETRAY_VERBOSE_HOST("Starting propagation for track:\n" << track);
+
         // Initialize the navigation
         m_navigator.init(track, navigation, m_cfg.navigation, context);
         propagation._heartbeat = navigation.is_alive();
@@ -226,7 +225,10 @@ struct propagator {
         //
         // ANSNANSNANSNANSNANSNANS...
         for (unsigned int i = 0; i % 2 == 0 || propagation.is_alive(); ++i) {
+
             if (i % 2 == 0) {
+                DETRAY_DEBUG_HOST("Propagation step: " << i / 2);
+
                 // Run all registered actors/aborters
                 run_actors(actor_state_refs, propagation);
 
@@ -270,14 +272,21 @@ struct propagator {
 
             propagation._heartbeat &= navigation.is_alive();
 
-#if defined(__NO_DEVICE__)
             if (i % 2 == 0 && i > 0 && propagation.do_debug) {
-                inspect(propagation);
+                DETRAY_VERBOSE_HOST(inspect(propagation));
             }
-#endif
         }
 
         // Pass on the whether the propagation was successful
+        DETRAY_VERBOSE_HOST("Finished propagation for track:\n" << track);
+        if (is_complete(propagation)) {
+            DETRAY_VERBOSE_HOST("Satus: COMPLETE");
+        } else if (is_paused(propagation)) {
+            DETRAY_VERBOSE_HOST("Satus: PAUSED");
+        } else {
+            DETRAY_VERBOSE_HOST("Satus: ABORT");
+        }
+
         return is_complete(propagation) || is_paused(propagation);
     }
 
@@ -383,11 +392,9 @@ struct propagator {
                 propagation._heartbeat &= navigation.is_alive();
             }
 
-#if defined(__NO_DEVICE__)
             if (propagation.do_debug) {
-                inspect(propagation);
+                DETRAY_VERBOSE_HOST(inspect(propagation));
             }
-#endif
         }
 
         // Pass on the whether the propagation was successful
@@ -395,56 +402,55 @@ struct propagator {
     }
 
     template <typename state_t>
-    DETRAY_HOST void inspect(state_t &propagation) const {
+    DETRAY_HOST std::string inspect(state_t &propagation) const {
         const auto &navigation = propagation._navigation;
         const auto &stepping = propagation._stepping;
 
-        propagation.debug_stream << std::left << std::setw(30);
+        std::stringstream debug_stream{};
+        debug_stream << std::left << std::setw(30);
         switch (navigation.status()) {
             using enum navigation::status;
             case e_abort:
-                propagation.debug_stream << "status: abort";
+                debug_stream << "status: abort";
                 break;
             case e_on_target:
-                propagation.debug_stream << "status: e_on_target";
+                debug_stream << "status: e_on_target";
                 break;
             case e_unknown:
-                propagation.debug_stream << "status: unknowm";
+                debug_stream << "status: unknowm";
                 break;
             case e_towards_object:
-                propagation.debug_stream << "status: towards_surface";
+                debug_stream << "status: towards_surface";
                 break;
             case e_on_module:
-                propagation.debug_stream << "status: on_module";
+                debug_stream << "status: on_module";
                 break;
             case e_on_portal:
-                propagation.debug_stream << "status: on_portal";
+                debug_stream << "status: on_portal";
                 break;
             default:
                 break;
         }
 
         if (detail::is_invalid_value(navigation.volume())) {
-            propagation.debug_stream << "volume: " << std::setw(10)
-                                     << "invalid";
+            debug_stream << "volume: " << std::setw(10) << "invalid";
         } else {
-            propagation.debug_stream << "volume: " << std::setw(10)
-                                     << navigation.volume();
+            debug_stream << "volume: " << std::setw(10) << navigation.volume();
         }
 
-        propagation.debug_stream << "surface: " << std::setw(14);
+        debug_stream << "surface: " << std::setw(14);
         if (navigation.is_on_surface()) {
-            propagation.debug_stream << navigation.barcode();
+            debug_stream << navigation.barcode();
         } else {
-            propagation.debug_stream << "undefined";
+            debug_stream << "undefined";
         }
 
-        propagation.debug_stream << "step_size: " << std::setw(10)
-                                 << stepping.step_size() << std::endl;
+        debug_stream << "step_size: " << std::setw(10) << stepping.step_size()
+                     << std::endl;
 
-        propagation.debug_stream << std::setw(10)
-                                 << detail::ray<algebra_type>(stepping())
-                                 << std::endl;
+        debug_stream << std::setw(10) << detail::ray<algebra_type>(stepping());
+
+        return debug_stream.str();
     }
 };
 

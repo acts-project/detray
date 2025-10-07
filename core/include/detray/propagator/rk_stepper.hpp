@@ -154,11 +154,19 @@ class rk_stepper final
         DETRAY_HOST_DEVICE void run_inspector(
             [[maybe_unused]] const stepping::config& cfg,
             [[maybe_unused]] const char* message,
+            [[maybe_unused]] const scalar_type dist,
             [[maybe_unused]] Args&&... args) {
             if constexpr (!std::is_same_v<inspector_t,
                                           stepping::void_inspector>) {
-                this->inspector()(*this, cfg, message,
+                this->inspector()(*this, cfg, message, dist,
                                   std::forward<Args>(args)...);
+            }
+
+            if constexpr (sizeof...(Args) > 0u) {
+                DETRAY_DEBUG_HOST(""
+                                  << message << "\n"
+                                  << detray::stepping::print_state(
+                                         *this, std::forward<Args>(args)...));
             }
         }
 

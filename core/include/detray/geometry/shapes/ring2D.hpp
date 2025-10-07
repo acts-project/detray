@@ -218,13 +218,15 @@ class ring2D {
         constexpr auto tol{10.f * std::numeric_limits<scalar_t>::epsilon()};
 
         if (math::signbit(bounds[e_inner_r]) || bounds[e_outer_r] < tol) {
-            os << "ERROR: Radius must be in the range [0, numeric_max)"
+            os << "DETRAY ERROR (HOST): Radius must be in the range [0, "
+                  "numeric_max)"
                << std::endl;
             return false;
         }
         if (bounds[e_inner_r] >= bounds[e_outer_r] ||
             math::fabs(bounds[e_inner_r] - bounds[e_outer_r]) < tol) {
-            os << "ERROR: Inner radius must be smaller outer radius.";
+            os << "DETRAY ERROR (HOST): Inner radius must be smaller outer "
+                  "radius.";
             return false;
         }
 

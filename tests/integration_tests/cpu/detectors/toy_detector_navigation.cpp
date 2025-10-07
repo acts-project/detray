@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
     toy_cfg.n_brl_layers(4u).n_edc_layers(7u);
     toy_cfg.use_material_maps(true);
 
-    std::cout << toy_cfg << std::endl;
+    std::clog << toy_cfg << std::endl;
 
     // Build the geometry
     vecmem::host_memory_resource host_mr;
@@ -138,7 +138,7 @@ int main(int argc, char **argv) {
     // Run the material validation - Homogeneous material
     toy_cfg.use_material_maps(false);
 
-    std::cout << toy_cfg << std::endl;
+    std::clog << toy_cfg << std::endl;
 
     auto [toy_det_hom_mat, toy_names_hom_mat] =
         build_toy_detector<test_algebra>(host_mr, toy_cfg);

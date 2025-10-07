@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/navigation/volume_graph.hpp"
 #include "detray/utils/consistency_checker.hpp"
+#include "detray/utils/log.hpp"
 
 // Detray test include(s)
 #include "detray/test/framework/fixture_base.hpp"
@@ -64,9 +65,8 @@ class consistency_check : public detray::test::fixture_base<> {
 
     /// Run the consistency check
     void TestBody() override {
-        std::cout << "INFO: Running consistency check on: "
-                  << m_det.name(m_names) << std::endl
-                  << std::endl;
+        DETRAY_INFO_HOST("Running consistency check on: " << m_det.name(m_names)
+                                                          << std::endl);
 
         // Build the graph
         volume_graph graph(m_det);
@@ -75,7 +75,7 @@ class consistency_check : public detray::test::fixture_base<> {
             << graph.to_string();
 
         if (m_cfg.write_graph()) {
-            std::cout << graph.to_string() << std::endl;
+            DETRAY_INFO_HOST(graph.to_string());
         }
 
         // Not currently supported

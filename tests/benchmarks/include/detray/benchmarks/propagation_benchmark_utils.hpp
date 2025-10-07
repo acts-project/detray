@@ -187,7 +187,7 @@ inline void register_benchmark(
         std::string bench_name = prop_benchmark.config().name() + "_" + name +
                                  "_" + std::to_string(n) + "_TRACKS";
 
-        std::cout << bench_name << "\n" << bench_cfg;
+        std::clog << bench_name << "\n" << bench_cfg;
 
         if constexpr (std::is_invocable_v<
                           decltype(prop_benchmark), ::benchmark::State &,

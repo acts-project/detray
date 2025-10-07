@@ -40,7 +40,7 @@ GTEST_TEST(detray_navigation, volume_graph) {
     /// Prints linking information for every node when visited
     struct volume_printout {
         void operator()(const detector_t::volume_type &n) const {
-            std::cout << "On volume: " << n.index() << std::endl;
+            std::clog << "On volume: " << n.index() << std::endl;
         }
     };
 
@@ -50,8 +50,8 @@ GTEST_TEST(detray_navigation, volume_graph) {
     // Is everything accessible from the graph?
     EXPECT_EQ(graph.n_nodes(), det.volumes().size());
 
-    // std::cout << graph.to_string() << std::endl;
-    // std::cout << "Walking through geometry: " << std::endl;
+    // std::clog << graph.to_string() << std::endl;
+    // std::clog << "Walking through geometry: " << std::endl;
     //  graph.bfs();
 
     const auto &adj_mat = graph.adjacency_matrix();

@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
     using algebra_t = detray::tutorial::algebra_t;
     using scalar = detray::tutorial::scalar;
 
-    std::cout << "Detector Tutorial\n=================\n\n";
+    std::clog << "Detector Tutorial\n=================\n\n";
 
     // Memory resource to allocate the detector data stores
     vecmem::host_memory_resource host_mr;
@@ -63,7 +63,7 @@ int main(int argc, char** argv) {
         detray::build_toy_detector<algebra_t>(host_mr, toy_cfg);
 
     // Print the volume graph of the toy detector
-    std::cout << "\nToy detector:\n"
+    std::clog << "\nToy detector:\n"
               << "-------------\n"
               << detray::volume_graph{toy_det}.to_string() << std::endl;
 
@@ -97,7 +97,7 @@ int main(int argc, char** argv) {
         detray::build_telescope_detector<algebra_t, detray::rectangle2D>(
             host_mr);
 
-    std::cout << "\nTelescope detector - case 1:\n"
+    std::clog << "\nTelescope detector - case 1:\n"
               << "----------------------------\n"
               << detray::volume_graph{tel_det1}.to_string() << std::endl;
 
@@ -120,7 +120,7 @@ int main(int argc, char** argv) {
     const auto [tel_det2, tel_names2] =
         detray::build_telescope_detector<algebra_t>(host_mr, trp_cfg);
 
-    std::cout << "\nTelescope detector - case 2:\n"
+    std::clog << "\nTelescope detector - case 2:\n"
               << "----------------------------\n"
               << detray::volume_graph{tel_det2}.to_string() << std::endl;
 
@@ -144,7 +144,7 @@ int main(int argc, char** argv) {
     const auto [tel_det3, tel_names3] =
         build_telescope_detector<algebra_t>(host_mr, rct_cfg);
 
-    std::cout << "\nTelescope detector - case 3:\n"
+    std::clog << "\nTelescope detector - case 3:\n"
               << "----------------------------\n"
               << detray::volume_graph{tel_det3}.to_string() << std::endl;
 
@@ -168,7 +168,7 @@ int main(int argc, char** argv) {
     const auto [tel_det4, tel_names4] =
         detray::build_telescope_detector<algebra_t>(host_mr, htrp_cfg);
 
-    std::cout << "\nTelescope detector - case 4:\n"
+    std::clog << "\nTelescope detector - case 4:\n"
               << "----------------------------\n"
               << detray::volume_graph{tel_det4}.to_string() << std::endl;
 }

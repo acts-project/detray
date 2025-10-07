@@ -509,12 +509,14 @@ class annulus2D {
         constexpr auto tol{10.f * std::numeric_limits<scalar_t>::epsilon()};
 
         if (math::signbit(bounds[e_min_r]) || bounds[e_max_r] < tol) {
-            os << "ERROR: Radial bounds must be in the range [0, numeric_max)";
+            os << "DETRAY ERROR (HOST): Radial bounds must be in the range [0, "
+                  "numeric_max)";
             return false;
         }
         if (bounds[e_min_r] >= bounds[e_max_r] ||
             math::fabs(bounds[e_min_r] - bounds[e_max_r]) < tol) {
-            os << "ERROR: Min radius must be smaller than max radius.";
+            os << "DETRAY ERROR (HOST): Min radius must be smaller than max "
+                  "radius.";
             return false;
         }
         if ((bounds[e_min_phi_rel] < -constant<scalar_t>::pi ||
@@ -523,12 +525,13 @@ class annulus2D {
              bounds[e_max_phi_rel] > constant<scalar_t>::pi) ||
             (bounds[e_average_phi] < -constant<scalar_t>::pi ||
              bounds[e_average_phi] > constant<scalar_t>::pi)) {
-            os << "ERROR: Angles must map onto [-pi, pi] range.";
+            os << "DETRAY ERROR (HOST): Angles must map onto [-pi, pi] range.";
             return false;
         }
         if (bounds[e_min_phi_rel] >= bounds[e_max_phi_rel] ||
             math::fabs(bounds[e_min_phi_rel] - bounds[e_max_phi_rel]) < tol) {
-            os << "ERROR: Min relative angle must be smaller than max relative "
+            os << "DETRAY ERROR (HOST): Min relative angle must be smaller "
+                  "than max relative "
                   "angle.";
             return false;
         }

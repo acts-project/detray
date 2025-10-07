@@ -17,6 +17,7 @@
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes/rectangle2D.hpp"
 #include "detray/materials/material.hpp"
+#include "detray/utils/log.hpp"
 
 // System include(s)
 #include <cassert>
@@ -176,6 +177,9 @@ class endcap_generator final : public surface_factory_interface<detector_t> {
                     typename detector_t::mask_container &masks,
                     typename detector_t::geometry_context ctx = {})
         -> dindex_range override {
+
+        DETRAY_VERBOSE_HOST("Generate silicon tracker endcap modules...");
+        DETRAY_VERBOSE_HOST("-> Generate " << size() << " surfaces");
 
         using surface_t = typename detector_t::surface_type;
         using nav_link_t = typename surface_t::navigation_link;

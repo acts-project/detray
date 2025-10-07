@@ -15,6 +15,7 @@
 #include "detray/materials/material.hpp"
 #include "detray/materials/material_rod.hpp"
 #include "detray/materials/predefined_materials.hpp"
+#include "detray/utils/log.hpp"
 #include "detray/utils/ranges.hpp"
 
 // System include(s)
@@ -124,11 +125,16 @@ class homogeneous_material_generator final
     DETRAY_HOST
     auto operator()(typename detector_t::surface_lookup_container &surfaces,
                     typename detector_t::material_container &materials) {
+        DETRAY_VERBOSE_HOST("Generate homogeneous material...");
 
         using material_id = typename detector_t::materials::id;
         using link_t = typename detector_t::surface_type::material_link;
 
         assert(surfaces.size() >= (m_surface_range[1] - m_surface_range[0]));
+
+        DETRAY_VERBOSE_HOST("-> Material surface range: "
+                            << m_surface_range[0] << " - "
+                            << m_surface_range[1]);
 
         // Add the material to the surfaces that the data links against
         for (auto &sf : detray::ranges::subrange(surfaces, m_surface_range)) {
@@ -155,11 +161,13 @@ class homogeneous_material_generator final
                 }
                 case surface_id::e_unknown: {
                     std::stringstream err_stream{};
-                    err_stream << sf << std::endl;
-                    throw std::runtime_error(
-                        "Encountered surface of unknown type during material "
-                        "generation: " +
-                        err_stream.str());
+                    err_stream
+                        << "-> Encountered surface of unknown type during "
+                           "material generation: "
+                        << sf << std::endl;
+
+                    DETRAY_FATAL_HOST(err_stream.str());
+                    throw std::runtime_error(err_stream.str());
                     break;
                 }
                 default: {
@@ -209,6 +217,8 @@ class homogeneous_material_generator final
             // Set the initial surface material link (will be updated when
             // added to the detector)
             sf.material() = mat_link;
+
+            DETRAY_DEBUG_HOST("-> Added material to surface: " << sf);
         }
     }
 

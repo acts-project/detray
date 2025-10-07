@@ -7,6 +7,9 @@
 
 #pragma once
 
+// Project include(s)
+#include "detray/utils/log.hpp"
+
 // Boost
 #include "detray/options/boost_program_options.hpp"
 
@@ -54,13 +57,13 @@ auto parse_options(boost::program_options::options_description& desc, int argc,
         boost::program_options::notify(vm);
     } catch (const std::exception& ex) {
         // Print help message in case of error
-        std::cout << ex.what() << "\n" << desc << std::endl;
+        DETRAY_FATAL_HOST(ex.what() << "\n" << desc);
         std::exit(EXIT_FAILURE);
     }
 
     // Print help message when requested
     if (vm.count("help")) {
-        std::cout << desc << std::endl;
+        std::clog << desc << std::endl;
         std::exit(EXIT_SUCCESS);
     }
 

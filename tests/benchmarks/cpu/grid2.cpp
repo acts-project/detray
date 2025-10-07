@@ -126,8 +126,8 @@ void BM_GRID2_REGULAR_BIN_CAP1(benchmark::State &state) {
     }
 
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
-    std::cout << "BM_GRID2_REGULAR_BIN_CAP1:" << std::endl;
-    std::cout << g2r.bin(tp) << std::endl;
+    std::clog << "BM_GRID2_REGULAR_BIN_CAP1:" << std::endl;
+    std::clog << g2r.bin(tp) << std::endl;
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 
@@ -150,13 +150,13 @@ void BM_GRID2_REGULAR_BIN_CAP4(benchmark::State &state) {
     }
 
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
-    std::cout << "BM_GRID2_REGULAR_BIN_CAP4:" << std::endl;
+    std::clog << "BM_GRID2_REGULAR_BIN_CAP4:" << std::endl;
     std::size_t count{0u};
     for (const dindex entry : g2r.bin(tp)) {
-        std::cout << entry << ", ";
+        std::clog << entry << ", ";
         ++count;
     }
-    std::cout << "\n=> Neighbors: " << count << std::endl;
+    std::clog << "\n=> Neighbors: " << count << std::endl;
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 
@@ -179,13 +179,13 @@ void BM_GRID2_REGULAR_BIN_CAP25(benchmark::State &state) {
     }
 
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
-    std::cout << "BM_GRID2_REGULAR_BIN_CAP25:" << std::endl;
+    std::clog << "BM_GRID2_REGULAR_BIN_CAP25:" << std::endl;
     std::size_t count{0u};
     for (const dindex entry : g2r.bin(tp)) {
-        std::cout << entry << ", ";
+        std::clog << entry << ", ";
         ++count;
     }
-    std::cout << "\n=> Neighbors: " << count << std::endl;
+    std::clog << "\n=> Neighbors: " << count << std::endl;
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 
@@ -208,13 +208,13 @@ void BM_GRID2_REGULAR_BIN_CAP100(benchmark::State &state) {
     }
 
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
-    std::cout << "BM_GRID2_REGULAR_BIN_CAP100:" << std::endl;
+    std::clog << "BM_GRID2_REGULAR_BIN_CAP100:" << std::endl;
     std::size_t count{0u};
     for (const dindex entry : g2r.bin(tp)) {
-        std::cout << entry << ", ";
+        std::clog << entry << ", ";
         ++count;
     }
-    std::cout << "\n=> Neighbors: " << count << std::endl;
+    std::clog << "\n=> Neighbors: " << count << std::endl;
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 
@@ -239,13 +239,13 @@ void BM_GRID2_REGULAR_NEIGHBOR_CAP1(benchmark::State &state) {
     }
 
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
-    std::cout << "BM_GRID2_REGULAR_NEIGHBOR_CAP1:" << std::endl;
+    std::clog << "BM_GRID2_REGULAR_NEIGHBOR_CAP1:" << std::endl;
     std::size_t count{0u};
     for (const dindex entry : g2r.zone(tp, {zone22, zone22})) {
-        std::cout << entry << ", ";
+        std::clog << entry << ", ";
         ++count;
     }
-    std::cout << "\n=> Neighbors: " << count << std::endl;
+    std::clog << "\n=> Neighbors: " << count << std::endl;
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 
@@ -270,13 +270,13 @@ void BM_GRID2_REGULAR_NEIGHBOR_CAP4(benchmark::State &state) {
     }
 
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
-    std::cout << "BM_GRID2_REGULAR_NEIGHBOR_CAP4:" << std::endl;
+    std::clog << "BM_GRID2_REGULAR_NEIGHBOR_CAP4:" << std::endl;
     std::size_t count{0u};
     for (const dindex entry : g2r.zone(tp, {zone22, zone22})) {
-        std::cout << entry << ", ";
+        std::clog << entry << ", ";
         ++count;
     }
-    std::cout << "\n=> Neighbors: " << count << std::endl;
+    std::clog << "\n=> Neighbors: " << count << std::endl;
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 
@@ -297,8 +297,8 @@ void BM_GRID2_IRREGULAR_BIN_CAP1(benchmark::State &state) {
     }
 
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
-    std::cout << "BM_GRID2_IRREGULAR_BIN_CAP1:" << std::endl;
-    std::cout << g2irr.bin(tp) << std::endl;
+    std::clog << "BM_GRID2_IRREGULAR_BIN_CAP1:" << std::endl;
+    std::clog << g2irr.bin(tp) << std::endl;
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 
@@ -323,13 +323,13 @@ void BM_GRID2_IRREGULAR_NEIGHBOR_CAP1(benchmark::State &state) {
     }
 
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
-    std::cout << "BM_GRID2_IRREGULAR_NEIGHBOR_CAP1:" << std::endl;
+    std::clog << "BM_GRID2_IRREGULAR_NEIGHBOR_CAP1:" << std::endl;
     std::size_t count{0u};
     for (const dindex entry : g2irr.zone(tp, {zone22, zone22})) {
-        std::cout << entry << ", ";
+        std::clog << entry << ", ";
         ++count;
     }
-    std::cout << "\n=> Neighbors: " << count << std::endl;
+    std::clog << "\n=> Neighbors: " << count << std::endl;
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 

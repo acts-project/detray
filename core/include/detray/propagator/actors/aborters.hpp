@@ -12,6 +12,7 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/base_stepper.hpp"
+#include "detray/utils/log.hpp"
 
 // System include(s)
 #include <limits>
@@ -43,6 +44,8 @@ struct pathlimit_aborter : actor {
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE void operator()(state &abrt_state,
                                        propagator_state_t &prop_state) const {
+        DETRAY_VERBOSE_HOST_DEVICE("Aborter: Check path limits");
+
         auto &step_state = prop_state._stepping;
         auto &nav_state = prop_state._navigation;
 
@@ -102,6 +105,8 @@ struct momentum_aborter : actor {
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE void operator()(state &abrt_state,
                                        propagator_state_t &prop_state) const {
+        DETRAY_VERBOSE_HOST_DEVICE("Aborter: Check momentum");
+
         auto &step_state = prop_state._stepping;
         auto &nav_state = prop_state._navigation;
 
@@ -143,6 +148,7 @@ struct target_aborter : actor {
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE void operator()(const state &abrt_state,
                                        propagator_state_t &prop_state) const {
+        DETRAY_VERBOSE_HOST_DEVICE("Aborter: Check target surface");
 
         auto &navigation = prop_state._navigation;
         const auto &stepping = prop_state._stepping;

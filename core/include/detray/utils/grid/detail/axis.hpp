@@ -189,7 +189,7 @@ struct single_axis {
         os << "bounds: " << ax.bounds() << std::endl;
         os << "binning: " << ax.binning() << std::endl;
         os << "n-bins: " << ax.nbins() << std::endl;
-        os << "min: " << ax.min() << ", max: " << ax.max() << std::endl;
+        os << "min: " << ax.min() << ", max: " << ax.max();
 
         return os;
     }
@@ -453,13 +453,13 @@ class multi_axis {
     DETRAY_HOST
     friend std::ostream &operator<<(std::ostream &os, const multi_axis &ax) {
 
-        os << ax.template get_axis<0>() << std::endl;
+        os << "Axis 0:\n" << ax.template get_axis<0>();
 
         if constexpr (multi_axis::dim > 1) {
-            os << ax.template get_axis<1>() << std::endl;
+            os << "\nAxis 1:\n" << ax.template get_axis<1>();
         }
         if constexpr (multi_axis::dim > 2) {
-            os << ax.template get_axis<2>() << std::endl;
+            os << "\nAxis 2:\n" << ax.template get_axis<2>();
         }
 
         return os;

@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/core/detector.hpp"
 #include "detray/tracks/tracks.hpp"
+#include "detray/utils/log.hpp"
 #include "detray/utils/ranges.hpp"
 
 // Detray test include(s)
@@ -66,8 +67,9 @@ struct run_material_validation {
             mat_steps_vec.push_back(std::move(mat_steps));
 
             if (!success) {
-                std::cerr << "ERROR: Propagation failed for track " << i << ": "
-                          << "Material record may be incomplete!" << std::endl;
+                DETRAY_ERROR_HOST("Propagation failed for track "
+                                  << i << ": "
+                                  << "Material record may be incomplete!");
             }
         }
 
@@ -136,9 +138,8 @@ class material_validation_impl : public test::fixture_base<> {
             m_whiteboard->template get<dvector<material_record_t>>(
                 m_scan_data_name);
 
-        std::cout << "\nINFO: Running material validation on: "
-                  << m_det.name(m_names) << "...\n"
-                  << std::endl;
+        DETRAY_INFO_HOST("Running material validation on: "
+                         << m_det.name(m_names) << "...\n");
 
         // only needed for device material steps allocations
         // @TODO: For now, guess how many surface might be encountered
@@ -194,7 +195,7 @@ class material_validation_impl : public test::fixture_base<> {
             ++n_tracks;
         }
 
-        std::cout << "-----------------------------------\n"
+        std::clog << "-----------------------------------\n"
                   << "Tested " << n_tracks << " tracks\n"
                   << "-----------------------------------\n"
                   << std::endl;

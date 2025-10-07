@@ -49,13 +49,13 @@ class homogeneous_material_reader {
                                               volume_builder>& det_builder,
                              const payload_type& det_mat_data) {
 
-        DETRAY_DEBUG("Homogeneous material reader from_payload");
+        DETRAY_VERBOSE_HOST("Homogeneous material reader from_payload");
 
         using scalar_t = dscalar<typename detector_t::algebra_type>;
         using mat_id = typename detector_t::materials::id;
 
-        DETRAY_DEBUG("Converting material for " << det_mat_data.volumes.size()
-                                                << " volumes");
+        DETRAY_DEBUG_HOST("Converting material for "
+                          << det_mat_data.volumes.size() << " volumes");
 
         // Convert the material volume by volume
         for (const auto& mv_data : det_mat_data.volumes) {
@@ -63,21 +63,21 @@ class homogeneous_material_reader {
             const auto vol_idx{
                 detail::basic_converter::from_payload(mv_data.volume_link)};
 
-            DETRAY_DEBUG(" - volume index from payload is " << vol_idx);
+            DETRAY_DEBUG_HOST(" - volume index from payload is " << vol_idx);
 
             if (!det_builder.has_volume(vol_idx)) {
                 std::stringstream err_stream;
                 err_stream << "Volume " << vol_idx << ": "
                            << "Cannot build homogeneous material for volume "
                            << "(volume not registered in detector builder)";
-                DETRAY_ERROR(err_stream.str());
+                DETRAY_FATAL_HOST(err_stream.str());
                 throw std::invalid_argument(err_stream.str());
             }
 
             // Decorate the current volume builder with material
             auto vm_builder = det_builder.template decorate<
                 homogeneous_material_builder<detector_t>>(vol_idx);
-            DETRAY_DEBUG(
+            DETRAY_DEBUG_HOST(
                 "Retrieved volume builder from detector build using vol_idx="
                 << vol_idx);
 
@@ -85,8 +85,9 @@ class homogeneous_material_reader {
             auto mat_factory =
                 std::make_shared<homogeneous_material_factory<detector_t>>();
 
-            DETRAY_DEBUG("Adding " << mv_data.mat_slabs.size()
-                                   << " material slabs to material factory");
+            DETRAY_DEBUG_HOST("Adding "
+                              << mv_data.mat_slabs.size()
+                              << " material slabs to material factory");
             for (const auto& slab_data : mv_data.mat_slabs) {
                 assert(slab_data.type == io::material_id::slab);
 
@@ -95,15 +96,16 @@ class homogeneous_material_reader {
                         ? slab_data.index_in_coll.value()
                         : detray::detail::invalid_value<std::size_t>()};
 
-                DETRAY_DEBUG("-> Surface link is: " << sf_link);
+                DETRAY_DEBUG_HOST("-> Surface link is: " << sf_link);
 
                 mat_factory->add_material(
                     mat_id::e_slab, from_payload<scalar_t>(slab_data), sf_link);
             }
             if constexpr (detray::concepts::has_material_rods<detector_t>) {
-                DETRAY_DEBUG("Detector type indicates it has material rods");
+                DETRAY_DEBUG_HOST(
+                    "Detector type indicates it has material rods");
                 if (mv_data.mat_rods.has_value()) {
-                    DETRAY_DEBUG(
+                    DETRAY_DEBUG_HOST(
                         "Material rods are given in the input payload");
                     for (const auto& rod_data : *(mv_data.mat_rods)) {
                         assert(rod_data.type == io::material_id::rod);
@@ -118,16 +120,16 @@ class homogeneous_material_reader {
                             sf_link);
                     }
                 } else {
-                    DETRAY_DEBUG(
+                    DETRAY_DEBUG_HOST(
                         "Material rods are NOT given in the input payload");
                 }
             } else {
-                DETRAY_DEBUG(
+                DETRAY_DEBUG_HOST(
                     "Detector type does NOT indicate it has material rods");
             }
 
             // Add the material to the volume
-            DETRAY_DEBUG("Adding material factory to the builder");
+            DETRAY_DEBUG_HOST("Adding material factory to the builder");
             vm_builder->add_surfaces(mat_factory);
         }
     }

@@ -108,9 +108,6 @@ TEST_P(BackwardPropagation, backward_propagation) {
     // Run propagator
     p.propagate(fw_state, detray::tie(interactor, resetter_state));
 
-    // Print the debug stream
-    // std::cout << fw_state.debug_stream.str() << std::endl;
-
     // Bound state after propagation
     const auto& bound_param1 = fw_state._stepping.bound_params();
 
@@ -130,9 +127,6 @@ TEST_P(BackwardPropagation, backward_propagation) {
 
     // Run propagator
     p.propagate(bw_state, detray::tie(interactor, resetter_state));
-
-    // Print the debug stream
-    // std::cout << bw_state.debug_stream.str() << std::endl;
 
     // Bound state after propagation
     const auto& bound_param2 = bw_state._stepping.bound_params();

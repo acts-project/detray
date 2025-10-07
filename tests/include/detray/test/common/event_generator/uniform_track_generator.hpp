@@ -13,6 +13,7 @@
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/tracks/ray.hpp"
+#include "detray/utils/log.hpp"
 #include "detray/utils/ranges/ranges.hpp"
 
 // Detray test include(s)
@@ -145,7 +146,9 @@ class uniform_track_generator
         track_t operator*() const {
 
             if (!m_rnd_numbers) {
-                throw std::invalid_argument("Invalid random number generator");
+                std::string err_str{"Invalid random number generator"};
+                DETRAY_FATAL_HOST(err_str);
+                throw std::invalid_argument(err_str);
             }
 
             scalar_t sin_theta{math::sin(m_theta)};

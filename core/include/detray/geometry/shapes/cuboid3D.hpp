@@ -241,17 +241,17 @@ class cuboid3D {
 
         if (bounds[e_min_x] >= bounds[e_max_x] ||
             math::fabs(bounds[e_min_x] - bounds[e_max_x]) < tol) {
-            os << "ERROR: Min x must be smaller than max x.";
+            os << "DETRAY ERROR (HOST): Min x must be smaller than max x.";
             return false;
         }
         if (bounds[e_min_y] >= bounds[e_max_y] ||
             math::fabs(bounds[e_min_y] - bounds[e_max_y]) < tol) {
-            os << "ERROR: Min y must be smaller than max y.";
+            os << "DETRAY ERROR (HOST): Min y must be smaller than max y.";
             return false;
         }
         if (bounds[e_min_z] >= bounds[e_max_z] ||
             math::fabs(bounds[e_min_z] - bounds[e_max_z]) < tol) {
-            os << "ERROR: Min z must be smaller than max z.";
+            os << "DETRAY ERROR (HOST): Min z must be smaller than max z.";
             return false;
         }
 

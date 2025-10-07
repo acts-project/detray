@@ -20,6 +20,7 @@
 #include "detray/materials/material_slab.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/utils/grid/detail/axis.hpp"
+#include "detray/utils/log.hpp"
 #include "detray/utils/ranges.hpp"
 
 // System include(s)
@@ -212,6 +213,8 @@ class material_map_generator final : public factory_decorator<detector_t> {
         const typename detector_t::mask_container &masks,
         std::map<dindex, std::vector<bin_data_t>> &material_map,
         std::map<dindex, darray<std::size_t, N>> &n_bins) {
+
+        DETRAY_DEBUG_HOST("Generate material maps...");
 
         static_assert(N == 2u, "This generator only supports 2D material maps");
 
