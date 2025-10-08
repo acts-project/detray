@@ -11,8 +11,10 @@
 #include "detray/builders/grid_factory.hpp"
 #include "detray/builders/volume_builder.hpp"
 #include "detray/builders/volume_builder_interface.hpp"
+#include "detray/core/concepts.hpp"
 #include "detray/core/detector.hpp"
 #include "detray/definitions/geometry.hpp"
+#include "detray/utils/detector_statistics.hpp"
 #include "detray/utils/grid/detail/concepts.hpp"
 #include "detray/utils/log.hpp"
 #include "detray/utils/type_traits.hpp"
@@ -135,9 +137,28 @@ class detector_builder {
         // TODO: Add sorting, data deduplication etc. here later...
 
         DETRAY_INFO_HOST("Detector building complete: " << name());
-        DETRAY_VERBOSE_HOST("-> Built " << det.volumes().size() << " volumes");
-        DETRAY_VERBOSE_HOST("-> Built " << det.surfaces().size()
-                                        << " surfaces");
+        DETRAY_INFO_HOST("-> Built " << det.volumes().size() << " volumes");
+        DETRAY_INFO_HOST("-> Built " << det.surfaces().size() << " surfaces:");
+        DETRAY_INFO_HOST("--> portals:    " << detray::n_portals(det));
+        DETRAY_INFO_HOST("--> sensitives: " << detray::n_sensitives(det));
+        DETRAY_INFO_HOST("--> passives:   " << detray::n_passives(det));
+
+        if constexpr (detray::concepts::has_surface_grids<detector_type>) {
+            DETRAY_INFO_HOST("-> Built " << detray::n_surface_grids(det)
+                                         << " surface grids");
+        }
+
+        if constexpr (detray::concepts::has_material_maps<detector_type>) {
+            DETRAY_INFO_HOST("-> Built " << detray::n_material_maps(det)
+                                         << " material maps");
+        }
+
+        if constexpr (detray::concepts::has_homogeneous_material<
+                          detector_type>) {
+            DETRAY_INFO_HOST("-> Built homogeneous material:");
+            DETRAY_INFO_HOST("--> slabs: " << detray::n_material_slabs(det));
+            DETRAY_INFO_HOST("--> rods:  " << detray::n_material_rods(det));
+        }
 
         return det;
     }
@@ -153,11 +174,11 @@ class detector_builder {
         assert(name_map.empty());
 
         // By convention the name of the detector is at position 0
-        name_map.emplace(0u, m_detector_name);
+        name_map.set_detector_name(m_detector_name);
 
         for (auto& vol_builder : m_volumes) {
-            name_map.emplace(vol_builder->vol_index() + 1u,
-                             vol_builder->name());
+            name_map.emplace(vol_builder->vol_index(),
+                             std::string{vol_builder->name()});
         }
 
         return build(resource);

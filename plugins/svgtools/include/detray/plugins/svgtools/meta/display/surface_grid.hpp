@@ -9,6 +9,7 @@
 
 // Project inlude(s)
 #include "detray/definitions/algebra.hpp"
+#include "detray/utils/ranges.hpp"
 
 // Plugin include(s)
 #include "detray/plugins/svgtools/conversion/grid.hpp"
@@ -30,7 +31,7 @@ inline auto surface_grid(
     const std::string& id,
     const actsvg::proto::volume<std::vector<point3_t>>& p_volume,
     const detray::svgtools::conversion::detail::grid_type& gr_type,
-    actsvg::svg::object& grid_svg, const view_t& view) {
+    actsvg::svg::object& grid_svg, view_t view) {
 
     // Only display grid, if the correct view is requested
     if constexpr (std::is_same_v<view_t, actsvg::views::x_y>) {
@@ -38,8 +39,13 @@ inline auto surface_grid(
             detray::svgtools::conversion::detail::grid_type::e_endcap) {
             return actsvg::svg::object{};
         }
-    } else if (gr_type !=
-               detray::svgtools::conversion::detail::grid_type::e_barrel) {
+    } else if constexpr (std::is_same_v<view_t, actsvg::views::z_phi> ||
+                         std::is_same_v<view_t, actsvg::views::z_rphi>) {
+        if (gr_type !=
+            detray::svgtools::conversion::detail::grid_type::e_barrel) {
+            return actsvg::svg::object{};
+        }
+    } else {
         return actsvg::svg::object{};
     }
 
@@ -65,15 +71,28 @@ inline auto surface_grid(
     for (const auto& p_surface : p_surfaces) {
         std::string sf_id{p_surface._name + "_" + view._axis_names.at(0) +
                           view._axis_names.at(1)};
+        if constexpr (std::is_same_v<view_t, actsvg::views::z_rphi>) {
+            view._fixed_r = p_surface._radii.at(0u);
+        }
         sf_svgs.push_back(
             actsvg::display::surface(std::move(sf_id), p_surface, view));
     }
 
     DETRAY_VERBOSE_HOST("-> Drawing surface grid SVG...");
 
-    DETRAY_DEBUG_HOST("Found bin-surface associations for "
-                      << bin_associations.size() << " bins");
+    DETRAY_DEBUG_HOST("-> Found bin-surface associations for "
+                      << bin_associations.size() << " bins:");
     assert(!bin_associations.empty());
+
+    for ([[maybe_unused]] const auto& [gbin, assoc] :
+         detray::views::enumerate(bin_associations)) {
+
+        DETRAY_DEBUG_HOST("--> Glob bin: " << gbin);
+
+        for ([[maybe_unused]] const std::size_t sf_idx : assoc) {
+            DETRAY_DEBUG_HOST("   - surface " << sf_idx);
+        }
+    }
 
     actsvg::svg::object sf_grid_svg;
     sf_grid_svg._id = p_volume._name + "_surface_grid";
@@ -95,8 +114,7 @@ inline auto surface_grid(
     for (auto [ig, g_tile] : detray::views::enumerate(grid_svg._sub_objects)) {
         // Target surface text
         std::vector<std::string> bin_text;
-        bin_text.push_back("Bin " + std::to_string(ig));
-        bin_text.push_back("Content: ");
+        bin_text.push_back("Bin " + std::to_string(ig) + ":");
 
         for (const auto [is, sis] :
              detray::views::enumerate(bin_associations.at(ig))) {

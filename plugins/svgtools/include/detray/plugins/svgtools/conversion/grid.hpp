@@ -195,15 +195,6 @@ auto grid(const store_t& store, const link_t& link, const view_t& view,
         p_grid._reference_r = static_cast<actsvg::scalar>(edges0.back());
     }
 
-    // Transform cylinder grid to rphi edges, if rphi view is requested
-    if constexpr (std::is_same_v<view_t, typename actsvg::views::z_rphi>) {
-        if (gr_type == detail::grid_type::e_barrel) {
-            for (auto& e : edges1) {
-                e *= p_grid._reference_r;
-            }
-        }
-    }
-
     std::ranges::transform(
         edges0, std::back_inserter(p_grid._edges_0),
         [](scalar_t v) { return static_cast<actsvg::scalar>(v); });

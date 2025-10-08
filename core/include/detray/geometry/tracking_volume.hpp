@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/core/name_map.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/geometry.hpp"
@@ -50,7 +51,7 @@ class tracking_volume {
 
     public:
     /// In case the geometry needs to be printed
-    using name_map = dmap<dindex, std::string>;
+    using name_map = detray::name_map;
 
     /// Not allowed: always needs a detector and a descriptor.
     tracking_volume() = delete;
@@ -135,6 +136,33 @@ class tracking_volume {
         return detray::ranges::subrange{
             m_detector.surfaces(),
             m_desc.template sf_link<surface_id::e_portal>()};
+    }
+
+    /// @returns the total number of portal surfaces contained in the volume
+    DETRAY_HOST_DEVICE constexpr dindex n_portals() const {
+        const auto pt_idx_range =
+            m_desc.template sf_link<surface_id::e_portal>();
+
+        assert(pt_idx_range[1] > pt_idx_range[0]);
+        return pt_idx_range[1] - pt_idx_range[0];
+    }
+
+    /// @returns the total number of sensitive surfaces contained in the volume
+    DETRAY_HOST_DEVICE constexpr dindex n_sensitives() const {
+        const auto sens_idx_range =
+            m_desc.template sf_link<surface_id::e_sensitive>();
+
+        assert(sens_idx_range[1] >= sens_idx_range[0]);
+        return sens_idx_range[1] - sens_idx_range[0];
+    }
+
+    /// @returns the total number of passive surfaces contained in the volume
+    DETRAY_HOST_DEVICE constexpr dindex n_passives() const {
+        const auto ps_idx_range =
+            m_desc.template sf_link<surface_id::e_passive>();
+
+        assert(ps_idx_range[1] >= ps_idx_range[0]);
+        return ps_idx_range[1] - ps_idx_range[0];
     }
 
     /// Apply a functor to all surfaces in the volume's acceleration structures
@@ -283,7 +311,7 @@ class tracking_volume {
     /// @returns the volume name (add an offset for the detector name).
     DETRAY_HOST_DEVICE
     auto name(const name_map &names) const -> std::string {
-        return names.empty() ? "" : names.at(m_desc.index() + 1u);
+        return names.empty() ? "" : names.at(m_desc.index());
     }
 
     /// @returns a string stream that prints the volume details
