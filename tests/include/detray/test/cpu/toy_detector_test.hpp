@@ -109,7 +109,7 @@ inline bool toy_detector_test(
     using accel_ids = typename detector_t::accel::id;
     using accel_link_t = typename volume_t::accel_link_type::index_type;
 
-    EXPECT_EQ(names.at(0u), "toy_detector");
+    EXPECT_EQ(names.get_detector_name(), "toy_detector");
 
     // Test general consistency
     detail::check_consistency(toy_det, true, names);
@@ -387,7 +387,7 @@ inline bool toy_detector_test(
 
     // Check volume
     auto vol_itr = volumes.begin();
-    EXPECT_EQ(names.at(vol_itr->index() + 1), "beampipe_0");
+    EXPECT_EQ(names.at(vol_itr->index()), "beampipe_0");
     darray<dindex, 1> index = {0u};
     accel_link_t accel_link{accel_ids::e_brute_force, 0u};
     check_sf_ranges(*vol_itr, {1u, 6u}, {}, {0u, 1u});
@@ -447,7 +447,7 @@ inline bool toy_detector_test(
 
     // Check volume
     ++vol_itr;
-    EXPECT_EQ(names.at(vol_itr->index() + 1), "endcap_1");
+    EXPECT_EQ(names.at(vol_itr->index()), "endcap_1");
     range = {6u, 118u};
     index = {1u};
     accel_link = {accel_ids::e_disc_grid, 0u};
@@ -497,7 +497,7 @@ inline bool toy_detector_test(
 
     // Check volume
     ++vol_itr;
-    EXPECT_EQ(names.at(vol_itr->index() + 1), "connector_gap_2");
+    EXPECT_EQ(names.at(vol_itr->index()), "connector_gap_2");
     range = {118u, 122u};
     index = {2u};
     accel_link = {accel_ids::e_brute_force, 0u};
@@ -536,7 +536,7 @@ inline bool toy_detector_test(
 
     // Check volume
     ++vol_itr;
-    EXPECT_EQ(names.at(vol_itr->index() + 1), "endcap_3");
+    EXPECT_EQ(names.at(vol_itr->index()), "endcap_3");
     range = {122u, 234u};
     index = {3u};
     accel_link = {accel_ids::e_disc_grid, 1u};
@@ -586,7 +586,7 @@ inline bool toy_detector_test(
 
     // Check volume
     ++vol_itr;
-    EXPECT_EQ(names.at(vol_itr->index() + 1), "gap_4");
+    EXPECT_EQ(names.at(vol_itr->index()), "gap_4");
     range = {234u, 238u};
     index = {4u};
     accel_link = {accel_ids::e_brute_force, 0u};
@@ -620,7 +620,7 @@ inline bool toy_detector_test(
 
     // Check volume
     ++vol_itr;
-    EXPECT_EQ(names.at(vol_itr->index() + 1), "endcap_5");
+    EXPECT_EQ(names.at(vol_itr->index()), "endcap_5");
     range = {238u, 350u};
     index = {5u};
     accel_link = {accel_ids::e_disc_grid, 2u};
@@ -670,7 +670,7 @@ inline bool toy_detector_test(
 
     // Check volume
     ++vol_itr;
-    EXPECT_EQ(names.at(vol_itr->index() + 1), "gap_6");
+    EXPECT_EQ(names.at(vol_itr->index()), "gap_6");
     range = {350u, 354u};
     index = {6u};
     accel_link = {accel_ids::e_brute_force, 0u};
@@ -708,7 +708,7 @@ inline bool toy_detector_test(
 
     // Check volume
     ++vol_itr;
-    EXPECT_EQ(names.at(vol_itr->index() + 1), "barrel_7");
+    EXPECT_EQ(names.at(vol_itr->index()), "barrel_7");
     range = {354u, 582u};
     index = {7u};
     accel_link = {accel_ids::e_cylinder2_grid, 0u};
@@ -751,7 +751,7 @@ inline bool toy_detector_test(
 
     // Check volume
     ++vol_itr;
-    EXPECT_EQ(names.at(vol_itr->index() + 1), "gap_8");
+    EXPECT_EQ(names.at(vol_itr->index()), "gap_8");
     range = {582u, 584u};
     index = {8u};
     accel_link = {accel_ids::e_brute_force, 0u};
@@ -785,7 +785,7 @@ inline bool toy_detector_test(
 
     // Check volume
     ++vol_itr;
-    EXPECT_EQ(names.at(vol_itr->index() + 1), "barrel_9");
+    EXPECT_EQ(names.at(vol_itr->index()), "barrel_9");
     range = {586u, 1038u};
     index = {9u};
     accel_link = {accel_ids::e_cylinder2_grid, 1u};
@@ -828,7 +828,7 @@ inline bool toy_detector_test(
 
     // Check volume
     ++vol_itr;
-    EXPECT_EQ(names.at(vol_itr->index() + 1), "gap_10");
+    EXPECT_EQ(names.at(vol_itr->index()), "gap_10");
     range = {1038u, 1042u};
     index = {10u};
     accel_link = {accel_ids::e_brute_force, 0u};
@@ -862,7 +862,7 @@ inline bool toy_detector_test(
 
     // Check volume
     ++vol_itr;
-    EXPECT_EQ(names.at(vol_itr->index() + 1), "barrel_11");
+    EXPECT_EQ(names.at(vol_itr->index()), "barrel_11");
     range = {1042u, 1774u};
     index = {11u};
     accel_link = {accel_ids::e_cylinder2_grid, 2u};
@@ -905,7 +905,7 @@ inline bool toy_detector_test(
 
     // Check volume
     ++vol_itr;
-    EXPECT_EQ(names.at(vol_itr->index() + 1), "gap_12");
+    EXPECT_EQ(names.at(vol_itr->index()), "gap_12");
     range = {1774u, 1778u};
     index = {12u};
     accel_link = {accel_ids::e_brute_force, 0u};
@@ -939,7 +939,7 @@ inline bool toy_detector_test(
 
     // Check volume
     ++vol_itr;
-    EXPECT_EQ(names.at(vol_itr->index() + 1), "barrel_13");
+    EXPECT_EQ(names.at(vol_itr->index()), "barrel_13");
     range = {1778u, 2874u};
     index = {13u};
     accel_link = {accel_ids::e_cylinder2_grid, 3u};
@@ -982,7 +982,7 @@ inline bool toy_detector_test(
 
     // Check volume
     ++vol_itr;
-    EXPECT_EQ(names.at(vol_itr->index() + 1), "gap_14");
+    EXPECT_EQ(names.at(vol_itr->index()), "gap_14");
     range = {2874u, 2878u};
     index = {14u};
     accel_link = {accel_ids::e_brute_force, 0u};
@@ -1016,7 +1016,7 @@ inline bool toy_detector_test(
 
     // Check volume
     ++vol_itr;
-    EXPECT_EQ(names.at(vol_itr->index() + 1), "gap_15");
+    EXPECT_EQ(names.at(vol_itr->index()), "gap_15");
     range = {2878u, 2882u};
     index = {15u};
     accel_link = {accel_ids::e_brute_force, 0u};
@@ -1054,7 +1054,7 @@ inline bool toy_detector_test(
 
     // Check volume
     ++vol_itr;
-    EXPECT_EQ(names.at(vol_itr->index() + 1), "endcap_16");
+    EXPECT_EQ(names.at(vol_itr->index()), "endcap_16");
     range = {2882u, 2994u};
     index = {16u};
     accel_link = {accel_ids::e_disc_grid, 0u};
@@ -1104,7 +1104,7 @@ inline bool toy_detector_test(
 
     // Check volume
     ++vol_itr;
-    EXPECT_EQ(names.at(vol_itr->index() + 1), "connector_gap_17");
+    EXPECT_EQ(names.at(vol_itr->index()), "connector_gap_17");
     range = {2994u, 2998u};
     index = {17u};
     accel_link = {accel_ids::e_brute_force, 0u};
@@ -1143,7 +1143,7 @@ inline bool toy_detector_test(
 
     // Check volume
     ++vol_itr;
-    EXPECT_EQ(names.at(vol_itr->index() + 1), "endcap_18");
+    EXPECT_EQ(names.at(vol_itr->index()), "endcap_18");
     range = {2998u, 3110u};
     index = {18u};
     accel_link = {accel_ids::e_disc_grid, 3u};
@@ -1193,7 +1193,7 @@ inline bool toy_detector_test(
 
     // Check volume
     ++vol_itr;
-    EXPECT_EQ(names.at(vol_itr->index() + 1), "gap_19");
+    EXPECT_EQ(names.at(vol_itr->index()), "gap_19");
     range = {3110u, 3114u};
     index = {19u};
     accel_link = {accel_ids::e_brute_force, 0u};
@@ -1227,7 +1227,7 @@ inline bool toy_detector_test(
 
     // Check volume
     ++vol_itr;
-    EXPECT_EQ(names.at(vol_itr->index() + 1), "endcap_20");
+    EXPECT_EQ(names.at(vol_itr->index()), "endcap_20");
     range = {3114u, 3226u};
     index = {20u};
     accel_link = {accel_ids::e_disc_grid, 4u};
@@ -1277,7 +1277,7 @@ inline bool toy_detector_test(
 
     // Check volume
     ++vol_itr;
-    EXPECT_EQ(names.at(vol_itr->index() + 1), "gap_21");
+    EXPECT_EQ(names.at(vol_itr->index()), "gap_21");
     range = {3226u, 3230u};
     index = {21u};
     accel_link = {accel_ids::e_brute_force, 0u};

@@ -12,6 +12,7 @@
 #include "detray/io/backend/detail/basic_converter.hpp"
 #include "detray/io/backend/detail/type_info.hpp"
 #include "detray/io/frontend/payloads.hpp"
+#include "detray/utils/detector_statistics.hpp"
 #include "detray/utils/grid/detail/concepts.hpp"
 #include "detray/utils/grid/grid.hpp"
 #include "detray/utils/type_list.hpp"
@@ -42,7 +43,7 @@ class grid_writer {
 
         header_data.sub_header.emplace();
         auto& grid_sub_header = header_data.sub_header.value();
-        grid_sub_header.n_grids = get_n_grids(store);
+        grid_sub_header.n_grids = detray::n_grids(store);
 
         return header_data;
     }
@@ -197,23 +198,6 @@ class grid_writer {
             }
         }
     };
-
-    /// Retrieve number of overall grids in detector
-    template <std::size_t I = 0u, typename store_t>
-    static std::size_t get_n_grids(const store_t& store, std::size_t n = 0u) {
-
-        constexpr auto coll_id{store_t::value_types::to_id(I)};
-        using value_type = typename store_t::template get_type<coll_id>;
-
-        if constexpr (detray::concepts::grid<value_type>) {
-            n += store.template size<coll_id>();
-        }
-
-        if constexpr (I < store_t::n_collections() - 1u) {
-            return get_n_grids<I + 1>(store, n);
-        }
-        return n;
-    }
 };
 
 }  // namespace detray::io::detail

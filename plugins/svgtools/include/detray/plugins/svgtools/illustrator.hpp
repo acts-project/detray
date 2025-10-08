@@ -35,6 +35,7 @@
 // System include(s)
 #include <array>
 #include <optional>
+#include <regex>
 #include <stdexcept>
 #include <vector>
 
@@ -355,13 +356,16 @@ class illustrator {
         const typename detector_t::geometry_context& gctx = {}) const {
 
         if (index >= _detector.volumes().size()) {
-            throw std::invalid_argument("Volume index too large: " +
-                                        std::to_string(index));
+            std::string err_str{"Volume index too large: " +
+                                std::to_string(index)};
+            DETRAY_FATAL_HOST(err_str);
+            throw std::invalid_argument(err_str);
         }
 
         const auto d_volume = tracking_volume{_detector, index};
 
-        DETRAY_VERBOSE_HOST("Draw volume: " << d_volume.name(_name_map));
+        DETRAY_VERBOSE_HOST("Draw volume " << "(" << svg_id(view) << "-view): "
+                                           << d_volume.name(_name_map));
         DETRAY_DEBUG_HOST("-> " << d_volume);
 
         auto [p_volume, gr_type] = svgtools::conversion::volume(
@@ -371,29 +375,34 @@ class illustrator {
 
         // Draw the basic volume
         p_volume._name = d_volume.name(_name_map);
+        p_volume._name =
+            std::regex_replace(p_volume._name, std::regex("/"), "_");
         std::string id = p_volume._name + "_" + svg_id(view);
         auto vol_svg = svgtools::utils::group(id);
 
         actsvg::svg::object sf_grid_svg;
 
+        // Add the grid to the volume svg
+        auto grid_svg =
+            actsvg::display::grid(id + "_grid", p_volume._surface_grid);
+
         // zr and xy - views of volume including the portals
-        if constexpr (!std::is_same_v<view_t, actsvg::views::z_phi>) {
+        if constexpr (!std::is_same_v<view_t, actsvg::views::z_phi> &&
+                      !std::is_same_v<view_t, actsvg::views::z_rphi>) {
 
             vol_svg.add_object(actsvg::display::volume(id, p_volume, view));
-
-            // Add the grid to the volume svg
-            auto grid_svg =
-                actsvg::display::grid(id + "_grid", p_volume._surface_grid);
 
             if (!_hide_grids) {
                 DETRAY_VERBOSE_HOST("-> Added grid to volume SVG");
                 vol_svg.add_object(grid_svg);
-
-                // Draw surface grid svg, if volume has grid and the view fits
-                // the grid
-                sf_grid_svg = detray::svgtools::meta::display::surface_grid(
-                    id, p_volume, gr_type, grid_svg, view);
             }
+        }
+
+        if (!_hide_grids) {
+            // Draw surface grid svg, if volume has grid and the view fits
+            // the grid
+            sf_grid_svg = detray::svgtools::meta::display::surface_grid(
+                id, p_volume, gr_type, grid_svg, view);
         }
 
         DETRAY_DEBUG_HOST("-> Volume SVG ID: " << id);
@@ -401,17 +410,47 @@ class illustrator {
         return std::tuple{vol_svg, sf_grid_svg};
     }
 
+    /// @brief Converts a detray volume of the detector to an svg.
+    ///
+    /// @param name the name of the volume.
+    /// @param view the display view.
+    /// @param gctx the geometry context.
+    ///
+    /// @returns @c actsvg::svg::object of the detector's volume.
+    template <typename view_t>
+    inline auto draw_volume(
+        const std::string_view name, const view_t& view,
+        const typename detector_t::geometry_context& gctx = {}) const {
+
+        if (_name_map.empty() || !_name_map.contains(name)) {
+            std::string err_str{"Could not identify volume by name '" +
+                                std::string{name} + "'"};
+            if (_name_map.empty()) {
+                err_str += ": name map empty!";
+            } else if (!_name_map.contains(name)) {
+                err_str += ": name map does not contain voume name!";
+            }
+
+            DETRAY_FATAL_HOST(err_str);
+            throw std::invalid_argument(err_str);
+        }
+
+        dindex index = _detector.volume(name, _name_map).index();
+
+        return draw_volume(index, view, gctx);
+    }
+
     /// @brief Converts multiple detray volumes of the detector to an svg.
     ///
-    /// @param indices the collection of volume indices in the detector to
-    /// convert.
+    /// @param volume_ids the collection of volume indices or names in the
+    /// detector to convert.
     /// @param view the display view.
     /// @param gctx the geometry context.
     ///
     /// @returns @c actsvg::svg::object of the detector's volumes.
     template <detray::ranges::range range_t, typename view_t>
     inline auto draw_volumes(
-        const range_t& indices, const view_t& view,
+        const range_t& volume_ids, const view_t& view,
         const typename detector_t::geometry_context& gctx = {}) const {
 
         DETRAY_VERBOSE_HOST("Draw volumes...");
@@ -423,12 +462,13 @@ class illustrator {
         // The surface[grid] sheets per volume
         std::vector<actsvg::svg::object> sf_grids;
 
-        for (const auto index : indices) {
+        for (const auto& vol_identifier : volume_ids) {
 
-            auto [vol_svg, sf_grid] = draw_volume(index, view, gctx);
+            auto [vol_svg, sf_grid] = draw_volume(vol_identifier, view, gctx);
 
             // The general volume display
-            if constexpr (!std::is_same_v<view_t, actsvg::views::z_phi>) {
+            if constexpr (!std::is_same_v<view_t, actsvg::views::z_phi> &&
+                          !std::is_same_v<view_t, actsvg::views::z_rphi>) {
                 vol_group.add_object(vol_svg);
             }
             sf_grids.push_back(std::move(sf_grid));
@@ -629,7 +669,9 @@ class illustrator {
     /// @returns the string id of a view
     template <typename view_t>
     std::string svg_id(const view_t& view) const {
-        return view._axis_names.at(0) + view._axis_names.at(1);
+        std::string name{view._axis_names.at(0) + view._axis_names.at(1)};
+
+        return std::regex_replace(name, std::regex(" · "), "");
     }
 
     const actsvg::point2 _info_screen_offset{-300, 300};

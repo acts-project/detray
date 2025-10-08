@@ -112,14 +112,15 @@ auto test_detector_json_io(
     io::write_detector(det2, names2, writer_cfg);
 
     // Compare writing round-trip
-    std::string geometry_file{names.at(0u) + "_geometry_2.json"};
+    std::string geometry_file{names.get_detector_name() + "_geometry_2.json"};
     EXPECT_TRUE(compare_files(file_names["geometry"], geometry_file));
     std::filesystem::remove(geometry_file);
 
     // Check a homogeneous material description, if present
     if (auto search = file_names.find("homogeneous_material");
         search != file_names.end()) {
-        std::string hom_mat_file{names.at(0u) + "_homogeneous_material_2.json"};
+        std::string hom_mat_file{names.get_detector_name() +
+                                 "_homogeneous_material_2.json"};
         EXPECT_TRUE(
             compare_files(file_names["homogeneous_material"], hom_mat_file));
         std::filesystem::remove(hom_mat_file);
@@ -128,7 +129,8 @@ auto test_detector_json_io(
     // Check a material map description, if present
     if (auto search = file_names.find("material_maps");
         search != file_names.end()) {
-        std::string mat_map_file{names.at(0u) + "_material_maps_2.json"};
+        std::string mat_map_file{names.get_detector_name() +
+                                 "_material_maps_2.json"};
         EXPECT_TRUE(compare_files(file_names["material_maps"], mat_map_file));
         std::filesystem::remove(mat_map_file);
     }
@@ -136,7 +138,8 @@ auto test_detector_json_io(
     // Check a homogeneous material description, if present
     if (auto search = file_names.find("surface_grids");
         search != file_names.end()) {
-        std::string grids_file{names.at(0u) + "_surface_grids_2.json"};
+        std::string grids_file{names.get_detector_name() +
+                               "_surface_grids_2.json"};
         EXPECT_TRUE(compare_files(file_names["surface_grids"], grids_file));
         std::filesystem::remove(grids_file);
     }
@@ -202,7 +205,8 @@ GTEST_TEST(io, json_toy_geometry) {
         toy_det, names, std::ios::out | std::ios::binary | std::ios::trunc);
 
     // Empty volume name map to be filled
-    typename detector_t::name_map volume_name_map = {{0u, "toy_detector"}};
+    typename detector_t::name_map volume_name_map{};
+    volume_name_map.set_detector_name("toy_detector");
 
     // Read the detector back in
     detector_builder<metadata_t> toy_builder;

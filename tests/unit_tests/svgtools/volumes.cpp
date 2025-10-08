@@ -69,4 +69,21 @@ GTEST_TEST(svgtools, volumes) {
         detray::svgtools::write_svg("test_svgtools_" + vol_svg_zr._id,
                                     {axes, vol_svg_zr});
     }
+
+    // Names of volumes to be visualized
+    std::array vol_names{"beampipe_0", "gap_14", "endcap_1", "connector_gap_2",
+                         "barrel_7"};
+
+    for (std::string_view name : vol_names) {
+        // Visualization of volume i:
+        const auto [vol_svg_xy, xy_grid] = il.draw_volume(name, xy);
+        detray::svgtools::write_svg(
+            "test_svgtools_" + vol_svg_xy._id + "_fetched_by_name",
+            {axes, vol_svg_xy});
+
+        const auto [vol_svg_zr, zr_grid] = il.draw_volume(name, zr);
+        detray::svgtools::write_svg(
+            "test_svgtools_" + vol_svg_zr._id + "_fetched_by_name",
+            {axes, vol_svg_zr});
+    }
 }

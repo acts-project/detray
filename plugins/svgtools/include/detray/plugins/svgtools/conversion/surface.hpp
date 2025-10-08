@@ -68,6 +68,10 @@ auto inline surface(const transform3_t& transform, const mask_t& m) {
     set_measures(p_surface, m);
     set_vertices(p_surface, transform, m);
 
+    const point3_t center = transform.translation();
+    const auto r{static_cast<actsvg::scalar>(vector::perp(center))};
+    p_surface._radii = {r, r};
+
     return p_surface;
 }
 
