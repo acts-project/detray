@@ -550,6 +550,21 @@ class navigator {
                 detray::ranges::distance(m_candidates.begin(), pos))};
             assert(idx >= 0);
 
+            // Do not add the same surface (intersection) multiple times
+            const auto is_clash_at_pos = [this,
+                                          &new_cadidate](std::size_t index) {
+                return (m_candidates[index].sf_desc.barcode() ==
+                        new_cadidate.sf_desc.barcode()) &&
+                       (math::fabs(m_candidates[index].path() -
+                                   new_cadidate.path()) <= 1e-5f);
+            };
+
+            const auto idxu{static_cast<std::size_t>(idx)};
+            if (is_clash_at_pos(idxu) ||
+                ((idxu > 0u) && is_clash_at_pos(idxu - 1u))) {
+                return;
+            }
+
             // Shift all following candidates and evict the last element,
             // if the cache is already full
             constexpr auto shift_max{static_cast<dist_t>(k_cache_capacity - 2)};
