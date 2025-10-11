@@ -54,7 +54,8 @@ int main(int argc, char** argv) {
     // Specific options for this test
     po::options_description desc("\ndetray detector display options");
 
-    std::vector<dindex> volumes;
+    std::vector<dindex> volume_indices;
+    std::vector<std::string> volume_names;
     std::vector<dindex> surfaces;
     std::vector<dindex> window;
     desc.add_options()("outdir", po::value<std::string>(),
@@ -70,8 +71,12 @@ int main(int argc, char** argv) {
                                 "Font size")(
         "search_window", po::value<std::vector<dindex>>(&window)->multitoken(),
         "Size of the grid surface search window")(
-        "volumes", po::value<std::vector<dindex>>(&volumes)->multitoken(),
-        "List of volumes that should be displayed")(
+        "volume_indices",
+        po::value<std::vector<dindex>>(&volume_indices)->multitoken(),
+        "List of volumes that should be displayed by index")(
+        "volume_names",
+        po::value<std::vector<std::string>>(&volume_names)->multitoken(),
+        "List of volumes that should be displayed by name")(
         "surfaces", po::value<std::vector<dindex>>(&surfaces)->multitoken(),
         "List of surfaces that should be displayed")(
         "hide_portals", "Hide portal surfaces")("hide_passives",
@@ -176,18 +181,33 @@ int main(int argc, char** argv) {
     const actsvg::views::x_y xy;
     const actsvg::views::z_r zr;
     const actsvg::views::z_phi zphi;
+    const actsvg::views::z_rphi zrphi;
 
-    // Display the volumes
-    if (!volumes.empty()) {
-        const auto vol_xy_svg = il.draw_volumes(volumes, xy, gctx);
+    // Draw the volumes from a collection of volume identifiers
+    auto draw_volumes = [&]<typename range_t>(const range_t& vol_ids) {
+        const auto [vol_xy_svg, xy_grids] = il.draw_volumes(vol_ids, xy, gctx);
         detray::svgtools::write_svg(path / vol_xy_svg._id,
                                     {xy_axis, vol_xy_svg});
+        for (const auto& grid : xy_grids) {
+            detray::svgtools::write_svg(path / grid._id, grid);
+        }
 
-        const auto vol_zr_svg = il.draw_volumes(volumes, zr, gctx);
+        const auto [vol_zr_svg, _] = il.draw_volumes(vol_ids, zr, gctx);
         detray::svgtools::write_svg(path / vol_zr_svg._id,
                                     {zr_axis, vol_zr_svg});
 
-        const auto _vol = il.draw_volumes(volumes, zphi, gctx);
+        const auto [_vol, zrphi_grids] = il.draw_volumes(vol_ids, zrphi, gctx);
+        for (const auto& grid : zrphi_grids) {
+            detray::svgtools::write_svg(path / grid._id, grid);
+        }
+    };
+
+    // Display the volumes
+    if (!volume_indices.empty()) {
+        draw_volumes(volume_indices);
+    }
+    if (!volume_names.empty()) {
+        draw_volumes(volume_names);
     }
 
     // Display the surfaces
@@ -209,7 +229,7 @@ int main(int argc, char** argv) {
     }
 
     // If nothing was specified, display the whole detector
-    if (volumes.empty() && surfaces.empty()) {
+    if (volume_indices.empty() && volume_names.empty() && surfaces.empty()) {
         const auto det_xy_svg = il.draw_detector(xy, gctx);
         detray::svgtools::write_svg(path / det_xy_svg._id,
                                     {xy_axis, det_xy_svg});

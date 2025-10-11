@@ -160,7 +160,7 @@ inline std::vector<actsvg::style::gradient::stop> generate_stops(
 
     for (std::size_t i = 0u; i < n_stops; ++i) {
 
-        stops.push_back(actsvg::style::gradient::stop{grad, scale[i_color]});
+        stops.push_back(actsvg::style::gradient::stop{grad, scale.at(i_color)});
 
         i_color += color_step;
         grad += grad_step;

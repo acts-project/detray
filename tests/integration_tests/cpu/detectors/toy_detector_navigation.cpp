@@ -142,7 +142,8 @@ int main(int argc, char **argv) {
 
     auto [toy_det_hom_mat, toy_names_hom_mat] =
         build_toy_detector<test_algebra>(host_mr, toy_cfg);
-    toy_names_hom_mat.at(0) += "_hom_material";
+    toy_names_hom_mat.set_detector_name(toy_names_hom_mat.get_detector_name() +
+                                        "_hom_material");
 
     // Check that the detector was built correctly
     test::register_checks<test::consistency_check>(
