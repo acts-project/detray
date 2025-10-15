@@ -149,7 +149,7 @@ auto inline surface(const transform3_t& transform,
 
     p_surface_t p_surface;
 
-    p_surface._type = p_surface_t::type::e_annulus;
+    p_surface._type = p_surface_t::type::e_trapez;
     set_measures(p_surface, m);
     set_vertices(p_surface, transform, m);
 
