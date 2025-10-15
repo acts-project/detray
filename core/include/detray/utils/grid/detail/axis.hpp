@@ -328,7 +328,7 @@ class multi_axis {
     ///               determines which axes data are used to build the instance.
     /// @returns an axis object, corresponding to the index.
     template <std::size_t index>
-    DETRAY_HOST_DEVICE typename label_matcher<axis_reg::to_id(index)>::type
+    DETRAY_HOST_DEVICE label_matcher<axis_reg::template to_id<index>()>
     get_axis() const {
         return {m_edge_offsets[index], &bin_edges()};
     }
@@ -336,8 +336,8 @@ class multi_axis {
     /// @tparam L label of the axis.
     /// @returns an axis object, corresponding to the label.
     template <axis::label L>
-    DETRAY_HOST_DEVICE typename label_matcher<L>::type get_axis() const {
-        return get_axis<axis_reg::to_index(L)>();
+    DETRAY_HOST_DEVICE label_matcher<L> get_axis() const {
+        return get_axis<axis_reg::template to_index<L>()>();
     }
 
     /// @tparam axis_t type of the axis.
@@ -476,7 +476,8 @@ class multi_axis {
     DETRAY_HOST_DEVICE void get_axis_nbins(const axis_t &ax,
                                            loc_bin_index &n_bins) const {
         // Get the index corresponding to the axis label (e.g. bin_x <=> 0)
-        constexpr auto loc_idx{axis_reg::to_index(axis_t::bounds_type::label)};
+        constexpr auto loc_idx{
+            axis_reg::template to_index<axis_t::bounds_type::label>()};
         n_bins[loc_idx] = ax.nbins();
     }
 
@@ -493,7 +494,8 @@ class multi_axis {
     DETRAY_HOST_DEVICE void get_axis_bin(const axis_t &ax, const point_type &p,
                                          loc_bin_index &bin_indices) const {
         // Get the index corresponding to the axis label (e.g. bin_x <=> 0)
-        constexpr auto loc_idx{axis_reg::to_index(axis_t::bounds_type::label)};
+        constexpr auto loc_idx{
+            axis_reg::template to_index<axis_t::bounds_type::label>()};
         bin_indices[loc_idx] = ax.bin(p[loc_idx]);
     }
 
@@ -515,7 +517,8 @@ class multi_axis {
         const darray<neighbor_t, 2> &nhood,
         multi_bin_range<dim> &bin_ranges) const {
         // Get the index corresponding to the axis label (e.g. bin_range_x = 0)
-        constexpr auto loc_idx{axis_reg::to_index(axis_t::bounds_type::label)};
+        constexpr auto loc_idx{
+            axis_reg::template to_index<axis_t::bounds_type::label>()};
         bin_ranges[loc_idx] = ax.range(p[loc_idx], nhood);
     }
 

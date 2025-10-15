@@ -202,7 +202,7 @@ class grid_writer {
     template <std::size_t I = 0u, typename store_t>
     static std::size_t get_n_grids(const store_t& store, std::size_t n = 0u) {
 
-        constexpr auto coll_id{store_t::value_types::to_id(I)};
+        constexpr auto coll_id{store_t::value_types::template to_id<I>()};
         using value_type = typename store_t::template get_type<coll_id>;
 
         if constexpr (detray::concepts::grid<value_type>) {
