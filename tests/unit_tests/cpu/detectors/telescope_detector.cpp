@@ -124,8 +124,8 @@ GTEST_TEST(detray_detectors, telescope_detector) {
               positions.size());
 
     // Test this only once, it is the same for all telescope detectors
-    EXPECT_EQ(z_tel_names1.at(0u), "telescope_detector");
-    EXPECT_EQ(z_tel_names1.at(1u), "telescope_world_0");
+    EXPECT_EQ(z_tel_names1.get_detector_name(), "telescope_detector");
+    EXPECT_EQ(z_tel_names1.at(0u), "telescope_world_0");
 
     // Check general consistency of the detector
     detail::check_consistency(z_tel_det1, verbose_check, z_tel_names1);

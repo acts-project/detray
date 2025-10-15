@@ -135,7 +135,7 @@ struct type_and_edge_getter {
         if constexpr (concepts::grid<value_t>) {
             // Only two dimensional grids for actsvg
             if constexpr (value_t::dim == 2) {
-                return grid_type_and_edges(group[index], view);
+                return grid_type_and_edges(group.at(index), view);
             }
         }
 
@@ -193,15 +193,6 @@ auto grid(const store_t& store, const link_t& link, const view_t& view,
     } else if (gr_type == detail::grid_type::e_endcap) {
         // An axis is always sorted
         p_grid._reference_r = static_cast<actsvg::scalar>(edges0.back());
-    }
-
-    // Transform cylinder grid to rphi edges, if rphi view is requested
-    if constexpr (std::is_same_v<view_t, typename actsvg::views::z_rphi>) {
-        if (gr_type == detail::grid_type::e_barrel) {
-            for (auto& e : edges1) {
-                e *= p_grid._reference_r;
-            }
-        }
     }
 
     std::ranges::transform(

@@ -9,6 +9,7 @@
 #include "detray/builders/detector_builder.hpp"
 
 #include "detray/builders/cuboid_portal_generator.hpp"
+#include "detray/builders/cylinder_portal_generator.hpp"
 #include "detray/builders/surface_factory.hpp"
 #include "detray/core/detector.hpp"
 #include "detray/definitions/indexing.hpp"
@@ -77,7 +78,13 @@ GTEST_TEST(detray_builders, detector_builder) {
                               std::vector<scalar>{1.f, 3.f, 2.f, 0.25f});
     trpz_factory->push_back(std::move(trpz_sf_data));
 
+    // Add a portal cylinder around the volume
+    cylinder_portal_config<scalar> cfg{};
+    auto cyl_generator =
+        std::make_shared<cylinder_portal_generator<detector_t>>(cfg);
+
     vbuilder->add_surfaces(trpz_factory, geo_ctx);
+    vbuilder->add_surfaces(cyl_generator);
 
     //
     // second volume builder
@@ -90,11 +97,11 @@ GTEST_TEST(detray_builders, detector_builder) {
 
     // Add a portal box around the cuboid volume with a min distance of 'env'
     constexpr auto env{0.1f * unit<scalar>::mm};
-    auto portal_generator =
+    auto cuboid_generator =
         std::make_shared<cuboid_portal_generator<detector_t>>(env);
 
     vbuilder2->add_surfaces(trpz_factory, geo_ctx);
-    vbuilder2->add_surfaces(portal_generator);
+    vbuilder2->add_surfaces(cuboid_generator);
 
     // initial checks
     EXPECT_EQ(vbuilder2->vol_index(), 1u);
@@ -120,14 +127,15 @@ GTEST_TEST(detray_builders, detector_builder) {
     EXPECT_TRUE(d.transform_store().at(0u) == identity);
     typename detector_t::transform3_type trf{t};
     EXPECT_TRUE(vol1.transform() == trf);
-    EXPECT_TRUE(d.transform_store().at(4u) == trf);
+    EXPECT_TRUE(d.transform_store().at(8u) == trf);
 
-    EXPECT_EQ(d.surfaces().size(), 12u);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_cylinder2>(), 0u);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_ring2>(), 0u);
+    EXPECT_EQ(d.surfaces().size(), 16u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_cylinder2>(), 2u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_ring2>(), 2u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_annulus2>(), 0u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_cylinder2>(), 0u);
+    // Portal rectangle masks are deduplicated
     EXPECT_EQ(d.mask_store().template size<mask_id::e_rectangle2>(), 3u);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_ring2>(), 0u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_ring2>(), 2u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_trapezoid2>(), 6u);
 }

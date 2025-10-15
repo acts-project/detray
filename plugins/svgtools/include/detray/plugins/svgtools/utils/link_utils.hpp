@@ -42,7 +42,7 @@ inline auto get_linked_volume(
     assert(is_not_world_portal(d_portal));
     const auto d_link_idx = d_portal.volume_links();
 
-    return tracking_volume{detector, d_link_idx[mask_idx]};
+    return tracking_volume{detector, d_link_idx.at(mask_idx)};
 }
 
 /// @brief Calculates the start and end point of the link.

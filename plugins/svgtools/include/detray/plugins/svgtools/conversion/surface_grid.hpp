@@ -14,7 +14,7 @@
 #include "detray/utils/grid/detail/concepts.hpp"
 #include "detray/utils/log.hpp"
 
-// PLugin include(s)
+// Plugin include(s)
 #include "detray/plugins/svgtools/conversion/grid.hpp"
 #include "detray/plugins/svgtools/styling/styling.hpp"
 
@@ -57,7 +57,7 @@ struct bin_association_getter {
                 return {};
             }
 
-            const accel_t grid = group[index];
+            const accel_t grid = group.at(index);
             const std::size_t n_bins{grid.nbins()};
 
             std::vector<std::vector<std::size_t>> bin_assoc;
@@ -79,12 +79,13 @@ struct bin_association_getter {
             }
 
             for (std::size_t i = 1u; i < edges0.size(); ++i) {
-                scalar_t p0 = 0.5f * (edges0[i] + edges0[i - 1]);
+                scalar_t p0 = 0.5f * (edges0.at(i) + edges0.at(i - 1));
 
                 for (std::size_t j = 1u; j < edges1.size(); ++j) {
-                    scalar_t p1 = 0.5f * (edges1[j] + edges1[j - 1]);
+                    scalar_t p1 = 0.5f * (edges1.at(j) + edges1.at(j - 1));
 
-                    // Create the bin center position estimates
+                    // Create the bin center position estimates for detray
+                    // (swap cylinder coordinates back)
                     point2_t bin_center{p0, p1};
                     if constexpr (is_cyl) {
                         bin_center = {p1, p0};
@@ -93,13 +94,27 @@ struct bin_association_getter {
                     // Get all the bin entries and calculate the loc index
                     std::vector<std::size_t> entries;
 
+                    DETRAY_DEBUG_HOST("-> Bin association: ");
+                    if constexpr (is_cyl) {
+                        DETRAY_DEBUG_HOST("--> Bin idx ["
+                                          << j << ", " << i
+                                          << "], Bin center: " << bin_center);
+                    } else {
+                        DETRAY_DEBUG_HOST("--> Bin idx ["
+                                          << i << ", " << j
+                                          << "], Bin center: " << bin_center);
+                    }
                     for (const auto& sf_desc :
                          grid.search(bin_center, search_window)) {
+
+                        DETRAY_DEBUG_HOST(
+                            "--> Surface: "
+                            << vol_desc.to_local_sf_index(sf_desc.index()));
+
                         // actsvg expects the sensitive surfaces to be numbered
-                        // starting from zero
-                        dindex offset{vol_desc.template sf_link<
-                            surface_id::e_sensitive>()[0]};
-                        entries.push_back(sf_desc.index() - offset);
+                        // starting from zero (per volume)
+                        entries.push_back(
+                            vol_desc.to_local_sf_index(sf_desc.index()));
                     }
 
                     // Remove duplicates

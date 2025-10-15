@@ -61,12 +61,11 @@ class geometry_writer {
         det_data.volumes.reserve(det.volumes().size());
 
         for (const auto& vol : det.volumes()) {
-            const auto map_itr = names.find(vol.index() + 1u);
-            if (map_itr == names.end()) {
-                det_data.volumes.push_back(to_payload(vol, det, ""));
-            } else {
+            if (names.contains(vol.index())) {
                 det_data.volumes.push_back(
-                    to_payload(vol, det, map_itr->second));
+                    to_payload(vol, det, names.at(vol.index())));
+            } else {
+                det_data.volumes.push_back(to_payload(vol, det, ""));
             }
         }
 

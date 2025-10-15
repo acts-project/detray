@@ -16,6 +16,7 @@
 #include "detray/core/detail/container_buffers.hpp"
 #include "detray/core/detail/container_views.hpp"
 #include "detray/core/detail/surface_lookup.hpp"
+#include "detray/core/name_map.hpp"
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
@@ -27,9 +28,9 @@
 #include <vecmem/memory/memory_resource.hpp>
 
 // System include(s)
-#include <map>
 #include <sstream>
 #include <string>
+#include <string_view>
 
 namespace detray {
 
@@ -92,7 +93,7 @@ class detector {
     using transform3_type = dtransform3D<algebra_type>;
 
     /// In case the detector needs to be printed
-    using name_map = std::map<dindex, std::string>;
+    using name_map = detray::name_map;
 
     /// The surface takes a mask (defines the local coordinates and the surface
     /// extent), its material, a link to an element in the transform container
@@ -212,19 +213,26 @@ class detector {
 
     /// @returns a string that contains the detector name
     std::string name(const name_map &names) const {
-        return names.empty() ? "" : names.at(0);
+        return names.get_detector_name();
     }
 
-    /// @return the sub-volumes of the detector - const access
+    /// @returns the sub-volumes of the detector - const access
     DETRAY_HOST_DEVICE
     inline auto volumes() const -> const vector_type<volume_type> & {
         return _volumes;
     }
 
-    /// @return the volume by @param volume_index - const access
+    /// @returns the volume by @param volume_index - const access
     DETRAY_HOST_DEVICE
     inline const auto &volume(dindex volume_index) const {
         return _volumes[volume_index];
+    }
+
+    /// @returns the volume by @param volume_name - const access
+    DETRAY_HOST
+    inline const auto &volume(const std::string_view volume_name,
+                              const name_map &names) const {
+        return _volumes.at(names.at(volume_name));
     }
 
     /// @return the volume by global cartesian @param position - const access
@@ -250,7 +258,7 @@ class detector {
         return _accelerators.template get<accel::id::e_brute_force>().all();
     }
 
-    /// @return the sub-volumes of the detector - const access
+    /// @returns the sub-volumes of the detector - const access
     DETRAY_HOST_DEVICE
     inline auto surfaces() const -> const surface_lookup_container & {
         return _surfaces;
@@ -263,18 +271,18 @@ class detector {
         return _surfaces.search(std::forward<query_t>(q));
     }
 
-    /// @return detector transform store
+    /// @returns detector transform store
     DETRAY_HOST_DEVICE
     inline auto transform_store(const geometry_context & /*ctx*/ = {}) const
         -> const transform_container & {
         return _transforms;
     }
 
-    /// @return all surface/portal masks in the geometry - const access
+    /// @returns all surface/portal masks in the geometry - const access
     DETRAY_HOST_DEVICE
     inline auto mask_store() const -> const mask_container & { return _masks; }
 
-    /// @return all materials in the geometry - const access
+    /// @returns all materials in the geometry - const access
     DETRAY_HOST_DEVICE
     inline auto material_store() const -> const material_container & {
         return _materials;
@@ -286,7 +294,7 @@ class detector {
         return _accelerators;
     }
 
-    /// @return the volume grid - const access
+    /// @returns the volume grid - const access
     DETRAY_HOST_DEVICE
     inline auto volume_search_grid() const -> const volume_finder & {
         return _volume_finder;

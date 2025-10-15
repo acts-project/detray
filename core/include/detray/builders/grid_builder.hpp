@@ -216,8 +216,6 @@ class grid_builder : public volume_decorator<detector_t> {
                           det.accelerator_store().template size<gid>() - 1);
 
         DETRAY_DEBUG_HOST("Accelerator link: " << vol_ptr->accel_link());
-        // DETRAY_DEBUG_HOST("Finished grid building: " << m_grid);
-
         DETRAY_VERBOSE_HOST("Successfully built "
                             << gid << " for volume: " << this->name());
 

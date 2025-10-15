@@ -97,11 +97,7 @@ class json_converter<detector_t, backend_t> final
                           std::ios_base::binary))) &&
                "Illegal file mode for json writer");
 
-        // By convention the name of the detector is the first element
-        std::string det_name = "";
-        if (!names.empty()) {
-            det_name = names.at(0);
-        }
+        std::string det_name = det.name(names);
 
         // Create a new file
         std::string file_stem{det_name + "_" + std::string(io_backend::tag)};
