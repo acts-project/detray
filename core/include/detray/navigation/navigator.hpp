@@ -884,7 +884,8 @@ class navigator {
         }
         // If no trust could be restored for the current state, (local)
         // navigation might be exhausted: re-initialize volume
-        else {
+        if (navigation.trust_level() != navigation::trust_level::e_full ||
+            navigation.is_exhausted()) {
             DETRAY_VERBOSE_HOST_DEVICE(
                 "Full trust could not be restored! RESCURE MODE: Run init with "
                 "large tolerances");

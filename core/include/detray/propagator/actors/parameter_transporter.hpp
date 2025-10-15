@@ -97,7 +97,7 @@ struct parameter_transporter : actor {
             return;
         }
         DETRAY_VERBOSE_HOST_DEVICE(
-            "Transort track parameters to current surface");
+            "Transport track parameters to current surface");
 
         // Geometry context for this track
         const auto& gctx = propagation._context;

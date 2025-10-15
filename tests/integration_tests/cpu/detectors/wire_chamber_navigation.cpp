@@ -75,6 +75,7 @@ int main(int argc, char **argv) {
     cfg_str_nav.name("wire_chamber_straight_line_navigation");
     cfg_str_nav.n_tracks(cfg_ray_scan.track_generator().n_tracks());
     cfg_str_nav.propagation().stepping.min_stepsize = min_stepsize;
+    cfg_str_nav.propagation().navigation.estimate_scattering_noise = false;
     cfg_str_nav.propagation().navigation.search_window = {3u, 3u};
     auto mask_tolerance = cfg_ray_scan.mask_tolerance();
     cfg_str_nav.propagation().navigation.min_mask_tolerance =
@@ -106,6 +107,7 @@ int main(int argc, char **argv) {
     cfg_hel_nav.name("wire_chamber_helix_navigation");
     cfg_hel_nav.n_tracks(cfg_hel_scan.track_generator().n_tracks());
     cfg_hel_nav.propagation().stepping.min_stepsize = min_stepsize;
+    cfg_hel_nav.propagation().navigation.estimate_scattering_noise = false;
     cfg_hel_nav.propagation().navigation.min_mask_tolerance *= 11.f;
     cfg_hel_nav.propagation().navigation.search_window = {3u, 3u};
 

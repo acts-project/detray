@@ -153,3 +153,14 @@ def add_propagation_args(arg_list, parsed_args):
 
     if parsed_args.bfield_grad:
         arg_list.extend(["--bfield_gradient"])
+
+    if parsed_args.estimate_scattering_noise:
+        arg_list.extend(["--estimate_scattering_noise"])
+        arg_list.extend(
+            [
+                "--n_scattering_stddev",
+                str(parsed_args.n_scattering_stddev),
+                "--accumulated_error",
+                str(parsed_args.accumulated_error),
+            ]
+        )

@@ -469,6 +469,7 @@ bound_getter<test_algebra>::state evaluate_bound_param(
     propagation::config cfg{};
     cfg.navigation.overstep_tolerance = static_cast<float>(overstep_tolerance);
     cfg.navigation.path_tolerance = static_cast<float>(path_tolerance);
+    cfg.navigation.estimate_scattering_noise = false;
     cfg.stepping.rk_error_tol = static_cast<float>(rk_tolerance);
     cfg.stepping.use_eloss_gradient = true;
     cfg.stepping.use_field_gradient = use_field_gradient;
@@ -479,8 +480,7 @@ bound_getter<test_algebra>::state evaluate_bound_param(
     bound_getter<test_algebra>::state bound_getter_state{};
     bound_getter_state.track_ID = trk_count;
     bound_getter_state.m_min_path_length = detector_length * 0.75f;
-    parameter_resetter<test_algebra>::state resetter_state{};
-    resetter_state.estimate_scattering_noise = false;
+    parameter_resetter<test_algebra>::state resetter_state{cfg};
     auto actor_states = detray::tie(bound_getter_state, resetter_state);
 
     // Init propagator states for the reference track
@@ -511,6 +511,7 @@ bound_param_vector_type get_displaced_bound_vector(
     propagation::config cfg{};
     cfg.navigation.overstep_tolerance = static_cast<float>(overstep_tolerance);
     cfg.navigation.path_tolerance = static_cast<float>(path_tolerance);
+    cfg.navigation.estimate_scattering_noise = false;
     cfg.stepping.rk_error_tol = static_cast<float>(rk_tolerance);
     cfg.stepping.do_covariance_transport = false;
 
@@ -526,8 +527,7 @@ bound_param_vector_type get_displaced_bound_vector(
     bound_getter<test_algebra>::state bound_getter_state{};
     bound_getter_state.track_ID = trk_count;
     bound_getter_state.m_min_path_length = detector_length * 0.75f;
-    parameter_resetter<test_algebra>::state resetter_state{};
-    resetter_state.estimate_scattering_noise = false;
+    parameter_resetter<test_algebra>::state resetter_state{cfg};
 
     auto actor_states = detray::tie(bound_getter_state, resetter_state);
     dstate.set_particle(ptc);

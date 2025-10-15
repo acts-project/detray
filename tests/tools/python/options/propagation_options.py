@@ -57,6 +57,27 @@ def propagation_options():
         default=[0, 0],
         type=int,
     )
+    parser.add_argument(
+        "--estimate_scattering_noise",
+        "-scatt",
+        help=("Open mask tol. die to scattering."),
+        action="store_true",
+        default=False,
+    )
+    parser.add_argument(
+        "--n_scattering_stddev",
+        "-stddev",
+        help=("# standard deviations for scattering noise."),
+        default=2,
+        type=int,
+    )
+    parser.add_argument(
+        "--accumulated_error",
+        "-aerr",
+        help=("Positional error with path length [%]"),
+        default=0.0001,
+        type=float,
+    )
 
     # Parameter transport options
     parser.add_argument(

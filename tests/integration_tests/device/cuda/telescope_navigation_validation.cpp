@@ -82,6 +82,7 @@ int main(int argc, char **argv) {
     cfg_str_nav.name("telescope_detector_straight_line_navigation_cuda");
     cfg_str_nav.n_tracks(cfg_ray_scan.track_generator().n_tracks());
     cfg_str_nav.propagation().stepping.min_stepsize = min_stepsize;
+    cfg_str_nav.propagation().navigation.estimate_scattering_noise = false;
     auto mask_tolerance = cfg_ray_scan.mask_tolerance();
     cfg_str_nav.propagation().navigation.min_mask_tolerance =
         static_cast<float>(mask_tolerance[0]);
@@ -112,6 +113,7 @@ int main(int argc, char **argv) {
     cfg_hel_nav.name("telescope_detector_helix_navigation_cuda");
     cfg_hel_nav.n_tracks(cfg_hel_scan.track_generator().n_tracks());
     cfg_hel_nav.propagation().stepping.min_stepsize = min_stepsize;
+    cfg_hel_nav.propagation().navigation.estimate_scattering_noise = false;
     cfg_hel_nav.propagation().navigation.overstep_tolerance =
         -100.f * unit<float>::um;
 

@@ -224,6 +224,7 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
     propagation::config cfg{};
     cfg.navigation.overstep_tolerance = static_cast<float>(overstep_tol);
     cfg.navigation.search_window = {3u, 3u};
+    cfg.navigation.estimate_scattering_noise = false;
     propagator_t p{cfg};
 
     // Iterate through uniformly distributed momentum directions
@@ -337,6 +338,7 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
     propagation::config cfg{};
     cfg.navigation.overstep_tolerance = static_cast<float>(overstep_tol);
     cfg.navigation.search_window = {3u, 3u};
+    cfg.navigation.estimate_scattering_noise = false;
     propagator_t p{cfg};
 
     // Iterate through uniformly distributed momentum directions
@@ -348,8 +350,7 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
         pathlimit_aborter<scalar>::state unlimted_aborter_state{};
         pathlimit_aborter<scalar>::state pathlimit_aborter_state{path_limit};
         pointwise_material_interactor<test_algebra>::state interactor_state{};
-        parameter_resetter<test_algebra>::state resetter_state{};
-        resetter_state.estimate_scattering_noise = false;
+        parameter_resetter<test_algebra>::state resetter_state{cfg};
 
         // Create actor states tuples
         auto actor_states = detray::tie(unlimted_aborter_state,
@@ -479,6 +480,7 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
     cfg.navigation.overstep_tolerance =
         static_cast<float>(std::get<0>(GetParam()));
     cfg.navigation.search_window = {3u, 3u};
+    cfg.navigation.estimate_scattering_noise = false;
     propagation::config direct_cfg{};
     direct_cfg.navigation.min_mask_tolerance = 1.f * unit<float>::mm;
     direct_cfg.navigation.max_mask_tolerance = 1.f * unit<float>::mm;
@@ -491,8 +493,7 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
 
         // Build actor states: the helix inspector can be shared
         pointwise_material_interactor<test_algebra>::state interactor_state{};
-        parameter_resetter<test_algebra>::state resetter_state{};
-        resetter_state.estimate_scattering_noise = false;
+        parameter_resetter<test_algebra>::state resetter_state{cfg};
         vecmem::data::vector_buffer<detray::geometry::barcode> seqs_buffer{
             100u, host_mr, vecmem::data::buffer_type::resizable};
         vecmem::data::vector_buffer<detray::geometry::barcode>
@@ -667,6 +668,7 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
     cfg.navigation.overstep_tolerance =
         static_cast<float>(std::get<0>(GetParam()));
     cfg.navigation.search_window = {5u, 5u};
+    cfg.navigation.estimate_scattering_noise = false;
     propagation::config direct_cfg{};
     direct_cfg.navigation.min_mask_tolerance = 10.f * unit<float>::mm;
     direct_cfg.navigation.max_mask_tolerance = 10.f * unit<float>::mm;
@@ -679,8 +681,7 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
 
         // Build actor states: the helix inspector can be shared
         pointwise_material_interactor<test_algebra>::state interactor_state{};
-        parameter_resetter<test_algebra>::state resetter_state{};
-        resetter_state.estimate_scattering_noise = false;
+        parameter_resetter<test_algebra>::state resetter_state{cfg};
         vecmem::data::vector_buffer<detray::geometry::barcode> seqs_buffer{
             100u, host_mr, vecmem::data::buffer_type::resizable};
         vecmem::data::vector_buffer<detray::geometry::barcode>
