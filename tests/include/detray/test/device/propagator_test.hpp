@@ -136,8 +136,7 @@ inline auto run_propagation_host(vecmem::memory_resource *mr,
         tracer_state.collect_only_on_surface(true);
         typename pathlimit_aborter_t::state pathlimit_state{
             cfg.stepping.path_limit};
-        parameter_resetter_t::state resetter_state{};
-        resetter_state.estimate_scattering_noise = false;
+        parameter_resetter_t::state resetter_state{cfg};
         pointwise_material_interactor<test_algebra>::state interactor_state{};
         auto actor_states = detray::tie(tracer_state, pathlimit_state,
                                         interactor_state, resetter_state);

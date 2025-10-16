@@ -75,6 +75,8 @@ int main(int argc, char** argv) {
     // Configure propagation
     propagation::config prop_cfg{};
     prop_cfg.navigation.search_window = {3u, 3u};
+    // No scattering in test tracks
+    prop_cfg.navigation.estimate_scattering_noise = false;
 
     std::clog << prop_cfg << std::endl;
 
@@ -113,9 +115,7 @@ int main(int argc, char** argv) {
     dtuple<> empty_state{};
 
     pointwise_material_interactor<bench_algebra>::state interactor_state{};
-    parameter_resetter<bench_algebra>::state resetter_state{};
-    // No scattering in test tracks
-    resetter_state.estimate_scattering_noise = false;
+    parameter_resetter<bench_algebra>::state resetter_state{prop_cfg};
 
     auto actor_states =
         detail::make_tuple<dtuple>(interactor_state, resetter_state);

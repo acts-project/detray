@@ -382,6 +382,9 @@ DETRAY_HOST_DEVICE inline auto detray::rk_stepper<
 
     if (!vol_mat_ptr) {
         const scalar_type qop = track.qop();
+        DETRAY_DEBUG_HOST_DEVICE("-> qop: %f", qop);
+        DETRAY_DEBUG_HOST_DEVICE("-> dqopds: 0");
+
         return detray::make_pair(scalar_type(0.f), qop);
     } else if (cfg.use_mean_loss && i != 0u) {
         // qop_n is calculated recursively like the direction of
@@ -391,9 +394,13 @@ DETRAY_HOST_DEVICE inline auto detray::rk_stepper<
         // "For y  we  have  similar  formulae  as  for x, for y' and
         // \lambda similar  formulae as for  x'"
         const scalar_type qop = track.qop() + h * dqopds_prev;
+        DETRAY_DEBUG_HOST_DEVICE("-> qop: %f", qop);
+
         return detray::make_pair(this->dqopds(qop, vol_mat_ptr), qop);
     } else {
         const scalar_type qop = track.qop();
+        DETRAY_DEBUG_HOST_DEVICE("-> qop: %f", qop);
+
         return detray::make_pair(this->dqopds(qop, vol_mat_ptr), qop);
     }
 }
@@ -411,11 +418,17 @@ DETRAY_HOST_DEVICE inline auto detray::rk_stepper<
     auto& track = (*this)();
     const auto dir = track.dir();
 
+    assert(std::isfinite(qop));
+
     // Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
-    vector3_type t{(i == 0u) ? dir
-                             : static_cast<vector3_type>(dir + h * dtds_prev)};
+    vector3_type t{(i == 0u || h == 0.f)
+                       ? dir
+                       : static_cast<vector3_type>(dir + h * dtds_prev)};
 
     // dtds = qop * (t X B) from Lorentz force
+    DETRAY_DEBUG_HOST(
+        "-> evaluate dtds: " << vector3_type{qop * vector::cross(t, b_field)});
+
     return detray::make_pair(vector3_type{qop * vector::cross(t, b_field)}, t);
 }
 
@@ -479,6 +492,10 @@ detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
         bvec[1u] = bvec_tmp[1u];
         bvec[2u] = bvec_tmp[2u];
 
+        DETRAY_DEBUG_HOST(
+            "-> dtds: " << (*this)().qop() *
+                               vector::cross((*this)().dir(), bvec));
+
         return (*this)().qop() * vector::cross((*this)().dir(), bvec);
     }
 
@@ -516,6 +533,7 @@ DETRAY_HOST_DEVICE auto detray::rk_stepper<
     }
 
     assert(qop != 0.f);
+    assert(std::isfinite(qop));
     const scalar_type q = this->particle_hypothesis().charge();
     const scalar_type p = q / qop;
     const scalar_type mass = this->particle_hypothesis().mass();
@@ -529,6 +547,9 @@ DETRAY_HOST_DEVICE auto detray::rk_stepper<
     // Assert that a momentum is a positive value
     assert(p >= 0.f);
     assert(q != 0.f);
+
+    DETRAY_DEBUG_HOST_DEVICE("-> dqopds: %f",
+                             qop * qop * qop * E * stopping_power / (q * q));
 
     // d(qop)ds, which is equal to (qop) * E * (-dE/ds) / p^2
     // or equal to (qop)^3 * E * (-dE/ds) / q^2
@@ -625,13 +646,17 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
     intermediate_state sd{};
 
     // First Runge-Kutta point
-    const auto bvec = magnetic_field.at(pos[0], pos[1], pos[2]);
+    auto bvec = magnetic_field.at(pos[0], pos[1], pos[2]);
     assert(math::isfinite(bvec[0]));
     assert(math::isfinite(bvec[1]));
     assert(math::isfinite(bvec[2]));
     sd.b_first[0] = bvec[0];
     sd.b_first[1] = bvec[1];
     sd.b_first[2] = bvec[2];
+
+    DETRAY_DEBUG_HOST_DEVICE("First stage:");
+    DETRAY_DEBUG_HOST_DEVICE("-> B-field: [%f, %f, %f]", bvec[0], bvec[1],
+                             bvec[2]);
 
     // qop should be recalcuated at every point
     // Reference: Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
@@ -652,13 +677,16 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
         // Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
         const point3_type pos1 =
             pos + half_h * sd.t[0u] + h2 * 0.125f * sd.dtds[0u];
-        const auto bvec1 = magnetic_field.at(pos1[0], pos1[1], pos1[2]);
-        assert(math::isfinite(bvec1[0]));
-        assert(math::isfinite(bvec1[1]));
-        assert(math::isfinite(bvec1[2]));
-        sd.b_middle[0] = bvec1[0];
-        sd.b_middle[1] = bvec1[1];
-        sd.b_middle[2] = bvec1[2];
+        bvec = magnetic_field.at(pos1[0], pos1[1], pos1[2]);
+        assert(math::isfinite(bvec[0]));
+        assert(math::isfinite(bvec[1]));
+        assert(math::isfinite(bvec[2]));
+        sd.b_middle[0] = bvec[0];
+        sd.b_middle[1] = bvec[1];
+        sd.b_middle[2] = bvec[2];
+        DETRAY_DEBUG_HOST_DEVICE("Second stage:");
+        DETRAY_DEBUG_HOST_DEVICE("-> B-field: [%f, %f, %f]", bvec[0], bvec[1],
+                                 bvec[2]);
 
         detray::tie(sd.dqopds[1u], sd.qop[1u]) = stepping.evaluate_dqopds(
             1u, half_h, sd.dqopds[0u], vol_mat_ptr, cfg);
@@ -677,13 +705,17 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
         // qop should be recalcuated at every point
         // Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
         const point3_type pos2 = pos + h * sd.t[0u] + h2 * 0.5f * sd.dtds[2u];
-        const auto bvec2 = magnetic_field.at(pos2[0], pos2[1], pos2[2]);
-        assert(math::isfinite(bvec2[0]));
-        assert(math::isfinite(bvec2[1]));
-        assert(math::isfinite(bvec2[2]));
-        sd.b_last[0] = bvec2[0];
-        sd.b_last[1] = bvec2[1];
-        sd.b_last[2] = bvec2[2];
+        bvec = magnetic_field.at(pos2[0], pos2[1], pos2[2]);
+        assert(math::isfinite(bvec[0]));
+        assert(math::isfinite(bvec[1]));
+        assert(math::isfinite(bvec[2]));
+        sd.b_last[0] = bvec[0];
+        sd.b_last[1] = bvec[1];
+        sd.b_last[2] = bvec[2];
+
+        DETRAY_DEBUG_HOST_DEVICE("Third stage:");
+        DETRAY_DEBUG_HOST_DEVICE("-> B-field: [%f, %f, %f]", bvec[0], bvec[1],
+                                 bvec[2]);
 
         detray::tie(sd.dqopds[3u], sd.qop[3u]) =
             stepping.evaluate_dqopds(3u, h, sd.dqopds[2u], vol_mat_ptr, cfg);
@@ -696,6 +728,8 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
         const vector3_type err_vec =
             one_sixth * h2 *
             (sd.dtds[0u] - sd.dtds[1u] - sd.dtds[2u] + sd.dtds[3u]);
+
+        DETRAY_DEBUG_HOST("-> Integration error vector: " << err_vec);
 
         return vector::norm(err_vec);
     };
@@ -721,6 +755,8 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
 
         error = math::max(estimate_error(stepping.step_size()),
                           static_cast<scalar_type>(1e-20));
+
+        DETRAY_DEBUG_HOST_DEVICE("-> Integration error: %f", error);
         assert(math::isfinite(error));
 
         // Error is small enough

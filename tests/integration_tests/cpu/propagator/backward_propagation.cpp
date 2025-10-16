@@ -89,15 +89,15 @@ TEST_P(BackwardPropagation, backward_propagation) {
     const bound_track_parameters<test_algebra> bound_param0(
         det.surface(0u).barcode(), bound_vector, bound_cov);
 
-    // Actors
-    pointwise_material_interactor<test_algebra>::state interactor{};
-    parameter_resetter<test_algebra>::state resetter_state{};
-    resetter_state.estimate_scattering_noise = false;
-
     propagation::config prop_cfg{};
     prop_cfg.stepping.rk_error_tol = 1e-7f * unit<float>::mm;
     prop_cfg.navigation.overstep_tolerance = -100.f * unit<float>::um;
+    prop_cfg.navigation.estimate_scattering_noise = false;
     propagator_t p{prop_cfg};
+
+    // Actors
+    pointwise_material_interactor<test_algebra>::state interactor{};
+    parameter_resetter<test_algebra>::state resetter_state{prop_cfg};
 
     // Forward state
     propagator_t::state fw_state(bound_param0, hom_bfield, det,

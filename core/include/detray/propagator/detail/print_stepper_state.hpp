@@ -76,11 +76,11 @@ DETRAY_HOST inline std::string print_state(const state_type &state,
     constexpr int cw{20};
 
     // Remove trailing newlines
-    debug_stream << std::left << std::setw(cw) << "Step size"
-                 << state.step_size() << std::endl;
-    debug_stream << std::setw(cw) << "no. RK adjustments" << n_trials
+    debug_stream << std::left << std::setw(cw)
+                 << "Step size: " << state.step_size() << std::endl;
+    debug_stream << std::setw(cw) << "no. RK adjustments: " << n_trials
                  << std::endl;
-    debug_stream << std::setw(cw) << "Step size scale factor" << step_scalor;
+    debug_stream << std::setw(cw) << "Step size scale factor: " << step_scalor;
 
     return debug_stream.str();
 }

@@ -50,7 +50,19 @@ void add_options<detray::navigation::config>(
         "path_tolerance",
         boost::program_options::value<float>()->default_value(
             cfg.path_tolerance / unit<float>::um),
-        "Tol. to decide when a track is on surface [um]");
+        "Tol. to decide when a track is on surface [um]")(
+        "estimate_scattering_noise",
+        "Open the navigation surface tolerance according to an estimation of "
+        "the noise due to multiple scattering")(
+        "n_scattering_stddev",
+        boost::program_options::value<int>()->default_value(
+            cfg.n_scattering_stddev),
+        "Number of standard deviations of estimated error to use for "
+        "scattering noise")(
+        "accumulated_error",
+        boost::program_options::value<float>()->default_value(
+            cfg.accumulated_error),
+        "Estimation of accumulated positional error [%]");
 }
 
 /// Add options for the track parameter transport
@@ -138,6 +150,35 @@ void configure_options<detray::navigation::config>(
         assert(path_tol >= 0.f);
 
         cfg.path_tolerance = path_tol * unit<float>::um;
+    }
+    cfg.estimate_scattering_noise = false;
+    if (vm.count("estimate_scattering_noise")) {
+        cfg.estimate_scattering_noise = true;
+
+        if (!vm["n_scattering_stddev"].defaulted()) {
+            const int n_stddev{vm["n_scattering_stddev"].as<int>()};
+            assert(n_stddev >= 0);
+
+            cfg.n_scattering_stddev = n_stddev;
+        }
+
+        if (!vm["accumulated_error"].defaulted()) {
+            const float err{vm["accumulated_error"].as<float>()};
+            assert(err >= 0.f);
+
+            cfg.accumulated_error = err;
+        }
+    } else {
+        if (!vm["n_scattering_stddev"].defaulted()) {
+            throw std::invalid_argument(
+                "Option 'n_scattering_stddev' cannot not be configured unless "
+                "'estimate_scattering_noise' is activated");
+        }
+        if (!vm["accumulated_error"].defaulted()) {
+            throw std::invalid_argument(
+                "Option 'accumulated_error' cannot not be configured unless "
+                "'estimate_scattering_noise' is activated");
+        }
     }
 }
 

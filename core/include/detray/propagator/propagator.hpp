@@ -16,6 +16,7 @@
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/base_stepper.hpp"
 #include "detray/propagator/concepts.hpp"
+#include "detray/propagator/detail/noise_estimation.hpp"
 #include "detray/propagator/propagation_config.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/log.hpp"
@@ -206,6 +207,14 @@ struct propagator {
 
         DETRAY_VERBOSE_HOST("Starting propagation for track:\n" << track);
 
+        // Open the navigation area according to uncertainties in initital track
+        // params
+        if (m_cfg.navigation.estimate_scattering_noise &&
+            !stepping.bound_params().is_invalid()) {
+            detail::estimate_external_mask_tolerance(stepping.bound_params(),
+                                                     propagation, 2u);
+        }
+
         // Initialize the navigation
         m_navigator.init(track, navigation, m_cfg.navigation, context);
         propagation._heartbeat = navigation.is_alive();
@@ -322,6 +331,14 @@ struct propagator {
         auto &context = propagation._context;
         const auto &track = stepping();
         assert(!track.is_invalid());
+
+        // Open the navigation area according to uncertainties in initital track
+        // params
+        if (m_cfg.navigation.estimate_scattering_noise &&
+            !stepping.bound_params().is_invalid()) {
+            detail::estimate_external_mask_tolerance(stepping.bound_params(),
+                                                     propagation, 2u);
+        }
 
         // Initialize the navigation
         m_navigator.init(track, navigation, m_cfg.navigation, context);

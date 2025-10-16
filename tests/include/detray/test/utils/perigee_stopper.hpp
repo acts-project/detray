@@ -74,6 +74,13 @@ struct perigee_stopper : actor {
             return;
         }
 
+        // At least the exit portal should be reachable
+        if (navigation.is_exhausted()) {
+            prop_state._heartbeat &=
+                navigation.abort("Pergigee stopper has no next candidate");
+            return;
+        }
+
         auto &stepping = prop_state._stepping;
         auto &track = stepping();
 
