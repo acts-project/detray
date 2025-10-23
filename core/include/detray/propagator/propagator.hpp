@@ -238,6 +238,7 @@ struct propagator {
         unsigned int stall_counter{0u};
         for (unsigned int i = 0; i % 2 == 0 || propagation.is_alive(); ++i) {
 
+            // bool reset_stepsize{true};
             if (i % 2 == 0) {
                 DETRAY_VERBOSE_HOST_DEVICE("Propagation step: %d", i / 2);
                 DETRAY_VERBOSE_HOST_DEVICE("Path length: %f mm",
