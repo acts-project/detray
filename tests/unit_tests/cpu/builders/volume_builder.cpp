@@ -210,12 +210,20 @@ GTEST_TEST(detray_builders, volume_builder) {
 
     using metadata_t = test::default_metadata;
     using detector_t = detector<metadata_t>;
+    using transform3 = typename detector_t::transform3_type;
 
     detector_t d(host_mr);
 
     EXPECT_TRUE(d.volumes().size() == 0u);
 
+    using rectangle_factory = surface_factory<detector_t, rectangle2D>;
+    auto sf_factory = std::make_shared<rectangle_factory>();
+    sf_factory->push_back({surface_id::e_sensitive,
+                           transform3(point3{0.f, 0.f, -1.f}), 1u,
+                           std::vector<scalar>{10.f, 8.f}});
+
     volume_builder<detector_t> vbuilder{volume_id::e_cylinder};
+    vbuilder.add_surfaces(sf_factory);
     vbuilder.build(d);
 
     const auto& vol = d.volumes().back();

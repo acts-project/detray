@@ -61,7 +61,7 @@ __global__ void __launch_bounds__(256, 4) propagator_benchmark_kernel(
     if constexpr (kOPT == detray::benchmarks::propagation_opt::e_unsync) {
         p.propagate(p_state, actor_state_refs);
     } else if constexpr (kOPT == detray::benchmarks::propagation_opt::e_sync) {
-        p.propagate_sync(p_state, actor_state_refs);
+        /* Do nothing for now */
     }
 }
 

@@ -235,6 +235,13 @@ class volume_descriptor {
                       static_cast<typename material_link::index_type>(mat_idx)};
     }
 
+    /// @returns true if the volume descriptor has a valid material link
+    DETRAY_HOST_DEVICE
+    constexpr auto has_material() const -> bool {
+        return (m_mat_link.id() != material_link::id_type::e_none) &&
+               !m_mat_link.is_invalid();
+    }
+
     /// @returns link to all acceleration data structures - const access
     DETRAY_HOST_DEVICE constexpr auto accel_link() const
         -> const accel_link_type& {

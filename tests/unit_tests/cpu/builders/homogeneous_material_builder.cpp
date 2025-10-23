@@ -14,6 +14,7 @@
 #include "detray/builders/volume_builder.hpp"
 #include "detray/core/detector.hpp"
 #include "detray/definitions/indexing.hpp"
+#include "detray/geometry/shapes/rectangle2D.hpp"
 
 // Detray test include(s)
 #include "detray/test/framework/types.hpp"

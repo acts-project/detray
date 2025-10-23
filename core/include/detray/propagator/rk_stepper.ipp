@@ -613,7 +613,8 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
                    const material<scalar_type>* vol_mat_ptr) const {
 
     // In case of an overlap do nothing
-    if (math::fabs(dist_to_next) <= 1e-5f) {
+    if (math::fabs(dist_to_next) < 1.f * unit<float>::um) {
+        DETRAY_VERBOSE_HOST_DEVICE("Zero stepsize...");
         stepping.run_inspector(cfg, "Step skipped (Overlap): ", dist_to_next);
         return true;
     }
@@ -635,6 +636,7 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
             math::max(stepping.next_step_size(), dist_to_next));
     }
 
+    DETRAY_VERBOSE_HOST_DEVICE("Distance to nex: %f mm", dist_to_next);
     DETRAY_VERBOSE_HOST_DEVICE("Take step: %f mm", stepping.step_size());
 
     // Don't allow too small stepsizes, unless the navigation needs it

@@ -17,7 +17,7 @@
 
 namespace detray::detail {
 
-/// A functor to retrieve the material parameters
+/// A functor to retrieve the volume material parameters at a given position
 struct get_material_params {
     template <typename mat_group_t, typename index_t, concepts::point point_t>
     DETRAY_HOST_DEVICE inline auto operator()(const mat_group_t &mat_group,
@@ -43,9 +43,10 @@ struct get_material_params {
     }
 };
 
-/// A functor to access the surfaces of a volume
+/// A functor to access all surfaces registered in an acceleration structure
+/// @tparam functor_t functor that performs a task per surface
 template <typename functor_t>
-struct surface_getter {
+struct apply_to_surfaces {
 
     /// Call operator that forwards the neighborhood search call in a volume
     /// to a surface finder data structure
@@ -54,7 +55,7 @@ struct surface_getter {
                                               const accel_index_t index,
                                               Args &&...args) const {
 
-        // Run over the surfaces in a single acceleration data structure
+        // Iterate through the surface neighbouhood of the track
         for (const auto &sf : group[index].all()) {
             functor_t{}(sf, std::forward<Args>(args)...);
         }
@@ -62,8 +63,10 @@ struct surface_getter {
 };
 
 /// A functor to find surfaces in the neighborhood of a track position
+/// @tparam functor_t functor that performs a task per surface in the
+///                   neighbourhood (e.g. intersection)
 template <typename functor_t>
-struct neighborhood_getter {
+struct apply_to_neighbourhood {
 
     /// Call operator that forwards the neighborhood search call in a volume
     /// to a surface finder data structure
@@ -77,21 +80,13 @@ struct neighborhood_getter {
         const typename detector_t::geometry_context &ctx,
         Args &&...args) const {
 
+        // Get the acceleration structure for the volume
         decltype(auto) accel = group[index];
 
-        // Run over the surfaces in a single acceleration data structure
+        // Iterate through the surface neighbouhood of the track
         for (const auto &sf : accel.search(det, volume, track, cfg, ctx)) {
             functor_t{}(sf, std::forward<Args>(args)...);
         }
-    }
-};
-
-/// Query the maximal number of candidates from the acceleration
-struct n_candidates_getter {
-    template <typename accel_group_t, typename accel_index_t>
-    DETRAY_HOST_DEVICE inline auto operator()(const accel_group_t &group,
-                                              const accel_index_t index) const {
-        return group[index].n_max_candidates();
     }
 };
 

@@ -148,12 +148,7 @@ class surface {
 
     /// @returns true if the surface carries material.
     DETRAY_HOST_DEVICE
-    constexpr auto has_material() const -> bool {
-        return m_desc.material().id() !=
-                   static_cast<typename descr_t::material_link::id_type>(
-                       detector_t::materials::id::e_none) &&
-               !m_desc.material().is_invalid();
-    }
+    constexpr bool has_material() const { return m_desc.has_material(); }
 
     /// @returns the mask volume link
     DETRAY_HOST_DEVICE

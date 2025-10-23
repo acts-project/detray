@@ -551,9 +551,8 @@ auto compare_traces(
                     DETRAY_WARN_HOST(
                         "Track "
                         << trk_no << ", inters. " << idx
-                        << ": Non-portal surfaces are swapped in trace, "
-                           "possibly due to overlaps or large mask "
-                           "tolerances.");
+                        << ": Surfaces are swapped in trace, "
+                           "possibly due to overlaps/large mask tolerances.");
                 }
                 // Have already checked the next record
                 ++i;
