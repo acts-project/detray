@@ -137,12 +137,32 @@ struct intersection_initialize {
         }
     }
 
-    template <typename is_container_t>
+    template <typename intersection_t>
     DETRAY_HOST_DEVICE void insert_sorted(
-        const typename is_container_t::value_type &sfi,
-        is_container_t &intersections) const {
-        auto itr_pos = detray::upper_bound(intersections.begin(),
-                                           intersections.end(), sfi);
+        const intersection_t &sfi,
+        std::vector<intersection_t> &intersections) const {
+
+        auto itr_pos = detray::upper_bound(intersections.cbegin(),
+                                           intersections.cend(), sfi);
+
+        intersections.insert(itr_pos, sfi);
+    }
+
+    /// Specialization for the navigation state cache
+    template <typename nav_state_t>
+    DETRAY_HOST_DEVICE void insert_sorted(
+        const typename nav_state_t::value_type &sfi,
+        nav_state_t &intersections) const {
+
+        auto itr_pos{intersections.cbegin()};
+
+        // For just two candidates int the cache, the navigation state keeps
+        // the first as the previouly visited candidate -> no sorting needed
+        if constexpr (nav_state_t::capacity() > 2u) {
+            itr_pos = detray::upper_bound(intersections.cbegin(),
+                                          intersections.cend(), sfi);
+        }
+
         intersections.insert(itr_pos, sfi);
     }
 };

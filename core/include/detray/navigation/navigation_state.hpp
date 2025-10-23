@@ -442,6 +442,11 @@ class base_state : public detray::ranges::view_interface<
         return itr;
     }
 
+    DETRAY_HOST_DEVICE
+    constexpr auto cbegin() const -> candidate_const_itr_t {
+        return std::as_const(*this).begin();
+    }
+
     /// @return sentinel of the valid candidate range.
     DETRAY_HOST_DEVICE
     constexpr auto end() -> candidate_itr_t {
@@ -450,12 +455,20 @@ class base_state : public detray::ranges::view_interface<
         return itr;
     }
 
+    DETRAY_HOST_DEVICE
+    constexpr auto cend() const -> candidate_const_itr_t {
+        return std::as_const(*this).end();
+    }
+
     /// @returns last valid candidate (by position in the cache)
     DETRAY_HOST_DEVICE
     constexpr auto last() -> candidate_t & {
         assert(static_cast<std::size_t>(m_last) < m_candidates.size());
         return m_candidates[static_cast<std::size_t>(m_last)];
     }
+
+    /// @returns the capacity of the internal candidate storage
+    static consteval std::size_t capacity() { return k_cache_capacity; }
 
     /// Updates the position of the last valid candidate
     DETRAY_HOST_DEVICE
