@@ -103,7 +103,7 @@ struct parameter_transporter : actor {
         const auto& gctx = propagation._context;
 
         // Current Surface
-        const auto sf = navigation.get_surface();
+        const auto sf = navigation.current_surface();
 
         // Bound track params of departure surface
         auto& bound_params = stepping.bound_params();
@@ -152,7 +152,7 @@ struct parameter_transporter : actor {
         // remainder of this function.
 
         // Current Surface
-        const auto sf = navigation.get_surface();
+        const auto sf = navigation.current_surface();
 
         // Bound track params of departure surface
         auto& bound_params = stepping.bound_params();
@@ -215,7 +215,7 @@ struct parameter_transporter : actor {
         // Where A is frame independent and non-zero, B is frame-dependent and
         // non-zero, while C is frame-dependent and non-zero only for line
         // frames.
-        auto vol = navigation.get_volume();
+        auto vol = navigation.current_volume();
         const auto vol_mat_ptr = vol.has_material()
                                      ? vol.material_parameters(stepping().pos())
                                      : nullptr;

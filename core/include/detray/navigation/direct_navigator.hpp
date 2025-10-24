@@ -19,6 +19,7 @@
 #include "detray/navigation/intersection/ray_intersector.hpp"
 #include "detray/navigation/intersection_kernel.hpp"
 #include "detray/navigation/navigation_config.hpp"
+#include "detray/navigation/navigation_state.hpp"
 #include "detray/navigation/navigator.hpp"
 #include "detray/tracks/ray.hpp"
 #include "detray/utils/ranges.hpp"
@@ -163,7 +164,7 @@ class direct_navigator {
         /// @returns current detector surface the navigator is on
         /// (cannot be used when not on surface) - const
         DETRAY_HOST_DEVICE
-        inline auto get_surface() const -> tracking_surface<detector_type> {
+        inline auto current_surface() const -> tracking_surface<detector_type> {
             assert(is_on_surface());
             return tracking_surface<detector_type>{*m_detector,
                                                    current().sf_desc};
@@ -246,7 +247,7 @@ class direct_navigator {
         /// Helper method to check the track has reached a module surface
         DETRAY_HOST_DEVICE
         inline auto is_on_surface() const -> bool {
-            return (m_status == navigation::status::e_on_module ||
+            return (m_status == navigation::status::e_on_object ||
                     m_status == navigation::status::e_on_portal);
         }
 
@@ -267,7 +268,7 @@ class direct_navigator {
         /// Helper method to check the track has reached a sensitive surface
         DETRAY_HOST_DEVICE
         inline auto is_on_sensitive() const -> bool {
-            return (m_status == navigation::status::e_on_module) &&
+            return (m_status == navigation::status::e_on_object) &&
                    (get_current_barcode().id() == surface_id::e_sensitive);
         }
 
@@ -303,7 +304,7 @@ class direct_navigator {
 
         DETRAY_HOST_DEVICE
         inline auto exit() -> bool {
-            m_status = navigation::status::e_on_target;
+            m_status = navigation::status::e_exit;
             m_heartbeat = false;
             return m_heartbeat;
         }
@@ -313,7 +314,7 @@ class direct_navigator {
 
         /// @returns current detector volume of the navigation stream
         DETRAY_HOST_DEVICE
-        inline auto get_volume() const {
+        inline auto current_volume() const {
             return tracking_volume<detector_type>{*m_detector, m_volume_index};
         }
 
@@ -375,7 +376,7 @@ class direct_navigator {
         DETRAY_VERBOSE_HOST_DEVICE("Called 'init()'");
 
         // Do not resurrect a failed/finished navigation state
-        assert(navigation.status() > navigation::status::e_on_target);
+        assert(navigation.status() > navigation::status::e_exit);
         assert(!track.is_invalid());
 
         if (navigation.is_exhausted()) {
@@ -415,7 +416,7 @@ class direct_navigator {
             if (navigation.is_on_surface(navigation.target(), cfg)) {
                 navigation.m_status = (navigation.target().sf_desc.is_portal())
                                           ? navigation::status::e_on_portal
-                                          : navigation::status::e_on_module;
+                                          : navigation::status::e_on_object;
                 navigation.next();
                 navigation.update_candidate(true);
                 assert(navigation.is_on_surface(navigation.current(), cfg));

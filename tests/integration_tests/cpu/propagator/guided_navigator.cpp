@@ -59,7 +59,7 @@ GTEST_TEST(detray_navigation, guided_navigator) {
                        intersection::contains_pos>;
     using object_tracer_t =
         object_tracer<intersection_t, dvector, status::e_on_portal,
-                      status::e_on_module>;
+                      status::e_on_object>;
     using inspector_t = aggregate_inspector<object_tracer_t, print_inspector>;
     using b_field_t = bfield::const_field_t<scalar>;
     using runge_kutta_stepper =

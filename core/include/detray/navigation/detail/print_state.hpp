@@ -14,6 +14,7 @@
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/navigation/navigation_config.hpp"
+#include "detray/navigation/navigation_state.hpp"
 
 // System include(s)
 #include <iomanip>
@@ -63,7 +64,7 @@ DETRAY_HOST inline std::string print_state(const state_type &state) {
         case e_abort:
             debug_stream << "abort";
             break;
-        case e_on_target:
+        case e_exit:
             debug_stream << "on_target";
             break;
         case e_unknown:
@@ -72,7 +73,7 @@ DETRAY_HOST inline std::string print_state(const state_type &state) {
         case e_towards_object:
             debug_stream << "towards_object";
             break;
-        case e_on_module:
+        case e_on_object:
             debug_stream << "on_object";
             break;
         case e_on_portal:
@@ -113,7 +114,7 @@ DETRAY_HOST inline std::string print_state(const state_type &state) {
     if (state.is_on_surface()) {
         // If "exit" is called twice, the state has been cleared
         debug_stream << state.barcode() << std::endl;
-    } else if (state.status() == status::e_on_target) {
+    } else if (state.status() == status::e_exit) {
         debug_stream << "exited" << std::endl;
     } else {
         debug_stream << "undefined" << std::endl;

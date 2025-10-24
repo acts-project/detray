@@ -65,7 +65,7 @@ inline void check_on_surface(state_t &state, dindex vol_id,
                              dindex next_id) {
     // The status is: on surface/towards surface if the next candidate is
     // immediately updated and set in the same update call
-    ASSERT_TRUE(state.status() == navigation::status::e_on_module ||
+    ASSERT_TRUE(state.status() == navigation::status::e_on_object ||
                 state.status() == navigation::status::e_on_portal);
     // Points towards next candidate
     ASSERT_TRUE(std::abs(state()) >= 1.f * unit<test::scalar>::um);
@@ -320,7 +320,7 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
             nav.update(stepping_cpy(), navigation_cpy, nav_cfg);
             ASSERT_FALSE(navigation_cpy.is_alive());
             // The status is: exited
-            ASSERT_EQ(navigation_cpy.status(), status::e_on_target);
+            ASSERT_EQ(navigation_cpy.status(), status::e_exit);
             // Keep current volume id, so that nav. direction can be reversed
             ASSERT_EQ(last_vol_id, navigation_cpy.volume());
             // We know we went out of the detector
@@ -504,7 +504,7 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
             nav.update(stepping_cpy(), navigation_cpy, nav_cfg);
             ASSERT_FALSE(navigation_cpy.is_alive());
             // The status is: exited
-            ASSERT_EQ(navigation_cpy.status(), status::e_on_target);
+            ASSERT_EQ(navigation_cpy.status(), status::e_exit);
             // Keep current volume id, so that nav. direction can be reversed
             ASSERT_EQ(last_vol_id, navigation_cpy.volume());
             // We know we went out of the detector
