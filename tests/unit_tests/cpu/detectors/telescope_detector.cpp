@@ -268,11 +268,11 @@ GTEST_TEST(detray_detectors, telescope_detector) {
     }
 
     // check that all propagation flows exited successfully
-    ASSERT_TRUE(navigation_z1.is_complete())
+    ASSERT_TRUE(navigation_z1.finished())
         << navigation_z1.inspector().to_string();
-    ASSERT_TRUE(navigation_z2.is_complete())
+    ASSERT_TRUE(navigation_z2.finished())
         << navigation_z2.inspector().to_string();
-    ASSERT_TRUE(navigation_x.is_complete())
+    ASSERT_TRUE(navigation_x.finished())
         << navigation_x.inspector().to_string();
 
     //
@@ -321,6 +321,6 @@ GTEST_TEST(detray_detectors, telescope_detector) {
         heartbeat_tel &= tel_navigation.is_alive();
     }
     // check that propagation was successful
-    ASSERT_TRUE(tel_navigation.is_complete())
+    ASSERT_TRUE(tel_navigation.finished())
         << tel_navigation.inspector().to_string();
 }

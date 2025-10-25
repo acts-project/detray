@@ -528,7 +528,7 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
                                            direct_forward_actor_states));
 
             // Check if all surfaces in the sequence are encountered
-            ASSERT_TRUE(direct_forward_state._navigation.is_complete());
+            ASSERT_TRUE(direct_forward_state._navigation.finished());
             ASSERT_EQ(sequencer_state._sequence.size(),
                       sequencer_forward_state._sequence.size());
             for (unsigned int i = 0; i < sequencer_state._sequence.size();
@@ -560,7 +560,7 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
             ASSERT_TRUE(direct_p.propagate(direct_backward_state,
                                            direct_backward_actor_states));
             // Check if all surfaces in the sequence are encountered
-            ASSERT_TRUE(direct_backward_state._navigation.is_complete());
+            ASSERT_TRUE(direct_backward_state._navigation.finished());
             ASSERT_EQ(sequencer_state._sequence.size(),
                       sequencer_backward_state._sequence.size());
             for (unsigned int i = 0; i < sequencer_state._sequence.size();
@@ -715,7 +715,7 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
                                            direct_forward_actor_states));
 
             // Check if all surfaces in the sequence are encountered
-            ASSERT_TRUE(direct_forward_state._navigation.is_complete());
+            ASSERT_TRUE(direct_forward_state._navigation.finished());
             ASSERT_EQ(sequencer_state._sequence.size(),
                       sequencer_forward_state._sequence.size());
             for (unsigned int i = 0; i < sequencer_state._sequence.size();
@@ -750,13 +750,13 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
                                            direct_backward_actor_states));
 
             // Check if all surfaces in the sequence are encountered
-            ASSERT_TRUE(direct_backward_state._navigation.is_complete());
+            ASSERT_TRUE(direct_backward_state._navigation.finished());
             ASSERT_EQ(sequencer_state._sequence.size(),
                       sequencer_backward_state._sequence.size());
             for (unsigned int i = 0; i < sequencer_state._sequence.size();
                  i++) {
                 unsigned int j = sequencer_state._sequence.size() - 1 - i;
-                ASSERT_EQ(sequencer_state._sequence.at(i),
+                EXPECT_EQ(sequencer_state._sequence.at(i),
                           sequencer_backward_state._sequence.at(j));
             }
 

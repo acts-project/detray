@@ -55,7 +55,7 @@ struct perigee_stopper : actor {
 
         // Nothing left to do. Propagation will exit successfully on its own
         auto &navigation = prop_state._navigation;
-        if (navigation.is_complete()) {
+        if (navigation.finished()) {
             return;
         }
 
@@ -75,7 +75,7 @@ struct perigee_stopper : actor {
         }
 
         // At least the exit portal should be reachable
-        if (navigation.is_exhausted()) {
+        if (navigation.cache_exhausted()) {
             prop_state._heartbeat &=
                 navigation.abort("Pergigee stopper has no next candidate");
             return;

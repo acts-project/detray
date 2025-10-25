@@ -13,6 +13,7 @@
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/indexing.hpp"
+#include "detray/definitions/navigation.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/barcode.hpp"
 #include "detray/geometry/tracking_surface.hpp"
@@ -76,9 +77,6 @@ template <typename detector_t,
               typename detector_t::algebra_type, !intersection::contains_pos>>
 class navigator {
 
-    static_assert(k_cache_capacity >= 2u,
-                  "Navigation cache needs to have a capacity larger than 1");
-
     public:
     using detector_type = detector_t;
     using context_type = detector_type::geometry_context;
@@ -93,17 +91,16 @@ class navigator {
     using intersection_type = intersection_t;
     using inspector_type = inspector_t;
 
-    public:
     /// @brief Navigation state that contains a cache of candidates
     ///
     /// Once a volume is reached, the cache is filled by building a 'road' of
     /// surfaces that will likely be encountered by the track in that volume.
     /// The cache keeps a range of reachable candidates that lie between the
-    /// @c m_next and @c m_last index in the cache. The cache is sorted
-    /// by distance to the track position.
-    class state : public detray::ranges::view_interface<state>,
-                  public navigation::state<detector_type, k_cache_capacity,
-                                           inspector_t, intersection_t> {
+    /// next and last index in the cache. The cache is sorted by distance
+    /// to the track position.
+    class state
+        : public navigation::base_state<state, detector_type, k_cache_capacity,
+                                        inspector_type, intersection_type> {
 
         friend class navigator;
 
@@ -111,13 +108,9 @@ class navigator {
         friend struct intersection_initialize<ray_intersector>;
         friend struct intersection_update<ray_intersector>;
 
-        using base_type = navigation::state<detector_type, k_cache_capacity,
-                                            inspector_t, intersection_t>;
-
-        /// Need at least two slots for the caching to work
-        static_assert(
-            k_cache_capacity >= 2u,
-            "Navigation cache needs to have a capacity larger than 1");
+        using base_type =
+            navigation::base_state<state, detector_type, k_cache_capacity,
+                                   inspector_type, intersection_type>;
 
         // Result of a geometry object evaluation
         using candidate_t = typename base_type::candidate_t;
@@ -128,7 +121,6 @@ class navigator {
 
         public:
         using value_type = candidate_t;
-        // using detector_type = navigator::detector_type;
 
         using view_type = detail::get_view_t<inspector_t>;
         using const_view_type = detail::get_view_t<const inspector_t>;
@@ -136,176 +128,25 @@ class navigator {
         /// Use common methods of contructing a nvaigation state
         using base_type::base_type;
 
-        /// @return start position of the valid candidate range - const
+        /// Update navigation trust level to high trust
         DETRAY_HOST_DEVICE
-        constexpr auto begin() const -> candidate_const_itr_t {
-            candidate_const_itr_t itr = this->candidates().begin();
-            const dist_t next_idx{this->next_index()};
-            detray::ranges::advance(
-                itr, (this->is_on_surface() && (next_idx >= 1)) ? next_idx - 1
-                                                                : next_idx);
-            return itr;
+        constexpr void set_high_trust() {
+            this->trust_level(this->trust_level() <
+                                      navigation::trust_level::e_high
+                                  ? this->trust_level()
+                                  : navigation::trust_level::e_high);
         }
 
-        /// @return sentinel of the valid candidate range.
+        /// Update navigation trust level to fair trust
         DETRAY_HOST_DEVICE
-        constexpr auto end() const -> candidate_const_itr_t {
-            candidate_const_itr_t itr = this->candidates().begin();
-            detray::ranges::advance(itr, m_last + 1);
-            return itr;
-        }
-
-        /// @returns last valid candidate (by position in the cache) - const
-        DETRAY_HOST_DEVICE
-        constexpr auto last() const -> const candidate_t & {
-            assert(!is_exhausted());
-            assert(this->next_index() >= 0);
-            return this
-                ->candidates()[static_cast<std::size_t>(this->next_index())];
-        }
-
-        /// @returns numer of currently cached (reachable) candidates - const
-        DETRAY_HOST_DEVICE
-        constexpr auto n_candidates() const -> dindex {
-            assert(m_last - this->next_index() + 1 >= 0);
-            return static_cast<dindex>(m_last - this->next_index() + 1);
-        }
-
-        /// @returns true if there are no cached candidates left - const
-        DETRAY_HOST_DEVICE
-        constexpr bool is_exhausted() const { return n_candidates() == 0u; }
-
-        /// Navigation state that cannot be recovered from. Leave the other
-        /// data for inspection.
-        ///
-        /// @param custom_msg additional information on the reason for the error
-        ///
-        /// @return navigation heartbeat (dead)
-        DETRAY_HOST_DEVICE
-        constexpr auto abort(
-            const char *custom_msg = "Navigator (unkown reason)") -> bool {
-            base_type::abort();
-
-            /// Wrapper around the custom message that a print inspector can
-            /// understand
-            struct message_wrapper {
-                const char *const m_msg{nullptr};
-
-                DETRAY_HOST_DEVICE
-                constexpr const char *operator()() const { return m_msg; }
-            };
-
-            assert(custom_msg != nullptr);
-            run_inspector({}, point3_type{0.f, 0.f, 0.f},
-                          vector3_type{0.f, 0.f, 0.f},
-                          "Aborted: ", message_wrapper{custom_msg});
-
-            return this->is_alive();
-        }
-
-        /// Navigation state that cannot be recovered from. Leave the other
-        /// data for inspection.
-        ///
-        /// @param debug_msg_generator functor that returns additional
-        ///                            information on the reason for the error
-        ///
-        /// @return navigation heartbeat (dead)
-        template <typename debug_msg_generator_t>
-            requires(!std::same_as<char *, debug_msg_generator_t>)
-        DETRAY_HOST_DEVICE constexpr auto abort(
-            const debug_msg_generator_t &debug_msg_generator) -> bool {
-
-            base_type::abort();
-
-            run_inspector({}, point3_type{0.f, 0.f, 0.f},
-                          vector3_type{0.f, 0.f, 0.f},
-                          "Aborted: ", debug_msg_generator);
-
-            return this->is_alive();
-        }
-
-        /// Navigation reaches final target or leaves detector world. Stop
-        /// navigation.
-        ///
-        /// @return navigation heartbeat (dead)
-        DETRAY_HOST_DEVICE
-        constexpr auto exit() -> bool {
-            base_type::exit();
-
-            run_inspector({}, point3_type{0.f, 0.f, 0.f},
-                          vector3_type{0.f, 0.f, 0.f}, "Exited: ");
-
-            this->clear();
-            return this->is_alive();
-        }
-
-        /// Navigation is being paused by actor: Maintain the navigation state
-        /// and resume later
-        ///
-        /// @return propagation heartbeat (quit propagation loop, but keep
-        /// navigation alive)
-        DETRAY_HOST_DEVICE
-        constexpr auto pause() -> bool {
-            run_inspector({}, point3_type{0.f, 0.f, 0.f},
-                          vector3_type{0.f, 0.f, 0.f}, "Paused by actor: ");
-
-            return base_type::pause();
+        constexpr void set_fair_trust() {
+            this->trust_level(this->trust_level() <
+                                      navigation::trust_level::e_fair
+                                  ? this->trust_level()
+                                  : navigation::trust_level::e_fair);
         }
 
         private:
-        /// @return start position of valid candidate range.
-        DETRAY_HOST_DEVICE
-        constexpr auto begin() -> candidate_itr_t {
-            candidate_itr_t itr = this->candidates().begin();
-            const dist_t next_idx{this->next_index()};
-            detray::ranges::advance(
-                itr, (this->is_on_surface() && (next_idx >= 1)) ? next_idx - 1
-                                                                : next_idx);
-            return itr;
-        }
-
-        /// @return sentinel of the valid candidate range.
-        DETRAY_HOST_DEVICE
-        constexpr auto end() -> candidate_itr_t {
-            candidate_itr_t itr = this->candidates().begin();
-            detray::ranges::advance(itr, m_last + 1);
-            return itr;
-        }
-
-        /// @returns last valid candidate (by position in the cache)
-        DETRAY_HOST_DEVICE
-        constexpr auto last() -> candidate_t & {
-            assert(static_cast<std::size_t>(m_last) <
-                   this->candidates().size());
-            return this->candidates()[static_cast<std::size_t>(m_last)];
-        }
-
-        /// Updates the position of the last valid candidate
-        DETRAY_HOST_DEVICE
-        constexpr void set_last(candidate_itr_t new_last) {
-            m_last = static_cast<dist_t>(
-                detray::ranges::distance(this->candidates().begin(), new_last) -
-                1);
-            assert(this->next_index() <= m_last + 1);
-            assert(m_last < static_cast<dist_t>(k_cache_capacity));
-        }
-
-        /// Set the next surface that we want to reach (update target)
-        DETRAY_HOST_DEVICE
-        constexpr auto advance() -> void {
-            base_type::advance();
-            assert(this->next_index() <= m_last + 1);
-        }
-
-        /// Set the next surface that we want to reach (update target)
-        DETRAY_HOST_DEVICE
-        constexpr void set_next(candidate_itr_t new_next) {
-            const auto new_idx{
-                detray::ranges::distance(this->candidates().begin(), new_next)};
-            this->next_index(static_cast<dindex>(new_idx));
-            assert(this->next_index() <= m_last + 1);
-        }
-
         /// Insert a new element @param new_cadidate before position @param pos
         DETRAY_HOST_DEVICE
         constexpr void insert(candidate_itr_t pos,
@@ -321,11 +162,12 @@ class navigator {
                        this->detector().volumes().size());
 
             // Insert the first candidate
-            if (n_candidates() == 0) {
+            if (this->n_candidates() == 0) {
                 this->candidates()[0] = new_cadidate;
-                ++m_last;
-                assert(this->next_index() <= m_last + 1);
-                assert(static_cast<std::size_t>(m_last) < k_cache_capacity);
+                this->last_index(this->last_index() + 1);
+                assert(this->next_index() <= this->last_index() + 1);
+                assert(static_cast<std::size_t>(this->last_index()) <
+                       k_cache_capacity);
                 return;
             }
 
@@ -352,7 +194,7 @@ class navigator {
             // Shift all following candidates and evict the last element,
             // if the cache is already full
             constexpr auto shift_max{static_cast<dist_t>(k_cache_capacity - 2)};
-            const dist_t shift_begin{math::min(m_last, shift_max)};
+            const dist_t shift_begin{math::min(this->last_index(), shift_max)};
 
             for (dist_t i = shift_begin; i >= idx; --i) {
                 const auto j{static_cast<std::size_t>(i)};
@@ -361,60 +203,21 @@ class navigator {
 
             // Now insert the new candidate and update candidate range
             this->candidates()[static_cast<std::size_t>(idx)] = new_cadidate;
-            m_last = math::min(static_cast<dist_t>(m_last + 1),
-                               static_cast<dist_t>(k_cache_capacity - 1));
+            this->last_index(
+                math::min(static_cast<dist_t>(this->last_index() + 1),
+                          static_cast<dist_t>(k_cache_capacity - 1)));
 
-            assert(this->next_index() <= m_last + 1);
-            assert(static_cast<std::size_t>(m_last) < k_cache_capacity);
+            assert(this->next_index() <= this->last_index() + 1);
+            assert(static_cast<std::size_t>(this->last_index()) <
+                   k_cache_capacity);
         }
 
         /// Clear the state
-        DETRAY_HOST_DEVICE constexpr void clear() {
-            base_type::clear();
-            m_last = -1;
+        DETRAY_HOST_DEVICE constexpr void clear_cache() {
+            base_type::clear_cache();
+            this->next_index(0);
+            this->last_index(-1);
         }
-
-        /// Call the navigation inspector
-        DETRAY_HOST_DEVICE
-        constexpr void run_inspector(
-            [[maybe_unused]] const navigation::config &cfg,
-            [[maybe_unused]] const point3_type &track_pos,
-            [[maybe_unused]] const vector3_type &track_dir,
-            [[maybe_unused]] const char *message) {
-            if constexpr (!std::is_same_v<inspector_t,
-                                          navigation::void_inspector>) {
-                this->inspector()(*this, cfg, track_pos, track_dir, message);
-            }
-
-            DETRAY_DEBUG_HOST("" << message << "\n"
-                                 << detray::navigation::print_state(*this)
-                                 << detray::navigation::print_candidates(
-                                        *this, cfg, track_pos, track_dir));
-        }
-
-        /// Call the navigation inspector
-        template <typename debug_msg_generator_t>
-        DETRAY_HOST_DEVICE constexpr void run_inspector(
-            [[maybe_unused]] const navigation::config &cfg,
-            [[maybe_unused]] const point3_type &track_pos,
-            [[maybe_unused]] const vector3_type &track_dir,
-            [[maybe_unused]] const char *message,
-            [[maybe_unused]] const debug_msg_generator_t &msg_gen) {
-            if constexpr (!std::is_same_v<inspector_t,
-                                          navigation::void_inspector>) {
-                this->inspector()(*this, cfg, track_pos, track_dir, message,
-                                  msg_gen);
-            }
-
-            DETRAY_DEBUG_HOST("" << message << msg_gen() << "\n"
-                                 << detray::navigation::print_state(*this)
-                                 << detray::navigation::print_candidates(
-                                        *this, cfg, track_pos, track_dir));
-        }
-
-        /// The last reachable candidate: m_last < k_cache_capacity
-        /// Can never be advanced beyond the last element
-        dist_t m_last{-1};
     };
 
     private:
@@ -471,12 +274,11 @@ class navigator {
         const auto volume = tracking_volume{det, navigation.volume()};
 
         // Do not resurrect a failed/finished navigation state
-        assert(navigation.status() > navigation::status::e_exit);
+        assert(navigation.is_alive());
         assert(!track.is_invalid());
 
         // Clean up state
-        navigation.clear();
-        navigation.heartbeat(true);
+        navigation.clear_cache();
 
         // Search for neighboring surfaces and fill candidates into cache
         const scalar_type overstep_tol =
@@ -485,13 +287,12 @@ class navigator {
 
         volume.template visit_neighborhood<candidate_search>(
             track, cfg, ctx, det, ctx, track, navigation,
-            darray<scalar_type, 2u>{cfg.min_mask_tolerance,
-                                    cfg.max_mask_tolerance},
+            cfg.template mask_tolerance<scalar_type>(),
             static_cast<scalar_type>(cfg.mask_tolerance_scalor),
             static_cast<scalar_type>(overstep_tol));
 
         // Determine overall state of the navigation after updating the cache
-        update_navigation_state(navigation, cfg);
+        update_status(navigation, cfg);
 
         // If init was not successful, the propagation setup might be broken
         if (navigation.trust_level() != navigation::trust_level::e_full) {
@@ -502,8 +303,8 @@ class navigator {
                     detail::is_invalid_value(navigation.current().volume_link)
                         ? navigation::trust_level::e_full
                         : navigation::trust_level::e_no_trust);
-            } else {
-                navigation.heartbeat(false);
+            } else if (!navigation.is_on_portal()) {
+                DETRAY_VERBOSE_HOST_DEVICE("Unable to initialize state...");
             }
         }
 
@@ -536,7 +337,7 @@ class navigator {
                const navigation::config &cfg, const context_type &ctx = {},
                const bool /*is_before_actor*/ = true) const {
 
-        assert(navigation.status() > navigation::status::e_exit);
+        assert(navigation.is_alive());
         assert(!track.is_invalid());
 
         // Candidates are re-evaluated based on the current trust level.
@@ -545,6 +346,8 @@ class navigator {
 
         // Update was completely successful (most likely case)
         if (navigation.trust_level() == navigation::trust_level::e_full) {
+            DETRAY_VERBOSE_HOST_DEVICE("Update complete: dist to next %fmm",
+                                       navigation());
             return is_init;
         }
         // Otherwise: did we run into a portal?
@@ -573,7 +376,6 @@ class navigator {
             // Fresh initialization, reset trust and hearbeat even though we are
             // on inner portal
             navigation.trust_level(navigation::trust_level::e_full);
-            navigation.heartbeat(true);
 
             DETRAY_VERBOSE_HOST_DEVICE("Switched to volume %d",
                                        navigation.volume());
@@ -581,7 +383,7 @@ class navigator {
         // If no trust could be restored for the current state, (local)
         // navigation might be exhausted: re-initialize volume
         if (navigation.trust_level() != navigation::trust_level::e_full ||
-            navigation.is_exhausted()) {
+            navigation.cache_exhausted()) {
             DETRAY_VERBOSE_HOST_DEVICE(
                 "Full trust could not be restored! RESCURE MODE: Run init with "
                 "large tolerances");
@@ -610,11 +412,12 @@ class navigator {
         }
         // Unrecoverable
         if (navigation.trust_level() != navigation::trust_level::e_full ||
-            navigation.is_exhausted()) {
+            navigation.cache_exhausted()) {
             navigation.abort("No reachable surfaces");
         }
 
-        DETRAY_VERBOSE_HOST_DEVICE("Update complete");
+        DETRAY_VERBOSE_HOST_DEVICE("Update complete: dist to next %fmm",
+                                   navigation());
 
         return is_init;
     }
@@ -656,7 +459,7 @@ class navigator {
             } else {
 
                 // Update navigation flow on the new candidate information
-                update_navigation_state(navigation, cfg);
+                update_status(navigation, cfg);
 
                 navigation.run_inspector(cfg, track.pos(), track.dir(),
                                          "Update complete: high trust: ");
@@ -688,7 +491,7 @@ class navigator {
         // Re-evaluate all currently available candidates and sort again
         // - do this when your navigation state is stale, but not invalid
         if (navigation.trust_level() == navigation::trust_level::e_fair &&
-            !navigation.is_exhausted()) {
+            !navigation.cache_exhausted()) {
 
             DETRAY_VERBOSE_HOST_DEVICE("Called 'update()' - fair trust");
 
@@ -707,12 +510,12 @@ class navigator {
             // Ignore unreachable elements (needed to determine exhaustion)
             navigation.set_last(find_invalid(navigation.candidates()));
             // Update navigation flow on the new candidate information
-            update_navigation_state(navigation, cfg);
+            update_status(navigation, cfg);
 
             navigation.run_inspector(cfg, track.pos(), track.dir(),
                                      "Update complete: fair trust: ");
 
-            if (!navigation.is_exhausted()) {
+            if (!navigation.cache_exhausted()) {
                 return false;
             }
         }
@@ -743,12 +546,12 @@ class navigator {
     ///
     /// @param state the current navigation state
     /// @param cfg the navigation configuration
-    DETRAY_HOST_DEVICE inline void update_navigation_state(
+    DETRAY_HOST_DEVICE inline void update_status(
         state &navigation, const navigation::config &cfg) const {
 
         // Check whether the track reached the current candidate. Might be a
         // portal, in which case the navigation needs to be re-initialized
-        if (!navigation.is_exhausted() &&
+        if (!navigation.cache_exhausted() &&
             navigation.has_reached_candidate(navigation.target(), cfg)) {
             navigation.status((navigation.target().sf_desc.is_portal())
                                   ? navigation::status::e_on_portal
@@ -766,7 +569,7 @@ class navigator {
         // In backwards navigation or with strongly bent tracks, the cache may
         // not be exhausted when trying to exit the volume (the ray is seeing
         // the opposite side of the volume)
-        navigation.trust_level(navigation.is_exhausted() ||
+        navigation.trust_level(navigation.cache_exhausted() ||
                                        navigation.is_on_portal()
                                    ? navigation::trust_level::e_no_trust
                                    : navigation::trust_level::e_full);
@@ -803,8 +606,7 @@ class navigator {
                 track.pos(), static_cast<scalar_type>(nav_dir) * track.dir()),
             candidate, det.transform_store(), ctx,
             sf.is_portal() ? darray<scalar_type, 2>{0.f, 0.f}
-                           : darray<scalar_type, 2>{cfg.min_mask_tolerance,
-                                                    cfg.max_mask_tolerance},
+                           : cfg.template mask_tolerance<scalar_type>(),
             static_cast<scalar_type>(cfg.mask_tolerance_scalor),
             sf.is_portal() ? 0.f : external_mask_tolerance,
             static_cast<scalar_type>(cfg.overstep_tolerance));

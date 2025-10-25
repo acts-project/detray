@@ -75,7 +75,7 @@ DETRAY_HOST_DEVICE constexpr void estimate_external_mask_tolerance(
     // Guess the portal envelope distance if there is no next target
     constexpr auto max_tol{5.f * unit<scalar_t>::mm};
     const scalar_t path{
-        navigation.is_exhausted()
+        navigation.cache_exhausted()
             ? max_tol
             : math::fabs(std::as_const(navigation).target().path())};
 

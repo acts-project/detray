@@ -96,7 +96,7 @@ GTEST_TEST(detray_navigation, guided_navigator) {
     auto &obj_tracer = nav_state.inspector().template get<object_tracer_t>();
 
     // Check that navigator exited
-    ASSERT_TRUE(nav_state.is_complete()) << debug_printer.to_string();
+    ASSERT_TRUE(nav_state.finished()) << debug_printer.to_string();
 
     // Sequence of surface ids we expect to see
     const std::vector<unsigned int> sf_sequence = {0u, 1u, 2u, 3u, 4u,  5u,

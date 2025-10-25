@@ -169,8 +169,8 @@ struct propagator {
     /// @param propagation the state of a propagation flow
     ///
     /// @return propagation success.
-    DETRAY_HOST_DEVICE bool is_complete(const state &propagation) const {
-        return propagation._navigation.is_complete();
+    DETRAY_HOST_DEVICE bool finished(const state &propagation) const {
+        return propagation._navigation.finished();
     }
 
     /// @returns true if the @param propagation is suspended
@@ -238,7 +238,6 @@ struct propagator {
         unsigned int stall_counter{0u};
         for (unsigned int i = 0; i % 2 == 0 || propagation.is_alive(); ++i) {
 
-            // bool reset_stepsize{true};
             if (i % 2 == 0) {
                 DETRAY_VERBOSE_HOST_DEVICE("Propagation step: %d", i / 2);
                 DETRAY_VERBOSE_HOST_DEVICE("Path length: %f mm",
@@ -320,7 +319,7 @@ struct propagator {
 
         // Pass on the whether the propagation was successful
         DETRAY_VERBOSE_HOST("Finished propagation for track:\n" << track);
-        if (is_complete(propagation)) {
+        if (finished(propagation)) {
             DETRAY_VERBOSE_HOST_DEVICE("Status: COMPLETE");
         } else if (is_paused(propagation)) {
             DETRAY_VERBOSE_HOST_DEVICE("Status: PAUSED");
@@ -328,7 +327,7 @@ struct propagator {
             DETRAY_VERBOSE_HOST_DEVICE("Status: ABORT");
         }
 
-        return is_complete(propagation) || is_paused(propagation);
+        return finished(propagation) || is_paused(propagation);
     }
 
     /// Overload for emtpy actor chain
@@ -346,31 +345,7 @@ struct propagator {
 
         std::stringstream debug_stream{};
         debug_stream << std::left << std::setw(10);
-        debug_stream << "status: " << std::endl;
-        switch (navigation.status()) {
-            using enum navigation::status;
-            case e_abort:
-                debug_stream << "status: abort";
-                break;
-            case e_exit:
-                debug_stream << "status: e_exit";
-                break;
-            case e_unknown:
-                debug_stream << "status: unknowm";
-                break;
-            case e_towards_object:
-                debug_stream << "status: towards_surface";
-                break;
-            case e_on_object:
-                debug_stream << "status: on_module";
-                break;
-            case e_on_portal:
-                debug_stream << "status: on_portal";
-                break;
-            default:
-                break;
-        }
-        debug_stream << std::endl;
+        debug_stream << "status: " << navigation.status() << std::endl;
 
         debug_stream << "volume: " << std::setw(10);
         if (detail::is_invalid_value(navigation.volume())) {

@@ -45,6 +45,12 @@ struct config {
     /// Add adaptive mask tolerance to navigation
     bool estimate_scattering_noise{true};
 
+    /// @returns the mask tolerances
+    template <concepts::scalar scalar_t>
+    DETRAY_HOST_DEVICE constexpr darray<scalar_t, 2u> mask_tolerance() const {
+        return {min_mask_tolerance, max_mask_tolerance};
+    }
+
     /// Print the navigation configuration
     DETRAY_HOST
     friend std::ostream& operator<<(std::ostream& out, const config& cfg) {
