@@ -6,10 +6,9 @@
  */
 
 // Project include(s)
-#include "detray/navigation/navigator.hpp"
+#include "detray/navigation/caching_navigator.hpp"
 
 #include "detray/definitions/indexing.hpp"
-#include "detray/navigation/navigator.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
 
@@ -138,12 +137,12 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
 
     using detector_t = decltype(toy_det);
     using inspector_t = navigation::print_inspector;
-    using navigator_t = navigator<detector_t, cache_size, inspector_t>;
+    using navigator_t = caching_navigator<detector_t, cache_size, inspector_t>;
     using constraint_t = constrained_step<scalar>;
     using stepper_t = line_stepper<test_algebra, constraint_t>;
 
     // State type in the nominal navigation (no inspectors)
-    using nav_stat_t = navigator<detector_t, cache_size>::state;
+    using nav_stat_t = caching_navigator<detector_t, cache_size>::state;
 
     // Check memory layout of intersection struct (currently 224)
     constexpr std::size_t offset{navigation::default_cache_size *
@@ -364,7 +363,7 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
 
     using detector_t = decltype(wire_det);
     using inspector_t = navigation::print_inspector;
-    using navigator_t = navigator<detector_t, cache_size, inspector_t>;
+    using navigator_t = caching_navigator<detector_t, cache_size, inspector_t>;
     using constraint_t = constrained_step<scalar>;
     using stepper_t = line_stepper<test_algebra, constraint_t>;
 

@@ -48,7 +48,7 @@ template <typename detector_t,
           typename intersection_t = intersection2D<
               typename detector_t::surface_type,
               typename detector_t::algebra_type, !intersection::contains_pos>>
-class navigator {
+class caching_navigator {
 
     public:
     using detector_type = detector_t;
@@ -75,7 +75,7 @@ class navigator {
         : public navigation::base_state<state, detector_type, k_cache_capacity,
                                         inspector_type, intersection_type> {
 
-        friend class navigator;
+        friend class caching_navigator;
 
         // Allow the filling/updating of candidates
         friend struct intersection_initialize<ray_intersector>;

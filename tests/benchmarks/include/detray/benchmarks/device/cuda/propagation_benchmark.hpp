@@ -8,8 +8,9 @@
 #pragma once
 
 // Project include(s)
+#include "detray/core/detector.hpp"
 #include "detray/definitions/algebra.hpp"
-#include "detray/navigation/navigator.hpp"
+#include "detray/navigation/caching_navigator.hpp"
 #include "detray/propagator/actors.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
@@ -69,7 +70,7 @@ using cuda_propagator_type = propagator<
              ? static_cast<std::uint32_t>(
                    rk_stepper_flags::e_allow_covariance_transport)
              : 0u)>,
-    navigator<detector<metadata_t>>,
+    caching_navigator<detector<metadata_t>>,
     actor_chain_t<typename detector<metadata_t>::algebra_type>>;
 
 /// Launch the propagation kernelfor benchmarking

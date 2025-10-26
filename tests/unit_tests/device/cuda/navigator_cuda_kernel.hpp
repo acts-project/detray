@@ -11,7 +11,7 @@
 #include "detray/core/detector.hpp"
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/navigation/navigator.hpp"
+#include "detray/navigation/caching_navigator.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/propagation_config.hpp"
 
@@ -32,8 +32,8 @@ using detector_device_t = detector<metadata_t, device_container_types>;
 using intersection_t =
     intersection2D<typename detector_device_t::surface_type, test_algebra>;
 
-using navigator_host_t = navigator<detector_host_t>;
-using navigator_device_t = navigator<detector_device_t>;
+using navigator_host_t = caching_navigator<detector_host_t>;
+using navigator_device_t = caching_navigator<detector_device_t>;
 using stepper_t = line_stepper<test_algebra>;
 
 // detector configuration

@@ -10,7 +10,7 @@
 // Project include(s).
 #include "detray/core/detector.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/navigation/navigator.hpp"
+#include "detray/navigation/caching_navigator.hpp"
 #include "detray/propagator/actors.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
@@ -33,7 +33,7 @@ using algebra_t = metadata_t::algebra_type;
 using scalar = detray::tutorial::scalar;
 
 // Navigator
-using navigator_t = navigator<detector_device_t>;
+using navigator_t = caching_navigator<detector_device_t>;
 
 // Stepper
 using host_field_t = covfie::field<detray::bfield::inhom_bknd_t<scalar>>;

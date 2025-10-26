@@ -248,8 +248,6 @@ DETRAY_HOST_DEVICE DETRAY_INLINE constexpr void volume_switch(
 
     // Set volume index to the next volume provided by the portal
     navigation.set_volume(navigation.current().volume_link);
-    // Check valid volume index
-    assert(navigation.volume() < navigation.detector().volumes().size());
 
     // Initialize new volume. Still on portal: No need to observe overstepping
     local_navigation(track, navigation, cfg, ctx);
