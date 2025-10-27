@@ -106,9 +106,6 @@ class volume_builder : public volume_builder_interface<detector_t> {
         typename detector_t::volume_type* override {
 
         DETRAY_VERBOSE_HOST("Build surfaces...");
-        assert(!m_surfaces.empty());
-        assert(!m_transforms.empty());
-        assert(!m_masks.all_empty());
 
         assert(!m_surfaces.empty());
         assert(!m_transforms.empty());

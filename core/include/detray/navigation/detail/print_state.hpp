@@ -50,7 +50,7 @@ DETRAY_HOST inline std::string print_state(const state_type &state) {
     debug_stream << std::setw(cw) << "status:";
     debug_stream << state.status() << std::endl;
 
-    // Trust level
+    // Navigation trust level
     debug_stream << std::setw(cw) << "trust:";
     debug_stream << state.trust_level() << std::endl;
 

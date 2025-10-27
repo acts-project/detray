@@ -20,6 +20,7 @@
 #include "detray/navigation/intersection/intersection.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
 #include "detray/navigation/navigation_config.hpp"
+#include "detray/utils/invalid_values.hpp"
 #include "detray/utils/log.hpp"
 #include "detray/utils/ranges.hpp"
 
@@ -132,12 +133,22 @@ class base_state : public detray::ranges::view_interface<
         return itr;
     }
 
+    DETRAY_HOST_DEVICE
+    constexpr auto cbegin() const -> candidate_const_itr_t {
+        return std::as_const(*this).begin();
+    }
+
     /// @return sentinel of the valid candidate range.
     DETRAY_HOST_DEVICE
     constexpr auto end() const -> candidate_const_itr_t {
         candidate_const_itr_t itr = m_candidates.cbegin();
         detray::ranges::advance(itr, m_last + 1);
         return itr;
+    }
+
+    DETRAY_HOST_DEVICE
+    constexpr auto cend() const -> candidate_const_itr_t {
+        return std::as_const(*this).end();
     }
 
     /// @returns last valid candidate (by position in the cache) - const
@@ -147,6 +158,9 @@ class base_state : public detray::ranges::view_interface<
         assert(next_index() >= 0);
         return m_candidates[static_cast<std::size_t>(next_index())];
     }
+
+    /// @returns the capacity of the internal candidate storage
+    static consteval std::size_t capacity() { return k_cache_capacity; }
 
     /// @returns current navigation status - const
     DETRAY_HOST_DEVICE
@@ -257,7 +271,7 @@ class base_state : public detray::ranges::view_interface<
     /// Set start/new volume from volume index @param v
     DETRAY_HOST_DEVICE
     constexpr void set_volume(dindex v) {
-        assert(detail::is_invalid_value(static_cast<nav_link_t>(v)) ||
+        assert(detray::detail::is_invalid_value(static_cast<nav_link_t>(v)) ||
                v < cast_impl().detector().volumes().size());
         if (v != m_volume_index) {
             // Make sure the new volume is properly initialized
@@ -442,11 +456,6 @@ class base_state : public detray::ranges::view_interface<
         return itr;
     }
 
-    DETRAY_HOST_DEVICE
-    constexpr auto cbegin() const -> candidate_const_itr_t {
-        return std::as_const(*this).begin();
-    }
-
     /// @return sentinel of the valid candidate range.
     DETRAY_HOST_DEVICE
     constexpr auto end() -> candidate_itr_t {
@@ -455,20 +464,12 @@ class base_state : public detray::ranges::view_interface<
         return itr;
     }
 
-    DETRAY_HOST_DEVICE
-    constexpr auto cend() const -> candidate_const_itr_t {
-        return std::as_const(*this).end();
-    }
-
     /// @returns last valid candidate (by position in the cache)
     DETRAY_HOST_DEVICE
     constexpr auto last() -> candidate_t & {
         assert(static_cast<std::size_t>(m_last) < m_candidates.size());
         return m_candidates[static_cast<std::size_t>(m_last)];
     }
-
-    /// @returns the capacity of the internal candidate storage
-    static consteval std::size_t capacity() { return k_cache_capacity; }
 
     /// Set the next surface that we want to reach (update target)
     DETRAY_HOST_DEVICE
@@ -546,12 +547,6 @@ class base_state : public detray::ranges::view_interface<
     /// Reset the trustlevel to @param t
     DETRAY_HOST_DEVICE
     constexpr void trust_level(navigation::trust_level t) { m_trust_level = t; }
-
-    /// @returns true if a candidate lies on a surface - const
-    DETRAY_HOST_DEVICE constexpr bool has_reached_candidate(
-        const candidate_t &candidate, const navigation::config &cfg) const {
-        return (math::fabs(candidate.path()) < cfg.intersection.path_tolerance);
-    }
 
     /// Clear the state
     DETRAY_HOST_DEVICE
