@@ -230,7 +230,7 @@ struct pointwise_material_interactor : actor {
         const scalar_type next_qop{(q != 0.f) ? q / next_p : 1.f / next_p};
         vector.set_qop((next_p == 0.f) ? inv : next_qop);
 
-        DETRAY_DEBUG_HOST_DEVICE("-> new abs. momentum: %f", next_qop);
+        DETRAY_DEBUG_HOST_DEVICE("-> new abs. momentum: %f", next_p);
 
         DETRAY_DEBUG_HOST_DEVICE("-> Update qop: before: %f, after: %f", q / p,
                                  vector.qop());

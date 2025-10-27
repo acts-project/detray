@@ -107,6 +107,10 @@ class volume_builder : public volume_builder_interface<detector_t> {
 
         DETRAY_VERBOSE_HOST("Build surfaces...");
 
+        assert(!m_surfaces.empty());
+        assert(!m_transforms.empty());
+        assert(!m_masks.all_empty());
+
         // Prepare volume data
         m_volume.set_index(static_cast<dindex>(det.volumes().size()));
 

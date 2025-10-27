@@ -11,6 +11,7 @@
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/math.hpp"
+#include "detray/definitions/units.hpp"
 #include "detray/propagator/base_actor.hpp"
 
 // system includes
@@ -114,7 +115,7 @@ struct stepper_rk_policy : actor {
         auto &navigation = propagation._navigation;
 
         // In case of an overlap, have navigator re-evaluate the next candidate
-        if (math::fabs(navigation()) <= 1e-5f) {
+        if (math::fabs(navigation()) <= 1.f * unit<float>::um) {
             navigation.set_high_trust();
             return;
         }

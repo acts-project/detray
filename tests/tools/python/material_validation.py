@@ -174,7 +174,7 @@ def __main__():
     mat_plotter.X0_vs_eta(df_scan, "material_scan", det_name, plot_factory, out_format)
     mat_plotter.L0_vs_eta(df_scan, "material_scan", det_name, plot_factory, out_format)
 
-    # Navigaiton material Traces
+    # Navigation material Traces
     # CPU
     mat_plotter.X0_vs_eta_phi(
         df_cpu, "cpu_material_trace", det_name, plot_factory, out_format

@@ -73,9 +73,10 @@ DETRAY_HOST_DEVICE constexpr void estimate_external_mask_tolerance(
                                math::cos(theta_err)};
 
     // Guess the portal envelope distance if there is no next target
+    constexpr auto max_tol{5.f * unit<scalar_t>::mm};
     const scalar_t path{
         navigation.is_exhausted()
-            ? 5.f * unit<scalar_t>::mm
+            ? max_tol
             : math::fabs(std::as_const(navigation).target().path())};
 
     displ = path * (displ - stepping().dir());
@@ -97,7 +98,6 @@ DETRAY_HOST_DEVICE constexpr void estimate_external_mask_tolerance(
         vector::dot(displ, displ) + accumulated_noise * accumulated_noise));
 
     // Clip to 5mm if the covariances are very large
-    constexpr auto max_tol{5.f * unit<scalar_t>::mm};
     navigation.set_external_tol(navigation.external_tol() > max_tol
                                     ? max_tol
                                     : navigation.external_tol());

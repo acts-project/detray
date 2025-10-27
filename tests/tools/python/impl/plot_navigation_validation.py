@@ -192,7 +192,7 @@ def plot_detector_scan_data(
     )
 
 
-""" Plot the intersection data gathered during the navigaiton validation """
+""" Plot the intersection data gathered during the navigation validation """
 
 
 def plot_navigation_intersection_data(
@@ -225,7 +225,7 @@ def plot_navigation_intersection_data(
     )
 
 
-""" Plot the track data gathered during the navigaiton validation """
+""" Plot the track data gathered during the navigation validation """
 
 
 def plot_navigation_track_data(

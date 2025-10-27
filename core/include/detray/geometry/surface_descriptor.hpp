@@ -149,6 +149,13 @@ class surface_descriptor {
         return m_material;
     }
 
+    /// @returns true if the surface descriptor has a valid material link
+    DETRAY_HOST_DEVICE
+    constexpr auto has_material() const -> bool {
+        return (m_material.id() != material_link::id_type::e_none) &&
+               !m_material.is_invalid();
+    }
+
     /// @returns true if the surface is a senstive detector module.
     DETRAY_HOST_DEVICE
     constexpr auto is_sensitive() const -> bool {

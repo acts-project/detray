@@ -41,7 +41,7 @@ struct navigation_validation_config
     std::size_t m_n_tracks{detray::detail::invalid_value<std::size_t>()};
     /// Particle hypothesis (truth particle from simulation)
     pdg_particle<scalar_type> m_ptc_hypo{muon<scalar_type>()};
-    /// Navigaiton direction
+    /// Navigation direction
     navigation::direction m_nav_dir{navigation::direction::e_forward};
     /// Collect only the sensitive intersections for comparison
     bool m_collect_sensitives_only{false};

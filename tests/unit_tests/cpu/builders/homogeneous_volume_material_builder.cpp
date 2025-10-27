@@ -8,8 +8,10 @@
 // Detray include(s)
 #include "detray/builders/homogeneous_volume_material_builder.hpp"
 
+#include "detray/builders/surface_factory.hpp"
 #include "detray/core/detector.hpp"
 #include "detray/definitions/indexing.hpp"
+#include "detray/geometry/shapes/rectangle2D.hpp"
 #include "detray/materials/predefined_materials.hpp"
 
 // Detray test include(s)
@@ -29,12 +31,14 @@
 using namespace detray;
 
 using scalar = detray::test::scalar;
+using point3 = test::point3;
 
 /// Unittest: Test the construction of a collection of materials
 TEST(detray_builders, homogeneous_volume_material_builder) {
 
     using metadata_t = test::default_metadata;
     using detector_t = detector<metadata_t>;
+    using transform3 = typename detector_t::transform3_type;
 
     constexpr auto material_id{detector_t::materials::id::e_raw_material};
 
@@ -49,6 +53,15 @@ TEST(detray_builders, homogeneous_volume_material_builder) {
     auto mat_builder =
         homogeneous_volume_material_builder<detector_t>{std::move(vbuilder)};
 
+    // Add some surfaces
+    using rectangle_factory = surface_factory<detector_t, rectangle2D>;
+    auto sf_factory = std::make_shared<rectangle_factory>();
+    sf_factory->push_back({surface_id::e_sensitive,
+                           transform3(point3{0.f, 0.f, -1.f}), 1u,
+                           std::vector<scalar>{10.f, 8.f}});
+    mat_builder.add_surfaces(sf_factory);
+
+    // Set volume material
     mat_builder.set_material(argon_liquid<scalar>{});
 
     // Add the volume to the detector

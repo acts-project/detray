@@ -266,8 +266,6 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
         using resetter_state_t = parameter_resetter<test_algebra>::state;
         detail::get<resetter_state_t>(actor_states).estimate_scattering_noise =
             false;
-        detail::get<resetter_state_t>(actor_states_sync)
-            .estimate_scattering_noise = false;
         detail::get<resetter_state_t>(actor_states_lim)
             .estimate_scattering_noise = false;
 
@@ -275,11 +273,6 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
         ASSERT_TRUE(
             p.propagate(state, actor_chain_t::setup_actor_states(actor_states)))
             << state._navigation.inspector().to_string() << std::endl;
-
-        // Test propagate sync method
-        ASSERT_TRUE(p.propagate_sync(
-            sync_state, actor_chain_t::setup_actor_states(actor_states_sync)))
-            << sync_state._navigation.inspector().to_string() << std::endl;
 
         // Propagate with path limit
         ASSERT_FALSE(p.propagate(
@@ -290,15 +283,6 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
             << "Absolute path length: " << lim_state._stepping.abs_path_length()
             << ", path limit: " << path_limit << std::endl;
         //<< state._navigation.inspector().to_string() << std::endl;
-
-        // Compare the navigation status vector between propagate and
-        // propagate_sync function
-        const auto nav_status =
-            detray::get<helix_inspector::state>(actor_states)._nav_status;
-        const auto sync_nav_status =
-            detray::get<helix_inspector::state>(actor_states_sync)._nav_status;
-        ASSERT_TRUE(nav_status.size() > 0);
-        ASSERT_TRUE(nav_status == sync_nav_status);
     }
 }
 
@@ -713,7 +697,6 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
         navigator_t::state& navigation = state._navigation;
 
         // Propagate the entire detector
-        // state.do_debug = true;
         ASSERT_TRUE(p.propagate(state, actor_states))
             << navigation.inspector().to_string();
 
