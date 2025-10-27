@@ -82,7 +82,8 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
 
     // Propagator is built from the stepper and navigator
     propagation::config prop_cfg{};
-    prop_cfg.navigation.overstep_tolerance = -100.f * unit<float>::um;
+    prop_cfg.navigation.intersection.overstep_tolerance =
+        -100.f * unit<float>::um;
     propagator_t p{prop_cfg};
 
     constexpr scalar iniP{10.f * unit<scalar>::GeV};
@@ -204,7 +205,8 @@ GTEST_TEST(detray_material, telescope_geometry_scattering_angle) {
 
     // Propagator is built from the stepper and navigator
     propagation::config prop_cfg{};
-    prop_cfg.navigation.overstep_tolerance = -100.f * unit<float>::um;
+    prop_cfg.navigation.intersection.overstep_tolerance =
+        -100.f * unit<float>::um;
     propagator_t p{prop_cfg};
 
     constexpr scalar q{-1.f};
@@ -340,7 +342,8 @@ GTEST_TEST(detray_material, telescope_geometry_volume_material) {
 
         // Propagator is built from the stepper and navigator
         propagation::config prop_cfg{};
-        prop_cfg.navigation.overstep_tolerance = -100.f * unit<float>::um;
+        prop_cfg.navigation.intersection.overstep_tolerance =
+            -100.f * unit<float>::um;
         propagator_t p{prop_cfg};
 
         propagator_t::state state(bound_param, const_bfield, det);

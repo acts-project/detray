@@ -14,6 +14,7 @@
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
+#include "detray/navigation/intersection/intersection_config.hpp"
 #include "detray/utils/invalid_values.hpp"
 #include "detray/utils/log.hpp"
 
@@ -267,10 +268,10 @@ DETRAY_HOST_DEVICE constexpr void resolve_mask(
     intersection_t &is, const trajectory_t &traj,
     const intersection_point_err<algebra_t> &ip, const surface_descr_t sf_desc,
     const mask_t &mask, const transform3_t &trf,
-    const darray<scalar_t, 2> &mask_tolerance, const scalar_t = 0.f,
-    const scalar_t = 0.f, const scalar_t = 0.f) {
+    const intersection::config &intr_cfg,
+    const scalar_t /*external_mask_tol*/ = 0.f) {
 
-    assert((mask_tolerance[0] == mask_tolerance[1]) &&
+    assert((intr_cfg.min_mask_tolerance == intr_cfg.max_mask_tolerance) &&
            "Helix intersectors use only one mask tolerance value");
 
     // Build intersection struct from test trajectory, if the distance is valid
@@ -283,14 +284,19 @@ DETRAY_HOST_DEVICE constexpr void resolve_mask(
             vector::dot(mask_t::get_local_frame().normal(trf, is.local()),
                         traj.dir(ip.path));
 
-        scalar_t tol{mask_tolerance[1]};
-        if (detail::is_invalid_value(tol)) {
+        scalar_t tol{sf_desc.is_portal() ? 0.f : intr_cfg.min_mask_tolerance};
+        // If tolerance is inf, use tolerance estimation (intr_cfg is 'float'!)
+        if (tol >= detail::invalid_value<float>()) {
             // Due to floating point errors this can be negative if cos ~ 1
             const scalar_t sin_inc2{
                 math::fabs(1.f - cos_incidence_angle * cos_incidence_angle)};
 
             tol = math::fabs(ip.path_err * math::sqrt(sin_inc2));
         }
+        // Make sure the tol. has been estimated/configured in a sensible way
+        assert(!math::signbit(tol));
+        assert(tol < 1000.f * unit<scalar_t>::mm);
+
         is.set_status(mask.is_inside(is.local(), tol)
                           ? intersection::status::e_inside
                           : intersection::status::e_outside);

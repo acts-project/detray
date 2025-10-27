@@ -80,11 +80,10 @@ int main(int argc, char **argv) {
     cfg_str_nav.propagation().stepping.min_stepsize = min_stepsize;
     cfg_str_nav.propagation().navigation.estimate_scattering_noise = false;
     cfg_str_nav.propagation().navigation.search_window = {3u, 3u};
-    auto mask_tolerance = cfg_ray_scan.mask_tolerance();
-    cfg_str_nav.propagation().navigation.min_mask_tolerance =
-        static_cast<float>(mask_tolerance[0]);
-    cfg_str_nav.propagation().navigation.max_mask_tolerance =
-        static_cast<float>(mask_tolerance[1]);
+    cfg_str_nav.propagation().navigation.intersection.min_mask_tolerance =
+        static_cast<float>(cfg_ray_scan.mask_tolerance());
+    cfg_str_nav.propagation().navigation.intersection.max_mask_tolerance =
+        static_cast<float>(cfg_ray_scan.mask_tolerance());
 
     test::register_checks<detray::cuda::straight_line_navigation>(
         det, names, cfg_str_nav, ctx, white_board);
@@ -93,8 +92,7 @@ int main(int argc, char **argv) {
     test::helix_scan<wire_chamber_t>::config cfg_hel_scan{};
     cfg_hel_scan.name("wire_chamber_helix_scan_for_cuda");
     // Let the Newton algorithm dynamically choose tol. based on approx. error
-    cfg_hel_scan.mask_tolerance({detray::detail::invalid_value<scalar>(),
-                                 detray::detail::invalid_value<scalar>()});
+    cfg_hel_scan.mask_tolerance(detray::detail::invalid_value<scalar>());
     // Run only 1000 track in double precision in the CI (time limit)
     if constexpr (std::same_as<scalar, double>) {
         cfg_hel_scan.track_generator().n_tracks(1000u);
@@ -116,7 +114,8 @@ int main(int argc, char **argv) {
     cfg_hel_nav.n_tracks(cfg_hel_scan.track_generator().n_tracks());
     cfg_hel_nav.propagation().stepping.min_stepsize = min_stepsize;
     cfg_hel_nav.propagation().navigation.estimate_scattering_noise = false;
-    cfg_hel_nav.propagation().navigation.min_mask_tolerance *= 12.f;
+    cfg_hel_nav.propagation().navigation.intersection.min_mask_tolerance *=
+        12.f;
     cfg_hel_nav.propagation().navigation.search_window = {3u, 3u};
 
     test::register_checks<detray::cuda::helix_navigation>(

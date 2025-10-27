@@ -80,12 +80,11 @@ int main(int argc, char **argv) {
     cfg_str_nav.name("telescope_detector_straight_line_navigation");
     cfg_str_nav.n_tracks(cfg_ray_scan.track_generator().n_tracks());
     cfg_str_nav.propagation().stepping.min_stepsize = min_stepsize;
-    auto mask_tolerance = cfg_ray_scan.mask_tolerance();
     cfg_str_nav.propagation().navigation.estimate_scattering_noise = false;
-    cfg_str_nav.propagation().navigation.min_mask_tolerance =
-        static_cast<float>(mask_tolerance[0]);
-    cfg_str_nav.propagation().navigation.max_mask_tolerance =
-        static_cast<float>(mask_tolerance[1]);
+    cfg_str_nav.propagation().navigation.intersection.min_mask_tolerance =
+        static_cast<float>(cfg_ray_scan.mask_tolerance());
+    cfg_str_nav.propagation().navigation.intersection.max_mask_tolerance =
+        static_cast<float>(cfg_ray_scan.mask_tolerance());
 
     test::register_checks<test::straight_line_navigation>(
         tel_det, tel_names, cfg_str_nav, ctx, white_board);
@@ -94,8 +93,7 @@ int main(int argc, char **argv) {
     test::helix_scan<tel_detector_t>::config cfg_hel_scan{};
     cfg_hel_scan.name("telescope_detector_helix_scan");
     // Let the Newton algorithm dynamically choose tol. based on approx. error
-    cfg_hel_scan.mask_tolerance({detray::detail::invalid_value<scalar>(),
-                                 detray::detail::invalid_value<scalar>()});
+    cfg_hel_scan.mask_tolerance(detray::detail::invalid_value<scalar>());
     cfg_hel_scan.track_generator().n_tracks(10000u);
     cfg_hel_scan.overlaps_tol(min_stepsize);
     cfg_hel_scan.track_generator().p_tot(10.f * unit<scalar>::GeV);
@@ -112,7 +110,7 @@ int main(int argc, char **argv) {
     cfg_hel_nav.n_tracks(cfg_hel_scan.track_generator().n_tracks());
     cfg_hel_nav.propagation().stepping.min_stepsize = min_stepsize;
     cfg_hel_nav.propagation().navigation.estimate_scattering_noise = false;
-    cfg_hel_nav.propagation().navigation.overstep_tolerance =
+    cfg_hel_nav.propagation().navigation.intersection.overstep_tolerance =
         -100.f * unit<float>::um;
 
     test::register_checks<test::helix_navigation>(

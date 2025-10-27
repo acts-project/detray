@@ -19,8 +19,8 @@
 #include "detray/geometry/tracking_surface.hpp"
 #include "detray/navigation/detail/print_state.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
+#include "detray/navigation/intersection/intersection_kernel.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
-#include "detray/navigation/intersection_kernel.hpp"
 #include "detray/navigation/navigation_config.hpp"
 #include "detray/navigation/navigation_state.hpp"
 #include "detray/tracks/ray.hpp"
@@ -231,9 +231,7 @@ class navigator {
             const typename detector_type::surface_type &sf_descr,
             const detector_type &det, const context_type &ctx,
             const track_t &track, state &nav_state,
-            const darray<scalar_type, 2> mask_tol,
-            const scalar_type mask_tol_scalor,
-            const scalar_type overstep_tol) const {
+            const intersection::config &intr_cfg) const {
 
             const auto sf = geometry::surface{det, sf_descr};
 
@@ -243,10 +241,8 @@ class navigator {
                     track.pos(),
                     static_cast<scalar_type>(nav_state.direction()) *
                         track.dir()),
-                sf_descr, det.transform_store(), ctx,
-                sf.is_portal() ? darray<scalar_type, 2>{0.f, 0.f} : mask_tol,
-                mask_tol_scalor,
-                sf.is_portal() ? 0.f : nav_state.external_tol(), overstep_tol);
+                sf_descr, det.transform_store(), ctx, intr_cfg,
+                nav_state.external_tol());
         }
     };
 
@@ -281,15 +277,12 @@ class navigator {
         navigation.clear_cache();
 
         // Search for neighboring surfaces and fill candidates into cache
-        const scalar_type overstep_tol =
-            use_path_tolerance_as_overstep_tolerance ? -cfg.path_tolerance
-                                                     : cfg.overstep_tolerance;
-
+        intersection::config intr_cfg{cfg.intersection};
+        intr_cfg.overstep_tolerance = use_path_tolerance_as_overstep_tolerance
+                                          ? -cfg.intersection.path_tolerance
+                                          : cfg.intersection.overstep_tolerance;
         volume.template visit_neighborhood<candidate_search>(
-            track, cfg, ctx, det, ctx, track, navigation,
-            cfg.template mask_tolerance<scalar_type>(),
-            static_cast<scalar_type>(cfg.mask_tolerance_scalor),
-            static_cast<scalar_type>(overstep_tol));
+            track, cfg, ctx, det, ctx, track, navigation, intr_cfg);
 
         // Determine overall state of the navigation after updating the cache
         update_status(navigation, cfg);
@@ -402,9 +395,9 @@ class navigator {
                 auto loose_cfg{cfg};
                 // Use the max mask tolerance in case a track leaves the volume
                 // when a sf is 'sticking' out of the portals due to the tol
-                loose_cfg.overstep_tolerance =
-                    math::min(100.f * cfg.overstep_tolerance,
-                              -10.f * cfg.max_mask_tolerance);
+                loose_cfg.intersection.overstep_tolerance =
+                    math::min(100.f * cfg.intersection.overstep_tolerance,
+                              -10.f * cfg.intersection.max_mask_tolerance);
 
                 init(track, navigation, loose_cfg, ctx,
                      use_path_tolerance_as_overstep_tolerance);
@@ -452,8 +445,8 @@ class navigator {
 
             // Update next candidate: If not reachable, 'high trust' is broken
             if (!update_candidate(navigation.direction(), navigation.target(),
-                                  track, det, cfg, navigation.external_tol(),
-                                  ctx)) {
+                                  track, det, cfg.intersection,
+                                  navigation.external_tol(), ctx)) {
                 navigation.status(navigation::status::e_unknown);
                 navigation.set_fair_trust();
             } else {
@@ -475,9 +468,9 @@ class navigator {
 
                 // Else: Track is on module.
                 // Ready the next candidate after the current module
-                if (update_candidate(navigation.direction(),
-                                     navigation.target(), track, det, cfg,
-                                     navigation.external_tol(), ctx)) {
+                if (update_candidate(
+                        navigation.direction(), navigation.target(), track, det,
+                        cfg.intersection, navigation.external_tol(), ctx)) {
                     return false;
                 }
 
@@ -498,8 +491,8 @@ class navigator {
             for (auto &candidate : navigation) {
                 // Disregard this candidate if it is not reachable
                 if (!update_candidate(navigation.direction(), candidate, track,
-                                      det, cfg, navigation.external_tol(),
-                                      ctx)) {
+                                      det, cfg.intersection,
+                                      navigation.external_tol(), ctx)) {
                     // Forcefully set dist to numeric max for sorting
                     candidate.set_path(std::numeric_limits<scalar_type>::max());
                 }
@@ -590,7 +583,7 @@ class navigator {
     DETRAY_HOST_DEVICE inline bool update_candidate(
         const navigation::direction nav_dir, intersection_type &candidate,
         const track_t &track, const detector_type &det,
-        const navigation::config &cfg,
+        const intersection::config &intr_cfg,
         const scalar_type external_mask_tolerance,
         const context_type &ctx) const {
 
@@ -604,12 +597,8 @@ class navigator {
         return sf.template visit_mask<intersection_update<ray_intersector>>(
             detail::ray<algebra_type>(
                 track.pos(), static_cast<scalar_type>(nav_dir) * track.dir()),
-            candidate, det.transform_store(), ctx,
-            sf.is_portal() ? darray<scalar_type, 2>{0.f, 0.f}
-                           : cfg.template mask_tolerance<scalar_type>(),
-            static_cast<scalar_type>(cfg.mask_tolerance_scalor),
-            sf.is_portal() ? 0.f : external_mask_tolerance,
-            static_cast<scalar_type>(cfg.overstep_tolerance));
+            candidate, det.transform_store(), ctx, intr_cfg,
+            external_mask_tolerance);
     }
 
     /// Helper to evict all unreachable/invalid candidates from the cache:

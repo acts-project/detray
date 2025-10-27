@@ -222,7 +222,8 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
 
     // Propagator is built from the stepper and navigator
     propagation::config cfg{};
-    cfg.navigation.overstep_tolerance = static_cast<float>(overstep_tol);
+    cfg.navigation.intersection.overstep_tolerance =
+        static_cast<float>(overstep_tol);
     cfg.navigation.search_window = {3u, 3u};
     cfg.navigation.estimate_scattering_noise = false;
     propagator_t p{cfg};
@@ -320,7 +321,8 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
 
     // Propagator is built from the stepper and navigator
     propagation::config cfg{};
-    cfg.navigation.overstep_tolerance = static_cast<float>(overstep_tol);
+    cfg.navigation.intersection.overstep_tolerance =
+        static_cast<float>(overstep_tol);
     cfg.navigation.search_window = {3u, 3u};
     cfg.navigation.estimate_scattering_noise = false;
     propagator_t p{cfg};
@@ -461,14 +463,17 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
 
     // Propagation configuration
     propagation::config cfg{};
-    cfg.navigation.overstep_tolerance =
+    cfg.navigation.intersection.overstep_tolerance =
         static_cast<float>(std::get<0>(GetParam()));
     cfg.navigation.search_window = {3u, 3u};
     cfg.navigation.estimate_scattering_noise = false;
     propagation::config direct_cfg{};
-    direct_cfg.navigation.min_mask_tolerance = 1.f * unit<float>::mm;
-    direct_cfg.navigation.max_mask_tolerance = 1.f * unit<float>::mm;
-    direct_cfg.navigation.overstep_tolerance = -30.f * unit<float>::mm;
+    direct_cfg.navigation.intersection.min_mask_tolerance =
+        1.f * unit<float>::mm;
+    direct_cfg.navigation.intersection.max_mask_tolerance =
+        1.f * unit<float>::mm;
+    direct_cfg.navigation.intersection.overstep_tolerance =
+        -30.f * unit<float>::mm;
     propagator_t p{cfg};
     direct_propagator_t direct_p{direct_cfg};
 
@@ -649,14 +654,17 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
 
     // Propagation configuration
     propagation::config cfg{};
-    cfg.navigation.overstep_tolerance =
+    cfg.navigation.intersection.overstep_tolerance =
         static_cast<float>(std::get<0>(GetParam()));
     cfg.navigation.search_window = {5u, 5u};
     cfg.navigation.estimate_scattering_noise = false;
     propagation::config direct_cfg{};
-    direct_cfg.navigation.min_mask_tolerance = 10.f * unit<float>::mm;
-    direct_cfg.navigation.max_mask_tolerance = 10.f * unit<float>::mm;
-    direct_cfg.navigation.overstep_tolerance = -30.f * unit<float>::mm;
+    direct_cfg.navigation.intersection.min_mask_tolerance =
+        10.f * unit<float>::mm;
+    direct_cfg.navigation.intersection.max_mask_tolerance =
+        10.f * unit<float>::mm;
+    direct_cfg.navigation.intersection.overstep_tolerance =
+        -30.f * unit<float>::mm;
     propagator_t p{cfg};
     direct_propagator_t direct_p{direct_cfg};
 

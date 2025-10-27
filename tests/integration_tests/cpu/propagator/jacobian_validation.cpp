@@ -469,8 +469,10 @@ bound_getter<test_algebra>::state evaluate_bound_param(
 
     // Propagator is built from the stepper and navigator
     propagation::config cfg{};
-    cfg.navigation.overstep_tolerance = static_cast<float>(overstep_tolerance);
-    cfg.navigation.path_tolerance = static_cast<float>(path_tolerance);
+    cfg.navigation.intersection.overstep_tolerance =
+        static_cast<float>(overstep_tolerance);
+    cfg.navigation.intersection.path_tolerance =
+        static_cast<float>(path_tolerance);
     cfg.navigation.estimate_scattering_noise = false;
     cfg.stepping.rk_error_tol = static_cast<float>(rk_tolerance);
     cfg.stepping.use_eloss_gradient = true;
@@ -511,8 +513,10 @@ bound_param_vector_type get_displaced_bound_vector(
     const unsigned int target_index, const scalar displacement) {
 
     propagation::config cfg{};
-    cfg.navigation.overstep_tolerance = static_cast<float>(overstep_tolerance);
-    cfg.navigation.path_tolerance = static_cast<float>(path_tolerance);
+    cfg.navigation.intersection.overstep_tolerance =
+        static_cast<float>(overstep_tolerance);
+    cfg.navigation.intersection.path_tolerance =
+        static_cast<float>(path_tolerance);
     cfg.navigation.estimate_scattering_noise = false;
     cfg.stepping.rk_error_tol = static_cast<float>(rk_tolerance);
     cfg.stepping.do_covariance_transport = false;

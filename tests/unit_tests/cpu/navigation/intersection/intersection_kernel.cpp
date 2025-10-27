@@ -6,7 +6,7 @@
  */
 
 // Project include(s)
-#include "detray/navigation/intersection_kernel.hpp"
+#include "detray/navigation/intersection/intersection_kernel.hpp"
 
 #include "detray/core/detail/multi_store.hpp"
 #include "detray/core/detail/single_store.hpp"
@@ -14,8 +14,8 @@
 #include "detray/geometry/shapes.hpp"
 #include "detray/geometry/surface_descriptor.hpp"
 #include "detray/navigation/intersection/helix_intersector.hpp"
+#include "detray/navigation/intersection/intersection_kernel.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
-#include "detray/navigation/intersection_kernel.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/tracks/trajectories.hpp"
 #include "detray/utils/ranges.hpp"
@@ -39,11 +39,13 @@ using transform_link_t = dindex;
 
 namespace {
 
-constexpr const scalar tol{1e-3f};
-constexpr const scalar tol_scaling{0.f};
-constexpr const scalar external_tol{1.f * unit<scalar>::mm};
-constexpr const scalar overstep_tol{0.f};
 constexpr const scalar is_close{1e-5f};
+constexpr const scalar external_tol{1.f * unit<scalar>::mm};
+
+intersection::config intr_cfg{.min_mask_tolerance = 1e-3f * unit<float>::mm,
+                              .max_mask_tolerance = 1e-3f * unit<float>::mm,
+                              .mask_tolerance_scalor = 0.f,
+                              .overstep_tolerance = 0.f};
 
 enum class mask_ids : unsigned int {
     e_rectangle2 = 0u,
@@ -185,8 +187,7 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
     for (const auto &surface : surfaces) {
         mask_store.visit<intersection_initialize<ray_intersector>>(
             surface.mask(), sfi_init, detail::ray(track), surface,
-            transform_store, static_context, std::array<scalar, 2>{tol, tol},
-            tol_scaling, external_tol, overstep_tol);
+            transform_store, static_context, intr_cfg, external_tol);
     }
 
     EXPECT_EQ(expected_points.size(), sfi_init.size());
@@ -302,7 +303,7 @@ GTEST_TEST(detray_intersection, intersection_kernel_helix) {
     const point3 pos{0.f, 0.f, 0.f};
     const vector3 mom{0.01f, 0.01f, 10.f};
     const vector3 B{0.f * unit<scalar>::T, 0.f * unit<scalar>::T,
-                    tol * unit<scalar>::T};
+                    is_close * unit<scalar>::T};
     const detail::helix<test_algebra> h({pos, 0.f, mom, -1.f}, B);
 
     // Validation data
@@ -320,8 +321,7 @@ GTEST_TEST(detray_intersection, intersection_kernel_helix) {
     for (const auto [sf_idx, surface] : detray::views::enumerate(surfaces)) {
         mask_store.visit<intersection_initialize<helix_intersector>>(
             surface.mask(), sfi_helix, h, surface, transform_store,
-            static_context, std::array<scalar, 2>{0.f, 0.f}, scalar{0.f},
-            scalar{0.f}, scalar{0.f});
+            static_context, intr_cfg, scalar{0.f});
 
         vector3 global{0.f, 0.f, 0.f};
 

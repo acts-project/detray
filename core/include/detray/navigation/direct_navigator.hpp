@@ -17,8 +17,8 @@
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/barcode.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
+#include "detray/navigation/intersection/intersection_kernel.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
-#include "detray/navigation/intersection_kernel.hpp"
 #include "detray/navigation/navigation_config.hpp"
 #include "detray/navigation/navigation_state.hpp"
 #include "detray/navigation/navigator.hpp"
@@ -196,7 +196,7 @@ class direct_navigator {
         }
 
         assert(!navigation.get_target_barcode().is_invalid());
-        update_intersection(track, navigation, cfg, ctx);
+        update_intersection(track, navigation, cfg.intersection, ctx);
 
         if (is_before_actor_run) {
             if (navigation.has_reached_candidate(navigation.target(), cfg)) {
@@ -209,7 +209,8 @@ class direct_navigator {
                                                         cfg));
 
                 if (!navigation.no_next_external()) {
-                    update_intersection(track, navigation, cfg, ctx);
+                    update_intersection(track, navigation, cfg.intersection,
+                                        ctx);
                 }
 
                 DETRAY_VERBOSE_HOST_DEVICE("Update complete: On surface");
@@ -234,7 +235,8 @@ class direct_navigator {
     private:
     template <typename track_t>
     DETRAY_HOST_DEVICE inline void update_intersection(
-        const track_t &track, state &navigation, const navigation::config &cfg,
+        const track_t &track, state &navigation,
+        const intersection::config &intr_cfg,
         const context_type &ctx = {}) const {
 
         if (navigation.target().sf_desc.barcode().is_invalid()) {
@@ -250,11 +252,8 @@ class direct_navigator {
                     track.pos(),
                     static_cast<scalar_type>(navigation.direction()) *
                         track.dir()),
-                navigation.target(), det.transform_store(), ctx,
-                cfg.template mask_tolerance<scalar_type>(),
-                static_cast<scalar_type>(cfg.mask_tolerance_scalor),
-                scalar_type{0.f},
-                static_cast<scalar_type>(cfg.overstep_tolerance));
+                navigation.target(), det.transform_store(), ctx, intr_cfg,
+                scalar_type{0.f});
 
         // If an intersection is not found, proceed the track with safe step
         // size

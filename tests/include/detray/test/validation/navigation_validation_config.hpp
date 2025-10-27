@@ -14,7 +14,7 @@
 #include "detray/plugins/svgtools/styling/styling.hpp"
 
 // Detray test include(s)
-#include "detray/test/common/test_configuration.hpp"
+#include "detray/test/framework/test_configuration.hpp"
 
 // System include(s)
 #include <limits>

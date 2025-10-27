@@ -129,7 +129,7 @@ void BM_INTERSECT_PLANES_AOS(benchmark::State& state) {
     using mask_t = mask<rectangle2D, algebra_s, std::uint_least16_t>;
 
     auto dists = get_dists<algebra_s>(n_surfaces);
-    auto [plane_descs, tranforms] = test::planes_along_direction<algebra_s>(
+    auto [plane_descs, transforms] = test::planes_along_direction<algebra_s>(
         dists, dvector3D<algebra_s>{1.f, 1.f, 1.f});
 
     constexpr mask_t rect{0u, 100.f, 200.f};
@@ -153,7 +153,7 @@ void BM_INTERSECT_PLANES_AOS(benchmark::State& state) {
         for (const auto& ray : rays) {
 
             for (std::size_t i = 0u; i < plane_descs.size(); ++i) {
-                auto is = pi(ray, plane_descs[i], masks[i], tranforms[i]);
+                auto is = pi(ray, plane_descs[i], masks[i], transforms[i]);
 
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
                 if (is.is_inside()) {
@@ -187,7 +187,7 @@ void BM_INTERSECT_PLANES_SOA(benchmark::State& state) {
     using vector3_t = dvector3D<algebra_v>;
 
     auto dists = get_dists<algebra_v>(n_surfaces);
-    auto [plane_descs, tranforms] = test::planes_along_direction<algebra_v>(
+    auto [plane_descs, transforms] = test::planes_along_direction<algebra_v>(
         dists, vector3_t{1.f, 1.f, 1.f});
 
     std::vector<mask_t> masks{};
@@ -214,7 +214,7 @@ void BM_INTERSECT_PLANES_SOA(benchmark::State& state) {
         for (const auto& ray : rays) {
 
             for (std::size_t i = 0u; i < plane_descs.size(); ++i) {
-                auto is = pi(ray, plane_descs[i], masks[i], tranforms[i]);
+                auto is = pi(ray, plane_descs[i], masks[i], transforms[i]);
 
                 benchmark::DoNotOptimize(is);
 

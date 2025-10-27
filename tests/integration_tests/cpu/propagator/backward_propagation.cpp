@@ -91,7 +91,8 @@ TEST_P(BackwardPropagation, backward_propagation) {
 
     propagation::config prop_cfg{};
     prop_cfg.stepping.rk_error_tol = 1e-7f * unit<float>::mm;
-    prop_cfg.navigation.overstep_tolerance = -100.f * unit<float>::um;
+    prop_cfg.navigation.intersection.overstep_tolerance =
+        -100.f * unit<float>::um;
     prop_cfg.navigation.estimate_scattering_noise = false;
     propagator_t p{prop_cfg};
 
