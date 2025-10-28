@@ -50,7 +50,7 @@ struct pathlimit_aborter : actor {
         auto &nav_state = prop_state._navigation;
 
         // Nothing left to do. Propagation will exit successfully
-        if (nav_state.is_complete()) {
+        if (nav_state.finished()) {
             return;
         }
 
@@ -61,8 +61,8 @@ struct pathlimit_aborter : actor {
         // Check the path limit
         if (step_limit <= 0.f) {
             // Stop navigation
-            prop_state._heartbeat &=
-                nav_state.abort("Aborter: Maximal path length reached");
+            nav_state.abort("Aborter: Maximal path length reached");
+            prop_state._heartbeat = false;
         }
 
         // Don't go over the path limit in the next step
@@ -111,7 +111,7 @@ struct momentum_aborter : actor {
         auto &nav_state = prop_state._navigation;
 
         // Nothing left to do. Propagation will exit successfully
-        if (nav_state.is_complete()) {
+        if (nav_state.finished()) {
             return;
         }
 
@@ -120,14 +120,15 @@ struct momentum_aborter : actor {
 
         if (track.p(q) <= abrt_state.p_limit()) {
             // Stop navigation
-            prop_state._heartbeat &=
-                nav_state.abort("Aborter: Minimum momentum (p) reached");
+            nav_state.abort("Aborter: Minimum momentum (p) reached");
+            prop_state._heartbeat = false;
         }
 
         if (track.pT(q) <= abrt_state.pT_limit()) {
             // Stop navigation
-            prop_state._heartbeat &= nav_state.abort(
+            nav_state.abort(
                 "Aborter: Minimum transverse momentum (pT) reached");
+            prop_state._heartbeat = false;
         }
     }
 };
@@ -158,8 +159,8 @@ struct target_aborter : actor {
         if (navigation.is_on_surface() &&
             (navigation.barcode() == abrt_state._target_surface) &&
             (stepping.path_length() > 0.f)) {
-            prop_state._heartbeat &=
-                navigation.abort("Aborter: Reached target surface");
+            navigation.abort("Aborter: Reached target surface");
+            prop_state._heartbeat = false;
         }
     }
 };

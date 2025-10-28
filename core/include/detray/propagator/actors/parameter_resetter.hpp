@@ -61,7 +61,7 @@ struct parameter_resetter : actor {
         DETRAY_VERBOSE_HOST_DEVICE("Update the free track parameters");
 
         // Update free params after bound params were changed by actors
-        const auto sf = navigation.get_surface();
+        const auto sf = navigation.current_surface();
         const auto& bound_params = stepping.bound_params();
         stepping() =
             sf.bound_to_free_vector(propagation._context, bound_params);

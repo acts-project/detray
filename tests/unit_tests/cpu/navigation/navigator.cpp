@@ -65,7 +65,7 @@ inline void check_on_surface(state_t &state, dindex vol_id,
                              dindex next_id) {
     // The status is: on surface/towards surface if the next candidate is
     // immediately updated and set in the same update call
-    ASSERT_TRUE(state.status() == navigation::status::e_on_module ||
+    ASSERT_TRUE(state.status() == navigation::status::e_on_object ||
                 state.status() == navigation::status::e_on_portal);
     // Points towards next candidate
     ASSERT_TRUE(std::abs(state()) >= 1.f * unit<test::scalar>::um);
@@ -86,7 +86,7 @@ inline void check_volume_switch(state_t &state, dindex vol_id) {
     // The status is towards first surface in new volume
     ASSERT_EQ(state.status(), navigation::status::e_on_portal);
     // Kernel is newly initialized
-    ASSERT_FALSE(state.is_exhausted());
+    ASSERT_FALSE(state.cache_exhausted());
     ASSERT_EQ(state.trust_level(), navigation::trust_level::e_full);
 }
 
@@ -320,11 +320,9 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
             nav.update(stepping_cpy(), navigation_cpy, nav_cfg);
             ASSERT_FALSE(navigation_cpy.is_alive());
             // The status is: exited
-            ASSERT_EQ(navigation_cpy.status(), status::e_on_target);
+            ASSERT_EQ(navigation_cpy.status(), status::e_exit);
             // Keep current volume id, so that nav. direction can be reversed
             ASSERT_EQ(last_vol_id, navigation_cpy.volume());
-            // We know we went out of the detector
-            ASSERT_EQ(navigation_cpy.trust_level(), trust_level::e_full);
         } else {
             nav.update(stepping_cpy(), navigation_cpy, nav_cfg);
             ASSERT_TRUE(navigation_cpy.is_alive());
@@ -341,7 +339,7 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
 
     // Leave for debugging
     // std::clog << navigation.inspector().to_string() << std::endl;
-    ASSERT_TRUE(navigation.is_complete()) << navigation.inspector().to_string();
+    ASSERT_TRUE(navigation.finished()) << navigation.inspector().to_string();
 }
 
 GTEST_TEST(detray_navigation, navigator_wire_chamber) {
@@ -504,11 +502,9 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
             nav.update(stepping_cpy(), navigation_cpy, nav_cfg);
             ASSERT_FALSE(navigation_cpy.is_alive());
             // The status is: exited
-            ASSERT_EQ(navigation_cpy.status(), status::e_on_target);
+            ASSERT_EQ(navigation_cpy.status(), status::e_exit);
             // Keep current volume id, so that nav. direction can be reversed
             ASSERT_EQ(last_vol_id, navigation_cpy.volume());
-            // We know we went out of the detector
-            ASSERT_EQ(navigation_cpy.trust_level(), trust_level::e_full);
         } else {
             nav.update(stepping_cpy(), navigation_cpy, nav_cfg);
             ASSERT_TRUE(navigation_cpy.is_alive())
@@ -526,5 +522,5 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
 
     // Leave for debugging
     // std::clog << navigation.inspector().to_string() << std::endl;
-    ASSERT_TRUE(navigation.is_complete()) << navigation.inspector().to_string();
+    ASSERT_TRUE(navigation.finished()) << navigation.inspector().to_string();
 }

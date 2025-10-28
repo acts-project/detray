@@ -11,6 +11,7 @@
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/math.hpp"
+#include "detray/definitions/navigation.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/navigation/navigation_config.hpp"
@@ -38,71 +39,20 @@ DETRAY_HOST inline std::string print_state(const state_type &state) {
                  << std::endl;
 
     debug_stream << std::setw(cw) << std::boolalpha
-                 << "heartbeat:" << state.is_alive() << std::endl;
+                 << "is alive:" << state.is_alive() << std::endl;
     debug_stream << std::noboolalpha;
 
     // Navigation direction
     debug_stream << std::setw(cw) << "direction:";
-    switch (state.direction()) {
-        using enum direction;
-        case e_backward:
-            debug_stream << "backward";
-            break;
-        case e_forward:
-            debug_stream << "forward";
-            break;
-        default:
-            break;
-    }
-    debug_stream << std::endl;
+    debug_stream << state.direction() << std::endl;
 
     // Navigation status
     debug_stream << std::setw(cw) << "status:";
-    switch (state.status()) {
-        using enum status;
-        case e_abort:
-            debug_stream << "abort";
-            break;
-        case e_on_target:
-            debug_stream << "on_target";
-            break;
-        case e_unknown:
-            debug_stream << "unknowm";
-            break;
-        case e_towards_object:
-            debug_stream << "towards_object";
-            break;
-        case e_on_module:
-            debug_stream << "on_object";
-            break;
-        case e_on_portal:
-            debug_stream << "on_portal";
-            break;
-        default:
-            break;
-    }
-    debug_stream << std::endl;
+    debug_stream << state.status() << std::endl;
 
-    // Navigation trust level
+    // Trust level
     debug_stream << std::setw(cw) << "trust:";
-    switch (state.trust_level()) {
-        using enum trust_level;
-        case e_no_trust:
-            debug_stream << "no_trust";
-            break;
-        case e_fair:
-            debug_stream << "fair_trust";
-            break;
-        case e_high:
-            debug_stream << "high_trust";
-            break;
-        case e_full:
-            debug_stream << "full_trust";
-            break;
-        default:
-            break;
-    }
-    debug_stream << std::endl;
+    debug_stream << state.trust_level() << std::endl;
 
     // Number of reachable candidates
     debug_stream << std::setw(cw) << "No. reachable:" << state.n_candidates()
@@ -113,7 +63,7 @@ DETRAY_HOST inline std::string print_state(const state_type &state) {
     if (state.is_on_surface()) {
         // If "exit" is called twice, the state has been cleared
         debug_stream << state.barcode() << std::endl;
-    } else if (state.status() == status::e_on_target) {
+    } else if (state.status() == status::e_exit) {
         debug_stream << "exited" << std::endl;
     } else {
         debug_stream << "undefined" << std::endl;
@@ -131,9 +81,9 @@ DETRAY_HOST inline std::string print_state(const state_type &state) {
 
     // Distance to next
     debug_stream << std::setw(cw) << "distance to next:";
-    if (!state.is_exhausted() && state.is_on_surface()) {
+    if (!state.cache_exhausted() && state.is_on_surface()) {
         debug_stream << "on obj (within tol)" << std::endl;
-    } else if (state.is_exhausted()) {
+    } else if (state.cache_exhausted()) {
         debug_stream << "no target" << std::endl;
     } else {
         debug_stream << state() / detray::unit<scalar_t>::mm << " mm"

@@ -214,7 +214,7 @@ struct ridders_derivative {
         }
     }
 
-    bool is_complete() { return (std::ranges::count(complete, false) == 0u); }
+    bool finished() { return (std::ranges::count(complete, false) == 0u); }
 };
 
 void wrap_angles(const bound_param_vector_type& ref_vector,
@@ -423,7 +423,8 @@ struct bound_getter : actor {
                       << std::endl;
             std::clog << "QopI: " << actor_state.m_param_departure.qop()
                       << std::endl;
-            propagation._heartbeat &= navigation.exit();
+            navigation.exit();
+            propagation._heartbeat = false;
         }
 
         if ((navigation.is_on_sensitive() || navigation.is_on_passive()) &&
@@ -444,7 +445,8 @@ struct bound_getter : actor {
                     propagation);
 
             // Stop navigation if the destination surface found
-            propagation._heartbeat &= navigation.exit();
+            navigation.exit();
+            propagation._heartbeat = false;
         }
 
         if (stepping.path_length() > actor_state.m_min_path_length) {
@@ -594,7 +596,7 @@ bound_track_parameters<test_algebra>::covariance_type directly_differentiate(
 
             ridder.run(nvec1, nvec2, delta, p, i, differentiated_jacobian);
 
-            if (ridder.is_complete()) {
+            if (ridder.finished()) {
                 num_iterations[i] = p;
                 break;
             }
@@ -1131,7 +1133,7 @@ void evaluate_jacobian_difference_helix(
 
             ridder.run(nvec1, nvec2, delta, p, i, differentiated_jacobian);
 
-            if (ridder.is_complete()) {
+            if (ridder.finished()) {
                 num_iterations[i] = p;
                 break;
             }

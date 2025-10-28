@@ -17,29 +17,6 @@
 
 namespace detray::navigation {
 
-/// Navigation trust levels determine how the candidates chache is updated
-enum class trust_level : std::uint_least8_t {
-    e_no_trust = 0u,  ///< re-initialize the volume (i.e. run local navigation)
-    e_fair = 1u,      ///< update the distance & order of the candidates
-    e_high = 3u,  ///< update the dist. to the next candidate (current target)
-    e_full = 4u   ///< don't update anything
-};
-
-/// @enum NavigationDirection
-/// The navigation direction is always with
-/// respect to a given momentum or direction
-enum class direction : std::int_least8_t { e_backward = -1, e_forward = 1 };
-
-/// Navigation status flags
-enum class status : std::int_least8_t {
-    e_abort = -3,          ///< error ocurred, propagation will be aborted
-    e_on_target = -2,      ///< navigation exited successfully
-    e_unknown = -1,        ///< unknown state/not initialized
-    e_towards_object = 0,  ///< move towards next object
-    e_on_module = 1,       ///< reached module surface
-    e_on_portal = 2,       ///< reached portal surface
-};
-
 /// Navigation configuration
 struct config {
     /// Tolerance on the mask 'is_inside' check:
@@ -67,6 +44,12 @@ struct config {
     int n_scattering_stddev{2};
     /// Add adaptive mask tolerance to navigation
     bool estimate_scattering_noise{true};
+
+    /// @returns the mask tolerances
+    template <concepts::scalar scalar_t>
+    DETRAY_HOST_DEVICE constexpr darray<scalar_t, 2u> mask_tolerance() const {
+        return {min_mask_tolerance, max_mask_tolerance};
+    }
 
     /// Print the navigation configuration
     DETRAY_HOST

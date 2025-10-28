@@ -12,6 +12,7 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/geometry/barcode.hpp"
 #include "detray/propagator/base_actor.hpp"
+#include "detray/utils/log.hpp"
 
 // Vecmem include(s)
 #include <vecmem/containers/device_vector.hpp>
@@ -43,6 +44,7 @@ struct barcode_sequencer : actor {
         }
 
         if (actor_state._sequence.size() == actor_state._sequence.capacity()) {
+            DETRAY_WARN_HOST_DEVICE("Sequence overflow!");
             actor_state.overflow = true;
             return;
         }
@@ -51,8 +53,7 @@ struct barcode_sequencer : actor {
         assert(!bcd.is_invalid());
 
         actor_state._sequence.push_back(bcd);
-
-        return;
+        DETRAY_VERBOSE_HOST("Added: " << bcd);
     }
 };
 
