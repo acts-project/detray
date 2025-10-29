@@ -37,7 +37,8 @@ TEST_P(CudaPropConstBFieldMng, propagator) {
     cfg.track_generator.eta_range(-3.f, 3.f);
     cfg.propagation.navigation.search_window = {3u, 3u};
     // Configuration for non-z-aligned B-fields
-    cfg.propagation.navigation.overstep_tolerance = std::get<0>(GetParam());
+    cfg.propagation.navigation.intersection.overstep_tolerance =
+        std::get<0>(GetParam());
     cfg.propagation.stepping.step_constraint = std::get<1>(GetParam());
 
     // Get the magnetic field
@@ -71,7 +72,8 @@ TEST_P(CudaPropConstBFieldCpy, propagator) {
     cfg.track_generator.eta_range(-3.f, 3.f);
     cfg.propagation.navigation.search_window = {3u, 3u};
     // Configuration for non-z-aligned B-fields
-    cfg.propagation.navigation.overstep_tolerance = std::get<0>(GetParam());
+    cfg.propagation.navigation.intersection.overstep_tolerance =
+        std::get<0>(GetParam());
     cfg.propagation.stepping.step_constraint = std::get<1>(GetParam());
 
     // Get the magnetic field

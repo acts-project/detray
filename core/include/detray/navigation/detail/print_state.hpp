@@ -121,8 +121,9 @@ DETRAY_HOST inline std::string print_candidates(const state_type &state,
     constexpr int cw{20};
 
     debug_stream << std::left << std::setw(cw) << "Overstep tol.:"
-                 << cfg.overstep_tolerance / detray::unit<scalar_t>::um << " um"
-                 << std::endl;
+                 << cfg.intersection.overstep_tolerance /
+                        detray::unit<scalar_t>::um
+                 << " um" << std::endl;
 
     debug_stream << std::setw(cw) << "Track:"
                  << "pos: [r = " << vector::perp(track_pos)

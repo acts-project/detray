@@ -8,7 +8,7 @@
 #pragma once
 
 // Detray test include(s)
-#include "detray/test/common/test_configuration.hpp"
+#include "detray/test/framework/test_configuration.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>

@@ -14,6 +14,7 @@
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/concepts.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
+#include "detray/navigation/intersection/intersection_config.hpp"
 #include "detray/tracks/ray.hpp"
 #include "detray/utils/ranges.hpp"
 
@@ -50,11 +51,8 @@ struct intersection_initialize {
         const surface_t &sf_desc,
         const transform_container_t &contextual_transforms,
         const typename transform_container_t::context_type &ctx,
-        const darray<scalar_t, 2u> &mask_tolerance = {0.f,
-                                                      1.f * unit<scalar_t>::mm},
-        const scalar_t mask_tol_scalor = 0.f,
-        const scalar_t external_mask_tolerance = 0.f,
-        const scalar_t overstep_tol = 0.f) const {
+        const intersection::config &cfg,
+        const scalar_t external_mask_tolerance = 0.f) const {
 
         using mask_t = typename mask_group_t::value_type;
         using shape_t = typename mask_t::shape;
@@ -82,9 +80,10 @@ struct intersection_initialize {
             assert(mask_idx < mask_group.size());
 
             result = intersector.point_of_intersection(
-                traj, ctf, mask_group[mask_idx], overstep_tol);
+                traj, ctf, mask_group[mask_idx], cfg.overstep_tolerance);
         } else {
-            result = intersector.point_of_intersection(traj, ctf, overstep_tol);
+            result = intersector.point_of_intersection(traj, ctf,
+                                                       cfg.overstep_tolerance);
         }
 
         // Check if any valid solutions were found
@@ -115,9 +114,8 @@ struct intersection_initialize {
                 std::uint8_t n_found{0u};
 
                 for (std::size_t i = 0u; i < n_sol; ++i) {
-                    resolve_mask(is, traj, result[i], sf_desc, mask, ctf,
-                                 mask_tolerance, mask_tol_scalor,
-                                 external_mask_tolerance, overstep_tol);
+                    resolve_mask(is, traj, result[i], sf_desc, mask, ctf, cfg,
+                                 external_mask_tolerance);
 
                     if (is.is_probably_inside()) {
                         insert_sorted(is, is_container);
@@ -128,9 +126,8 @@ struct intersection_initialize {
                     }
                 }
             } else {
-                resolve_mask(is, traj, result, sf_desc, mask, ctf,
-                             mask_tolerance, mask_tol_scalor,
-                             external_mask_tolerance, overstep_tol);
+                resolve_mask(is, traj, result, sf_desc, mask, ctf, cfg,
+                             external_mask_tolerance);
 
                 if (is.is_probably_inside()) {
                     insert_sorted(is, is_container);
@@ -181,11 +178,8 @@ struct intersection_update {
         const traj_t &traj, intersection_t &sfi,
         const transform_container_t &contextual_transforms,
         const typename transform_container_t::context_type &ctx,
-        const darray<scalar_t, 2u> &mask_tolerance = {0.f,
-                                                      1.f * unit<scalar_t>::mm},
-        const scalar_t mask_tol_scalor = 0.f,
-        const scalar_t external_mask_tolerance = 0.f,
-        const scalar_t overstep_tol = 0.f) const {
+        const intersection::config &cfg,
+        const scalar_t external_mask_tolerance = 0.f) const {
 
         using mask_t = typename mask_group_t::value_type;
         using shape_t = typename mask_t::shape;
@@ -212,9 +206,10 @@ struct intersection_update {
             assert(mask_idx < mask_group.size());
 
             result = intersector.point_of_intersection(
-                traj, ctf, mask_group[mask_idx], overstep_tol);
+                traj, ctf, mask_group[mask_idx], cfg.overstep_tolerance);
         } else {
-            result = intersector.point_of_intersection(traj, ctf, overstep_tol);
+            result = intersector.point_of_intersection(traj, ctf,
+                                                       cfg.overstep_tolerance);
         }
 
         // Check if any valid solutions were found
@@ -240,13 +235,11 @@ struct intersection_update {
 
             // Build the resulting intersecion(s) from the intersection point
             if constexpr (n_sol > 1) {
-                resolve_mask(sfi, traj, result[0], sfi.sf_desc, mask, ctf,
-                             mask_tolerance, mask_tol_scalor,
-                             external_mask_tolerance, overstep_tol);
+                resolve_mask(sfi, traj, result[0], sfi.sf_desc, mask, ctf, cfg,
+                             external_mask_tolerance);
             } else {
-                resolve_mask(sfi, traj, result, sfi.sf_desc, mask, ctf,
-                             mask_tolerance, mask_tol_scalor,
-                             external_mask_tolerance, overstep_tol);
+                resolve_mask(sfi, traj, result, sfi.sf_desc, mask, ctf, cfg,
+                             external_mask_tolerance);
             }
 
             if (sfi.is_probably_inside()) {

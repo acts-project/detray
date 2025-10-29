@@ -100,7 +100,8 @@ GTEST_TEST(detray_propagator, covariance_transport) {
         det.surface(0u).barcode(), bound_vector, bound_cov);
 
     propagation::config prop_cfg{};
-    prop_cfg.navigation.overstep_tolerance = -100.f * unit<float>::um;
+    prop_cfg.navigation.intersection.overstep_tolerance =
+        -100.f * unit<float>::um;
     propagator_t p{prop_cfg};
     propagator_t::state propagation(bound_param0, det, prop_cfg.context);
 

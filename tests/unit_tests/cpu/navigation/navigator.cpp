@@ -376,8 +376,7 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
     stepper_t stepper;
     navigator_t nav;
     navigation::config nav_cfg{};
-    nav_cfg.mask_tolerance_scalor = 1e-2f;
-    nav_cfg.path_tolerance = 1.f * unit<float>::um;
+    nav_cfg.intersection.mask_tolerance_scalor = 1e-2f;
     nav_cfg.search_window = {3u, 3u};
 
     stepping::config step_cfg{};

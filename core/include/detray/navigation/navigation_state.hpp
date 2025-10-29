@@ -537,7 +537,7 @@ class base_state : public detray::ranges::view_interface<
     /// @returns true if a candidate lies on a surface - const
     DETRAY_HOST_DEVICE constexpr bool has_reached_candidate(
         const candidate_t &candidate, const navigation::config &cfg) const {
-        return (math::fabs(candidate.path()) < cfg.path_tolerance);
+        return (math::fabs(candidate.path()) < cfg.intersection.path_tolerance);
     }
 
     /// Clear the state

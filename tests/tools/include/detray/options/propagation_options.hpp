@@ -33,23 +33,23 @@ void add_options<detray::navigation::config>(
         "Search window size for the grid")(
         "min_mask_tolerance",
         boost::program_options::value<float>()->default_value(
-            cfg.min_mask_tolerance / unit<float>::mm),
+            cfg.intersection.min_mask_tolerance / unit<float>::mm),
         "Minimum mask tolerance [mm]")(
         "max_mask_tolerance",
         boost::program_options::value<float>()->default_value(
-            cfg.max_mask_tolerance / unit<float>::mm),
+            cfg.intersection.max_mask_tolerance / unit<float>::mm),
         "Maximum mask tolerance [mm]")(
         "mask_tolerance_scalor",
         boost::program_options::value<float>()->default_value(
-            cfg.mask_tolerance_scalor),
+            cfg.intersection.mask_tolerance_scalor),
         "Mask tolerance scale factor")(
         "overstep_tolerance",
         boost::program_options::value<float>()->default_value(
-            cfg.overstep_tolerance / unit<float>::um),
+            cfg.intersection.overstep_tolerance / unit<float>::um),
         "Overstepping tolerance [um] NOTE: Must be negative!")(
         "path_tolerance",
         boost::program_options::value<float>()->default_value(
-            cfg.path_tolerance / unit<float>::um),
+            cfg.intersection.path_tolerance / unit<float>::um),
         "Tol. to decide when a track is on surface [um]")(
         "estimate_scattering_noise",
         "Open the navigation surface tolerance according to an estimation of "
@@ -125,31 +125,31 @@ void configure_options<detray::navigation::config>(
         const float mask_tol{vm["min_mask_tolerance"].as<float>()};
         assert(mask_tol >= 0.f);
 
-        cfg.min_mask_tolerance = mask_tol * unit<float>::mm;
+        cfg.intersection.min_mask_tolerance = mask_tol * unit<float>::mm;
     }
     if (!vm["max_mask_tolerance"].defaulted()) {
         const float mask_tol{vm["max_mask_tolerance"].as<float>()};
         assert(mask_tol >= 0.f);
 
-        cfg.max_mask_tolerance = mask_tol * unit<float>::mm;
+        cfg.intersection.max_mask_tolerance = mask_tol * unit<float>::mm;
     }
     if (!vm["mask_tolerance_scalor"].defaulted()) {
         const float mask_tol_scalor{vm["mask_tolerance_scalor"].as<float>()};
         assert(mask_tol_scalor >= 0.f);
 
-        cfg.mask_tolerance_scalor = mask_tol_scalor;
+        cfg.intersection.mask_tolerance_scalor = mask_tol_scalor;
     }
     if (!vm["overstep_tolerance"].defaulted()) {
         const float overstep_tol{vm["overstep_tolerance"].as<float>()};
         assert(overstep_tol <= 0.f);
 
-        cfg.overstep_tolerance = overstep_tol * unit<float>::um;
+        cfg.intersection.overstep_tolerance = overstep_tol * unit<float>::um;
     }
     if (!vm["path_tolerance"].defaulted()) {
         const float path_tol{vm["path_tolerance"].as<float>()};
         assert(path_tol >= 0.f);
 
-        cfg.path_tolerance = path_tol * unit<float>::um;
+        cfg.intersection.path_tolerance = path_tol * unit<float>::um;
     }
     cfg.estimate_scattering_noise = false;
     if (vm.count("estimate_scattering_noise")) {

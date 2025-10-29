@@ -16,6 +16,7 @@
 #include "detray/geometry/concepts.hpp"
 #include "detray/geometry/detail/shape_utils.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
+#include "detray/navigation/intersection/intersection_config.hpp"
 #include "detray/utils/invalid_values.hpp"
 
 // System include(s)
@@ -76,18 +77,14 @@ struct intersector_base : public intersector_t {
     DETRAY_HOST_DEVICE constexpr intersection_type<surface_descr_t> operator()(
         const trajectory_type<other_algebra_t> &traj, const surface_descr_t &sf,
         const mask_t &mask, const transform3_type &trf,
-        const darray<scalar_type, 2u> mask_tolerance =
-            {0.f, 1.f * unit<value_type>::mm},
-        const scalar_type mask_tol_scalor = 0.f,
-        const scalar_type external_mask_tol = 0.f,
-        const scalar_type overstep_tol = 0.f) const {
+        const intersection::config &cfg = {},
+        const scalar_type external_mask_tol = 0.f) const {
 
-        result_type result = call_intersector(traj, mask, trf, overstep_tol);
+        result_type result =
+            call_intersector(traj, mask, trf, cfg.overstep_tolerance);
 
         intersection_type<surface_descr_t> is;
-
-        resolve_mask(is, traj, result, sf, mask, trf, mask_tolerance,
-                     mask_tol_scalor, external_mask_tol, overstep_tol);
+        resolve_mask(is, traj, result, sf, mask, trf, cfg, external_mask_tol);
 
         return is;
     }
@@ -100,23 +97,19 @@ struct intersector_base : public intersector_t {
                                         n_solutions>
     operator()(const trajectory_type<other_algebra_t> &traj,
                const surface_descr_t &sf, const mask_t &mask,
-               const transform3_type &trf,
-               const darray<scalar_type, 2u> mask_tolerance =
-                   {0.f, 100.f * unit<value_type>::um},
-               const scalar_type mask_tol_scalor = 0.f,
-               const scalar_type external_mask_tol = 0.f,
-               const scalar_type overstep_tol = 0.f) const {
+               const transform3_type &trf, const intersection::config &cfg = {},
+               const scalar_type external_mask_tol = 0.f) const {
 
         // One or both of these solutions might be invalid
-        result_type result = call_intersector(traj, mask, trf, overstep_tol);
+        result_type result =
+            call_intersector(traj, mask, trf, cfg.overstep_tolerance);
 
         darray<intersection_type<surface_descr_t>, n_solutions> ret;
 
         for (std::size_t i = 0u; i < n_solutions; ++i) {
             if (detray::detail::any_of(result[i].is_valid())) {
-                resolve_mask(ret[i], traj, result[i], sf, mask, trf,
-                             mask_tolerance, mask_tol_scalor, external_mask_tol,
-                             overstep_tol);
+                resolve_mask(ret[i], traj, result[i], sf, mask, trf, cfg,
+                             external_mask_tol);
             }
         }
 
@@ -135,9 +128,13 @@ struct intersector_base : public intersector_t {
         const scalar_type mask_tolerance,
         const scalar_type overstep_tol = 0.f) const {
 
-        return this->operator()(traj, sf, mask, trf,
-                                {mask_tolerance, mask_tolerance}, 0.f, 0.f,
-                                overstep_tol);
+        const intersection::config intr_cfg{
+            .min_mask_tolerance = static_cast<float>(mask_tolerance),
+            .max_mask_tolerance = static_cast<float>(mask_tolerance),
+            .mask_tolerance_scalor = 0.f,
+            .overstep_tolerance = static_cast<float>(overstep_tol)};
+
+        return this->operator()(traj, sf, mask, trf, intr_cfg, 0.f);
     }
 
     private:
@@ -176,23 +173,21 @@ DETRAY_HOST_DEVICE constexpr void resolve_mask(
     const intersection_point<algebra_t, point_t, intersection::contains_pos>
         &ip,
     const surface_descr_t sf_desc, const mask_t &mask, const transform3_t &trf,
-    const darray<scalar_t, 2> &mask_tolerance,
-    const scalar_t mask_tol_scalor = 0.f,
-    const scalar_t external_mask_tolerance = 0.f,
-    const scalar_t overstep_tol = 0.f) {
+    const intersection::config &cfg = {},
+    const scalar_t external_mask_tolerance = 0.f) {
 
     // Mask out solutions that don't meet the overstepping tolerance (SoA)
     if constexpr (concepts::soa<algebra_t>) {
         using status_t = typename intersection_t::status_t;
 
-        is.status(is.path() < overstep_tol) =
+        is.status(is.path() < cfg.overstep_tolerance) =
             static_cast<status_t>(intersection::status::e_outside);
     } else {
         is.set_status(intersection::status::e_outside);
     }
 
     // Build intersection struct from test trajectory, if the distance is valid
-    if (detray::detail::none_of(ip.path >= overstep_tol)) {
+    if (detray::detail::none_of(ip.path >= cfg.overstep_tolerance)) {
         // Not a valid intersection
         return;
     }
@@ -219,21 +214,28 @@ DETRAY_HOST_DEVICE constexpr void resolve_mask(
             mask_t::to_local_frame3D(trf, glob_pos, traj.dir(ip.path)));
     }
 
+    scalar_t base_tol = 0.f;
+    scalar_t ext_tol = 0.f;
+
     // Tol.: scale with distance of surface to account for track bending
-    const scalar_t base_tol = math::max(
-        mask_tolerance[0],
-        math::min(mask_tolerance[1], mask_tol_scalor * math::fabs(ip.path)));
+    if (!sf_desc.is_portal()) {
+        ext_tol = external_mask_tolerance;
+        base_tol = math::max(
+            static_cast<scalar_t>(cfg.min_mask_tolerance),
+            math::min(static_cast<scalar_t>(cfg.max_mask_tolerance),
+                      static_cast<scalar_t>(cfg.mask_tolerance_scalor) *
+                          math::fabs(ip.path)));
+    }
 
     // Mask check results with and without external tolerance
     typename mask_t::result_type mask_check{};
 
     // Intersector provides specialized local point
     if constexpr (std::same_as<point_t, dpoint2D<algebra_t>>) {
-        mask_check = mask.resolve(ip.point, base_tol, external_mask_tolerance);
+        mask_check = mask.resolve(ip.point, base_tol, ext_tol);
     } else {
         // Otherwise, let the shape transform the point to local
-        mask_check =
-            mask.resolve(trf, ip.point, base_tol, external_mask_tolerance);
+        mask_check = mask.resolve(trf, ip.point, base_tol, ext_tol);
     }
 
     // Set the less strict status first, then overwrite with more strict

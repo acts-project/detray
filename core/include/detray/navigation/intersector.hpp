@@ -8,11 +8,10 @@
 #pragma once
 
 // Project include(s)
-#include <iostream>
-
 #include "detray/definitions/algebra.hpp"
 #include "detray/geometry/concepts.hpp"
 #include "detray/navigation/intersection/helix_intersector.hpp"
+#include "detray/navigation/intersection/intersection_config.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
 
 namespace detray {
@@ -58,7 +57,7 @@ struct intersector {
     /// @param mask_tolerance is the tolerance for mask edges
     /// @param overstep_tol negative cutoff for the path
     ///
-    /// @return the intersection
+    /// @return the intersection result
     /// @{
     template <typename S = shape_t>
         requires(!concepts::cylindrical_shape<S, algebra_type>)
@@ -84,20 +83,18 @@ struct intersector {
         requires(!concepts::cylindrical_shape<S, algebra_type>)
     DETRAY_HOST_DEVICE constexpr result_type point_of_intersection(
         const detail::helix<algebra_t> &h, const transform3_type &trf,
-        const scalar_type overstep_tol = 0.f) const {
+        const scalar_type /*overstep_tol*/ = 0.f) const {
 
-        return helix_intersector_type{}.point_of_intersection(h, trf,
-                                                              overstep_tol);
+        return helix_intersector_type{}.point_of_intersection(h, trf);
     }
 
     template <typename mask_t, typename S = shape_t>
         requires concepts::cylindrical_shape<S, algebra_type>
     DETRAY_HOST_DEVICE constexpr result_type point_of_intersection(
         const detail::helix<algebra_t> &h, const transform3_type &trf,
-        const mask_t &mask, const scalar_type overstep_tol = 0.f) const {
+        const mask_t &mask, const scalar_type /*overstep_tol*/ = 0.f) const {
 
-        return helix_intersector_type{}.point_of_intersection(h, trf, mask,
-                                                              overstep_tol);
+        return helix_intersector_type{}.point_of_intersection(h, trf, mask);
     }
     /// @}
 
@@ -106,15 +103,11 @@ struct intersector {
     DETRAY_HOST_DEVICE inline decltype(auto) operator()(
         const detail::ray<algebra_t> &ray, const surface_descr_t &sf,
         const mask_t &mask, const transform3_type &trf,
-        const darray<scalar_type, 2u> mask_tolerance =
-            {0.f, 1.f * unit<scalar_type>::mm},
-        const scalar_type mask_tol_scalor = 0.f,
-        const scalar_type external_mask_tol = 0.f,
-        const scalar_type overstep_tol = 0.f) const {
+        const intersection::config &cfg = {},
+        const scalar_type external_mask_tol = 0.f) const {
 
-        return ray_intersector_type{}(ray, sf, mask, trf, mask_tolerance,
-                                      mask_tol_scalor, external_mask_tol,
-                                      overstep_tol);
+        return ray_intersector_type{}(ray, sf, mask, trf, cfg,
+                                      external_mask_tol);
     }
 
     /// @returns the intersection(s) between a surface and the helix @param h
@@ -122,12 +115,9 @@ struct intersector {
     DETRAY_HOST_DEVICE inline decltype(auto) operator()(
         const detail::helix<algebra_t> &h, const surface_descr_t &sf,
         const mask_t &mask, const transform3_type &trf,
-        const darray<scalar_type, 2u> mask_tolerance =
-            {0.f, 1.f * unit<scalar_type>::mm},
-        const scalar_type = 0.f, const scalar_type = 0.f,
-        const scalar_type = 0.f) const {
+        const intersection::config &cfg = {}, const scalar_type = 0.f) const {
 
-        return helix_intersector_type{}(h, sf, mask, trf, mask_tolerance);
+        return helix_intersector_type{}(h, sf, mask, trf, cfg);
     }
 
     private:
