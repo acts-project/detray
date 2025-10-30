@@ -45,7 +45,7 @@ struct candidate_search {
         const typename detector_t::surface_type &sf_descr,
         const detector_t &det, const typename detector_t::geometry_context &ctx,
         const track_t &track, navigation_state_t &nav_state,
-        const intersection::config inter_cfg) const {
+        const intersection::config &inter_cfg) const {
 
         using algebra_t = typename detector_t::algebra_type;
         using scalar_t = dscalar<algebra_t>;
@@ -278,6 +278,11 @@ template <typename track_t, typename navigation_state_t, typename context_t>
 DETRAY_HOST_DEVICE DETRAY_INLINE constexpr void init_loose_cfg(
     const track_t &track, navigation_state_t &navigation,
     navigation::config loose_cfg, const context_t &ctx) {
+
+    DETRAY_VERBOSE_HOST_DEVICE(
+        "Full trust could not be restored! RESCURE MODE: Run init with "
+        "large tolerances");
+
     // Use the max mask tolerance in case a track leaves the volume
     // when a sf is 'sticking' out of the portals due to the tol
     const auto new_overstep_tol{

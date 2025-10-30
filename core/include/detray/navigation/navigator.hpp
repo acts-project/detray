@@ -142,23 +142,23 @@ class navigator {
         }
 
         private:
-        /// Insert a new element @param new_cadidate before position @param pos
+        /// Insert a new element @param new_candidate before position @param pos
         DETRAY_HOST_DEVICE
         constexpr void insert(candidate_const_itr_t pos,
-                              const intersection_type &new_cadidate) {
+                              const intersection_type &new_candidate) {
 
             // Candidate is too far away to be placed in cache
             if (pos == this->candidates().end()) {
                 return;
             }
 
-            assert(detail::is_invalid_value(new_cadidate.volume_link) ||
-                   new_cadidate.volume_link <
+            assert(detail::is_invalid_value(new_candidate.volume_link) ||
+                   new_candidate.volume_link <
                        this->detector().volumes().size());
 
             // Insert the first candidate
             if (this->n_candidates() == 0) {
-                this->candidates()[0] = new_cadidate;
+                this->candidates()[0] = new_candidate;
                 this->last_index(this->last_index() + 1);
                 assert(this->next_index() <= this->last_index() + 1);
                 assert(static_cast<std::size_t>(this->last_index()) <
@@ -173,11 +173,11 @@ class navigator {
 
             // Do not add the same surface (intersection) multiple times
             const auto is_clash_at_pos = [this,
-                                          &new_cadidate](std::size_t index) {
+                                          &new_candidate](std::size_t index) {
                 return (this->candidates()[index].sf_desc.barcode() ==
-                        new_cadidate.sf_desc.barcode()) &&
+                        new_candidate.sf_desc.barcode()) &&
                        (math::fabs(this->candidates()[index].path() -
-                                   new_cadidate.path()) <=
+                                   new_candidate.path()) <=
                         1.f * unit<scalar_type>::um);
             };
 
@@ -198,7 +198,7 @@ class navigator {
             }
 
             // Now insert the new candidate and update candidate range
-            this->candidates()[static_cast<std::size_t>(idx)] = new_cadidate;
+            this->candidates()[static_cast<std::size_t>(idx)] = new_candidate;
             this->last_index(
                 math::min(static_cast<dist_t>(this->last_index() + 1),
                           static_cast<dist_t>(k_cache_capacity - 1)));
@@ -272,9 +272,8 @@ class navigator {
                                        navigation());
             return is_init;
         }
-        // Otherwise: did we run into a portal?
-        else if (navigation.is_on_portal()) {
-
+        // Otherwise: if we encountered a portal, perform volume switch
+        if (navigation.is_on_portal()) {
             navigation::volume_switch(track, navigation, cfg, ctx);
             is_init = true;
 
@@ -283,24 +282,13 @@ class navigator {
                 return false;
             }
         }
-        // If no trust could be restored for the current state, (local)
-        // navigation might be exhausted: re-initialize volume
+        // If no trust could be restored during the update, try to rescue the
+        // navigation stream by re-initializing with loose tolerances
         if (navigation.trust_level() != navigation::trust_level::e_full ||
             navigation.cache_exhausted()) {
 
-            DETRAY_VERBOSE_HOST_DEVICE(
-                "Full trust could not be restored! RESCURE MODE: Run init with "
-                "large tolerances");
-
-            constexpr bool resolve_overstepping{true};
-            navigation::local_navigation(track, navigation, cfg, ctx,
-                                         resolve_overstepping);
             is_init = true;
-
-            // Sanity check: Should never be the case after complete update call
-            if (navigation.trust_level() != navigation::trust_level::e_full) {
-                navigation::init_loose_cfg(track, navigation, cfg, ctx);
-            }
+            navigation::init_loose_cfg(track, navigation, cfg, ctx);
 
             navigation.run_inspector(cfg, track.pos(), track.dir(),
                                      "Re-init: ");
@@ -329,12 +317,13 @@ class navigator {
         const context_type &ctx) const {
 
         const auto &det = navigation.detector();
+        constexpr bool is_init{true};
 
         // Current candidates are up to date, nothing left to do
         if (navigation.trust_level() == navigation::trust_level::e_full) {
-            return false;
+            DETRAY_VERBOSE_HOST_DEVICE("Called 'update()' - full trust");
+            return !is_init;
         }
-
         // Update only the current candidate and the corresponding next target
         // - do this only when the navigation state is still coherent
         if (navigation.trust_level() == navigation::trust_level::e_high) {
@@ -346,9 +335,9 @@ class navigator {
                     navigation.direction(), navigation.target(), track, det,
                     cfg.intersection, navigation.external_tol(), ctx)) {
                 navigation.status(navigation::status::e_unknown);
+                // This will run into the fair trust case below.
                 navigation.set_fair_trust();
             } else {
-
                 // Update navigation flow on the new candidate information
                 navigation::update_status(navigation, cfg);
 
@@ -359,26 +348,26 @@ class navigator {
                 // or trust is gone (portal was reached or the cache is broken).
                 if (navigation.status() ==
                         navigation::status::e_towards_object ||
-                    navigation.trust_level() ==
-                        navigation::trust_level::e_no_trust) {
-                    return false;
+                    navigation.is_on_portal()) {
+                    return !is_init;
                 }
-
-                // Else: Track is on module.
-                // Ready the next candidate after the current module
-                if (navigation::update_candidate(
+                // Else (if full trust): Track is on non-portal surface and
+                // cache is not exhausted. Ready the next target
+                if (navigation.trust_level() ==
+                        navigation::trust_level::e_full &&
+                    navigation::update_candidate(
                         navigation.direction(), navigation.target(), track, det,
                         cfg.intersection, navigation.external_tol(), ctx)) {
-                    return false;
+                    return !is_init;
                 }
 
                 // If next candidate is not reachable, don't 'return', but
                 // escalate the trust level.
-                // This will run into the fair trust case below.
+                // This will run into the fair trust case below or the no trust
+                // case if the cache is broken
                 navigation.set_fair_trust();
             }
         }
-
         // Re-evaluate all currently available candidates and sort again
         // - do this when your navigation state is stale, but not invalid
         if (navigation.trust_level() == navigation::trust_level::e_fair &&
@@ -406,13 +395,14 @@ class navigator {
             navigation.run_inspector(cfg, track.pos(), track.dir(),
                                      "Update complete: fair trust: ");
 
-            if (!navigation.cache_exhausted()) {
-                return false;
+            // If there are no reachable candidates in the cache after
+            // re-evaluation, re-initialize the volume
+            if (navigation.cache_exhausted()) {
+                navigation.set_no_trust();
             }
         }
-
-        // Actor flagged cache as broken (other cases of 'no trust' are
-        // handeled after volume switch was checked in 'update()')
+        // Re-initialize the volume (actor flagged 'no trust' or previous trust
+        // level update failed)
         if (navigation.trust_level() == navigation::trust_level::e_no_trust) {
 
             DETRAY_VERBOSE_HOST_DEVICE("Called 'update()' - no trust");
@@ -420,10 +410,10 @@ class navigator {
             constexpr bool resolve_overstepping{true};
             navigation::local_navigation(track, navigation, cfg, ctx,
                                          resolve_overstepping);
-            return true;
+            return is_init;
         }
 
-        return false;
+        return !is_init;
     }
 
     /// Helper to evict all unreachable/invalid candidates from the cache:
@@ -431,8 +421,10 @@ class navigator {
     /// update) in a sorted (!) cache.
     ///
     /// @param candidates the cache of candidates to be cleaned
+    ///
+    /// @returns iterator to the last reachable candidate
     DETRAY_HOST_DEVICE constexpr auto find_invalid(
-        typename state::candidate_cache_t &candidates) const {
+        const typename state::candidate_cache_t &candidates) const {
 
         // Depends on previous invalidation of unreachable candidates!
         auto not_reachable = [](const intersection_type &candidate) {

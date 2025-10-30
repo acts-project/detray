@@ -470,22 +470,22 @@ class base_state : public detray::ranges::view_interface<
     /// @returns the capacity of the internal candidate storage
     static consteval std::size_t capacity() { return k_cache_capacity; }
 
-    /// Updates the position of the last valid candidate
-    DETRAY_HOST_DEVICE
-    constexpr void set_last(candidate_itr_t new_last) {
-        const auto new_idx{
-            detray::ranges::distance(m_candidates.begin(), new_last) - 1};
-        last_index(static_cast<dist_t>(new_idx));
-        assert(m_last < static_cast<dist_t>(k_cache_capacity));
-    }
-
     /// Set the next surface that we want to reach (update target)
     DETRAY_HOST_DEVICE
-    constexpr void set_next(candidate_itr_t new_next) {
+    constexpr void set_next(candidate_const_itr_t new_next) {
         const auto new_idx{
-            detray::ranges::distance(m_candidates.begin(), new_next)};
+            detray::ranges::distance(m_candidates.cbegin(), new_next)};
         cast_impl().next_index(static_cast<dist_t>(new_idx));
         assert(cast_impl().next_index() <= m_last + 1);
+    }
+
+    /// Updates the position of the last valid candidate
+    DETRAY_HOST_DEVICE
+    constexpr void set_last(candidate_const_itr_t new_last) {
+        const auto new_idx{
+            detray::ranges::distance(m_candidates.cbegin(), new_last) - 1};
+        last_index(static_cast<dist_t>(new_idx));
+        assert(m_last < static_cast<dist_t>(k_cache_capacity));
     }
 
     /// @returns the index to the target surface
