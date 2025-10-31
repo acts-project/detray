@@ -29,14 +29,7 @@ struct ray_intersector_impl;
 template <algebra::concepts::aos algebra_t, bool resolve_pos>
 struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, resolve_pos> {
 
-    /// linear algebra types
-    /// @{
     using algebra_type = algebra_t;
-    using scalar_type = dscalar<algebra_t>;
-    using point3_type = dpoint3D<algebra_t>;
-    using vector3_type = dvector3D<algebra_t>;
-    using transform3_type = dtransform3D<algebra_t>;
-    /// @}
 
     template <typename surface_descr_t>
     using intersection_type =
@@ -49,8 +42,8 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, resolve_pos> {
     static constexpr std::uint8_t n_solutions{1u};
 
     /// Always includes the intersection position, in order to resolve the mask
-    using result_type =
-        intersection_point<algebra_t, point3_type, intersection::contains_pos>;
+    using result_type = intersection_point<algebra_t, dpoint3D<algebra_t>,
+                                           intersection::contains_pos>;
 
     /// Operator function to find intersections between ray and planar mask
     ///
@@ -63,25 +56,30 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, resolve_pos> {
     ///
     /// @return the intersection
     DETRAY_HOST_DEVICE constexpr result_type point_of_intersection(
-        const trajectory_type<algebra_t> &ray, const transform3_type &trf,
-        const scalar_type /*overstep_tol*/ = 0.f) const {
+        const trajectory_type<algebra_t> &ray,
+        const dtransform3D<algebra_t> &trf,
+        const dscalar<algebra_t> /*overstep_tol*/ = 0.f) const {
+
+        using scalar_t = dscalar<algebra_t>;
+        using point3_t = dpoint3D<algebra_t>;
+        using vector3_t = dvector3D<algebra_t>;
 
         // Retrieve the surface normal & translation (context resolved)
-        const vector3_type &sn = trf.z();
-        const vector3_type &st = trf.translation();
+        const vector3_t &sn = trf.z();
+        const vector3_t &st = trf.translation();
 
         // Intersection code
-        const point3_type &ro = ray.pos();
-        const vector3_type &rd = ray.dir();
-        const scalar_type denom = vector::dot(rd, sn);
+        const point3_t &ro = ray.pos();
+        const vector3_t &rd = ray.dir();
+        const scalar_t denom = vector::dot(rd, sn);
 
         // this is dangerous
         if (denom == 0.f) {
             return {};
         }
 
-        scalar_type s{vector::dot(sn, st - ro) / denom};
-        point3_type glob_pos = ro + s * rd;
+        scalar_t s{vector::dot(sn, st - ro) / denom};
+        point3_t glob_pos = ro + s * rd;
 
         return {s, glob_pos};
     }

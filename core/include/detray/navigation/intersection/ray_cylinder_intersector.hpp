@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2024 CERN for the benefit of the ACTS project
+ * (c) 2022-2025 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -30,14 +30,7 @@ struct ray_intersector_impl;
 template <algebra::concepts::aos algebra_t, bool resolve_pos>
 struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, resolve_pos> {
 
-    /// Linear algebra types
-    /// @{
     using algebra_type = algebra_t;
-    using scalar_type = dscalar<algebra_t>;
-    using point3_type = dpoint3D<algebra_t>;
-    using vector3_type = dvector3D<algebra_t>;
-    using transform3_type = dtransform3D<algebra_t>;
-    /// @}
 
     template <typename surface_descr_t>
     using intersection_type =
@@ -49,9 +42,10 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, resolve_pos> {
     // Maximum number of solutions this intersector can produce
     static constexpr std::uint8_t n_solutions{2u};
 
-    using result_type = darray<
-        intersection_point<algebra_t, point3_type, intersection::contains_pos>,
-        n_solutions>;
+    using result_type =
+        darray<intersection_point<algebra_t, dpoint3D<algebra_t>,
+                                  intersection::contains_pos>,
+               n_solutions>;
 
     /// Operator function to find intersections between ray and planar mask
     ///
@@ -65,8 +59,9 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, resolve_pos> {
     /// @return the intersection
     template <typename mask_t>
     DETRAY_HOST_DEVICE constexpr result_type point_of_intersection(
-        const trajectory_type<algebra_t> &ray, const transform3_type &trf,
-        const mask_t &mask, const scalar_type /*overstep_tol*/ = 0.f) const {
+        const trajectory_type<algebra_t> &ray,
+        const dtransform3D<algebra_t> &trf, const mask_t &mask,
+        const dscalar<algebra_t> /*overstep_tol*/ = 0.f) const {
 
         // One or both of these solutions might be invalid
         const auto qe = solve_intersection(ray, mask, trf);
@@ -100,23 +95,29 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, resolve_pos> {
     ///
     /// @returns a quadratic equation object that contains the solution(s).
     template <typename mask_t>
-    DETRAY_HOST_DEVICE inline detail::quadratic_equation<scalar_type>
+    DETRAY_HOST_DEVICE inline detail::quadratic_equation<dscalar<algebra_t>>
     solve_intersection(const trajectory_type<algebra_t> &ray,
-                       const mask_t &mask, const transform3_type &trf) const {
-        const scalar_type r{mask[mask_t::shape::e_r]};
-        const vector3_type &sz = trf.z();
-        const vector3_type &sc = trf.translation();
+                       const mask_t &mask,
+                       const dtransform3D<algebra_t> &trf) const {
 
-        const point3_type &ro = ray.pos();
-        const vector3_type &rd = ray.dir();
+        using scalar_t = dscalar<algebra_t>;
+        using point3_t = dpoint3D<algebra_t>;
+        using vector3_t = dvector3D<algebra_t>;
+
+        const scalar_t r{mask[mask_t::shape::e_r]};
+        const vector3_t &sz = trf.z();
+        const vector3_t &sc = trf.translation();
+
+        const point3_t &ro = ray.pos();
+        const vector3_t &rd = ray.dir();
 
         const auto pc_cross_sz = vector::cross(ro - sc, sz);
         const auto rd_cross_sz = vector::cross(rd, sz);
-        const scalar_type a{vector::dot(rd_cross_sz, rd_cross_sz)};
-        const scalar_type b{2.f * vector::dot(rd_cross_sz, pc_cross_sz)};
-        const scalar_type c{vector::dot(pc_cross_sz, pc_cross_sz) - (r * r)};
+        const scalar_t a{vector::dot(rd_cross_sz, rd_cross_sz)};
+        const scalar_t b{2.f * vector::dot(rd_cross_sz, pc_cross_sz)};
+        const scalar_t c{vector::dot(pc_cross_sz, pc_cross_sz) - (r * r)};
 
-        return detail::quadratic_equation<scalar_type>{a, b, c};
+        return detail::quadratic_equation<scalar_t>{a, b, c};
     }
 };
 
