@@ -13,8 +13,8 @@
 namespace detray {
 
 __global__ void navigator_test_kernel(
-    typename detector_host_t::view_type det_data, navigation::config nav_cfg,
-    stepping::config step_cfg,
+    typename detector_host_t::view_type det_data,
+    const propagation::config prop_cfg,
     vecmem::data::vector_view<free_track_parameters<test_algebra>> tracks_data,
     vecmem::data::jagged_vector_view<dindex> volume_records_data,
     vecmem::data::jagged_vector_view<point3> position_records_data) {
@@ -37,6 +37,9 @@ __global__ void navigator_test_kernel(
     auto& traj = tracks.at(gid);
     stepper_t stepper;
 
+    const navigation::config& nav_cfg = prop_cfg.navigation;
+    const stepping::config& step_cfg = prop_cfg.stepping;
+
     prop_state<navigator_device_t::state> propagation{
         stepper_t::state{traj}, navigator_device_t::state(det)};
 
@@ -58,7 +61,8 @@ __global__ void navigator_test_kernel(
 
         navigation.set_high_trust();
 
-        do_reset = nav.update(stepping(), navigation, nav_cfg);
+        do_reset =
+            nav.update(stepping(), navigation, nav_cfg, prop_cfg.context);
         do_reset |= navigation.is_on_surface();
         heartbeat &= navigation.is_alive();
 
@@ -69,8 +73,7 @@ __global__ void navigator_test_kernel(
 }
 
 void navigator_test(
-    typename detector_host_t::view_type det_data, navigation::config& nav_cfg,
-    stepping::config& step_cfg,
+    typename detector_host_t::view_type det_data, propagation::config& prop_cfg,
     vecmem::data::vector_view<free_track_parameters<test_algebra>>& tracks_data,
     vecmem::data::jagged_vector_view<dindex>& volume_records_data,
     vecmem::data::jagged_vector_view<point3>& position_records_data) {
@@ -80,7 +83,7 @@ void navigator_test(
 
     // run the test kernel
     navigator_test_kernel<<<block_dim, thread_dim>>>(
-        det_data, nav_cfg, step_cfg, tracks_data, volume_records_data,
+        det_data, prop_cfg, tracks_data, volume_records_data,
         position_records_data);
 
     // cuda error check

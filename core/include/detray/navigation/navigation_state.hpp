@@ -16,6 +16,7 @@
 #include "detray/geometry/barcode.hpp"
 #include "detray/geometry/tracking_surface.hpp"
 #include "detray/geometry/tracking_volume.hpp"
+#include "detray/navigation/detail/intersection_kernel.hpp"
 #include "detray/navigation/detail/print_state.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"

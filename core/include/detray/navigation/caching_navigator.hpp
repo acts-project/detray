@@ -16,10 +16,10 @@
 #include "detray/geometry/surface.hpp"
 #include "detray/navigation/detail/navigation_functions.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
-#include "detray/navigation/intersection/intersection_kernel.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
 #include "detray/navigation/navigation_config.hpp"
 #include "detray/navigation/navigation_state.hpp"
+#include "detray/navigation/navigator_base.hpp"
 #include "detray/utils/log.hpp"
 
 namespace detray {
@@ -48,19 +48,17 @@ template <typename detector_t,
           typename intersection_t = intersection2D<
               typename detector_t::surface_type,
               typename detector_t::algebra_type, !intersection::contains_pos>>
-class caching_navigator {
+class caching_navigator
+    : public navigator_base<caching_navigator<detector_t, k_cache_capacity,
+                                              inspector_t, intersection_t>> {
+
+    friend class navigator_base<caching_navigator>;
+
+    using scalar_t = dscalar<typename detector_t::algebra_type>;
 
     public:
     using detector_type = detector_t;
-    using context_type = detector_type::geometry_context;
-
-    using algebra_type = typename detector_type::algebra_type;
-    using scalar_type = dscalar<algebra_type>;
-    using point3_type = dpoint3D<algebra_type>;
-    using vector3_type = dvector3D<algebra_type>;
-
-    using volume_type = typename detector_type::volume_type;
-    using nav_link_type = typename detector_type::surface_type::navigation_link;
+    using context_type = typename detector_type::geometry_context;
     using intersection_type = intersection_t;
     using inspector_type = inspector_t;
 
@@ -74,12 +72,13 @@ class caching_navigator {
     class state
         : public navigation::base_state<state, detector_type, k_cache_capacity,
                                         inspector_type, intersection_type> {
-
+        // Allow the navigator classes to access methods that update the state
         friend class caching_navigator;
+        friend class navigator_base<caching_navigator>;
 
         // Allow the filling/updating of candidates
-        friend struct intersection_initialize<ray_intersector>;
-        friend struct intersection_update<ray_intersector>;
+        friend struct detail::intersection_initialize<ray_intersector>;
+        friend struct detail::intersection_update<ray_intersector>;
 
         // Navigation utility functions that need to modify the state
         friend struct navigation::candidate_search;
@@ -178,7 +177,7 @@ class caching_navigator {
                         new_candidate.sf_desc.barcode()) &&
                        (math::fabs(this->candidates()[index].path() -
                                    new_candidate.path()) <=
-                        1.f * unit<scalar_type>::um);
+                        1.f * unit<scalar_t>::um);
             };
 
             const auto idxu{static_cast<std::size_t>(idx)};
@@ -215,91 +214,6 @@ class caching_navigator {
             this->last_index(-1);
         }
     };
-
-    public:
-    /// @brief Helper method to initialize a volume.
-    ///
-    /// @tparam track_t type of track, needs to provide pos() and dir() methods
-    ///
-    /// @param track access to the track parameters
-    /// @param state the current navigation state
-    /// @param cfg the navigation configuration
-    /// @param ctx the geometry context
-    /// @param resolve_overstepping whether to check for overstepping
-    template <typename track_t>
-    DETRAY_HOST_DEVICE constexpr void init(
-        const track_t &track, state &navigation, const navigation::config &cfg,
-        const context_type &ctx,
-        const bool resolve_overstepping = false) const {
-
-        // Run local navigation in the current volume
-        navigation::local_navigation(track, navigation, cfg, ctx,
-                                     resolve_overstepping);
-    }
-
-    /// @brief Complete update of the navigation flow.
-    ///
-    /// Restores 'full trust' state to the cadidates cache and checks whether
-    /// the track stepped onto a portal and a volume switch is due. If so, or
-    /// when the previous update according to the given trust level
-    /// failed to restore trust, it performs a complete reinitialization of the
-    /// navigation.
-    ///
-    /// @tparam track_t type of track, needs to provide pos() and dir() methods
-    ///
-    /// @param track access to the track parameters
-    /// @param state the current navigation state
-    /// @param cfg the navigation configuration
-    /// @param ctx the geometry context
-    ///
-    /// @returns a heartbeat to indicate if the navigation is still alive
-    template <typename track_t>
-    DETRAY_HOST_DEVICE DETRAY_INLINE constexpr bool update(
-        const track_t &track, state &navigation, const navigation::config &cfg,
-        const context_type &ctx = {},
-        const bool /*is_before_actor*/ = true) const {
-
-        assert(navigation.is_alive());
-        assert(!track.is_invalid());
-
-        // Update was completely successful (most likely case)
-        if (navigation.trust_level() == navigation::trust_level::e_full) {
-            DETRAY_VERBOSE_HOST_DEVICE("Update complete: dist to next %fmm",
-                                       navigation());
-            return false;
-        }
-
-        // Candidates are re-evaluated based on the current trust level.
-        // Should result in 'full trust'
-        bool is_init = update_impl(track, navigation, cfg, ctx);
-
-        // Otherwise: if we encountered a portal, perform volume switch
-        if (navigation.is_on_portal()) {
-            navigation::volume_switch(track, navigation, cfg, ctx);
-            is_init = true;
-
-            // Reached end of detector
-            if (!navigation.is_alive()) {
-                return false;
-            }
-        }
-        // If no trust could be restored during the update, try to rescue the
-        // navigation stream by re-initializing with loose tolerances
-        if (navigation.trust_level() != navigation::trust_level::e_full ||
-            navigation.cache_exhausted()) {
-
-            is_init = true;
-            navigation::init_loose_cfg(track, navigation, cfg, ctx);
-
-            navigation.run_inspector(cfg, track.pos(), track.dir(),
-                                     "Re-init: ");
-        }
-
-        DETRAY_VERBOSE_HOST_DEVICE("Update complete: dist to next %fmm",
-                                   navigation());
-
-        return is_init;
-    }
 
     private:
     /// Helper method to update the candidates (surface intersections)
@@ -379,7 +293,7 @@ class caching_navigator {
                         navigation.direction(), candidate, track, det,
                         cfg.intersection, navigation.external_tol(), ctx)) {
                     // Forcefully set dist to numeric max for sorting
-                    candidate.set_path(std::numeric_limits<scalar_type>::max());
+                    candidate.set_path(std::numeric_limits<scalar_t>::max());
                 }
             }
             detray::sequential_sort(navigation.begin(), navigation.end());
@@ -426,7 +340,7 @@ class caching_navigator {
 
         // Depends on previous invalidation of unreachable candidates!
         auto not_reachable = [](const intersection_type &candidate) {
-            return candidate.path() == std::numeric_limits<scalar_type>::max();
+            return candidate.path() == std::numeric_limits<scalar_t>::max();
         };
 
         return detray::find_if(candidates.begin(), candidates.end(),

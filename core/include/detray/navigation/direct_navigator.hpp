@@ -15,10 +15,10 @@
 #include "detray/definitions/navigation.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/barcode.hpp"
+#include "detray/navigation/detail/intersection_kernel.hpp"
 #include "detray/navigation/detail/navigation_functions.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 #include "detray/navigation/intersection/intersection_config.hpp"
-#include "detray/navigation/intersection/intersection_kernel.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
 #include "detray/navigation/navigation_config.hpp"
 #include "detray/navigation/navigation_state.hpp"
@@ -42,7 +42,7 @@ class direct_navigator {
                                                 navigation::void_inspector,
                                                 intersection_type> {
         friend class direct_navigator;
-        friend struct intersection_update<ray_intersector>;
+        friend struct detail::intersection_update<ray_intersector>;
 
         using base_type = navigation::base_state<state, detector_type, 2u,
                                                  navigation::void_inspector,
