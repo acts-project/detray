@@ -9,8 +9,8 @@
 #include "detray/core/detector.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/surface.hpp"
+#include "detray/navigation/detail/intersection_kernel.hpp"
 #include "detray/navigation/intersection/intersection_config.hpp"
-#include "detray/navigation/intersection/intersection_kernel.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
 #include "detray/tracks/ray.hpp"
 #include "detray/tracks/tracks.hpp"
@@ -89,7 +89,7 @@ void BM_INTERSECT_ALL(benchmark::State &state) {
             for (const sf_desc_t &sf_desc : d.surfaces()) {
                 const auto sf = geometry::surface{d, sf_desc};
                 sf.template visit_mask<
-                    intersection_initialize<ray_intersector>>(
+                    detail::intersection_initialize<ray_intersector>>(
                     intersections, detail::ray(track), sf_desc, transforms,
                     geo_context, intr_cfg, external_mask_tol);
 

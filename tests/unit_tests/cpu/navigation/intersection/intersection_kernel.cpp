@@ -6,7 +6,7 @@
  */
 
 // Project include(s)
-#include "detray/navigation/intersection/intersection_kernel.hpp"
+#include "detray/navigation/detail/intersection_kernel.hpp"
 
 #include "detray/core/detail/multi_store.hpp"
 #include "detray/core/detail/single_store.hpp"
@@ -184,7 +184,7 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
     sfi_init.reserve(expected_points.size());
 
     for (const auto &surface : surfaces) {
-        mask_store.visit<intersection_initialize<ray_intersector>>(
+        mask_store.visit<detail::intersection_initialize<ray_intersector>>(
             surface.mask(), sfi_init, detail::ray(track), surface,
             transform_store, static_context, intr_cfg, external_tol);
     }
@@ -235,7 +235,7 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
 
     for (const auto [idx, surface] : detray::views::enumerate(surfaces)) {
         sfi_update[idx].sf_desc = surface;
-        mask_store.visit<intersection_update>(
+        mask_store.visit<detail::intersection_update>(
             surface.mask(), detail::ray(track), sfi_update[idx],
             transform_store);
 
@@ -318,7 +318,7 @@ GTEST_TEST(detray_intersection, intersection_kernel_helix) {
 
     // Try the intersections - with automated dispatching via the kernel
     for (const auto [sf_idx, surface] : detray::views::enumerate(surfaces)) {
-        mask_store.visit<intersection_initialize<helix_intersector>>(
+        mask_store.visit<detail::intersection_initialize<helix_intersector>>(
             surface.mask(), sfi_helix, h, surface, transform_store,
             static_context, intr_cfg, scalar{0.f});
 

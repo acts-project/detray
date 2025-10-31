@@ -72,7 +72,7 @@ macro(detray_add_cpu_test algebra)
        "navigation/intersection/plane_intersector.cpp"
        "navigation/brute_force_finder.cpp"
        "navigation/volume_graph.cpp"
-       "navigation/navigator.cpp"
+       "navigation/caching_navigator.cpp"
        "propagator/actor_chain.cpp"
        "propagator/covariance_transport.cpp"
        "propagator/jacobian_cartesian.cpp"

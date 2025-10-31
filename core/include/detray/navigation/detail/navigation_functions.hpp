@@ -12,7 +12,7 @@
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/geometry/tracking_volume.hpp"
-#include "detray/navigation/intersection/intersection_kernel.hpp"
+#include "detray/navigation/detail/intersection_kernel.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
 #include "detray/navigation/navigation_config.hpp"
 #include "detray/tracks/ray.hpp"
@@ -59,7 +59,8 @@ struct candidate_search {
 
         // Perform intersection and add result to the navigation cache via
         // @c nav_state.insert()
-        sf.template visit_mask<intersection_initialize<ray_intersector>>(
+        sf.template visit_mask<
+            detray::detail::intersection_initialize<ray_intersector>>(
             nav_state, tangential, sf_descr, det.transform_store(), ctx,
             inter_cfg, nav_state.external_tol());
     }
@@ -105,7 +106,8 @@ DETRAY_HOST_DEVICE DETRAY_INLINE constexpr bool update_candidate(
 
     // Perform intersection and check whether this candidate is reachable by
     // the track
-    return sf.template visit_mask<intersection_update<ray_intersector>>(
+    return sf.template visit_mask<
+        detray::detail::intersection_update<ray_intersector>>(
         std::move(tangential), candidate, det.transform_store(), ctx, cfg,
         external_mask_tolerance);
 }

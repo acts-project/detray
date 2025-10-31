@@ -7,8 +7,8 @@
 
 // Project include(s)
 #include "detray/definitions/units.hpp"
+#include "detray/navigation/caching_navigator.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
-#include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/propagator.hpp"
@@ -60,8 +60,8 @@ int main() {
     constexpr std::size_t cache_size{detray::navigation::default_cache_size};
 
     // Navigation with inspection
-    using navigator_t = detray::navigator<toy_detector_t, cache_size,
-                                          inspector_t, intersection_t>;
+    using navigator_t = detray::caching_navigator<toy_detector_t, cache_size,
+                                                  inspector_t, intersection_t>;
     // Line stepper
     using stepper_t = detray::line_stepper<algebra_t>;
     // Propagator with empty actor chain

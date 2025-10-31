@@ -9,7 +9,7 @@
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/barcode.hpp"
 #include "detray/geometry/shapes/rectangle2D.hpp"
-#include "detray/navigation/navigator.hpp"
+#include "detray/navigation/caching_navigator.hpp"
 #include "detray/propagator/actors.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
@@ -65,7 +65,7 @@ TEST_P(BackwardPropagation, backward_propagation) {
               1.f * unit<scalar>::T};
     const bfield_t hom_bfield = create_const_field<scalar>(B);
 
-    using navigator_t = navigator<decltype(det)>;
+    using navigator_t = caching_navigator<decltype(det)>;
     using rk_stepper_t = rk_stepper<bfield_t::view_t, test_algebra>;
     using actor_chain_t =
         actor_chain<parameter_transporter<test_algebra>,

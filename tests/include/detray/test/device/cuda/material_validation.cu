@@ -31,7 +31,7 @@ __global__ void material_validation_kernel(
     using scalar_t = dscalar<algebra_t>;
 
     using stepper_t = line_stepper<algebra_t>;
-    using navigator_t = navigator<detector_device_t>;
+    using navigator_t = caching_navigator<detector_device_t>;
     // Propagator with full covariance transport, pathlimit aborter and
     // material tracer
     using material_tracer_t =

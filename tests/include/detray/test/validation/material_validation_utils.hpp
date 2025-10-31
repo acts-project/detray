@@ -11,8 +11,8 @@
 #include "detray/definitions/algebra.hpp"
 #include "detray/materials/detail/concepts.hpp"
 #include "detray/materials/detail/material_accessor.hpp"
+#include "detray/navigation/caching_navigator.hpp"
 #include "detray/navigation/detail/print_state.hpp"
-#include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actors.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/propagator.hpp"
@@ -235,7 +235,7 @@ inline auto record_material(
     using scalar_t = dscalar<algebra_t>;
 
     using stepper_t = line_stepper<algebra_t>;
-    using navigator_t = navigator<detector_t>;
+    using navigator_t = caching_navigator<detector_t>;
 
     // Propagator with pathlimit aborter
     using material_tracer_t =

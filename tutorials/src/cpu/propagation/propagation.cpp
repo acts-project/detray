@@ -8,7 +8,7 @@
 // Project include(s)
 #include "detray/definitions/pdg_particle.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/navigation/navigator.hpp"
+#include "detray/navigation/caching_navigator.hpp"
 #include "detray/propagator/actors.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
@@ -39,7 +39,7 @@ int main() {
     using scalar = detray::tutorial::scalar;
 
     // Navigation
-    using navigator_t = detray::navigator<toy_detector_t>;
+    using navigator_t = detray::caching_navigator<toy_detector_t>;
     // Runge-Kutta-Nystrom stepper (field integration)
     using bfield_t = covfie::field<detray::bfield::const_bknd_t<scalar>>;
     using stepper_t = detray::rk_stepper<bfield_t::view_t, algebra_t>;
