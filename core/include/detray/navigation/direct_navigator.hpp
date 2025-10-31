@@ -9,21 +9,20 @@
 
 // Project include(s)
 #include "detray/core/detector.hpp"
-#include "detray/definitions/algorithms.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/navigation.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/barcode.hpp"
+#include "detray/navigation/detail/navigation_functions.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
+#include "detray/navigation/intersection/intersection_config.hpp"
 #include "detray/navigation/intersection/intersection_kernel.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
 #include "detray/navigation/navigation_config.hpp"
 #include "detray/navigation/navigation_state.hpp"
-#include "detray/navigation/navigator.hpp"
 #include "detray/tracks/ray.hpp"
-#include "detray/utils/ranges.hpp"
 
 namespace detray {
 
@@ -74,17 +73,17 @@ class direct_navigator {
             this->last_index(1u);
         }
 
-        /// @returns the direct navigator always has only one condidate
+        /// @returns the direct navigator always has only one candidate
         DETRAY_HOST_DEVICE
         constexpr auto n_candidates() const -> dindex { return 1u; }
 
         DETRAY_HOST_DEVICE
-        constexpr void update_candidate(bool update_candidate_prev = true) {
+        constexpr void reset_candidate(bool update_candidate_prev = true) {
             if (update_candidate_prev) {
                 this->candidates()[0] = this->candidates()[1];
             }
 
-            if (!no_next_external()) {
+            if (has_next_external()) {
                 this->candidates()[1].sf_desc =
                     this->detector().surface(get_target_barcode());
                 this->candidates()[1].volume_link =
@@ -113,7 +112,7 @@ class direct_navigator {
 
         /// Advance the iterator
         DETRAY_HOST_DEVICE
-        constexpr void next_external() {
+        constexpr void set_next_external() {
             if (is_forward()) {
                 m_it++;
             } else {
@@ -123,9 +122,9 @@ class direct_navigator {
 
         /// @return true if the iterator reaches the end of vector
         DETRAY_HOST_DEVICE
-        constexpr bool no_next_external() const {
-            return (is_forward() && m_it == m_sequence.cend()) ||
-                   (!is_forward() && m_it_rev == m_sequence.crend());
+        constexpr bool has_next_external() const {
+            return (is_forward() && m_it != m_sequence.cend()) ||
+                   (!is_forward() && m_it_rev != m_sequence.crend());
         }
 
         DETRAY_HOST_DEVICE
@@ -164,12 +163,12 @@ class direct_navigator {
         assert(navigation.is_alive());
         assert(!track.is_invalid());
 
-        if (navigation.no_next_external()) {
+        if (!navigation.has_next_external()) {
             navigation.abort("Cannot initialize state: No external surfaces");
             return;
         }
 
-        navigation.update_candidate(!navigation.is_init());
+        navigation.reset_candidate(!navigation.is_init());
         update(track, navigation, cfg, ctx);
 
         DETRAY_VERBOSE_HOST_DEVICE("Init complete");
@@ -189,28 +188,27 @@ class direct_navigator {
         assert(navigation.is_alive());
         assert(!track.is_invalid());
 
-        if (navigation.no_next_external()) {
+        if (!navigation.has_next_external()) {
             DETRAY_VERBOSE_HOST_DEVICE("No next external: Exit");
             navigation.exit();
             return false;
         }
 
         assert(!navigation.get_target_barcode().is_invalid());
-        update_intersection(track, navigation, cfg.intersection, ctx);
+        update_target(track, navigation, cfg.intersection, ctx);
 
         if (is_before_actor_run) {
-            if (navigation.has_reached_candidate(navigation.target(), cfg)) {
+            if (navigation::has_reached_candidate(navigation.target(), cfg)) {
                 navigation.status((navigation.target().sf_desc.is_portal())
                                       ? navigation::status::e_on_portal
                                       : navigation::status::e_on_object);
-                navigation.next_external();
-                navigation.update_candidate(true);
-                assert(navigation.has_reached_candidate(navigation.current(),
-                                                        cfg));
+                navigation.set_next_external();
+                navigation.reset_candidate(true);
+                assert(navigation::has_reached_candidate(navigation.current(),
+                                                         cfg));
 
-                if (!navigation.no_next_external()) {
-                    update_intersection(track, navigation, cfg.intersection,
-                                        ctx);
+                if (!navigation.has_next_external()) {
+                    update_target(track, navigation, cfg.intersection, ctx);
                 }
 
                 DETRAY_VERBOSE_HOST_DEVICE("Update complete: On surface");
@@ -234,32 +232,19 @@ class direct_navigator {
 
     private:
     template <typename track_t>
-    DETRAY_HOST_DEVICE inline void update_intersection(
+    DETRAY_HOST_DEVICE inline void update_target(
         const track_t &track, state &navigation,
         const intersection::config &intr_cfg,
         const context_type &ctx = {}) const {
 
-        if (navigation.target().sf_desc.barcode().is_invalid()) {
-            return;
-        }
+        // If no intersection is found, advance the track with safe step size
+        if (!navigation::update_candidate(
+                navigation.direction(), navigation.target(), track,
+                navigation.detector(), intr_cfg, 0.f, ctx)) {
 
-        const auto &det = navigation.detector();
-        const auto sf = tracking_surface{det, navigation.target().sf_desc};
+            navigation.reset_candidate(false);
 
-        const bool res =
-            sf.template visit_mask<intersection_update<ray_intersector>>(
-                detail::ray<algebra_type>(
-                    track.pos(),
-                    static_cast<scalar_type>(navigation.direction()) *
-                        track.dir()),
-                navigation.target(), det.transform_store(), ctx, intr_cfg,
-                scalar_type{0.f});
-
-        // If an intersection is not found, proceed the track with safe step
-        // size
-        if (!res) {
             const auto path = navigation.target().path();
-            navigation.update_candidate(false);
             navigation.target().set_path(
                 math::copysign(navigation.safe_step_size(), path));
         }

@@ -442,12 +442,22 @@ class base_state : public detray::ranges::view_interface<
         return itr;
     }
 
+    DETRAY_HOST_DEVICE
+    constexpr auto cbegin() const -> candidate_const_itr_t {
+        return std::as_const(*this).begin();
+    }
+
     /// @return sentinel of the valid candidate range.
     DETRAY_HOST_DEVICE
     constexpr auto end() -> candidate_itr_t {
         candidate_itr_t itr = m_candidates.begin();
         detray::ranges::advance(itr, m_last + 1);
         return itr;
+    }
+
+    DETRAY_HOST_DEVICE
+    constexpr auto cend() const -> candidate_const_itr_t {
+        return std::as_const(*this).end();
     }
 
     /// @returns last valid candidate (by position in the cache)
@@ -457,22 +467,25 @@ class base_state : public detray::ranges::view_interface<
         return m_candidates[static_cast<std::size_t>(m_last)];
     }
 
-    /// Updates the position of the last valid candidate
-    DETRAY_HOST_DEVICE
-    constexpr void set_last(candidate_itr_t new_last) {
-        const auto new_idx{
-            detray::ranges::distance(m_candidates.begin(), new_last) - 1};
-        last_index(static_cast<dist_t>(new_idx));
-        assert(m_last < static_cast<dist_t>(k_cache_capacity));
-    }
+    /// @returns the capacity of the internal candidate storage
+    static consteval std::size_t capacity() { return k_cache_capacity; }
 
     /// Set the next surface that we want to reach (update target)
     DETRAY_HOST_DEVICE
-    constexpr void set_next(candidate_itr_t new_next) {
+    constexpr void set_next(candidate_const_itr_t new_next) {
         const auto new_idx{
-            detray::ranges::distance(m_candidates.begin(), new_next)};
+            detray::ranges::distance(m_candidates.cbegin(), new_next)};
         cast_impl().next_index(static_cast<dist_t>(new_idx));
         assert(cast_impl().next_index() <= m_last + 1);
+    }
+
+    /// Updates the position of the last valid candidate
+    DETRAY_HOST_DEVICE
+    constexpr void set_last(candidate_const_itr_t new_last) {
+        const auto new_idx{
+            detray::ranges::distance(m_candidates.cbegin(), new_last) - 1};
+        last_index(static_cast<dist_t>(new_idx));
+        assert(m_last < static_cast<dist_t>(k_cache_capacity));
     }
 
     /// @returns the index to the target surface

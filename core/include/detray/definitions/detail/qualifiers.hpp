@@ -31,3 +31,9 @@
 #else
 #define DETRAY_ALIGN(x) alignas(x)
 #endif
+
+#if defined(__CUDACC__) || defined(__HIP__) || defined(__GNUC__)
+#define DETRAY_INLINE __attribute__((always_inline))
+#else
+#define DETRAY_INLINE
+#endif

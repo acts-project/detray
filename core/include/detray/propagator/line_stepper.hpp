@@ -99,7 +99,7 @@ class line_stepper final
                                  const material<scalar_type>* = nullptr) const {
 
         // In case of an overlap do nothing
-        if (math::fabs(dist_to_next) <= 1e-5f) {
+        if (math::fabs(dist_to_next) <= 1.f * unit<scalar_type>::um) {
             stepping.run_inspector(cfg,
                                    "Step skipped (Overlap): ", dist_to_next);
             return true;
