@@ -10,8 +10,8 @@
 // Project include(s)
 #include "detray/definitions/algebra.hpp"
 #include "detray/geometry/surface.hpp"
+#include "detray/navigation/detail/intersection_kernel.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
-#include "detray/navigation/intersection/intersection_kernel.hpp"
 #include "detray/navigation/intersector.hpp"
 #include "detray/tracks/free_track_parameters.hpp"
 #include "detray/tracks/trajectories.hpp"
@@ -77,7 +77,8 @@ struct brute_force_scan {
 
         using intersection_t =
             typename intersection_record<detector_t>::intersection_type;
-        using intersection_kernel_t = intersection_initialize<intersector>;
+        using intersection_kernel_t =
+            detail::intersection_initialize<intersector>;
 
         constexpr scalar_t external_mask_tol{0.f};
         const intersection::config intr_cfg{

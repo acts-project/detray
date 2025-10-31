@@ -235,12 +235,14 @@ GTEST_TEST(detray_detectors, telescope_detector) {
         navigation_z2.set_high_trust();
         navigation_x.set_high_trust();
 
-        do_reset_z1 = navigator_z1.update(stepping_z1(), navigation_z1,
-                                          prop_cfg.navigation);
-        do_reset_z2 = navigator_z2.update(stepping_z2(), navigation_z2,
-                                          prop_cfg.navigation);
-        do_reset_x =
-            navigator_x.update(stepping_x(), navigation_x, prop_cfg.navigation);
+        do_reset_z1 =
+            navigator_z1.update(stepping_z1(), navigation_z1,
+                                prop_cfg.navigation, prop_cfg.context);
+        do_reset_z2 =
+            navigator_z2.update(stepping_z2(), navigation_z2,
+                                prop_cfg.navigation, prop_cfg.context);
+        do_reset_x = navigator_x.update(stepping_x(), navigation_x,
+                                        prop_cfg.navigation, prop_cfg.context);
 
         // Also reset when reached a surface
         do_reset_z1 |= navigation_z1.is_on_surface();
@@ -317,8 +319,9 @@ GTEST_TEST(detray_detectors, telescope_detector) {
 
         tel_navigation.set_high_trust();
 
-        do_reset_tel = tel_navigator.update(tel_stepping(), tel_navigation,
-                                            prop_cfg.navigation);
+        do_reset_tel =
+            tel_navigator.update(tel_stepping(), tel_navigation,
+                                 prop_cfg.navigation, prop_cfg.context);
 
         do_reset_tel |= navigation_z1.is_on_surface();
         heartbeat_tel &= tel_navigation.is_alive();

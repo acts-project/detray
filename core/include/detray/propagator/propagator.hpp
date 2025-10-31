@@ -68,7 +68,7 @@ struct propagator {
         using context_type = typename detector_type::geometry_context;
         using navigator_state_type = typename navigator_t::state;
         using actor_chain_type = actor_chain_t;
-        using scalar_type = typename navigator_t::scalar_type;
+        using scalar_type = typename detector_type::scalar_type;
 
         /// Construct the propagation state with free parameter
         DETRAY_HOST_DEVICE state(const free_track_parameters_type &free_params,
