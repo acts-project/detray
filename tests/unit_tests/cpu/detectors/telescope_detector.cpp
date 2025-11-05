@@ -10,7 +10,7 @@
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes/unbounded.hpp"
-#include "detray/navigation/navigator.hpp"
+#include "detray/navigation/caching_navigator.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/propagation_config.hpp"
 #include "detray/propagator/rk_stepper.hpp"
@@ -177,9 +177,11 @@ GTEST_TEST(detray_detectors, telescope_detector) {
     free_track_parameters<test_algebra> test_track_x(pos, 0.f, mom, -1.f);
 
     // navigators
-    navigator<decltype(z_tel_det1), cache_size, inspector_t> navigator_z1;
-    navigator<decltype(z_tel_det2), cache_size, inspector_t> navigator_z2;
-    navigator<decltype(x_tel_det), cache_size, inspector_t> navigator_x;
+    caching_navigator<decltype(z_tel_det1), cache_size, inspector_t>
+        navigator_z1;
+    caching_navigator<decltype(z_tel_det2), cache_size, inspector_t>
+        navigator_z2;
+    caching_navigator<decltype(x_tel_det), cache_size, inspector_t> navigator_x;
     using navigation_state_t = decltype(navigator_z1)::state;
     using stepping_state_t = rk_stepper_t::state;
 
@@ -233,12 +235,14 @@ GTEST_TEST(detray_detectors, telescope_detector) {
         navigation_z2.set_high_trust();
         navigation_x.set_high_trust();
 
-        do_reset_z1 = navigator_z1.update(stepping_z1(), navigation_z1,
-                                          prop_cfg.navigation);
-        do_reset_z2 = navigator_z2.update(stepping_z2(), navigation_z2,
-                                          prop_cfg.navigation);
-        do_reset_x =
-            navigator_x.update(stepping_x(), navigation_x, prop_cfg.navigation);
+        do_reset_z1 =
+            navigator_z1.update(stepping_z1(), navigation_z1,
+                                prop_cfg.navigation, prop_cfg.context);
+        do_reset_z2 =
+            navigator_z2.update(stepping_z2(), navigation_z2,
+                                prop_cfg.navigation, prop_cfg.context);
+        do_reset_x = navigator_x.update(stepping_x(), navigation_x,
+                                        prop_cfg.navigation, prop_cfg.context);
 
         // Also reset when reached a surface
         do_reset_z1 |= navigation_z1.is_on_surface();
@@ -294,7 +298,8 @@ GTEST_TEST(detray_detectors, telescope_detector) {
     detail::check_consistency(tel_detector, verbose_check, tel_names);
 
     // make at least sure it is navigatable
-    navigator<decltype(tel_detector), cache_size, inspector_t> tel_navigator;
+    caching_navigator<decltype(tel_detector), cache_size, inspector_t>
+        tel_navigator;
 
     prop_state<stepping_state_t, navigation_state_t> tel_propagation(
         pilot_track, b_field_z, tel_detector);
@@ -314,8 +319,9 @@ GTEST_TEST(detray_detectors, telescope_detector) {
 
         tel_navigation.set_high_trust();
 
-        do_reset_tel = tel_navigator.update(tel_stepping(), tel_navigation,
-                                            prop_cfg.navigation);
+        do_reset_tel =
+            tel_navigator.update(tel_stepping(), tel_navigation,
+                                 prop_cfg.navigation, prop_cfg.context);
 
         do_reset_tel |= navigation_z1.is_on_surface();
         heartbeat_tel &= tel_navigation.is_alive();

@@ -18,7 +18,7 @@
 #include "detray/tracks/ray.hpp"
 #include "detray/utils/ranges.hpp"
 
-namespace detray {
+namespace detray::detail {
 
 /// A functor to add all valid intersections between the trajectory and surface
 template <template <typename, typename, bool> class intersector_t>
@@ -271,4 +271,4 @@ struct intersection_update {
     }
 };
 
-}  // namespace detray
+}  // namespace detray::detail

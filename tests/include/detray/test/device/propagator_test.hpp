@@ -10,7 +10,7 @@
 // Project include(s).
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/navigation/navigator.hpp"
+#include "detray/navigation/caching_navigator.hpp"
 #include "detray/propagator/actors.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/propagator.hpp"
@@ -50,7 +50,8 @@ constexpr std::size_t cache_size{navigation::default_cache_size};
 
 // Navigator
 template <typename detector_t, typename inspector_t>
-using navigator_w_insp_t = navigator<detector_t, cache_size, inspector_t>;
+using navigator_w_insp_t =
+    caching_navigator<detector_t, cache_size, inspector_t>;
 template <typename detector_t>
 using navigator_t = navigator_w_insp_t<detector_t, navigation::void_inspector>;
 template <typename detector_t>

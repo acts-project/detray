@@ -6,10 +6,9 @@
  */
 
 // Project include(s)
-#include "detray/navigation/navigator.hpp"
+#include "detray/navigation/caching_navigator.hpp"
 
 #include "detray/definitions/indexing.hpp"
-#include "detray/navigation/navigator.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
 
@@ -91,11 +90,13 @@ inline void check_volume_switch(state_t &state, dindex vol_id) {
 }
 
 /// Checks an entire step onto the next surface
-template <typename navigator_t, typename stepper_t, typename prop_state_t>
+template <typename navigator_t, typename stepper_t, typename prop_state_t,
+          typename context_t>
 inline void step_and_check(navigator_t &nav, stepper_t &stepper,
                            prop_state_t &propagation,
                            const navigation::config &nav_cfg,
-                           const stepping::config &step_cfg, dindex vol_id,
+                           const stepping::config &step_cfg,
+                           const context_t &ctx, dindex vol_id,
                            std::size_t n_candidates, dindex current_id,
                            dindex next_id) {
     auto &navigation = propagation._navigation;
@@ -106,7 +107,7 @@ inline void step_and_check(navigator_t &nav, stepper_t &stepper,
     navigation.set_high_trust();
     // Stepper reduced trust level
     ASSERT_TRUE(navigation.trust_level() == navigation::trust_level::e_high);
-    nav.update(stepping(), navigation, nav_cfg);
+    nav.update(stepping(), navigation, nav_cfg, ctx);
     ASSERT_TRUE(navigation.is_alive());
     // Trust level is restored
     ASSERT_EQ(navigation.trust_level(), navigation::trust_level::e_full);
@@ -138,12 +139,12 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
 
     using detector_t = decltype(toy_det);
     using inspector_t = navigation::print_inspector;
-    using navigator_t = navigator<detector_t, cache_size, inspector_t>;
+    using navigator_t = caching_navigator<detector_t, cache_size, inspector_t>;
     using constraint_t = constrained_step<scalar>;
     using stepper_t = line_stepper<test_algebra, constraint_t>;
 
     // State type in the nominal navigation (no inspectors)
-    using nav_stat_t = navigator<detector_t, cache_size>::state;
+    using nav_stat_t = caching_navigator<detector_t, cache_size>::state;
 
     // Check memory layout of intersection struct (currently 224)
     constexpr std::size_t offset{navigation::default_cache_size *
@@ -223,7 +224,7 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
     stepping.template release_step<step::constraint::e_user>();
     ASSERT_TRUE(navigation.trust_level() == trust_level::e_fair);
     // Re-navigate
-    nav.update(stepping(), navigation, nav_cfg);
+    nav.update(stepping(), navigation, nav_cfg, ctx);
     ASSERT_TRUE(navigation.is_alive());
     // Trust level is restored
     ASSERT_EQ(navigation.trust_level(), trust_level::e_full);
@@ -233,14 +234,14 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
     ASSERT_NEAR(navigation(), 9.5f, tol);
 
     // Let's immediately update, nothing should change, as there is full trust
-    nav.update(stepping(), navigation, nav_cfg);
+    nav.update(stepping(), navigation, nav_cfg, ctx);
     ASSERT_TRUE(navigation.is_alive());
     check_towards_surface<navigator_t>(navigation, 0u, 2u, 0u);
     ASSERT_NEAR(navigation(), 9.5f, tol);
 
     // Now step onto the beampipe (idx 0)
-    step_and_check(nav, stepper, propagation, nav_cfg, step_cfg, 0u, 1u, 0u,
-                   3u);
+    step_and_check(nav, stepper, propagation, nav_cfg, step_cfg, ctx, 0u, 1u,
+                   0u, 3u);
     // New target: Distance to the beampipe volume cylinder portal
     ASSERT_NEAR(navigation(), 6.f, tol);
 
@@ -248,7 +249,7 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
     stepper.step(navigation(), stepping, step_cfg);
     navigation.set_high_trust();
     ASSERT_TRUE(navigation.trust_level() == trust_level::e_high);
-    nav.update(stepping(), navigation, nav_cfg);
+    nav.update(stepping(), navigation, nav_cfg, ctx);
     ASSERT_TRUE(navigation.is_alive()) << navigation.inspector().to_string();
     ASSERT_EQ(navigation.trust_level(), trust_level::e_full);
     ASSERT_EQ(navigation.volume(), 8u);
@@ -307,7 +308,7 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
         for (std::size_t sf = 1u; sf < sf_seq.size() - 1u; ++sf) {
             // Count only the currently reachable candidates
             step_and_check(nav, stepper, propagation_cpy, nav_cfg, step_cfg,
-                           vol_id, n_candidates - sf, sf_seq[sf],
+                           ctx, vol_id, n_candidates - sf, sf_seq[sf],
                            sf_seq[sf + 1u]);
         }
 
@@ -317,14 +318,14 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
 
         // Check agianst last volume
         if (vol_id == last_vol_id) {
-            nav.update(stepping_cpy(), navigation_cpy, nav_cfg);
+            nav.update(stepping_cpy(), navigation_cpy, nav_cfg, ctx);
             ASSERT_FALSE(navigation_cpy.is_alive());
             // The status is: exited
             ASSERT_EQ(navigation_cpy.status(), status::e_exit);
             // Keep current volume id, so that nav. direction can be reversed
             ASSERT_EQ(last_vol_id, navigation_cpy.volume());
         } else {
-            nav.update(stepping_cpy(), navigation_cpy, nav_cfg);
+            nav.update(stepping_cpy(), navigation_cpy, nav_cfg, ctx);
             ASSERT_TRUE(navigation_cpy.is_alive());
         }
 
@@ -364,7 +365,7 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
 
     using detector_t = decltype(wire_det);
     using inspector_t = navigation::print_inspector;
-    using navigator_t = navigator<detector_t, cache_size, inspector_t>;
+    using navigator_t = caching_navigator<detector_t, cache_size, inspector_t>;
     using constraint_t = constrained_step<scalar>;
     using stepper_t = line_stepper<test_algebra, constraint_t>;
 
@@ -421,7 +422,7 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
     stepping.template release_step<step::constraint::e_user>();
     ASSERT_TRUE(navigation.trust_level() == trust_level::e_fair);
     // Re-navigate
-    nav.update(stepping(), navigation, nav_cfg);
+    nav.update(stepping(), navigation, nav_cfg, ctx);
     ASSERT_TRUE(navigation.is_alive());
     // Trust level is restored
     ASSERT_EQ(navigation.trust_level(), trust_level::e_full);
@@ -431,7 +432,7 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
     ASSERT_NEAR(navigation(), 250.f * unit<scalar>::mm, tol);
 
     // Let's immediately update, nothing should change, as there is full trust
-    nav.update(stepping(), navigation, nav_cfg);
+    nav.update(stepping(), navigation, nav_cfg, ctx);
     ASSERT_TRUE(navigation.is_alive());
     check_towards_surface<navigator_t>(navigation, 0u, 1u, 0u);
     ASSERT_NEAR(navigation(), 250.f * unit<scalar>::mm, tol);
@@ -440,7 +441,7 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
     stepper.step(navigation(), stepping, step_cfg);
     navigation.set_high_trust();
     ASSERT_TRUE(navigation.trust_level() == trust_level::e_high);
-    nav.update(stepping(), navigation, nav_cfg);
+    nav.update(stepping(), navigation, nav_cfg, ctx);
     ASSERT_TRUE(navigation.is_alive()) << navigation.inspector().to_string();
     ASSERT_EQ(navigation.trust_level(), trust_level::e_full);
 
@@ -488,7 +489,7 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
         for (std::size_t sf = 1u; sf < sf_seq.size() - 1u; ++sf) {
             // Count only the currently reachable candidates
             step_and_check(nav, stepper, propagation_cpy, nav_cfg, step_cfg,
-                           vol_id, n_candidates - sf, sf_seq[sf],
+                           ctx, vol_id, n_candidates - sf, sf_seq[sf],
                            sf_seq[sf + 1u]);
         }
 
@@ -498,14 +499,14 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
 
         // Check agianst last volume
         if (vol_id == last_vol_id) {
-            nav.update(stepping_cpy(), navigation_cpy, nav_cfg);
+            nav.update(stepping_cpy(), navigation_cpy, nav_cfg, ctx);
             ASSERT_FALSE(navigation_cpy.is_alive());
             // The status is: exited
             ASSERT_EQ(navigation_cpy.status(), status::e_exit);
             // Keep current volume id, so that nav. direction can be reversed
             ASSERT_EQ(last_vol_id, navigation_cpy.volume());
         } else {
-            nav.update(stepping_cpy(), navigation_cpy, nav_cfg);
+            nav.update(stepping_cpy(), navigation_cpy, nav_cfg, ctx);
             ASSERT_TRUE(navigation_cpy.is_alive())
                 << navigation_cpy.inspector().to_string();
         }
