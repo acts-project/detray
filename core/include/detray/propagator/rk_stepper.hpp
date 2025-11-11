@@ -96,6 +96,7 @@ class rk_stepper final
         /// Set the next step size
         DETRAY_HOST_DEVICE
         inline void set_next_step_size(const scalar_type step) {
+            assert(math::fabs(step) >= 1e-4f * unit<scalar_type>::mm);
             m_next_step_size = step;
         }
 

@@ -91,8 +91,9 @@ class navigator_base {
 
         // Update was completely successful (most likely case)
         if (navigation.trust_level() == navigation::trust_level::e_full) {
-            DETRAY_VERBOSE_HOST_DEVICE("Update complete: dist to next %fmm",
-                                       navigation());
+            DETRAY_VERBOSE_HOST_DEVICE(
+                "Full trust, nothing left to do: dist to next %f mm",
+                navigation());
             return false;
         }
 
@@ -123,7 +124,7 @@ class navigator_base {
                                      "Re-init: ");
         }
 
-        DETRAY_VERBOSE_HOST_DEVICE("Update complete: dist to next %fmm",
+        DETRAY_VERBOSE_HOST_DEVICE("Update complete: dist to next %f mm",
                                    navigation());
 
         return is_init;

@@ -611,16 +611,36 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
                        stepping,
                    const detray::stepping::config& cfg, const bool do_reset,
                    const material<scalar_type>* vol_mat_ptr) const {
+    DETRAY_DEBUG_HOST("Before: " << stepping());
 
     // In case of an overlap do nothing
     if (math::fabs(dist_to_next) < 1.f * unit<float>::um) {
         DETRAY_VERBOSE_HOST_DEVICE("Zero stepsize...");
+
+        // Don't allow a too small step size on next step
+        if (math::fabs(stepping.next_step_size()) < cfg.min_stepsize) {
+            stepping.set_next_step_size(math::copysign(
+                static_cast<scalar_type>(cfg.min_stepsize), dist_to_next));
+        }
+        DETRAY_DEBUG_HOST_DEVICE("Setting next stepsize: %f mm",
+                                 stepping.next_step_size());
+
         stepping.run_inspector(cfg, "Step skipped (Overlap): ", dist_to_next);
+
+        DETRAY_DEBUG_HOST("After: " << stepping());
         return true;
+    }
+
+    if (!(do_reset ||
+          math::fabs(stepping.next_step_size()) >= cfg.min_stepsize)) {
+        DETRAY_INFO_HOST("Next stepsize: " << stepping.next_step_size() << ", "
+                                           << cfg.min_stepsize);
     }
 
     // Check navigator and actor results
     assert(math::fabs(dist_to_next) != 0.f);
+    assert(do_reset ||
+           math::fabs(stepping.next_step_size()) >= cfg.min_stepsize);
     assert(!stepping().is_invalid());
 
     // Get stepper and navigator states
@@ -629,15 +649,17 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
     if (do_reset) {
         stepping.set_step_size(dist_to_next);
     } else if (stepping.next_step_size() > 0) {
+        assert(math::fabs(stepping.next_step_size()) >= cfg.min_stepsize);
         stepping.set_step_size(
             math::min(stepping.next_step_size(), dist_to_next));
     } else {
+        assert(math::fabs(stepping.next_step_size()) >= cfg.min_stepsize);
         stepping.set_step_size(
             math::max(stepping.next_step_size(), dist_to_next));
     }
 
     DETRAY_VERBOSE_HOST_DEVICE("Distance to nex: %f mm", dist_to_next);
-    DETRAY_VERBOSE_HOST_DEVICE("Take step: %f mm", stepping.step_size());
+    DETRAY_VERBOSE_HOST_DEVICE("Initial stepsize: %f mm", stepping.step_size());
 
     // Don't allow too small stepsizes, unless the navigation needs it
     const scalar_type min_stepsize{
@@ -769,6 +791,7 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
         // Error estimate is too big
         // ---> Make step size smaller and estimate error again
         else {
+            assert(stepping.step_size() * step_size_scaling(error));
             stepping.set_step_size(stepping.step_size() *
                                    step_size_scaling(error));
 
@@ -798,6 +821,25 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
             math::copysign(min_stepsize, stepping.step_size()));
     }
 
+    DETRAY_VERBOSE_HOST_DEVICE("Take step: %f mm", stepping.step_size());
+
+    // The step size estimation fot the next step
+    stepping.set_next_step_size(stepping.step_size() *
+                                step_size_scaling(error));
+
+    // Don't allow a too small step size
+    if (math::fabs(stepping.next_step_size()) < cfg.min_stepsize) {
+        stepping.set_next_step_size(
+            math::copysign(static_cast<scalar_type>(cfg.min_stepsize),
+                           stepping.next_step_size()));
+    }
+
+    DETRAY_DEBUG_HOST_DEVICE("Estimated next stepsize: %f mm",
+                             stepping.next_step_size());
+
+    assert(math::fabs(stepping.next_step_size()) >= cfg.min_stepsize);
+    assert(math::fabs(stepping.step_size()) >= cfg.min_stepsize);
+
     // Advance track state
     stepping.advance_track(sd, vol_mat_ptr);
     assert(!stepping().is_invalid());
@@ -813,19 +855,9 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
         assert(!cfg.do_covariance_transport);
     }
 
-    // The step size estimation fot the next step
-    stepping.set_next_step_size(stepping.step_size() *
-                                step_size_scaling(error));
-
-    // Don't allow a too small step size
-    if (math::fabs(stepping.next_step_size()) < cfg.min_stepsize) {
-        stepping.set_next_step_size(
-            math::copysign(static_cast<scalar_type>(cfg.min_stepsize),
-                           stepping.next_step_size()));
-    }
-
     // Run final inspection
     stepping.run_inspector(cfg, "Step complete: ", dist_to_next);
 
+    DETRAY_DEBUG_HOST("After: " << stepping());
     return true;
 }
