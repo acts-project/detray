@@ -249,6 +249,8 @@ class caching_navigator
                 navigation.status(navigation::status::e_unknown);
                 // This will run into the fair trust case below.
                 navigation.set_fair_trust();
+
+                DETRAY_VERBOSE_HOST("High trust broken:\n" << navigation);
             } else {
                 // Update navigation flow on the new candidate information
                 navigation::update_status(navigation, cfg);

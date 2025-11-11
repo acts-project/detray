@@ -207,8 +207,7 @@ DETRAY_HOST_DEVICE DETRAY_INLINE constexpr void local_navigation(
     // If not successful, the propagation setup might be broken
     if (navigation.trust_level() != navigation::trust_level::e_full) {
         // Do not exit if backward navigation starts on the outmost portal
-        if (navigation.is_on_portal() &&
-            navigation.direction() == navigation::direction::e_backward) {
+        if (navigation.is_on_portal()) {
             navigation.trust_level(detray::detail::is_invalid_value(
                                        navigation.current().volume_link)
                                        ? navigation::trust_level::e_full
@@ -255,11 +254,11 @@ DETRAY_HOST_DEVICE DETRAY_INLINE constexpr void volume_switch(
 
     // Initialize new volume. Still on portal: No need to observe overstepping
     local_navigation(track, navigation, cfg, ctx);
+    DETRAY_VERBOSE_HOST_DEVICE("Switched to volume %d", navigation.volume());
 
     // Fresh initialization, reset trust even though we are on [inner] portal
     navigation.trust_level(navigation::trust_level::e_full);
-
-    DETRAY_VERBOSE_HOST_DEVICE("Switched to volume %d", navigation.volume());
+    DETRAY_VERBOSE_HOST_DEVICE("Restored full trust");
 }
 
 /// @brief Initilaize the volume with loose configuration.
@@ -281,9 +280,12 @@ DETRAY_HOST_DEVICE DETRAY_INLINE constexpr void init_loose_cfg(
     const track_t &track, navigation_state_t &navigation,
     navigation::config loose_cfg, const context_t &ctx) {
 
-    DETRAY_VERBOSE_HOST_DEVICE(
-        "Full trust could not be restored! RESCURE MODE: Run init with "
-        "large tolerances");
+    if (navigation.trust_level() != navigation::trust_level::e_full) {
+        DETRAY_VERBOSE_HOST_DEVICE("Full trust could not be restored!");
+    } else if (navigation.cache_exhausted()) {
+        DETRAY_VERBOSE_HOST_DEVICE("Cache exhausted!");
+    }
+    DETRAY_VERBOSE_HOST_DEVICE("RESCURE MODE: Run init with large tolerances");
 
     // Use the max mask tolerance in case a track leaves the volume
     // when a sf is 'sticking' out of the portals due to the tol

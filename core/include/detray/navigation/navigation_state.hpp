@@ -605,6 +605,16 @@ class base_state : public detray::ranges::view_interface<
     }
 
     private:
+    /// @returns a string stream that prints the navigation state details
+    DETRAY_HOST
+    friend std::ostream &operator<<(std::ostream &os, const derived_t &s) {
+
+        os << detray::navigation::print_state(s)
+           << detray::navigation::print_candidates(
+                  s, {}, point3_t{0.f, 0.f, 0.f}, vector3_t{0.f, 0.f, 0.f});
+        return os;
+    }
+
     /// Our cache of candidates (intersections with any kind of surface)
     candidate_cache_t m_candidates;
 

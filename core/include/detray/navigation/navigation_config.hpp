@@ -31,7 +31,7 @@ struct config {
     /// Percentage of total track path to assume as accumulated error
     float accumulated_error{0.001f};
     /// Number of standard deviations to assume to model the scattering noise
-    int n_scattering_stddev{2};
+    int n_scattering_stddev{3};
     /// Add adaptive mask tolerance to navigation
     bool estimate_scattering_noise{true};
 
