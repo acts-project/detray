@@ -29,10 +29,6 @@ template <algebra::concepts::aos algebra_t, bool resolve_pos>
 struct ray_intersector_impl<line2D<algebra_t>, algebra_t, resolve_pos> {
 
     using algebra_type = algebra_t;
-    using scalar_type = dscalar<algebra_t>;
-    using point3_type = dpoint3D<algebra_t>;
-    using vector3_type = dvector3D<algebra_t>;
-    using transform3_type = dtransform3D<algebra_t>;
 
     template <typename surface_descr_t>
     using intersection_type =
@@ -44,8 +40,8 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t, resolve_pos> {
     // Maximum number of solutions this intersector can produce
     static constexpr std::uint8_t n_solutions{1u};
 
-    using result_type =
-        intersection_point<algebra_t, point3_type, intersection::contains_pos>;
+    using result_type = intersection_point<algebra_t, dpoint3D<algebra_t>,
+                                           intersection::contains_pos>;
 
     /// Operator function to find intersections between ray and line mask
     ///
@@ -58,21 +54,26 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t, resolve_pos> {
     //
     /// @return the intersection
     DETRAY_HOST_DEVICE constexpr result_type point_of_intersection(
-        const trajectory_type<algebra_t> &ray, const transform3_type &trf,
-        const scalar_type /*overstep_tol*/ = 0.f) const {
+        const trajectory_type<algebra_t> &ray,
+        const dtransform3D<algebra_t> &trf,
+        const dscalar<algebra_t> /*overstep_tol*/ = 0.f) const {
 
-        const vector3_type &rd = ray.dir();
-        const point3_type &ro = ray.pos();
+        using scalar_t = dscalar<algebra_t>;
+        using point3_t = dpoint3D<algebra_t>;
+        using vector3_t = dvector3D<algebra_t>;
+
+        const vector3_t &rd = ray.dir();
+        const point3_t &ro = ray.pos();
 
         // line direction
-        const vector3_type &_z = trf.z();
+        const vector3_t &_z = trf.z();
         // line center
-        const point3_type &_t = trf.translation();
+        const point3_t &_t = trf.translation();
 
         // Projection of line to track direction
-        const scalar_type zd{vector::dot(_z, rd)};
+        const scalar_t zd{vector::dot(_z, rd)};
 
-        const scalar_type denom{1.f - (zd * zd)};
+        const scalar_t denom{1.f - (zd * zd)};
 
         // Case for wire is parallel to track
         if (denom < 1e-5f) {
@@ -80,17 +81,17 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t, resolve_pos> {
         }
 
         // vector from track position to line center
-        const point3_type t2l = _t - ro;
+        const point3_t t2l = _t - ro;
 
         // t2l projection on line direction
-        const scalar_type t2l_on_line{vector::dot(t2l, _z)};
+        const scalar_t t2l_on_line{vector::dot(t2l, _z)};
 
         // t2l projection on track direction
-        const scalar_type t2l_on_track{vector::dot(t2l, rd)};
+        const scalar_t t2l_on_track{vector::dot(t2l, rd)};
 
         // path length to the point of closest approach on the track
-        const scalar_type s{1.f / denom * (t2l_on_track - t2l_on_line * zd)};
-        const point3_type glob_pos = ro + s * rd;
+        const scalar_t s{1.f / denom * (t2l_on_track - t2l_on_line * zd)};
+        const point3_t glob_pos = ro + s * rd;
 
         return {s, glob_pos};
     }
