@@ -230,8 +230,8 @@ class material_map_generator final : public factory_decorator<detector_t> {
             const auto sf_idx{m_surface_range[0] + i};
 
             // Skip line surfaces, if any are defined
-            if constexpr (detector_t::materials::template is_defined<
-                              material_rod<scalar_t>>()) {
+            if constexpr (types::contains<typename detector_t::materials,
+                                          material_rod<scalar_t>>) {
 
                 const mask_id sf_mask_id = sf.mask().id();
                 if (sf_mask_id == mask_id::e_straw_tube ||

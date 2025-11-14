@@ -37,6 +37,10 @@ concept same_as_cvref =
 template <typename T, typename U>
 concept same_as_no_const = std::same_as<std::remove_cv_t<T>, U>;
 
+/// Type identifier concept
+template <typename T>
+concept type_id = std::is_enum_v<T>;
+
 /// Index concept to access vector/matrix elements
 template <typename T>
 concept index = std::is_integral_v<T> && !std::same_as<T, bool>;

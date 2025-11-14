@@ -208,7 +208,7 @@ class grid_builder : public volume_decorator<detector_t> {
         }
 
         // Add the grid to the detector and link it to its volume
-        constexpr auto gid{detector_t::accel::template get_id<grid_t>()};
+        constexpr auto gid{types::id<typename detector_t::accel, grid_t>};
         DETRAY_DEBUG_HOST("Grid indices: m_id=" << m_id << ", gid=" << gid);
 
         det._accelerators.template push_back<gid>(m_grid);

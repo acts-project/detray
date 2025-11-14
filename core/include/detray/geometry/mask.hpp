@@ -196,7 +196,7 @@ class mask {
     ///
     /// @returns an intersection status e_inside / e_outside
     template <concepts::point point_t>
-    DETRAY_HOST_DEVICE constexpr dbool<algebra_type> is_inside(
+    DETRAY_HOST_DEVICE constexpr dbool<algebra_t> is_inside(
         const point_t& loc_p,
         const scalar_type tol =
             std::numeric_limits<scalar_type>::epsilon()) const {

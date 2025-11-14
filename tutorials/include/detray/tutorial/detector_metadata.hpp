@@ -244,8 +244,8 @@ namespace detail {
 /// During the IO, check for a 2D square shape
 /*template <typename detector_t>
 struct mask_info<io::shape_id::square2, detector_t>
-    requires detector_t::masks::template is_defined<
-                                      detray::tutorial::square>()> {
+    requires types::contains<typename detector_t::masks,
+                                      detray::tutorial::square>> {
     using type = detray::tutorial::square::shape;
     // This mask id is defined in the metadat down below and determines the
     // position of the collection of square in the detector mask tuple (store)

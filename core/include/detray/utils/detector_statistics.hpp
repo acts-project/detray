@@ -59,8 +59,8 @@ template <std::size_t I = 0u, typename store_t>
 DETRAY_HOST_DEVICE inline std::size_t n_grids(const store_t& store,
                                               std::size_t n = 0u) {
 
-    constexpr auto coll_id{store_t::value_types::to_id(I)};
-    using value_type = typename store_t::template get_type<coll_id>;
+    constexpr auto coll_id{types::id_cast<typename store_t::value_types, I>};
+    using value_type = types::get<typename store_t::value_types, coll_id>;
 
     if constexpr (detray::concepts::grid<value_type>) {
         n += store.template size<coll_id>();

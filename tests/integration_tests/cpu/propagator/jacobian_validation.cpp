@@ -630,8 +630,7 @@ bound_track_parameters<test_algebra> get_initial_parameter(
     const auto& departure_mask =
         det.mask_store().template get<mask_id>().at(mask_link.index());
 
-    using mask_t =
-        typename detector_t::mask_container::template get_type<mask_id>;
+    using mask_t = types::get<typename detector_t::masks, mask_id>;
     helix_intersector<typename mask_t::shape, test_algebra> hlx_is{};
     hlx_is.run_rtsafe = false;
     hlx_is.convergence_tolerance = helix_tolerance;
@@ -1001,8 +1000,7 @@ bound_param_vector_type get_displaced_bound_vector_helix(
         tracking_surface{det, departure_sf}.bound_to_free_vector({}, dvec);
     detail::helix<test_algebra> hlx(free_vec, field);
 
-    using mask_t =
-        typename detector_t::mask_container::template get_type<mask_id>;
+    using mask_t = types::get<typename detector_t::masks, mask_id>;
     helix_intersector<typename mask_t::shape, test_algebra> hlx_is{};
     hlx_is.run_rtsafe = false;
     hlx_is.convergence_tolerance = helix_tolerance;
@@ -1057,8 +1055,7 @@ void evaluate_jacobian_difference_helix(
     const auto& destination_mask =
         det.mask_store().template get<mask_id>().at(mask_link.index());
 
-    using mask_t =
-        typename detector_t::mask_container::template get_type<mask_id>;
+    using mask_t = types::get<typename detector_t::masks, mask_id>;
     helix_intersector<typename mask_t::shape, test_algebra> hlx_is{};
     hlx_is.run_rtsafe = false;
     hlx_is.convergence_tolerance = helix_tolerance;
