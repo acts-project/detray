@@ -55,7 +55,7 @@ inline void to_json(nlohmann::ordered_json& j, const mask_payload& m) {
 inline void from_json(const nlohmann::ordered_json& j, mask_payload& m) {
     m.shape = static_cast<mask_payload::mask_shape>(j["shape"]);
     m.volume_link = j["volume_link"];
-    m.boundaries = j["boundaries"].get<std::vector<real_io>>();
+    m.boundaries = j["boundaries"].get<std::vector<io::scalar>>();
 }
 
 inline void to_json(nlohmann::ordered_json& j, const surface_payload& s) {

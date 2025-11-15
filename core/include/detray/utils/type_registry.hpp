@@ -11,6 +11,7 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/utils/concepts.hpp"
+#include "detray/utils/invalid_values.hpp"
 #include "detray/utils/log.hpp"
 #include "detray/utils/type_list.hpp"
 
@@ -139,6 +140,26 @@ class mapped_registry : public registry_t {
     static constexpr std::size_t mapped_index(const id orig_id) {
         return index_map()[static_cast<std::size_t>(orig_id)];
     }
+
+    /// @returns the original indexd given the new @param pos in the type list
+    DETRAY_HOST_DEVICE
+    static constexpr std::size_t original_index(const std::size_t pos) {
+        std::size_t j{0u};
+        for (std::size_t i : index_map()) {
+            if (i == pos) {
+                assert(registry_t::is_valid(j));
+                return j;
+            }
+            j++;
+        }
+        return detray::detail::invalid_value<std::size_t>();
+    }
+
+    /// @returns the original id given the new @param pos in the type list
+    DETRAY_HOST_DEVICE
+    static constexpr id original_id(const std::size_t pos) {
+        return static_cast<id>(original_index(pos));
+    }
 };
 
 }  // namespace types
@@ -233,22 +254,32 @@ struct get_id<T, registry<ID, Ts...>> {
     static constexpr ID value =
         static_cast<ID>(position<typename registry<ID, Ts...>::type_list, T>);
 
+    static_assert(contains<typename registry<ID, Ts...>::type_list, T>,
+                  "Unknown type in 'get id' for type registry");
     static_assert(registry<ID, Ts...>::is_valid(value),
                   "Unmatched type ID in type registry 'id'");
 };
 
 template <typename T, typename R, class S>
 struct get_id<T, mapped_registry<R, S>> {
+    // Figure out which type list to check
+    // (use original list if 'T' is from there, otherwise try filtered list)
     using mapped_reg_t = mapped_registry<R, S>;
-    static_assert(contains<typename mapped_reg_t::orig_types, T>,
-                  "Filtered types cannot be matched to original type IDs");
+    using orig_list_t = typename mapped_reg_t::orig_types;
+    using filt_list_t = typename mapped_reg_t::type_list;
+    using type_list_t =
+        std::conditional_t<contains<orig_list_t, T>, orig_list_t, filt_list_t>;
+
+    static_assert(std::same_as<type_list_t, orig_list_t> ||
+                      (std::same_as<type_list_t, filt_list_t> &&
+                       contains<filt_list_t, T>),
+                  "Unknown type in 'get id' for mapped type registry");
 
     using id_t = typename mapped_reg_t::id;
     static constexpr id_t value =
-        static_cast<id_t>(position<typename mapped_reg_t::orig_types, T>);
-
-    static_assert(mapped_reg_t::is_valid(value),
-                  "Unmatched type ID in mapped type registry 'id'");
+        contains<orig_list_t, T>
+            ? static_cast<id_t>(position<orig_list_t, T>)
+            : mapped_reg_t::original_id(position<filt_list_t, T>);
 };
 
 template <typename R, typename T>

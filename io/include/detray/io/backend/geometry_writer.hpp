@@ -110,6 +110,7 @@ class geometry_writer {
     template <typename detector_t>
     static surface_payload to_payload(const geometry::surface<detector_t>& sf,
                                       std::size_t sf_idx) {
+        using algebra_t = typename detector_t::algebra_type;
         surface_payload sf_data;
 
         sf_data.index_in_coll = sf_idx;
@@ -118,8 +119,8 @@ class geometry_writer {
         sf_data.transform = to_payload<detector_t>(sf.transform({}));
         sf_data.masks = sf.template visit_mask<get_mask_link_payload>();
         if (sf.has_material()) {
-            sf_data.material =
-                sf.template visit_material<get_material_link_payload>();
+            sf_data.material = sf.template visit_material<
+                get_material_link_payload<algebra_t>>();
         }
         sf_data.source = sf.source();
 
@@ -187,6 +188,7 @@ class geometry_writer {
     };
 
     /// Retrieve @c material_link_payload from material_store element
+    template <detray::concepts::algebra algebra_t>
     struct get_material_link_payload {
         template <typename material_group_t, typename index_t>
         constexpr auto operator()(const material_group_t&,
@@ -194,8 +196,13 @@ class geometry_writer {
             using material_t = typename material_group_t::value_type;
 
             // Find the correct material type index
-            return detail::basic_converter::to_payload(
-                io::detail::get_id<material_t>(), index);
+            if constexpr (detray::concepts::grid<material_t>) {
+                return detail::basic_converter::to_payload(
+                    io::detail::get_id<material_t>(), index);
+            } else {
+                return detail::basic_converter::to_payload(
+                    io::detail::get_id<algebra_t, material_t>(), index);
+            }
         }
     };
 
@@ -210,7 +217,7 @@ class geometry_writer {
             auto id{acc_links_payload::type_id::unknown};
 
             // Only convert grids
-            if constexpr (detray::concepts::grid<accel_t>) {
+            if constexpr (detray::concepts::surface_grid<accel_t>) {
                 id = io::detail::get_id<accel_t>();
             }
 

@@ -8,6 +8,7 @@
 // Project include(s)
 #include "detray/geometry/shapes/unmasked.hpp"
 
+#include "detray/geometry/concepts.hpp"
 #include "detray/geometry/mask.hpp"
 
 // Detray test include(s)
@@ -26,6 +27,9 @@ constexpr scalar tol{1e-7f};
 
 /// This tests the basic functionality of an unmasked plane
 GTEST_TEST(detray_masks, unmasked) {
+
+    static_assert(concepts::shape<unmasked<>, test_algebra>);
+
     point3 p2 = {0.5f, -9.f, 0.f};
 
     mask<unmasked<>, test_algebra> u{};

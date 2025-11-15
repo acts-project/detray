@@ -7,6 +7,7 @@
 
 // Project include(s)
 #include "detray/definitions/units.hpp"
+#include "detray/geometry/concepts.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes/cylinder2D.hpp"
 #include "detray/geometry/shapes/cylinder3D.hpp"
@@ -31,6 +32,9 @@ constexpr scalar hz{4.f * unit<scalar>::mm};
 
 /// This tests the basic functionality of a 2D cylinder
 GTEST_TEST(detray_masks, cylinder2D) {
+
+    static_assert(concepts::shape<cylinder2D, test_algebra>);
+    static_assert(concepts::cylindrical_shape<cylinder2D, test_algebra>);
 
     point3 p2_in = {r, -1.f, r};
     point3 p2_edge = {r, hz, r};
@@ -102,6 +106,9 @@ GTEST_TEST(detray_masks, cylinder2D_ratio_test) {
 
 /// This tests the basic functionality of a 3D cylinder
 GTEST_TEST(detray_masks, cylinder3D) {
+
+    static_assert(concepts::shape<cylinder3D, test_algebra>);
+    static_assert(concepts::cylindrical_shape<cylinder3D, test_algebra>);
 
     point3 p3_in = {r, 0.f, -1.f};
     point3 p3_edge = {0.f, r, hz};

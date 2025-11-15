@@ -10,7 +10,7 @@
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes/line.hpp"
 #include "detray/geometry/surface_descriptor.hpp"
-#include "detray/materials/detail/concepts.hpp"
+#include "detray/materials/concepts.hpp"
 #include "detray/materials/material.hpp"
 #include "detray/materials/material_rod.hpp"
 #include "detray/materials/material_slab.hpp"
