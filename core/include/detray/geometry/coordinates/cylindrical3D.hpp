@@ -66,6 +66,16 @@ struct cylindrical3D {
         return cylindrical3D<algebra_t>::global_to_local(trf, p);
     }
 
+    /// @returns the normal vector in global coordinates given a local position
+    /// @param p
+    DETRAY_HOST_DEVICE static inline vector3_type normal(
+        const transform3_type &trf, const point3_type &p) {
+        const vector3_type local_normal{math::cos(p[1]), math::sin(p[1]), 0.f};
+
+        // normal vector in global coordinate
+        return trf.vector_to_global(local_normal);
+    }
+
 };  // struct cylindrical3D
 
 }  // namespace detray

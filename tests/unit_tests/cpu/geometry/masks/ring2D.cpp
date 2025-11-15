@@ -9,6 +9,7 @@
 #include "detray/geometry/shapes/ring2D.hpp"
 
 #include "detray/definitions/units.hpp"
+#include "detray/geometry/concepts.hpp"
 #include "detray/geometry/mask.hpp"
 
 // Detray test include(s)
@@ -28,6 +29,9 @@ constexpr scalar tol{1e-5f};
 
 /// This tests the basic functionality of a ring
 GTEST_TEST(detray_masks, ring2D) {
+
+    static_assert(concepts::shape<ring2D, test_algebra>);
+    static_assert(concepts::planar_shape<ring2D, test_algebra>);
 
     point3 p2_pl_in = {0.5f, -2.f, 0.f};
     point3 p2_pl_edge = {0.f, 3.5f, 0.f};

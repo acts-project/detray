@@ -9,6 +9,7 @@
 #include "detray/geometry/coordinates/cylindrical2D.hpp"
 
 #include "detray/definitions/units.hpp"
+#include "detray/geometry/concepts.hpp"
 #include "detray/geometry/coordinates/concentric_cylindrical2D.hpp"
 
 // Detray test include(s)
@@ -47,6 +48,9 @@ GTEST_TEST(detray_coordinates, cylindrical2D) {
 
     const cylindrical2D<test_algebra> c2;
 
+    static_assert(concepts::coordinate_frame<cylindrical2D<test_algebra>>);
+    static_assert(concepts::cylindrical_frame<cylindrical2D<test_algebra>>);
+
     // Global to local transformation
     const point3 local = c2.global_to_local_3D(trf, global1, d);
 
@@ -79,6 +83,9 @@ GTEST_TEST(detray_coordinates, concentric_cylindrical2D) {
     const scalar r{2.f};
 
     const concentric_cylindrical2D<test_algebra> c2;
+
+    static_assert(
+        concepts::coordinate_frame<concentric_cylindrical2D<test_algebra>>);
 
     // Global to local transformation
     const point3 local3 = c2.global_to_local_3D(trf, global1, {});
