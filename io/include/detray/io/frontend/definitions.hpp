@@ -7,14 +7,22 @@
 
 #pragma once
 
-#include <detray/definitions/detail/qualifiers.hpp>
+// Project iunclude(s)
+#include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/geometry/coordinates/coordinates.hpp"
+#include "detray/geometry/shapes.hpp"
+#include "detray/materials/material_map.hpp"
+#include "detray/materials/material_rod.hpp"
+#include "detray/materials/material_slab.hpp"
+#include "detray/utils/type_registry.hpp"
+
+// System include(s)
 #include <ostream>
-namespace detray {
 
-using real_io = double;
+/// The following enums are global for all detectors
+namespace detray::io {
 
-/// The following enums are defined per detector in the detector metadata
-namespace io {
+using scalar = double;
 
 enum class format { json = 0u };
 
@@ -37,6 +45,13 @@ enum class shape_id : unsigned int {
     unknown = n_shapes
 };
 
+/// Register the mask shapes to the IO @c shape_id enum
+using shape_registry =
+    types::registry<shape_id, annulus2D, cuboid3D, cylinder2D, cylinder3D,
+                    concentric_cylinder2D, rectangle2D, ring2D, trapezoid2D,
+                    line_square, line_circular, single3D<0>, single3D<1>,
+                    single3D<2>>;
+
 /// Enumerate the different material types
 enum class material_id : unsigned int {
     // Material texture (grid) shapes
@@ -56,6 +71,16 @@ enum class material_id : unsigned int {
     unknown = n_mats
 };
 
+/// Register the material types to the @c material_id enum
+template <detray::concepts::algebra algebra_t>
+using material_registry =
+    types::registry<io::material_id, polar2D<algebra_t>, cartesian2D<algebra_t>,
+                    cartesian3D<algebra_t>, concentric_cylindrical2D<algebra_t>,
+                    cylindrical2D<algebra_t>, cylindrical3D<algebra_t>,
+                    material_slab<dscalar<algebra_t>>,
+                    material_rod<dscalar<algebra_t>>,
+                    material<dscalar<algebra_t>>>;
+
 /// Enumerate the different acceleration data structures
 enum class accel_id : unsigned int {
     brute_force = 0u,                // try all
@@ -68,6 +93,16 @@ enum class accel_id : unsigned int {
     n_accel = 7u,
     unknown = n_accel
 };
+
+/// Register the grid shapes to the @c accel_id enum
+/// @note the first type corresponds to a non-grid type in the enum
+/// (brute force)
+template <detray::concepts::algebra algebra_t>
+using frame_registry =
+    types::registry<io::accel_id, void, cartesian2D<algebra_t>,
+                    cartesian3D<algebra_t>, polar2D<algebra_t>,
+                    concentric_cylindrical2D<algebra_t>,
+                    cylindrical2D<algebra_t>, cylindrical3D<algebra_t>>;
 
 #define _enum_print(x) \
     case x:            \
@@ -141,6 +176,4 @@ DETRAY_HOST inline std::ostream& operator<<(std::ostream& os, accel_id aid) {
 
 #undef _enum_print
 
-}  // namespace io
-
-}  // namespace detray
+}  // namespace detray::io

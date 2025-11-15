@@ -13,7 +13,7 @@
 #include "detray/definitions/pdg_particle.hpp"
 #include "detray/definitions/track_parametrization.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/materials/detail/concepts.hpp"
+#include "detray/materials/concepts.hpp"
 #include "detray/materials/detail/material_accessor.hpp"
 #include "detray/materials/interaction.hpp"
 #include "detray/propagator/base_actor.hpp"

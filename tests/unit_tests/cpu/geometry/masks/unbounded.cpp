@@ -9,6 +9,7 @@
 #include "detray/geometry/shapes/unbounded.hpp"
 
 #include "detray/definitions/units.hpp"
+#include "detray/geometry/concepts.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes/rectangle2D.hpp"
 
@@ -36,6 +37,9 @@ GTEST_TEST(detray_masks, unbounded) {
 
     using shape_t = rectangle2D;
     using unbounded_t = unbounded<shape_t>;
+
+    static_assert(concepts::shape<unbounded_t, test_algebra>);
+    static_assert(concepts::planar_shape<unbounded_t, test_algebra>);
 
     constexpr scalar h{20.f * unit<scalar>::mm};
 

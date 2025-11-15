@@ -55,7 +55,7 @@ inline void to_json(nlohmann::ordered_json& j, const material_payload& m) {
 }
 
 inline void from_json(const nlohmann::ordered_json& j, material_payload& m) {
-    m.params = j["params"].get<std::array<real_io, 7>>();
+    m.params = j["params"].get<std::array<io::scalar, 7>>();
 }
 
 inline void to_json(nlohmann::ordered_json& j, const material_slab_payload& m) {

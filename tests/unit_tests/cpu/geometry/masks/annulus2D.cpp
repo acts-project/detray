@@ -10,6 +10,7 @@
 
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/geometry/concepts.hpp"
 #include "detray/geometry/mask.hpp"
 
 // Detray test include(s)
@@ -29,6 +30,9 @@ constexpr scalar tol{1e-5f};
 
 /// This tests the basic functionality of a stereo annulus
 GTEST_TEST(detray_masks, annulus2D) {
+
+    static_assert(concepts::shape<annulus2D, test_algebra>);
+    static_assert(concepts::planar_shape<annulus2D, test_algebra>);
 
     constexpr scalar minR{7.2f * unit<scalar>::mm};
     constexpr scalar maxR{12.0f * unit<scalar>::mm};

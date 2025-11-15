@@ -72,8 +72,8 @@ GTEST_TEST(io, json_axis_payload) {
     ea.binning = detray::axis::binning::e_regular;
     ea.bounds = detray::axis::bounds::e_circular;
     ea.label = detray::axis::label::e_phi;
-    ea.edges = {-detray::constant<detray::real_io>::pi,
-                detray::constant<detray::real_io>::pi};
+    ea.edges = {-detray::constant<detray::io::scalar>::pi,
+                detray::constant<detray::io::scalar>::pi};
     ea.bins = 10UL;
 
     nlohmann::ordered_json je;
@@ -128,15 +128,17 @@ GTEST_TEST(io, json_grid_payload) {
     std::vector<detray::io::grid_bin_payload<>> bins = {
         {{0u, 1u}, {0u, 2u}}, {{1u, 1u}, {1u, 2u}}, {{2u, 1u}, {2u, 2u}}};
 
-    detray::io::axis_payload a0{
-        detray::axis::binning::e_regular, detray::axis::bounds::e_circular,
-        detray::axis::label::e_phi, 3u,
-        std::vector<detray::real_io>{-detray::constant<detray::real_io>::pi,
-                                     detray::constant<detray::real_io>::pi}};
+    detray::io::axis_payload a0{detray::axis::binning::e_regular,
+                                detray::axis::bounds::e_circular,
+                                detray::axis::label::e_phi, 3u,
+                                std::vector<detray::io::scalar>{
+                                    -detray::constant<detray::io::scalar>::pi,
+                                    detray::constant<detray::io::scalar>::pi}};
 
-    detray::io::axis_payload a1{
-        detray::axis::binning::e_regular, detray::axis::bounds::e_closed,
-        detray::axis::label::e_r, 2u, std::vector<detray::real_io>{0.f, 2.f}};
+    detray::io::axis_payload a1{detray::axis::binning::e_regular,
+                                detray::axis::bounds::e_closed,
+                                detray::axis::label::e_r, 2u,
+                                std::vector<detray::io::scalar>{0.f, 2.f}};
 
     detray::io::grid_payload<> g;
     g.grid_link = {detray::io::grid_payload<>::grid_type::polar2_grid, 12u};
