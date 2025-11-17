@@ -76,7 +76,7 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t, resolve_pos> {
         const scalar_t denom{1.f - (zd * zd)};
 
         // Case for wire is parallel to track
-        if (denom < 1e-5f) {
+        if (denom < 1e-5f) [[unlikely]] {
             return {};
         }
 

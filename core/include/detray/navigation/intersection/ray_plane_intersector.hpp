@@ -74,7 +74,7 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, resolve_pos> {
         const scalar_t denom = vector::dot(rd, sn);
 
         // this is dangerous
-        if (denom == 0.f) {
+        if (denom == 0.f) [[unlikely]] {
             return {};
         }
 

@@ -94,7 +94,7 @@ DETRAY_HOST_DEVICE DETRAY_INLINE constexpr bool update_candidate(
     using scalar_t = dscalar<algebra_t>;
 
     // Invalid intersection result cannot be updated
-    if (candidate.sf_desc.barcode().is_invalid()) {
+    if (candidate.sf_desc.barcode().is_invalid()) [[unlikely]] {
         return false;
     }
 
@@ -205,7 +205,8 @@ DETRAY_HOST_DEVICE DETRAY_INLINE constexpr void local_navigation(
     navigation::update_status(navigation, cfg);
 
     // If not successful, the propagation setup might be broken
-    if (navigation.trust_level() != navigation::trust_level::e_full) {
+    if (navigation.trust_level() != navigation::trust_level::e_full)
+        [[unlikely]] {
         // Do not exit if backward navigation starts on the outmost portal
         if (navigation.is_on_portal()) {
             navigation.trust_level(detray::detail::is_invalid_value(
@@ -241,7 +242,8 @@ DETRAY_HOST_DEVICE DETRAY_INLINE constexpr void volume_switch(
     const track_t &track, navigation_state_t &navigation,
     const navigation::config &cfg, const context_t &ctx) {
     // Navigation reached the end of the detector world
-    if (detray::detail::is_invalid_value(navigation.current().volume_link)) {
+    if (detray::detail::is_invalid_value(navigation.current().volume_link))
+        [[unlikely]] {
         DETRAY_VERBOSE_HOST_DEVICE("Reached end of detector: ");
         navigation.exit();
         return;
@@ -299,7 +301,7 @@ DETRAY_HOST_DEVICE DETRAY_INLINE constexpr void init_loose_cfg(
 
     // Unrecoverable
     if (navigation.trust_level() != navigation::trust_level::e_full ||
-        navigation.cache_exhausted()) {
+        navigation.cache_exhausted()) [[unlikely]] {
         navigation.abort("No reachable surfaces");
     }
 }

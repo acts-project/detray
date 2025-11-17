@@ -483,7 +483,7 @@ detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
                    inspector_t, flags_v>::state::dtds() const -> vector3_type {
 
     // In case there was no step before
-    if (this->path_length() == 0.f) {
+    if (this->path_length() == 0.f) [[unlikely]] {
         const point3_type pos = (*this)().pos();
 
         const auto bvec_tmp = this->m_magnetic_field.at(pos[0], pos[1], pos[2]);
@@ -511,7 +511,7 @@ DETRAY_HOST_DEVICE inline auto detray::rk_stepper<
     -> scalar_type {
 
     // In case there was no step before
-    if (this->path_length() == 0.f) {
+    if (this->path_length() == 0.f) [[unlikely]] {
         return this->dqopds((*this)().qop(), vol_mat_ptr);
     }
 
@@ -614,7 +614,7 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
     DETRAY_DEBUG_HOST("Before: " << stepping());
 
     // In case of an overlap do nothing
-    if (math::fabs(dist_to_next) < 1.f * unit<float>::um) {
+    if (math::fabs(dist_to_next) < 1.f * unit<float>::um) [[unlikely]] {
         DETRAY_VERBOSE_HOST_DEVICE("Zero stepsize...");
 
         // Don't allow a too small step size on next step

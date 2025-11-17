@@ -69,7 +69,7 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, resolve_pos> {
         result_type results;
 
         switch (qe.solutions()) {
-            case 2: {
+            [[likely]] case 2: {
                 results[1].path = qe.larger();
                 results[1].point = ray.pos() + qe.larger() * ray.dir();
                 // If there are two solutions, reuse the case for a single
@@ -82,7 +82,7 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, resolve_pos> {
                 results[0].point = ray.pos() + qe.smaller() * ray.dir();
                 break;
             }
-            case 0: { /* Do nothing */
+            [[unlikely]] case 0: { /* Do nothing */
             }
         }
 
