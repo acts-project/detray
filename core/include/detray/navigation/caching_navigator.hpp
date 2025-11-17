@@ -156,7 +156,7 @@ class caching_navigator
                        this->detector().volumes().size());
 
             // Insert the first candidate
-            if (this->n_candidates() == 0) {
+            if (this->n_candidates() == 0) [[unlikely]] {
                 this->candidates()[0] = new_candidate;
                 this->last_index(this->last_index() + 1);
                 assert(this->next_index() <= this->last_index() + 1);
@@ -182,7 +182,7 @@ class caching_navigator
 
             const auto idxu{static_cast<std::size_t>(idx)};
             if (is_clash_at_pos(idxu) ||
-                ((idxu > 0u) && is_clash_at_pos(idxu - 1u))) {
+                ((idxu > 0u) && is_clash_at_pos(idxu - 1u))) [[unlikely]] {
                 return;
             }
 
