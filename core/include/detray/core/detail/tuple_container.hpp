@@ -27,8 +27,6 @@ namespace detray::detail {
 
 /// @brief detray tuple wrapper.
 ///
-/// @tparam An enum of type IDs that needs to match the [value] types of the
-/// @c Ts pack.
 /// @tparam tuple_t is the type of the underlying tuple container
 /// @tparam Ts are the types of tuple elements. They need to define their own
 /// vecmem view type in order to be managed by the container when moving data

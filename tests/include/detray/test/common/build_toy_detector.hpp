@@ -519,9 +519,8 @@ inline void add_cylinder_grid(
     using scalar_t = dscalar<typename detector_t::algebra_type>;
 
     constexpr auto grid_id = detector_t::accel::id::e_cylinder2_grid;
+    using cyl_grid_t = types::get<typename detector_t::accel, grid_id>;
 
-    using cyl_grid_t =
-        typename detector_t::accelerator_container::template get_type<grid_id>;
     using grid_builder_t =
         grid_builder<detector_t, cyl_grid_t, detray::fill_by_pos>;
 
@@ -556,9 +555,8 @@ inline void add_disc_grid(
     using scalar_t = dscalar<typename detector_t::algebra_type>;
 
     constexpr auto grid_id = detector_t::accel::id::e_disc_grid;
+    using disc_grid_t = types::get<typename detector_t::accel, grid_id>;
 
-    using disc_grid_t =
-        typename detector_t::accelerator_container::template get_type<grid_id>;
     using grid_builder_t =
         grid_builder<detector_t, disc_grid_t, detray::fill_by_pos>;
 

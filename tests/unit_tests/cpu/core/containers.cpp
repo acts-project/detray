@@ -111,9 +111,17 @@ GTEST_TEST(detray_core, tuple_container) {
 
 GTEST_TEST(detray_core, vector_multi_store) {
 
+    enum class type_ids : std::uint_least8_t {
+        e_size = 0u,
+        e_float = 1u,
+        e_double = 2u,
+    };
+
+    using enum type_ids;
+
     using container_t =
-        regular_multi_store<std::size_t, empty_context, std::tuple,
-                            vecmem::vector, std::size_t, float, double>;
+        regular_multi_store<type_ids, empty_context, std::tuple, vecmem::vector,
+                            std::size_t, float, double>;
 
     // Vecmem memory resource
     vecmem::host_memory_resource resource;
@@ -123,27 +131,27 @@ GTEST_TEST(detray_core, vector_multi_store) {
 
     // Base container function check
     EXPECT_EQ(vector_store.n_collections(), 3u);
-    EXPECT_EQ(vector_store.empty<0>(), true);
-    EXPECT_EQ(vector_store.empty<1>(), true);
-    EXPECT_EQ(vector_store.empty<2>(), true);
-    EXPECT_EQ(vector_store.size<0>(), 0u);
-    EXPECT_EQ(vector_store.size<1>(), 0u);
-    EXPECT_EQ(vector_store.size<2>(), 0u);
+    EXPECT_EQ(vector_store.empty<e_size>(), true);
+    EXPECT_EQ(vector_store.empty<e_float>(), true);
+    EXPECT_EQ(vector_store.empty<e_double>(), true);
+    EXPECT_EQ(vector_store.size<e_size>(), 0u);
+    EXPECT_EQ(vector_store.size<e_float>(), 0u);
+    EXPECT_EQ(vector_store.size<e_double>(), 0u);
 
     // Add elements to the container
-    vector_store.push_back<0>(1u);
-    vector_store.emplace_back<0>(empty_context{}, 2u);
-    vector_store.push_back<1>(3.1f);
-    vector_store.emplace_back<1>(empty_context{}, 4.5f);
-    vector_store.push_back<2>(5.5);
-    vector_store.emplace_back<2>(empty_context{}, 6.f);
+    vector_store.push_back<e_size>(1u);
+    vector_store.emplace_back<e_size>(empty_context{}, 2u);
+    vector_store.push_back<e_float>(3.1f);
+    vector_store.emplace_back<e_float>(empty_context{}, 4.5f);
+    vector_store.push_back<e_double>(5.5);
+    vector_store.emplace_back<e_double>(empty_context{}, 6.f);
 
-    EXPECT_EQ(vector_store.empty<0>(), false);
-    EXPECT_EQ(vector_store.empty<1>(), false);
-    EXPECT_EQ(vector_store.empty<2>(), false);
-    EXPECT_EQ(vector_store.size<0>(), 2u);
-    EXPECT_EQ(vector_store.size<1>(), 2u);
-    EXPECT_EQ(vector_store.size<2>(), 2u);
+    EXPECT_EQ(vector_store.empty<e_size>(), false);
+    EXPECT_EQ(vector_store.empty<e_float>(), false);
+    EXPECT_EQ(vector_store.empty<e_double>(), false);
+    EXPECT_EQ(vector_store.size<e_size>(), 2u);
+    EXPECT_EQ(vector_store.size<e_float>(), 2u);
+    EXPECT_EQ(vector_store.size<e_double>(), 2u);
 
     vecmem::vector<std::size_t> int_vec{3u, 4u, 5u};
     vector_store.insert(int_vec);
@@ -154,30 +162,30 @@ GTEST_TEST(detray_core, vector_multi_store) {
     vector_store.insert(vecmem::vector<double>{10.5, 7.6});
 
     // int collectiont
-    EXPECT_EQ(vector_store.size<0>(), 5u);
-    EXPECT_EQ(vector_store.get<0>()[0], 1u);
-    EXPECT_EQ(vector_store.get<0>()[1], 2u);
-    EXPECT_EQ(vector_store.get<0>()[2], 3u);
-    EXPECT_EQ(vector_store.get<0>()[3], 4u);
-    EXPECT_EQ(vector_store.get<0>()[4], 5u);
+    EXPECT_EQ(vector_store.size<e_size>(), 5u);
+    EXPECT_EQ(vector_store.get<e_size>()[0], 1u);
+    EXPECT_EQ(vector_store.get<e_size>()[1], 2u);
+    EXPECT_EQ(vector_store.get<e_size>()[2], 3u);
+    EXPECT_EQ(vector_store.get<e_size>()[3], 4u);
+    EXPECT_EQ(vector_store.get<e_size>()[4], 5u);
 
     // float collectiont
-    EXPECT_EQ(vector_store.size<1>(), 3u);
-    EXPECT_NEAR(vector_store.get<1>()[0], 3.1f, tol_single);
-    EXPECT_NEAR(vector_store.get<1>()[1], 4.5f, tol_single);
-    EXPECT_NEAR(vector_store.get<1>()[2], 12.1f, tol_single);
+    EXPECT_EQ(vector_store.size<e_float>(), 3u);
+    EXPECT_NEAR(vector_store.get<e_float>()[0], 3.1f, tol_single);
+    EXPECT_NEAR(vector_store.get<e_float>()[1], 4.5f, tol_single);
+    EXPECT_NEAR(vector_store.get<e_float>()[2], 12.1f, tol_single);
 
     // double collectiont
-    EXPECT_EQ(vector_store.size<2>(), 4u);
-    EXPECT_NEAR(vector_store.get<2>()[0], 5.5, tol_double);
-    EXPECT_NEAR(vector_store.get<2>()[1], 6., tol_double);
-    EXPECT_NEAR(vector_store.get<2>()[2], 10.5, tol_double);
-    EXPECT_NEAR(vector_store.get<2>()[3], 7.6, tol_double);
+    EXPECT_EQ(vector_store.size<e_double>(), 4u);
+    EXPECT_NEAR(vector_store.get<e_double>()[0], 5.5, tol_double);
+    EXPECT_NEAR(vector_store.get<e_double>()[1], 6., tol_double);
+    EXPECT_NEAR(vector_store.get<e_double>()[2], 10.5, tol_double);
+    EXPECT_NEAR(vector_store.get<e_double>()[3], 7.6, tol_double);
 
     // call functor
-    container_t::single_link l0{0u, 0u};
-    container_t::single_link l1{1u, 0u};
-    container_t::single_link l2{2u, 0u};
+    container_t::single_link l0{e_size, 0u};
+    container_t::single_link l1{e_float, 0u};
+    container_t::single_link l2{e_double, 0u};
     EXPECT_EQ(vector_store.visit<test_func>(l0), 5u);
     EXPECT_EQ(vector_store.visit<test_func>(l1), 3u);
     EXPECT_EQ(vector_store.visit<test_func>(l2), 4u);

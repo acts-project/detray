@@ -13,6 +13,7 @@
 #include "detray/builders/material_map_generator.hpp"
 #include "detray/builders/surface_factory_interface.hpp"
 #include "detray/builders/volume_builder_interface.hpp"
+#include "detray/geometry/concepts.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/materials/material_map.hpp"
 
@@ -285,14 +286,10 @@ struct add_sf_material_map {
         [[maybe_unused]] material_store_t& mat_store) const {
 
         using mask_t = typename mask_coll_t::value_type;
-        using mask_shape_t = typename mask_t::shape;
-
-        constexpr bool is_line{
-            std::is_same_v<mask_shape_t, detray::line_square> ||
-            std::is_same_v<mask_shape_t, detray::line_circular>};
 
         // No material maps for line surfaces
-        if constexpr (!is_line && mask_shape_t::dim == DIM) {
+        if constexpr (!concepts::line_object<mask_t> &&
+                      mask_t::shape::dim == DIM) {
             // Map a grid onto the surface mask (the boundaries are taken from
             // the @c axis_spans variable, if it is not empty)
             mask_t sf_mask = {};
@@ -325,7 +322,7 @@ struct add_sf_material_map {
                 typename decltype(mat_grid)::template type<false>;
 
             // Not every mask shape might be used for material maps
-            if constexpr (materials_t::template is_defined<non_owning_t>()) {
+            if constexpr (types::contains<materials_t, non_owning_t>) {
                 DETRAY_VERBOSE_HOST("Filling material grid...");
 
                 // Add the material slabs to the grid
@@ -335,8 +332,7 @@ struct add_sf_material_map {
                 }
 
                 // Add the material grid to the detector
-                constexpr auto gid{
-                    materials_t::template get_id<non_owning_t>()};
+                constexpr auto gid{types::id<materials_t, non_owning_t>};
                 mat_store.template push_back<gid>(mat_grid);
                 DETRAY_VERBOSE_HOST("Built material grid:" << gid << ":\n"
                                                            << mat_grid.axes());

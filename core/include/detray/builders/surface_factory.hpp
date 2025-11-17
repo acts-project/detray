@@ -18,6 +18,7 @@
 #include "detray/materials/material_slab.hpp"
 #include "detray/utils/log.hpp"
 #include "detray/utils/ranges.hpp"
+#include "detray/utils/type_registry.hpp"
 
 // System include(s)
 #include <algorithm>
@@ -167,21 +168,22 @@ class surface_factory : public surface_factory_interface<detector_t> {
             return {surfaces_offset, surfaces_offset};
         }
 
-        constexpr auto mask_id = detector_t::masks::template get_id<
-            mask<mask_shape_t, algebra_t, volume_link_t>>();
-        if constexpr (static_cast<std::size_t>(mask_id) >=
-                      detector_t::masks::n_types) {
+        using mask_t = mask<mask_shape_t, algebra_t, volume_link_t>;
+
+        if constexpr (!types::contains<typename detector_t::masks, mask_t>) {
             std::stringstream err_str{};
-            err_str << "Cannot match shape type to mask ID: Found "
-                    << mask_shape_t::name << " at mask id " << mask_id;
+            err_str << "Could not find mask type '" << mask_shape_t::name
+                    << "' in detector";
 
             DETRAY_FATAL_HOST(err_str.str());
             throw std::invalid_argument(err_str.str());
         } else {
-
             using surface_t = typename detector_t::surface_type;
             using mask_link_t = typename surface_t::mask_link;
             using material_link_t = typename surface_t::material_link;
+
+            constexpr auto mask_id{
+                types::id<typename detector_t::masks, mask_t>};
 
             // The material will be added in a later step
             constexpr auto no_material{surface_t::material_id::e_none};

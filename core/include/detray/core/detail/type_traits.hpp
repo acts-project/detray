@@ -26,7 +26,7 @@ template <typename>
 struct contains_grids;
 
 template <class ID, typename... Ts>
-struct contains_grids<type_registry<ID, Ts...>> {
+struct contains_grids<types::registry<ID, Ts...>> {
     static constexpr bool value{(concepts::grid<Ts> || ...)};
 };
 
@@ -40,7 +40,7 @@ template <typename>
 struct contains_surface_grids;
 
 template <class ID, typename... Ts>
-struct contains_surface_grids<type_registry<ID, Ts...>> {
+struct contains_surface_grids<types::registry<ID, Ts...>> {
     static constexpr bool value{(concepts::surface_grid<Ts> || ...)};
 };
 
@@ -58,7 +58,7 @@ template <typename>
 struct contains_material_slabs {};
 
 template <class ID, typename... Ts>
-struct contains_material_slabs<type_registry<ID, Ts...>> {
+struct contains_material_slabs<types::registry<ID, Ts...>> {
     static constexpr bool value{(concepts::material_slab<Ts> || ...)};
 };
 
@@ -73,7 +73,7 @@ template <typename>
 struct contains_material_rods {};
 
 template <class ID, typename... Ts>
-struct contains_material_rods<type_registry<ID, Ts...>> {
+struct contains_material_rods<types::registry<ID, Ts...>> {
     static constexpr bool value{(concepts::material_rod<Ts> || ...)};
 };
 
@@ -88,7 +88,7 @@ template <typename>
 struct contains_homogeneous_material {};
 
 template <class ID, typename... Ts>
-struct contains_homogeneous_material<type_registry<ID, Ts...>> {
+struct contains_homogeneous_material<types::registry<ID, Ts...>> {
     static constexpr bool value{(concepts::homogeneous_material<Ts> || ...)};
 };
 
@@ -103,7 +103,7 @@ template <typename>
 struct contains_material_maps {};
 
 template <class ID, typename... Ts>
-struct contains_material_maps<type_registry<ID, Ts...>> {
+struct contains_material_maps<types::registry<ID, Ts...>> {
     static constexpr bool value{(concepts::material_map<Ts> || ...)};
 };
 
