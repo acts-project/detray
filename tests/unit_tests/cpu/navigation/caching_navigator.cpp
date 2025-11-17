@@ -125,7 +125,7 @@ inline void step_and_check(navigator_t &nav, stepper_t &stepper,
 }  // namespace detray
 
 /// This tests the construction and general methods of the navigator
-GTEST_TEST(detray_navigation, navigator_toy_geometry) {
+GTEST_TEST(detray_navigation, caching_navigator_toy_geometry) {
     using namespace detray;
     using namespace detray::navigation;
 
@@ -347,7 +347,7 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
     ASSERT_TRUE(navigation.finished()) << navigation.inspector().to_string();
 }
 
-GTEST_TEST(detray_navigation, navigator_wire_chamber) {
+GTEST_TEST(detray_navigation, caching_navigator_wire_chamber) {
 
     using namespace detray;
     using namespace detray::navigation;

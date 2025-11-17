@@ -216,7 +216,8 @@ class direct_navigator {
         DETRAY_DEBUG_HOST(" -> Trust level: " << navigation.trust_level());
 
         // Do not resurrect a failed/finished navigation state
-        assert(navigation.is_alive());
+        assert(navigation.is_alive() ||
+               navigation.status() == navigation::status::e_unknown);
         assert(!track.is_invalid());
 
         // If the last external was reached, the navigation is finished

@@ -405,6 +405,7 @@ DETRAY_HOST_DEVICE constexpr decltype(auto) visit_helper(
         functor_t, const types::front<typename registry_t::type_list>&,
         Args...>;
 
+    // Check the next index
     if constexpr (sizeof...(remaining_idcs) >= 1u) {
         using next_elem_t = types::at<registry_t, current_idx + 1u>;
         using next_return_t =

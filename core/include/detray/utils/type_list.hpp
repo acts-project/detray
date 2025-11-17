@@ -137,7 +137,7 @@ template <typename L, typename N>
 using push_front = typename do_push_front<N, L>::type;
 /// @}
 
-/// Traits for the type list
+/// Traits for the type list/registry
 /// @{
 namespace detail {
 

@@ -35,7 +35,7 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
 
     using algebra_type = algebra_t;
     using frame_type = concentric_cylindrical2D<algebra_t>;
-    using point_type = dpoint2D<algebra_t>;
+    using point_type = dpoint3D<algebra_t>;
 
     template <typename surface_descr_t>
     using intersection_type =
@@ -128,7 +128,7 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
         }
 
         // Only need the global z-component for the mask check
-        return {path, point_type{inv, ro[2] + path * rd[2]}};
+        return {path, ro + path * rd};
     }
 };
 
