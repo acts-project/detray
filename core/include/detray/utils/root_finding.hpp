@@ -59,13 +59,30 @@ DETRAY_HOST_DEVICE inline bool expand_bracket(const scalar_t a,
     scalar_t f_u{f(upper)};
     std::size_t n_tries{0u};
 
+    /// Check if the bracket has become invalid
+    const auto check_bracket = [a, b, &bracket](std::size_t n, scalar_t fl,
+                                                scalar_t fu, scalar_t l,
+                                                scalar_t u) {
+        if ((n == 1000u) || !std::isfinite(fl) || !std::isfinite(fu) ||
+            !std::isfinite(l) || !std::isfinite(u)) {
+
+            DETRAY_VERBOSE_HOST("Could not bracket a root (a="
+                                << l << ", b=" << u << ", f(a)=" << fl
+                                << ", f(b)=" << fu
+                                << ", root might not exist). Running "
+                                   "Newton-Raphson without bisection.");
+            // Reset value
+            bracket = {a, b};
+            return false;
+        }
+        return true;
+    };
+
     // If there is no sign change in interval, we don't know if there is a root
     while (!math::signbit(f_l * f_u)) {
         // No interval could be found to bracket the root
         // Might be correct, if there is not root
-        if ((n_tries == 1000u) || !std::isfinite(f_l) || !std::isfinite(f_u)) {
-            DETRAY_VERBOSE_HOST("Could not bracket a root");
-            bracket = {a, b};
+        if (!check_bracket(n_tries, f_l, f_u, lower, upper)) {
             return false;
         }
         scalar_t d{k * (upper - lower)};
@@ -80,16 +97,92 @@ DETRAY_HOST_DEVICE inline bool expand_bracket(const scalar_t a,
         ++n_tries;
     }
 
-    bracket = {lower, upper};
-    return true;
+    if (!check_bracket(n_tries, f_l, f_u, lower, upper)) {
+        return false;
+    } else {
+        bracket = {lower, upper};
+        return true;
+    }
+}
+
+/// @brief Find a root using the Newton-Raphson algorithm
+///
+/// @param evaluate_func evaluate the function and its derivative
+/// @param s initial guess for the root
+/// @param convergence_tolerance max distance between from root before finished
+/// @param max_n_tries max number of Newton-Bisection step to try
+/// @param max_path don't consider root if it is too far away
+///
+/// @see Numerical Recepies pp. 445
+///
+/// @return pathlength to root and the last step size
+template <typename scalar_t, typename function_t>
+DETRAY_HOST_DEVICE inline std::pair<scalar_t, scalar_t> newton_raphson(
+    function_t &evaluate_func, scalar_t s,
+    const scalar_t convergence_tolerance = 1.f * unit<scalar_t>::um,
+    const std::size_t max_n_tries = 1000u,
+    const scalar_t max_path = 5.f * unit<scalar_t>::m) {
+
+    constexpr scalar_t inv{detail::invalid_value<scalar_t>()};
+    constexpr scalar_t epsilon{std::numeric_limits<scalar_t>::epsilon()};
+
+    if (math::fabs(s) >= max_path) {
+        DETRAY_VERBOSE_HOST(
+            "Initial path estimate outside search area: s=" << s);
+    }
+    if (math::fabs(s) >= inv) {
+        const std::string err_msg{"Initial path estimate invalid"};
+        DETRAY_FATAL_HOST(err_msg);
+        throw std::invalid_argument(err_msg);
+    }
+
+    // Run the iteration on s
+    scalar_t s_prev{0.f};
+    std::size_t n_tries{0u};
+    auto [f_s, df_s] = evaluate_func(s);
+
+    while (math::fabs(s - s_prev) > convergence_tolerance) {
+
+        // Root already found?
+        if (math::fabs(f_s) < convergence_tolerance) {
+            return std::make_pair(s, epsilon);
+        }
+
+        // No intersection can be found if dividing by zero
+        if (math::fabs(df_s) == 0.f) {
+            DETRAY_VERBOSE_HOST(
+                "Newton step encountered invalid derivative "
+                "- skipping");
+            return std::make_pair(inv, inv);
+        }
+
+        // Newton step
+        s_prev = s;
+        s -= f_s / df_s;
+
+        // Update function evaluation
+        std::tie(f_s, df_s) = evaluate_func(s);
+
+        ++n_tries;
+
+        // No intersection found within max number of trials
+        if (n_tries >= max_n_tries) {
+            DETRAY_VERBOSE_HOST("Helix intersector did not converge after "
+                                << n_tries << " steps - skipping");
+            return std::make_pair(inv, inv);
+        }
+    }
+    // Final pathlengt to root and latest step size
+    return std::make_pair(s, math::fabs(s - s_prev));
 }
 
 /// @brief Find a root using the Newton-Raphson and Bisection algorithms
 ///
-/// @param s initial guess for the root
 /// @param evaluate_func evaluate the function and its derivative
+/// @param s initial guess for the root
+/// @param convergence_tolerance max distance between from root before finished
+/// @param max_n_tries max number of Newton-Bisection step to try
 /// @param max_path don't consider root if it is too far away
-/// @param run_rtsafe whether to run pure Newton
 ///
 /// @see Numerical Recepies pp. 445
 ///
@@ -104,35 +197,61 @@ DETRAY_HOST_DEVICE inline std::pair<scalar_t, scalar_t> newton_raphson_safe(
     constexpr scalar_t inv{detail::invalid_value<scalar_t>()};
     constexpr scalar_t epsilon{std::numeric_limits<scalar_t>::epsilon()};
 
-    // First, try to bracket a root
+    // Evaluate the test function at point 'x'
     auto f = [&evaluate_func](const scalar_t x) {
         auto [f_x, df_x] = evaluate_func(x);
 
         return f_x;
     };
 
-    // Initial bracket
-    scalar_t a{math::fabs(s) == 0.f ? -0.1f : 0.9f * s};
-    scalar_t b{math::fabs(s) == 0.f ? 0.1f : 1.1f * s};
+    if (math::fabs(s) >= max_path) {
+        DETRAY_VERBOSE_HOST(
+            "Initial path estimate outside search area: s=" << s);
+    }
+    if (math::fabs(s) >= inv) {
+        const std::string err_msg{"Initial path estimate invalid"};
+        DETRAY_ERROR_HOST(err_msg);
+        throw std::invalid_argument(err_msg);
+    }
+
+    // Initial bracket (test a certain range around 's')
+    scalar_t a{math::fabs(s) == 0.f ? -0.2f : 0.8f * s};
+    scalar_t b{math::fabs(s) == 0.f ? 0.2f : 1.2f * s};
     darray<scalar_t, 2> br{};
     bool is_bracketed = expand_bracket(a, b, f, br);
 
     // Update initial guess on the root after bracketing
     s = is_bracketed ? 0.5f * (br[1] + br[0]) : s;
 
-    if (is_bracketed) {
+    if (!is_bracketed) {
+        DETRAY_VERBOSE_HOST(
+            "Bracketing failed for initial path estimate: s=" << s);
+    } else {
         // Check bracket
         [[maybe_unused]] auto [f_a, df_a] = evaluate_func(br[0]);
         [[maybe_unused]] auto [f_b, df_b] = evaluate_func(br[1]);
 
-        assert(math::signbit(f_a * f_b) && "Incorrect bracket around root");
+        // Bracket is not guaranteed to contain a root
+        if (!math::signbit(f_a * f_b)) {
+            throw std::runtime_error(
+                "Incorrect bracket around root: No sign change!");
+        }
+
+        // No bisection algorithm possible if one bracket boundary is inf
+        // (is already checked in bracketing alg)
+        if ((math::fabs(br[0]) >= inv) || (math::fabs(br[1]) >= inv)) {
+            throw std::runtime_error(
+                "Incorrect bracket around root: Boundary reached inf!");
+        }
 
         // Root is not within the maximal pathlength
-        bool bracket_outside_tol{s > max_path &&
-                                 ((br[0] < -max_path && br[1] < -max_path) ||
-                                  (br[0] > max_path && br[1] > max_path))};
+        bool bracket_outside_tol{math::fabs(s) > max_path &&
+                                 math::fabs(br[0]) >= max_path &&
+                                 math::fabs(br[1]) >= max_path};
         if (bracket_outside_tol) {
-            DETRAY_VERBOSE_HOST("Root outside maximum search area - skipping");
+            DETRAY_VERBOSE_HOST("Root outside maximum search area (s = "
+                                << s << ", a: " << br[0] << ", b: " << br[1]
+                                << ") - skipping");
             return std::make_pair(inv, inv);
         }
 
@@ -200,7 +319,8 @@ DETRAY_HOST_DEVICE inline std::pair<scalar_t, scalar_t> newton_raphson_safe(
             // No intersection can be found if dividing by zero
             if (!is_bracketed && math::fabs(df_s) == 0.f) {
                 DETRAY_VERBOSE_HOST(
-                    "Encountered invalid derivative - skipping");
+                    "Newton step encountered invalid derivative at s="
+                    << s << " after " << n_tries << " steps - skipping");
 
                 return std::make_pair(inv, inv);
             }
@@ -216,18 +336,21 @@ DETRAY_HOST_DEVICE inline std::pair<scalar_t, scalar_t> newton_raphson_safe(
             b = s;
         }
 
-        // Converges to a point outside the search space
+        // Converges to a point outside the search space - early stop
         if (math::fabs(s) > max_path && math::fabs(s_prev) > max_path &&
             ((a < -max_path && b < -max_path) ||
              (a > max_path && b > max_path))) {
 
             DETRAY_VERBOSE_HOST(
-                "Root finding left the search space - skipping");
+                "WARNING: Root finding left the search space at (s = "
+                << s << ", a: " << a << ", b: " << b << ") after " << n_tries
+                << " steps - skipping");
 
             return std::make_pair(inv, inv);
         }
 
         ++n_tries;
+
         // No intersection found within max number of trials
         if (n_tries >= max_n_tries) {
 
@@ -240,15 +363,14 @@ DETRAY_HOST_DEVICE inline std::pair<scalar_t, scalar_t> newton_raphson_safe(
                 DETRAY_FATAL_HOST(err_str.str());
                 throw std::runtime_error(err_str.str());
             } else {
-                DETRAY_VERBOSE_HOST(
-                    "Helix intersector did not "
-                    "converge after "
-                    << n_tries << " steps unbracketed search - skipping");
+                DETRAY_VERBOSE_HOST("Helix intersector did not converge after "
+                                    << n_tries
+                                    << " steps unbracketed search - skipping");
             }
             return std::make_pair(inv, inv);
         }
     }
-    //  Final pathlengt to root and latest step size
+    // Final pathlengt to root and latest step size
     return std::make_pair(s, math::fabs(s - s_prev));
 }
 
