@@ -36,6 +36,9 @@ GTEST_TEST(detray_utils, type_registry) {
     using type_registry_t =
         types::registry<test_ids, int, double, float, float>;
 
+    static_assert(concepts::type_registry<type_registry_t>,
+                  "Concept failure for type registry");
+
     static_assert(type_registry_t::n_types == 4u,
                   "Incorrect number of types in registry");
     static_assert(types::size<type_registry_t> == 4u,

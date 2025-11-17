@@ -140,7 +140,7 @@ class caching_navigator
                                   : navigation::trust_level::e_fair);
         }
 
-        private:
+        // private:
         /// Insert a new element @param new_candidate before position @param pos
         DETRAY_HOST_DEVICE
         constexpr void insert(candidate_const_itr_t pos,

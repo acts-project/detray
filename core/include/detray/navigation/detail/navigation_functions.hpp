@@ -13,6 +13,7 @@
 #include "detray/geometry/surface.hpp"
 #include "detray/geometry/tracking_volume.hpp"
 #include "detray/navigation/detail/intersection_kernel.hpp"
+#include "detray/navigation/detail/intersection_kernel_new.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
 #include "detray/navigation/navigation_config.hpp"
 #include "detray/tracks/ray.hpp"
@@ -50,6 +51,20 @@ struct candidate_search {
         using algebra_t = typename detector_t::algebra_type;
         using scalar_t = dscalar<algebra_t>;
 
+        // Tangential to the track direction
+        detray::detail::ray<algebra_t> tangential{
+            track.pos(),
+            static_cast<scalar_t>(nav_state.direction()) * track.dir()};
+
+        // Perform intersection and add result to the navigation cache via
+        // @c nav_state.insert()
+        intersection::intersect<ray_intersector>(tangential, sf_descr,
+                                                 nav_state, det, ctx, inter_cfg,
+                                                 nav_state.external_tol());
+
+        /*using algebra_t = typename detector_t::algebra_type;
+        using scalar_t = dscalar<algebra_t>;
+
         const auto sf = detray::geometry::surface{det, sf_descr};
 
         // Tangential to the track direction
@@ -62,7 +77,7 @@ struct candidate_search {
         sf.template visit_mask<
             detray::detail::intersection_initialize<ray_intersector>>(
             nav_state, tangential, sf_descr, det.transform_store(), ctx,
-            inter_cfg, nav_state.external_tol());
+            inter_cfg, nav_state.external_tol());*/
     }
 };
 
