@@ -10,7 +10,6 @@
 // Project include(s).
 #include "./codegen/covariance_transport.hpp"
 #include "./codegen/full_jacobian.hpp"
-#include "algebra/utils/approximately_equal.hpp"
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
@@ -18,35 +17,42 @@
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/detail/jacobian_engine.hpp"
 #include "detray/utils/log.hpp"
+#include "detray/utils/type_registry.hpp"
 
 namespace detray {
+
+namespace detail {
+
+/// Filter the masks of a detector according to the local frame type
+struct select_frame {
+    template <typename mask_t>
+    using type = typename mask_t::local_frame;
+};
+
+}  // namespace detail
 
 template <concepts::algebra algebra_t>
 struct parameter_transporter : actor {
 
     /// @name Type definitions for the struct
     /// @{
-    using scalar_type = dscalar<algebra_t>;
-    // Transformation matching this struct
-    using transform3_type = dtransform3D<algebra_t>;
-    // bound matrix type
+    using transform3_t = dtransform3D<algebra_t>;
+    // Track parameters in free coordinates
+    using free_parameter_t = free_track_parameters<algebra_t>;
+    // Track parameters in bound coordinates
+    using bound_parameter_t = bound_track_parameters<algebra_t>;
+    // Covariance matrix type
     using bound_matrix_t = bound_matrix<algebra_t>;
-    // free matrix type
-    using free_matrix_t = free_matrix<algebra_t>;
-    // Matrix type for bound to free jacobian
-    using bound_to_free_matrix_t = bound_to_free_matrix<algebra_t>;
-    // Matrix type for free to bound jacobian
-    using free_to_bound_matrix_t = free_to_bound_matrix<algebra_t>;
+    // Sub-matrices of the Jacobian transport calculation
+    using sub_matrix_2x3_t = dmatrix<algebra_t, 2, 3>;
+    using sub_matrix_3x2_t = dmatrix<algebra_t, 3, 2>;
     /// @}
 
-    struct get_bound_to_free_dpos_dloc_kernel {
-        template <typename mask_group_t, typename index_t>
-        DETRAY_HOST_DEVICE constexpr dmatrix<algebra_t, 3, 2> operator()(
-            const mask_group_t& /*mask_group*/, const index_t& /*index*/,
-            const transform3_type& trf3,
-            const free_track_parameters<algebra_t>& params) const {
-            using frame_t = typename mask_group_t::value_type::shape::
-                template local_frame_type<algebra_t>;
+    struct get_bound_to_free_dpos_dloc_visitor {
+        template <typename frame_t>
+        DETRAY_HOST_DEVICE constexpr sub_matrix_3x2_t operator()(
+            const frame_t& /*frame*/, const transform3_t& trf3,
+            const free_parameter_t& params) const {
 
             return detail::jacobian_engine<algebra_t>::
                 template bound_to_free_jacobian_submatrix_dpos_dloc<frame_t>(
@@ -54,15 +60,12 @@ struct parameter_transporter : actor {
         }
     };
 
-    struct get_bound_to_free_dpos_dangle_kernel {
-        template <typename mask_group_t, typename index_t>
-        DETRAY_HOST_DEVICE constexpr dmatrix<algebra_t, 3, 2> operator()(
-            const mask_group_t& /*mask_group*/, const index_t& /*index*/,
-            const transform3_type& trf3,
-            const free_track_parameters<algebra_t>& params,
-            const dmatrix<algebra_t, 3, 2>& ddir_dangle) const {
-            using frame_t = typename mask_group_t::value_type::shape::
-                template local_frame_type<algebra_t>;
+    struct get_bound_to_free_dpos_dangle_visitor {
+        template <typename frame_t>
+        DETRAY_HOST_DEVICE constexpr sub_matrix_3x2_t operator()(
+            const frame_t& /*frame*/, const transform3_t& trf3,
+            const free_parameter_t& params,
+            const sub_matrix_3x2_t& ddir_dangle) const {
 
             return detail::jacobian_engine<algebra_t>::
                 template bound_to_free_jacobian_submatrix_dpos_dangle<frame_t>(
@@ -70,24 +73,21 @@ struct parameter_transporter : actor {
         }
     };
 
-    struct get_free_to_bound_dloc_dpos_kernel {
-        template <typename mask_group_t, typename index_t,
-                  typename stepper_state_t>
-        DETRAY_HOST_DEVICE constexpr dmatrix<algebra_t, 2, 3> operator()(
-            const mask_group_t& /*mask_group*/, const index_t& /*index*/,
-            const transform3_type& trf3,
-            const stepper_state_t& stepping) const {
-            using frame_t = typename mask_group_t::value_type::shape::
-                template local_frame_type<algebra_t>;
+    struct get_free_to_bound_dloc_dpos_visitor {
+        template <typename frame_t>
+        DETRAY_HOST_DEVICE constexpr sub_matrix_2x3_t operator()(
+            const frame_t& /*frame*/, const transform3_t& trf3,
+            const free_parameter_t& params) const {
 
             return detail::jacobian_engine<algebra_t>::
                 template free_to_bound_jacobian_submatrix_dloc_dpos<frame_t>(
-                    trf3, stepping().pos(), stepping().dir());
+                    trf3, params.pos(), params.dir());
         }
     };
 
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE void operator()(propagator_state_t& propagation) const {
+
         auto& stepping = propagation._stepping;
         const auto& navigation = propagation._navigation;
 
@@ -99,29 +99,26 @@ struct parameter_transporter : actor {
         DETRAY_VERBOSE_HOST_DEVICE(
             "Transport track parameters to current surface");
 
-        // Geometry context for this track
-        const auto& gctx = propagation._context;
-
-        // Current Surface
-        const auto sf = navigation.current_surface();
-
         // Bound track params of departure surface
-        auto& bound_params = stepping.bound_params();
+        bound_parameter_t& bound_params = stepping.bound_params();
 
         // Covariance is transported only when the previous surface is an
         // actual tracking surface. (i.e. This disables the covariance transport
         // from curvilinear frame)
         if (!bound_params.surface_link().is_invalid()) {
-            const auto full_jacobian = get_full_jacobian(propagation);
-            const bound_matrix_t old_cov = stepping.bound_params().covariance();
+            const bound_matrix_t full_jacobian = get_full_jacobian(propagation);
+            const bound_matrix_t& old_cov = bound_params.covariance();
 
             detail::transport_covariance_to_bound_impl(
-                old_cov, full_jacobian, stepping.bound_params().covariance());
+                old_cov, full_jacobian, bound_params.covariance());
         }
+
+        // Current Surface
+        const tracking_surface sf = navigation.current_surface();
 
         // Convert free to bound vector
         bound_params.set_parameter_vector(
-            sf.free_to_bound_vector(gctx, stepping()));
+            sf.free_to_bound_vector(propagation._context, stepping()));
 
         // Set surface link
         bound_params.set_surface_link(sf.barcode());
@@ -130,8 +127,14 @@ struct parameter_transporter : actor {
     }
 
     template <typename propagator_state_t>
-    DETRAY_HOST_DEVICE inline bound_matrix_t get_full_jacobian(
+    DETRAY_HOST_DEVICE constexpr bound_matrix_t get_full_jacobian(
         propagator_state_t& propagation) const {
+
+        // Map the surface shapes of the detector down to the common frames
+        using detector_t = typename propagator_state_t::detector_type;
+        using frame_registry_t =
+            types::mapped_registry<typename detector_t::masks,
+                                   detail::select_frame>;
 
         const auto& stepping = propagation._stepping;
         const auto& navigation = propagation._navigation;
@@ -152,17 +155,17 @@ struct parameter_transporter : actor {
         // remainder of this function.
 
         // Current Surface
-        const auto sf = navigation.current_surface();
+        const tracking_surface sf = navigation.current_surface();
 
         // Bound track params of departure surface
-        auto& bound_params = stepping.bound_params();
+        const bound_parameter_t& bound_params = stepping.bound_params();
 
         // Previous surface
         tracking_surface prev_sf{navigation.detector(),
                                  bound_params.surface_link()};
 
         // Free track params of departure surface
-        const free_track_parameters<algebra_t> free_params =
+        const free_parameter_t free_params =
             prev_sf.bound_to_free_vector(gctx, bound_params);
 
         // First, we will compute the bound-to-free Jacobian, which is given
@@ -187,16 +190,20 @@ struct parameter_transporter : actor {
         // all of which are 3x2 in size. Also, A and B depend on the frame
         // type while C is computed in the same way for all frames. Finally,
         // note that submatrix B is the zero matrix for most frame types.
-        const auto& prev_trf3 = prev_sf.transform(gctx);
-        const dmatrix<algebra_t, 3, 2> b2f_dpos_dloc =
-            prev_sf.template visit_mask<get_bound_to_free_dpos_dloc_kernel>(
-                prev_trf3, free_params);
-        const dmatrix<algebra_t, 3, 2> b2f_ddir_dangle =
+        const transform3_t& prev_trf3 = prev_sf.transform(gctx);
+
+        const sub_matrix_3x2_t b2f_dpos_dloc =
+            types::visit<frame_registry_t, get_bound_to_free_dpos_dloc_visitor>(
+                prev_sf.shape_id(), prev_trf3, free_params);
+
+        const sub_matrix_3x2_t b2f_ddir_dangle =
             detail::jacobian_engine<algebra_t>::
                 bound_to_free_jacobian_submatrix_ddir_dangle(bound_params);
-        const dmatrix<algebra_t, 3, 2> b2f_dpos_dangle =
-            prev_sf.template visit_mask<get_bound_to_free_dpos_dangle_kernel>(
-                prev_trf3, free_params, b2f_ddir_dangle);
+
+        const sub_matrix_3x2_t b2f_dpos_dangle =
+            types::visit<frame_registry_t,
+                         get_bound_to_free_dpos_dangle_visitor>(
+                prev_sf.shape_id(), prev_trf3, free_params, b2f_ddir_dangle);
 
         // Next, we compute the derivative which is defined as the outer
         // product of the two 8x1 vectors representing the path to free
@@ -220,12 +227,14 @@ struct parameter_transporter : actor {
                                      ? vol.material_parameters(stepping().pos())
                                      : nullptr;
 
-        const auto path_to_free_derivative =
+        const path_to_free_matrix<algebra_t> path_to_free_derivative =
             detail::jacobian_engine<algebra_t>::path_to_free_derivative(
                 stepping().dir(), stepping.dtds(),
                 stepping.dqopds(vol_mat_ptr));
-        const auto free_to_path_derivative = sf.free_to_path_derivative(
-            gctx, stepping().pos(), stepping().dir(), stepping.dtds());
+
+        const free_to_path_matrix<algebra_t> free_to_path_derivative =
+            sf.free_to_path_derivative(gctx, stepping().pos(), stepping().dir(),
+                                       stepping.dtds());
 
         // Now, we compute the free-to-bound Jacobian which is of size 6x8 and
         // has the following structure:
@@ -241,10 +250,11 @@ struct parameter_transporter : actor {
         // Thus, the number of non-trivial elements is only 11 out of the 48
         // matrix elements. Also, submatrix A depends on the frame type while
         // submatrix B is the same for all frame types.
-        const dmatrix<algebra_t, 2, 3> f2b_dloc_dpos =
-            sf.template visit_mask<get_free_to_bound_dloc_dpos_kernel>(
-                sf.transform(gctx), propagation._stepping);
-        const dmatrix<algebra_t, 2, 3> f2b_dangle_ddir =
+        const sub_matrix_2x3_t f2b_dloc_dpos =
+            types::visit<frame_registry_t, get_free_to_bound_dloc_dpos_visitor>(
+                sf.shape_id(), sf.transform(gctx), stepping());
+
+        const sub_matrix_2x3_t f2b_dangle_ddir =
             detail::jacobian_engine<algebra_t>::
                 free_to_bound_jacobian_submatrix_dangle_ddir(stepping().dir());
 
@@ -259,6 +269,6 @@ struct parameter_transporter : actor {
 
         return full_jacobian;
     }
-};  // namespace detray
+};
 
 }  // namespace detray

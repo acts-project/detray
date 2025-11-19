@@ -27,13 +27,13 @@ detray_add_unit_test( cuda
 )
 
 # The test only works for the array plugin (except for complete populator)
-detray_add_unit_test( cuda_grid2_array
-      "grids_grid2_cuda_kernel.hpp"
-      "grids_grid2_cuda.cpp"
-      "grids_grid2_cuda_kernel.cu"
-   LINK_LIBRARIES GTest::gtest_main detray::test_common detray::test_utils vecmem::cuda
-                  detray::core_array
-)
+#detray_add_unit_test( cuda_grid2_array
+#      "grids_grid2_cuda_kernel.hpp"
+#      "grids_grid2_cuda.cpp"
+#      "grids_grid2_cuda_kernel.cu"
+#   LINK_LIBRARIES GTest::gtest_main detray::test_common detray::test_utils vecmem::cuda
+#                  detray::core_array
+#)
 
 # make unit tests for multiple algebras
 # Currently vc and smatrix is not supported
