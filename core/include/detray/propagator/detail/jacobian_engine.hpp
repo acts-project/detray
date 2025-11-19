@@ -46,7 +46,7 @@ struct jacobian_engine {
 
     template <typename frame_t, typename mask_t>
         requires concepts::point<typename frame_t::loc_point>
-    DETRAY_HOST_DEVICE static inline bound_to_free_matrix_type
+    DETRAY_HOST_DEVICE static constexpr bound_to_free_matrix_type
     bound_to_free_jacobian(
         const transform3_type& trf3, const mask_t& mask,
         const bound_parameters_vector<algebra_type>& bound_vec) {
@@ -202,7 +202,7 @@ struct jacobian_engine {
 
     template <typename frame_t>
         requires concepts::point<typename frame_t::loc_point>
-    DETRAY_HOST_DEVICE static inline free_to_bound_matrix_type
+    DETRAY_HOST_DEVICE static constexpr free_to_bound_matrix_type
     free_to_bound_jacobian(
         const transform3_type& trf3,
         const free_track_parameters<algebra_type>& free_params) {
@@ -247,7 +247,7 @@ struct jacobian_engine {
 
     template <typename frame_t>
         requires concepts::point<typename frame_t::loc_point>
-    DETRAY_HOST_DEVICE static inline free_to_path_matrix_type
+    DETRAY_HOST_DEVICE static constexpr free_to_path_matrix_type
     free_to_path_derivative(const vector3_type& pos, const vector3_type& dir,
                             const vector3_type& dtds,
                             const transform3_type& trf3) {
@@ -256,7 +256,7 @@ struct jacobian_engine {
         return jacobian_t::path_derivative(trf3, pos, dir, dtds);
     }
 
-    DETRAY_HOST_DEVICE static inline path_to_free_matrix_type
+    DETRAY_HOST_DEVICE static constexpr path_to_free_matrix_type
     path_to_free_derivative(const vector3_type& dir, const vector3_type& dtds,
                             const scalar_type dqopds) {
 
@@ -275,10 +275,10 @@ struct jacobian_engine {
 
     template <typename frame_t>
         requires concepts::point<typename frame_t::loc_point>
-    DETRAY_HOST_DEVICE static inline free_matrix<algebra_type> path_correction(
-        const vector3_type& pos, const vector3_type& dir,
-        const vector3_type& dtds, const scalar_type dqopds,
-        const transform3_type& trf3) {
+    DETRAY_HOST_DEVICE static constexpr free_matrix<algebra_type>
+    path_correction(const vector3_type& pos, const vector3_type& dir,
+                    const vector3_type& dtds, const scalar_type dqopds,
+                    const transform3_type& trf3) {
 
         return path_to_free_derivative(dir, dtds, dqopds) *
                free_to_path_derivative<frame_t>(pos, dir, dtds, trf3);

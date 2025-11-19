@@ -47,15 +47,15 @@ struct jacobian<polar2D<algebra_t>> {
     /// @}
 
     DETRAY_HOST_DEVICE
-    static inline rotation_matrix reference_frame(
+    static constexpr rotation_matrix reference_frame(
         const transform3_type &trf3, const point3_type & /*pos*/,
         const vector3_type & /*dir*/) {
         return trf3.rotation();
     }
 
-    DETRAY_HOST_DEVICE static inline free_to_path_matrix_type path_derivative(
-        const transform3_type &trf3, const point3_type & /*pos*/,
-        const vector3_type &dir, const vector3_type & /*dtds*/) {
+    DETRAY_HOST_DEVICE static constexpr free_to_path_matrix_type
+    path_derivative(const transform3_type &trf3, const point3_type & /*pos*/,
+                    const vector3_type &dir, const vector3_type & /*dtds*/) {
 
         free_to_path_matrix_type derivative =
             matrix::zero<free_to_path_matrix_type>();
