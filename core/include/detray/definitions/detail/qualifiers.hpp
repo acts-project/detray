@@ -27,6 +27,12 @@
 #endif
 
 #if defined(__CUDACC__) || defined(__HIP__)
+#define DETRAY_SYNC_WARP __syncwarp();
+#else
+#define DETRAY_SYNC_WARP
+#endif
+
+#if defined(__CUDACC__) || defined(__HIP__)
 #define DETRAY_ALIGN(x) __align__(x)
 #else
 #define DETRAY_ALIGN(x) alignas(x)

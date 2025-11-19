@@ -31,6 +31,7 @@ template <algebra::concepts::aos algebra_t, bool resolve_pos>
 struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, resolve_pos> {
 
     using algebra_type = algebra_t;
+    using frame_type = cylindrical2D<algebra_t>;
 
     template <typename surface_descr_t>
     using intersection_type =
