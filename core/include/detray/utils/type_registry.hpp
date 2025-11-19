@@ -18,7 +18,9 @@
 #include <type_traits>
 #include <utility>
 
-namespace detray::types {
+namespace detray {
+
+namespace types {
 
 /// @brief match types with indices/identifiers and vice versa.
 ///
@@ -56,6 +58,21 @@ class registry {
     /// @}
 };
 
+}  // namespace types
+
+namespace concepts {
+
+/// Type registry concepts
+/// @{
+template <typename R>
+concept type_registry =
+    type_list<typename R::type_list> && type_id<typename R::id>;
+///@}
+
+}  // namespace concepts
+
+namespace types {
+
 /// @brief Select a number of types from another registry and map their IDs to a
 /// continous range of new type indices.
 ///
@@ -64,7 +81,7 @@ class registry {
 ///
 /// @tparam registry_t the original type registry
 /// @tparam type_selector_t how to select the new types from teh original ones
-template <typename registry_t, class type_selector_t>
+template <concepts::type_registry registry_t, class type_selector_t>
 class mapped_registry : public registry_t {
     public:
     /// Make the original type ids accessible
@@ -95,7 +112,7 @@ class mapped_registry : public registry_t {
     template <typename id_t = id>
         requires(!std::convertible_to<id_t, std::size_t>)
     DETRAY_HOST_DEVICE static constexpr bool is_valid(const id_t orig_id) {
-        if (static_cast<std::size_t>(orig_id) >= m_idx_map.size()) {
+        if (static_cast<std::size_t>(orig_id) >= index_map().size()) {
             return false;
         } else {
             return mapped_index(orig_id) < n_types;
@@ -105,29 +122,42 @@ class mapped_registry : public registry_t {
 
     /// @returns the array that maps the original type positions to the new ones
     DETRAY_HOST_DEVICE
-    static constexpr const auto& index_map() { return m_idx_map; }
+    static consteval auto index_map() {
+        return detray::types::filtered_indices<orig_types, type_selector_t>(
+            detray::types::list{});
+    }
 
     /// @returns the filtered type index corresponding to the original type
     /// index
     DETRAY_HOST_DEVICE
     static constexpr std::size_t mapped_index(const std::size_t orig_idx) {
-        return m_idx_map[orig_idx];
+        return index_map()[orig_idx];
     }
 
     /// @returns the filtered type index corresponding to the original type ID
     DETRAY_HOST_DEVICE
     static constexpr std::size_t mapped_index(const id orig_id) {
-        return m_idx_map[static_cast<std::size_t>(orig_id)];
+        return index_map()[static_cast<std::size_t>(orig_id)];
     }
-
-    private:
-    /// How to map the original type positions to the new ones
-    static constexpr std::array<dindex, registry_t::n_types> m_idx_map =
-        detray::types::filtered_indices<orig_types, type_selector_t>(
-            detray::types::list{});
 };
 
-/// Specialization of the type list @c size trait
+}  // namespace types
+
+namespace concepts {
+
+/// Mapped type registry concepts
+/// @{
+template <typename R>
+concept mapped_type_registry =
+    type_list<typename R::type_list> && type_list<typename R::orig_types> &&
+    type_id<typename R::id>;
+///@}
+
+}  // namespace concepts
+
+namespace types {
+
+/// Specialization of the type list @c size traits
 /// @see detray/utils/type_list.hpp
 /// @{
 template <concepts::type_id ID, typename... Ts>
@@ -315,28 +345,37 @@ inline constexpr std::size_t index_cast =
 /// @tparam remaining_idcs te remaining tuple indices to be tested.
 ///
 /// @see https://godbolt.org/z/qd6xns7KG
-template <typename registry_t, typename functor_t, typename... Args,
-          std::size_t current_idx = 0u, std::size_t... remaining_idcs>
-DETRAY_HOST_DEVICE decltype(auto) visit_helper(
+template <concepts::type_registry registry_t, typename functor_t,
+          typename... Args, std::size_t current_idx = 0u,
+          std::size_t... remaining_idcs>
+    requires(std::invocable<functor_t,
+                            const types::front<typename registry_t::type_list>&,
+                            Args...>)
+DETRAY_HOST_DEVICE constexpr decltype(auto) visit_helper(
     const std::size_t idx,
-    std::index_sequence<current_idx, remaining_idcs...> /*seq*/, Args&&... As) {
+    std::index_sequence<current_idx, remaining_idcs...> /*seq*/,
+    Args&&... args) {
 
+    // Check if the current tuple index is matched to the target index
+    if constexpr (concepts::mapped_type_registry<registry_t>) {
+        if (registry_t::mapped_index(idx) == current_idx) {
+            return functor_t{}(types::at<registry_t, current_idx>{},
+                               std::forward<Args>(args)...);
+        }
+    } else {
+        if (idx == current_idx) {
+            return functor_t{}(types::at<registry_t, current_idx>{},
+                               std::forward<Args>(args)...);
+        }
+    }
+
+    // Check the next index
     using return_t = std::invoke_result_t<
         functor_t, const types::front<typename registry_t::type_list>&,
         Args...>;
 
-    // Check if the current tuple index is matched to the target index
-    if (idx == current_idx) {
-        return functor_t{}(
-            types::at<typename registry_t::type_list, current_idx>{},
-            std::forward<Args>(As)...);
-    }
-
-    // Check the next index
     if constexpr (sizeof...(remaining_idcs) >= 1u) {
-
-        using next_elem_t =
-            types::at<typename registry_t::type_list, current_idx + 1>;
+        using next_elem_t = types::at<registry_t, current_idx + 1u>;
         using next_return_t =
             std::invoke_result_t<functor_t, const next_elem_t&, Args...>;
         static_assert(
@@ -346,7 +385,7 @@ DETRAY_HOST_DEVICE decltype(auto) visit_helper(
 
         return visit_helper<registry_t, functor_t>(
             idx, std::index_sequence<remaining_idcs...>{},
-            std::forward<Args>(As)...);
+            std::forward<Args>(args)...);
     } else if constexpr (std::is_same_v<return_t, void>) {
         return;
     } else {
@@ -355,37 +394,34 @@ DETRAY_HOST_DEVICE decltype(auto) visit_helper(
 }
 
 /// Visits a tuple element according to its @param idx and calls
-/// @tparam functor_t with the arguments @param As on it.
+/// @tparam functor_t with the arguments @param args on it.
 ///
 /// @returns the functor result (this is necessarily always of the same
 /// type, regardless the input tuple element type).
-template <typename registry_t, typename functor_t, typename... Args>
-DETRAY_HOST_DEVICE decltype(auto) visit(const std::size_t idx, Args&&... As)
-    requires(std::invocable<functor_t,
-                            const types::front<typename registry_t::type_list>&,
-                            Args...>)
-{
+template <concepts::type_registry registry_t, typename functor_t,
+          typename... Args>
+DETRAY_HOST_DEVICE constexpr decltype(auto) visit(const std::size_t idx,
+                                                  Args&&... args) {
     return visit_helper<registry_t, functor_t>(
         idx, std::make_index_sequence<registry_t::n_types>{},
-        std::forward<Args>(As)...);
+        std::forward<Args>(args)...);
 }
 
-/// Visits a tuple element according to its @param idx and calls
-/// @tparam functor_t with the arguments @param As on it.
+/// Visits a tuple element according to its type_id @param id and calls
+/// @tparam functor_t with the arguments @param args on it.
 ///
 /// @returns the functor result (this is necessarily always of the same
 /// type, regardless the input tuple element type).
-template <typename registry_t, typename functor_t, typename... Args>
-DETRAY_HOST_DEVICE decltype(auto) visit(const typename registry_t::id id,
-                                        Args&&... As)
-    requires(std::invocable<functor_t,
-                            const types::front<typename registry_t::type_list>&,
-                            Args...>)
-{
-    assert(registry_t::is_valid(static_cast<std::size_t>(id)));
+template <concepts::type_registry registry_t, typename functor_t,
+          typename... Args>
+DETRAY_HOST_DEVICE constexpr decltype(auto) visit(
+    const typename registry_t::id id, Args&&... args) {
+    assert(registry_t::is_valid(id));
 
     return visit<registry_t, functor_t>(static_cast<std::size_t>(id),
-                                        std::forward<Args>(As)...);
+                                        std::forward<Args>(args)...);
 }
 
-}  // namespace detray::types
+}  // namespace types
+
+}  // namespace detray
