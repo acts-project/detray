@@ -171,14 +171,20 @@ class caching_navigator
             assert(idx >= 0);
 
             // Do not add the same surface (intersection) multiple times
-            const auto is_clash_at_pos = [this,
-                                          &new_candidate](std::size_t index) {
-                return (this->candidates()[index].sf_desc.barcode() ==
-                        new_candidate.sf_desc.barcode()) &&
-                       (math::fabs(this->candidates()[index].path() -
+            const auto is_overlap_at_pos = [this,
+                                            &new_candidate](std::size_t index) {
+                return (math::fabs(this->candidates()[index].path() -
                                    new_candidate.path()) <=
                         1.f * unit<scalar_t>::um);
             };
+
+            // Do not add the same surface (intersection) multiple times
+            const auto is_clash_at_pos =
+                [this, &new_candidate, &is_overlap_at_pos](std::size_t index) {
+                    return (this->candidates()[index].sf_desc.barcode() ==
+                            new_candidate.sf_desc.barcode()) &&
+                           is_overlap_at_pos(index);
+                };
 
             const auto idxu{static_cast<std::size_t>(idx)};
             if (is_clash_at_pos(idxu) ||
@@ -190,6 +196,17 @@ class caching_navigator
             // if the cache is already full
             constexpr auto shift_max{static_cast<dist_t>(k_cache_capacity - 2)};
             const dist_t shift_begin{math::min(this->last_index(), shift_max)};
+
+            // In case of overlaps, prefer sensitives over portals and
+            // direct hits over edge hits
+            if (is_overlap_at_pos(idxu) &&
+                (new_candidate.is_edge() ||
+                 new_candidate.sf_desc.is_portal())) {
+                // Don't shift the overlapping candidate and put the new
+                // candidate behind it
+                idx++;
+                idx = idx > shift_begin ? shift_begin : idx;
+            }
 
             for (dist_t i = shift_begin; i >= idx; --i) {
                 const auto j{static_cast<std::size_t>(i)};
