@@ -119,7 +119,8 @@ class detector_builder {
     DETRAY_HOST
     auto build(vecmem::memory_resource& resource) -> detector_type {
 
-        DETRAY_INFO_HOST("Building detector: " << name() << "... ");
+        DETRAY_INFO_HOST("Building detector: \"" << name() << "\"... ");
+        DETRAY_INFO_HOST(" -> type: " << DETRAY_TYPENAME(metadata));
 
         detector_type det{resource};
 
