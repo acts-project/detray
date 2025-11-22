@@ -56,7 +56,7 @@ GTEST_TEST(detray_utils, mapped_type_registry) {
     //
     // Test the mapping
     //
-    constexpr const auto& idx_array = mapped_registry_t::index_map();
+    constexpr auto idx_array = mapped_registry_t::index_map();
 
     static_assert(mapped_registry_t::n_types == 3u);
     static_assert(types::size<mapped_registry_t> == 3u);
