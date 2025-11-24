@@ -282,8 +282,8 @@ struct propagator {
 
                 // Check if the propagation makes progress
                 if (math::fabs(stepping.path_length()) <=
-                    math::fabs(path_length +
-                               m_cfg.navigation.intersection.path_tolerance)) {
+                    math::fabs(path_length) +
+                        m_cfg.navigation.intersection.path_tolerance) {
                     if (stall_counter >= 10u) {
                         propagation._heartbeat = false;
                         navigation.abort("Propagation stalled");
