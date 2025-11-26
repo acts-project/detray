@@ -419,7 +419,8 @@ class grid_reader {
 
         // The compiler will instantiate this function for all possible types of
         // grids: Only proceed, if the grid type is known by the detector
-        if constexpr (types::contains<typename detector_t::accel, grid_t> ||
+        if constexpr (types::contains<typename detector_t::accel,
+                                      spatial_grid_impl<grid_t>> ||
                       types::contains<typename detector_t::materials, grid_t>) {
             // Decorate the current volume builder with the grid
             using builder_t = grid_builder_t<detector_t, grid_t, bin_filler_t,

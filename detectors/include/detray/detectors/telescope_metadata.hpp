@@ -18,7 +18,7 @@
 #include "detray/geometry/surface_descriptor.hpp"
 #include "detray/materials/material_rod.hpp"
 #include "detray/materials/material_slab.hpp"
-#include "detray/navigation/accelerators/brute_force_finder.hpp"
+#include "detray/navigation/accelerators/brute_force.hpp"
 
 namespace detray {
 
@@ -85,6 +85,8 @@ struct telescope_metadata {
                 // All other values are 1u, showing first alphabetically
                 os << "OTHER SHAPE";
                 break;
+            default:
+                os << "invalid";
         }
         return os;
     }
@@ -131,6 +133,8 @@ struct telescope_metadata {
             case material_ids::e_none:
                 os << "e_none";
                 break;
+            default:
+                os << "invalid";
         }
         return os;
     }
@@ -148,6 +152,46 @@ struct telescope_metadata {
                             container_t::template vector_type, slab,
                             material<scalar_t>>>;
 
+    /// How to link to the entries in the data stores
+    using transform_link = typename transform_store<>::single_link;
+    using mask_link = typename mask_store<>::single_link;
+    using material_link = typename material_store<>::single_link;
+    /// Surface type used for sensitives, passives and portals
+    using surface_type =
+        surface_descriptor<mask_link, material_link, transform_link, nav_link>;
+
+    //
+    // Volume descriptors
+    //
+
+    /// No grids/other acceleration data structure, everything is brute forced
+    enum geo_objects : std::uint_least8_t {
+        e_portal = 0u,
+        e_passive = 0u,
+        e_sensitive = 1u,
+        e_size = 2u,
+        e_all = e_size,
+    };
+
+    DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
+                                                       geo_objects gobj) {
+        switch (gobj) {
+            case geo_objects::e_portal:
+                os << "e_portal/e_passive";
+                break;
+            case geo_objects::e_sensitive:
+                os << "e_sensitive";
+                break;
+            case geo_objects::e_size:
+                // e_all has same value (2u)
+                os << "e_size/e_all";
+                break;
+            default:
+                os << "invalid";
+        }
+        return os;
+    }
+
     //
     // Acceleration structures
     //
@@ -155,7 +199,9 @@ struct telescope_metadata {
     /// Acceleration data structures
     enum class accel_ids {
         e_brute_force = 0u,  // test all surfaces in a volume (brute force)
+        e_volume_brute_force = 1u,
         e_default = e_brute_force,
+        e_default_volume_searcher = e_volume_brute_force,
     };
 
     DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
@@ -166,50 +212,12 @@ struct telescope_metadata {
                 // e_default has same value (0u)
                 os << "e_brute_force/e_default";
                 break;
-        }
-        return os;
-    }
-
-    /// How to link to the entries in the data stores
-    using transform_link = typename transform_store<>::link_type;
-    using mask_link = typename mask_store<>::single_link;
-    using material_link = typename material_store<>::single_link;
-    /// Surface type used for sensitives, passives and portals
-    using surface_type =
-        surface_descriptor<mask_link, material_link, transform_link, nav_link>;
-
-    /// How to store the brute force search data structure
-    template <typename container_t = host_container_types>
-    using accelerator_store =
-        multi_store<accel_ids, empty_context, dtuple,
-                    brute_force_collection<surface_type, container_t>>;
-
-    //
-    // Volume descriptors
-    //
-
-    /// No grids/other acceleration data structure, everything is brute forced
-    enum geo_objects : std::uint_least8_t {
-        e_portal = 0u,
-        e_sensitive = 1u,
-        e_size = 2u,
-        e_all = e_size,
-    };
-
-    DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
-                                                       geo_objects gobj) {
-
-        switch (gobj) {
-            case geo_objects::e_portal:
-                os << "e_portal";
+            case accel_ids::e_volume_brute_force:
+                // e_default has same value (0u)
+                os << "e_volume_brute_force/e_default_volume_searcher";
                 break;
-            case geo_objects::e_sensitive:
-                os << "e_sensitive";
-                break;
-            case geo_objects::e_size:
-                // e_all has same value (2u)
-                os << "e_size/e_all";
-                break;
+            default:
+                os << "invalid";
         }
         return os;
     }
@@ -218,13 +226,16 @@ struct telescope_metadata {
     using object_link_type =
         dmulti_index<dtyped_index<accel_ids, dindex>, geo_objects::e_size>;
 
-    //
-    // Volume acceleration structure
-    //
-
     /// Volume search (only one volume exists)
     template <typename container_t = host_container_types>
-    using volume_finder = brute_force_collection<dindex, container_t>;
+    using volume_accelerator = brute_force_collection<dindex, container_t>;
+
+    /// How to store the brute force search data structure
+    template <typename container_t = host_container_types>
+    using accelerator_store =
+        multi_store<accel_ids, empty_context, dtuple,
+                    brute_force_collection<surface_type, container_t>,
+                    volume_accelerator<container_t>>;
 };
 
 }  // namespace detray

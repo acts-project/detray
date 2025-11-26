@@ -344,10 +344,8 @@ class surface {
                 }
             } else if (vol_link != volume()) {
                 os << "DETRAY ERROR (HOST): Passive/sensitive surface does not "
-                      "link to "
-                      "mother "
-                      "volume:"
-                   << "Mask volume link : " << vol_link << "\n"
+                      "link to mother volume: Mask volume link : "
+                   << vol_link << "\n"
                    << *this << std::endl;
                 return false;
             }

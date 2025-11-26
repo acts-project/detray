@@ -26,11 +26,9 @@ namespace detray::io::detail {
 template <typename detector_t>
 inline void print_type_warning(const std::string& subject) {
 
-    using detector_list_t = detray::types::list<typename detector_t::metadata>;
-
     DETRAY_WARN_HOST("Detector of type \n"
-                     << DETRAY_TYPENAME(detector_list_t) << "does not support "
-                     << subject);
+                     << DETRAY_TYPENAME(typename detector_t::metadata)
+                     << "does not support " << subject);
 }
 
 /// @returns a string that contains the current date and time

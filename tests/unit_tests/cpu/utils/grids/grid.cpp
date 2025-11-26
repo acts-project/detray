@@ -8,7 +8,6 @@
 // Detray include(s)
 #include "detray/utils/grid/grid.hpp"
 
-#include "detray/builders/grid_builder.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/geometry/shapes/cuboid3D.hpp"
 #include "detray/utils/grid/detail/concepts.hpp"
@@ -78,14 +77,14 @@ struct bin_content_sequence {
 template <concepts::grid grid_t, typename content_t>
 void test_content(const grid_t& g, const point3& p, const content_t& expected) {
     dindex i = 0u;
-    for (const auto& entry : g.search(p)) {
+    for (const auto& entry : g.bin(p)) {
         ASSERT_NEAR(entry, expected[i++], tol) << " at index " << i - 1u;
     }
 }
 
 }  // anonymous namespace
 
-/// Unittest: Test single grid construction
+/// Unittest: Test single-bin grid construction
 GTEST_TEST(detray_grid, single_grid) {
 
     // Owning and non-owning, cartesian, 3-dimensional grids
@@ -208,7 +207,7 @@ GTEST_TEST(detray_grid, single_grid) {
         "Const grid was not correctly constructed from view!");*/
 }
 
-/// Unittest: Test dynamic grid construction
+/// Unittest: Test dynamic array grid
 GTEST_TEST(detray_grid, dynamic_array) {
 
     // Owning and non-owning, cartesian, 3-dimensional grids
@@ -347,141 +346,6 @@ GTEST_TEST(detray_grid, dynamic_array) {
         std::equal(flat_bin_view2.begin(), flat_bin_view2.end(), seq.begin()));
 }
 
-/// Test bin entry retrieval
-GTEST_TEST(detray_grid, bin_view) {
-
-    // Non-owning, 3D cartesian, replacing grid
-    using grid_t = grid<test_algebra, axes<cuboid3D>, bins::single<scalar>>;
-
-    static_assert(concepts::grid<grid_t>);
-
-    // Fill the bin data for every test
-    // bin test entries
-    grid_t::bin_container_type bin_data{};
-    bin_data.resize(40'000u);
-    std::ranges::generate_n(
-        bin_data.begin(), 40'000u,
-        bin_content_sequence<replace<>, bins::single<scalar>>());
-
-    // Copy data that will be moved into the data owning types
-    dvector<scalar> bin_edges_cp(bin_edges);
-    dvector<dsized_index_range> edge_ranges_cp(edge_ranges);
-    grid_t::bin_container_type bin_data_cp(bin_data);
-
-    // Data-owning axes and grid
-    cartesian_3D<is_owning, host_container_types> axes_own(
-        std::move(edge_ranges_cp), std::move(bin_edges_cp));
-    grid_t grid_3D(std::move(bin_data_cp), std::move(axes_own));
-
-    // Test the bin view
-    point3 p = {-10.f, -20.f, 0.f};
-
-    std::array<dindex, 2> search_window_size{0, 0};
-    axis::multi_bin_range<3> search_window{
-        axis::bin_range{0, 1}, axis::bin_range{0, 1}, axis::bin_range{0, 1}};
-
-    const auto bview1 = axis::detail::bin_view(grid_3D, search_window);
-    const auto joined_view1 = detray::views::join(bview1);
-    const auto grid_search1 = grid_3D.search(p, search_window_size);
-
-    static_assert(detray::ranges::bidirectional_range<decltype(bview1)>);
-    static_assert(detray::ranges::bidirectional_range<decltype(joined_view1)>);
-    static_assert(detray::ranges::bidirectional_range<decltype(grid_search1)>);
-
-    ASSERT_EQ(bview1.size(), 1u);
-    ASSERT_EQ(joined_view1.size(), 1u);
-    ASSERT_EQ(grid_search1.size(), 1u);
-
-    for (auto bin : bview1) {
-        for (auto entry : bin) {
-            EXPECT_EQ(entry, grid_3D.bin(0).value()) << "bin entry: " << entry;
-        }
-    }
-
-    for (scalar entry : joined_view1) {
-        EXPECT_EQ(entry, grid_3D.bin(0).value()) << "bin entry: " << entry;
-    }
-
-    for (scalar entry : grid_search1) {
-        EXPECT_EQ(entry, grid_3D.bin(0).value()) << "bin entry: " << entry;
-    }
-
-    //
-    // In the corner of the grid, include nearest neighbor
-    //
-    search_window_size[0] = 1;
-    search_window_size[1] = 1;
-    search_window[0] = axis::bin_range{0, 2};
-    search_window[1] = axis::bin_range{0, 2};
-    search_window[2] = axis::bin_range{0, 2};
-
-    std::vector<scalar> expected{1, 801, 21, 821, 2, 802, 22, 822};
-
-    const auto bview2 = axis::detail::bin_view(grid_3D, search_window);
-    const auto joined_view2 = detray::views::join(bview2);
-    const auto grid_search2 = grid_3D.search(p, search_window_size);
-
-    static_assert(detray::ranges::bidirectional_range<decltype(bview2)>);
-    static_assert(detray::ranges::bidirectional_range<decltype(joined_view2)>);
-    static_assert(detray::ranges::bidirectional_range<decltype(grid_search2)>);
-
-    ASSERT_EQ(bview2.size(), 8u);
-    ASSERT_EQ(joined_view2.size(), 8u);
-    ASSERT_EQ(grid_search2.size(), 8u);
-
-    for (auto [i, bin] : detray::views::enumerate(bview2)) {
-        for (scalar entry : bin) {
-            EXPECT_EQ(entry, expected[i]) << "bin entry: " << entry;
-        }
-    }
-
-    for (auto [i, entry] : detray::views::enumerate(joined_view2)) {
-        EXPECT_EQ(entry, expected[i]) << "bin entry: " << entry;
-    }
-
-    for (auto [i, entry] : detray::views::enumerate(grid_search2)) {
-        EXPECT_EQ(entry, expected[i]) << "bin entry: " << entry;
-    }
-
-    //
-    // Bin 1 and nearest neighbors
-    //
-    p = {-9.f, -19.f, 2.f};
-    search_window[0] = axis::bin_range{0, 3};
-    search_window[1] = axis::bin_range{0, 3};
-    search_window[2] = axis::bin_range{0, 3};
-
-    expected = {1, 801, 1601, 21, 821, 1621, 41, 841, 1641,
-                2, 802, 1602, 22, 822, 1622, 42, 842, 1642,
-                3, 803, 1603, 23, 823, 1623, 43, 843, 1643};
-
-    const auto bview3 = axis::detail::bin_view(grid_3D, search_window);
-    const auto joined_view3 = detray::views::join(bview3);
-    const auto grid_search3 = grid_3D.search(p, search_window_size);
-
-    static_assert(detray::ranges::bidirectional_range<decltype(bview3)>);
-    static_assert(detray::ranges::bidirectional_range<decltype(joined_view3)>);
-    static_assert(detray::ranges::bidirectional_range<decltype(grid_search3)>);
-
-    ASSERT_EQ(bview3.size(), 27u);
-    ASSERT_EQ(joined_view3.size(), 27u);
-    ASSERT_EQ(grid_search3.size(), 27u);
-
-    for (auto [i, bin] : detray::views::enumerate(bview3)) {
-        for (scalar entry : bin) {
-            EXPECT_EQ(entry, expected[i]) << "bin entry: " << entry;
-        }
-    }
-
-    for (auto [i, entry] : detray::views::enumerate(joined_view3)) {
-        EXPECT_EQ(entry, expected[i]) << "bin entry: " << entry;
-    }
-
-    for (auto [i, entry] : detray::views::enumerate(grid_search3)) {
-        EXPECT_EQ(entry, expected[i]) << "bin entry: " << entry;
-    }
-}
-
 /// Integration test: Test replace population
 GTEST_TEST(detray_grid, replace_population) {
 
@@ -507,8 +371,8 @@ GTEST_TEST(detray_grid, replace_population) {
                 p = {static_cast<scalar>(-10 + ib0),
                      static_cast<scalar>(-20 + ib1),
                      static_cast<scalar>(0 + ib2)};
-                EXPECT_NEAR(g3r.search(p)[0],
-                            std::numeric_limits<scalar>::max(), tol);
+                EXPECT_NEAR(g3r.bin(p)[0], std::numeric_limits<scalar>::max(),
+                            tol);
             }
         }
     }
@@ -516,7 +380,7 @@ GTEST_TEST(detray_grid, replace_population) {
     p = {-4.5f, -4.5f, 4.5f};
     // Fill and read
     g3r.template populate<replace<>>(p, 3.f);
-    EXPECT_NEAR(g3r.search(p)[0], static_cast<scalar>(3u), tol);
+    EXPECT_NEAR(g3r.bin(p)[0], static_cast<scalar>(3u), tol);
 
     // Fill and read two times, fill first 0-99, then 100-199
     for (unsigned int il = 0u; il < 2u; ++il) {
@@ -528,7 +392,7 @@ GTEST_TEST(detray_grid, replace_population) {
                          static_cast<scalar>(-20 + ib1),
                          static_cast<scalar>(0 + ib2)};
                     g3r.template populate<replace<>>(p, counter);
-                    EXPECT_NEAR(g3r.search(p)[0], counter, tol);
+                    EXPECT_NEAR(g3r.bin(p)[0], counter, tol);
                     counter += 1.f;
                 }
             }
@@ -575,50 +439,7 @@ GTEST_TEST(detray_grid, complete_population) {
     test_content(g3c, p, expected);
 
     // Test search without search window
-    for (scalar entry : g3c.search(p)) {
-        EXPECT_EQ(entry, 4.f);
-    }
-
-    std::array<dindex, 2> search_window_size{0, 0};
-
-    const auto grid_search1 = g3c.search(p, search_window_size);
-
-    static_assert(detray::ranges::bidirectional_range<decltype(grid_search1)>);
-
-    ASSERT_EQ(grid_search1.size(), 4u);
-
-    for (scalar entry : grid_search1) {
-        EXPECT_EQ(entry, 4.f);
-    }
-
-    // No neighbors were filled, expect the same candidates
-    search_window_size[0] = 1;
-    search_window_size[1] = 1;
-
-    const auto grid_search2 = g3c.search(p, search_window_size);
-
-    static_assert(detray::ranges::bidirectional_range<decltype(grid_search2)>);
-
-    ASSERT_EQ(grid_search2.size(), 4u);
-
-    for (scalar entry : grid_search2) {
-        EXPECT_EQ(entry, 4.f);
-    }
-
-    // Populate some neighboring bins
-    point3 p2 = {-5.5f, -4.5f, 4.5f};
-    g3c.template populate<complete<>>(p2, 4.f);
-    p2 = {-3.5f, -4.5f, 4.5f};
-    g3c.template populate<complete<>>(p2, 4.f);
-    p2 = {-4.5f, -5.5f, 4.5f};
-    g3c.template populate<complete<>>(p2, 4.f);
-    p2 = {-4.5f, -3.5f, 4.5f};
-    g3c.template populate<complete<>>(p2, 4.f);
-
-    const auto grid_search3 = g3c.search(p, search_window_size);
-    ASSERT_EQ(grid_search3.size(), 20u);
-
-    for (scalar entry : grid_search3) {
+    for (scalar entry : g3c.bin(p)) {
         EXPECT_EQ(entry, 4.f);
     }
 }
@@ -663,62 +484,7 @@ GTEST_TEST(detray_grid, regular_attach_population) {
     test_content(g3ra, p, expected);
 
     // Test search without search window
-    for (scalar entry : g3ra.search(p)) {
+    for (scalar entry : g3ra.bin(p)) {
         EXPECT_EQ(entry, 5.f);
-    }
-
-    std::array<dindex, 2> search_window_size{0, 0};
-
-    const auto grid_search1 = g3ra.search(p, search_window_size);
-
-    static_assert(detray::ranges::bidirectional_range<decltype(grid_search1)>);
-
-    ASSERT_EQ(grid_search1.size(), 1u);
-
-    for (scalar entry : grid_search1) {
-        EXPECT_EQ(entry, 5.f);
-    }
-
-    // No neighbors were filled, expect the same candidates
-    search_window_size[0] = 1;
-    search_window_size[1] = 1;
-
-    const auto grid_search2 = g3ra.search(p, search_window_size);
-
-    static_assert(detray::ranges::bidirectional_range<decltype(grid_search2)>);
-
-    ASSERT_EQ(grid_search2.size(), 1u);
-
-    for (scalar entry : grid_search2) {
-        EXPECT_EQ(entry, 5.f);
-    }
-
-    // Put more candidates into bin
-    g3ra.template populate<attach<>>(p, 6.f);
-    g3ra.template populate<attach<>>(p, 7.f);
-    std::vector<scalar> entries{5.f, 6.f, 7.f};
-
-    const auto grid_search3 = g3ra.search(p, search_window_size);
-    ASSERT_EQ(grid_search3.size(), 3u);
-
-    for (auto [i, entry] : detray::views::enumerate(grid_search3)) {
-        EXPECT_EQ(entry, entries[i]);
-    }
-
-    // Populate some neighboring bins
-    point3 p2 = {-5.5f, -4.5f, 4.5f};
-    g3ra.template populate<attach<>>(p2, 5.f);
-    p2 = {-3.5f, -4.5f, 4.5f};
-    g3ra.template populate<attach<>>(p2, 5.f);
-    p2 = {-4.5f, -5.5f, 4.5f};
-    g3ra.template populate<attach<>>(p2, 5.f);
-    p2 = {-4.5f, -3.5f, 4.5f};
-    g3ra.template populate<attach<>>(p2, 5.f);
-
-    const auto grid_search4 = g3ra.search(p, search_window_size);
-    ASSERT_EQ(grid_search4.size(), 7u);
-
-    for (scalar entry : grid_search4) {
-        EXPECT_TRUE(entry == 5.f || entry == 6.f || entry == 7.f);
     }
 }

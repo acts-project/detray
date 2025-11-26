@@ -99,16 +99,12 @@ int main() {
     auto acc_buff = detray::get_buffer(det_host.accelerator_store(), dev_mr,
                                        cuda_cpy, detray::copy::sync,
                                        vecmem::data::buffer_type::fixed_size);
-    auto vgrid_buff = detray::get_buffer(det_host.volume_search_grid(), dev_mr,
-                                         cuda_cpy, detray::copy::sync,
-                                         vecmem::data::buffer_type::fixed_size);
 
     // Assemble the detector buffer
     using host_detector_type = decltype(det_host);
     auto det_custom_buff = typename host_detector_type::buffer_type(
         std::move(vol_buff), std::move(sf_buff), std::move(trf_buff),
-        std::move(msk_buff), std::move(mat_buff), std::move(acc_buff),
-        std::move(vgrid_buff));
+        std::move(msk_buff), std::move(mat_buff), std::move(acc_buff));
 
     DETRAY_INFO_HOST("Custom buffer setup:");
     detray::tutorial::print(detray::get_data(det_custom_buff));

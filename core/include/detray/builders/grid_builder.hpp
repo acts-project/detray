@@ -14,6 +14,8 @@
 #include "detray/builders/volume_builder.hpp"
 #include "detray/builders/volume_builder_interface.hpp"
 #include "detray/geometry/tracking_volume.hpp"
+#include "detray/navigation/accelerators/concepts.hpp"
+#include "detray/navigation/accelerators/spatial_grid.hpp"
 #include "detray/utils/grid/detail/concepts.hpp"
 #include "detray/utils/log.hpp"
 
@@ -41,7 +43,7 @@ class grid_builder : public volume_decorator<detector_t> {
     using value_type = typename detector_type::surface_type;
     using scalar_type = dscalar<algebra_type>;
 
-    /// Decorate a volume with a grid
+    /// Decorate a volume with a surface accelerator grid
     DETRAY_HOST
     explicit grid_builder(
         std::unique_ptr<volume_builder_interface<detector_t>> vol_builder)
@@ -66,13 +68,13 @@ class grid_builder : public volume_decorator<detector_t> {
     }
 
     /// Set the surface category this grid should contain (type id in the
-    /// accelrator link in the volume)
+    /// accelerator link in the volume descriptor)
     void set_type(std::size_t sf_id) {
         set_type(static_cast<link_id_t>(sf_id));
     }
 
     /// Set the surface category this grid should contain (type id in the
-    /// accelrator link in the volume)
+    /// accelerator link in the volume descriptor)
     void set_type(link_id_t sf_id) {
         // Exclude zero, it is reserved for the brute force method
         assert(static_cast<int>(sf_id) > 0);
@@ -160,11 +162,17 @@ class grid_builder : public volume_decorator<detector_t> {
 
         DETRAY_VERBOSE_HOST("Build surface grid...");
 
+        DETRAY_VERBOSE_HOST(
+            " -> Defer to other builders to get complete surface descriptors "
+            "first:");
+
         using surface_desc_t = typename detector_t::surface_type;
 
         // Add the surfaces (portals and/or passives) that are owned by the vol
         typename detector_t::volume_type *vol_ptr =
             volume_decorator<detector_t>::build(det, ctx);
+
+        DETRAY_VERBOSE_HOST("Resume building with updated surface descriptors");
 
         // Find the surfaces that should be filled into the grid
         const auto vol = tracking_volume{det, vol_ptr->index()};
@@ -207,17 +215,29 @@ class grid_builder : public volume_decorator<detector_t> {
             }
         }
 
-        // Add the grid to the detector and link it to its volume
-        constexpr auto gid{types::id<typename detector_t::accel, grid_t>};
-        DETRAY_DEBUG_HOST("Grid indices: m_id=" << m_id << ", gid=" << gid);
+        // Is the given grid type already an acceleration structure?
+        using spatial_grid_t =
+            std::conditional_t<concepts::surface_accelerator<grid_t>, grid_t,
+                               spatial_grid_impl<grid_t>>;
+        constexpr auto gid{
+            types::id<typename detector_t::accel, spatial_grid_t>};
+        const dindex grid_idx{det.accelerator_store().template size<gid>()};
 
+        DETRAY_DEBUG_HOST("Adding grid to volume in detector. Surface type: "
+                          << m_id << ", grid: " << gid
+                          << ", grid idx: " << grid_idx);
+
+        // Set: contained surface type, grid type, grid instance index
+        vol_ptr->set_accel_link(m_id, gid, grid_idx);
+
+        // Add to detector
         det._accelerators.template push_back<gid>(m_grid);
-        vol_ptr->set_link(m_id, gid,
-                          det.accelerator_store().template size<gid>() - 1);
 
         DETRAY_DEBUG_HOST("Accelerator link: " << vol_ptr->accel_link());
         DETRAY_VERBOSE_HOST("Successfully built "
                             << gid << " for volume: " << this->name());
+
+        DETRAY_DEBUG_HOST("Finished grid: " << m_grid);
 
         return vol_ptr;
     }
@@ -229,6 +249,7 @@ class grid_builder : public volume_decorator<detector_t> {
     private:
     link_id_t m_id{link_id_t::e_sensitive};
     grid_factory_t m_factory{};
+    // Data owning grid type, so that surface data can be filled into memory
     typename grid_t::template type<true> m_grid{};
     bin_filler_t m_bin_filler{};
     bool m_add_passives{false};

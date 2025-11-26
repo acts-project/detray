@@ -25,9 +25,7 @@ typename host_detector_type::view_type misaligned_detector_view(
         detray::get_data(
             detray::detail::get<4>(det_buffer.m_buffer)),  // materials
         detray::get_data(
-            detray::detail::get<5>(det_buffer.m_buffer)),  // accelerators
-        detray::get_data(detray::detail::get<6>(
-            det_buffer.m_buffer))};  // volume search grid
+            detray::detail::get<5>(det_buffer.m_buffer))};  // accelerators
     return detview;
 }
 

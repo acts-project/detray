@@ -202,7 +202,9 @@ std::string get_name(bool full = false) {
 }
 
 template <typename = void>
-struct print {};
+struct print {
+    print() { std::puts("Not a type_list!\n"); }
+};
 
 template <typename... Ts>
 struct print<list<Ts...>> {
@@ -214,15 +216,15 @@ struct print<list<Ts...>> {
 
         // Keep unrolling the pack
         if constexpr (sizeof...(Ps) > 0) {
-            std::printf(", ");
+            std::puts(", ");
             return print_typeid<Ps...>(full);
         }
     }
 
     print(bool full = true) {
-        std::printf("type_list<");
+        std::puts("type_list<");
         print_typeid<Ts...>(full);
-        std::printf(">\n");
+        std::puts(">\n");
     }
 };
 /// @}

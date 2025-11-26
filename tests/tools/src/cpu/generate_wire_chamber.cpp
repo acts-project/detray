@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
 
     desc.add_options()("write_volume_graph", "writes the volume graph to file");
     desc.add_options()("straw_tubes", "build the detector using straw tubes");
-    desc.add_options()("wire_cells",
+    desc.add_options()("drift_cells",
                        "build the detector using wire chamber cells");
 
     // Configuration
@@ -78,7 +78,7 @@ int main(int argc, char **argv) {
     }
 
     // Determine the wire shape
-    if (vm.count("straw_tubes") && vm.count("wire_cells")) {
+    if (vm.count("straw_tubes") && vm.count("drift_cells")) {
         throw std::invalid_argument(
             "Cannot build straw tubes and wire cells together");
     }

@@ -44,7 +44,6 @@ class single_store {
 
     /// How to find data in the store
     /// @{
-    using link_type = dindex;
     using single_link = dindex;
     using range_link = dindex_range;
     /// @}
