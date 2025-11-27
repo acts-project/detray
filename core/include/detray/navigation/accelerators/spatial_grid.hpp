@@ -8,7 +8,12 @@
 #pragma once
 
 // Project include(s)
+#include "detray/geometry/concepts.hpp"
+#include "detray/geometry/mask.hpp"
+#include "detray/geometry/shapes/concentric_cylinder2D.hpp"
 #include "detray/navigation/accelerators/search_window.hpp"
+#include "detray/navigation/intersection/ray_intersector.hpp"
+#include "detray/tracks/ray.hpp"
 #include "detray/utils/grid/detail/axis_helpers.hpp"
 #include "detray/utils/grid/detail/bin_view.hpp"
 #include "detray/utils/grid/detail/grid_bins.hpp"
@@ -22,6 +27,9 @@ template <concepts::grid grid_t>
 class spatial_grid_impl : public grid_t {
 
     using base_grid = grid_t;
+    using frame_t = typename grid_t::local_frame_type;
+    using algebra_t = typename grid_t::algebra_type;
+    using mask_t = mask<concentric_cylinder2D, algebra_t, std::uint8_t>;
 
     public:
     using value_type = typename base_grid::value_type;
@@ -35,13 +43,20 @@ class spatial_grid_impl : public grid_t {
     using base_grid::base_grid;
 
     /// Construct from existing grid - move
-    DETRAY_HOST_DEVICE
-    explicit constexpr spatial_grid_impl(base_grid &&gr)
-        : base_grid(std::move(gr)) {}
+    ///
+    /// @param mask_values additional mask boundary values that cannot be
+    /// inferred from the axis spans, e.g. the concentric cylinder radius
+    template <typename... Args>
+    DETRAY_HOST_DEVICE explicit constexpr spatial_grid_impl(
+        base_grid &&gr, Args &&...mask_values)
+        : base_grid(std::move(gr)),
+          m_mask{get_mask_from_axes(mask_values...)} {}
 
     /// Construct from existing grid - copy
-    DETRAY_HOST_DEVICE
-    explicit constexpr spatial_grid_impl(base_grid &gr) : base_grid(gr) {}
+    template <typename... Args>
+    DETRAY_HOST_DEVICE explicit constexpr spatial_grid_impl(
+        base_grid &gr, Args &&...mask_values)
+        : base_grid(gr), m_mask{get_mask_from_axes(mask_values...)} {}
 
     /// Find the value of a single bin - const
     ///
@@ -90,13 +105,87 @@ class spatial_grid_impl : public grid_t {
         const track_t &track, const search_window<window_size_t, 2> &win_size,
         const typename detector_t::geometry_context &ctx) const {
 
-        // Track position in grid coordinates
+        // Placement of the grid (same as volume)
         const auto &trf = det.transform_store().at(volume.transform(), ctx);
-        const auto loc_pos = this->project(trf, track.pos(), track.dir());
+
+        query_type loc_pos{};
+        // For 2-dimensional grids project the track position along the track
+        // direction to find the optimal grid bin
+        if constexpr (base_grid::dim == 2) {
+            // Tangential to the current track parameters
+            detray::detail::ray<algebra_t> tangential{track};
+
+            // Intersect the (virtual) reference surface of the grid to find
+            // the correct bin
+            using intersector_t =
+                ray_intersector_impl<frame_t, algebra_t,
+                                     intersection::contains_pos>;
+
+            constexpr intersector_t intersector{};
+            typename intersector_t::result_type result{};
+
+            if constexpr (concepts::cylindrical<frame_t>) {
+                // The cylinder intersector requires the radius from the mask
+                result =
+                    intersector.point_of_intersection(tangential, trf, m_mask);
+            } else {
+                result = intersector.point_of_intersection(tangential, trf);
+            }
+
+            // Retrieve the closest intersection point
+            typename intersector_t::point_type intr_point;
+            if constexpr (intersector_t::n_solutions == 1) {
+                intr_point = result.point;
+            } else {
+                // Use the closest intersection
+                intr_point = result[0].point;
+            }
+
+            // Most intersectors return global positions -> project to grid axes
+            if constexpr (std::same_as<typename intersector_t::point_type,
+                                       query_type>) {
+                loc_pos = intr_point;
+            } else if constexpr (std::same_as<frame_t, concentric_cylindrical2D<
+                                                           algebra_t>>) {
+                // The concentric cylinder intersector only returns the z-pos
+                loc_pos = {vector::phi(tangential.pos(result.path)),
+                           intr_point[1]};
+            } else {
+                // Projec the intersection point into the local grid frame
+                loc_pos = this->project(trf, intr_point, track.dir());
+            }
+        } else {
+            loc_pos = this->project(trf, track.pos(), track.dir());
+        }
 
         // Grid lookup
         return search(loc_pos, win_size);
     }
+
+    private:
+    /// @returns a mask that has boundaries which match the grid axis spans
+    template <typename... Args>
+    DETRAY_HOST_DEVICE mask_t get_mask_from_axes(Args &&...mask_values) {
+
+        constexpr auto inv_vol_link{
+            detray::detail::invalid_value<std::uint8_t>()};
+
+        /// @param mask_values contains the cylinder radius
+        if constexpr (concepts::cylindrical<frame_t>) {
+            static_assert(sizeof...(Args) == 1,
+                          "Spatial cylinder grid: Only the cylinder radius "
+                          "needs to be provided externally");
+
+            constexpr auto inf{std::numeric_limits<dscalar<algebra_t>>::max()};
+            return mask_t{inv_vol_link, mask_values..., -inf, inf};
+        } else {
+            /// @TODO: Implement axes to mask conversion for the other shapes
+            return {};
+        }
+    }
+
+    /// Struct that contains the grid's data state
+    mask_t m_mask{};
 };
 
 template <concepts::algebra algebra_t, typename axes_t, typename bin_t,
@@ -115,6 +204,7 @@ class grid_collection<spatial_grid_impl<grid_t>>
     : public grid_collection<grid_t> {
     // Use a normal grid collection fro the grid related data
     using base_collection = grid_collection<grid_t>;
+    using frame_t = typename grid_t::local_frame_type;
 
     public:
     using size_type = typename base_collection::size_type;
@@ -127,13 +217,22 @@ class grid_collection<spatial_grid_impl<grid_t>>
     DETRAY_HOST_DEVICE
     constexpr auto operator[](const size_type i) const
         -> spatial_grid_impl<grid_t> {
-        return spatial_grid_impl<grid_t>(base_collection::operator[](i));
+        if constexpr (concepts::cylindrical<frame_t>) {
+            return spatial_grid_impl<grid_t>(base_collection::operator[](i),
+                                             100.f);
+        } else {
+            return spatial_grid_impl<grid_t>(base_collection::operator[](i));
+        }
     }
 
     /// Create spatial grid acceleration structure from underlying grid data
     DETRAY_HOST_DEVICE
     constexpr auto at(const size_type i) const -> spatial_grid_impl<grid_t> {
-        return spatial_grid_impl<grid_t>(base_collection::at(i));
+        if constexpr (concepts::cylindrical<frame_t>) {
+            return spatial_grid_impl<grid_t>(base_collection::at(i), 100.f);
+        } else {
+            return spatial_grid_impl<grid_t>(base_collection::at(i));
+        }
     }
 };
 

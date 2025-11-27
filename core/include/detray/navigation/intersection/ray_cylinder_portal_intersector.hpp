@@ -34,6 +34,8 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
                             resolve_pos> {
 
     using algebra_type = algebra_t;
+    using frame_type = concentric_cylindrical2D<algebra_t>;
+    using point_type = dpoint2D<algebra_t>;
 
     template <typename surface_descr_t>
     using intersection_type =
@@ -45,8 +47,8 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
     // Maximum number of solutions this intersector can produce
     static constexpr std::uint8_t n_solutions{1u};
 
-    using result_type = intersection_point<algebra_t, dpoint2D<algebra_t>,
-                                           intersection::contains_pos>;
+    using result_type =
+        intersection_point<algebra_t, point_type, intersection::contains_pos>;
 
     /// Operator function to find intersections between ray and cylinder mask
     ///
@@ -69,7 +71,6 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
         const dscalar<algebra_t> overstep_tol = 0.f) const {
 
         using scalar_t = dscalar<algebra_t>;
-        using point2_t = dpoint2D<algebra_t>;
         using point3_t = dpoint3D<algebra_t>;
         using vector3_t = dvector3D<algebra_t>;
 
@@ -127,7 +128,7 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
         }
 
         // Only need the global z-component for the mask check
-        return {path, point2_t{inv, ro[2] + path * rd[2]}};
+        return {path, point_type{inv, ro[2] + path * rd[2]}};
     }
 };
 
