@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/core/detail/type_traits.hpp"
+#include "detray/geometry/mask.hpp"
 
 namespace detray::concepts {
 
@@ -42,5 +43,12 @@ concept has_homogeneous_material =
 template <class detector_t>
 concept has_material_maps =
     detail::contains_material_maps_v<typename detector_t::materials>;
+
+/// Check whether the detector defines the shape type @tparam shape_t
+template <class detector_t, class shape_t>
+concept has_mask =
+    types::contains<typename detector_t::masks,
+                    mask<shape_t, typename detector_t::algebra_type,
+                         typename detector_t::surface_type::navigation_link>>;
 
 }  // namespace detray::concepts

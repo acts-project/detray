@@ -17,7 +17,9 @@
 #include <string_view>
 #include <type_traits>
 
-namespace detray::types {
+namespace detray {
+
+namespace types {
 
 /// @brief type list implementation
 /// @see https://www.codingwiththomas.com/blog/getting-started-with-typelists
@@ -135,6 +137,22 @@ template <typename L, typename N>
 using push_front = typename do_push_front<N, L>::type;
 /// @}
 
+/// Traits for the type list/registry
+/// @{
+namespace detail {
+
+template <typename = void>
+struct is_type_list : public std::false_type {};
+
+template <typename... Ts>
+struct is_type_list<types::list<Ts...>> : public std::true_type {};
+
+template <typename L>
+inline constexpr bool is_type_list_v{is_type_list<L>::value};
+
+}  // namespace detail
+///@}
+
 /// Print the type list
 /// @{
 
@@ -242,7 +260,8 @@ struct print<list<Ts...>> {
 /// @returns the filled type list
 template <typename orig_list_t, class type_selector, std::size_t I = 0u,
           typename... Fs>
-consteval auto filtered_list(const list<Fs...>& filtered = list<>{}) {
+DETRAY_HOST_DEVICE consteval auto filtered_list(
+    const list<Fs...>& filtered = list<>{}) {
     static_assert(sizeof...(Fs) <= I, "Can only map down to list with ");
 
     // The current list of mapped types
@@ -280,7 +299,7 @@ consteval auto filtered_list(const list<Fs...>& filtered = list<>{}) {
 /// @returns the filled index array
 template <typename orig_list_t, class type_selector, std::size_t I = 0u,
           typename... Fs>
-consteval auto filtered_indices(
+DETRAY_HOST_DEVICE consteval auto filtered_indices(
     const list<Fs...>& filtered,
     std::array<dindex, size<orig_list_t>> idx_array = {0}) {
 
@@ -310,4 +329,16 @@ consteval auto filtered_indices(
     }
 }
 
-}  // namespace detray::types
+}  // namespace types
+
+/// Type list/registry concepts
+/// @{
+namespace concepts {
+
+template <typename L>
+concept type_list = types::detail::is_type_list_v<L>;
+
+}
+///@}
+
+}  // namespace detray
