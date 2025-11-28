@@ -258,7 +258,7 @@ class grid_collection<detray::grid_impl<axes_t, bin_t, serializer_t>> {
     }
 
     /// Create grid from container pointers with range check
-    DETRAY_HOST
+    DETRAY_HOST_DEVICE
     auto at(const size_type i) const -> grid_t {
         const size_type axes_offset{grid_t::dim * i};
         return grid_t(

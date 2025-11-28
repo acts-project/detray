@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/builders/detail/radius_getter.hpp"
 #include "detray/core/detector.hpp"
 #include "detray/definitions/grid_axis.hpp"
 #include "detray/definitions/units.hpp"
@@ -168,10 +169,9 @@ auto surface_grid(const detector_t& detector, const dindex index,
     // sensitive surfaces, since the volume has a grid. Their radii are,
     // however, always within the interval of the portal radii
     for (const auto& pt_desc : vol.portals()) {
-        auto r =
-            detector.mask_store()
-                .template visit<detray::svgtools::utils::outer_radius_getter>(
-                    pt_desc.mask());
+        auto r = detector.mask_store()
+                     .template visit<detray::detail::outer_radius_getter>(
+                         pt_desc.mask());
         if (r.has_value()) {
             radii.push_back(*r);
         }
