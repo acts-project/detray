@@ -328,7 +328,20 @@ class multi_axis {
     template <std::size_t I>
     DETRAY_HOST_DEVICE types::get<axis_reg, types::id_cast<axis_reg, I>>
     get_axis() const {
-        return {m_edge_offsets[I], &bin_edges()};
+        if constexpr (std::same_as<edge_offset_range_t,
+                                   vecmem::vector<dsized_index_range>>) {
+#if defined(__CUDACC__)
+            // Otherwise, a warning is triggered with gcc 11.4 and nvcc 12.4
+            DETRAY_ERROR_DEVICE(
+                "The host container types must not be called in device code");
+            assert(false);
+            return {dsized_index_range{}, &bin_edges()};
+#else
+            return {m_edge_offsets[I], &bin_edges()};
+#endif
+        } else {
+            return {m_edge_offsets[I], &bin_edges()};
+        }
     }
 
     /// @tparam L label of the axis.

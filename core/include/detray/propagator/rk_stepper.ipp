@@ -791,7 +791,6 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
         // Error estimate is too big
         // ---> Make step size smaller and estimate error again
         else {
-            assert(stepping.step_size() * step_size_scaling(error));
             stepping.set_step_size(stepping.step_size() *
                                    step_size_scaling(error));
 
