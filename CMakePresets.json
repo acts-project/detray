@@ -167,7 +167,7 @@
             "DETRAY_BUILD_INTEGRATIONTESTS" : "FALSE",
             "DETRAY_BUILD_TUTORIALS" : "FALSE",
             "DETRAY_FAIL_ON_WARNINGS" : "TRUE",
-            "DETRAY_EIGEN_PLUGIN" : "TRUE"
+            "DETRAY_EIGEN_PLUGIN" : "FALSE"
          }
       }
    ]

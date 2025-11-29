@@ -31,6 +31,8 @@ template <algebra::concepts::aos algebra_t, bool resolve_pos>
 struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, resolve_pos> {
 
     using algebra_type = algebra_t;
+    using frame_type = cylindrical2D<algebra_t>;
+    using point_type = dpoint3D<algebra_t>;
 
     template <typename surface_descr_t>
     using intersection_type =
@@ -42,10 +44,9 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, resolve_pos> {
     // Maximum number of solutions this intersector can produce
     static constexpr std::uint8_t n_solutions{2u};
 
-    using result_type =
-        darray<intersection_point<algebra_t, dpoint3D<algebra_t>,
-                                  intersection::contains_pos>,
-               n_solutions>;
+    using result_type = darray<
+        intersection_point<algebra_t, point_type, intersection::contains_pos>,
+        n_solutions>;
 
     /// Operator function to find intersections between ray and planar mask
     ///

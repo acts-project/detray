@@ -9,6 +9,7 @@
 
 // Project include(s).
 #include "detray/builders/bin_fillers.hpp"
+#include "detray/builders/detail/radius_getter.hpp"
 #include "detray/builders/grid_factory.hpp"
 #include "detray/builders/surface_factory_interface.hpp"
 #include "detray/builders/volume_builder.hpp"
@@ -20,6 +21,7 @@
 #include "detray/utils/log.hpp"
 
 // System include(s)
+#include <algorithm>
 #include <cassert>
 #include <memory>
 #include <vector>
@@ -36,6 +38,12 @@ template <typename detector_t, concepts::grid grid_t,
 class grid_builder : public volume_decorator<detector_t> {
 
     using link_id_t = typename detector_t::volume_type::object_id;
+
+    // Is the given grid type already an acceleration structure?
+    using spatial_grid_t =
+        std::conditional_t<concepts::surface_accelerator<grid_t>, grid_t,
+                           spatial_grid_impl<grid_t>>;
+    using spatial_grid_owning_t = typename spatial_grid_t::template type<true>;
 
     public:
     using detector_type = detector_t;
@@ -102,8 +110,11 @@ class grid_builder : public volume_decorator<detector_t> {
                            typename grid_t::local_frame_type>,
             "Mask has incorrect shape");
 
-        m_grid = m_factory.template new_grid<grid_t>(m, n_bins, bin_capacities,
-                                                     ax_bin_edges);
+        // Build spatial grid from grid utility and (so far empty) mask
+        m_grid =
+            spatial_grid_owning_t{m_factory.template new_grid<grid_t>(
+                                      m, n_bins, bin_capacities, ax_bin_edges),
+                                  typename spatial_grid_t::mask_type{}};
 
         DETRAY_VERBOSE_HOST("Created empty grid:\n"
                             << DETRAY_TYPENAME(grid_t) << "\n"
@@ -121,8 +132,11 @@ class grid_builder : public volume_decorator<detector_t> {
 
         DETRAY_VERBOSE_HOST("Intialize surface grid...");
 
-        m_grid = m_factory.template new_grid<grid_t>(
-            spans, n_bins, bin_capacities, ax_bin_edges);
+        // Build spatial grid from grid utility and (so far empty) mask
+        m_grid = spatial_grid_owning_t{
+            m_factory.template new_grid<grid_t>(spans, n_bins, bin_capacities,
+                                                ax_bin_edges),
+            typename spatial_grid_t::mask_type{}};
 
         DETRAY_VERBOSE_HOST("Created empty grid:\n"
                             << DETRAY_TYPENAME(grid_t) << "\n"
@@ -215,10 +229,49 @@ class grid_builder : public volume_decorator<detector_t> {
             }
         }
 
-        // Is the given grid type already an acceleration structure?
-        using spatial_grid_t =
-            std::conditional_t<concepts::surface_accelerator<grid_t>, grid_t,
-                               spatial_grid_impl<grid_t>>;
+        // For cylinder grids, additional mask information is needed
+        if constexpr (concepts::cylindrical<
+                          typename grid_t::local_frame_type>) {
+            assert(vol_ptr->id() == volume_id::e_cylinder);
+
+            constexpr auto inv_vol_link{
+                detray::detail::invalid_value<std::uint8_t>()};
+            constexpr auto inf{std::numeric_limits<scalar_type>::max()};
+
+            DETRAY_DEBUG_HOST("Find radius for cylinder grid...");
+
+            // Passive surfaces could be in the brute force finder, but no
+            // sensitive surfaces, since the volume has a grid. Their radii are,
+            // however, always within the interval of the portal radii
+            std::vector<scalar_type> radii{};
+            for (auto pt_desc : vol.portals()) {
+                auto r = det.mask_store()
+                             .template visit<detail::outer_radius_getter>(
+                                 pt_desc.mask());
+
+                if (r.has_value()) {
+                    DETRAY_DEBUG_HOST("Found radius "
+                                      << *r << " mm of portal: " << pt_desc);
+                    radii.push_back(*r);
+                }
+            }
+
+            scalar_type grid_r{0.f};
+            if (!radii.empty()) {
+                const scalar_type inner_r{*std::ranges::min_element(radii)};
+                const scalar_type outer_r{*std::ranges::max_element(radii)};
+
+                grid_r = 0.5f * (inner_r + outer_r);
+            }
+
+            typename spatial_grid_t::mask_type cyl_mask{inv_vol_link, grid_r,
+                                                        -inf, inf};
+
+            DETRAY_DEBUG_HOST("Setting mask for cylinder grid: " << cyl_mask);
+
+            m_grid.mask(cyl_mask);
+        }
+
         constexpr auto gid{
             types::id<typename detector_t::accel, spatial_grid_t>};
         const dindex grid_idx{det.accelerator_store().template size<gid>()};
@@ -250,7 +303,7 @@ class grid_builder : public volume_decorator<detector_t> {
     link_id_t m_id{link_id_t::e_sensitive};
     grid_factory_t m_factory{};
     // Data owning grid type, so that surface data can be filled into memory
-    typename grid_t::template type<true> m_grid{};
+    spatial_grid_owning_t m_grid{};
     bin_filler_t m_bin_filler{};
     bool m_add_passives{false};
 };

@@ -30,6 +30,8 @@ template <algebra::concepts::aos algebra_t, bool resolve_pos>
 struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, resolve_pos> {
 
     using algebra_type = algebra_t;
+    using frame_type = cartesian2D<algebra_t>;
+    using point_type = dpoint3D<algebra_t>;
 
     template <typename surface_descr_t>
     using intersection_type =
@@ -42,8 +44,8 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, resolve_pos> {
     static constexpr std::uint8_t n_solutions{1u};
 
     /// Always includes the intersection position, in order to resolve the mask
-    using result_type = intersection_point<algebra_t, dpoint3D<algebra_t>,
-                                           intersection::contains_pos>;
+    using result_type =
+        intersection_point<algebra_t, point_type, intersection::contains_pos>;
 
     /// Operator function to find intersections between ray and planar mask
     ///
