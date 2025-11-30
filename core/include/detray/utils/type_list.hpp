@@ -17,7 +17,9 @@
 #include <string_view>
 #include <type_traits>
 
-namespace detray::types {
+namespace detray {
+
+namespace types {
 
 /// @brief type list implementation
 /// @see https://www.codingwiththomas.com/blog/getting-started-with-typelists
@@ -134,6 +136,22 @@ struct do_push_front<N, list<Ts...>> {
 template <typename L, typename N>
 using push_front = typename do_push_front<N, L>::type;
 /// @}
+
+/// Traits for the type list
+/// @{
+namespace detail {
+
+template <typename = void>
+struct is_type_list : public std::false_type {};
+
+template <typename... Ts>
+struct is_type_list<types::list<Ts...>> : public std::true_type {};
+
+template <typename L>
+inline constexpr bool is_type_list_v{is_type_list<L>::value};
+
+}  // namespace detail
+///@}
 
 /// Print the type list
 /// @{
@@ -311,4 +329,16 @@ DETRAY_HOST_DEVICE consteval auto filtered_indices(
     }
 }
 
-}  // namespace detray::types
+}  // namespace types
+
+/// Type list concepts
+/// @{
+namespace concepts {
+
+template <typename L>
+concept type_list = types::detail::is_type_list_v<L>;
+
+}
+///@}
+
+}  // namespace detray
