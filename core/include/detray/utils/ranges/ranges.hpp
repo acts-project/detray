@@ -309,7 +309,7 @@ inline constexpr bool viewable_range =
 /// @returns composed range c(r)
 /// @TODO: Add concept for range adaptors, closures etc.
 template <detray::ranges::range R, detray::ranges::range C>
-auto operator|(R&& r, C&& c) {
+DETRAY_HOST_DEVICE auto operator|(R&& r, C&& c) {
     return std::forward<C>(c)(std::forward<R>(r));
 }
 

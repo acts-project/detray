@@ -242,7 +242,8 @@ struct print<list<Ts...>> {
 /// @returns the filled type list
 template <typename orig_list_t, class type_selector, std::size_t I = 0u,
           typename... Fs>
-consteval auto filtered_list(const list<Fs...>& filtered = list<>{}) {
+DETRAY_HOST_DEVICE consteval auto filtered_list(
+    const list<Fs...>& filtered = list<>{}) {
     static_assert(sizeof...(Fs) <= I, "Can only map down to list with ");
 
     // The current list of mapped types
@@ -280,7 +281,7 @@ consteval auto filtered_list(const list<Fs...>& filtered = list<>{}) {
 /// @returns the filled index array
 template <typename orig_list_t, class type_selector, std::size_t I = 0u,
           typename... Fs>
-consteval auto filtered_indices(
+DETRAY_HOST_DEVICE consteval auto filtered_indices(
     const list<Fs...>& filtered,
     std::array<dindex, size<orig_list_t>> idx_array = {0}) {
 

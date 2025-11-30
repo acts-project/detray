@@ -111,13 +111,13 @@ class mapped_registry : public registry_t {
     /// index
     DETRAY_HOST_DEVICE
     static constexpr std::size_t mapped_index(const std::size_t orig_idx) {
-        return m_idx_map.at(orig_idx);
+        return m_idx_map[orig_idx];
     }
 
     /// @returns the filtered type index corresponding to the original type ID
     DETRAY_HOST_DEVICE
     static constexpr std::size_t mapped_index(const id orig_id) {
-        return m_idx_map.at(static_cast<std::size_t>(orig_id));
+        return m_idx_map[static_cast<std::size_t>(orig_id)];
     }
 
     private:
