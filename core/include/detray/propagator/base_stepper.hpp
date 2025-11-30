@@ -137,7 +137,7 @@ class base_stepper {
         /// Set the current step size
         DETRAY_HOST_DEVICE
         inline void set_step_size(const scalar_type step) {
-            assert(math::fabs(step) > 1e-4f * unit<scalar_type>::mm);
+            assert(math::fabs(step) >= 1e-4f * unit<scalar_type>::mm);
             m_step_size = step;
         }
 
