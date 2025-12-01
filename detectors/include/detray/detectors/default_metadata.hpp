@@ -202,8 +202,8 @@ unbounded_cell, unmasked_plane*/>;
         e_drift_cell_map = 5u,
         e_straw_tube_map = 5u,
         // Volume material
-        e_cuboid3_map = 7,
-        e_cylinder3_map = 8u,
+        // e_cuboid3_map = 7,
+        // e_cylinder3_map = 8u,
         // Homogeneous material
         e_slab = 4u,
         e_rod = 5u,
@@ -239,12 +239,12 @@ unbounded_cell, unmasked_plane*/>;
             case material_ids::e_raw_material:
                 os << "e_raw_material";
                 break;
-            case material_ids::e_cuboid3_map:
+            /*case material_ids::e_cuboid3_map:
                 os << "e_cuboid3_map";
                 break;
             case material_ids::e_cylinder3_map:
                 os << "e_cylinder3_map";
-                break;
+                break;*/
             case material_ids::e_none:
                 os << "e_none";
                 break;
@@ -264,9 +264,9 @@ unbounded_cell, unmasked_plane*/>;
         grid_collection<rectangular_map_t<container_t>>,
         typename container_t::template vector_type<slab>,
         typename container_t::template vector_type<rod>,
-        typename container_t::template vector_type<material<scalar_t>>,
+        typename container_t::template vector_type<material<scalar_t>>/*,
         grid_collection<cuboid_map_t<container_t>>,
-        grid_collection<cylinder3_map_t<container_t>>>;
+        grid_collection<cylinder3_map_t<container_t>>*/>;
 
     //
     // Acceleration structures
