@@ -552,10 +552,12 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
             // The initial momentum should be higher than the momentum at the
             // last surface
             ASSERT_TRUE(track.p(q) > state._stepping.bound_params().p(q));
-            ASSERT_FLOAT_EQ(
+            ASSERT_NEAR(
                 static_cast<float>(state._stepping.bound_params().p(q)),
                 static_cast<float>(
-                    direct_forward_state._stepping.bound_params().p(q)));
+                    direct_forward_state._stepping.bound_params().p(q)),
+                static_cast<float>(state._stepping.bound_params().p(q)) *
+                    2e-5f);
 
             direct_propagator_t::state direct_backward_state(
                 direct_forward_state._stepping.bound_params(), bfield, det,

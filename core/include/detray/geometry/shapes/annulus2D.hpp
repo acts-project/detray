@@ -195,7 +195,7 @@ class annulus2D {
         const auto r_beam2 = get_r2_beam_frame(bounds, loc_p);
 
         // Apply tolerances as squares: 0 <= a, 0 <= b: a^2 <= b^2 <=> a <= b
-        const scalar_t minR_tol = bounds[e_min_r] - tol;
+        const scalar_t minR_tol = math::max(bounds[e_min_r] - tol, 0.f);
         const scalar_t maxR_tol = bounds[e_max_r] + tol;
 
         assert(detail::all_of(minR_tol >= scalar_t(0.f)));
@@ -208,7 +208,8 @@ class annulus2D {
         if (detail::any_of(edge_tol > 0.f)) {
             // Edge tolerance
             const scalar_t full_tol{tol + edge_tol};
-            const scalar_t minR_tol_edge = bounds[e_min_r] - full_tol;
+            const scalar_t minR_tol_edge =
+                math::max(bounds[e_min_r] - full_tol, 0.f);
             const scalar_t maxR_tol_edge = bounds[e_max_r] + full_tol;
 
             assert(detail::all_of(minR_tol_edge >= scalar_t(0.f)));
