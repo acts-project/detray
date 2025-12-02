@@ -105,6 +105,8 @@ DETRAY_HOST_DEVICE DETRAY_INLINE constexpr bool update_candidate(
     using algebra_t = typename detector_t::algebra_type;
     using scalar_t = dscalar<algebra_t>;
 
+    DETRAY_DEBUG_HOST("Update candidate: Before " << candidate);
+
     // Invalid intersection result cannot be updated
     if (candidate.sf_desc.barcode().is_invalid()) [[unlikely]] {
         return false;
@@ -168,6 +170,12 @@ DETRAY_HOST_DEVICE DETRAY_INLINE constexpr void update_status(
                                    navigation.is_on_portal()
                                ? navigation::trust_level::e_no_trust
                                : navigation::trust_level::e_full);
+
+    if (navigation.trust_level() == navigation::trust_level::e_full) {
+        DETRAY_DEBUG_HOST("Trust level: full");
+    } else {
+        DETRAY_DEBUG_HOST("Trust level: " << navigation.trust_level());
+    }
 }
 
 /// @brief Helper method to initialize a navigation state in a given volume.

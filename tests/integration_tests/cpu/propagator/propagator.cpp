@@ -431,6 +431,7 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
 
     // Toy detector
     using detector_t = detector<test::toy_metadata>;
+    using surface_t = typename detector_t::surface_type;
 
     // Runge-Kutta propagation
     using navigator_t =
@@ -443,7 +444,8 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
     using actor_chain_t =
         actor_chain<parameter_transporter<test_algebra>,
                     pointwise_material_interactor<test_algebra>,
-                    parameter_resetter<test_algebra>, barcode_sequencer>;
+                    parameter_resetter<test_algebra>,
+                    barcode_sequencer<surface_t>>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     using direct_navigator_t = direct_navigator<detector_t>;
@@ -469,11 +471,11 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
     cfg.navigation.estimate_scattering_noise = false;
     propagation::config direct_cfg{};
     direct_cfg.navigation.intersection.min_mask_tolerance =
-        1.f * unit<float>::mm;
+        std::numeric_limits<float>::max();
     direct_cfg.navigation.intersection.max_mask_tolerance =
-        1.f * unit<float>::mm;
+        std::numeric_limits<float>::max();
     direct_cfg.navigation.intersection.overstep_tolerance =
-        -30.f * unit<float>::mm;
+        -std::numeric_limits<float>::max();
     propagator_t p{cfg};
     direct_propagator_t direct_p{direct_cfg};
 
@@ -483,29 +485,28 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
         // Build actor states: the helix inspector can be shared
         pointwise_material_interactor<test_algebra>::state interactor_state{};
         parameter_resetter<test_algebra>::state resetter_state{cfg};
-        vecmem::data::vector_buffer<detray::geometry::barcode> seqs_buffer{
+        vecmem::data::vector_buffer<surface_t> seqs_buffer{
             100u, host_mr, vecmem::data::buffer_type::resizable};
-        vecmem::data::vector_buffer<detray::geometry::barcode>
-            seqs_forward_buffer{100u, host_mr,
-                                vecmem::data::buffer_type::resizable};
-        vecmem::data::vector_buffer<detray::geometry::barcode>
-            seqs_backward_buffer{100u, host_mr,
-                                 vecmem::data::buffer_type::resizable};
+        vecmem::data::vector_buffer<surface_t> seqs_forward_buffer{
+            100u, host_mr, vecmem::data::buffer_type::resizable};
+        vecmem::data::vector_buffer<surface_t> seqs_backward_buffer{
+            100u, host_mr, vecmem::data::buffer_type::resizable};
         vecmem::copy m_copy;
         m_copy.setup(seqs_buffer)->wait();
         m_copy.setup(seqs_forward_buffer)->wait();
         m_copy.setup(seqs_backward_buffer)->wait();
 
-        vecmem::device_vector<detray::geometry::barcode> seqs_device(
-            seqs_buffer);
-        vecmem::device_vector<detray::geometry::barcode> seqs_forward_device(
+        vecmem::device_vector<surface_t> seqs_device(seqs_buffer);
+        vecmem::device_vector<surface_t> seqs_forward_device(
             seqs_forward_buffer);
-        vecmem::device_vector<detray::geometry::barcode> seqs_backward_device(
+        vecmem::device_vector<surface_t> seqs_backward_device(
             seqs_backward_buffer);
 
-        barcode_sequencer::state sequencer_state(seqs_device);
-        barcode_sequencer::state sequencer_forward_state(seqs_forward_device);
-        barcode_sequencer::state sequencer_backward_state(seqs_backward_device);
+        barcode_sequencer<surface_t>::state sequencer_state(seqs_device);
+        barcode_sequencer<surface_t>::state sequencer_forward_state(
+            seqs_forward_device);
+        barcode_sequencer<surface_t>::state sequencer_backward_state(
+            seqs_backward_device);
 
         auto actor_states =
             detray::tie(interactor_state, sequencer_state, resetter_state);
@@ -534,12 +535,12 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
 
             // Check if all surfaces in the sequence are encountered
             ASSERT_TRUE(direct_forward_state._navigation.finished());
-            ASSERT_EQ(sequencer_state._sequence.size(),
-                      sequencer_forward_state._sequence.size());
-            for (unsigned int i = 0; i < sequencer_state._sequence.size();
+            ASSERT_EQ(sequencer_state.sequence().size(),
+                      sequencer_forward_state.sequence().size());
+            for (unsigned int i = 0; i < sequencer_state.sequence().size();
                  i++) {
-                ASSERT_EQ(sequencer_state._sequence.at(i),
-                          sequencer_forward_state._sequence.at(i));
+                ASSERT_EQ(sequencer_state.sequence().at(i),
+                          sequencer_forward_state.sequence().at(i));
             }
 
             const auto ptc = state._stepping.particle_hypothesis();
@@ -566,13 +567,13 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
                                            direct_backward_actor_states));
             // Check if all surfaces in the sequence are encountered
             ASSERT_TRUE(direct_backward_state._navigation.finished());
-            ASSERT_EQ(sequencer_state._sequence.size(),
-                      sequencer_backward_state._sequence.size());
-            for (unsigned int i = 0; i < sequencer_state._sequence.size();
+            ASSERT_EQ(sequencer_state.sequence().size(),
+                      sequencer_backward_state.sequence().size());
+            for (unsigned int i = 0; i < sequencer_state.sequence().size();
                  i++) {
-                unsigned int j = sequencer_state._sequence.size() - 1 - i;
-                ASSERT_EQ(sequencer_state._sequence.at(i),
-                          sequencer_backward_state._sequence.at(j));
+                unsigned int j = sequencer_state.sequence().size() - 1 - i;
+                ASSERT_EQ(sequencer_state.sequence().at(i),
+                          sequencer_backward_state.sequence().at(j));
             }
 
             ASSERT_NEAR(
@@ -626,6 +627,7 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
 
     // Toy detector
     using detector_t = detector<test::default_metadata>;
+    using surface_t = typename detector_t::surface_type;
 
     // Runge-Kutta propagation
     using navigator_t =
@@ -638,7 +640,8 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
     using actor_chain_t =
         actor_chain<parameter_transporter<test_algebra>,
                     pointwise_material_interactor<test_algebra>,
-                    parameter_resetter<test_algebra>, barcode_sequencer>;
+                    parameter_resetter<test_algebra>,
+                    barcode_sequencer<surface_t>>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     using direct_navigator_t = direct_navigator<detector_t>;
@@ -660,11 +663,11 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
     cfg.navigation.estimate_scattering_noise = false;
     propagation::config direct_cfg{};
     direct_cfg.navigation.intersection.min_mask_tolerance =
-        10.f * unit<float>::mm;
+        std::numeric_limits<float>::max();
     direct_cfg.navigation.intersection.max_mask_tolerance =
-        10.f * unit<float>::mm;
+        std::numeric_limits<float>::max();
     direct_cfg.navigation.intersection.overstep_tolerance =
-        -30.f * unit<float>::mm;
+        -std::numeric_limits<float>::max();
     propagator_t p{cfg};
     direct_propagator_t direct_p{direct_cfg};
 
@@ -674,29 +677,28 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
         // Build actor states: the helix inspector can be shared
         pointwise_material_interactor<test_algebra>::state interactor_state{};
         parameter_resetter<test_algebra>::state resetter_state{cfg};
-        vecmem::data::vector_buffer<detray::geometry::barcode> seqs_buffer{
+        vecmem::data::vector_buffer<surface_t> seqs_buffer{
             100u, host_mr, vecmem::data::buffer_type::resizable};
-        vecmem::data::vector_buffer<detray::geometry::barcode>
-            seqs_forward_buffer{100u, host_mr,
-                                vecmem::data::buffer_type::resizable};
-        vecmem::data::vector_buffer<detray::geometry::barcode>
-            seqs_backward_buffer{100u, host_mr,
-                                 vecmem::data::buffer_type::resizable};
+        vecmem::data::vector_buffer<surface_t> seqs_forward_buffer{
+            100u, host_mr, vecmem::data::buffer_type::resizable};
+        vecmem::data::vector_buffer<surface_t> seqs_backward_buffer{
+            100u, host_mr, vecmem::data::buffer_type::resizable};
         vecmem::copy m_copy;
         m_copy.setup(seqs_buffer)->wait();
         m_copy.setup(seqs_forward_buffer)->wait();
         m_copy.setup(seqs_backward_buffer)->wait();
 
-        vecmem::device_vector<detray::geometry::barcode> seqs_device(
-            seqs_buffer);
-        vecmem::device_vector<detray::geometry::barcode> seqs_forward_device(
+        vecmem::device_vector<surface_t> seqs_device(seqs_buffer);
+        vecmem::device_vector<surface_t> seqs_forward_device(
             seqs_forward_buffer);
-        vecmem::device_vector<detray::geometry::barcode> seqs_backward_device(
+        vecmem::device_vector<surface_t> seqs_backward_device(
             seqs_backward_buffer);
 
-        barcode_sequencer::state sequencer_state(seqs_device);
-        barcode_sequencer::state sequencer_forward_state(seqs_forward_device);
-        barcode_sequencer::state sequencer_backward_state(seqs_backward_device);
+        barcode_sequencer<surface_t>::state sequencer_state(seqs_device);
+        barcode_sequencer<surface_t>::state sequencer_forward_state(
+            seqs_forward_device);
+        barcode_sequencer<surface_t>::state sequencer_backward_state(
+            seqs_backward_device);
 
         auto actor_states =
             detray::tie(interactor_state, sequencer_state, resetter_state);
@@ -724,12 +726,12 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
 
             // Check if all surfaces in the sequence are encountered
             ASSERT_TRUE(direct_forward_state._navigation.finished());
-            ASSERT_EQ(sequencer_state._sequence.size(),
-                      sequencer_forward_state._sequence.size());
-            for (unsigned int i = 0; i < sequencer_state._sequence.size();
+            ASSERT_EQ(sequencer_state.sequence().size(),
+                      sequencer_forward_state.sequence().size());
+            for (unsigned int i = 0; i < sequencer_state.sequence().size();
                  i++) {
-                ASSERT_EQ(sequencer_state._sequence.at(i),
-                          sequencer_forward_state._sequence.at(i));
+                ASSERT_EQ(sequencer_state.sequence().at(i),
+                          sequencer_forward_state.sequence().at(i));
             }
 
             const auto ptc = state._stepping.particle_hypothesis();
@@ -759,13 +761,13 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
 
             // Check if all surfaces in the sequence are encountered
             ASSERT_TRUE(direct_backward_state._navigation.finished());
-            ASSERT_EQ(sequencer_state._sequence.size(),
-                      sequencer_backward_state._sequence.size());
-            for (unsigned int i = 0; i < sequencer_state._sequence.size();
+            ASSERT_EQ(sequencer_state.sequence().size(),
+                      sequencer_backward_state.sequence().size());
+            for (unsigned int i = 0; i < sequencer_state.sequence().size();
                  i++) {
-                unsigned int j = sequencer_state._sequence.size() - 1 - i;
-                EXPECT_EQ(sequencer_state._sequence.at(i),
-                          sequencer_backward_state._sequence.at(j));
+                unsigned int j = sequencer_state.sequence().size() - 1 - i;
+                EXPECT_EQ(sequencer_state.sequence().at(i),
+                          sequencer_backward_state.sequence().at(j));
             }
 
             ASSERT_NEAR(

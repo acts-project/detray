@@ -612,8 +612,6 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
                    const detray::stepping::config& cfg, const bool do_reset,
                    const material<scalar_type>* vol_mat_ptr) const {
     DETRAY_DEBUG_HOST("Before: " << stepping());
-    assert(stepping().p(stepping.particle_hypothesis().charge()) >
-           50.f * unit<scalar_type>::MeV);
 
     // In case of an overlap do nothing
     if (math::fabs(dist_to_next) < 1.f * unit<float>::um) [[unlikely]] {
@@ -672,9 +670,6 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
     intermediate_state sd{};
 
     // First Runge-Kutta point
-    DETRAY_DEBUG_HOST_DEVICE("First stage:");
-    DETRAY_DEBUG_HOST("-> B-field query position: " << pos);
-
     auto bvec = magnetic_field.at(pos[0], pos[1], pos[2]);
     assert(math::isfinite(bvec[0]));
     assert(math::isfinite(bvec[1]));
@@ -683,6 +678,7 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
     sd.b_first[1] = bvec[1];
     sd.b_first[2] = bvec[2];
 
+    DETRAY_DEBUG_HOST_DEVICE("First stage:");
     DETRAY_DEBUG_HOST_DEVICE("-> B-field: [%f, %f, %f]", bvec[0], bvec[1],
                              bvec[2]);
 
@@ -696,7 +692,6 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
     /// RKN step trial and error estimation
     const auto estimate_error = [&](const scalar_type& h) {
         assert(h != 0);
-        assert(std::isfinite(h));
         // State the square and half of the step size
         const scalar_type h2{h * h};
         const scalar_type half_h{h * 0.5f};
@@ -706,10 +701,6 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
         // Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
         const point3_type pos1 =
             pos + half_h * sd.t[0u] + h2 * 0.125f * sd.dtds[0u];
-
-        DETRAY_DEBUG_HOST_DEVICE("Second stage:");
-        DETRAY_DEBUG_HOST("-> B-field query position: " << pos1);
-
         bvec = magnetic_field.at(pos1[0], pos1[1], pos1[2]);
         assert(math::isfinite(bvec[0]));
         assert(math::isfinite(bvec[1]));
@@ -717,7 +708,7 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
         sd.b_middle[0] = bvec[0];
         sd.b_middle[1] = bvec[1];
         sd.b_middle[2] = bvec[2];
-
+        DETRAY_DEBUG_HOST_DEVICE("Second stage:");
         DETRAY_DEBUG_HOST_DEVICE("-> B-field: [%f, %f, %f]", bvec[0], bvec[1],
                                  bvec[2]);
 
@@ -738,10 +729,6 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
         // qop should be recalcuated at every point
         // Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
         const point3_type pos2 = pos + h * sd.t[0u] + h2 * 0.5f * sd.dtds[2u];
-
-        DETRAY_DEBUG_HOST_DEVICE("Third stage:");
-        DETRAY_DEBUG_HOST("-> B-field query position: " << pos2);
-
         bvec = magnetic_field.at(pos2[0], pos2[1], pos2[2]);
         assert(math::isfinite(bvec[0]));
         assert(math::isfinite(bvec[1]));
@@ -750,6 +737,7 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
         sd.b_last[1] = bvec[1];
         sd.b_last[2] = bvec[2];
 
+        DETRAY_DEBUG_HOST_DEVICE("Third stage:");
         DETRAY_DEBUG_HOST_DEVICE("-> B-field: [%f, %f, %f]", bvec[0], bvec[1],
                                  bvec[2]);
 
