@@ -205,6 +205,7 @@ class base_state : public detray::ranges::view_interface<
     /// @returns navigation trust level - const
     DETRAY_HOST_DEVICE
     constexpr auto trust_level() const -> navigation::trust_level {
+        DETRAY_VERBOSE_HOST("Setting trust level: " << m_trust_level);
         return m_trust_level;
     }
 
@@ -212,6 +213,7 @@ class base_state : public detray::ranges::view_interface<
     /// @{
     DETRAY_HOST_DEVICE
     constexpr void set_no_trust() {
+        DETRAY_VERBOSE_HOST_DEVICE("Flagging \"no trust\"");
         m_trust_level = navigation::trust_level::e_no_trust;
     }
 

@@ -125,6 +125,7 @@ class caching_navigator
         /// Update navigation trust level to high trust
         DETRAY_HOST_DEVICE
         constexpr void set_high_trust() {
+            DETRAY_VERBOSE_HOST_DEVICE("Flagging \"high trust\"");
             this->trust_level(this->trust_level() <
                                       navigation::trust_level::e_high
                                   ? this->trust_level()
@@ -134,6 +135,7 @@ class caching_navigator
         /// Update navigation trust level to fair trust
         DETRAY_HOST_DEVICE
         constexpr void set_fair_trust() {
+            DETRAY_VERBOSE_HOST_DEVICE("Flagging \"fair trust\"");
             this->trust_level(this->trust_level() <
                                       navigation::trust_level::e_fair
                                   ? this->trust_level()

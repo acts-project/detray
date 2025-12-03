@@ -307,7 +307,7 @@ struct propagator {
 
             // Find next candidate
             is_init |= m_navigator.update(track, navigation, m_cfg.navigation,
-                                          context, i % 2 == 1 || i == 0);
+                                          context);
 
             propagation._heartbeat &= navigation.is_alive();
 

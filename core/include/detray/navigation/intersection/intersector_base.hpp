@@ -218,7 +218,8 @@ DETRAY_HOST_DEVICE constexpr void resolve_mask(
     scalar_t ext_tol = 0.f;
 
     // Tol.: scale with distance of surface to account for track bending
-    if (!sf_desc.is_portal()) {
+    if (!sf_desc.is_portal() ||
+        cfg.min_mask_tolerance == std::numeric_limits<float>::max()) {
         ext_tol = external_mask_tolerance;
         base_tol = math::max(
             static_cast<scalar_t>(cfg.min_mask_tolerance),

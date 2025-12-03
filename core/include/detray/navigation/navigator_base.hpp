@@ -83,8 +83,7 @@ class navigator_base {
     template <typename track_t, typename nav_state_t, typename context_t>
     DETRAY_HOST_DEVICE DETRAY_INLINE constexpr bool update(
         const track_t &track, nav_state_t &navigation,
-        const navigation::config &cfg, const context_t &ctx,
-        const bool /*is_before_actor*/ = true) const {
+        const navigation::config &cfg, const context_t &ctx) const {
 
         assert(navigation.is_alive());
         assert(!track.is_invalid());
