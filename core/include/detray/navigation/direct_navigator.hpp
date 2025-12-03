@@ -27,18 +27,20 @@ namespace detray {
 template <typename detector_t>
 class direct_navigator {
 
+    using algebra_t = typename detector_t::algebra_type;
+    using scalar_t = dscalar<algebra_t>;
+    using sf_decriptor_t = typename detector_t::surface_type;
+
     public:
     using detector_type = detector_t;
     using context_type = detector_type::geometry_context;
-    using algebra_type = typename detector_type::algebra_type;
-    using scalar_type = dscalar<algebra_type>;
-    using intersection_type = intersection2D<typename detector_t::surface_type,
-                                             typename detector_t::algebra_type,
-                                             !intersection::contains_pos>;
+    using intersection_type =
+        intersection2D<sf_decriptor_t, algebra_t, !intersection::contains_pos>;
+    using inspector_type = navigation::void_inspector;
 
-    class state : public navigation::base_state<state, detector_type, 2u,
-                                                navigation::void_inspector,
-                                                intersection_type> {
+    class state
+        : public navigation::base_state<state, detector_type, 2u,
+                                        inspector_type, intersection_type> {
         friend class direct_navigator;
         friend struct detail::intersection_update<ray_intersector>;
 
@@ -46,13 +48,13 @@ class direct_navigator {
         friend constexpr void navigation::update_status(
             state_t &, const navigation::config &);
 
-        using base_type = navigation::base_state<state, detector_type, 2u,
-                                                 navigation::void_inspector,
-                                                 intersection_type>;
+        using base_type =
+            navigation::base_state<state, detector_type, 2u, inspector_type,
+                                   intersection_type>;
 
         using candidate_t = intersection_type;
-        using sf_decriptor_t = typename detector_type::surface_type;
         using nav_link_t = typename sf_decriptor_t::navigation_link;
+        using dist_t = std::int_least16_t;
 
         public:
         using value_type = candidate_t;
@@ -61,24 +63,31 @@ class direct_navigator {
         using view_type = dvector_view<sf_decriptor_t>;
         using const_view_type = dvector_view<const sf_decriptor_t>;
 
-        state() = delete;
-
+        /// Constructor using the detector and an externally provided sequence
+        /// of detector surfaces
         DETRAY_HOST_DEVICE constexpr state(const detector_t &det,
                                            const view_type &sequence)
             : base_type(det), m_sequence(sequence) {
+            assert(!m_sequence.empty());
+            reset();
+        }
 
-            m_it = m_sequence.cbegin();
-            m_it_rev = m_sequence.crbegin();
+        /// Reset the navigation state
+        DETRAY_HOST_DEVICE void reset() {
+            // Remove old navigation information
+            clear_cache();
+
+            // Set the index into the external surface sequence to the beginning
+            // or end of the container
+            m_next_external =
+                is_forward() ? 0 : static_cast<dist_t>(m_sequence.size()) - 1;
+
+            // Update the target with the next external surface
+            this->target().sf_desc = next_external();
 
             // The next candidate is always stored in the second cache entry
             this->next_index(1u);
             this->last_index(1u);
-
-            // Update the target with the next external surface
-            set_external_target();
-
-            assert(!m_sequence.empty());
-            assert(has_next_external());
         }
 
         /// @returns the direct navigator always has only one candidate
@@ -87,27 +96,33 @@ class direct_navigator {
 
         /// @returns the externally provided mask tolerance - const
         DETRAY_HOST_DEVICE
-        constexpr scalar_type external_tol() const {
-            return std::numeric_limits<scalar_type>::max();
-        }
-
-        /// Advance the iterator
-        DETRAY_HOST_DEVICE
-        constexpr sf_decriptor_t next_external() {
-            assert(has_next_external());
-            return is_forward() ? *m_it : *m_it_rev;
+        constexpr scalar_t external_tol() const {
+            return std::numeric_limits<scalar_t>::max();
         }
 
         /// Set direction in which the navigator should search for candidates
         DETRAY_HOST_DEVICE
         constexpr void set_direction(const navigation::direction dir) {
             base_type::set_direction(dir);
-            // Get the correct external surface from the beginning of end of
-            // the sequence
-            set_external_target();
         }
 
-        /// Advance the iterator (navigation status needs to be correct)
+        /// @returns true if the the next external is available in the sequence
+        DETRAY_HOST_DEVICE
+        constexpr bool has_next_external() const {
+            return (is_forward() &&
+                    m_next_external !=
+                        static_cast<dist_t>(m_sequence.size())) ||
+                   (!is_forward() && m_next_external != -1);
+        }
+
+        /// Advance the iterator
+        DETRAY_HOST_DEVICE
+        constexpr sf_decriptor_t next_external() {
+            assert(has_next_external());
+            return m_sequence[static_cast<unsigned int>(m_next_external)];
+        }
+
+        /// Advance the iterator (navigation status needs to be up to date!)
         DETRAY_HOST_DEVICE
         constexpr void advance() {
             // The target has become the current candidate
@@ -115,23 +130,23 @@ class direct_navigator {
 
             assert(has_next_external());
             if (is_forward()) {
-                m_it++;
+                m_next_external++;
             } else {
-                m_it_rev++;
+                m_next_external--;
             }
 
             // Update the target with the next external surface
-            set_external_target();
+            // Could make the target invalid -> exit navigation
+            if (has_next_external()) {
+                // If the next external can be indexed, the cast is safe
+                this->target().sf_desc =
+                    m_sequence[static_cast<unsigned int>(m_next_external)];
+            }
 
-            assert(this->target().sf_desc.is_sensitive() ||
-                   this->target().sf_desc.has_material());
-        }
-
-        /// @return true if the iterator reaches the end of vector
-        DETRAY_HOST_DEVICE
-        constexpr bool has_next_external() const {
-            return (is_forward() && m_it != m_sequence.cend()) ||
-                   (!is_forward() && m_it_rev != m_sequence.crend());
+            assert(!has_next_external() ||
+                   (has_next_external() &&
+                    (this->target().sf_desc.is_sensitive() ||
+                     this->target().sf_desc.has_material())));
         }
 
         /// Clear the state
@@ -148,42 +163,34 @@ class direct_navigator {
             bool is_finished = base_type::finished();
 
             // All external surfaces were visited?
-            is_finished &= ((is_forward() && m_it == m_sequence.cend()) ||
-                            (!is_forward() && m_it_rev == m_sequence.crend()));
+            is_finished &=
+                ((is_forward() &&
+                  m_next_external == static_cast<dist_t>(m_sequence.size())) ||
+                 (!is_forward() && m_next_external == -1));
 
             return is_finished;
         }
 
         private:
-        /// @return 'true' if the navigation direction is 'forward'
+        /// @returns 'true' if the navigation direction is 'forward'
         DETRAY_HOST_DEVICE
         constexpr bool is_forward() const {
             return this->direction() == navigation::direction::e_forward;
         }
 
-        /// Set the current next external surface, depending on whether the
-        /// direction is backward or forward
-        DETRAY_HOST_DEVICE
-        constexpr void set_external_target() {
-            this->target().sf_desc = is_forward() ? *m_it : *m_it_rev;
-        }
-
         /// Target surfaces
         sequence_type m_sequence;
 
-        // iterator for forward direction
-        typename sequence_type::const_iterator m_it;
-
-        // iterator for backward direction
-        typename sequence_type::const_reverse_iterator m_it_rev;
+        /// Index of the next (target) surface descriptor in the sequence
+        dist_t m_next_external{0};
     };
 
+    /// Initialize the direct navigation flow on the first/last external surface
     template <typename track_t>
     DETRAY_HOST_DEVICE inline void init(const track_t &track, state &navigation,
                                         const navigation::config &cfg,
                                         const context_type &ctx) const {
         DETRAY_VERBOSE_HOST_DEVICE("Called 'init()':");
-
         assert(navigation.has_next_external());
 
         // Clean up state
@@ -195,51 +202,55 @@ class direct_navigator {
         DETRAY_VERBOSE_HOST_DEVICE("Init complete!");
     }
 
+    /// Update the navigation status on the current next external and switch
+    /// to the following external surface if the current one was reached
     template <typename track_t>
-    DETRAY_HOST_DEVICE inline bool update(
-        const track_t &track, state &navigation, const navigation::config &cfg,
-        const context_type &ctx = {},
-        const bool /*is_before_actor_run*/ = true) const {
-
+    DETRAY_HOST_DEVICE inline bool update(const track_t &track,
+                                          state &navigation,
+                                          const navigation::config &cfg,
+                                          const context_type &ctx = {}) const {
         DETRAY_VERBOSE_HOST_DEVICE("Called 'update()'");
+        DETRAY_DEBUG_HOST(" -> Trust level: " << navigation.trust_level());
 
         // Do not resurrect a failed/finished navigation state
         assert(navigation.is_alive());
         assert(!track.is_invalid());
 
+        // If the last external was reached, the navigation is finished
+        constexpr bool is_init{true};
         if (!navigation.has_next_external()) {
-            DETRAY_VERBOSE_HOST_DEVICE("No next external: Exit");
+            DETRAY_VERBOSE_HOST_DEVICE(
+                "No next target in surface sequence: Exit");
             navigation.exit();
-            return false;
+            return !is_init;
         }
 
         const detector_type &det = navigation.detector();
-        constexpr bool is_init{true};
 
         // Update only the current candidate and the corresponding next target
         if (navigation.trust_level() != navigation::trust_level::e_full) {
+            // Use infinite tolerance to hit the target surface
+            constexpr auto inf{std::numeric_limits<float>::max()};
+            const intersection::config intr_cfg{
+                inf, inf, inf, cfg.intersection.path_tolerance, -inf};
+
+            // Update the current target. If it cannot be reached, direct
+            // navigation is broken
             if (!navigation::update_candidate(
                     navigation.direction(), navigation.target(), track, det,
-                    cfg.intersection, navigation.external_tol(), ctx)) {
+                    intr_cfg, navigation.external_tol(), ctx)) {
 
-                DETRAY_DEBUG_HOST("Update candidate: After "
-                                  << navigation.target());
-                navigation.abort("Could not find next surface");
-                return false;
+                navigation.abort("Could not reach current target");
+                return !is_init;
             }
 
             // Update navigation flow on the new candidate information and set
             // the next target if the surface has been reached
             navigation::update_status(navigation, cfg);
+            // Set full trust, even if a portal was reached (no volume switch)
+            navigation.trust_level(navigation::trust_level::e_full);
 
-            if (navigation.trust_level() != navigation::trust_level::e_full) {
-                DETRAY_DEBUG_HOST("OH NO!");
-            }
-
-            assert(navigation.trust_level() == navigation::trust_level::e_full);
-
-            // The work is done if: the track has not reached a surface yet
-            // or trust is gone (portal was reached or the cache is broken).
+            // The work is done if the track has not reached the surface yet
             if (navigation.status() == navigation::status::e_towards_object) {
 
                 DETRAY_VERBOSE_HOST_DEVICE("Update complete (towards object):");
@@ -252,21 +263,21 @@ class direct_navigator {
                 return !is_init;
             }
 
-            // Track is on surface: Update the new target (if available)
+            // Otherwise, track is on surface: Update the next target
             if (navigation.has_next_external() &&
                 !navigation::update_candidate(
                     navigation.direction(), navigation.target(), track, det,
-                    cfg.intersection, navigation.external_tol(), ctx)) {
-                DETRAY_DEBUG_HOST("Update candidate: After "
-                                  << navigation.target());
-
-                navigation.abort("Could not find next surface");
-                return false;
+                    intr_cfg, navigation.external_tol(), ctx)) {
+                navigation.abort(
+                    "Could not find new target after surface was reached");
+                return !is_init;
             }
 
             // At this point, the track has to be on surface:
-            // Set volume index to the next volume provided by the portal
+            // Set volume index to the volume the current surface is in
             navigation.set_volume(navigation.current().sf_desc.volume());
+
+            // Set full trust again: no volume switch needed
             navigation.trust_level(navigation::trust_level::e_full);
 
             DETRAY_VERBOSE_HOST_DEVICE("Update complete (on surface):");
