@@ -211,7 +211,7 @@ class direct_navigator {
     DETRAY_HOST_DEVICE inline bool update(const track_t &track,
                                           state &navigation,
                                           const navigation::config &cfg,
-                                          const context_type &ctx = {}) const {
+                                          const context_type &ctx) const {
         DETRAY_VERBOSE_HOST_DEVICE("Called 'update()'");
         DETRAY_DEBUG_HOST(" -> Trust level: " << navigation.trust_level());
 
@@ -239,10 +239,8 @@ class direct_navigator {
 
             // Update the current target. If it cannot be reached, direct
             // navigation is broken
-            if (!navigation::update_candidate(
-                    navigation.direction(), navigation.target(), track, det,
-                    intr_cfg, navigation.external_tol(), ctx)) {
-
+            if (!update_candidate(track, det, navigation, cfg.intersection,
+                                  ctx)) {
                 navigation.abort("Could not reach current target");
                 return !is_init;
             }
@@ -268,9 +266,8 @@ class direct_navigator {
 
             // Otherwise, track is on surface: Update the next target
             if (navigation.has_next_external() &&
-                !navigation::update_candidate(
-                    navigation.direction(), navigation.target(), track, det,
-                    intr_cfg, navigation.external_tol(), ctx)) {
+                !update_candidate(track, det, navigation, cfg.intersection,
+                                  ctx)) {
                 navigation.abort(
                     "Could not find new target after surface was reached");
                 return !is_init;
@@ -297,6 +294,72 @@ class direct_navigator {
         DETRAY_VERBOSE_HOST_DEVICE(" -> Full trust: Nothing left to do");
 
         return !is_init;
+    }
+
+    private:
+    /// Update the next candidate: Either an externally specified detector
+    /// surface or a standalone surface
+    template <typename track_t>
+    DETRAY_HOST_DEVICE DETRAY_INLINE constexpr bool update_candidate(
+        const track_t &track, [[maybe_unused]] const detector_t &det,
+        state &navigation, const intersection::config &intr_cfg,
+        [[maybe_unused]] const context_type &ctx) const {
+
+        bool success{false};
+        if constexpr (std::same_as<surface_t, void>) {
+            // Update a detector surface
+            success = navigation::update_candidate(
+                navigation.direction(), navigation.target(), track, det,
+                intr_cfg, navigation.external_tol(), ctx);
+        } else {
+            // Update a standalone surface
+            success = update_external_candidate(
+                navigation.direction(), navigation.target(), track,
+                navigation.next_external(), intr_cfg,
+                navigation.external_tol());
+        }
+
+        return success;
+    }
+
+    /// Update a standalone surface
+    template <typename track_t>
+    DETRAY_HOST_DEVICE DETRAY_INLINE constexpr bool update_external_candidate(
+        const navigation::direction nav_dir, state::value_type &candidate,
+        const track_t &track, const surface_type &sf,
+        const intersection::config &cfg,
+        const scalar_t external_mask_tolerance) const {
+
+        constexpr ray_intersector<typename surface_type::mask_type::shape,
+                                  algebra_t, !intersection::contains_pos>
+            intersector{};
+
+        // Tangential to the track direction
+        detray::detail::ray<algebra_t> tangential{
+            track.pos(), static_cast<scalar_t>(nav_dir) * track.dir()};
+
+        // Intersect the surface
+        typename decltype(intersector)::result_type result{};
+        if constexpr (concepts::cylindrical<typename surface_type::mask_type>) {
+            result = intersector.point_of_intersection(
+                tangential, sf.transform(), sf.mask(), cfg.overstep_tolerance);
+        } else {
+            result = intersector.point_of_intersection(
+                tangential, sf.transform(), cfg.overstep_tolerance);
+        }
+
+        // Build the resulting intersecion(s) from the intersection point
+        if constexpr (decltype(intersector)::n_solutions > 1) {
+            resolve_mask(candidate, tangential, result[0], candidate.surface(),
+                         sf.mask(), sf.transform(), cfg,
+                         external_mask_tolerance);
+        } else {
+            resolve_mask(candidate, tangential, result, candidate.surface(),
+                         sf.mask(), sf.transform(), cfg,
+                         external_mask_tolerance);
+        }
+
+        return candidate.is_probably_inside();
     }
 };
 

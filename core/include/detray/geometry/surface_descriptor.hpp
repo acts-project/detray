@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2023 CERN for the benefit of the ACTS project
+ * (c) 2020-2025 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -18,15 +18,14 @@
 
 namespace detray {
 
-/// Templated surface class for detector surfaces and portals.
+/// Templated surface descriptor class.
 ///
 /// @note might be holding multiple surfaces in the future
 ///
-/// @tparam mask_regsitry_t the type collection of masks that can be linked
-///                         to the surface
-/// @tparam material_registry_t the type collection of material that can be
-///                             linked to the surface
+/// @tparam mask_link_t the typed link used to retrieve the mask
+/// @tparam material_link_t the typed link used to retrieve the material
 /// @tparam transform_link_t how to reference the surfaces transforms
+/// @tparam navigation_link_t next navigation volume link
 template <typename mask_link_t = dtyped_index<dindex, dindex>,
           typename material_link_t = dtyped_index<dindex, dindex>,
           typename transform_link_t = dindex,
@@ -52,8 +51,7 @@ class surface_descriptor {
     /// @param trf the transform for positioning and 3D local frame
     /// @param mask the type and index of the mask for this surface
     /// @param material the type and index of the material for this surface
-    /// @param vol the volume this surface belongs to
-    /// @param src the source object/source link this surface is representing
+    /// @param volume the volume this surface belongs to
     /// @param sf_id remember whether this is a portal or not
     DETRAY_HOST
     constexpr surface_descriptor(const transform_link trf, const mask_link mask,
