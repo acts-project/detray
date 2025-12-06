@@ -195,12 +195,12 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
     for (std::size_t i = 0u;
          i < math::min(expected_points.size(), sfi_init.size()); ++i) {
 
-        EXPECT_TRUE(sfi_init[i].direction);
-        EXPECT_EQ(sfi_init[i].volume_link, 0u);
+        EXPECT_TRUE(sfi_init[i].is_along());
+        EXPECT_EQ(sfi_init[i].volume_link(), 0u);
 
         vector3 global{0.f, 0.f, 0.f};
 
-        const surface_t sf_desc = sfi_init[i].sf_desc;
+        const surface_t sf_desc = sfi_init[i].surface();
         if (sf_desc.mask().id() == mask_ids::e_rectangle2) {
             global = rect.to_global_frame(
                 transform_store.at(sf_desc.transform()), sfi_init[i].local());
@@ -234,15 +234,15 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
     sfi_update.resize(5);
 
     for (const auto [idx, surface] : detray::views::enumerate(surfaces)) {
-        sfi_update[idx].sf_desc = surface;
+        sfi_update[idx].set_surface(surface);
         mask_store.visit<detail::intersection_update>(
             surface.mask(), detail::ray(track), sfi_update[idx],
             transform_store);
 
         if(!sfi_update[idx].is_inside()) {
-    continue; } ASSERT_TRUE(sfi_update[idx].direction) << " at surface " <<
+    continue; } ASSERT_TRUE(sfi_update[idx].is_along()) << " at surface " <<
     sfi_update[idx]
-    << ", " << sfi_init[idx]; ASSERT_EQ(sfi_update[idx].volume_link, 0u);
+    << ", " << sfi_init[idx]; ASSERT_EQ(sfi_update[idx].volume_link(), 0u);
         ASSERT_NEAR(sfi_update[idx].p3[0], expected_points[idx][0],
     is_close)
         << " at surface " << sfi_update[idx] << ", " << sfi_init[idx];

@@ -260,9 +260,9 @@ class navigation_validation : public test::fixture_base<> {
             navigation_validator::surface_stats n_truth{};
             navigation_validator::surface_stats n_nav{};
             for (std::size_t i = 0; i < truth_trace.size(); ++i) {
-                const auto truth_desc = truth_trace[i].intersection.sf_desc;
+                const auto truth_desc = truth_trace[i].intersection.surface();
                 const auto rec_desc =
-                    recorded_traces.back()[i].intersection.sf_desc;
+                    recorded_traces.back()[i].intersection.surface();
 
                 // Exclude dummy records for missing surfaces
                 if (!truth_desc.barcode().is_invalid()) {

@@ -153,8 +153,8 @@ class caching_navigator
                 return;
             }
 
-            assert(detail::is_invalid_value(new_candidate.volume_link) ||
-                   new_candidate.volume_link <
+            assert(detail::is_invalid_value(new_candidate.volume_link()) ||
+                   new_candidate.volume_link() <
                        this->detector().volumes().size());
 
             // Insert the first candidate
@@ -183,8 +183,8 @@ class caching_navigator
             // Do not add the same surface (intersection) multiple times
             const auto is_clash_at_pos =
                 [this, &new_candidate, &is_overlap_at_pos](std::size_t index) {
-                    return (this->candidates()[index].sf_desc.barcode() ==
-                            new_candidate.sf_desc.barcode()) &&
+                    return (this->candidates()[index].surface().barcode() ==
+                            new_candidate.surface().barcode()) &&
                            is_overlap_at_pos(index);
                 };
 
@@ -203,7 +203,7 @@ class caching_navigator
             // direct hits over edge hits
             if (is_overlap_at_pos(idxu) &&
                 (new_candidate.is_edge() ||
-                 new_candidate.sf_desc.is_portal())) {
+                 new_candidate.surface().is_portal())) {
                 // Don't shift the overlapping candidate and put the new
                 // candidate behind it
                 idx++;

@@ -207,7 +207,7 @@ struct intersection_update {
 
         // Find the point of intersection with the underlying geometry
         const auto &ctf =
-            contextual_transforms.at(sfi.sf_desc.transform(), ctx);
+            contextual_transforms.at(sfi.surface().transform(), ctx);
 
         constexpr intersector_t<shape_t, algebra_t,
                                 intersection_t::contains_pos()>
@@ -255,10 +255,10 @@ struct intersection_update {
 
             // Build the resulting intersecion(s) from the intersection point
             if constexpr (n_sol > 1) {
-                resolve_mask(sfi, traj, result[0], sfi.sf_desc, mask, ctf, cfg,
-                             external_mask_tolerance);
+                resolve_mask(sfi, traj, result[0], sfi.surface(), mask, ctf,
+                             cfg, external_mask_tolerance);
             } else {
-                resolve_mask(sfi, traj, result, sfi.sf_desc, mask, ctf, cfg,
+                resolve_mask(sfi, traj, result, sfi.surface(), mask, ctf, cfg,
                              external_mask_tolerance);
             }
 

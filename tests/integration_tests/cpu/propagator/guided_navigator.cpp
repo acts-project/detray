@@ -111,9 +111,9 @@ GTEST_TEST(detray_navigation, guided_navigator) {
         // The first transform in the detector belongs to the volume
         bcd.set_transform(sf_sequence[i] + 1);
         bcd.set_id((i == 11u) ? surface_id::e_portal : surface_id::e_sensitive);
-        EXPECT_TRUE(candidate.sf_desc.barcode() == bcd)
+        EXPECT_TRUE(candidate.surface().barcode() == bcd)
             << "error at intersection on surface:\n"
             << "Expected: " << bcd
-            << "\nFound: " << candidate.sf_desc.barcode();
+            << "\nFound: " << candidate.surface().barcode();
     }
 }

@@ -646,9 +646,9 @@ class illustrator {
 
             // The intersection record is always sorted by path length
             const auto sf_back{detray::geometry::surface{
-                _detector, intersections.back().sf_desc}};
+                _detector, intersections.back().surface()}};
             const auto sf_front{detray::geometry::surface{
-                _detector, intersections.front().sf_desc}};
+                _detector, intersections.front().surface()}};
 
             const auto pos_back = sf_back.local_to_global(
                 gctx, intersections.back().local(), trajectory.dir(0.f));

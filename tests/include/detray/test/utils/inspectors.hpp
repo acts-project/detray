@@ -213,8 +213,8 @@ struct object_tracer {
             if ((vector::norm(last_pos - pos) >=
                  10.f * std::numeric_limits<scalar_t>::epsilon()) ||
                 (state.is_on_portal() && current_vol != state.volume()) ||
-                state.current().sf_desc.barcode() !=
-                    object_trace.back().intersection.sf_desc.barcode()) {
+                state.current().surface().barcode() !=
+                    object_trace.back().intersection.surface().barcode()) {
 
                 object_trace.push_back({pos, dir, state.current()});
                 last_pos = pos;

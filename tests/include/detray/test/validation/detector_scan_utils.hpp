@@ -74,10 +74,10 @@ inline dindex_range overlaps_removal(record_container &intersection_records,
             const auto &prev_rec = intersection_records.at(i - 1u);
 
             // Two overlapping portals form a valid, connected volume boundary
-            if (!(rec.intersection.sf_desc.is_portal() &&
-                  prev_rec.intersection.sf_desc.is_portal())) {
-                auto prev_sf_desc = prev_rec.intersection.sf_desc;
-                auto sf_desc = rec.intersection.sf_desc;
+            if (!(rec.intersection.surface().is_portal() &&
+                  prev_rec.intersection.surface().is_portal())) {
+                auto prev_sf_desc = prev_rec.intersection.surface();
+                auto sf_desc = rec.intersection.surface();
 
                 // Other types of surfaces must not overlap!
                 std::stringstream err_stream;
@@ -114,10 +114,11 @@ inline dindex_range overlaps_removal(record_container &intersection_records,
         bool is_all_portals{true};
         for (std::size_t j = first; j <= last; ++j) {
             const auto &intr = intersection_records.at(j).intersection;
-            if (!intr.sf_desc.is_portal()) {
+            if (!intr.surface().is_portal()) {
                 is_all_portals = false;
             }
-            pt_buckets.insert({static_cast<std::size_t>(intr.volume_link), j});
+            pt_buckets.insert(
+                {static_cast<std::size_t>(intr.volume_link()), j});
         }
 
         // Remove buckets that contain only one portal: This is the valid exit
@@ -152,7 +153,7 @@ inline dindex_range overlaps_removal(record_container &intersection_records,
                 assert(v_link == exit_rec.vol_idx);
 
                 auto test_elem = std::next(itr, static_cast<int>(idx));
-                if (exit_rec.intersection.volume_link != test_elem->vol_idx) {
+                if (exit_rec.intersection.volume_link() != test_elem->vol_idx) {
                     intersection_records.erase(test_elem);
                 }
             }
@@ -357,28 +358,28 @@ inline auto trace_intersections(const record_container &intersection_records,
         /// getter
         /// @{
         inline bool is_invalid() const {
-            return entry.intersection.sf_desc.barcode().is_invalid();
+            return entry.intersection.surface().barcode().is_invalid();
         }
         inline auto surface_idx() const {
-            return entry.intersection.sf_desc.index();
+            return entry.intersection.surface().index();
         }
         inline auto surface_volume_idx() const {
-            return entry.intersection.sf_desc.volume();
+            return entry.intersection.surface().volume();
         }
         inline auto &inters() const { return entry.intersection; }
-        inline auto &volume_idx() const { return entry.vol_idx; }
-        inline auto &volume_link() const {
-            return entry.intersection.volume_link;
+        inline auto volume_idx() const { return entry.vol_idx; }
+        inline auto volume_link() const {
+            return entry.intersection.volume_link();
         }
         inline auto dist() const { return entry.intersection.path(); }
         inline bool is_portal() const {
-            return entry.intersection.sf_desc.is_portal();
+            return entry.intersection.surface().is_portal();
         }
         inline bool is_sensitive() const {
-            return entry.intersection.sf_desc.is_sensitive();
+            return entry.intersection.surface().is_sensitive();
         }
         inline bool is_passive() const {
-            return entry.intersection.sf_desc.is_passive();
+            return entry.intersection.surface().is_passive();
         }
         /// @}
     };

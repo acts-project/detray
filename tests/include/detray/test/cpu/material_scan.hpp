@@ -166,8 +166,9 @@ class material_scan : public test::fixture_base<> {
                         intersection_record[i + 1].intersection;
 
                     const bool is_same_intrs{next_intr == current_intr};
-                    const bool current_is_pt{current_intr.sf_desc.is_portal()};
-                    const bool next_is_pt{next_intr.sf_desc.is_portal()};
+                    const bool current_is_pt{
+                        current_intr.surface().is_portal()};
+                    const bool next_is_pt{next_intr.surface().is_portal()};
 
                     const bool is_dummy_record{i == 0};
 
@@ -181,12 +182,13 @@ class material_scan : public test::fixture_base<> {
 
                 // Don't count the last portal, because navigation terminates
                 // before the material is counted
-                if (detail::is_invalid_value(record.intersection.volume_link)) {
+                if (detail::is_invalid_value(
+                        record.intersection.volume_link())) {
                     continue;
                 }
 
                 const auto sf =
-                    geometry::surface{m_det, record.intersection.sf_desc};
+                    geometry::surface{m_det, record.intersection.surface()};
 
                 if (!sf.has_material()) {
                     continue;

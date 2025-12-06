@@ -37,7 +37,7 @@ std::unordered_set<dindex> get_volume_indices(
     std::unordered_set<dindex> volumes{};
     volumes.reserve(intersection_record.size());
     for (const auto &single_ir : intersection_record) {
-        if (single_ir.intersection.sf_desc.barcode().is_invalid()) {
+        if (single_ir.intersection.surface().barcode().is_invalid()) {
             continue;
         }
         volumes.insert(single_ir.vol_idx);
@@ -56,10 +56,10 @@ std::unordered_set<dindex> get_volume_indices(
     std::unordered_set<dindex> volumes{};
     volumes.reserve(intersections.size());
     for (const auto &intr : intersections) {
-        if (intr.sf_desc.barcode().is_invalid()) {
+        if (intr.surface().barcode().is_invalid()) {
             continue;
         }
-        volumes.insert(intr.sf_desc.volume());
+        volumes.insert(intr.surface().volume());
     }
 
     return volumes;
@@ -76,10 +76,10 @@ std::unordered_set<dindex> get_volume_indices(
     std::unordered_set<dindex> volumes{};
     volumes.reserve(candidates.size());
     for (const auto &cand : candidates) {
-        if (cand.intersection.sf_desc.barcode().is_invalid()) {
+        if (cand.intersection.surface().barcode().is_invalid()) {
             continue;
         }
-        volumes.insert(cand.intersection.sf_desc.volume());
+        volumes.insert(cand.intersection.surface().volume());
     }
 
     return volumes;
@@ -101,7 +101,7 @@ auto transcribe_intersections(
     intersections.reserve(intersection_trace.size());
     for (auto &ir : intersection_trace) {
         // Dummy record
-        if (ir.intersection.sf_desc.barcode().is_invalid()) {
+        if (ir.intersection.surface().barcode().is_invalid()) {
             continue;
         }
         intersections.push_back(ir.intersection);

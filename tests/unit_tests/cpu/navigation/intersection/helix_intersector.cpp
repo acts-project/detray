@@ -184,7 +184,7 @@ GTEST_TEST(detray_intersection, helix_cylinder_intersector_no_bfield) {
 
     // second intersection lies in front of the track
     EXPECT_TRUE(hits_bound[0].is_inside());
-    EXPECT_FALSE(hits_bound[0].direction);
+    EXPECT_FALSE(hits_bound[0].is_along());
 
     const auto global0 =
         cylinder.to_global_frame(shifted, hits_bound[0].local());
@@ -202,7 +202,7 @@ GTEST_TEST(detray_intersection, helix_cylinder_intersector_no_bfield) {
     const auto global1 =
         cylinder.to_global_frame(shifted, hits_bound[1].local());
     EXPECT_TRUE(hits_bound[1].is_inside());
-    EXPECT_TRUE(hits_bound[1].direction);
+    EXPECT_TRUE(hits_bound[1].is_along());
     EXPECT_NEAR(global1[0], 7.f, tol);
     EXPECT_NEAR(global1[1], 2.f, tol);
     EXPECT_NEAR(global1[2], 5.f, tol);
@@ -288,7 +288,7 @@ GTEST_TEST(detray_intersection,
 
     // second intersection lies in front of the track
     EXPECT_TRUE(hits_bound.is_inside());
-    EXPECT_TRUE(hits_bound.direction);
+    EXPECT_TRUE(hits_bound.is_along());
 
     const auto global0 = cylinder.to_global_frame(identity, hits_bound.local());
 
@@ -345,7 +345,7 @@ GTEST_TEST(detray_intersection, helix_line_intersector) {
     EXPECT_NEAR(is.local()[0], offset, tol);
     EXPECT_NEAR(is.local()[1], 0.f, tol);
     EXPECT_TRUE(is.is_inside());
-    EXPECT_TRUE(is.direction);
+    EXPECT_TRUE(is.is_along());
 
     // Get the intersection on the next surface
     is = hli(hlx, surface_descriptor<>{}, drift_cell, trf_fw, tol);
@@ -355,7 +355,7 @@ GTEST_TEST(detray_intersection, helix_line_intersector) {
     EXPECT_NEAR(is.local()[0], offset, tol);
     EXPECT_NEAR(is.local()[1], 0.f, tol);
     EXPECT_TRUE(is.is_inside());
-    EXPECT_TRUE(is.direction);
+    EXPECT_TRUE(is.is_along());
 
     //---------------------
     // Backward direction
@@ -378,7 +378,7 @@ GTEST_TEST(detray_intersection, helix_line_intersector) {
     EXPECT_NEAR(is.local()[0], -offset, tol);
     EXPECT_NEAR(is.local()[1], 0.f, tol);
     EXPECT_TRUE(is.is_inside());
-    EXPECT_FALSE(is.direction);
+    EXPECT_FALSE(is.is_along());
 
     // Get the intersection on the next surface
     is = hli(hlx, surface_descriptor<>{}, drift_cell, trf_bw, tol);
@@ -388,5 +388,5 @@ GTEST_TEST(detray_intersection, helix_line_intersector) {
     EXPECT_NEAR(is.local()[0], -offset, tol);
     EXPECT_NEAR(is.local()[1], 0.f, tol);
     EXPECT_TRUE(is.is_inside());
-    EXPECT_FALSE(is.direction);
+    EXPECT_FALSE(is.is_along());
 }

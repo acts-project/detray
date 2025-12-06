@@ -139,14 +139,14 @@ DETRAY_HOST inline std::string print_candidates(const state_type &state,
 
         debug_stream << std::left << std::setw(6) << "-> " << sf_cand;
 
-        assert(!sf_cand.sf_desc.barcode().is_invalid());
+        assert(!sf_cand.surface().barcode().is_invalid());
 
         // Use additional debug information that was gathered on the cand.
         if constexpr (state_type::value_type::contains_pos()) {
             const auto &local = sf_cand.local();
-            if (!sf_cand.sf_desc.barcode().is_invalid()) {
+            if (!sf_cand.surface().barcode().is_invalid()) {
                 point3_t pos =
-                    geometry::surface{state.detector(), sf_cand.sf_desc}
+                    geometry::surface{state.detector(), sf_cand.surface()}
                         .local_to_global(geo_ctx_t{}, local, track_dir);
                 debug_stream << " glob: [r = " << vector::perp(pos)
                              << ", z = " << pos[2] << "]" << std::endl;

@@ -39,7 +39,8 @@ inline auto intersection(const detector_t& detector,
 
     for (const auto& intr : intersections) {
 
-        const detray::geometry::surface<detector_t> sf{detector, intr.sf_desc};
+        const detray::geometry::surface<detector_t> sf{detector,
+                                                       intr.surface()};
         if (sf.barcode().is_invalid()) {
             continue;
         }

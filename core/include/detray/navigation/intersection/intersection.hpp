@@ -182,75 +182,122 @@ struct intersection_point_err
 
 /// @brief This class holds the intersection information.
 ///
-/// @tparam surface_descr_t is the type of surface descriptor
+/// @tparam surface_t is the type of surface descriptor
 /// @tparam algebra_t linear algebra and memory layout
 /// @tparam has_pos whether the local position is saved or not
-template <typename surface_descr_t, concepts::algebra algebra_t,
+template <typename surface_t, concepts::algebra algebra_t,
           bool has_pos = intersection::contains_pos>
-struct intersection2D {
+class intersection2D {
 
-    using algebra_type = algebra_t;
     using T = dvalue<algebra_t>;
     using bool_t = dbool<algebra_t>;
-    // This is needed for the SIMD implementation, where the boolean type that
-    // results from the mask tolerance check has to match the SIMD vector type
-    // on which it is used on for a masked assignment of the different status
-    // codes
-    using status_t = std::conditional_t<algebra::concepts::soa<algebra_t>, T,
-                                        intersection::status>;
     using scalar_type = dscalar<algebra_t>;
     using point2_type = dpoint2D<algebra_t>;
     using point3_type = dpoint3D<algebra_t>;
     using vector3_type = dvector3D<algebra_t>;
-    using transform3_type = dtransform3D<algebra_t>;
-    using nav_link_t = typename surface_descr_t::navigation_link;
 
-    /// Descriptor of the surface this intersection belongs to
-    surface_descr_t sf_desc{};
+    public:
+    using algebra_type = algebra_t;
+    using surface_type = surface_t;
+    // This is needed for the SIMD implementation, where the boolean type that
+    // results from the mask tolerance check has to match the SIMD vector type
+    // on which it is used on for a masked assignment of the different status
+    // codes
+    using status_type = std::conditional_t<algebra::concepts::soa<algebra_t>, T,
+                                           intersection::status>;
+    using nav_link_type = typename surface_type::navigation_link;
 
-    /// The intersection point (only saves the local point in debug mode)
-    intersection_point<algebra_type, dpoint3D<algebra_type>, has_pos> ip{};
+    /// Default constructor
+    constexpr intersection2D() = default;
 
-    /// Navigation information (next volume to go to)
-    nav_link_t volume_link{detail::invalid_value<nav_link_t>()};
+    /// Fully parametrized constructor - contains local position
+    template <bool B = has_pos>
+        requires B
+    DETRAY_HOST_DEVICE constexpr intersection2D(
+        const surface_type &sf, const scalar_type path,
+        const point3_type &local, const nav_link_type nl,
+        const dsimd<algebra_t, status_type> status, const bool_t dir)
+        : m_surface{sf},
+          m_ip{path, local},
+          m_volume_link{nl},
+          m_status{status},
+          m_direction{dir} {}
 
-    /// Result of the intersection
-    dsimd<algebra_t, status_t> status =
-        static_cast<status_t>(intersection::status::e_outside);
-
-    /// Direction of the intersection with respect to the track (true = along,
-    /// false = opposite)
-    bool_t direction{true};
+    /// Fully parametrized constructor - contains no local position
+    template <bool B = has_pos>
+        requires(!B)
+    DETRAY_HOST_DEVICE constexpr intersection2D(
+        const surface_type &sf, const scalar_type path, const nav_link_type nl,
+        const dsimd<algebra_t, status_type> status, const bool_t dir)
+        : m_surface{sf},
+          m_ip{path},
+          m_volume_link{nl},
+          m_status{status},
+          m_direction{dir} {}
 
     /// @returns true if debug information needs to be filled
     static consteval bool contains_pos() { return has_pos; }
 
+    /// @returns the intersected surface
+    DETRAY_HOST_DEVICE
+    constexpr surface_type surface() const { return m_surface; }
+
+    /// @returns the intersected surface - non-const
+    DETRAY_HOST_DEVICE
+    constexpr surface_type &surface() { return m_surface; }
+
+    /// Set the surface for this intersection to @param sf
+    DETRAY_HOST_DEVICE
+    constexpr void set_surface(const surface_type sf) { m_surface = sf; }
+
+    /// @returns the link to the taget volume to the navigator
+    DETRAY_HOST_DEVICE
+    constexpr nav_link_type volume_link() const { return m_volume_link; }
+
+    /// Set the volume link to @param nl
+    DETRAY_HOST_DEVICE
+    constexpr void set_volume_link(const nav_link_type nl) {
+        m_volume_link = nl;
+    }
+
+    /// @returns the diretion of the intersection (before or behind the track)
+    DETRAY_HOST_DEVICE
+    constexpr bool_t is_along() const { return m_direction; }
+
+    /// Set the direction to @param dir
+    DETRAY_HOST_DEVICE
+    constexpr void set_direction(const bool_t dir) { m_direction = dir; }
+
     /// @returns the distance of to the intersection point along the test traj.
     DETRAY_HOST_DEVICE
-    constexpr scalar_type path() const { return ip.path; }
+    constexpr scalar_type path() const { return m_ip.path; }
 
     /// Set the path to @param p
     DETRAY_HOST_DEVICE
-    constexpr void set_path(scalar_type p) { ip.path = p; }
+    constexpr void set_path(scalar_type p) { m_ip.path = p; }
 
     /// @returns the local 3D intersection point (only debug)
     template <bool B = has_pos>
         requires B
     DETRAY_HOST_DEVICE constexpr point3_type local() const {
-        return ip.point;
+        return m_ip.point;
     }
 
     /// Set the intersection position to @param p
     template <bool B = has_pos>
         requires B
     DETRAY_HOST_DEVICE constexpr void set_local(const point3_type p) {
-        ip.point = p;
+        m_ip.point = p;
     }
+
+    /// @returns the intersection status
+    DETRAY_HOST_DEVICE
+    constexpr dsimd<algebra_t, status_type> status() const { return m_status; }
 
     /// Set the intersection status according to enum value @param s
     DETRAY_HOST_DEVICE
     constexpr void set_status(intersection::status s) {
-        status = static_cast<status_t>(s);
+        m_status = static_cast<status_type>(s);
     }
 
     /// Set the intersection status according to enum value @param s
@@ -259,9 +306,9 @@ struct intersection2D {
                                  dbool<algebra_t> result_mask) {
         // @TODO find a unified conditional assignment in algebra_plugins
         if constexpr (concepts::soa<algebra_t>) {
-            status(result_mask) = static_cast<status_t>(s);
+            m_status(result_mask) = static_cast<status_type>(s);
         } else {
-            status = result_mask ? static_cast<status_t>(s) : status;
+            m_status = result_mask ? static_cast<status_type>(s) : m_status;
         }
     }
 
@@ -307,43 +354,44 @@ struct intersection2D {
     /// @returns true if any of the intersection results is 'inside'
     DETRAY_HOST_DEVICE
     constexpr bool is_inside() const {
-        const dsimd<algebra_t, status_t> comp(
-            static_cast<status_t>(intersection::status::e_inside));
-        return detail::any_of(this->status == comp);
+        const dsimd<algebra_t, status_type> comp(
+            static_cast<status_type>(intersection::status::e_inside));
+        return detail::any_of(this->m_status == comp);
     }
 
     /// @returns true if any of the intersection results is 'edge'
     DETRAY_HOST_DEVICE
     constexpr bool is_edge() const {
-        const dsimd<algebra_t, status_t> comp(
-            static_cast<status_t>(intersection::status::e_edge));
-        return detail::any_of(this->status == comp);
+        const dsimd<algebra_t, status_type> comp(
+            static_cast<status_type>(intersection::status::e_edge));
+        return detail::any_of(this->m_status == comp);
     }
 
     /// @returns true if any of the intersection results is 'inside' or 'edge'
     DETRAY_HOST_DEVICE
     constexpr bool is_probably_inside() const {
-        const dsimd<algebra_t, status_t> comp(
-            static_cast<status_t>(intersection::status::e_edge));
-        return detail::any_of(this->status <= comp);
+        const dsimd<algebra_t, status_type> comp(
+            static_cast<status_type>(intersection::status::e_edge));
+        return detail::any_of(this->m_status <= comp);
     }
 
     /// @returns true if all of the intersection results are 'outside'
     DETRAY_HOST_DEVICE
     constexpr bool is_outside() const {
-        const dsimd<algebra_t, status_t> comp(
-            static_cast<status_t>(intersection::status::e_outside));
-        return detail::all_of(this->status == comp);
+        const dsimd<algebra_t, status_type> comp(
+            static_cast<status_type>(intersection::status::e_outside));
+        return detail::all_of(this->m_status == comp);
     }
 
+    private:
     /// Transform to a string for output debugging
     DETRAY_HOST
     friend std::ostream &operator<<(std::ostream &out_stream,
                                     const intersection2D &is) {
-        out_stream << is.ip << ", "
-                   << ", surface: " << is.sf_desc.barcode()
-                   << ", type: " << static_cast<int>(is.sf_desc.mask().id())
-                   << ", links to vol:" << is.volume_link << ")";
+        out_stream << is.m_ip << ", "
+                   << ", surface: " << is.surface().barcode()
+                   << ", type: " << static_cast<int>(is.surface().mask().id())
+                   << ", links to vol:" << is.volume_link() << ")";
 
         if (is.is_inside()) {
             out_stream << ", status: inside";
@@ -353,15 +401,32 @@ struct intersection2D {
             out_stream << ", status: outside";
         }
         if constexpr (std::is_scalar_v<bool_t>) {
-            out_stream << (is.direction ? ", direction: along"
-                                        : ", direction: opposite");
+            out_stream << (is.is_along() ? ", direction: along"
+                                         : ", direction: opposite");
         } else {
-            out_stream << ", status: " << is.status;
-            out_stream << ", direction: " << is.direction;
+            out_stream << ", status: " << is.status();
+            out_stream << ", direction: " << is.is_along();
         }
 
         return out_stream;
     }
+
+    /// Descriptor of the surface this intersection belongs to
+    surface_type m_surface{};
+
+    /// The intersection point (only saves the local point in debug mode)
+    intersection_point<algebra_type, dpoint3D<algebra_type>, has_pos> m_ip{};
+
+    /// Navigation information (next volume to go to)
+    nav_link_type m_volume_link{detail::invalid_value<nav_link_type>()};
+
+    /// Result of the intersection
+    dsimd<algebra_t, status_type> m_status =
+        static_cast<status_type>(intersection::status::e_outside);
+
+    /// Direction of the intersection with respect to the track (true = along,
+    /// false = opposite)
+    bool_t m_direction{true};
 };
 
 }  // namespace detray

@@ -422,9 +422,9 @@ DETRAY_HOST_DEVICE constexpr void resolve_mask(
         is.set_status(mask.is_inside(is.local(), tol)
                           ? intersection::status::e_inside
                           : intersection::status::e_outside);
-        is.sf_desc = sf_desc;
-        is.direction = !math::signbit(ip.path);
-        is.volume_link = mask.volume_link();
+        is.set_surface(sf_desc);
+        is.set_direction(!math::signbit(ip.path));
+        is.set_volume_link(mask.volume_link());
     } else {
         // Not a valid intersection
         is.set_status(intersection::status::e_outside);

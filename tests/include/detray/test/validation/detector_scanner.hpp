@@ -107,8 +107,8 @@ struct brute_force_scan {
 
             // Candidate is invalid if it lies in the opposite direction
             for (auto &sfi : intersections) {
-                if (sfi.direction) {
-                    sfi.sf_desc = sf_desc;
+                if (sfi.is_along()) {
+                    sfi.surface() = sf_desc;
                     // Record the intersection
                     intersection_trace.push_back({q,
                                                   {traj.pos(sfi.path()), 0.f,
@@ -132,16 +132,17 @@ struct brute_force_scan {
         intersection_t start_intersection{};
         // Must not be invalid, since it will otherwise throw the navigation
         // validation off
-        start_intersection.sf_desc = first_record.intersection.sf_desc;
-        start_intersection.sf_desc.set_id(surface_id::e_passive);
-        start_intersection.sf_desc.set_index(0);
-        start_intersection.sf_desc.material()
+        start_intersection.set_surface(first_record.intersection.surface());
+        start_intersection.surface().set_id(surface_id::e_passive);
+        start_intersection.surface().set_index(0);
+        start_intersection.surface()
+            .material()
             .set_id(detector_t::materials::id::e_none)
             .set_index(dindex_invalid);
         start_intersection.set_path(0.f);
         start_intersection.set_local({0.f, 0.f, 0.f});
-        start_intersection.volume_link =
-            static_cast<nav_link_t>(first_record.vol_idx);
+        start_intersection.set_volume_link(
+            static_cast<nav_link_t>(first_record.vol_idx));
 
         intersection_trace.insert(intersection_trace.begin(),
                                   intersection_record<detector_t>{
@@ -186,7 +187,7 @@ inline auto run(const typename detector_t::geometry_context gctx,
 
     // Make sure the intersection record terminates at world portals
     auto is_world_exit = [](const record_t &r) {
-        return r.intersection.volume_link ==
+        return r.intersection.volume_link() ==
                detray::detail::invalid_value<nav_link_t>();
     };
 
@@ -329,7 +330,7 @@ inline auto read(const std::string &intersection_file_name,
             intersection_traces[trk_idx].push_back(
                 intersection_record<detector_t>{
                     track_params[i].first, track_params[i].second,
-                    intersections[i].sf_desc.volume(), intersections[i]});
+                    intersections[i].surface().volume(), intersections[i]});
         }
     }
 }

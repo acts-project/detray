@@ -106,11 +106,11 @@ DETRAY_HOST_DEVICE DETRAY_INLINE constexpr bool update_candidate(
     using scalar_t = dscalar<algebra_t>;
 
     // Invalid intersection result cannot be updated
-    if (candidate.sf_desc.barcode().is_invalid()) [[unlikely]] {
+    if (candidate.surface().barcode().is_invalid()) [[unlikely]] {
         return false;
     }
 
-    const auto sf = detray::geometry::surface{det, candidate.sf_desc};
+    const auto sf = detray::geometry::surface{det, candidate.surface()};
 
     // Tangential to the track direction
     auto tangential{detray::detail::ray<algebra_t>(
@@ -148,7 +148,7 @@ DETRAY_HOST_DEVICE DETRAY_INLINE constexpr void update_status(
     // portal, in which case the navigation needs to be re-initialized
     if (!navigation.cache_exhausted() &&
         navigation::has_reached_candidate(navigation.target(), cfg)) {
-        navigation.status((navigation.target().sf_desc.is_portal())
+        navigation.status((navigation.target().surface().is_portal())
                               ? navigation::status::e_on_portal
                               : navigation::status::e_on_object);
         // Set the next object that we want to reach (this function is only
@@ -224,7 +224,7 @@ DETRAY_HOST_DEVICE DETRAY_INLINE constexpr void local_navigation(
         // Do not exit if backward navigation starts on the outmost portal
         if (navigation.is_on_portal()) {
             navigation.trust_level(detray::detail::is_invalid_value(
-                                       navigation.current().volume_link)
+                                       navigation.current().volume_link())
                                        ? navigation::trust_level::e_full
                                        : navigation::trust_level::e_no_trust);
         } else if (!navigation.is_on_portal()) {
@@ -256,7 +256,7 @@ DETRAY_HOST_DEVICE DETRAY_INLINE constexpr void volume_switch(
     const track_t &track, navigation_state_t &navigation,
     const navigation::config &cfg, const context_t &ctx) {
     // Navigation reached the end of the detector world
-    if (detray::detail::is_invalid_value(navigation.current().volume_link))
+    if (detray::detail::is_invalid_value(navigation.current().volume_link()))
         [[unlikely]] {
         DETRAY_VERBOSE_HOST_DEVICE("Reached end of detector: ");
         navigation.exit();
@@ -264,7 +264,7 @@ DETRAY_HOST_DEVICE DETRAY_INLINE constexpr void volume_switch(
     }
 
     // Set volume index to the next volume provided by the portal
-    navigation.set_volume(navigation.current().volume_link);
+    navigation.set_volume(navigation.current().volume_link());
     // Check valid volume index
     assert(navigation.volume() < navigation.detector().volumes().size());
 

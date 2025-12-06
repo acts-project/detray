@@ -389,14 +389,14 @@ auto compare_traces(
         if (next_idx < truth_trace.size() && next_idx < recorded_trace.size()) {
 
             const auto &current_nav_inters =
-                recorded_trace.at(idx_j).intersection.sf_desc.barcode();
+                recorded_trace.at(idx_j).intersection.surface().barcode();
             const auto &current_truth_inters =
-                truth_trace.at(idx_j).intersection.sf_desc.barcode();
+                truth_trace.at(idx_j).intersection.surface().barcode();
 
             const auto &next_nav_inters =
-                recorded_trace.at(next_idx).intersection.sf_desc.barcode();
+                recorded_trace.at(next_idx).intersection.surface().barcode();
             const auto &next_truth_inters =
-                truth_trace.at(next_idx).intersection.sf_desc.barcode();
+                truth_trace.at(next_idx).intersection.surface().barcode();
 
             return ((current_nav_inters == next_truth_inters) &&
                     (next_nav_inters == current_truth_inters));
@@ -418,13 +418,14 @@ auto compare_traces(
         const bool nav_has_next = (idx < recorded_trace.size());
         detray::geometry::barcode nav_inters{};
         if (nav_has_next) {
-            nav_inters = recorded_trace.at(idx).intersection.sf_desc.barcode();
+            nav_inters =
+                recorded_trace.at(idx).intersection.surface().barcode();
         }
 
         const bool truth_has_next = (idx < truth_trace.size());
         detray::geometry::barcode truth_inters{};
         if (truth_has_next) {
-            truth_inters = truth_trace.at(idx).intersection.sf_desc.barcode();
+            truth_inters = truth_trace.at(idx).intersection.surface().barcode();
         }
 
         // Check if size of traces is still in sync and records match
@@ -496,7 +497,8 @@ auto compare_traces(
 
                         // Portals may be swapped and wrongfully included in the
                         // range of missed surfaces - skip them
-                        if (sfi.sf_desc.is_portal() && is_swapped_surfaces(j)) {
+                        if (sfi.surface().is_portal() &&
+                            is_swapped_surfaces(j)) {
                             ++j;
                             continue;
                         }
@@ -507,11 +509,11 @@ auto compare_traces(
                         other_trace.insert(other_trace.begin() + i, record_t{});
 
                         // Count this missed intersection depending on sf. type
-                        const bool valid{missed_stats.count(sfi.sf_desc)};
+                        const bool valid{missed_stats.count(sfi.surface())};
                         handle_counting_error(valid);
 
                         // Missed surfaces this time
-                        count_one_missed(sfi.sf_desc, missed_pt, missed_sn,
+                        count_one_missed(sfi.surface(), missed_pt, missed_sn,
                                          missed_ps);
                     }
 
@@ -533,12 +535,12 @@ auto compare_traces(
             // later place, the navigator potentially missed the surfaces that
             // lie in between (except for swapped portals)
             auto search_nav_on_truth = [nav_inters](const truth_record_t &tr) {
-                return tr.intersection.sf_desc.barcode() == nav_inters;
+                return tr.intersection.surface().barcode() == nav_inters;
             };
             // As above, but this time check if the navigator found additional
             // surfaces
             auto search_truth_on_nav = [truth_inters](const nav_record_t &nr) {
-                return nr.intersection.sf_desc.barcode() == truth_inters;
+                return nr.intersection.surface().barcode() == truth_inters;
             };
 
             // Check if the portal order is swapped or the surface appears
@@ -547,8 +549,10 @@ auto compare_traces(
             if (is_swapped_surfaces(i)) {
                 // Was not wrong after all
                 matching_traces = true;
-                if (!recorded_trace.at(idx).intersection.sf_desc.is_portal() ||
-                    !truth_trace.at(idx).intersection.sf_desc.is_portal()) {
+                if (!recorded_trace.at(idx)
+                         .intersection.surface()
+                         .is_portal() ||
+                    !truth_trace.at(idx).intersection.surface().is_portal()) {
                     DETRAY_WARN_HOST(
                         "Track "
                         << trk_no << ", inters. " << idx
@@ -686,7 +690,7 @@ auto compare_traces(
                 << std::setw(20)
                 << "\n   Reference: " << truth_trace.at(intr_idx).intersection
                 << ", vol id: "
-                << truth_trace.at(intr_idx).intersection.sf_desc.volume()
+                << truth_trace.at(intr_idx).intersection.surface().volume()
                 << std::endl;
         } else {
             debug_stream << "\n   Reference: -" << std::endl;
@@ -778,8 +782,8 @@ auto compare_traces(
         std::size_t n_miss_truth{0u};
         std::size_t n_miss_nav{0u};
         for (std::size_t i = 0u; i < truth_trace.size(); ++i) {
-            const auto truth_desc{truth_trace.at(i).intersection.sf_desc};
-            const auto nav_desc{recorded_trace.at(i).intersection.sf_desc};
+            const auto truth_desc{truth_trace.at(i).intersection.surface()};
+            const auto nav_desc{recorded_trace.at(i).intersection.surface()};
 
             if (truth_desc.barcode().is_invalid()) {
                 n_miss_truth++;
@@ -905,7 +909,7 @@ auto write_dist_to_boundary(
 
             const auto &track = entry.first;
             const auto sf =
-                geometry::surface{det, missed_sfi.sf_desc.barcode()};
+                geometry::surface{det, missed_sfi.surface().barcode()};
             const auto vol = tracking_volume{det, sf.volume()};
 
             const auto dist = sf.template visit_mask<min_dist_to_boundary>(
@@ -1146,7 +1150,7 @@ auto compare_to_navigation(
         // Get only the sensitive surfaces
         if (cfg.collect_sensitives_only()) {
             for (const auto &rec : obj_tracer.trace()) {
-                if (rec.intersection.sf_desc.is_sensitive()) {
+                if (rec.intersection.surface().is_sensitive()) {
                     recorded_trace.push_back(rec);
                 }
             }
@@ -1208,7 +1212,7 @@ auto compare_to_navigation(
 
         // Count the number of surfaces per type in all traces
         for (std::size_t j = 0; j < truth_trace.size(); ++j) {
-            n_surfaces.count(truth_trace[j].intersection.sf_desc,
+            n_surfaces.count(truth_trace[j].intersection.surface(),
                              cfg.verbose());
         }
 

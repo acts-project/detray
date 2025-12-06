@@ -93,7 +93,7 @@ struct surface_sequencer : actor {
             return;
         }
 
-        const auto& sf_desc = std::as_const(navigation).current().sf_desc;
+        const auto& sf_desc = std::as_const(navigation).current().surface();
         assert(!sf_desc.barcode().is_invalid());
 
         actor_state.sequence().push_back(sf_desc);

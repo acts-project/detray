@@ -257,7 +257,7 @@ class base_state : public detray::ranges::view_interface<
     DETRAY_HOST_DEVICE
     constexpr auto encountered_sf_material() const -> bool {
         return (cast_impl().is_on_surface()) &&
-               (cast_impl().current().sf_desc.has_material());
+               (cast_impl().current().surface().has_material());
     }
 
     /// @returns flag that indicates whether navigation was successful
@@ -321,7 +321,7 @@ class base_state : public detray::ranges::view_interface<
     /// (invalid when not on surface) - const
     DETRAY_HOST_DEVICE
     constexpr auto barcode() const -> geometry::barcode {
-        return cast_impl().current().sf_desc.barcode();
+        return cast_impl().current().surface().barcode();
     }
 
     /// @returns true if the current candidate lies on the surface edge
@@ -360,7 +360,7 @@ class base_state : public detray::ranges::view_interface<
     template <template <typename> class surface_t = tracking_surface>
     DETRAY_HOST_DEVICE constexpr auto current_surface() const {
         assert(cast_impl().is_on_surface());
-        return surface_t<detector_t>{*m_detector, current().sf_desc};
+        return surface_t<detector_t>{*m_detector, current().surface()};
     }
 
     /// @param volume_t the volume interface type that is required
@@ -374,7 +374,8 @@ class base_state : public detray::ranges::view_interface<
     /// @returns the next surface the navigator intends to reach
     template <template <typename> class surface_t = tracking_surface>
     DETRAY_HOST_DEVICE constexpr auto next_surface() const {
-        return surface_t<detector_t>{*m_detector, cast_impl().target().sf_desc};
+        return surface_t<detector_t>{*m_detector,
+                                     cast_impl().target().surface()};
     }
 
     /// @param volume_t the volume interface type that is required
@@ -382,7 +383,7 @@ class base_state : public detray::ranges::view_interface<
     template <template <typename> class volume_t = tracking_volume>
     DETRAY_HOST_DEVICE constexpr auto next_volume() const {
         return volume_t<detector_t>{*m_detector,
-                                    cast_impl().target().sf_desc.volume()};
+                                    cast_impl().target().surface().volume()};
     }
 
     /// Navigation reaches final target or leaves detector world. Stop

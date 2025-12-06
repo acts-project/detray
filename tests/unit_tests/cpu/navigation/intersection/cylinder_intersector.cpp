@@ -61,7 +61,7 @@ GTEST_TEST(detray_intersection, translated_cylinder) {
 
     // first intersection lies behind the track
     EXPECT_TRUE(hits_bound[0].is_inside());
-    ASSERT_FALSE(hits_bound[0].direction);
+    ASSERT_FALSE(hits_bound[0].is_along());
 
     const auto global0 =
         cylinder.to_global_frame(shifted, hits_bound[0].local());
@@ -77,7 +77,7 @@ GTEST_TEST(detray_intersection, translated_cylinder) {
 
     // second intersection lies in front of the track
     EXPECT_TRUE(hits_bound[1].is_inside());
-    EXPECT_TRUE(hits_bound[1].direction);
+    EXPECT_TRUE(hits_bound[1].is_along());
 
     const auto global1 =
         cylinder.to_global_frame(shifted, hits_bound[1].local());
@@ -115,8 +115,8 @@ GTEST_TEST(detray_intersection, cylinder_portal) {
 
     ASSERT_TRUE(hits_cylindrical[1].is_inside());
     ASSERT_TRUE(hit_cocylindrical.is_inside());
-    ASSERT_TRUE(hits_cylindrical[1].direction);
-    ASSERT_TRUE(hit_cocylindrical.direction);
+    ASSERT_TRUE(hits_cylindrical[1].is_along());
+    ASSERT_TRUE(hit_cocylindrical.is_along());
 
     const auto global0 =
         cylinder.to_global_frame(identity, hits_cylindrical[1].local());

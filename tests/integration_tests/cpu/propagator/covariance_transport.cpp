@@ -346,7 +346,7 @@ TYPED_TEST(detray_propagation_HelixCovarianceTransportValidation,
     ASSERT_EQ(sfis.size(), n_planes);
     for (std::size_t i = 0u; i < n_planes; i++) {
         EXPECT_TRUE(sfis[i].is_inside());
-        EXPECT_TRUE(sfis[i].direction);
+        EXPECT_TRUE(sfis[i].is_along());
     }
 
     // Check if the same vector is obtained after one loop

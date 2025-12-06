@@ -360,7 +360,7 @@ struct propagator {
                          << " ->on surface: " << navigation.barcode();
         } else {
             debug_stream << std::setw(10) << " ->target: "
-                         << navigation.target().sf_desc.barcode();
+                         << navigation.target().surface().barcode();
         }
         debug_stream << std::endl;
         debug_stream << " ->path: " << navigation() << "mm" << std::endl;
