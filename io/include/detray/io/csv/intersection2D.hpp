@@ -89,14 +89,16 @@ inline auto read_intersection2D(const std::string &file_name) {
         material_link_t material_link{
             static_cast<material_id_t>(inters_data.material_id),
             inters_data.material_index};
-        inters.sf_desc = {inters_data.transform_index, mask_link, material_link,
-                          dindex_invalid, surface_id::e_unknown};
-        inters.sf_desc.set_barcode(geometry::barcode{inters_data.identifier});
+        inters.set_surface({inters_data.transform_index, mask_link,
+                            material_link, dindex_invalid,
+                            surface_id::e_unknown});
+        inters.surface().set_barcode(geometry::barcode{inters_data.identifier});
         inters.set_local({static_cast<scalar_t>(inters_data.loc_0),
                           static_cast<scalar_t>(inters_data.loc_1), 0.f});
         inters.set_path(static_cast<scalar_t>(inters_data.path));
-        inters.volume_link = static_cast<nav_link_t>(inters_data.volume_link);
-        inters.direction = static_cast<bool>(inters_data.direction);
+        inters.set_volume_link(
+            static_cast<nav_link_t>(inters_data.volume_link));
+        inters.set_direction(static_cast<bool>(inters_data.direction));
         inters.set_status(
             static_cast<intersection::status>(inters_data.status));
 
@@ -120,7 +122,7 @@ inline void write_intersection2D(
     const std::vector<std::vector<intersection_t>> &intersections_per_track,
     const bool replace = true) {
 
-    using sf_desc_t = decltype(intersections_per_track.at(0).at(0).sf_desc);
+    using sf_desc_t = decltype(intersections_per_track.at(0).at(0).surface());
     using mask_link_t = typename sf_desc_t::mask_link;
 
     // Don't write over existing data
@@ -147,13 +149,13 @@ inline void write_intersection2D(
             io::csv::intersection2D inters_data{};
 
             inters_data.track_id = track_idx;
-            inters_data.identifier = inters.sf_desc.barcode().value();
+            inters_data.identifier = inters.surface().barcode().value();
             inters_data.type =
-                static_cast<unsigned int>(inters.sf_desc.barcode().id());
-            inters_data.transform_index = inters.sf_desc.transform();
+                static_cast<unsigned int>(inters.surface().barcode().id());
+            inters_data.transform_index = inters.surface().transform();
             inters_data.mask_id =
-                static_cast<unsigned int>(inters.sf_desc.mask().id());
-            const auto mask_index = inters.sf_desc.mask().index();
+                static_cast<unsigned int>(inters.surface().mask().id());
+            const auto mask_index = inters.surface().mask().index();
             if constexpr (detray::concepts::interval<
                               typename mask_link_t::index_type>) {
                 inters_data.mask_index =
@@ -165,14 +167,14 @@ inline void write_intersection2D(
                 inters_data.n_masks = 1u;
             }
             inters_data.material_id =
-                static_cast<unsigned int>(inters.sf_desc.material().id());
-            inters_data.material_index = inters.sf_desc.material().index();
+                static_cast<unsigned int>(inters.surface().material().id());
+            inters_data.material_index = inters.surface().material().index();
             inters_data.loc_0 = inters.local()[0];
             inters_data.loc_1 = inters.local()[1];
             inters_data.path = inters.path();
-            inters_data.volume_link = inters.volume_link;
-            inters_data.direction = static_cast<int>(inters.direction);
-            inters_data.status = static_cast<int>(inters.status);
+            inters_data.volume_link = inters.volume_link();
+            inters_data.direction = static_cast<int>(inters.is_along());
+            inters_data.status = static_cast<int>(inters.status());
 
             inters_writer.append(inters_data);
         }

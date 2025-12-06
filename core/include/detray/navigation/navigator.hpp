@@ -124,8 +124,8 @@ class navigator : public navigator_base<
             }
 
             assert(this->next_index() == 1u);
-            assert(detail::is_invalid_value(new_cadidate.volume_link) ||
-                   new_cadidate.volume_link <
+            assert(detail::is_invalid_value(new_cadidate.volume_link()) ||
+                   new_cadidate.volume_link() <
                        this->detector().volumes().size());
         }
 
