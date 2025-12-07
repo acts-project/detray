@@ -109,7 +109,6 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
         detray::tie(aborter_state, interactor_state, resetter_state);
 
     propagator_t::state state(bound_param, det);
-    state.do_debug = true;
 
     // Propagate the entire detector
     ASSERT_TRUE(p.propagate(state, actor_states));
@@ -242,7 +241,6 @@ GTEST_TEST(detray_material, telescope_geometry_scattering_angle) {
             detray::tie(aborter_state, simulator_state, resetter_state);
 
         propagator_t::state state(bound_param, det);
-        state.do_debug = true;
 
         // Propagate the entire detector
         ASSERT_TRUE(p.propagate(state, actor_states));

@@ -9,15 +9,16 @@
 
 // Project include(s)
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/definitions/geometry.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/definitions/geometry.hpp"
 #include "detray/geometry/barcode.hpp"
 #include "detray/geometry/mask.hpp"
 
 namespace detray {
 
-template <typename algebra_t, typename shape_t, typename material_t, typename nav_link_t>
+template <typename algebra_t, typename shape_t, typename material_t,
+          typename nav_link_t>
 class external_surface {
     public:
     using transform3_type = dtransform3D<algebra_t>;
@@ -37,15 +38,14 @@ class external_surface {
     /// @param volume the volume this surface belongs to
     /// @param sf_id remember whether this is a portal or not
     DETRAY_HOST_DEVICE
-    constexpr external_surface(const transform3_type& trf, const mask_type& mask,
-                                 const material_type& material,
-                                 const dindex volume, const surface_id sf_id)
+    constexpr external_surface(const transform3_type& trf,
+                               const mask_type& mask,
+                               const material_type& material,
+                               const dindex volume, const surface_id sf_id)
         : m_transform{trf},
           m_mask(mask),
           m_material(material),
-          m_barcode{geometry::barcode{}
-                        .set_volume(volume)
-                        .set_id(sf_id)} {}
+          m_barcode{geometry::barcode{}.set_volume(volume).set_id(sf_id)} {}
 
     /// Constructor with full arguments - move semantics
     ///
@@ -56,20 +56,18 @@ class external_surface {
     /// @param sf_id remember whether this is a portal or not
     DETRAY_HOST_DEVICE
     constexpr external_surface(transform3_type&& trf, mask_type&& mask,
-                                material_type&& material,
-                                 const dindex volume, const surface_id sf_id)
+                               material_type&& material, const dindex volume,
+                               const surface_id sf_id)
         : m_transform{std::move(trf)},
           m_mask(std::move(mask)),
           m_material(std::move(material)),
-          m_barcode{geometry::barcode{}
-                        .set_volume(volume)
-                        .set_id(sf_id)} {}
+          m_barcode{geometry::barcode{}.set_volume(volume).set_id(sf_id)} {}
 
     /// Equality operator
     ///
     /// @param rhs is the right hand side to be compared to
     DETRAY_HOST_DEVICE
-    constexpr auto operator==(const external_surface &rhs) const -> bool {
+    constexpr auto operator==(const external_surface& rhs) const -> bool {
         return (m_barcode == rhs.m_barcode);
     }
 
@@ -113,13 +111,13 @@ class external_surface {
     ///
     /// @param offset update the position when move into new collection
     DETRAY_HOST_DEVICE
-    void set_transform(const transform3_type& trf) {
-        m_transform =trf;
-    }
+    void set_transform(const transform3_type& trf) { m_transform = trf; }
 
     /// @return the transform index
     DETRAY_HOST_DEVICE
-    constexpr auto transform() const -> const transform3_type& { return m_transform; }
+    constexpr auto transform() const -> const transform3_type& {
+        return m_transform;
+    }
 
     /// Update the mask link
     ///
@@ -129,7 +127,7 @@ class external_surface {
 
     /// @return the mask - const
     DETRAY_HOST_DEVICE
-    constexpr auto mask() const -> const mask_type & { return m_mask; }
+    constexpr auto mask() const -> const mask_type& { return m_mask; }
 
     /// Update the material link
     ///
@@ -139,19 +137,17 @@ class external_surface {
 
     /// Access to the material
     DETRAY_HOST_DEVICE
-    constexpr auto material() -> material_type & { return m_material; }
+    constexpr auto material() -> material_type& { return m_material; }
 
     /// @return the material link
     DETRAY_HOST_DEVICE
-    constexpr auto material() const -> const material_type & {
+    constexpr auto material() const -> const material_type& {
         return m_material;
     }
 
     /// @returns true if the surface descriptor has a valid material link
     DETRAY_HOST_DEVICE
-    constexpr auto has_material() const -> bool {
-        return false;
-    }
+    constexpr auto has_material() const -> bool { return false; }
 
     /// @returns true if the surface is a senstive detector module.
     DETRAY_HOST_DEVICE
@@ -176,10 +172,10 @@ class external_surface {
     transform3_type m_transform{};
     /// Surface mask
     mask_type m_mask{};
-    /// Surface hash
-    geometry::barcode m_barcode{};
     /// Surface material
     material_type m_material{};
+    /// Surface hash
+    geometry::barcode m_barcode{};
 };
 
 }  // namespace detray

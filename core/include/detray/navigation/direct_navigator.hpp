@@ -21,10 +21,11 @@
 #include "detray/navigation/intersection/ray_intersector.hpp"
 #include "detray/navigation/navigation_config.hpp"
 #include "detray/navigation/navigation_state.hpp"
+#include "detray/utils/type_traits.hpp"
 
 namespace detray {
 
-template <typename detector_t, typename surface_t = void>
+template <typename detector_t, typename surface_sequence_t = void>
 class direct_navigator {
 
     using algebra_t = typename detector_t::algebra_type;
@@ -34,10 +35,16 @@ class direct_navigator {
     using detector_type = detector_t;
     using context_type = detector_type::geometry_context;
 
-    // Use an external surface type, if one was provided
-    using surface_type =
-        std::conditional_t<std::same_as<surface_t, void>,
-                           typename detector_t::surface_type, surface_t>;
+    // Use an external surface sequence type, if one was provided
+    using surface_sequence_type = std::conditional_t<
+        std::same_as<surface_sequence_t, void>,
+        vecmem::device_vector<typename detector_t::surface_type>,
+        surface_sequence_t>;
+
+    static_assert(detray::ranges::range<surface_sequence_type>,
+                  "Surface sequnece must be iterable");
+
+    using surface_type = detray::ranges::range_value_t<surface_sequence_type>;
     using intersection_type =
         intersection2D<surface_type, algebra_t, !intersection::contains_pos>;
     using inspector_type = navigation::void_inspector;
@@ -61,16 +68,22 @@ class direct_navigator {
 
         public:
         using value_type = intersection_type;
-        using sequence_type = vecmem::device_vector<surface_type>;
+        using sequence_type = surface_sequence_type;
 
-        using view_type = dvector_view<surface_type>;
-        using const_view_type = dvector_view<const surface_type>;
+        using view_type =
+            std::conditional_t<std::same_as<surface_sequence_t, void>,
+                               detail::get_view_t<surface_sequence_type>,
+                               surface_sequence_type>;
+        using const_view_type =
+            std::conditional_t<std::same_as<surface_sequence_t, void>,
+                               detail::get_view_t<const surface_sequence_type>,
+                               surface_sequence_type>;
 
         /// Constructor using the detector and an externally provided sequence
         /// of detector surfaces
         DETRAY_HOST_DEVICE constexpr state(const detector_t &det,
-                                           const view_type &sequence)
-            : base_type(det), m_sequence(sequence) {
+                                           const view_type seq_view)
+            : base_type(det), m_sequence(seq_view) {
             assert(!m_sequence.empty());
             reset();
         }
@@ -182,7 +195,7 @@ class direct_navigator {
         }
 
         /// Target surfaces
-        sequence_type m_sequence;
+        surface_sequence_type m_sequence;
 
         /// Index of the next (target) surface descriptor in the sequence
         dist_t m_next_external{0};
@@ -239,8 +252,7 @@ class direct_navigator {
 
             // Update the current target. If it cannot be reached, direct
             // navigation is broken
-            if (!update_candidate(track, det, navigation, cfg.intersection,
-                                  ctx)) {
+            if (!update_candidate(track, det, navigation, intr_cfg, ctx)) {
                 navigation.abort("Could not reach current target");
                 return !is_init;
             }
@@ -266,8 +278,7 @@ class direct_navigator {
 
             // Otherwise, track is on surface: Update the next target
             if (navigation.has_next_external() &&
-                !update_candidate(track, det, navigation, cfg.intersection,
-                                  ctx)) {
+                !update_candidate(track, det, navigation, intr_cfg, ctx)) {
                 navigation.abort(
                     "Could not find new target after surface was reached");
                 return !is_init;
@@ -306,7 +317,7 @@ class direct_navigator {
         [[maybe_unused]] const context_type &ctx) const {
 
         bool success{false};
-        if constexpr (std::same_as<surface_t, void>) {
+        if constexpr (std::same_as<surface_sequence_t, void>) {
             // Update a detector surface
             success = navigation::update_candidate(
                 navigation.direction(), navigation.target(), track, det,

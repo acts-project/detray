@@ -465,7 +465,7 @@ bound_getter<test_algebra>::state evaluate_bound_param(
     const typename propagator_t::detector_type& det, const field_t& field,
     const scalar overstep_tolerance, const scalar path_tolerance,
     const scalar rk_tolerance, const scalar constraint_step,
-    bool use_field_gradient, bool do_covariance_transport, bool do_inspect) {
+    bool use_field_gradient, bool do_covariance_transport) {
 
     // Propagator is built from the stepper and navigator
     propagation::config cfg{};
@@ -492,7 +492,6 @@ bound_getter<test_algebra>::state evaluate_bound_param(
 
     // Run the propagation for the reference track
     state.set_particle(ptc);
-    state.do_debug = do_inspect;
     state._stepping
         .template set_constraint<detray::step::constraint::e_accuracy>(
             static_cast<float>(constraint_step));
@@ -674,7 +673,7 @@ void evaluate_jacobian_difference(
     const scalar rk_tolerance, const scalar rk_tolerance_dis,
     const scalar constraint_step, const std::array<scalar, 5u>& hs,
     std::ofstream& file, scalar& ref_rel_diff, bool use_field_gradient,
-    bool do_inspect, const bool use_precal_values = false,
+    const bool use_precal_values = false,
     [[maybe_unused]] bound_covariance_type precal_diff_jacobi = {},
     [[maybe_unused]] std::array<unsigned int, 5u> precal_num_iterations = {},
     [[maybe_unused]] std::array<bool, 25u> precal_convergence = {}) {
@@ -686,8 +685,8 @@ void evaluate_jacobian_difference(
 
     auto bound_getter = evaluate_bound_param<propagator_t, field_t>(
         trk_count, detector_length, track, det, field, overstep_tolerance,
-        path_tolerance, rk_tolerance, constraint_step, use_field_gradient, true,
-        do_inspect);
+        path_tolerance, rk_tolerance, constraint_step, use_field_gradient,
+        true);
 
     const auto reference_param = bound_getter.m_param_departure;
     const auto final_param = bound_getter.m_param_destination;
@@ -843,7 +842,7 @@ void evaluate_covariance_transport(
 
     auto bound_getter = evaluate_bound_param<propagator_t, field_t>(
         trk_count, detector_length, track_copy, det, field, overstep_tolerance,
-        path_tolerance, rk_tolerance, constraint_step, use_field_gradient, true,
+        path_tolerance, rk_tolerance, constraint_step, use_field_gradient,
         false);
 
     const auto reference_param = bound_getter.m_param_departure;
@@ -884,7 +883,7 @@ void evaluate_covariance_transport(
     auto smeared_bound_getter = evaluate_bound_param<propagator_t, field_t>(
         trk_count, detector_length, smeared_track, det, field,
         overstep_tolerance, path_tolerance, rk_tolerance_dis, constraint_step,
-        use_field_gradient, false, false);
+        use_field_gradient, false);
 
     // Get smeared final bound vector
     bound_param_vector_type smeared_fin_vec =
@@ -1594,11 +1593,6 @@ int main(int argc, char** argv) {
     std::vector<std::vector<scalar>> dqopdqop_rel_diffs_rect(log10_tols.size());
     std::vector<std::vector<scalar>> dqopdqop_rel_diffs_wire(log10_tols.size());
 
-    bool do_inspect = false;
-    if (verbose_lvl >= 4) {
-        do_inspect = true;
-    }
-
     // Navigator types
     using rect_navigator_t = caching_navigator<rectangle_telescope>;
     using wire_navigator_t = caching_navigator<wire_telescope>;
@@ -1822,8 +1816,8 @@ int main(int argc, char** argv) {
                         inhom_bfield, overstep_tol, on_surface_tol,
                         std::pow(10.f, log10_tols[i]), rk_tol_dis,
                         constraint_step_size, h_sizes_rect, rect_files[i],
-                        ref_rel_diff, true, do_inspect, true,
-                        differentiated_jacobian, num_iterations, convergence);
+                        ref_rel_diff, true, true, differentiated_jacobian,
+                        num_iterations, convergence);
 
                     dqopdqop_rel_diffs_rect[i].push_back(ref_rel_diff);
                 }
@@ -1908,8 +1902,8 @@ int main(int argc, char** argv) {
                         inhom_bfield, overstep_tol, on_surface_tol,
                         std::pow(10.f, log10_tols[i]), rk_tol_dis,
                         constraint_step_size, h_sizes_wire, wire_files[i],
-                        ref_rel_diff, true, do_inspect, true,
-                        differentiated_jacobian, num_iterations, convergence);
+                        ref_rel_diff, true, true, differentiated_jacobian,
+                        num_iterations, convergence);
 
                     dqopdqop_rel_diffs_wire[i].push_back(ref_rel_diff);
                 }

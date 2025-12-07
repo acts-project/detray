@@ -104,7 +104,6 @@ TEST_P(BackwardPropagation, backward_propagation) {
     propagator_t::state fw_state(bound_param0, hom_bfield, det,
                                  prop_cfg.context);
     fw_state.set_particle(ptc);
-    fw_state.do_debug = true;
 
     // Run propagator
     p.propagate(fw_state, detray::tie(interactor, resetter_state));
@@ -123,7 +122,6 @@ TEST_P(BackwardPropagation, backward_propagation) {
     propagator_t::state bw_state(bound_param1, hom_bfield, det,
                                  prop_cfg.context);
     bw_state.set_particle(ptc);
-    bw_state.do_debug = true;
     bw_state._navigation.set_direction(navigation::direction::e_backward);
 
     // Run propagator

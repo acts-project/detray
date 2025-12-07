@@ -249,10 +249,6 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
         propagator_t::state sync_state(track, bfield, det);
         propagator_t::state lim_state(lim_track, bfield, det);
 
-        state.do_debug = true;
-        sync_state.do_debug = true;
-        lim_state.do_debug = true;
-
         // Set step constraints
         state._stepping.template set_constraint<step::constraint::e_accuracy>(
             step_constr);
@@ -353,13 +349,11 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
             .template set_constraint<step::constraint::e_accuracy>(step_constr);
 
         // Propagate the entire detector
-        state.do_debug = true;
         ASSERT_TRUE(p.propagate(state, actor_states))
             << state._navigation.inspector().to_string() << std::endl;
 
         // Propagate with path limit
         ASSERT_NEAR(pathlimit_aborter_state.path_limit(), path_limit, tol);
-        lim_state.do_debug = true;
         ASSERT_FALSE(p.propagate(lim_state, lim_actor_states))
             << lim_state._navigation.inspector().to_string() << std::endl;
 

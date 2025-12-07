@@ -10,7 +10,6 @@
 // Project include(s).
 #include "detray/definitions/detail/macros.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
-#include "detray/navigation/intersection/intersection.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/base_stepper.hpp"
 #include "detray/propagator/concepts.hpp"
@@ -48,16 +47,16 @@ struct propagator {
 
     propagation::config m_cfg;
 
-    stepper_t m_stepper;
-    navigator_t m_navigator;
-
-    /// Register the actor types
-    const actor_chain_type run_actors{};
-
     /// Construct from a propagator configuration
     DETRAY_HOST_DEVICE
     explicit constexpr propagator(const propagation::config &cfg)
         : m_cfg{cfg} {}
+
+    /// @returns access to the propagation config - const
+    const propagation::config &config() const { return m_cfg; }
+
+    /// @returns access the propagation config - non-const
+    propagation::config &config() { return m_cfg; }
 
     /// Propagation that state aggregates a stepping and a navigation state. It
     /// also keeps references to the actor states.
@@ -71,9 +70,9 @@ struct propagator {
         using scalar_type = typename detector_type::scalar_type;
 
         /// Construct the propagation state with free parameter
-        DETRAY_HOST_DEVICE state(const free_track_parameters_type &free_params,
-                                 const detector_type &det,
-                                 const context_type &ctx)
+        DETRAY_HOST_DEVICE
+        state(const free_track_parameters_type &free_params,
+              const detector_type &det, const context_type &ctx)
             : _stepping(free_params), _navigation(det), _context(ctx) {}
 
         /// Construct the propagation state with free parameter
@@ -151,14 +150,11 @@ struct propagator {
         DETRAY_HOST_DEVICE
         bool is_alive() const { return _heartbeat; }
 
-        // Is the propagation still alive?
-        bool _heartbeat = false;
-
         typename stepper_t::state _stepping;
         typename navigator_t::state _navigation;
         context_type _context;
-
-        bool do_debug = false;
+        // Is the propagation still alive?
+        bool _heartbeat = false;
     };
 
     /// Propagate method finale: Return whether or not the propagation
@@ -197,6 +193,12 @@ struct propagator {
         state &propagation,
         actor_states_t actor_state_refs = dtuple<>{}) const {
 
+        constexpr stepper_t stepper{};
+        constexpr navigator_t navigator{};
+
+        /// Register the actor types
+        constexpr actor_chain_type run_actors{};
+
         auto &navigation = propagation._navigation;
         auto &stepping = propagation._stepping;
         auto &context = propagation._context;
@@ -215,7 +217,7 @@ struct propagator {
         }
 
         // Initialize the navigation
-        m_navigator.init(track, navigation, m_cfg.navigation, context);
+        navigator.init(track, navigation, m_cfg.navigation, context);
         propagation._heartbeat = navigation.is_alive();
 
         bool is_init = true;
@@ -269,8 +271,8 @@ struct propagator {
 
                 // Take the step
                 propagation._heartbeat &=
-                    m_stepper.step(navigation(), stepping, m_cfg.stepping,
-                                   reset_stepsize, vol_mat_ptr);
+                    stepper.step(navigation(), stepping, m_cfg.stepping,
+                                 reset_stepsize, vol_mat_ptr);
 
                 // Reduce navigation trust level according to stepper update
                 typename stepper_t::policy_type{}(stepping.policy_state(),
@@ -306,12 +308,12 @@ struct propagator {
             }
 
             // Find next candidate
-            is_init |= m_navigator.update(track, navigation, m_cfg.navigation,
-                                          context);
+            is_init |=
+                navigator.update(track, navigation, m_cfg.navigation, context);
 
             propagation._heartbeat &= navigation.is_alive();
 
-            if (i % 2 == 0 && i > 0 && propagation.do_debug) {
+            if (i % 2 == 0 && i > 0) {
                 DETRAY_VERBOSE_HOST(print(propagation));
             }
         }
@@ -332,13 +334,13 @@ struct propagator {
     /// Overload for emtpy actor chain
     DETRAY_HOST_DEVICE bool propagate(state &propagation) {
         // Will not be used
-        actor_chain<>::state empty_state{};
+        constexpr actor_chain<>::state empty_state{};
         // Run propagation
         return propagate(propagation, empty_state);
     }
 
     template <typename state_t>
-    DETRAY_HOST std::string print(state_t &propagation) const {
+    DETRAY_HOST static std::string print(state_t &propagation) {
         const auto &navigation = propagation._navigation;
         const auto &stepping = propagation._stepping;
 
