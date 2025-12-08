@@ -76,9 +76,7 @@ GTEST_TEST(detray_masks, cylinder2D_ratio_test) {
         bool operator()(const point3 &p,
                         const mask<cylinder2D, test_algebra> &cyl,
                         const test::transform3 &trf, const scalar t) {
-
-            const point3 loc_p{cyl.to_local_frame3D(trf, p)};
-            return cyl.is_inside(loc_p, t);
+            return cyl.is_inside(trf, p, t);
         }
     };
 
@@ -156,9 +154,7 @@ GTEST_TEST(detray_masks, cylinder3D_ratio_test) {
         bool operator()(const point3 &p,
                         const mask<cylinder3D, test_algebra> &cyl,
                         const test::transform3 &trf, const scalar t) {
-
-            const point3 loc_p{cyl.to_local_frame3D(trf, p)};
-            return cyl.is_inside(loc_p, t);
+            return cyl.is_inside(trf, p, t);
         }
     };
 
