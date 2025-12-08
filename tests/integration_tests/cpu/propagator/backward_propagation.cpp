@@ -97,6 +97,7 @@ TEST_P(BackwardPropagation, backward_propagation) {
     propagator_t p{prop_cfg};
 
     // Actors
+    parameter_transporter<test_algebra>::state transporter_state{};
     pointwise_material_interactor<test_algebra>::state interactor{};
     parameter_resetter<test_algebra>::state resetter_state{prop_cfg};
 
@@ -107,7 +108,8 @@ TEST_P(BackwardPropagation, backward_propagation) {
     fw_state.do_debug = true;
 
     // Run propagator
-    p.propagate(fw_state, detray::tie(interactor, resetter_state));
+    p.propagate(fw_state,
+                detray::tie(interactor, transporter_state, resetter_state));
 
     // Bound state after propagation
     const auto& bound_param1 = fw_state._stepping.bound_params();
@@ -127,7 +129,8 @@ TEST_P(BackwardPropagation, backward_propagation) {
     bw_state._navigation.set_direction(navigation::direction::e_backward);
 
     // Run propagator
-    p.propagate(bw_state, detray::tie(interactor, resetter_state));
+    p.propagate(bw_state,
+                detray::tie(interactor, transporter_state, resetter_state));
 
     // Bound state after propagation
     const auto& bound_param2 = bw_state._stepping.bound_params();

@@ -333,14 +333,17 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
         // Build actor states: the helix inspector can be shared
         pathlimit_aborter<scalar>::state unlimted_aborter_state{};
         pathlimit_aborter<scalar>::state pathlimit_aborter_state{path_limit};
+        parameter_transporter<test_algebra>::state transporter_state{};
         pointwise_material_interactor<test_algebra>::state interactor_state{};
         parameter_resetter<test_algebra>::state resetter_state{cfg};
 
         // Create actor states tuples
-        auto actor_states = detray::tie(unlimted_aborter_state,
-                                        interactor_state, resetter_state);
-        auto lim_actor_states = detray::tie(pathlimit_aborter_state,
-                                            interactor_state, resetter_state);
+        auto actor_states =
+            detray::tie(unlimted_aborter_state, transporter_state,
+                        interactor_state, resetter_state);
+        auto lim_actor_states =
+            detray::tie(pathlimit_aborter_state, transporter_state,
+                        interactor_state, resetter_state);
 
         // Init propagator states
         propagator_t::state state(track, bfield, det);

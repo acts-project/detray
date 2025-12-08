@@ -12,6 +12,7 @@
 #include "detray/definitions/units.hpp"
 #include "detray/navigation/caching_navigator.hpp"
 #include "detray/propagator/actors.hpp"
+#include "detray/propagator/actors/parameter_transporter.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
@@ -137,10 +138,12 @@ inline auto run_propagation_host(vecmem::memory_resource *mr,
         tracer_state.collect_only_on_surface(true);
         typename pathlimit_aborter_t::state pathlimit_state{
             cfg.stepping.path_limit};
+        typename parameter_transporter<test_algebra>::state transporter_state{};
         parameter_resetter_t::state resetter_state{cfg};
         pointwise_material_interactor<test_algebra>::state interactor_state{};
-        auto actor_states = detray::tie(tracer_state, pathlimit_state,
-                                        interactor_state, resetter_state);
+        auto actor_states =
+            detray::tie(tracer_state, pathlimit_state, transporter_state,
+                        interactor_state, resetter_state);
 
         typename propagator_host_t::state state(trk, field, det);
 

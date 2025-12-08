@@ -50,6 +50,14 @@ struct parameter_transporter : actor {
     using free_to_bound_matrix_t = free_to_bound_matrix<algebra_t>;
     /// @}
 
+    struct state {
+        bound_matrix_t* _full_jacobian_ptr = nullptr;
+
+        DETRAY_HOST_DEVICE
+        explicit state(bound_matrix_t* full_jac = nullptr)
+            : _full_jacobian_ptr(full_jac) {}
+    };
+
     struct get_bound_to_free_dpos_dloc_visitor {
         template <typename frame_t>
         DETRAY_HOST_DEVICE constexpr dmatrix<algebra_t, 3, 2> operator()(
@@ -88,7 +96,8 @@ struct parameter_transporter : actor {
     };
 
     template <typename propagator_state_t>
-    DETRAY_HOST_DEVICE void operator()(propagator_state_t& propagation) const {
+    DETRAY_HOST_DEVICE void operator()(state& actor_state,
+                                       propagator_state_t& propagation) const {
         auto& stepping = propagation._stepping;
         const auto& navigation = propagation._navigation;
 
@@ -118,6 +127,12 @@ struct parameter_transporter : actor {
 
             detail::transport_covariance_to_bound_impl(
                 old_cov, full_jacobian, stepping.bound_params().covariance());
+
+            if (actor_state._full_jacobian_ptr != nullptr) {
+                const auto aggregate_full_jacobian =
+                    full_jacobian * (*(actor_state._full_jacobian_ptr));
+                (*(actor_state._full_jacobian_ptr)) = aggregate_full_jacobian;
+            }
         }
 
         // Convert free to bound vector

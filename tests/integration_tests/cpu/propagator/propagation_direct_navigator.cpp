@@ -10,6 +10,7 @@
 #include "detray/navigation/caching_navigator.hpp"
 #include "detray/navigation/direct_navigator.hpp"
 #include "detray/propagator/actors.hpp"
+#include "detray/propagator/actors/parameter_transporter.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
@@ -107,6 +108,7 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
     for (auto track : generator_t{trk_gen_cfg}) {
 
         // Build actor states: the helix inspector can be shared
+        parameter_transporter<test_algebra>::state transporter_state{};
         pointwise_material_interactor<test_algebra>::state interactor_state{};
         parameter_resetter<test_algebra>::state resetter_state{cfg};
         vecmem::data::vector_buffer<surface_t> seqs_buffer{
@@ -132,8 +134,8 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
         surface_sequencer<surface_t>::state sequencer_backward_state(
             seqs_backward_device);
 
-        auto actor_states =
-            detray::tie(interactor_state, sequencer_state, resetter_state);
+        auto actor_states = detray::tie(transporter_state, interactor_state,
+                                        sequencer_state, resetter_state);
 
         propagator_t::state state(track, bfield, det);
         navigator_t::state& navigation = state._navigation;
@@ -144,10 +146,12 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
 
         if (seqs_device.size() > 0) {
 
-            auto direct_forward_actor_states = detray::tie(
-                interactor_state, sequencer_forward_state, resetter_state);
-            auto direct_backward_actor_states = detray::tie(
-                interactor_state, sequencer_backward_state, resetter_state);
+            auto direct_forward_actor_states =
+                detray::tie(transporter_state, interactor_state,
+                            sequencer_forward_state, resetter_state);
+            auto direct_backward_actor_states =
+                detray::tie(transporter_state, interactor_state,
+                            sequencer_backward_state, resetter_state);
 
             direct_propagator_t::state direct_forward_state(track, bfield, det,
                                                             seqs_buffer);
@@ -293,6 +297,7 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
     for (auto track : generator_t{trk_gen_cfg}) {
 
         // Build actor states: the helix inspector can be shared
+        parameter_transporter<test_algebra>::state transporter_state{};
         pointwise_material_interactor<test_algebra>::state interactor_state{};
         parameter_resetter<test_algebra>::state resetter_state{cfg};
 
@@ -319,8 +324,8 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
         surface_sequencer<surface_t>::state sequencer_backward_state(
             seqs_backward_device);
 
-        auto actor_states =
-            detray::tie(interactor_state, sequencer_state, resetter_state);
+        auto actor_states = detray::tie(transporter_state, interactor_state,
+                                        sequencer_state, resetter_state);
 
         propagator_t::state state(track, bfield, det);
         navigator_t::state& navigation = state._navigation;
@@ -331,10 +336,12 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
 
         if (seqs_device.size() > 0) {
 
-            auto direct_forward_actor_states = detray::tie(
-                interactor_state, sequencer_forward_state, resetter_state);
-            auto direct_backward_actor_states = detray::tie(
-                interactor_state, sequencer_backward_state, resetter_state);
+            auto direct_forward_actor_states =
+                detray::tie(transporter_state, interactor_state,
+                            sequencer_forward_state, resetter_state);
+            auto direct_backward_actor_states =
+                detray::tie(transporter_state, interactor_state,
+                            sequencer_backward_state, resetter_state);
 
             direct_propagator_t::state direct_forward_state(track, bfield, det,
                                                             seqs_buffer);
