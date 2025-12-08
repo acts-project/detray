@@ -133,9 +133,7 @@ GTEST_TEST(detray_masks, annulus2D_ratio_test) {
         bool operator()(const point3 &p,
                         const mask<annulus2D, test_algebra> &ann,
                         const test::transform3 &trf, const scalar t) {
-
-            const point3 loc_p{ann.to_local_frame3D(trf, p)};
-            return ann.is_inside(loc_p, t);
+            return ann.is_inside(trf, p, t);
         }
     };
 

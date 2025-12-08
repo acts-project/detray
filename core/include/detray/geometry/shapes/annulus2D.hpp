@@ -14,6 +14,7 @@
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/geometry/coordinates/cartesian3D.hpp"
 #include "detray/geometry/coordinates/polar2D.hpp"
 #include "detray/geometry/detail/shape_utils.hpp"
 #include "detray/geometry/detail/vertexer.hpp"
@@ -160,11 +161,60 @@ class annulus2D {
             std::numeric_limits<dscalar<algebra_t>>::epsilon(),
         const dscalar<algebra_t> edge_tol = 0.f) const {
 
-        // Get the full local position
-        const dpoint2D<algebra_t> loc_p =
-            local_frame_type<algebra_t>::global_to_local(trf, glob_p, {});
+        using scalar_t = dscalar<algebra_t>;
 
-        return check_boundaries(bounds, loc_p, tol, edge_tol);
+        // Move point to local plane: Focal frame in cartesian coordinates
+        const auto loc_3D{
+            cartesian3D<algebra_t>::global_to_local(trf, glob_p, {})};
+
+        // Shift local 3D position into beam frame to check the radius
+        const scalar_t new_x{loc_3D[0] + bounds[e_shift_x]};
+        const scalar_t new_y{loc_3D[1] + bounds[e_shift_y]};
+
+        const scalar_t r_beam{
+            math::sqrt(math::fma(new_x, new_x, new_y * new_y))};
+
+        auto inside_mask = ((r_beam + tol) >= bounds[e_min_r]) &&
+                           (r_beam <= (bounds[e_max_r] + tol));
+
+        // Try to avoid the costly phi calculation
+        auto phi_focal{detail::invalid_value<scalar_t>()};
+        if (detail::any_of(inside_mask)) {
+            // Get phi for phi-bounds check and rotate by average phi
+            phi_focal = vector::phi(loc_3D) - bounds[e_average_phi];
+            // Estimate angular tolerance along r
+            const scalar_t phi_tol{detail::phi_tolerance(tol, r_beam)};
+
+            inside_mask = (phi_focal >= (bounds[e_min_phi_rel] - phi_tol)) &&
+                          (phi_focal <= (bounds[e_max_phi_rel] + phi_tol)) &&
+                          inside_mask;
+        }
+
+        decltype(inside_mask) inside_edge{false};
+        if (detail::any_of(edge_tol > 0.f)) {
+            // Edge tolerance
+            const scalar_t full_tol{tol + edge_tol};
+
+            inside_edge = ((r_beam + full_tol) >= bounds[e_min_r]) &&
+                          (r_beam <= (bounds[e_max_r] + full_tol));
+
+            if (detail::any_of(inside_edge)) {
+                // If phi had not been calculated before, do it now
+                if (detail::is_invalid_value(phi_focal)) {
+                    phi_focal = vector::phi(loc_3D) - bounds[e_average_phi];
+                }
+
+                const scalar_t phi_tol_full{
+                    detail::phi_tolerance(full_tol, r_beam)};
+
+                inside_edge =
+                    (phi_focal >= (bounds[e_min_phi_rel] - phi_tol_full)) &&
+                    (phi_focal <= (bounds[e_max_phi_rel] + phi_tol_full)) &&
+                    inside_edge;
+            }
+        }
+
+        return result_type<decltype(inside_mask)>{inside_mask, inside_edge};
     }
 
     /// @note the point is expected to be given in local coordinates by the
@@ -188,36 +238,54 @@ class annulus2D {
 
         // Check phi boundaries, which are well def. in focal frame
         const scalar_t phi_tol = detail::phi_tolerance(tol, loc_p[0]);
-        const auto phi_check =
-            !((phi_focal < (bounds[e_min_phi_rel] - phi_tol)) ||
-              (phi_focal > (bounds[e_max_phi_rel] + phi_tol)));
+        auto inside_mask = !((phi_focal < (bounds[e_min_phi_rel] - phi_tol)) ||
+                             (phi_focal > (bounds[e_max_phi_rel] + phi_tol)));
 
-        const auto r_beam2 = get_r2_beam_frame(bounds, loc_p);
+        // Try to avoid the costly r_beam calculation
+        auto r_beam2{detail::invalid_value<scalar_t>()};
+        if (detail::any_of(inside_mask)) {
 
-        // Apply tolerances as squares: 0 <= a, 0 <= b: a^2 <= b^2 <=> a <= b
-        const scalar_t minR_tol =
-            math::max(bounds[e_min_r] - tol, scalar_t(0.f));
-        const scalar_t maxR_tol = bounds[e_max_r] + tol;
+            r_beam2 = get_r2_beam_frame(bounds, loc_p);
 
-        assert(detail::all_of(minR_tol >= scalar_t(0.f)));
+            // Apply tolerances as squares: 0 <= a, 0 <= b: a^2 <= b^2 <=> a <=
+            // b
+            const scalar_t minR_tol =
+                math::max(bounds[e_min_r] - tol, scalar_t(0.f));
+            const scalar_t maxR_tol = bounds[e_max_r] + tol;
 
-        auto inside_mask{((r_beam2 >= (minR_tol * minR_tol)) &&
-                          (r_beam2 <= (maxR_tol * maxR_tol))) &&
-                         phi_check};
+            assert(detail::all_of(minR_tol >= scalar_t(0.f)));
+
+            inside_mask = (r_beam2 >= (minR_tol * minR_tol)) &&
+                          (r_beam2 <= (maxR_tol * maxR_tol)) && inside_mask;
+        }
 
         decltype(inside_mask) inside_edge{false};
         if (detail::any_of(edge_tol > 0.f)) {
             // Edge tolerance
             const scalar_t full_tol{tol + edge_tol};
-            const scalar_t minR_tol_edge =
-                math::max(bounds[e_min_r] - full_tol, scalar_t(0.f));
-            const scalar_t maxR_tol_edge = bounds[e_max_r] + full_tol;
+            const scalar_t phi_tol_full =
+                detail::phi_tolerance(full_tol, loc_p[0]);
 
-            assert(detail::all_of(minR_tol_edge >= scalar_t(0.f)));
+            const auto phi_check_edge =
+                (phi_focal >= (bounds[e_min_phi_rel] - phi_tol_full)) &&
+                (phi_focal <= (bounds[e_max_phi_rel] + phi_tol_full));
 
-            inside_edge = ((r_beam2 >= (minR_tol_edge * minR_tol_edge)) &&
-                           (r_beam2 <= (maxR_tol_edge * maxR_tol_edge))) &&
-                          phi_check;
+            if (detail::any_of(inside_edge)) {
+                // If phi had not been calculated before, do it now
+                if (detail::is_invalid_value(r_beam2)) {
+                    r_beam2 = get_r2_beam_frame(bounds, loc_p);
+                }
+
+                const scalar_t minR_tol_edge =
+                    math::max(bounds[e_min_r] - full_tol, scalar_t(0.f));
+                const scalar_t maxR_tol_edge = bounds[e_max_r] + full_tol;
+
+                assert(detail::all_of(minR_tol_edge >= scalar_t(0.f)));
+
+                inside_edge = (r_beam2 >= (minR_tol_edge * minR_tol_edge)) &&
+                              (r_beam2 <= (maxR_tol_edge * maxR_tol_edge)) &&
+                              phi_check_edge;
+            }
         }
 
         return result_type<decltype(inside_mask)>{inside_mask, inside_edge};

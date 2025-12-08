@@ -79,11 +79,9 @@ GTEST_TEST(detray_masks, line_circular_ratio_test) {
     struct mask_check {
         bool operator()(const point3 &p,
                         const mask<line_circular, test_algebra> &st,
-                        const test::transform3 &trf, const test::vector3 &dir,
-                        const scalar t) {
-
-            const point3 loc_p{st.to_local_frame3D(trf, p, dir)};
-            return st.is_inside(loc_p, t);
+                        const test::transform3 &trf,
+                        const test::vector3 & /*dir*/, const scalar t) {
+            return st.is_inside(trf, p, t);
         }
     };
 
@@ -155,11 +153,9 @@ GTEST_TEST(detray_masks, line_square_ratio_test) {
     struct mask_check {
         bool operator()(const point3 &p,
                         const mask<line_square, test_algebra> &dcl,
-                        const test::transform3 &trf, const test::vector3 &dir,
-                        const scalar t) {
-
-            const point3 loc_p{dcl.to_local_frame3D(trf, p, dir)};
-            return dcl.is_inside(loc_p, t);
+                        const test::transform3 &trf,
+                        const test::vector3 & /*dir*/, const scalar t) {
+            return dcl.is_inside(trf, p, t);
         }
     };
 
