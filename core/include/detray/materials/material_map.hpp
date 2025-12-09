@@ -11,6 +11,7 @@
 #include "detray/builders/grid_factory.hpp"
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/containers.hpp"
+#include "detray/geometry/concepts.hpp"
 #include "detray/materials/material_slab.hpp"
 #include "detray/utils/grid/detail/axis_helpers.hpp"
 #include "detray/utils/grid/detail/concepts.hpp"
@@ -18,15 +19,13 @@
 #include "detray/utils/grid/grid.hpp"
 #include "detray/utils/grid/serializers.hpp"
 
-// System include(s)
-#include <type_traits>
-
 namespace detray {
 
 /// Definition of binned material
-template <concepts::algebra algebra_t, typename shape,
+template <concepts::algebra algebra_t, typename shape_t,
           typename container_t = host_container_types, bool owning = false>
-using material_map = grid<algebra_t, axes<shape>,
+    requires concepts::shape<shape_t, algebra_t>
+using material_map = grid<algebra_t, axes<shape_t>,
                           bins::single<material_slab<dscalar<algebra_t>>>,
                           simple_serializer, container_t, owning>;
 

@@ -9,6 +9,7 @@
 #include "detray/geometry/shapes/trapezoid2D.hpp"
 
 #include "detray/definitions/units.hpp"
+#include "detray/geometry/concepts.hpp"
 #include "detray/geometry/mask.hpp"
 
 // Detray test include(s)
@@ -28,6 +29,9 @@ constexpr scalar tol{1e-7f};
 
 /// This tests the basic functionality of a trapezoid
 GTEST_TEST(detray_masks, trapezoid2D) {
+
+    static_assert(concepts::shape<trapezoid2D, test_algebra>);
+    static_assert(concepts::planar_shape<trapezoid2D, test_algebra>);
 
     point3 p2_in = {1.f, -0.5f, 0.f};
     point3 p2_edge = {2.5f, 1.f, 0.f};

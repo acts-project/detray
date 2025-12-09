@@ -53,7 +53,7 @@ inline void from_json(const nlohmann::ordered_json& j, axis_payload& a) {
     a.bounds = static_cast<axis::bounds>(j["bounds"]);
     a.label = static_cast<axis::label>(j["label"]);
     a.bins = j["bins"];
-    a.edges = j["edges"].get<std::vector<real_io>>();
+    a.edges = j["edges"].get<std::vector<io::scalar>>();
 }
 
 template <typename content_t>

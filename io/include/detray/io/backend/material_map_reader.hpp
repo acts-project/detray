@@ -59,6 +59,16 @@ class material_map_reader {
         using mat_data_t = typename mat_factory_t::data_type;
         using mat_id = typename detector_t::materials::id;
 
+        // Map the io::shape_id in the payload to the shape types known by
+        // the detector under construction
+        using mat_registry_t =
+            io::detail::filtered_material_map_registry<detector_t>;
+        static_assert(
+            (!types::contains<mat_registry_t, io::detail::unknown_type> &&
+             types::size<mat_registry_t> > 0) ||
+            (types::contains<mat_registry_t, io::detail::unknown_type> &&
+             types::size<mat_registry_t> > 1));
+
         DETRAY_VERBOSE_HOST("Converting material grids for "
                             << grids_data.grids.size() << " volumes");
         // Convert the material volume by volume
@@ -106,9 +116,8 @@ class material_map_reader {
                                     << (dim == 2 ? "surface" : "volume")
                                     << " = " << grid_data.owner_link.link);
 
-                mat_id map_id =
-                    from_payload<io::material_id::n_mats, detector_t>(
-                        grid_data.grid_link.type);
+                mat_id map_id = from_payload<mat_registry_t, detector_t>(
+                    grid_data.grid_link.type);
                 DETRAY_VERBOSE_HOST("-> Type id: " << map_id);
 
                 DETRAY_VERBOSE_HOST("-> Reading axis bins: Dims = " << dim);
@@ -178,23 +187,34 @@ class material_map_reader {
 
     private:
     /// Get the detector material id from the payload material type id
-    template <io::material_id I, typename detector_t>
+    template <typename mat_registry_t, typename detector_t, std::size_t I = 0u>
     static typename detector_t::materials::id from_payload(
         io::material_id type_id) {
-
-        /// Gets compile-time mask information
-        using map_info = detail::mat_map_info<I, detector_t>;
+        // Get the next mask shape type
+        using frame_t = types::at<mat_registry_t, I>;
+        using algebra_t = typename detector_t::algebra_type;
 
         // Material id of map data found
-        if (type_id == I) {
+        if constexpr (!std::is_same_v<frame_t, io::detail::unknown_type> &&
+                      concepts::coordinate_frame<frame_t>) {
             // Get the corresponding material id for this detector
-            return map_info::value;
+            constexpr auto mat_id{
+                types::id<io::material_registry<algebra_t>, frame_t>};
+            if (type_id == mat_id) {
+                using mat_frame_registry_t =
+                    io::detail::mat_frame_registry<detector_t>;
+
+                constexpr std::size_t mapped_idx{
+                    types::position<mat_frame_registry_t, frame_t>};
+
+                return types::id_cast<typename detector_t::materials,
+                                      mat_frame_registry_t::original_index(
+                                          mapped_idx)>;
+            }
         }
         // Test next material type id
-        constexpr int current_id{static_cast<int>(I)};
-        if constexpr (current_id > 0) {
-            return from_payload<static_cast<io::material_id>(current_id - 1),
-                                detector_t>(type_id);
+        if constexpr (I < types::size<mat_registry_t> - 1u) {
+            return from_payload<mat_registry_t, detector_t, I + 1u>(type_id);
         } else {
             return detector_t::materials::id::e_none;
         }

@@ -9,6 +9,7 @@
 #include "detray/geometry/coordinates/cylindrical3D.hpp"
 
 #include "detray/definitions/units.hpp"
+#include "detray/geometry/concepts.hpp"
 
 // Detray test include(s)
 #include "detray/test/framework/types.hpp"
@@ -39,6 +40,9 @@ GTEST_TEST(detray_coordinates, cylindrical3D) {
     const vector3 d = vector::normalize(mom);
 
     const cylindrical3D<test_algebra> c3;
+
+    static_assert(concepts::coordinate_frame<cylindrical3D<test_algebra>>);
+    static_assert(concepts::cylindrical_frame<cylindrical3D<test_algebra>>);
 
     // Global to local transformation
     const point3 local = c3.global_to_local_3D(trf, global1, d);
