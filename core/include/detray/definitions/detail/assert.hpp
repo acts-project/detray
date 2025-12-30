@@ -1,0 +1,15 @@
+/**
+ * ALGEBRA PLUGIN library, part of the ACTS project (R&D line)
+ *
+ * (c) 2025 CERN for the benefit of the ACTS project
+ *
+ * Mozilla Public License Version 2.0
+ */
+
+#pragma once
+
+#include <cassert>
+
+#if defined(__HIP__)
+#include <hip/hip_runtime.h>
+#endif
