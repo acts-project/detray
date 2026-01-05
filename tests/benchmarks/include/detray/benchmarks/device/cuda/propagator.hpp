@@ -68,28 +68,9 @@ struct propagation_state {
     typename navigator_t::detector_type::geometry_context _context{};
 };
 
-/// Setup all of the data states on device
-///
-/// @param cfg the propagation configuration
-/// @param det_view the detector vecmem view
-/// @param field_data the magentic field view (maybe an empty field)
-/// @param tracks_data the track collection view
-/// @param navigation_cache_view the navigation cache vecemem view
-/// @param opt which propagation to run (sync vs. unsync)
-template <typename navigator_t, typename stepper_t, typename actor_chain_t>
-void run_propagation_init_kernel(
-    const propagation::config *, typename navigator_t::detector_type *,
-    typename navigator_t::detector_type::view_type,
-    typename stepper_t::magnetic_field_type,
-    vecmem::data::vector_view<typename stepper_t::free_track_parameters_type>,
-    vecmem::data::vector_view<propagation_state<navigator_t, stepper_t>>,
-    vecmem::data::vector_view<typename actor_chain_t::state_tuple>,
-    typename actor_chain_t::state_tuple *);
-
 /// Launch the propagation kernel
 ///
 /// @param cfg the propagation configuration
-/// @param det_view the detector vecmem view
 /// @param field_data the magentic field view (maybe an empty field)
 /// @param tracks_data the track collection view
 /// @param navigation_cache_view the navigation cache vecemem view
@@ -97,10 +78,11 @@ void run_propagation_init_kernel(
 template <typename navigator_t, typename stepper_t, typename actor_chain_t>
 void run_propagation_kernel(
     const propagation::config *, const typename navigator_t::detector_type *,
-    vecmem::data::vector_view<propagation_state<navigator_t, stepper_t>>,
+    typename stepper_t::magnetic_field_type,
+    vecmem::data::vector_view<typename stepper_t::free_track_parameters_type>,
     vecmem::data::vector_view<unsigned int>,
     vecmem::data::vector_view<unsigned int>,
-    vecmem::data::vector_view<typename actor_chain_t::state_tuple>);
+    typename actor_chain_t::state_tuple *);
 
 /// Copy the propagation config to device
 typename propagation::config *setup_config(
@@ -216,20 +198,9 @@ struct cuda_propagation {
         const unsigned int n_tracks{
             static_cast<unsigned int>(tracks_view.size())};
 
-        // Buffer for the stepper states
-        vecmem::data::vector_buffer<state> stepper_states_buffer(n_tracks,
-                                                                 *dev_mr);
-        cuda_cpy.setup(stepper_states_buffer)->wait();
-        auto stepper_states_view = vecmem::get_data(stepper_states_buffer);
-
-        // Buffer for the actor states
-        vecmem::data::vector_buffer<typename actor_chain_t::state_tuple>
-            actor_states_buffer(n_tracks, *dev_mr);
-        cuda_cpy.setup(actor_states_buffer)->wait();
-        auto actor_states_view = vecmem::get_data(actor_states_buffer);
-
         // Copy config to device
         auto *pinned_cfg_ptr = setup_config(&m_cfg);
+
         // Allocate memory for device detector object (not detector data!)
         auto *pinned_detector_ptr =
             setup_device_detector<device_detector_t>(det_view);
@@ -238,25 +209,7 @@ struct cuda_propagation {
         auto *pinned_actor_state_ptr =
             setup_actor_states<actor_chain_t>(input_actor_states);
 
-        std::chrono::high_resolution_clock::time_point t1_init =
-            std::chrono::high_resolution_clock::now();
-        // Initialize the propagation (fill the state buffers)
-        run_propagation_init_kernel<navigator_t, stepper_t, actor_chain_t>(
-            pinned_cfg_ptr, pinned_detector_ptr, det_view, field_view,
-            tracks_view, stepper_states_view, actor_states_view,
-            pinned_actor_state_ptr);
-        std::chrono::high_resolution_clock::time_point t2_init =
-            std::chrono::high_resolution_clock::now();
-
-        // All states are set up: blueprint no longer needed
-        release_actor_states<actor_chain_t>(pinned_actor_state_ptr);
-
-        const auto init_time =
-            std::chrono::duration_cast<std::chrono::duration<double>>(t2_init -
-                                                                      t1_init);
-        const double init_ms{init_time.count() * 1000.};
-
-        // Navigation results
+        // Stepper results
         vecmem::data::vector_buffer<unsigned int> stepper_res_buffer(n_tracks,
                                                                      *dev_mr);
         cuda_cpy.setup(stepper_res_buffer)->wait();
@@ -270,32 +223,33 @@ struct cuda_propagation {
 
         std::chrono::high_resolution_clock::time_point t1_prop =
             std::chrono::high_resolution_clock::now();
-        // Launch the propagation for GPU device
-        run_propagation_kernel<navigator_t, stepper_t, actor_chain_t>(
-            pinned_cfg_ptr, pinned_detector_ptr, stepper_states_view,
-            stepper_res_view, navigation_res_view, actor_states_view);
+        // Check if all tracks finished
+        bool all_finished{false};
+        // Safety agianst infinite loops
+        int iterations{0};
+
+        while (!all_finished && iterations < 2) {
+            // Launch the propagation for GPU device
+            run_propagation_kernel<navigator_t, stepper_t, actor_chain_t>(
+                pinned_cfg_ptr, pinned_detector_ptr, field_view, tracks_view,
+                stepper_res_view, navigation_res_view, pinned_actor_state_ptr);
+
+            ++iterations;
+        }
         std::chrono::high_resolution_clock::time_point t2_prop =
             std::chrono::high_resolution_clock::now();
 
         // Deallocate the propagation config and detector
         release_config(pinned_cfg_ptr);
         release_device_detector(pinned_detector_ptr);
+        release_actor_states<actor_chain_t>(pinned_actor_state_ptr);
 
         const auto prop_time =
             std::chrono::duration_cast<std::chrono::duration<double>>(t2_prop -
                                                                       t1_prop);
         const double prop_ms{prop_time.count() * 1000.};
 
-        DETRAY_INFO_HOST("Propagator took: "
-                         << init_ms + prop_ms << "ms ("
-                         << (init_ms + prop_ms) / (n_tracks / 3000.)
-                         << " ms/evt)");
-
-        DETRAY_INFO_HOST("  -> Init: " << init_ms << "ms ("
-                                       << init_ms / (n_tracks / 3000.)
-                                       << " ms/evt)");
-
-        DETRAY_INFO_HOST("  -> Propagation: " << prop_ms << "ms ("
+        DETRAY_INFO_HOST("Propagation kernel took: " << prop_ms << "ms ("
                                               << prop_ms / (n_tracks / 3000.)
                                               << " ms/evt)\n");
     }
