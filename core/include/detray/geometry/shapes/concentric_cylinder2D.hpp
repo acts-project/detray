@@ -112,7 +112,7 @@ class concentric_cylinder2D {
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon(),
         const scalar_t /*edge_tol*/ = 0.f) const {
 
-        return (bounds[e_lower_z] - tol <= loc_p[1] &&
+        return (bounds[e_lower_z] <= loc_p[1] + tol &&
                 loc_p[1] <= bounds[e_upper_z] + tol);
     }
     /// @}
