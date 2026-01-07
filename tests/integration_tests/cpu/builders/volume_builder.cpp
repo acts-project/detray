@@ -58,8 +58,7 @@ GTEST_TEST(detray_builders, tracking_volume_construction) {
 
     // Surface factories
     using portal_cylinder_factory =
-        surface_factory<detector_t,
-                        typename detector_t::metadata::cylinder_portal::shape>;
+        surface_factory<detector_t, concentric_cylinder2D>;
     using annulus_factory = surface_factory<detector_t, annulus2D>;
     using cylinder_factory = surface_factory<detector_t, cylinder2D>;
     using rectangle_factory = surface_factory<detector_t, rectangle2D>;
@@ -213,7 +212,7 @@ GTEST_TEST(detray_builders, tracking_volume_construction) {
     EXPECT_TRUE(d.transform_store().at(first_trf) == trf);
 
     // Check the acceleration data structure link
-    dtyped_index<accel_id, dindex> acc_link{accel_id::e_default, 1u};
+    dtyped_index<accel_id, dindex> acc_link{accel_id::e_surface_default, 1u};
     ASSERT_TRUE(vol.accel_link().size() == geo_obj_id::e_size);
     EXPECT_EQ(vol.accel_link<geo_obj_id::e_portal>(), acc_link);
     EXPECT_EQ(vol.accel_link<geo_obj_id::e_passive>(), acc_link);
@@ -222,13 +221,14 @@ GTEST_TEST(detray_builders, tracking_volume_construction) {
         detail::is_invalid_value(vol.accel_link<geo_obj_id::e_sensitive>()));
 
     EXPECT_EQ(d.portals().size(), 19u);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_cylinder2>(), 2u);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_ring2>(), 4u);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_annulus2>(), 3u);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_cylinder2>(), 1u);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_rectangle2>(), 7u);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_ring2>(), 4u);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_trapezoid2>(), 2u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_concentric_cylinder2D>(),
+              2u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_ring2D>(), 4u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_annulus2D>(), 3u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_cylinder2D>(), 1u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_rectangle2D>(), 7u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_ring2D>(), 4u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_trapezoid2D>(), 2u);
 
     // check surface type and volume link
     std::vector<surface_id> sf_ids{};
@@ -267,25 +267,25 @@ GTEST_TEST(detray_builders, tracking_volume_construction) {
 
     // check surface mask links
     std::vector<typename detector_t::surface_type::mask_link> mask_links{
-        {mask_id::e_rectangle2, {0u, 1u}},
-        {mask_id::e_annulus2, {0u, 1u}},
-        {mask_id::e_trapezoid2, {0u, 1u}},
-        {mask_id::e_portal_cylinder2, {0u, 1u}},
-        {mask_id::e_portal_cylinder2, {1u, 1u}},
-        {mask_id::e_portal_ring2, {0u, 1u}},
-        {mask_id::e_portal_ring2, {1u, 1u}},
-        {mask_id::e_annulus2, {1u, 1u}},
-        {mask_id::e_annulus2, {2u, 1u}},
-        {mask_id::e_rectangle2, {1u, 1u}},
-        {mask_id::e_rectangle2, {2u, 1u}},
-        {mask_id::e_rectangle2, {3u, 1u}},
-        {mask_id::e_trapezoid2, {1u, 1u}},
-        {mask_id::e_cylinder2, {0u, 1u}},
-        {mask_id::e_ring2, {2u, 1u}},
-        {mask_id::e_ring2, {3u, 1u}},
-        {mask_id::e_rectangle2, {4u, 1u}},
-        {mask_id::e_rectangle2, {5u, 1u}},
-        {mask_id::e_rectangle2, {6u, 1u}}};
+        {mask_id::e_rectangle2D, {0u, 1u}},
+        {mask_id::e_annulus2D, {0u, 1u}},
+        {mask_id::e_trapezoid2D, {0u, 1u}},
+        {mask_id::e_concentric_cylinder2D, {0u, 1u}},
+        {mask_id::e_concentric_cylinder2D, {1u, 1u}},
+        {mask_id::e_ring2D, {0u, 1u}},
+        {mask_id::e_ring2D, {1u, 1u}},
+        {mask_id::e_annulus2D, {1u, 1u}},
+        {mask_id::e_annulus2D, {2u, 1u}},
+        {mask_id::e_rectangle2D, {1u, 1u}},
+        {mask_id::e_rectangle2D, {2u, 1u}},
+        {mask_id::e_rectangle2D, {3u, 1u}},
+        {mask_id::e_trapezoid2D, {1u, 1u}},
+        {mask_id::e_cylinder2D, {0u, 1u}},
+        {mask_id::e_ring2D, {2u, 1u}},
+        {mask_id::e_ring2D, {3u, 1u}},
+        {mask_id::e_rectangle2D, {4u, 1u}},
+        {mask_id::e_rectangle2D, {5u, 1u}},
+        {mask_id::e_rectangle2D, {6u, 1u}}};
     for (const auto [idx, m_link] : detray::views::enumerate(mask_links)) {
         geometry::barcode bcd{};
         bcd.set_index(idx);
@@ -295,28 +295,28 @@ GTEST_TEST(detray_builders, tracking_volume_construction) {
     // check mask volume links
     volume_links.clear();
     volume_links = {0u, 2u};
-    check_mask<detector_t, mask_id::e_portal_cylinder2>(d, volume_links);
+    check_mask<detector_t, mask_id::e_concentric_cylinder2D>(d, volume_links);
 
     volume_links.clear();
     volume_links = {1u};
-    check_mask<detector_t, mask_id::e_cylinder2>(d, volume_links);
+    check_mask<detector_t, mask_id::e_cylinder2D>(d, volume_links);
 
     volume_links.clear();
     volume_links = {3u, 4u, 1u, 1u};
-    check_mask<detector_t, mask_id::e_portal_ring2>(d, volume_links);
-    check_mask<detector_t, mask_id::e_ring2>(d, volume_links);
+    check_mask<detector_t, mask_id::e_ring2D>(d, volume_links);
+    check_mask<detector_t, mask_id::e_ring2D>(d, volume_links);
 
     volume_links.clear();
     volume_links = {0u, 1u, 1u};
-    check_mask<detector_t, mask_id::e_annulus2>(d, volume_links);
+    check_mask<detector_t, mask_id::e_annulus2D>(d, volume_links);
 
     volume_links.clear();
     volume_links.reserve(7u);
     volume_links.push_back(0u);
     volume_links.insert(volume_links.end(), 6u, 1u);
-    check_mask<detector_t, mask_id::e_rectangle2>(d, volume_links);
+    check_mask<detector_t, mask_id::e_rectangle2D>(d, volume_links);
 
     volume_links.clear();
     volume_links = {0u, 1u};
-    check_mask<detector_t, mask_id::e_trapezoid2>(d, volume_links);
+    check_mask<detector_t, mask_id::e_trapezoid2D>(d, volume_links);
 }

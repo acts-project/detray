@@ -27,9 +27,9 @@ using det_surface_t = typename detector_host_t::surface_type;
 using transform_t = typename detector_host_t::transform3_type;
 using mask_defs = typename detector_host_t::masks;
 
-constexpr auto rectangle_id = mask_defs::id::e_rectangle2;
-constexpr auto disc_id = mask_defs::id::e_portal_ring2;
-constexpr auto cylinder_id = mask_defs::id::e_portal_cylinder2;
+constexpr auto rectangle_id = mask_defs::id::e_rectangle2D;
+constexpr auto disc_id = mask_defs::id::e_ring2D;
+constexpr auto cylinder_id = mask_defs::id::e_concentric_cylinder2D;
 
 using rectangle_t = types::get<mask_defs, rectangle_id>;
 using disc_t = types::get<mask_defs, disc_id>;

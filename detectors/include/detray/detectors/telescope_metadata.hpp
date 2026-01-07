@@ -52,15 +52,14 @@ struct telescope_metadata {
     /// Rectangles are always needed as portals (but the yhave the same type as
     /// module rectangles). Only one additional mask shape is allowed
     enum class mask_ids : std::uint_least8_t {
-        e_rectangle2 = 0u,
-        e_portal_rectangle2 = 0u,
-        e_annulus2 = 1u,
-        e_cylinder2 = 1u,
-        e_ring2 = 1u,
-        e_trapezoid2 = 1u,
-        e_single1 = 1u,
-        e_single2 = 1u,
-        e_single3 = 1u,
+        e_rectangle2D = 0u,
+        e_annulus2D = 1u,
+        e_cylinder2D = 1u,
+        e_ring2D = 1u,
+        e_trapezoid2D = 1u,
+        e_single1D = 1u,
+        e_single2D = 1u,
+        e_single3D = 1u,
         e_straw_tube = 1u,
         e_drift_cell = 1u,
         e_unbounded_annulus2 = 1u,
@@ -77,11 +76,10 @@ struct telescope_metadata {
                                                        mask_ids mid) {
 
         switch (mid) {
-            case mask_ids::e_rectangle2:
-                // e_portal_rectangle2 has same value (0u)
-                os << "e_rectangle2/e_portal_rectangle2";
+            case mask_ids::e_rectangle2D:
+                os << "e_rectangle2";
                 break;
-            case mask_ids::e_annulus2:
+            case mask_ids::e_annulus2D:
                 // All other values are 1u, showing first alphabetically
                 os << "OTHER SHAPE";
                 break;
@@ -111,9 +109,9 @@ struct telescope_metadata {
 
     /// Material type ids
     enum class material_ids : std::uint_least8_t {
-        e_slab = 0u,
+        e_material_slab = 0u,
         e_raw_material = 1u,  //< used for homogeneous volume material
-        e_rod = 2u,
+        e_material_rod = 2u,
         e_none = 3u,
     };
 
@@ -121,14 +119,14 @@ struct telescope_metadata {
                                                        material_ids mid) {
 
         switch (mid) {
-            case material_ids::e_slab:
-                os << "e_slab";
+            case material_ids::e_material_slab:
+                os << "e_material_slab";
                 break;
             case material_ids::e_raw_material:
                 os << "e_raw_material";
                 break;
-            case material_ids::e_rod:
-                os << "e_rod";
+            case material_ids::e_material_rod:
+                os << "e_material_rod";
                 break;
             case material_ids::e_none:
                 os << "e_none";
@@ -198,23 +196,24 @@ struct telescope_metadata {
 
     /// Acceleration data structures
     enum class accel_ids {
-        e_brute_force = 0u,  // test all surfaces in a volume (brute force)
+        e_surface_brute_force =
+            0u,  // test all surfaces in a volume (brute force)
         e_volume_brute_force = 1u,
-        e_default = e_brute_force,
-        e_default_volume_searcher = e_volume_brute_force,
+        e_surface_default = e_surface_brute_force,
+        e_volume_default = e_volume_brute_force,
     };
 
     DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
                                                        accel_ids aid) {
 
         switch (aid) {
-            case accel_ids::e_brute_force:
-                // e_default has same value (0u)
-                os << "e_brute_force/e_default";
+            case accel_ids::e_surface_brute_force:
+                // e_surface_default has same value (0u)
+                os << "e_surface_brute_force/e_surface_default";
                 break;
             case accel_ids::e_volume_brute_force:
                 // e_default has same value (0u)
-                os << "e_volume_brute_force/e_default_volume_searcher";
+                os << "e_volume_brute_force/e_volume_default";
                 break;
             default:
                 os << "invalid";

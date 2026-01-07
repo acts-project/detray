@@ -84,13 +84,13 @@ BENCHMARK(BM_INTERSECT_PLANES)
 namespace {
 
 enum class mask_ids : unsigned int {
-    e_rectangle2 = 0,
-    e_cylinder2 = 1,
+    e_rectangle2D = 0,
+    e_cylinder2D = 1,
     e_conc_cylinder3 = 2,
 };
 
 enum class material_ids : unsigned int {
-    e_slab = 0,
+    e_material_slab = 0,
 };
 
 }  // namespace
@@ -116,8 +116,8 @@ void BM_INTERSECT_CYLINDERS(benchmark::State &state) {
 
     benchmarks::transform3 trf{};
 
-    mask_link_t mask_link{mask_ids::e_cylinder2, 0};
-    material_link_t material_link{material_ids::e_slab, 0};
+    mask_link_t mask_link{mask_ids::e_cylinder2D, 0};
+    material_link_t material_link{material_ids::e_material_slab, 0};
     surface_desc_t sf_desc(0u, mask_link, material_link, 0u,
                            surface_id::e_sensitive);
 
@@ -173,8 +173,8 @@ void BM_INTERSECT_PORTAL_CYLINDERS(benchmark::State &state) {
 
     benchmarks::transform3 trf{};
 
-    mask_link_t mask_link{mask_ids::e_cylinder2, 0u};
-    material_link_t material_link{material_ids::e_slab, 0u};
+    mask_link_t mask_link{mask_ids::e_cylinder2D, 0u};
+    material_link_t material_link{material_ids::e_material_slab, 0u};
     surface_desc_t sf_desc(0u, mask_link, material_link, 0u,
                            surface_id::e_sensitive);
 

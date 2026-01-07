@@ -54,31 +54,27 @@ struct itk_metadata {
     /// Give your mask types a name (needs to be consecutive and has to match
     /// the types position in the mask store!)
     enum class mask_ids : std::uint_least8_t {
-        e_rectangle2 = 0u,
-        e_annulus2 = 1u,
-        e_cylinder2 = 2u,
-        e_portal_cylinder2 = 2u,
-        e_ring2 = 3u,
-        e_portal_ring2 = 3u,
+        e_rectangle2D = 0u,
+        e_annulus2D = 1u,
+        e_concentric_cylinder2D = 2u,
+        e_ring2D = 3u,
     };
 
     DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
                                                        mask_ids mid) {
 
         switch (mid) {
-            case mask_ids::e_rectangle2:
-                // e_portal_rectangle2 has same value (0u)
-                os << "e_rectangle2/e_portal_rectangle2";
+            case mask_ids::e_rectangle2D:
+                os << "e_rectangle2D";
                 break;
-            case mask_ids::e_annulus2:
-                os << "e_annulus2";
+            case mask_ids::e_annulus2D:
+                os << "e_annulus2D";
                 break;
-            case mask_ids::e_cylinder2:
-                os << "e_cylinder2/e_portal_cylinder2";
+            case mask_ids::e_concentric_cylinder2D:
+                os << "e_concentric_cylinder2D";
                 break;
-            case mask_ids::e_ring2:
-                // e_portal_ring2 has same value (5u)
-                os << "e_ring2/e_portal_ring2";
+            case mask_ids::e_ring2D:
+                os << "e_ring2";
                 break;
             default:
                 os << "invalid";
@@ -114,8 +110,8 @@ struct itk_metadata {
     /// match the types position in the mask store!)
     enum class material_ids : std::uint_least8_t {
         // Material texture (grid) shapes
-        e_concentric_cylinder2_map = 0u,
-        e_disc2_map = 1u,
+        e_concentric_cylinder2D_map = 0u,
+        e_ring2D_map = 1u,
         e_none = 2u,
     };
 
@@ -123,12 +119,12 @@ struct itk_metadata {
                                                        material_ids mid) {
 
         switch (mid) {
-            case material_ids::e_concentric_cylinder2_map:
-                os << "e_concentric_cylinder2_map";
+            case material_ids::e_concentric_cylinder2D_map:
+                os << "e_concentric_cylinder2D_map";
                 break;
-            case material_ids::e_disc2_map:
-                // e_annulus2_map has same value (1u)
-                os << "e_disc2_map/e_annulus2_map";
+            case material_ids::e_ring2D_map:
+                // e_annulus2D_map has same value (1u)
+                os << "e_ring2D_map/e_annulus2D_map";
                 break;
             case material_ids::e_none:
                 os << "e_none";
@@ -222,29 +218,30 @@ struct itk_metadata {
 
     /// Acceleration data structures
     enum class accel_ids : std::uint_least8_t {
-        e_brute_force = 0u,     // test all surfaces in a volume (brute force)
-        e_cylinder2_grid = 1u,  // e.g. barrel layers
-        e_disc_grid = 2u,       // e.g. endcap layers
-        e_volume_cylinder3_grid = 3u,
-        e_default_volume_searcher = e_volume_cylinder3_grid,
-        e_default = e_brute_force,
+        e_surface_brute_force =
+            0u,  // test all surfaces in a volume (brute force)
+        e_surface_cylinder2D_grid = 1u,  // e.g. barrel layers
+        e_surface_ring2D_grid = 2u,      // e.g. endcap layers
+        e_volume_cylinder3D_grid = 3u,
+        e_volume_default = e_volume_cylinder3D_grid,
+        e_surface_default = e_surface_brute_force,
     };
 
     DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
                                                        accel_ids aid) {
 
         switch (aid) {
-            case accel_ids::e_brute_force:
-                os << "e_brute_force";
+            case accel_ids::e_surface_brute_force:
+                os << "e_surface_brute_force";
                 break;
-            case accel_ids::e_cylinder2_grid:
-                os << "e_cylinder2_grid";
+            case accel_ids::e_surface_cylinder2D_grid:
+                os << "e_surface_cylinder2D_grid";
                 break;
-            case accel_ids::e_disc_grid:
-                os << "e_disc_grid";
+            case accel_ids::e_surface_ring2D_grid:
+                os << "e_surface_ring2D_grid";
                 break;
-            case accel_ids::e_volume_cylinder3_grid:
-                os << "e_volume_cylinder3_grid/e_default_volume_searcher";
+            case accel_ids::e_volume_cylinder3D_grid:
+                os << "e_volume_cylinder3D_grid/e_volume_default";
                 break;
             default:
                 os << "invalid";

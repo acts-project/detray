@@ -183,7 +183,7 @@ GTEST_TEST(io, json_telescope_detector_reader) {
 
     const auto& mat_store = det_io.material_store();
     const auto& slabs =
-        mat_store.get<decltype(tel_det)::materials::id::e_slab>();
+        mat_store.get<decltype(tel_det)::materials::id::e_material_slab>();
 
     EXPECT_EQ(det_io.volumes().size(), 1u);
     EXPECT_EQ(slabs.size(), positions.size());
@@ -235,14 +235,13 @@ GTEST_TEST(io, json_toy_geometry) {
     EXPECT_EQ(comp_det.volumes().size(), 22u);
     EXPECT_EQ(comp_det.surfaces().size(), 3230);
     EXPECT_EQ(comp_det.transform_store().size(), 3252);
-    EXPECT_EQ(masks.template size<mask_id::e_rectangle2>(), 2492u);
-    EXPECT_EQ(masks.template size<mask_id::e_portal_rectangle2>(), 2492u);
-    EXPECT_EQ(masks.template size<mask_id::e_trapezoid2>(), 648u);
-    EXPECT_EQ(masks.template size<mask_id::e_annulus2>(), 0u);
-    EXPECT_EQ(masks.template size<mask_id::e_cylinder2>(), 0u);
-    EXPECT_EQ(masks.template size<mask_id::e_portal_cylinder2>(), 56u);
-    EXPECT_EQ(masks.template size<mask_id::e_ring2>(), 60u);
-    EXPECT_EQ(masks.template size<mask_id::e_portal_ring2>(), 60u);
+    EXPECT_EQ(masks.template size<mask_id::e_rectangle2D>(), 2492u);
+    EXPECT_EQ(masks.template size<mask_id::e_trapezoid2D>(), 648u);
+    EXPECT_EQ(masks.template size<mask_id::e_annulus2D>(), 0u);
+    EXPECT_EQ(masks.template size<mask_id::e_cylinder2D>(), 0u);
+    EXPECT_EQ(masks.template size<mask_id::e_concentric_cylinder2D>(), 56u);
+    EXPECT_EQ(masks.template size<mask_id::e_ring2D>(), 60u);
+    EXPECT_EQ(masks.template size<mask_id::e_ring2D>(), 60u);
     EXPECT_EQ(masks.template size<mask_id::e_straw_tube>(), 0u);
     EXPECT_EQ(masks.template size<mask_id::e_drift_cell>(), 0u);
 

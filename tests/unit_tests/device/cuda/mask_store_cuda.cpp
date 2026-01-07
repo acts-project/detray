@@ -29,30 +29,30 @@ TEST(mask_store_cuda, mask_store) {
     // Types must be sorted according to their id (here: masks/mask_identifier)
     host_store_type store(mng_mr);
 
-    ASSERT_TRUE(store.template empty<mask_ids::e_annulus2>());
-    ASSERT_TRUE(store.template empty<mask_ids::e_cylinder2>());
-    ASSERT_TRUE(store.template empty<mask_ids::e_rectangle2>());
-    ASSERT_TRUE(store.template empty<mask_ids::e_ring2>());
-    ASSERT_TRUE(store.template empty<mask_ids::e_single3>());
-    ASSERT_TRUE(store.template empty<mask_ids::e_trapezoid2>());
+    ASSERT_TRUE(store.template empty<mask_ids::e_annulus2D>());
+    ASSERT_TRUE(store.template empty<mask_ids::e_cylinder2D>());
+    ASSERT_TRUE(store.template empty<mask_ids::e_rectangle2D>());
+    ASSERT_TRUE(store.template empty<mask_ids::e_ring2D>());
+    ASSERT_TRUE(store.template empty<mask_ids::e_single3D>());
+    ASSERT_TRUE(store.template empty<mask_ids::e_trapezoid2D>());
 
-    store.template emplace_back<mask_ids::e_rectangle2>(empty_context{}, 0u,
-                                                        1.0f, 2.0f);
-    store.template emplace_back<mask_ids::e_trapezoid2>(
+    store.template emplace_back<mask_ids::e_rectangle2D>(empty_context{}, 0u,
+                                                         1.0f, 2.0f);
+    store.template emplace_back<mask_ids::e_trapezoid2D>(
         empty_context{}, 0u, 0.5f, 1.5f, 4.0f, 1.f / 8.f);
-    store.template emplace_back<mask_ids::e_ring2>(empty_context{}, 0u, 1.0f,
-                                                   10.0f);
-    store.template emplace_back<mask_ids::e_cylinder2>(empty_context{}, 0u, 1.f,
-                                                       0.5f, 2.0f);
-    store.template emplace_back<mask_ids::e_annulus2>(
+    store.template emplace_back<mask_ids::e_ring2D>(empty_context{}, 0u, 1.0f,
+                                                    10.0f);
+    store.template emplace_back<mask_ids::e_cylinder2D>(empty_context{}, 0u,
+                                                        1.f, 0.5f, 2.0f);
+    store.template emplace_back<mask_ids::e_annulus2D>(
         empty_context{}, 0u, 1.f, 2.f, 3.f, 4.f, 5.f, 6.f, 7.f);
 
-    ASSERT_FALSE(store.empty<mask_ids::e_annulus2>());
-    ASSERT_FALSE(store.empty<mask_ids::e_cylinder2>());
-    ASSERT_FALSE(store.empty<mask_ids::e_rectangle2>());
-    ASSERT_FALSE(store.empty<mask_ids::e_ring2>());
-    ASSERT_TRUE(store.empty<mask_ids::e_single3>());
-    ASSERT_FALSE(store.empty<mask_ids::e_trapezoid2>());
+    ASSERT_FALSE(store.empty<mask_ids::e_annulus2D>());
+    ASSERT_FALSE(store.empty<mask_ids::e_cylinder2D>());
+    ASSERT_FALSE(store.empty<mask_ids::e_rectangle2D>());
+    ASSERT_FALSE(store.empty<mask_ids::e_ring2D>());
+    ASSERT_TRUE(store.empty<mask_ids::e_single3D>());
+    ASSERT_FALSE(store.empty<mask_ids::e_trapezoid2D>());
 
     // Generate random points for test
     vecmem::vector<point3> input_point3(n_points, &mng_mr);
@@ -69,11 +69,11 @@ TEST(mask_store_cuda, mask_store) {
     vecmem::jagged_vector<int> output_host(5, &mng_mr);
 
     // get mask objects
-    const auto& rectangle_mask = store.get<mask_ids::e_rectangle2>()[0];
-    const auto& trapezoid_mask = store.get<mask_ids::e_trapezoid2>()[0];
-    const auto& ring_mask = store.get<mask_ids::e_ring2>()[0];
-    const auto& cylinder_mask = store.get<mask_ids::e_cylinder2>()[0];
-    const auto& annulus_mask = store.get<mask_ids::e_annulus2>()[0];
+    const auto& rectangle_mask = store.get<mask_ids::e_rectangle2D>()[0];
+    const auto& trapezoid_mask = store.get<mask_ids::e_trapezoid2D>()[0];
+    const auto& ring_mask = store.get<mask_ids::e_ring2D>()[0];
+    const auto& cylinder_mask = store.get<mask_ids::e_cylinder2D>()[0];
+    const auto& annulus_mask = store.get<mask_ids::e_annulus2D>()[0];
 
     // get host results from is_inside function
     for (unsigned int i = 0u; i < n_points; i++) {

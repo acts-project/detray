@@ -81,12 +81,14 @@ class material_map_writer : public detail::grid_writer {
                 // Do not attempt to convert homogeneous material
                 if constexpr (detray::concepts::has_material_slabs<
                                   detector_t>) {
-                    if (mat_link.id() == detector_t::materials::id::e_slab) {
+                    if (mat_link.id() ==
+                        detector_t::materials::id::e_material_slab) {
                         continue;
                     }
                 }
                 if constexpr (detray::concepts::has_material_rods<detector_t>) {
-                    if (mat_link.id() == detector_t::materials::id::e_rod) {
+                    if (mat_link.id() ==
+                        detector_t::materials::id::e_material_rod) {
                         continue;
                     }
                 }
