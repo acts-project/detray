@@ -32,23 +32,24 @@ __global__ void print_kernel(
                        det.transform_store().at(0).translation()[1],
                        det.transform_store().at(0).translation()[2]);
     DETRAY_INFO_DEVICE("Number of rectangles: %d",
-                       det.mask_store().get<mask_id::e_rectangle2>().size());
+                       det.mask_store().get<mask_id::e_rectangle2D>().size());
     DETRAY_INFO_DEVICE("Number of trapezoids: %d",
-                       det.mask_store().get<mask_id::e_trapezoid2>().size());
+                       det.mask_store().get<mask_id::e_trapezoid2D>().size());
     DETRAY_INFO_DEVICE("Number of portal discs: %d",
-                       det.mask_store().get<mask_id::e_portal_ring2>().size());
+                       det.mask_store().get<mask_id::e_ring2D>().size());
     DETRAY_INFO_DEVICE(
         "Number of portal cylinders: %d",
-        det.mask_store().get<mask_id::e_portal_cylinder2>().size());
+        det.mask_store().get<mask_id::e_concentric_cylinder2D>().size());
     DETRAY_INFO_DEVICE(
         "Number of portal collections: %d",
-        det.accelerator_store().get<acc_id::e_brute_force>().size());
+        det.accelerator_store().get<acc_id::e_surface_brute_force>().size());
     DETRAY_INFO_DEVICE(
         "Number of disc grids: %d",
-        det.accelerator_store().get<acc_id::e_disc_grid>().size());
-    DETRAY_INFO_DEVICE(
-        "Number of cylinder grids: %d",
-        det.accelerator_store().get<acc_id::e_cylinder2_grid>().size());
+        det.accelerator_store().get<acc_id::e_surface_ring2D_grid>().size());
+    DETRAY_INFO_DEVICE("Number of cylinder grids: %d",
+                       det.accelerator_store()
+                           .get<acc_id::e_surface_cylinder2D_grid>()
+                           .size());
 }
 
 void print(typename detray::tutorial::detector_host_t::view_type det_data) {

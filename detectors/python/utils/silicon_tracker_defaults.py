@@ -48,6 +48,7 @@ def add_silicon_tracker_defaults(
     logger.info("-> adding endcap section types")
     metadata.add_sensitive(Shape.TRAPEZOID)
     metadata.add_accel_struct(Accelerator.DISC_GRID2D, "sensitive")
+    metadata.add_accel_struct(Accelerator.BLA, "sensitive")
     if use_mat_maps:
         metadata.add_material(Material.DISC_MAP2D)
 
@@ -59,6 +60,7 @@ def add_silicon_tracker_defaults(
     # Volume accelerator for layered cylindrical detectors
     logger.info("-> adding detector volume acceleration structure")
     metadata.add_accel_struct(Accelerator.CYLINDER_GRID3D, "volume", is_default=True)
+    metadata.add_accel_struct(Accelerator.CUBOID_GRID3D, "volume", is_default=True)
 
 
 add_silicon_tracker_defaults.clients = []

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2025 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -8,19 +8,32 @@
 #pragma once
 
 // Project include(s)
-#include "detray/detectors/odd_metadata.hpp"
+#include "detray/core/detail/multi_store.hpp"
+#include "detray/core/detail/single_store.hpp"
+#include "detray/definitions/algebra.hpp"
+#include "detray/definitions/containers.hpp"
+#include "detray/definitions/indexing.hpp"
+#include "detray/geometry/mask.hpp"
+#include "detray/geometry/shapes/concentric_cylinder2D.hpp"
+#include "detray/geometry/shapes/rectangle2D.hpp"
+#include "detray/geometry/shapes/ring2D.hpp"
+#include "detray/geometry/shapes/trapezoid2D.hpp"
+#include "detray/geometry/surface_descriptor.hpp"
+#include "detray/materials/material_map.hpp"
+#include "detray/navigation/accelerators/brute_force.hpp"
+#include "detray/navigation/accelerators/spatial_grid.hpp"
 
 namespace detray {
 
-/// Defines the data types needed for the toy detector (same as ODD)
+/// Assembles the detector type. This metatdata contains all available types
 template <concepts::algebra algebra_t>
-struct toy_metadata {
+struct odd_metadata {
 
     /// Define the algebra type for the geometry and navigation
     using algebra_type = algebra_t;
     using scalar_t = dscalar<algebra_type>;
 
-    /// Mask to (next) volume link: next volume(s)
+    /// Mask-to-(next)-volume link (potentially switchable for SoA)
     using nav_link = std::uint_least16_t;
 
     /// How to store coordinate transform matrices
@@ -35,18 +48,16 @@ struct toy_metadata {
     /// Mask types
     using rectangle = mask<rectangle2D, algebra_type, nav_link>;
     using trapezoid = mask<trapezoid2D, algebra_type, nav_link>;
-
-    // using cylinder = mask<cylinder2D, algebra_type, nav_link>;  // beampipe
     using cylinder_portal = mask<concentric_cylinder2D, algebra_type, nav_link>;
-    using disc_portal = mask<ring2D, algebra_type, nav_link>;
+    using disc = mask<ring2D, algebra_type, nav_link>;
 
-    /// Mask type ids
+    /// Give your mask types a name (needs to be consecutive and has to match
+    /// the types position in the mask store!)
     enum class mask_ids : std::uint_least8_t {
         e_rectangle2D = 0u,
         e_trapezoid2D = 1u,
         e_concentric_cylinder2D = 2u,
-        e_ring2D = 3u,
-        e_cylinder2D = 2u,
+        e_ring2 = 3u,
     };
 
     DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
@@ -60,7 +71,6 @@ struct toy_metadata {
                 os << "e_trapezoid2";
                 break;
             case mask_ids::e_concentric_cylinder2D:
-                // e_cylinder2 has same value (2u)
                 os << "e_concentric_cylinder2D";
                 break;
             case mask_ids::e_ring2D:
@@ -76,30 +86,33 @@ struct toy_metadata {
     template <template <typename...> class vector_t = dvector>
     using mask_store =
         regular_multi_store<mask_ids, empty_context, dtuple, vector_t,
-                            rectangle, trapezoid, cylinder_portal, disc_portal>;
+                            rectangle, trapezoid, cylinder_portal, disc>;
 
     //
     // Material Description
     //
 
-    // Homogeneous material description
-    using slab = material_slab<scalar_t>;
-
-    // Cylindrical material grid
-    template <typename container_t>
-    using cylinder_map_t =
-        material_map<algebra_type, concentric_cylinder2D, container_t>;
+    /// Material grid types (default: closed bounds, regular binning)
+    /// @{
 
     // Disc material grid
     template <typename container_t>
     using disc_map_t = material_map<algebra_type, ring2D, container_t>;
 
-    /// Material type ids
+    // Concentric cylindrical material grid
+    template <typename container_t>
+    using concentric_cylinder2_map_t =
+        material_map<algebra_type, concentric_cylinder2D, container_t>;
+
+    /// @}
+
+    /// Give your material types a name (needs to be consecutive and has to
+    /// match the types position in the mask store!)
     enum class material_ids : std::uint_least8_t {
+        // Material texture (grid) shapes
         e_concentric_cylinder2D_map = 0u,
         e_ring2D_map = 1u,
-        e_material_slab = 2u,
-        e_none = 3u,
+        e_none = 2u,
     };
 
     DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
@@ -110,10 +123,8 @@ struct toy_metadata {
                 os << "e_concentric_cylinder2D_map";
                 break;
             case material_ids::e_ring2D_map:
-                os << "e_ring2D_map";
-                break;
-            case material_ids::e_material_slab:
-                os << "e_material_slab";
+                // e_annulus2D_map has same value (1u)
+                os << "e_ring2D_map/e_annulus2D_map";
                 break;
             case material_ids::e_none:
                 os << "e_none";
@@ -128,26 +139,27 @@ struct toy_metadata {
     template <typename container_t = host_container_types>
     using material_store =
         multi_store<material_ids, empty_context, dtuple,
-                    grid_collection<cylinder_map_t<container_t>>,
-                    grid_collection<disc_map_t<container_t>>,
-                    typename container_t::template vector_type<slab>>;
+                    grid_collection<concentric_cylinder2_map_t<container_t>>,
+                    grid_collection<disc_map_t<container_t>>>;
 
     //
     // Acceleration structures
     //
 
-    /// Surface grid types (regular, open binning)
+    /// surface grid types (default boundaries: closed binning)
+    /// @TODO: Will we need the types for all grid configurations (binnning,
+    /// bin boundaries, serializers)?
     /// @{
 
     // Surface grid definition: bin-content: darray<sf_descriptor, 1>
     template <typename axes_t, typename bin_entry_t, typename container_t>
     using surface_grid_t =
-        spatial_grid<algebra_type, axes_t, bins::static_array<bin_entry_t, 1>,
+        spatial_grid<algebra_type, axes_t, bins::dynamic_array<bin_entry_t>,
                      simple_serializer, container_t, false>;
 
-    // cylindrical grid for the barrel layers
+    // 2D cylindrical grid for the barrel layers
     template <typename bin_entry_t, typename container_t>
-    using cylinder_sf_grid =
+    using cylinder2D_sf_grid =
         surface_grid_t<axes<concentric_cylinder2D>, bin_entry_t, container_t>;
 
     // disc grid for the endcap layers
@@ -168,14 +180,16 @@ struct toy_metadata {
     // Volume descriptors
     //
 
-    /// Portals and passives in the brute froce search, sensitives in the grids
+    /// How to index the constituent objects (surfaces) in a volume
+    /// If they share the same index value here, they will be added into the
+    /// same acceleration data structure (brute force is always at 0)
     enum geo_objects : std::uint_least8_t {
-        e_portal = 0u,
-        e_passive = 0u,
-        e_sensitive = 1u,
-        e_volume = 2u,
-        e_size = 3u,
-        e_all = e_size,
+        e_portal = 0u,     // Brute force search
+        e_passive = 0u,    // Brute force search
+        e_sensitive = 1u,  // Grid accelerated search (can be different types)
+        e_volume = 2u,     // Daughter volumes
+        e_size = 3u,     // Every volume holds two acceleration data structures
+        e_all = e_size,  // i.e. the brute force method and one grid type
     };
 
     DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
@@ -206,8 +220,8 @@ struct toy_metadata {
     enum class accel_ids : std::uint_least8_t {
         e_surface_brute_force =
             0u,  // test all surfaces in a volume (brute force)
-        e_surface_cylinder2D_grid = 1u,  // barrel
-        e_surface_ring2D_grid = 2u,      // endcap
+        e_surface_cylinder2D_grid = 1u,  // e.g. barrel layers
+        e_surface_ring2D_grid = 2u,      // e.g. endcap layers
         e_volume_cylinder3D_grid = 3u,
         e_surface_default = e_surface_brute_force,
         e_volume_default = e_volume_cylinder3D_grid,
@@ -218,8 +232,7 @@ struct toy_metadata {
 
         switch (aid) {
             case accel_ids::e_surface_brute_force:
-                // e_surface_default has same value (0u)
-                os << "e_surface_brute_force/e_surface_default";
+                os << "e_surface_brute_force";
                 break;
             case accel_ids::e_surface_cylinder2D_grid:
                 os << "e_surface_cylinder2D_grid";
@@ -240,6 +253,7 @@ struct toy_metadata {
     using object_link_type =
         dmulti_index<dtyped_index<accel_ids, dindex>, geo_objects::e_size>;
 
+    /// Volume search grid
     template <typename container_t = host_container_types>
     using volume_accelerator =
         spatial_grid<algebra_type,
@@ -253,7 +267,7 @@ struct toy_metadata {
     using accelerator_store = multi_store<
         accel_ids, empty_context, dtuple,
         brute_force_collection<surface_type, container_t>,
-        grid_collection<cylinder_sf_grid<surface_type, container_t>>,
+        grid_collection<cylinder2D_sf_grid<surface_type, container_t>>,
         grid_collection<disc_sf_grid<surface_type, container_t>>,
         grid_collection<volume_accelerator<container_t>>>;
 };

@@ -130,12 +130,13 @@ GTEST_TEST(detray_builders, detector_builder) {
     EXPECT_TRUE(d.transform_store().at(8u) == trf);
 
     EXPECT_EQ(d.surfaces().size(), 16u);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_cylinder2>(), 2u);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_ring2>(), 2u);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_annulus2>(), 0u);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_cylinder2>(), 0u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_concentric_cylinder2D>(),
+              2u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_ring2D>(), 2u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_annulus2D>(), 0u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_cylinder2D>(), 0u);
     // Portal rectangle masks are deduplicated
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_rectangle2>(), 3u);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_ring2>(), 2u);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_trapezoid2>(), 6u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_rectangle2D>(), 3u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_ring2D>(), 2u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_trapezoid2D>(), 6u);
 }

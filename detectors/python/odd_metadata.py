@@ -25,14 +25,14 @@ def add_odd_types(metadata: metadata):
     logger = logging.getLogger(__name__)
     logger.info("Define types required by the ACTS Open Data Detector (ODD):")
 
+    # Add default types for silicon trackers (cylindrical detector shape)
+    add_silicon_tracker_defaults(
+        metadata=metadata, use_homogeneous_mat=True, use_mat_maps=True
+    )
+
     # Beampipe passive surface
     logger.info("-> adding ODD beampipe")
     metadata.add_passive(Shape.CYLINDER2D)
-
-    # Add default types for silicon trackers (cylindrical detector shape)
-    add_silicon_tracker_defaults(
-        metadata=metadata, use_homogeneous_mat=False, use_mat_maps=True
-    )
 
 
 def __main__():
@@ -40,7 +40,7 @@ def __main__():
     parser = add_logging_options()
     parse_logging_options(parser.parse_args())
 
-    md = metadata("open_data_detector")
+    md = metadata("odd")
 
     # Specify a particular algebra plugin (otherwise left as template param.)
     # md.set_algebra_plugin(Algebra.ARRAY, Type.SINGLE)

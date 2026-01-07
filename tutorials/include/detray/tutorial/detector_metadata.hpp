@@ -74,21 +74,21 @@ struct my_metadata {
     /// order to minimize the depth of the 'unrolling' before a mask is found
     /// in the tuple
     enum class mask_ids : std::uint_least8_t {
-        e_square2 = 0u,
-        e_trapezoid2 = 1u,
-        e_portal_rectangle2 = 2u
+        e_square2D = 0u,
+        e_trapezoid2D = 1u,
+        e_rectangle2D = 2u
     };
 
     friend std::ostream& operator<<(std::ostream& os, const mask_ids& id) {
         switch (id) {
-            case mask_ids::e_square2:
-                os << "e_square2";
+            case mask_ids::e_square2D:
+                os << "e_square2D";
                 break;
-            case mask_ids::e_trapezoid2:
-                os << "e_trapezoid2";
+            case mask_ids::e_trapezoid2D:
+                os << "e_trapezoid2D";
                 break;
-            case mask_ids::e_portal_rectangle2:
-                os << "e_portal_rectangle2";
+            case mask_ids::e_rectangle2D:
+                os << "e_rectangle2D";
                 break;
             default:
                 os << "Unknown mask_id";
@@ -115,14 +115,14 @@ struct my_metadata {
 
     /// Similar to the mask store, there is a material store, which
     enum class material_ids : std::uint_least8_t {
-        e_slab = 0u,
+        e_material_slab = 0u,
         e_none = 1u,
     };
 
     friend std::ostream& operator<<(std::ostream& os, const material_ids& id) {
         switch (id) {
-            case material_ids::e_slab:
-                os << "e_slab";
+            case material_ids::e_material_slab:
+                os << "e_material_slab";
                 break;
             case material_ids::e_none:
                 os << "e_none";
@@ -189,16 +189,17 @@ struct my_metadata {
     /// The acceleration data structures live in another tuple that needs to
     /// indexed correctly
     enum class accel_ids : std::uint_least8_t {
-        e_brute_force = 0u,  //< test all surfaces in a volume (brute force)
-        e_volume_cylinder3_grid = 1u,
-        e_default = e_brute_force,
-        e_default_volume_searcher = e_volume_cylinder3_grid,
+        e_surface_brute_force =
+            0u,  //< test all surfaces in a volume (brute force)
+        e_volume_cylinder3D_grid = 1u,
+        e_surface_default = e_surface_brute_force,
+        e_volume_default = e_volume_cylinder3D_grid,
     };
 
     friend std::ostream& operator<<(std::ostream& os, const accel_ids& id) {
         switch (id) {
-            case accel_ids::e_brute_force:
-                os << "e_brute_force/e_default";
+            case accel_ids::e_surface_brute_force:
+                os << "e_surface_brute_force/e_surface_default";
                 break;
             default:
                 os << "Unknown accel_id";

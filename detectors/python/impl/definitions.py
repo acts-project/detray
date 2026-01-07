@@ -156,3 +156,5 @@ class Accelerator:
     CUBOID_GRID3D = cpp_class(
         specifier=SPATIAL_GRID_SPECIFIER, param={"shape": Shape.CUBOID}
     )
+    # Surface grid, cuboid 3D (telescope)
+    BLA = cpp_class(specifier="detray::bla")

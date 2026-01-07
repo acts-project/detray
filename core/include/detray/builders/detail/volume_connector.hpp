@@ -248,8 +248,9 @@ void connect_cylindrical_volumes(
                     0., 0., volume_bounds[bound_index]};
 
                 // Get the mask context group and fill it
-                constexpr auto disc_id = detector_t::masks::id::e_portal_ring2;
-                constexpr auto slab_id = detector_t::materials::id::e_slab;
+                constexpr auto disc_id = detector_t::masks::id::e_ring2D;
+                constexpr auto slab_id =
+                    detector_t::materials::id::e_material_slab;
                 typename portal_t::mask_link mask_index = {
                     disc_id, portal_masks.template size<disc_id>()};
                 typename portal_t::material_link material_index = {
@@ -298,7 +299,8 @@ void connect_cylindrical_volumes(
                     detector_t::masks::id::e_portal_cylinder3;
                 typename portal_t::mask_link mask_index = {
                     cylinder_id, portal_masks.template size<cylinder_id>()};
-                constexpr auto slab_id = detector_t::materials::id::e_slab;
+                constexpr auto slab_id =
+                    detector_t::materials::id::e_material_slab;
 
                 for (auto &info_ : portals_info) {
                     // Add new mask to container

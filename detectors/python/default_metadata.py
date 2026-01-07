@@ -48,7 +48,7 @@ def __main__():
     add_odd_types(md)
     add_itk_types(md)
 
-    # Add an acceleration struct for general 2D cylinders
+    # Add an acceleration struct and material map for generic 2D cylinders
     md.add_accel_struct(Accelerator.CYLINDER_GRID2D)
     md.add_material(Material.CYLINDER_MAP2D)
 
