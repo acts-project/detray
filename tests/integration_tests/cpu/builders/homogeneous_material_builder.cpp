@@ -111,28 +111,31 @@ GTEST_TEST(detray_builders, decorator_homogeneous_material_builder) {
     auto mat_pt_cyl_factory =
         std::make_shared<mat_factory_t>(std::move(pt_cyl_factory));
     mat_pt_cyl_factory->add_material(
-        material_id::e_slab, {1.f * unit<scalar>::mm, silicon<scalar>()});
+        material_id::e_material_slab,
+        {1.f * unit<scalar>::mm, silicon<scalar>()});
     mat_pt_cyl_factory->add_material(
-        material_id::e_slab, {1.5f * unit<scalar>::mm, silicon<scalar>()});
+        material_id::e_material_slab,
+        {1.5f * unit<scalar>::mm, silicon<scalar>()});
 
     auto mat_rect_factory =
         std::make_shared<mat_factory_t>(std::move(rect_factory));
-    mat_rect_factory->add_material(material_id::e_slab,
+    mat_rect_factory->add_material(material_id::e_material_slab,
                                    {1.f * unit<scalar>::mm, silicon<scalar>()});
-    mat_rect_factory->add_material(material_id::e_slab,
+    mat_rect_factory->add_material(material_id::e_material_slab,
                                    {2.f * unit<scalar>::mm, silicon<scalar>()});
-    mat_rect_factory->add_material(material_id::e_slab,
+    mat_rect_factory->add_material(material_id::e_material_slab,
                                    {3.f * unit<scalar>::mm, silicon<scalar>()});
 
     auto mat_trpz_factory =
         std::make_shared<mat_factory_t>(std::move(trpz_factory));
-    mat_trpz_factory->add_material(material_id::e_slab,
+    mat_trpz_factory->add_material(material_id::e_material_slab,
                                    {1.f * unit<scalar>::mm, silicon<scalar>()});
 
     auto mat_cyl_factory =
         std::make_shared<mat_factory_t>(std::move(cyl_factory));
     mat_cyl_factory->add_material(
-        material_id::e_slab, {1.5f * unit<scalar>::mm, tungsten<scalar>()});
+        material_id::e_material_slab,
+        {1.5f * unit<scalar>::mm, tungsten<scalar>()});
 
     // Add surfaces and material to detector
     mat_builder.add_surfaces(mat_pt_cyl_factory, geo_ctx);
@@ -153,23 +156,26 @@ GTEST_TEST(detray_builders, decorator_homogeneous_material_builder) {
 
     EXPECT_EQ(d.surfaces().size(), 7u);
     EXPECT_EQ(d.transform_store().size(), 8u);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_cylinder2>(), 2u);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_ring2>(), 0u);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_cylinder2>(), 1u);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_rectangle2>(), 3u);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_trapezoid2>(), 1u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_concentric_cylinder2D>(),
+              2u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_ring2D>(), 0u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_cylinder2D>(), 1u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_rectangle2D>(), 3u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_trapezoid2D>(), 1u);
 
-    EXPECT_EQ(d.material_store().template size<material_id::e_slab>(), 7u);
-    EXPECT_EQ(d.material_store().template size<material_id::e_rod>(), 0u);
+    EXPECT_EQ(d.material_store().template size<material_id::e_material_slab>(),
+              7u);
+    EXPECT_EQ(d.material_store().template size<material_id::e_material_rod>(),
+              0u);
 
     for (auto [idx, sf_desc] : detray::views::enumerate(d.surfaces())) {
         const auto &mat_link = sf_desc.material();
-        EXPECT_EQ(mat_link.id(), material_id::e_slab);
+        EXPECT_EQ(mat_link.id(), material_id::e_material_slab);
         EXPECT_EQ(mat_link.index(), idx);
     }
 
     for (const auto &mat_slab :
-         d.material_store().template get<material_id::e_slab>()) {
+         d.material_store().template get<material_id::e_material_slab>()) {
         EXPECT_TRUE(mat_slab.get_material() == silicon<scalar>() ||
                     mat_slab.get_material() == tungsten<scalar>());
     }
@@ -216,7 +222,7 @@ GTEST_TEST(detray_builders, detector_builder_with_material) {
     mat_sf_factory->push_back({surface_id::e_sensitive,
                                transform3(point3{0.f, 0.f, 1000.f}), vol_idx,
                                std::vector<scalar>{1.f, 3.f, 2.f, 0.25f}});
-    mat_sf_factory->add_material(material_id::e_slab,
+    mat_sf_factory->add_material(material_id::e_material_slab,
                                  {1.f * unit<scalar>::mm, silicon<scalar>()});
 
     // Add a portal box around the cuboid volume with a min distance of 'env'
@@ -229,17 +235,23 @@ GTEST_TEST(detray_builders, detector_builder_with_material) {
         std::make_shared<homogeneous_material_factory<detector_t>>(
             std::move(portal_generator));
     mat_portal_factory->add_material(
-        material_id::e_slab, {2.f * unit<scalar>::mm, silicon<scalar>()});
+        material_id::e_material_slab,
+        {2.f * unit<scalar>::mm, silicon<scalar>()});
     mat_portal_factory->add_material(
-        material_id::e_slab, {3.f * unit<scalar>::mm, silicon<scalar>()});
+        material_id::e_material_slab,
+        {3.f * unit<scalar>::mm, silicon<scalar>()});
     mat_portal_factory->add_material(
-        material_id::e_slab, {4.f * unit<scalar>::mm, silicon<scalar>()});
+        material_id::e_material_slab,
+        {4.f * unit<scalar>::mm, silicon<scalar>()});
     mat_portal_factory->add_material(
-        material_id::e_slab, {5.f * unit<scalar>::mm, silicon<scalar>()});
+        material_id::e_material_slab,
+        {5.f * unit<scalar>::mm, silicon<scalar>()});
     mat_portal_factory->add_material(
-        material_id::e_slab, {6.f * unit<scalar>::mm, silicon<scalar>()});
+        material_id::e_material_slab,
+        {6.f * unit<scalar>::mm, silicon<scalar>()});
     mat_portal_factory->add_material(
-        material_id::e_slab, {7.f * unit<scalar>::mm, silicon<scalar>()});
+        material_id::e_material_slab,
+        {7.f * unit<scalar>::mm, silicon<scalar>()});
 
     mv_builder->add_surfaces(mat_sf_factory, geo_ctx);
     mv_builder->add_surfaces(mat_portal_factory);
@@ -262,20 +274,21 @@ GTEST_TEST(detray_builders, detector_builder_with_material) {
     EXPECT_TRUE(d.transform_store().at(0u) == trf);
 
     EXPECT_EQ(d.surfaces().size(), 7u);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_rectangle2>(), 3u);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_trapezoid2>(), 1u);
-    EXPECT_EQ(d.material_store().template size<material_id::e_slab>(), 7u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_rectangle2D>(), 3u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_trapezoid2D>(), 1u);
+    EXPECT_EQ(d.material_store().template size<material_id::e_material_slab>(),
+              7u);
 
     // Check the material links
     for (const auto [idx, sf_desc] : detray::views::enumerate(d.surfaces())) {
-        EXPECT_EQ(sf_desc.material().id(), material_id::e_slab);
+        EXPECT_EQ(sf_desc.material().id(), material_id::e_material_slab);
         EXPECT_EQ(sf_desc.material().index(), idx);
     }
 
     // Check the material
     scalar thickness{1.f * unit<scalar>::mm};
     for (const auto &slab :
-         d.material_store().template get<material_id::e_slab>()) {
+         d.material_store().template get<material_id::e_material_slab>()) {
         EXPECT_EQ(slab.get_material(), silicon<scalar>());
         EXPECT_NEAR(slab.thickness(), thickness, tol);
         thickness += 1.f * unit<scalar>::mm;

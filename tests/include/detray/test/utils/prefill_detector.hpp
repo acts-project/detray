@@ -57,7 +57,7 @@ void prefill_detector(detector_t& d,
                                   transform3_t(point3_t{0.f, 0.f, 0.f}),
                                   vol_link, std::vector<scalar_t>{-3.f, 3.f}});
     rectangle_factory->add_material(
-        material_id::e_slab,
+        material_id::e_material_slab,
         {3.f * unit<scalar_t>::mm, detray::gold<scalar_t>()});
     // Surface 1
     auto annulus_factory =
@@ -68,7 +68,7 @@ void prefill_detector(detector_t& d,
         {surface_id::e_sensitive, transform3_t(point3_t{1.f, 0.f, 0.f}),
          vol_link, std::vector<scalar_t>{1.f, 2.f, 3.f, 4.f, 5.f, 6.f, 7.f}});
     annulus_factory->add_material(
-        material_id::e_slab,
+        material_id::e_material_slab,
         {12.f * unit<scalar_t>::mm, detray::tungsten<scalar_t>()});
 
     // Surface 2
@@ -80,7 +80,7 @@ void prefill_detector(detector_t& d,
         {surface_id::e_sensitive, transform3_t(point3_t{2.f, 0.f, 0.f}),
          vol_link, std::vector<scalar_t>{1.f, 2.f, 3.f, 1.f / 6.f}});
     trapezoid_factory->add_material(
-        material_id::e_rod,
+        material_id::e_material_rod,
         {4.f * unit<scalar_t>::mm, detray::aluminium<scalar_t>()});
 
     // Build the volume with three surfaces and homogenenous material
