@@ -52,7 +52,7 @@ class volume_builder : public volume_builder_interface<detector_t> {
         // force method that will at least contain the portals
         m_volume.template set_accel_link<
             static_cast<typename volume_type::object_id>(0)>(
-            detector_t::accel::id::e_default, 0);
+            detector_t::accel::id::e_surface_default, 0);
 
         DETRAY_VERBOSE_HOST("Created builder for volume: " << idx);
     };
@@ -253,7 +253,7 @@ class volume_builder : public volume_builder_interface<detector_t> {
         }
 
         // Place the appropriate surfaces in the brute force search method.
-        constexpr auto default_acc_id{detector_t::accel::id::e_default};
+        constexpr auto default_acc_id{detector_t::accel::id::e_surface_default};
 
         // Strip the source link from the lookup data structure
         typename detector_t::surface_container descriptors;

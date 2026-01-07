@@ -41,32 +41,33 @@ GTEST_TEST(detray_core, detector) {
         EXPECT_TRUE(d.volumes().empty());
         EXPECT_TRUE(d.portals().empty());
         EXPECT_TRUE(d.transform_store().empty());
-        EXPECT_TRUE(d.mask_store().template empty<mask_id::e_rectangle2>());
+        EXPECT_TRUE(d.mask_store().template empty<mask_id::e_rectangle2D>());
+        EXPECT_TRUE(d.mask_store().template empty<mask_id::e_trapezoid2D>());
+        EXPECT_TRUE(d.mask_store().template empty<mask_id::e_annulus2D>());
+        EXPECT_TRUE(d.mask_store().template empty<mask_id::e_cylinder2D>());
         EXPECT_TRUE(
-            d.mask_store().template empty<mask_id::e_portal_rectangle2>());
-        EXPECT_TRUE(d.mask_store().template empty<mask_id::e_trapezoid2>());
-        EXPECT_TRUE(d.mask_store().template empty<mask_id::e_annulus2>());
-        EXPECT_TRUE(d.mask_store().template empty<mask_id::e_cylinder2>());
-        EXPECT_TRUE(
-            d.mask_store().template empty<mask_id::e_portal_cylinder2>());
-        EXPECT_TRUE(d.mask_store().template empty<mask_id::e_ring2>());
-        EXPECT_TRUE(d.mask_store().template empty<mask_id::e_portal_ring2>());
+            d.mask_store().template empty<mask_id::e_concentric_cylinder2D>());
+        EXPECT_TRUE(d.mask_store().template empty<mask_id::e_ring2D>());
+        EXPECT_TRUE(d.mask_store().template empty<mask_id::e_ring2D>());
         EXPECT_TRUE(d.mask_store().template empty<mask_id::e_straw_tube>());
         EXPECT_TRUE(d.mask_store().template empty<mask_id::e_drift_cell>());
-        EXPECT_TRUE(d.material_store().template empty<material_id::e_slab>());
-        EXPECT_TRUE(d.material_store().template empty<material_id::e_rod>());
         EXPECT_TRUE(
-            d.accelerator_store().template empty<finder_id::e_brute_force>());
+            d.material_store().template empty<material_id::e_material_slab>());
         EXPECT_TRUE(
-            d.accelerator_store().template empty<finder_id::e_disc_grid>());
+            d.material_store().template empty<material_id::e_material_rod>());
         EXPECT_TRUE(d.accelerator_store()
-                        .template empty<finder_id::e_cylinder2_grid>());
+                        .template empty<finder_id::e_surface_brute_force>());
+        EXPECT_TRUE(d.accelerator_store()
+                        .template empty<finder_id::e_surface_ring2D_grid>());
         EXPECT_TRUE(
+            d.accelerator_store()
+                .template empty<finder_id::e_surface_cylinder2D_grid>());
+        /*EXPECT_TRUE(
             d.accelerator_store().template empty<finder_id::e_irr_disc_grid>());
         EXPECT_TRUE(d.accelerator_store()
-                        .template empty<finder_id::e_irr_cylinder2_grid>());
-        EXPECT_TRUE(
-            d.accelerator_store().template empty<finder_id::e_default>());
+                        .template empty<finder_id::e_irr_cylinder2_grid>());*/
+        EXPECT_TRUE(d.accelerator_store()
+                        .template empty<finder_id::e_surface_default>());
     };
 
     // Check the empty detector object.
@@ -81,36 +82,42 @@ GTEST_TEST(detray_core, detector) {
         EXPECT_EQ(d.volumes().size(), 1u);
         EXPECT_EQ(d.portals().size(), 3u);
         EXPECT_EQ(d.transform_store().size(), 4u);
-        EXPECT_EQ(d.mask_store().template size<mask_id::e_rectangle2>(), 1u);
-        EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_rectangle2>(),
-                  1u);
-        EXPECT_EQ(d.mask_store().template size<mask_id::e_trapezoid2>(), 1u);
-        EXPECT_EQ(d.mask_store().template size<mask_id::e_annulus2>(), 1u);
-        EXPECT_EQ(d.mask_store().template size<mask_id::e_cylinder2>(), 0u);
-        EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_cylinder2>(),
-                  0u);
-        EXPECT_EQ(d.mask_store().template size<mask_id::e_ring2>(), 0u);
-        EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_ring2>(), 0u);
+        EXPECT_EQ(d.mask_store().template size<mask_id::e_rectangle2D>(), 1u);
+        EXPECT_EQ(d.mask_store().template size<mask_id::e_rectangle2D>(), 1u);
+        EXPECT_EQ(d.mask_store().template size<mask_id::e_trapezoid2D>(), 1u);
+        EXPECT_EQ(d.mask_store().template size<mask_id::e_annulus2D>(), 1u);
+        EXPECT_EQ(d.mask_store().template size<mask_id::e_cylinder2D>(), 0u);
+        EXPECT_EQ(
+            d.mask_store().template size<mask_id::e_concentric_cylinder2D>(),
+            0u);
+        EXPECT_EQ(d.mask_store().template size<mask_id::e_ring2D>(), 0u);
+        EXPECT_EQ(d.mask_store().template size<mask_id::e_ring2D>(), 0u);
         EXPECT_EQ(d.mask_store().template size<mask_id::e_straw_tube>(), 0u);
         EXPECT_EQ(d.mask_store().template size<mask_id::e_drift_cell>(), 0u);
-        EXPECT_EQ(d.material_store().template size<material_id::e_slab>(), 2u);
-        EXPECT_EQ(d.material_store().template size<material_id::e_rod>(), 1u);
         EXPECT_EQ(
-            d.accelerator_store().template size<finder_id::e_brute_force>(),
+            d.material_store().template size<material_id::e_material_slab>(),
+            2u);
+        EXPECT_EQ(
+            d.material_store().template size<material_id::e_material_rod>(),
             1u);
-        EXPECT_EQ(d.accelerator_store().template size<finder_id::e_disc_grid>(),
+        EXPECT_EQ(d.accelerator_store()
+                      .template size<finder_id::e_surface_brute_force>(),
+                  1u);
+        EXPECT_EQ(d.accelerator_store()
+                      .template size<finder_id::e_surface_ring2D_grid>(),
                   0u);
-        EXPECT_EQ(
-            d.accelerator_store().template size<finder_id::e_cylinder2_grid>(),
-            0u);
-        EXPECT_EQ(
+        EXPECT_EQ(d.accelerator_store()
+                      .template size<finder_id::e_surface_cylinder2D_grid>(),
+                  0u);
+        /*EXPECT_EQ(
             d.accelerator_store().template size<finder_id::e_irr_disc_grid>(),
             0u);
         EXPECT_EQ(d.accelerator_store()
                       .template size<finder_id::e_irr_cylinder2_grid>(),
-                  0u);
-        EXPECT_EQ(d.accelerator_store().template size<finder_id::e_default>(),
-                  1u);
+                  0u);*/
+        EXPECT_EQ(
+            d.accelerator_store().template size<finder_id::e_surface_default>(),
+            1u);
     };
 
     // Check the filled detector object.

@@ -352,8 +352,9 @@ class homogeneous_material_factory final
             DETRAY_DEBUG_HOST("           mat=" << mat << " thickness=" << t);
 
             dindex mat_idx{0u};
-            if (m_links.at(sf_idx).first == material_id::e_slab) {
-                auto &mat_coll = materials.template get<material_id::e_slab>();
+            if (m_links.at(sf_idx).first == material_id::e_material_slab) {
+                auto &mat_coll =
+                    materials.template get<material_id::e_material_slab>();
 
                 material_slab<scalar_type> mat_slab{mat, t};
                 mat_idx = this->insert_in_container(mat_coll, mat_slab,
@@ -361,9 +362,9 @@ class homogeneous_material_factory final
             }
             if constexpr (types::contains<typename detector_t::materials,
                                           material_rod<scalar_type>>) {
-                if (m_links.at(sf_idx).first == material_id::e_rod) {
+                if (m_links.at(sf_idx).first == material_id::e_material_rod) {
                     auto &mat_coll =
-                        materials.template get<material_id::e_rod>();
+                        materials.template get<material_id::e_material_rod>();
 
                     material_rod<scalar_type> mat_rod{mat, t};
                     mat_idx = this->insert_in_container(mat_coll, mat_rod,

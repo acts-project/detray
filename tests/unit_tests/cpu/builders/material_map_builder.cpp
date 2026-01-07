@@ -90,14 +90,14 @@ TEST(detray_builders, material_map_factory) {
                             std::vector<scalar>{10.f, 8.f}});
 
     scalar t{1.f * unit<scalar>::mm};
-    add_material_data(mat_factory, mat_id::e_rectangle2_map, 0u, t,
+    add_material_data(mat_factory, mat_id::e_rectangle2D_map, 0u, t,
                       silicon<scalar>());
 
     mat_factory->push_back({surface_id::e_sensitive,
                             transform3(point3{0.f, 0.f, 1.f}), 1u,
                             std::vector<scalar>{20.f, 16.f}});
     t = 2.f * unit<scalar>::mm;
-    add_material_data(mat_factory, mat_id::e_rectangle2_map, 1u, t,
+    add_material_data(mat_factory, mat_id::e_rectangle2D_map, 1u, t,
                       tungsten<scalar>());
 
     // Pass the parameters for 'gold'
@@ -106,7 +106,7 @@ TEST(detray_builders, material_map_factory) {
                             std::vector<scalar>{20.f, 16.f}});
     t = 3.f * unit<scalar>::mm;
     add_material_data(
-        mat_factory, mat_id::e_rectangle2_map, 2u, t,
+        mat_factory, mat_id::e_rectangle2D_map, 2u, t,
         {3.344f * unit<scalar>::mm, 101.6f * unit<scalar>::mm, 196.97f, 79,
          19.32f * unit<scalar>::g / (1.f * unit<scalar>::cm3),
          material_state::e_solid});

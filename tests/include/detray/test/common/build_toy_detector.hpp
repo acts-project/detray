@@ -385,22 +385,21 @@ std::shared_ptr<surface_factory_interface<detector_t>> decorate_material(
 
         // Add the complete configuration for the beampipe map generation
         cfg.beampipe_material_map().map_id =
-            static_cast<dindex>(material_id::e_concentric_cylinder2_map);
-        material_map_config.set_map_config(mask_id::e_portal_cylinder2,
+            static_cast<dindex>(material_id::e_concentric_cylinder2D_map);
+        material_map_config.set_map_config(mask_id::e_concentric_cylinder2D,
                                            surface_id::e_passive,
                                            cfg.beampipe_material_map());
 
         // Add the complete configuration for disc map generation
         cfg.disc_material_map().map_id =
-            static_cast<dindex>(material_id::e_disc2_map);
-        material_map_config.set_map_config(mask_id::e_portal_ring2,
-                                           surface_id::e_portal,
-                                           cfg.disc_material_map());
+            static_cast<dindex>(material_id::e_ring2D_map);
+        material_map_config.set_map_config(
+            mask_id::e_ring2D, surface_id::e_portal, cfg.disc_material_map());
 
         // Add the complete configuration for cylinder map generation
         cfg.cyl_material_map().map_id =
-            static_cast<dindex>(material_id::e_concentric_cylinder2_map);
-        material_map_config.set_map_config(mask_id::e_portal_cylinder2,
+            static_cast<dindex>(material_id::e_concentric_cylinder2D_map);
+        material_map_config.set_map_config(mask_id::e_concentric_cylinder2D,
                                            surface_id::e_portal,
                                            cfg.cyl_material_map());
 
@@ -518,7 +517,7 @@ inline void add_cylinder_grid(
     using detector_t = typename detector_builder_t::detector_type;
     using scalar_t = dscalar<typename detector_t::algebra_type>;
 
-    constexpr auto grid_id = detector_t::accel::id::e_cylinder2_grid;
+    constexpr auto grid_id = detector_t::accel::id::e_surface_cylinder2D_grid;
     using cyl_grid_t = types::get<typename detector_t::accel, grid_id>;
 
     using grid_builder_t =
@@ -554,7 +553,7 @@ inline void add_disc_grid(
     using detector_t = typename detector_builder_t::detector_type;
     using scalar_t = dscalar<typename detector_t::algebra_type>;
 
-    constexpr auto grid_id = detector_t::accel::id::e_disc_grid;
+    constexpr auto grid_id = detector_t::accel::id::e_surface_ring2D_grid;
     using disc_grid_t = types::get<typename detector_t::accel, grid_id>;
 
     using grid_builder_t =

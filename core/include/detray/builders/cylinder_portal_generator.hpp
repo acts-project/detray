@@ -305,14 +305,14 @@ class cylinder_portal_generator final
 
         // Add transform and mask data
         transforms.emplace_back(ctx, tsl);
-        masks.template emplace_back<mask_id::e_portal_cylinder2>(
+        masks.template emplace_back<mask_id::e_concentric_cylinder2D>(
             empty_context{}, vol_link, r, min_z, max_z);
 
         // Add surface links
         mask_link_t mask_link{};
         const auto mask_idx{static_cast<dindex>(
-            masks.template size<mask_id::e_portal_cylinder2>() - 1u)};
-        set_mask_link(mask_link, mask_id::e_portal_cylinder2, mask_idx);
+            masks.template size<mask_id::e_concentric_cylinder2D>() - 1u)};
+        set_mask_link(mask_link, mask_id::e_concentric_cylinder2D, mask_idx);
 
         material_link_t material_link{material_id::e_none, dindex_invalid};
 
@@ -341,14 +341,14 @@ class cylinder_portal_generator final
 
         // Add transform and mask data
         transforms.emplace_back(ctx, tsl);
-        masks.template emplace_back<mask_id::e_portal_ring2>(
-            empty_context{}, vol_link, min_r, max_r);
+        masks.template emplace_back<mask_id::e_ring2D>(empty_context{},
+                                                       vol_link, min_r, max_r);
 
         // Add surface links
         mask_link_t mask_link{};
-        const auto mask_idx{static_cast<dindex>(
-            masks.template size<mask_id::e_portal_ring2>() - 1u)};
-        set_mask_link(mask_link, mask_id::e_portal_ring2, mask_idx);
+        const auto mask_idx{
+            static_cast<dindex>(masks.template size<mask_id::e_ring2D>() - 1u)};
+        set_mask_link(mask_link, mask_id::e_ring2D, mask_idx);
 
         material_link_t material_link{material_id::e_none, dindex_invalid};
 

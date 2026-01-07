@@ -47,8 +47,7 @@ GTEST_TEST(detray_builders, surface_factory) {
     // check portal cylinder
     //
     using portal_cylinder_factory =
-        surface_factory<detector_t,
-                        typename metadata_t::cylinder_portal::shape>;
+        surface_factory<detector_t, concentric_cylinder2D>;
 
     auto pt_cyl_factory = std::make_shared<portal_cylinder_factory>();
 
