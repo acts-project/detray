@@ -37,3 +37,9 @@
 #else
 #define DETRAY_INLINE
 #endif
+
+#if defined(DETRAY_INTERNAL_USE_NO_UNIQUE_ADDRESS_ANNOTATION)
+#define DETRAY_NO_UNIQUE_ADDRESS [[no_unique_address]]
+#else
+#define DETRAY_NO_UNIQUE_ADDRESS
+#endif

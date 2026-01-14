@@ -123,7 +123,7 @@ class actor_chain {
     }
 
     /// Tuple of actors
-    [[no_unique_address]] actor_tuple m_actors = {};
+    DETRAY_NO_UNIQUE_ADDRESS actor_tuple m_actors = {};
 };
 
 /// Empty actor chain (placeholder)
@@ -166,7 +166,7 @@ class actor_chain<> {
     }
 
     private:
-    [[no_unique_address]] actor_tuple m_actors = {};
+    DETRAY_NO_UNIQUE_ADDRESS actor_tuple m_actors = {};
 };
 
 }  // namespace detray

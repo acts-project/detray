@@ -132,7 +132,7 @@ class composite_actor final : public principal_actor_t {
     }
 
     /// Keep the observers (might be composites again)
-    [[no_unique_address]] dtuple<observers...> m_observers = {};
+    DETRAY_NO_UNIQUE_ADDRESS dtuple<observers...> m_observers = {};
 };
 
 }  // namespace detray
