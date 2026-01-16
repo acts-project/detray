@@ -139,6 +139,21 @@ GTEST_TEST(detray_utils, mapped_type_registry) {
         types::id<mapped_registry_t, trapezoid_t> == mask_id::e_trapezoid2,
         "ID for type trapezoid intersector incorrect");
 
+    static_assert(
+        types::id<mapped_registry_t, cyl_intersector_t> == mask_id::e_cylinder2,
+        "ID for type cylinder intersector incorrect");
+    static_assert(types::id<mapped_registry_t, rect_intersector_t> ==
+                      mask_id::e_rectangle2,
+                  "ID for type rectangle intersector incorrect");
+    static_assert(types::id<mapped_registry_t, ring_intersector_t> ==
+                      mask_id::e_portal_ring2,
+                  "ID for type ring intersector incorrect");
+    // From the point of view of the mapped registry, this is the same as for
+    // the rectangle shape
+    static_assert(types::id<mapped_registry_t, trpz_intersector_t> ==
+                      mask_id::e_rectangle2,
+                  "ID for type trapezoid intersector incorrect");
+
     // contains
     static_assert(types::contains<mapped_registry_t, cyl_intersector_t>,
                   "'contains' failed for cylinder intersector type");

@@ -9,6 +9,7 @@
 #include "detray/geometry/coordinates/polar2D.hpp"
 
 #include "detray/definitions/units.hpp"
+#include "detray/geometry/concepts.hpp"
 
 // Detray test include(s)
 #include "detray/test/framework/types.hpp"
@@ -39,6 +40,9 @@ GTEST_TEST(detray_coordinates, polar2D) {
     const vector3 d = vector::normalize(mom);
 
     const polar2D<test_algebra> p2;
+
+    static_assert(concepts::coordinate_frame<polar2D<test_algebra>>);
+    static_assert(concepts::planar_frame<polar2D<test_algebra>>);
 
     // Global to local transformation
     const point3 local = p2.global_to_local_3D(trf, global1, d);

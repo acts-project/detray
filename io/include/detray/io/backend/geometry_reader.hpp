@@ -66,6 +66,16 @@ class geometry_reader {
         using sf_factory_ptr_t =
             std::shared_ptr<surface_factory_interface<detector_t>>;
 
+        // Map the io::shape_id in the payload to the shape types known by
+        // the detector under construction
+        using shape_registry_t =
+            io::detail::filtered_shape_registry<detector_t>;
+        static_assert(
+            (!types::contains<shape_registry_t, io::detail::unknown_type> &&
+             types::size<shape_registry_t> > 0) ||
+            (types::contains<shape_registry_t, io::detail::unknown_type> &&
+             types::size<shape_registry_t> > 1));
+
         DETRAY_DEBUG_HOST("Have " << det_data.volumes.size()
                                   << " input volumes");
 
@@ -109,6 +119,13 @@ class geometry_reader {
                                   ? io_shape_id::portal_cylinder2
                                   : mask_data.front().shape};
 
+                if (shape_id == io_shape_id::unknown) {
+                    std::string err_str{
+                        "Unknown mask shape id in geometry file!"};
+                    DETRAY_FATAL_HOST(err_str);
+                    throw std::invalid_argument(err_str);
+                }
+
                 // Check if a fitting factory already exists. If not, add it
                 // dynamically
                 const auto key{shape_id};
@@ -117,8 +134,7 @@ class geometry_reader {
                     DETRAY_DEBUG_HOST(
                         "Creating new surface factory for shape id: " << key);
                     factories[key] = std::move(
-                        init_factory<io_shape_id::n_shapes, detector_t>(
-                            shape_id));
+                        init_factory<shape_registry_t, detector_t>(shape_id));
                 }
 
                 DETRAY_DEBUG_HOST("-> Surface #" << sf_idx << " is "
@@ -239,38 +255,28 @@ class geometry_reader {
     }
 
     private:
-    /// Determines the surface shape from the id @param shape_id in the payload
-    /// and its type @param sf_type.
+    /// Determines the surface shape type from the IO id @param shape_id in the
+    /// payload
     ///
     /// @return the corresponding surface factory.
-    template <io_shape_id I, typename detector_t>
+    template <typename shape_registry_t, typename detector_t,
+              std::size_t I = 0u>
     static std::shared_ptr<surface_factory_interface<detector_t>> init_factory(
         const io_shape_id shape_id) {
 
-        /// Gets compile-time mask information
-        using mask_info_t = detray::io::detail::mask_info<I, detector_t>;
-        // Get the corresponding mask shape type
-        using shape_t = typename mask_info_t::type;
+        // Get the next mask shape type
+        using shape_t = types::at<shape_registry_t, I>;
 
-        // Shape index of surface data found
-        if (shape_id == I) {
-            // Test whether this shape exists in detector
-            if constexpr (!std::is_same_v<shape_t, void>) {
+        // Test whether this shape exists in detector
+        if constexpr (!std::is_same_v<shape_t, io::detail::unknown_type>) {
+            // Shape index of surface data found
+            if (shape_id == types::id<io::shape_registry, shape_t>) {
                 return std::make_shared<surface_factory<detector_t, shape_t>>();
             }
         }
         // Test next shape id
-        if constexpr (constexpr int current_id{static_cast<int>(I)};
-                      current_id > 0) {
-            return init_factory<static_cast<io_shape_id>(current_id - 1),
-                                detector_t>(shape_id);
-        }
-        // Test some edge cases
-        if (shape_id == io_shape_id::unknown) {
-            std::string err_str{"Unknown mask shape id in geometry file!"};
-
-            DETRAY_FATAL_HOST(err_str);
-            throw std::invalid_argument(err_str);
+        if constexpr (I < types::size<shape_registry_t> - 1u) {
+            return init_factory<shape_registry_t, detector_t, I + 1>(shape_id);
         } else {
             std::string err_str{
                 "Given shape id could not be matched to a mask type: " +

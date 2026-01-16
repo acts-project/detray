@@ -9,6 +9,7 @@
 #include "detray/geometry/shapes/single3D.hpp"
 
 #include "detray/definitions/units.hpp"
+#include "detray/geometry/concepts.hpp"
 #include "detray/geometry/mask.hpp"
 
 // Detray test include(s)
@@ -27,6 +28,8 @@ constexpr scalar tol{1e-7f};
 
 /// This tests the basic functionality of a single value mask (index 0)
 GTEST_TEST(detray_masks, single3_0) {
+
+    static_assert(concepts::shape<single3D<>, test_algebra>);
 
     point3 p3_in = {0.5f, -9.f, 0.f};
     point3 p3_edge = {1.f, 9.3f, 2.f};
@@ -66,6 +69,8 @@ GTEST_TEST(detray_masks, single3_0) {
 /// This tests the basic functionality of a single value mask (index 1)
 GTEST_TEST(detray_masks, single3_1) {
 
+    static_assert(concepts::shape<single3D<1>, test_algebra>);
+
     point3 p3_in = {0.5f, -9.f, 0.f};
     point3 p3_edge = {1.f, 9.3f, 2.f};
     point3 p3_out = {1.5f, -9.8f, 8.f};
@@ -103,6 +108,8 @@ GTEST_TEST(detray_masks, single3_1) {
 
 /// This tests the basic functionality of a single value mask (index 2)
 GTEST_TEST(detray_masks, single3_2) {
+
+    static_assert(concepts::shape<single3D<2>, test_algebra>);
 
     point3 p3_in = {0.5f, -9.f, 0.f};
     point3 p3_edge = {1.f, 9.3f, 2.f};

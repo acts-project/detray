@@ -11,7 +11,7 @@
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/indexing.hpp"
-#include "detray/materials/detail/concepts.hpp"
+#include "detray/materials/concepts.hpp"
 #include "detray/materials/detail/material_accessor.hpp"
 #include "detray/materials/material.hpp"
 #include "detray/navigation/accelerators/search_window.hpp"

@@ -9,6 +9,7 @@
 #include "detray/geometry/coordinates/line2D.hpp"
 
 #include "detray/definitions/units.hpp"
+#include "detray/geometry/concepts.hpp"
 
 // Detray test include(s)
 #include "detray/test/framework/types.hpp"
@@ -42,6 +43,9 @@ GTEST_TEST(detray_coordinates, line2D_case1) {
 
     const line2D<test_algebra> l2;
 
+    static_assert(concepts::coordinate_frame<line2D<test_algebra>>);
+    static_assert(concepts::line_frame<line2D<test_algebra>>);
+
     // Global to local transformation
     const point3 local = l2.global_to_local_3D(trf, global1, d);
 
@@ -71,12 +75,16 @@ GTEST_TEST(detray_coordinates, line2D_case2) {
     x = vector::normalize(x);
     const point3 t = {0.f, 0.f, 0.f};
     const transform3 trf(t, z, x);
-    const line2D<test_algebra> l2;
     const point2 local1 = {1.f, 2.f};
     const vector3 mom = {1.f, 6.f, -2.f};
     const vector3 d = vector::normalize(mom);
     struct dummy_mask {
     } mask;
+
+    const line2D<test_algebra> l2;
+
+    static_assert(concepts::coordinate_frame<line2D<test_algebra>>);
+    static_assert(concepts::line_frame<line2D<test_algebra>>);
 
     // local to global transformation
     const point3 global = l2.local_to_global(trf, mask, local1, d);

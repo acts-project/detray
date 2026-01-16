@@ -35,9 +35,13 @@
 /// In this example detector design, volumes do not contain other volumes, so
 /// the volume lookup is done using a uniform grid.
 /// Furthermore, the detector will contain homogeneous material on its surfaces.
-namespace detray {
-
-namespace tutorial {
+///
+/// If the new square shape should participate in the file IO, then the type and
+/// a corresponding enum entry have to be added to the
+/// detray/io/frontend/definitions.hpp header. Preferrably appended to the end
+/// of the existing structures, so that the written ids in existing files stay
+/// valid
+namespace detray::tutorial {
 
 /// Defines a detector that contains squares, trapezoids and a bounding portal
 /// box.
@@ -229,48 +233,4 @@ struct my_metadata {
                     grid_collection<volume_accelerator<container_t>>>;
 };
 
-}  // namespace tutorial
-
-namespace detail {
-
-/// If the new square shape should participate in the file IO, then detray
-/// needs a specialization of the @c mask_info trait, in order to be
-/// able to match the gloabl IO id for the new square shape to the static
-/// detector mask store that is defined in the metadata above.
-/// Of course, the IO id for the square has to be added to the global
-/// @c mask_shape enum, too. These mask_shape IDs are global to all detectors
-/// and shared with ACTS.
-///
-/// Please change the following lines in
-/// 'detray/io/common/detail/definitions.hpp':
-///
-/// enum class mask_shape : unsigned int {
-///    annulus2 = 0u,
-///    ...
-///    square2 = 9u,  //< new shape
-///    n_shapes = 10u //< The total number of known shapes needs to be raised
-///  };
-///
-/// In order to write the square shape to file:
-/// 'detray/io/common/geometery_writer.hpp'
-/// ...
-/// } else if (name == "square2D") {
-///     mask_data.shape = shape_id::square2;
-/// } else {
-///
-
-/// During the IO, check for a 2D square shape
-/*template <typename detector_t>
-struct mask_info<io::shape_id::square2, detector_t>
-    requires detector_t::masks::template is_defined<
-                                      detray::tutorial::square>()> {
-    using type = detray::tutorial::square::shape;
-    // This mask id is defined in the metadat down below and determines the
-    // position of the collection of square in the detector mask tuple (store)
-    static constexpr
-        typename detector_t::masks::id value{detector_t::masks::id::e_square2};
-};*/
-
-}  // namespace detail
-
-}  // namespace detray
+}  // namespace detray::tutorial

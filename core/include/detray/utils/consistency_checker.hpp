@@ -10,7 +10,7 @@
 // Project include(s)
 #include "detray/geometry/surface.hpp"
 #include "detray/geometry/tracking_volume.hpp"
-#include "detray/materials/detail/concepts.hpp"
+#include "detray/materials/concepts.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/utils/log.hpp"
 #include "detray/utils/ranges.hpp"
