@@ -22,9 +22,10 @@
 #endif
 
 // Algebra-plugins include(s)
-#include "algebra/utils/approximately_equal.hpp"
-#include "algebra/utils/casts.hpp"
-#include "algebra/utils/print.hpp"
+#include "detray/algebra/concepts.hpp"
+#include "detray/algebra/utils/approximately_equal.hpp"
+#include "detray/algebra/utils/casts.hpp"
+#include "detray/algebra/utils/print.hpp"
 
 namespace detray {
 
@@ -66,11 +67,5 @@ namespace detail {
 using namespace ::algebra::boolean;
 
 }  // namespace detail
-
-namespace concepts {
-
-using namespace algebra::concepts;
-
-}  // namespace concepts
 
 }  // namespace detray
