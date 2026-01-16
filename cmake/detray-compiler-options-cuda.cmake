@@ -19,13 +19,6 @@ if(PROJECT_IS_TOP_LEVEL)
         detray_add_flag( CMAKE_CUDA_FLAGS "-Xcompiler /Zc:__cplusplus" )
     endif()
 
-    # Set the CUDA architecture to build code for.
-    set(CMAKE_CUDA_ARCHITECTURES
-        "52"
-        CACHE STRING
-        "CUDA architectures to build device code for"
-    )
-
     if("${CMAKE_CUDA_COMPILER_ID}" MATCHES "NVIDIA")
         # Allow to use functions in device code that are constexpr, even if they are
         # not marked with __device__.
