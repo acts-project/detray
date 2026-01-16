@@ -33,7 +33,7 @@ enum class mask_ids : unsigned int {
 
 /// Define material types
 enum class material_ids : unsigned int {
-    e_slab = 0u,
+    e_material_slab = 0u,
 };
 
 constexpr scalar tol{std::numeric_limits<scalar>::epsilon()};

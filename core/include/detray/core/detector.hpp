@@ -232,7 +232,7 @@ class detector {
         // TODO: Add volume accelerator builder
         volume_type v_desc{};
         v_desc.template set_accel_link<geo_obj_ids::e_volume>(
-            accel::id::e_default_volume_searcher, 0u);
+            accel::id::e_volume_default, 0u);
         tracking_volume world{*this, v_desc};
 
         dindex volume_index{0u};
@@ -248,7 +248,8 @@ class detector {
     DETRAY_HOST_DEVICE
     inline const auto &portals() const {
         // All portals are registered with the brute force search
-        return _accelerators.template get<accel::id::e_brute_force>().all();
+        return _accelerators.template get<accel::id::e_surface_brute_force>()
+            .all();
     }
 
     /// @returns the sub-volumes of the detector - const access

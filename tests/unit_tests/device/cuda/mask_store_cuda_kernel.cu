@@ -26,11 +26,11 @@ __global__ void mask_test_kernel(
     vecmem::device_vector<point3> input_point3(input_point3_data);
     vecmem::jagged_device_vector<int> output_device(output_data);
 
-    const auto& rectangle_mask = store.get<mask_ids::e_rectangle2>()[0];
-    const auto& trapezoid_mask = store.get<mask_ids::e_trapezoid2>()[0];
-    const auto& ring_mask = store.get<mask_ids::e_ring2>()[0];
-    const auto& cylinder_mask = store.get<mask_ids::e_cylinder2>()[0];
-    const auto& annulus_mask = store.get<mask_ids::e_annulus2>()[0];
+    const auto& rectangle_mask = store.get<mask_ids::e_rectangle2D>()[0];
+    const auto& trapezoid_mask = store.get<mask_ids::e_trapezoid2D>()[0];
+    const auto& ring_mask = store.get<mask_ids::e_ring2D>()[0];
+    const auto& cylinder_mask = store.get<mask_ids::e_cylinder2D>()[0];
+    const auto& annulus_mask = store.get<mask_ids::e_annulus2D>()[0];
 
     // get device results from is_inside function
     for (int i = 0; i < n_points; i++) {

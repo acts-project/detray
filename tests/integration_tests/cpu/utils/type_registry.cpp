@@ -67,10 +67,10 @@ GTEST_TEST(detray_utils, mapped_type_registry) {
     EXPECT_EQ(idx_array[2u], 1u);
     EXPECT_EQ(idx_array[3u], 2u);
 
-    using rectangle_t = types::get<mask_types, mask_id::e_rectangle2>;
-    using trapezoid_t = types::get<mask_types, mask_id::e_trapezoid2>;
-    using cylinder_t = types::get<mask_types, mask_id::e_cylinder2>;
-    using disc_t = types::get<mask_types, mask_id::e_portal_ring2>;
+    using rectangle_t = types::get<mask_types, mask_id::e_rectangle2D>;
+    using trapezoid_t = types::get<mask_types, mask_id::e_trapezoid2D>;
+    using cylinder_t = types::get<mask_types, mask_id::e_cylinder2D>;
+    using disc_t = types::get<mask_types, mask_id::e_ring2D>;
 
     static_assert(types::position<mapped_registry_t, rectangle_t> == 0u);
     static_assert(types::position<mapped_registry_t, trapezoid_t> == 0u);
@@ -78,13 +78,12 @@ GTEST_TEST(detray_utils, mapped_type_registry) {
     static_assert(types::position<mapped_registry_t, disc_t> == 2u);
 
     using cyl_intersector_t =
-        types::get<mapped_registry_t, mask_id::e_cylinder2>;
+        types::get<mapped_registry_t, mask_id::e_cylinder2D>;
     using rect_intersector_t =
-        types::get<mapped_registry_t, mask_id::e_rectangle2>;
-    using ring_intersector_t =
-        types::get<mapped_registry_t, mask_id::e_portal_ring2>;
+        types::get<mapped_registry_t, mask_id::e_rectangle2D>;
+    using ring_intersector_t = types::get<mapped_registry_t, mask_id::e_ring2D>;
     using trpz_intersector_t =
-        types::get<mapped_registry_t, mask_id::e_trapezoid2>;
+        types::get<mapped_registry_t, mask_id::e_trapezoid2D>;
 
     types::print<types::list<cyl_intersector_t>>();
     std::cout << std::endl;
@@ -127,16 +126,15 @@ GTEST_TEST(detray_utils, mapped_type_registry) {
 
     // Get ID from the original types
     static_assert(
-        types::id<mapped_registry_t, cylinder_t> == mask_id::e_cylinder2,
+        types::id<mapped_registry_t, cylinder_t> == mask_id::e_cylinder2D,
         "ID for type cylinder intersector incorrect");
     static_assert(
-        types::id<mapped_registry_t, rectangle_t> == mask_id::e_rectangle2,
+        types::id<mapped_registry_t, rectangle_t> == mask_id::e_rectangle2D,
         "ID for type rectangle intersector incorrect");
+    static_assert(types::id<mapped_registry_t, disc_t> == mask_id::e_ring2D,
+                  "ID for type ring intersector incorrect");
     static_assert(
-        types::id<mapped_registry_t, disc_t> == mask_id::e_portal_ring2,
-        "ID for type ring intersector incorrect");
-    static_assert(
-        types::id<mapped_registry_t, trapezoid_t> == mask_id::e_trapezoid2,
+        types::id<mapped_registry_t, trapezoid_t> == mask_id::e_trapezoid2D,
         "ID for type trapezoid intersector incorrect");
 
     // contains
@@ -155,31 +153,31 @@ GTEST_TEST(detray_utils, mapped_type_registry) {
                   "'contains' failed for 'void' type");
 
     // Is valid
-    static_assert(mapped_registry_t::is_valid(mask_id::e_cylinder2),
+    static_assert(mapped_registry_t::is_valid(mask_id::e_cylinder2D),
                   "ID for cylinder intersector invalid");
-    static_assert(mapped_registry_t::is_valid(mask_id::e_rectangle2),
+    static_assert(mapped_registry_t::is_valid(mask_id::e_rectangle2D),
                   "ID for rectangle intersector invalid");
-    static_assert(mapped_registry_t::is_valid(mask_id::e_portal_ring2),
+    static_assert(mapped_registry_t::is_valid(mask_id::e_ring2D),
                   "ID for ring intersector invalid");
-    static_assert(mapped_registry_t::is_valid(mask_id::e_trapezoid2),
+    static_assert(mapped_registry_t::is_valid(mask_id::e_trapezoid2D),
                   "ID for trapezoid intersector invalid");
     assert(!mapped_registry_t::is_valid(5u) && "ID '5' not invalid");
 
     // Get type
     static_assert(
         std::same_as<cyl_intersector_t,
-                     types::get<mapped_registry_t, mask_id::e_cylinder2>>,
-        "Got incorrect type for 'e_cylinder2'");
+                     types::get<mapped_registry_t, mask_id::e_cylinder2D>>,
+        "Got incorrect type for 'e_cylinder2D'");
     static_assert(
         std::same_as<rect_intersector_t,
-                     types::get<mapped_registry_t, mask_id::e_rectangle2>>,
-        "Got incorrect type for 'e_rectangle2'");
+                     types::get<mapped_registry_t, mask_id::e_rectangle2D>>,
+        "Got incorrect type for 'e_rectangle2D'");
     static_assert(
         std::same_as<ring_intersector_t,
-                     types::get<mapped_registry_t, mask_id::e_portal_ring2>>,
-        "Got incorrect type for 'e_portal_ring2'");
+                     types::get<mapped_registry_t, mask_id::e_ring2D>>,
+        "Got incorrect type for 'e_ring2D'");
     static_assert(
         std::same_as<trpz_intersector_t,
-                     types::get<mapped_registry_t, mask_id::e_trapezoid2>>,
-        "Got incorrect type for 'e_trapezoid2'");
+                     types::get<mapped_registry_t, mask_id::e_trapezoid2D>>,
+        "Got incorrect type for 'e_trapezoid2D'");
 }

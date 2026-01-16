@@ -54,19 +54,18 @@ __global__ void detector_test_kernel(
     // copy objects - masks
     auto& masks = det_device.mask_store();
     auto& rectangles =
-        masks.template get<detector_host_t::masks::id::e_rectangle2>();
+        masks.template get<detector_host_t::masks::id::e_rectangle2D>();
     for (unsigned int i = 0u; i < rectangles.size(); i++) {
         rectangles_device[i] = rectangles[i];
     }
 
-    auto& discs =
-        masks.template get<detector_host_t::masks::id::e_portal_ring2>();
+    auto& discs = masks.template get<detector_host_t::masks::id::e_ring2D>();
     for (unsigned int i = 0u; i < discs.size(); i++) {
         discs_device[i] = discs[i];
     }
 
-    auto& cylinders =
-        masks.template get<detector_host_t::masks::id::e_portal_cylinder2>();
+    auto& cylinders = masks.template get<
+        detector_host_t::masks::id::e_concentric_cylinder2D>();
     for (unsigned int i = 0u; i < cylinders.size(); i++) {
         cylinders_device[i] = cylinders[i];
     }

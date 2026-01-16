@@ -98,8 +98,9 @@ class homogeneous_material_reader {
 
                 DETRAY_DEBUG_HOST("-> Surface link is: " << sf_link);
 
-                mat_factory->add_material(
-                    mat_id::e_slab, from_payload<scalar_t>(slab_data), sf_link);
+                mat_factory->add_material(mat_id::e_material_slab,
+                                          from_payload<scalar_t>(slab_data),
+                                          sf_link);
             }
             if constexpr (detray::concepts::has_material_rods<detector_t>) {
                 DETRAY_DEBUG_HOST(
@@ -116,8 +117,8 @@ class homogeneous_material_reader {
                                 : detray::detail::invalid_value<std::size_t>()};
 
                         mat_factory->add_material(
-                            mat_id::e_rod, from_payload<scalar_t>(rod_data),
-                            sf_link);
+                            mat_id::e_material_rod,
+                            from_payload<scalar_t>(rod_data), sf_link);
                     }
                 } else {
                     DETRAY_DEBUG_HOST(

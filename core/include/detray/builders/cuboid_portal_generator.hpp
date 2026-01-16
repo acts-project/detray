@@ -116,7 +116,7 @@ class cuboid_portal_generator final
         auto surfaces_offset{static_cast<dindex>(n_surfaces)};
 
         // Fetch the position in the mask tuple for the rectangle portals
-        constexpr auto rectangle_id{detector_t::masks::id::e_portal_rectangle2};
+        constexpr auto rectangle_id{detector_t::masks::id::e_rectangle2D};
 
         // The material will be added in a later step
         constexpr auto no_material = surface_t::material_id::e_none;

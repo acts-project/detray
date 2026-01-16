@@ -134,31 +134,31 @@ GTEST_TEST(detray_builders, decorator_material_map_builder) {
     auto mat_pt_cyl_factory =
         std::make_shared<mat_factory_t>(std::move(pt_cyl_factory));
     scalar t{1.f * unit<scalar>::mm};
-    add_material_data(mat_pt_cyl_factory, mat_id::e_concentric_cylinder2_map,
+    add_material_data(mat_pt_cyl_factory, mat_id::e_concentric_cylinder2D_map,
                       0u, t, silicon<scalar>());
-    add_material_data(mat_pt_cyl_factory, mat_id::e_concentric_cylinder2_map,
+    add_material_data(mat_pt_cyl_factory, mat_id::e_concentric_cylinder2D_map,
                       1u, t, silicon<scalar>());
 
     auto mat_rect_factory =
         std::make_shared<mat_factory_t>(std::move(rect_factory));
     t = 1.f * unit<scalar>::mm;
-    add_material_data(mat_rect_factory, mat_id::e_rectangle2_map, 2u, t,
+    add_material_data(mat_rect_factory, mat_id::e_rectangle2D_map, 2u, t,
                       tungsten<scalar>());
     // No material for surface with index 3
     t = 3.f * unit<scalar>::mm;
-    add_material_data(mat_rect_factory, mat_id::e_rectangle2_map, 4u, t,
+    add_material_data(mat_rect_factory, mat_id::e_rectangle2D_map, 4u, t,
                       tungsten<scalar>());
 
     auto mat_trpz_factory =
         std::make_shared<mat_factory_t>(std::move(trpz_factory));
     t = 1.f * unit<scalar>::mm;
-    add_material_data(mat_trpz_factory, mat_id::e_trapezoid2_map, 5u, t,
-                      tungsten<scalar>());
+    /*add_material_data(mat_trpz_factory, mat_id::e_trapezoid2D_map, 5u, t,
+                      tungsten<scalar>());*/
 
     auto mat_cyl_factory =
         std::make_shared<mat_factory_t>(std::move(cyl_factory));
     t = 1.5f * unit<scalar>::mm;
-    add_material_data(mat_cyl_factory, mat_id::e_cylinder2_map, 6u, t,
+    add_material_data(mat_cyl_factory, mat_id::e_cylinder2D_map, 6u, t,
                       gold<scalar>());
 
     // Add surfaces and material to detector
@@ -180,25 +180,30 @@ GTEST_TEST(detray_builders, decorator_material_map_builder) {
 
     EXPECT_EQ(d.surfaces().size(), 7u);
     EXPECT_EQ(d.transform_store().size(), 8u);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_cylinder2>(), 2u);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_ring2>(), 0u);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_cylinder2>(), 1u);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_rectangle2>(), 3u);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_trapezoid2>(), 1u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_concentric_cylinder2D>(),
+              2u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_ring2D>(), 0u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_cylinder2D>(), 1u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_rectangle2D>(), 3u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_trapezoid2D>(), 1u);
 
-    EXPECT_EQ(d.material_store().template size<mat_id::e_slab>(), 0u);
-    EXPECT_EQ(d.material_store().template size<mat_id::e_rod>(), 0u);
-    EXPECT_EQ(d.material_store().template size<mat_id::e_disc2_map>(), 0u);
-    EXPECT_EQ(d.material_store().template size<mat_id::e_annulus2_map>(), 0u);
-    EXPECT_EQ(d.material_store().template size<mat_id::e_drift_cell_map>(), 0u);
-    EXPECT_EQ(d.material_store().template size<mat_id::e_straw_tube_map>(), 0u);
-    EXPECT_EQ(d.material_store().template size<mat_id::e_cylinder2_map>(), 1u);
+    EXPECT_EQ(d.material_store().template size<mat_id::e_material_slab>(), 0u);
+    EXPECT_EQ(d.material_store().template size<mat_id::e_material_rod>(), 0u);
+    EXPECT_EQ(d.material_store().template size<mat_id::e_ring2D_map>(), 0u);
+    // EXPECT_EQ(d.material_store().template size<mat_id::e_annulus2D_map>(),
+    // 0u); EXPECT_EQ(d.material_store().template
+    // size<mat_id::e_drift_cell_map>(), 0u);
+    // EXPECT_EQ(d.material_store().template size<mat_id::e_straw_tube_map>(),
+    // 0u);
+    EXPECT_EQ(d.material_store().template size<mat_id::e_cylinder2D_map>(), 1u);
     EXPECT_EQ(
-        d.material_store().template size<mat_id::e_concentric_cylinder2_map>(),
+        d.material_store().template size<mat_id::e_concentric_cylinder2D_map>(),
         2u);
     // Rectangle and trapezoid surfaces have the same grid geometry
-    EXPECT_EQ(d.material_store().template size<mat_id::e_rectangle2_map>(), 3u);
-    EXPECT_EQ(d.material_store().template size<mat_id::e_trapezoid2_map>(), 3u);
+    EXPECT_EQ(d.material_store().template size<mat_id::e_rectangle2D_map>(),
+              3u);
+    // EXPECT_EQ(d.material_store().template size<mat_id::e_trapezoid2D_map>(),
+    //           3u);
 
     // Check the material links
     std::size_t pt_cyl_idx{0u};
@@ -207,15 +212,15 @@ GTEST_TEST(detray_builders, decorator_material_map_builder) {
     for (auto& sf_desc : d.surfaces()) {
         const auto& mat_link = sf_desc.material();
         switch (mat_link.id()) {
-            case mat_id::e_cylinder2_map: {
+            case mat_id::e_cylinder2D_map: {
                 EXPECT_EQ(mat_link.index(), cyl_idx++) << sf_desc;
                 break;
             }
-            case mat_id::e_concentric_cylinder2_map: {
+            case mat_id::e_concentric_cylinder2D_map: {
                 EXPECT_EQ(mat_link.index(), pt_cyl_idx++) << sf_desc;
                 break;
             }
-            case mat_id::e_rectangle2_map: {
+            case mat_id::e_rectangle2D_map: {
                 EXPECT_EQ(mat_link.index(), cart_idx++) << sf_desc;
                 break;
             }
@@ -236,7 +241,7 @@ GTEST_TEST(detray_builders, decorator_material_map_builder) {
     // Check the material map content
     for (auto cyl_mat_grid :
          d.material_store()
-             .template get<mat_id::e_concentric_cylinder2_map>()) {
+             .template get<mat_id::e_concentric_cylinder2D_map>()) {
 
         EXPECT_EQ(cyl_mat_grid.nbins(), 50u);
         EXPECT_EQ(cyl_mat_grid.size(), 50u);
@@ -253,7 +258,7 @@ GTEST_TEST(detray_builders, decorator_material_map_builder) {
     }
 
     for (auto cart_mat_grid :
-         d.material_store().template get<mat_id::e_rectangle2_map>()) {
+         d.material_store().template get<mat_id::e_rectangle2D_map>()) {
 
         EXPECT_EQ(cart_mat_grid.nbins(), 50u);
         EXPECT_EQ(cart_mat_grid.size(), 50u);

@@ -71,7 +71,7 @@ class square_surface_generator final
         using material_link_t = typename surface_t::material_link;
 
         // Position in the detector mask tuple for square surface masks
-        constexpr auto mask_id{detector_t::masks::id::e_square2};
+        constexpr auto mask_id{detector_t::masks::id::e_square2D};
         // The material will be added in a later step
         constexpr auto no_material = surface_t::material_id::e_none;
         // In case the surfaces container is prefilled with other surfaces

@@ -89,7 +89,7 @@ DETRAY_HOST_DEVICE inline std::size_t n_material_maps(const detector_t& det) {
 template <typename detector_t>
 DETRAY_HOST_DEVICE inline std::size_t n_material_slabs(const detector_t& det) {
     if constexpr (detray::concepts::has_material_slabs<detector_t>) {
-        constexpr auto slab_id{detector_t::materials::id::e_slab};
+        constexpr auto slab_id{detector_t::materials::id::e_material_slab};
         return det.material_store().template size<slab_id>();
     } else {
         return 0u;
@@ -100,7 +100,7 @@ DETRAY_HOST_DEVICE inline std::size_t n_material_slabs(const detector_t& det) {
 template <typename detector_t>
 DETRAY_HOST_DEVICE inline std::size_t n_material_rods(const detector_t& det) {
     if constexpr (detray::concepts::has_material_rods<detector_t>) {
-        constexpr auto rod_id{detector_t::materials::id::e_rod};
+        constexpr auto rod_id{detector_t::materials::id::e_material_rod};
         return det.material_store().template size<rod_id>();
     } else {
         return 0u;

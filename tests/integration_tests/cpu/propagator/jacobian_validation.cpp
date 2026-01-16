@@ -341,7 +341,7 @@ std::pair<euler_rotation<test_algebra>, std::array<scalar, 3u>> tilt_surface(
     // Helix direction
     euler.z = helix_dir;
 
-    if constexpr (mask_id == detector_t::masks::id::e_rectangle2) {
+    if constexpr (mask_id == detector_t::masks::id::e_rectangle2D) {
         // ubasis = trf.x() for bound frame
         euler.x = trf.x();
     } else if (mask_id == detector_t::masks::id::e_drift_cell) {
@@ -1675,11 +1675,11 @@ int main(int argc, char** argv) {
             build_telescope_detector<test_algebra>(host_mr, rectangle_cfg);
         const auto [euler_rect_initial, shift_rect_initial] =
             tilt_surface<decltype(rect_det),
-                         decltype(rect_det)::masks::id::e_rectangle2>(
+                         decltype(rect_det)::masks::id::e_rectangle2D>(
                 rect_det, 0u, helix_bz.dir(0.f), alphaI, 0.f, 0.f);
         const auto [euler_rect_final, shift_rect_final] =
             tilt_surface<decltype(rect_det),
-                         decltype(rect_det)::masks::id::e_rectangle2>(
+                         decltype(rect_det)::masks::id::e_rectangle2D>(
                 rect_det, 1u, helix_bz.dir(detector_length), alphaF, betaF,
                 gammaF);
 
@@ -1689,11 +1689,11 @@ int main(int argc, char** argv) {
             build_telescope_detector<test_algebra>(host_mr, rectangle_cfg);
         [[maybe_unused]] const auto [euler_rect_initial2, shift_rect_initial2] =
             tilt_surface<decltype(rect_det_w_mat),
-                         decltype(rect_det_w_mat)::masks::id::e_rectangle2>(
+                         decltype(rect_det_w_mat)::masks::id::e_rectangle2D>(
                 rect_det_w_mat, 0u, helix_bz.dir(0.f), alphaI, 0.f, 0.f);
         [[maybe_unused]] const auto [euler_rect_final2, shift_rect_final2] =
             tilt_surface<decltype(rect_det_w_mat),
-                         decltype(rect_det_w_mat)::masks::id::e_rectangle2>(
+                         decltype(rect_det_w_mat)::masks::id::e_rectangle2D>(
                 rect_det_w_mat, 1u, helix_bz.dir(detector_length), alphaF,
                 betaF, gammaF);
 
@@ -1799,7 +1799,7 @@ int main(int argc, char** argv) {
         // Get initial parameter
         const auto rect_bparam =
             get_initial_parameter<decltype(rect_det),
-                                  decltype(rect_det)::masks::id::e_rectangle2>(
+                                  decltype(rect_det)::masks::id::e_rectangle2D>(
                 rect_det, track, B_z, helix_tol);
 
         if (!skip_rect) {
@@ -1836,7 +1836,7 @@ int main(int argc, char** argv) {
                 // For helix
                 evaluate_jacobian_difference_helix<
                     decltype(rect_det),
-                    decltype(rect_det)::masks::id::e_rectangle2>(
+                    decltype(rect_det)::masks::id::e_rectangle2D>(
                     track_count, euler_angles_I, euler_angles_F, rect_det,
                     detector_length, rect_bparam, B_z, h_sizes_rect,
                     helix_rect_file, helix_tol);

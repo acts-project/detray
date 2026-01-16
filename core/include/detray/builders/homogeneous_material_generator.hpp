@@ -198,20 +198,21 @@ class homogeneous_material_generator final
                     is_line = true;
 
                     auto &mat_coll =
-                        materials.template get<material_id::e_rod>();
+                        materials.template get<material_id::e_material_rod>();
                     mat_coll.emplace_back(*mat_ptr, m_cfg.thickness());
 
-                    mat_link = {material_id::e_rod,
+                    mat_link = {material_id::e_material_rod,
                                 static_cast<dindex>(mat_coll.size() - 1u)};
                 }
             }
 
             // For all surfaces that are not lines, generate a material slab
             if (!is_line) {
-                auto &mat_coll = materials.template get<material_id::e_slab>();
+                auto &mat_coll =
+                    materials.template get<material_id::e_material_slab>();
                 mat_coll.emplace_back(*mat_ptr, m_cfg.thickness());
 
-                mat_link = {material_id::e_slab,
+                mat_link = {material_id::e_material_slab,
                             static_cast<dindex>(mat_coll.size() - 1u)};
             }
 

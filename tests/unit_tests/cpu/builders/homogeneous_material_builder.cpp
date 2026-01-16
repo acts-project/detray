@@ -59,8 +59,10 @@ TEST(detray_builders, homogeneous_material_factory) {
     vecmem::host_memory_resource host_mr;
     detector_t d(host_mr);
 
-    EXPECT_TRUE(d.material_store().template empty<material_id::e_slab>());
-    EXPECT_TRUE(d.material_store().template empty<material_id::e_rod>());
+    EXPECT_TRUE(
+        d.material_store().template empty<material_id::e_material_slab>());
+    EXPECT_TRUE(
+        d.material_store().template empty<material_id::e_material_rod>());
 
     EXPECT_EQ(mat_factory->size(), 0u);
     EXPECT_TRUE(mat_factory->materials().empty());
@@ -70,19 +72,19 @@ TEST(detray_builders, homogeneous_material_factory) {
     mat_factory->push_back({surface_id::e_sensitive,
                             transform3(point3{0.f, 0.f, -1.f}), 1u,
                             std::vector<scalar>{10.f, 8.f}});
-    mat_factory->add_material(material_id::e_slab,
+    mat_factory->add_material(material_id::e_material_slab,
                               {1.f * unit<scalar>::mm, silicon<scalar>()});
     mat_factory->push_back({surface_id::e_sensitive,
                             transform3(point3{0.f, 0.f, 1.f}), 1u,
                             std::vector<scalar>{20.f, 16.f}});
-    mat_factory->add_material(material_id::e_slab,
+    mat_factory->add_material(material_id::e_material_slab,
                               {10.f * unit<scalar>::mm, tungsten<scalar>()});
     // Pass the parameters for 'gold'
     mat_factory->push_back({surface_id::e_sensitive,
                             transform3(point3{0.f, 0.f, 1.f}), 1u,
                             std::vector<scalar>{20.f, 16.f}});
     mat_factory->add_material(
-        material_id::e_rod,
+        material_id::e_material_rod,
         {0.1f * unit<scalar>::mm,
          std::vector<scalar>{
              3.344f * unit<scalar>::mm, 101.6f * unit<scalar>::mm, 196.97f, 79,
