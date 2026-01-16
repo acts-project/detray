@@ -74,7 +74,7 @@ struct single_axis {
 
     /// Defines the geometrical bounds of the axis as a service:
     /// open, closed or circular
-    [[no_unique_address]] bounds_type m_bounds{};
+    DETRAY_NO_UNIQUE_ADDRESS bounds_type m_bounds{};
     /// Defines the binning on the axis as a service: regular vs irregular
     binning_type m_binning{};
 

@@ -648,7 +648,7 @@ class base_state : public detray::ranges::view_interface<
     nav_link_t m_volume_index{0u};
 
     /// The inspector type of this navigation engine
-    [[no_unique_address]] inspector_t m_inspector;
+    DETRAY_NO_UNIQUE_ADDRESS inspector_t m_inspector;
 };
 
 }  // namespace detray::navigation

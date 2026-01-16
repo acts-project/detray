@@ -260,13 +260,13 @@ class base_stepper {
         scalar_type m_abs_path_length{0.f};
 
         /// Step size constraints (optional)
-        [[no_unique_address]] constraint_t m_constraint = {};
+        DETRAY_NO_UNIQUE_ADDRESS constraint_t m_constraint = {};
 
         /// Navigation policy state
-        [[no_unique_address]] typename policy_t::state m_policy_state = {};
+        DETRAY_NO_UNIQUE_ADDRESS typename policy_t::state m_policy_state = {};
 
         /// The inspector type of the stepping (for debugging only)
-        [[no_unique_address]] inspector_type m_inspector;
+        DETRAY_NO_UNIQUE_ADDRESS inspector_type m_inspector;
     };
 };
 
