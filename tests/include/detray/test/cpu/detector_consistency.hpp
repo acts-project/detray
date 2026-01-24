@@ -10,7 +10,7 @@
 // Project include(s)
 #include "detray/navigation/volume_graph.hpp"
 #include "detray/utils/consistency_checker.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 
 // Detray test include(s)
 #include "detray/test/framework/fixture_base.hpp"

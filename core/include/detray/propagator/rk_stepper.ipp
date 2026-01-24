@@ -11,7 +11,7 @@
 #include "detray/materials/interaction.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/propagator/rk_stepper.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 #include "detray/utils/matrix_helper.hpp"
 
 template <typename magnetic_field_t, detray::concepts::algebra algebra_t,

@@ -8,7 +8,7 @@
 // Project include(s)
 #include "detray/core/detector.hpp"
 #include "detray/navigation/volume_graph.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 
 // Detray IO inlcude(s)
 #include "detray/io/frontend/detector_reader.hpp"

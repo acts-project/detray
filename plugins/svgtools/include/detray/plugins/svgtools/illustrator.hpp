@@ -26,7 +26,7 @@
 #include "detray/plugins/svgtools/meta/proto/eta_lines.hpp"
 #include "detray/plugins/svgtools/styling/styling.hpp"
 #include "detray/plugins/svgtools/utils/groups.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 #include "detray/utils/ranges.hpp"
 
 // Actsvg include(s)

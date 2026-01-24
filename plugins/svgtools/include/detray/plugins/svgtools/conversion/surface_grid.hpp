@@ -14,7 +14,7 @@
 #include "detray/definitions/units.hpp"
 #include "detray/navigation/concepts.hpp"
 #include "detray/utils/grid/detail/concepts.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 
 // Plugin include(s)
 #include "detray/plugins/svgtools/conversion/grid.hpp"

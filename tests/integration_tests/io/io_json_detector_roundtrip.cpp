@@ -8,7 +8,7 @@
 // Project include(s)
 #include "detray/definitions/algebra.hpp"
 #include "detray/utils/consistency_checker.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 
 // Detray IO include(s)
 #include "detray/io/backend/geometry_reader.hpp"

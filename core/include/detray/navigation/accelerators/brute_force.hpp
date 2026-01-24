@@ -15,7 +15,7 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/navigation/accelerators/search_window.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 #include "detray/utils/ranges.hpp"
 
 // VecMem include(s).

@@ -22,7 +22,7 @@
 #include "detray/navigation/intersection/ray_intersector.hpp"
 #include "detray/navigation/navigation_config.hpp"
 #include "detray/utils/invalid_values.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 #include "detray/utils/ranges.hpp"
 
 namespace detray::navigation {

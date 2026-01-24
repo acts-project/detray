@@ -17,7 +17,7 @@
 #include "detray/propagator/base_actor.hpp"
 #include "detray/tracks/bound_track_parameters.hpp"
 #include "detray/utils/geometry_utils.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 
 namespace detray {
 

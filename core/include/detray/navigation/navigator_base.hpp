@@ -19,7 +19,7 @@
 #include "detray/navigation/intersection/ray_intersector.hpp"
 #include "detray/navigation/navigation_config.hpp"
 #include "detray/navigation/navigation_state.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 
 namespace detray {
 

@@ -9,7 +9,7 @@
 
 // Project include(s)
 #include "detray/io/utils/create_path.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 
 // System include(s)
 #include <cassert>

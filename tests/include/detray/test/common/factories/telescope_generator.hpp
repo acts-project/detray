@@ -17,7 +17,7 @@
 #include "detray/geometry/shapes/rectangle2D.hpp"
 #include "detray/tracks/ray.hpp"
 #include "detray/utils/axis_rotation.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 #include "detray/utils/unit_vectors.hpp"
 
 // System include(s)

@@ -7,7 +7,7 @@
  */
 
 // Make sure the logging macros are available
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 
 // Allow to temporarily disable macro based logging.
 // Note: Has to be followed up by an include of "quiet_log_end"!

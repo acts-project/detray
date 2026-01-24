@@ -13,7 +13,7 @@
 #include "detray/io/frontend/detector_reader_config.hpp"
 #include "detray/io/frontend/impl/json_readers.hpp"
 #include "detray/utils/consistency_checker.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 #include "detray/utils/print_detector.hpp"
 
 // System include(s)

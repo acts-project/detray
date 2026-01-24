@@ -11,7 +11,7 @@
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/propagator/base_actor.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 
 // Vecmem include(s)
 #include <vecmem/containers/device_vector.hpp>

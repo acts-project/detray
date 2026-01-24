@@ -20,7 +20,7 @@
 #include "detray/materials/material_slab.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/utils/grid/detail/axis.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 #include "detray/utils/ranges.hpp"
 
 // System include(s)

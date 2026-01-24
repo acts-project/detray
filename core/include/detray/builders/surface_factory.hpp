@@ -16,7 +16,7 @@
 #include "detray/geometry/shapes/unmasked.hpp"
 #include "detray/materials/material_rod.hpp"
 #include "detray/materials/material_slab.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 #include "detray/utils/ranges.hpp"
 #include "detray/utils/type_registry.hpp"
 

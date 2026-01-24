@@ -16,7 +16,7 @@
 #include "detray/propagator/detail/jacobian_engine.hpp"
 #include "detray/propagator/detail/noise_estimation.hpp"
 #include "detray/propagator/propagation_config.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 
 namespace detray {
 

@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 
 // Boost
 #include "detray/options/boost_program_options.hpp"

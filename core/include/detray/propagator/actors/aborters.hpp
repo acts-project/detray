@@ -12,7 +12,7 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/base_stepper.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 
 // System include(s)
 #include <limits>

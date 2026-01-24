@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 #include "detray/utils/ranges.hpp"
 
 // Detray plugin include(s)

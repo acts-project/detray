@@ -20,7 +20,7 @@
 #include "detray/propagator/stepping_config.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/curvilinear_frame.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 
 namespace detray {
 

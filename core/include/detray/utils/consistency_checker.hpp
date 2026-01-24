@@ -12,7 +12,7 @@
 #include "detray/geometry/tracking_volume.hpp"
 #include "detray/materials/concepts.hpp"
 #include "detray/materials/predefined_materials.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 #include "detray/utils/ranges.hpp"
 #include "detray/utils/type_registry.hpp"
 

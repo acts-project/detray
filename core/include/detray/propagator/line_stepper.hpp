@@ -13,7 +13,7 @@
 #include "detray/definitions/math.hpp"
 #include "detray/navigation/policies.hpp"
 #include "detray/propagator/base_stepper.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 
 namespace detray {
 

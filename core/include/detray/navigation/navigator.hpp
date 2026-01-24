@@ -18,7 +18,7 @@
 #include "detray/navigation/navigation_config.hpp"
 #include "detray/navigation/navigation_state.hpp"
 #include "detray/navigation/navigator_base.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 
 namespace detray {
 

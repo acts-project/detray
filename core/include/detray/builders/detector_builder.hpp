@@ -13,7 +13,7 @@
 #include "detray/core/concepts.hpp"
 #include "detray/core/detector.hpp"
 #include "detray/utils/detector_statistics.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>

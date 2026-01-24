@@ -17,7 +17,7 @@
 #include "detray/propagator/detail/noise_estimation.hpp"
 #include "detray/propagator/propagation_config.hpp"
 #include "detray/tracks/tracks.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 
 // System include(s).
 #include <iomanip>

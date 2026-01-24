@@ -10,7 +10,7 @@
 // Project include(s)
 #include "detray/navigation/volume_graph.hpp"
 #include "detray/tracks/ray.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 
 // Detray IO inlcude(s)
 #include "detray/io/utils/create_path.hpp"

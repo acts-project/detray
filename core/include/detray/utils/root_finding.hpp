@@ -16,7 +16,7 @@
 #include "detray/navigation/intersection/intersection.hpp"
 #include "detray/navigation/intersection/intersection_config.hpp"
 #include "detray/utils/invalid_values.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 
 // System include(s).
 #include <algorithm>

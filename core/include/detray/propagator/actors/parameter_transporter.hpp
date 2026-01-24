@@ -17,7 +17,7 @@
 #include "detray/geometry/tracking_surface.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/detail/jacobian_engine.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 #include "detray/utils/type_registry.hpp"
 
 namespace detray {

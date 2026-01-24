@@ -19,7 +19,7 @@
 #include "detray/geometry/surface_descriptor.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
 #include "detray/tracks/ray.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 
 // Detray benchmark include(s)
 #include "detray/benchmarks/types.hpp"

@@ -9,7 +9,7 @@
 #include "detray/core/detector.hpp"
 #include "detray/io/frontend/detector_reader.hpp"
 #include "detray/navigation/volume_graph.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 
 // Example linear algebra plugin: std::array
 #include "detray/tutorial/types.hpp"

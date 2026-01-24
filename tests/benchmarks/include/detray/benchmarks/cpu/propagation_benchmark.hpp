@@ -10,7 +10,7 @@
 // Project include(s)
 #include "detray/definitions/algebra.hpp"
 #include "detray/tracks/tracks.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 
 // Detray benchmark include(s)
 #include "detray/benchmarks/benchmark_base.hpp"

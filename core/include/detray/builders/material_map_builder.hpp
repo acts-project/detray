@@ -139,8 +139,8 @@ class material_map_builder final : public volume_decorator<detector_t> {
                 continue;
             }
 
-            // DETRAY_DEBUG_HOST("-> surface #" << sf_idx
-            //                                 << " sf_desc = " << sf_desc);
+            DETRAY_DEBUG_HOST("-> surface #" << sf_idx
+                                             << " sf_desc = " << sf_desc);
 
             // Construct and append the material map for a given surface shape
             darray<std::vector<scalar_type>, DIM> axis_spans{};

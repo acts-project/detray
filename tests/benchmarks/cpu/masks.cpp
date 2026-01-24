@@ -15,7 +15,7 @@
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 
 // Detray benchmark include(s)
 #include "detray/benchmarks/types.hpp"

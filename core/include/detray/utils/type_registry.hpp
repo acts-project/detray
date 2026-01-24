@@ -12,7 +12,7 @@
 #include "detray/definitions/indexing.hpp"
 #include "detray/utils/concepts.hpp"
 #include "detray/utils/invalid_values.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 #include "detray/utils/type_list.hpp"
 
 // System include(s)
