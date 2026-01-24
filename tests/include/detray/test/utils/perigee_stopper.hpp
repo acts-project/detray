@@ -27,7 +27,7 @@ namespace detray {
 /// @Note Currently only works with step constraints (will be changed in the
 /// future)
 template <concepts::algebra algebra_t>
-struct perigee_stopper : actor {
+struct perigee_stopper : public base_actor {
 
     using scalar_t = dscalar<algebra_t>;
 

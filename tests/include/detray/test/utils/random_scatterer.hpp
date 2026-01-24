@@ -32,7 +32,7 @@
 namespace detray {
 
 template <concepts::algebra algebra_t>
-struct random_scatterer : actor {
+struct random_scatterer : public base_actor {
 
     using scalar_type = dscalar<algebra_t>;
     using vector3_type = dvector3D<algebra_t>;

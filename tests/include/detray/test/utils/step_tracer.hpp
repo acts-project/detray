@@ -39,7 +39,7 @@ struct step_data {
 
 /// Collect information at every step
 template <concepts::algebra algebra_t, template <typename...> class vector_t>
-struct step_tracer : actor {
+struct step_tracer : public base_actor {
 
     using step_data_t = detail::step_data<algebra_t>;
 

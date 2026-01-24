@@ -377,7 +377,7 @@ std::pair<euler_rotation<test_algebra>, std::array<scalar, 3u>> tilt_surface(
 }
 
 template <concepts::algebra algebra_t>
-struct bound_getter : actor {
+struct bound_getter : public base_actor {
 
     // Track types
     using bound_track_parameters_type = bound_track_parameters<algebra_t>;

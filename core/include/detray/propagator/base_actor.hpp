@@ -1,11 +1,14 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2025 CERN for the benefit of the ACTS project
+ * (c) 2022-2026 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
 #pragma once
+
+// Project include(s)
+#include "detray/definitions/actor.hpp"
 
 // System include(s)
 #include <type_traits>
@@ -13,12 +16,28 @@
 namespace detray {
 
 /// Base class actor implementation
-struct actor {
+struct base_actor {
     /// Tag whether this is a composite type
     struct is_comp_actor : public std::false_type {};
 
     /// Defines the actors state. Hidden by actor implementations.
     struct state {};
 };
+
+namespace actor {
+
+/// Result of the principal actor to be passed to the obsevers
+struct result {
+    actor::status status{actor::status::e_unknown};
+
+    /// @returns a string stream that prints the transporter result details
+    DETRAY_HOST
+    friend std::ostream &operator<<(std::ostream &os, const result &res) {
+        os << "status: " << res.status << std::endl;
+        return os;
+    }
+};
+
+}  // namespace actor
 
 }  // namespace detray

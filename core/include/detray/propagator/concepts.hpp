@@ -20,7 +20,7 @@ namespace detray::concepts {
 
 /// Concept for a simple actor
 template <typename A>
-concept actor = std::derived_from<A, detray::actor> &&
+concept actor = std::derived_from<A, detray::base_actor> &&
                 requires(const A a) { typename A::state; };
 
 /// Concept for an actor including observing actors

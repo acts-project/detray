@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2025 CERN for the benefit of the ACTS project
+ * (c) 2025-2026 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -26,10 +26,11 @@ struct get_state_tuple {
     using state_t = typename actor_t::state;
 
     // Remove empty default state of base actor type from tuple
-    using principal = std::conditional_t<std::same_as<state_t, actor::state>,
-                                         dtuple<>, dtuple<state_t>>;
+    using principal =
+        std::conditional_t<std::same_as<state_t, base_actor::state>, dtuple<>,
+                           dtuple<state_t>>;
     using principal_ref =
-        std::conditional_t<std::same_as<state_t, actor::state>, dtuple<>,
+        std::conditional_t<std::same_as<state_t, base_actor::state>, dtuple<>,
                            dtuple<state_t &>>;
 
     public:
