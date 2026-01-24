@@ -65,7 +65,7 @@ DETRAY_HOST_DEVICE inline void detray::rk_stepper<
                                       const material<scalar_type>*
                                           vol_mat_ptr) {
 
-    DETRAY_VERBOSE_HOST_DEVICE("Advance Jacobian");
+    DETRAY_VERBOSE_HOST_DEVICE("-> Advance Jacobian...");
 
     /// The calculations are based on ATL-SOFT-PUB-2009-002. The update of the
     /// Jacobian matrix is requires only the calculation of eq. 17 and 18.
@@ -382,8 +382,8 @@ DETRAY_HOST_DEVICE inline auto detray::rk_stepper<
 
     if (!vol_mat_ptr) {
         const scalar_type qop = track.qop();
-        DETRAY_DEBUG_HOST_DEVICE("-> qop: %f", qop);
-        DETRAY_DEBUG_HOST_DEVICE("-> dqopds: 0");
+        DETRAY_DEBUG_HOST_DEVICE("--> qop: %f", qop);
+        DETRAY_DEBUG_HOST_DEVICE("--> dqopds: 0");
 
         return detray::make_pair(scalar_type(0.f), qop);
     } else if (cfg.use_mean_loss && i != 0u) {
@@ -394,12 +394,12 @@ DETRAY_HOST_DEVICE inline auto detray::rk_stepper<
         // "For y  we  have  similar  formulae  as  for x, for y' and
         // \lambda similar  formulae as for  x'"
         const scalar_type qop = track.qop() + h * dqopds_prev;
-        DETRAY_DEBUG_HOST_DEVICE("-> qop: %f", qop);
+        DETRAY_DEBUG_HOST_DEVICE("--> qop: %f", qop);
 
         return detray::make_pair(this->dqopds(qop, vol_mat_ptr), qop);
     } else {
         const scalar_type qop = track.qop();
-        DETRAY_DEBUG_HOST_DEVICE("-> qop: %f", qop);
+        DETRAY_DEBUG_HOST_DEVICE("--> qop: %f", qop);
 
         return detray::make_pair(this->dqopds(qop, vol_mat_ptr), qop);
     }
@@ -427,7 +427,7 @@ DETRAY_HOST_DEVICE inline auto detray::rk_stepper<
 
     // dtds = qop * (t X B) from Lorentz force
     DETRAY_DEBUG_HOST(
-        "-> evaluate dtds: " << vector3_type{qop * vector::cross(t, b_field)});
+        "--> evaluate dtds: " << vector3_type{qop * vector::cross(t, b_field)});
 
     return detray::make_pair(vector3_type{qop * vector::cross(t, b_field)}, t);
 }
@@ -493,8 +493,8 @@ detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
         bvec[2u] = bvec_tmp[2u];
 
         DETRAY_DEBUG_HOST(
-            "-> dtds: " << (*this)().qop() *
-                               vector::cross((*this)().dir(), bvec));
+            "--> dtds: " << (*this)().qop() *
+                                vector::cross((*this)().dir(), bvec));
 
         return (*this)().qop() * vector::cross((*this)().dir(), bvec);
     }
@@ -548,7 +548,7 @@ DETRAY_HOST_DEVICE auto detray::rk_stepper<
     assert(p >= 0.f);
     assert(q != 0.f);
 
-    DETRAY_DEBUG_HOST_DEVICE("-> dqopds: %f",
+    DETRAY_DEBUG_HOST_DEVICE("--> dqopds: %f",
                              qop * qop * qop * E * stopping_power / (q * q));
 
     // d(qop)ds, which is equal to (qop) * E * (-dE/ds) / p^2
@@ -611,30 +611,30 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
                        stepping,
                    const detray::stepping::config& cfg, const bool do_reset,
                    const material<scalar_type>* vol_mat_ptr) const {
-    DETRAY_DEBUG_HOST("Before: " << stepping());
+    DETRAY_DEBUG_HOST("-> Before: " << stepping());
 
     // In case of an overlap do nothing
     if (math::fabs(dist_to_next) < 1.f * unit<float>::um) [[unlikely]] {
-        DETRAY_VERBOSE_HOST_DEVICE("Zero stepsize...");
+        DETRAY_VERBOSE_HOST_DEVICE("-> Zero stepsize...");
 
         // Don't allow a too small step size on next step
         if (math::fabs(stepping.next_step_size()) < cfg.min_stepsize) {
             stepping.set_next_step_size(math::copysign(
                 static_cast<scalar_type>(cfg.min_stepsize), dist_to_next));
         }
-        DETRAY_DEBUG_HOST_DEVICE("Setting next stepsize: %f mm",
+        DETRAY_DEBUG_HOST_DEVICE("--> Setting next stepsize: %f mm",
                                  stepping.next_step_size());
 
         stepping.run_inspector(cfg, "Step skipped (Overlap): ", dist_to_next);
 
-        DETRAY_DEBUG_HOST("After: " << stepping());
+        DETRAY_DEBUG_HOST("-> After: " << stepping());
         return true;
     }
 
     if (!(do_reset ||
           math::fabs(stepping.next_step_size()) >= cfg.min_stepsize)) {
-        DETRAY_INFO_HOST("Next stepsize: " << stepping.next_step_size() << ", "
-                                           << cfg.min_stepsize);
+        DETRAY_INFO_HOST("-> Next stepsize: " << stepping.next_step_size()
+                                              << ", " << cfg.min_stepsize);
     }
 
     // Check navigator and actor results
@@ -658,8 +658,9 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
             math::max(stepping.next_step_size(), dist_to_next));
     }
 
-    DETRAY_VERBOSE_HOST_DEVICE("Distance to nex: %f mm", dist_to_next);
-    DETRAY_VERBOSE_HOST_DEVICE("Initial stepsize: %f mm", stepping.step_size());
+    DETRAY_DEBUG_HOST_DEVICE("-> Distance to next: %f mm", dist_to_next);
+    DETRAY_DEBUG_HOST_DEVICE("-> Initial stepsize: %f mm",
+                             stepping.step_size());
 
     // Don't allow too small stepsizes, unless the navigation needs it
     const scalar_type min_stepsize{
@@ -678,8 +679,8 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
     sd.b_first[1] = bvec[1];
     sd.b_first[2] = bvec[2];
 
-    DETRAY_DEBUG_HOST_DEVICE("First stage:");
-    DETRAY_DEBUG_HOST_DEVICE("-> B-field: [%f, %f, %f]", bvec[0], bvec[1],
+    DETRAY_DEBUG_HOST_DEVICE("-> First stage:");
+    DETRAY_DEBUG_HOST_DEVICE("--> B-field: [%f, %f, %f]", bvec[0], bvec[1],
                              bvec[2]);
 
     // qop should be recalcuated at every point
@@ -708,8 +709,8 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
         sd.b_middle[0] = bvec[0];
         sd.b_middle[1] = bvec[1];
         sd.b_middle[2] = bvec[2];
-        DETRAY_DEBUG_HOST_DEVICE("Second stage:");
-        DETRAY_DEBUG_HOST_DEVICE("-> B-field: [%f, %f, %f]", bvec[0], bvec[1],
+        DETRAY_DEBUG_HOST_DEVICE("-> Second stage:");
+        DETRAY_DEBUG_HOST_DEVICE("--> B-field: [%f, %f, %f]", bvec[0], bvec[1],
                                  bvec[2]);
 
         detray::tie(sd.dqopds[1u], sd.qop[1u]) = stepping.evaluate_dqopds(
@@ -737,8 +738,8 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
         sd.b_last[1] = bvec[1];
         sd.b_last[2] = bvec[2];
 
-        DETRAY_DEBUG_HOST_DEVICE("Third stage:");
-        DETRAY_DEBUG_HOST_DEVICE("-> B-field: [%f, %f, %f]", bvec[0], bvec[1],
+        DETRAY_DEBUG_HOST_DEVICE("-> Third stage:");
+        DETRAY_DEBUG_HOST_DEVICE("--> B-field: [%f, %f, %f]", bvec[0], bvec[1],
                                  bvec[2]);
 
         detray::tie(sd.dqopds[3u], sd.qop[3u]) =
@@ -820,7 +821,7 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
             math::copysign(min_stepsize, stepping.step_size()));
     }
 
-    DETRAY_VERBOSE_HOST_DEVICE("Take step: %f mm", stepping.step_size());
+    DETRAY_VERBOSE_HOST_DEVICE("-> Take step: %f mm", stepping.step_size());
 
     // The step size estimation fot the next step
     stepping.set_next_step_size(stepping.step_size() *
@@ -833,7 +834,7 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
                            stepping.next_step_size()));
     }
 
-    DETRAY_DEBUG_HOST_DEVICE("Estimated next stepsize: %f mm",
+    DETRAY_DEBUG_HOST_DEVICE("-> Estimated next stepsize: %f mm",
                              stepping.next_step_size());
 
     assert(math::fabs(stepping.next_step_size()) >= cfg.min_stepsize);

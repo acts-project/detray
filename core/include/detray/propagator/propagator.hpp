@@ -215,6 +215,7 @@ struct propagator {
         }
 
         // Initialize the navigation
+        DETRAY_VERBOSE_HOST("Initialize navigation...");
         m_navigator.init(track, navigation, m_cfg.navigation, context);
         propagation._heartbeat = navigation.is_alive();
 
@@ -238,7 +239,7 @@ struct propagator {
 
             if (i % 2 == 0) {
                 DETRAY_VERBOSE_HOST_DEVICE("Propagation step: %d", i / 2);
-                DETRAY_VERBOSE_HOST_DEVICE("Path length: %f mm",
+                DETRAY_VERBOSE_HOST_DEVICE("-> Path length: %f mm",
                                            stepping.path_length());
 
                 // Run all registered actors/aborters
@@ -268,11 +269,13 @@ struct propagator {
                                           is_init};
 
                 // Take the step
+                DETRAY_VERBOSE_HOST("Calling stepper...");
                 propagation._heartbeat &=
                     m_stepper.step(navigation(), stepping, m_cfg.stepping,
                                    reset_stepsize, vol_mat_ptr);
 
                 // Reduce navigation trust level according to stepper update
+                DETRAY_VERBOSE_HOST("-> Evaluate stepper navigation policy:");
                 typename stepper_t::policy_type{}(stepping.policy_state(),
                                                   propagation);
 
@@ -297,7 +300,7 @@ struct propagator {
                         DETRAY_WARN_HOST(print(propagation));
                         DETRAY_WARN_HOST("-> Track: " << stepping());
                     }
-                    DETRAY_DEBUG_HOST_DEVICE("Step stalled. Counter %d",
+                    DETRAY_DEBUG_HOST_DEVICE("-> Step stalled. Counter %d",
                                              stall_counter);
                     stall_counter++;
                 } else {
@@ -306,6 +309,7 @@ struct propagator {
             }
 
             // Find next candidate
+            DETRAY_VERBOSE_HOST("Calling navigator...");
             is_init |= m_navigator.update(track, navigation, m_cfg.navigation,
                                           context);
 

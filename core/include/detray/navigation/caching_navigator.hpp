@@ -125,7 +125,8 @@ class caching_navigator
         /// Update navigation trust level to high trust
         DETRAY_HOST_DEVICE
         constexpr void set_high_trust() {
-            DETRAY_VERBOSE_HOST_DEVICE("Flagging \"high trust\"");
+            DETRAY_VERBOSE_HOST_DEVICE(
+                "Flagging re-navigation: \"high trust\"");
             this->trust_level(this->trust_level() <
                                       navigation::trust_level::e_high
                                   ? this->trust_level()
@@ -135,7 +136,8 @@ class caching_navigator
         /// Update navigation trust level to fair trust
         DETRAY_HOST_DEVICE
         constexpr void set_fair_trust() {
-            DETRAY_VERBOSE_HOST_DEVICE("Flagging \"fair trust\"");
+            DETRAY_VERBOSE_HOST_DEVICE(
+                "Flagging re-navigation: \"fair trust\"");
             this->trust_level(this->trust_level() <
                                       navigation::trust_level::e_fair
                                   ? this->trust_level()
@@ -265,11 +267,12 @@ class caching_navigator
             if (!navigation::update_candidate(
                     navigation.direction(), navigation.target(), track, det,
                     cfg.intersection, navigation.external_tol(), ctx)) {
+                DETRAY_VERBOSE_HOST_DEVICE(
+                    "-> Candidate not reachable! High trust broken:");
+
                 navigation.status(navigation::status::e_unknown);
                 // This will run into the fair trust case below.
                 navigation.set_fair_trust();
-
-                DETRAY_VERBOSE_HOST("High trust broken:\n" << navigation);
             } else {
                 // Update navigation flow on the new candidate information
                 navigation::update_status(navigation, cfg);
@@ -282,6 +285,16 @@ class caching_navigator
                 if (navigation.status() ==
                         navigation::status::e_towards_object ||
                     navigation.is_on_portal()) {
+                    if (navigation.status() ==
+                        navigation::status::e_towards_object) {
+                        DETRAY_VERBOSE_HOST_DEVICE(
+                            "-> Towards surface: %d",
+                            navigation.next_surface().index());
+                    } else {
+                        DETRAY_VERBOSE_HOST_DEVICE(
+                            "-> On portal: idx %d",
+                            navigation.current_surface().index());
+                    }
                     return !is_init;
                 }
                 // Else (if full trust): Track is on non-portal surface and
@@ -291,8 +304,14 @@ class caching_navigator
                     navigation::update_candidate(
                         navigation.direction(), navigation.target(), track, det,
                         cfg.intersection, navigation.external_tol(), ctx)) {
+                    DETRAY_VERBOSE_HOST_DEVICE(
+                        "-> On non-portal surface (idx %d) and next candidate "
+                        "in cache is reachable",
+                        navigation.current_surface().index());
                     return !is_init;
                 }
+                DETRAY_VERBOSE_HOST_DEVICE(
+                    "-> Next candidate no longer reachable: High trust broken");
 
                 // If next candidate is not reachable, don't 'return', but
                 // escalate the trust level.

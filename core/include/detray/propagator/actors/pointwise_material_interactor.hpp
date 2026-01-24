@@ -141,7 +141,7 @@ struct pointwise_material_interactor : actor {
         // Do material interaction when the track is on material surface
         if (navigation.encountered_sf_material()) {
 
-            DETRAY_VERBOSE_HOST_DEVICE("Resolve material effects:");
+            DETRAY_VERBOSE_HOST_DEVICE("Actor: Resolve material effects:");
 
             auto &stepping = prop_state._stepping;
 

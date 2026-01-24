@@ -106,8 +106,10 @@ struct parameter_transporter : actor {
               navigation.encountered_sf_material())) {
             return;
         }
-        DETRAY_VERBOSE_HOST_DEVICE(
-            "Transport track parameters to current surface");
+        // Furthermore, there is no need to transport the initial parameters
+        if (math::fabs(stepping.path_length()) == 0.f) {
+            return;
+        }
 
         // Geometry context for this track
         const auto& gctx = propagation._context;
@@ -118,9 +120,12 @@ struct parameter_transporter : actor {
         // Bound track params of departure surface
         auto& bound_params = stepping.bound_params();
 
+        DETRAY_VERBOSE_HOST_DEVICE(
+            "Actor: Transport track parameters to surface %d", sf.index());
+
         // Covariance is transported only when the previous surface is an
         // actual tracking surface. (i.e. This disables the covariance transport
-        // from curvilinear frame)
+        // from curvilinear frame).
         if (!bound_params.surface_link().is_invalid()) {
             const auto full_jacobian = get_full_jacobian(propagation);
             const bound_matrix_t old_cov = stepping.bound_params().covariance();

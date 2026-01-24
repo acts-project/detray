@@ -178,7 +178,12 @@ class spatial_grid_impl : public grid_t {
         // For 2-dimensional grids, project the track position along the track
         // direction to find the optimal grid bin
         if constexpr (base_grid::dim == 2) {
-            DETRAY_DEBUG_HOST("2D spatial grid: " << m_mask);
+            if constexpr (concepts::cylindrical<frame_t>) {
+                DETRAY_DEBUG_HOST("2D spatial grid: " << m_mask);
+            } else {
+                DETRAY_DEBUG_HOST(
+                    "2D spatial grid: " << DETRAY_TYPENAME(frame_t));
+            }
 
             // Tangential to the current track parameters
             const detray::detail::ray<algebra_t> tangential{track};

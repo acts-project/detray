@@ -52,6 +52,8 @@ struct candidate_search {
 
         const auto sf = detray::geometry::surface{det, sf_descr};
 
+        DETRAY_DEBUG_HOST("--> Testing surface:\n" << sf);
+
         // Tangential to the track direction
         detray::detail::ray<algebra_t> tangential{
             track.pos(),
@@ -102,6 +104,8 @@ DETRAY_HOST_DEVICE DETRAY_INLINE constexpr bool update_candidate(
     const typename detector_t::scalar_type external_mask_tolerance,
     const typename detector_t::geometry_context &ctx) {
 
+    DETRAY_VERBOSE_HOST_DEVICE("-> Updating target/candidate surface...");
+
     using algebra_t = typename detector_t::algebra_type;
     using scalar_t = dscalar<algebra_t>;
 
@@ -143,6 +147,8 @@ DETRAY_HOST_DEVICE DETRAY_INLINE constexpr bool has_reached_candidate(
 template <typename navigation_state_t>
 DETRAY_HOST_DEVICE DETRAY_INLINE constexpr void update_status(
     navigation_state_t &navigation, const navigation::config &cfg) {
+
+    DETRAY_VERBOSE_HOST_DEVICE("-> Updating navigation status...");
 
     // Check whether the track reached the current candidate. Might be a
     // portal, in which case the navigation needs to be re-initialized
@@ -190,7 +196,8 @@ DETRAY_HOST_DEVICE DETRAY_INLINE constexpr void local_navigation(
     const navigation::config &cfg, const context_t &ctx,
     const bool resolve_overstepping = true) {
 
-    DETRAY_VERBOSE_HOST_DEVICE("Called 'init()'");
+    DETRAY_VERBOSE_HOST_DEVICE("-> (Re-)initialize detector volume (idx: %d)",
+                               navigation.volume());
 
     // Do not resurrect a failed/finished navigation state
     assert(navigation.is_alive());
@@ -223,12 +230,14 @@ DETRAY_HOST_DEVICE DETRAY_INLINE constexpr void local_navigation(
         [[unlikely]] {
         // Do not exit if backward navigation starts on the outmost portal
         if (navigation.is_on_portal()) {
+            DETRAY_DEBUG_HOST_DEVICE(
+                "-> Adjust trust lvl for \"end-of-world\"...");
             navigation.trust_level(detray::detail::is_invalid_value(
                                        navigation.current().volume_link)
                                        ? navigation::trust_level::e_full
                                        : navigation::trust_level::e_no_trust);
         } else if (!navigation.is_on_portal()) {
-            DETRAY_VERBOSE_HOST_DEVICE("Unable to initialize state...");
+            DETRAY_VERBOSE_HOST_DEVICE("-> Unable to initialize state!");
         }
     }
 
@@ -258,7 +267,7 @@ DETRAY_HOST_DEVICE DETRAY_INLINE constexpr void volume_switch(
     // Navigation reached the end of the detector world
     if (detray::detail::is_invalid_value(navigation.current().volume_link))
         [[unlikely]] {
-        DETRAY_VERBOSE_HOST_DEVICE("Reached end of detector: ");
+        DETRAY_VERBOSE_HOST_DEVICE("Reached end of detector:");
         navigation.exit();
         return;
     }
@@ -270,11 +279,11 @@ DETRAY_HOST_DEVICE DETRAY_INLINE constexpr void volume_switch(
 
     // Initialize new volume. Still on portal: No need to observe overstepping
     local_navigation(track, navigation, cfg, ctx);
-    DETRAY_VERBOSE_HOST_DEVICE("Switched to volume %d", navigation.volume());
 
     // Fresh initialization, reset trust even though we are on [inner] portal
     navigation.trust_level(navigation::trust_level::e_full);
-    DETRAY_VERBOSE_HOST_DEVICE("Restored full trust");
+
+    DETRAY_VERBOSE_HOST_DEVICE("-> Switched to volume %d", navigation.volume());
 }
 
 /// @brief Initilaize the volume with loose configuration.

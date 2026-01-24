@@ -10,6 +10,7 @@
 // Project include(s).
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/definitions/navigation.hpp"
 #include "detray/definitions/track_parametrization.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/detail/jacobian_engine.hpp"
@@ -58,17 +59,25 @@ struct parameter_resetter : actor {
               navigation.encountered_sf_material())) {
             return;
         }
-        DETRAY_VERBOSE_HOST_DEVICE("Update the free track parameters");
 
-        // Update free params after bound params were changed by actors
-        const auto sf = navigation.current_surface();
         const auto& bound_params = stepping.bound_params();
-        stepping() =
-            sf.bound_to_free_vector(propagation._context, bound_params);
-        assert(!stepping().is_invalid());
 
-        // Reset jacobian transport to identity matrix
-        stepping.reset_transport_jacobian();
+        // If the navigation trust level has been reduced, the track parameters
+        // might have been updated. Otherwise do nothing before prop. starts
+        if (math::fabs(stepping.path_length()) > 0.f ||
+            navigation.trust_level() < navigation::trust_level::e_full) {
+            DETRAY_VERBOSE_HOST_DEVICE(
+                "Actor: Update the free track parameters");
+
+            // Update free params after bound params were changed by actors
+            const auto sf = navigation.current_surface();
+            stepping() =
+                sf.bound_to_free_vector(propagation._context, bound_params);
+            assert(!stepping().is_invalid());
+
+            // Reset jacobian transport to identity matrix
+            stepping.reset_transport_jacobian();
+        }
 
         // Track pos/dir is not known precisely: adjust navigation tolerances
         if (resetter_state.estimate_scattering_noise) {
