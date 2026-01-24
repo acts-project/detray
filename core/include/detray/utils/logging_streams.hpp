@@ -150,7 +150,7 @@ inline std::string_view process_typename() {
 
 #define DETRAY_LOG_PRINTF(lib, lvl, x, ...)                           \
     printf("%s %-7s (%s): %-29sl.%-5d" x "\n", lib, lvl, __BACKEND__, \
-           __FILENAME__, __LINE__ __VA_OPT__(, ) __VA_ARGS__);
+           __FILENAME__, __LINE__ __VA_OPT__(, ) __VA_ARGS__)
 
 #define DETRAY_LOG_PRINTF_STDOUT(lib, lvl, x, ...) \
     DETRAY_LOG_PRINTF(lib, lvl, x, __VA_ARGS__)
@@ -162,7 +162,7 @@ inline std::string_view process_typename() {
 
 #define DETRAY_LOG_PRINTF(stream, lib, lvl, x, ...)                            \
     fprintf(stream, "%s %-7s (%s): %-29sl.%-5d" x "\n", lib, lvl, __BACKEND__, \
-            __FILENAME__, __LINE__ __VA_OPT__(, ) __VA_ARGS__);
+            __FILENAME__, __LINE__ __VA_OPT__(, ) __VA_ARGS__)
 
 #define DETRAY_LOG_PRINTF_STDOUT(lib, lvl, x, ...) \
     DETRAY_LOG_PRINTF(stdout, lib, lvl, x, __VA_ARGS__)

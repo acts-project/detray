@@ -332,7 +332,7 @@ class multi_axis {
                                    vecmem::vector<dsized_index_range>>) {
 #if defined(__CUDACC__)
             // Otherwise, a warning is triggered with gcc 11.4 and nvcc 12.4
-            DETRAY_ERROR_DEVICE(
+            DETRAY_VERBOSE_DEVICE(
                 "The host container types must not be called in device code");
             assert(false);
             return {dsized_index_range{}, &bin_edges()};

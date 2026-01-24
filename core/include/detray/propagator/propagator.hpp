@@ -294,7 +294,9 @@ struct propagator {
                     } else if (stall_counter > 2u) {
                         // Print a warning if the propagation starts stalling
                         // (no overlap)
-                        DETRAY_WARN_HOST_DEVICE(
+                        DETRAY_WARN_HOST("Propagation is stalling (counter "
+                                         << stall_counter << ")");
+                        DETRAY_VERBOSE_DEVICE(
                             "Propagation is stalling (counter %d)",
                             stall_counter);
                         DETRAY_WARN_HOST(print(propagation));
