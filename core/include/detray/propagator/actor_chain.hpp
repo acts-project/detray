@@ -93,7 +93,7 @@ class actor_chain {
         if constexpr (!typename actor_t::is_comp_actor()) {
             // No actor state defined (empty)
             if constexpr (std::same_as<typename actor_t::state,
-                                       detray::actor::state>) {
+                                       detray::base_actor::state>) {
                 actr(p_state);
             } else {
                 actr(detail::get<typename actor_t::state &>(states), p_state);

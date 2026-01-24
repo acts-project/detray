@@ -19,7 +19,7 @@
 namespace detray {
 
 template <typename sf_descriptor_t>
-struct surface_sequencer : actor {
+struct surface_sequencer : public base_actor {
 
     struct state {
         using surface_type = sf_descriptor_t;

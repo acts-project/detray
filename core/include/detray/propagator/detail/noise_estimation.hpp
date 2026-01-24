@@ -93,14 +93,12 @@ DETRAY_HOST_DEVICE constexpr void estimate_external_mask_tolerance(
 
     DETRAY_DEBUG_HOST_DEVICE("-> accumulated noise: %f", accumulated_noise);
 
-    navigation.set_external_tol(math::sqrt(
+    const scalar_t ext_tol{math::sqrt(
         n_stddev * n_stddev * (var_loc0 + var_loc1) +
-        vector::dot(displ, displ) + accumulated_noise * accumulated_noise));
+        vector::dot(displ, displ) + accumulated_noise * accumulated_noise)};
 
     // Clip to 5mm if the covariances are very large
-    navigation.set_external_tol(navigation.external_tol() > max_tol
-                                    ? max_tol
-                                    : navigation.external_tol());
+    navigation.set_external_tol(ext_tol > max_tol ? max_tol : ext_tol);
 
     assert(std::isfinite(navigation.external_tol()));
 

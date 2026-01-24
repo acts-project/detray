@@ -21,7 +21,7 @@ namespace detray {
 
 /// Aborter that checks whether the track has exceeded its pathlimit
 template <concepts::scalar scalar_t>
-struct pathlimit_aborter : actor {
+struct pathlimit_aborter : public base_actor {
 
     /// Pathlimit for a single propagation workflow
     struct state {
@@ -77,7 +77,7 @@ struct pathlimit_aborter : actor {
 
 /// Aborter that checks whether the track fell below a minimum momentum
 template <concepts::scalar scalar_t>
-struct momentum_aborter : actor {
+struct momentum_aborter : public base_actor {
 
     struct state {
         /// @returns the momentum limit.
@@ -102,7 +102,7 @@ struct momentum_aborter : actor {
         scalar_t m_min_pT = 10.f * unit<scalar_t>::MeV;
     };
 
-    /// Enforces a minimum momentum magnitude
+    /// Actor interface: Enforces a minimum momentum magnitude
     ///
     /// @param abrt_state contains the momentum limit
     /// @param prop_state state of the propagation
@@ -143,7 +143,7 @@ struct momentum_aborter : actor {
 };
 
 /// Aborter checks whether a specific surface was reached
-struct target_aborter : actor {
+struct target_aborter : public base_actor {
 
     /// Keeps the index for the target surface
     struct state {

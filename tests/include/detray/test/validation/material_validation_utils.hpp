@@ -110,7 +110,7 @@ struct get_material_params {
 /// The material is scaled with either the slab thickness or pathlength through
 /// the material.
 template <concepts::scalar scalar_t, template <typename...> class vector_t>
-struct material_tracer : detray::actor {
+struct material_tracer : public detray::base_actor {
 
     using material_record_type = material_record<scalar_t>;
     using material_params_type = material_params<scalar_t>;
