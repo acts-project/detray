@@ -378,7 +378,9 @@ struct bound_track_parameters : public bound_parameters_vector<algebra_t> {
         return out_stream;
     }
 
+    /// Bound covaraicne matrix of the track parameters
     covariance_type m_covariance = matrix::zero<covariance_type>();
+    /// Identifier of the surface the track parameters are associated with
     geometry::barcode m_barcode{};
 };
 

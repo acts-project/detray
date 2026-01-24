@@ -485,7 +485,7 @@ TEST_P(LandauDistributionValidation, landau_distribution) {
     const scalar mass = ptc.mass();
 
     for (std::size_t i = 0u; i < n_samples; i++) {
-        const scalar new_p = random_scatterer<test_algebra>().attenuate(
+        const scalar new_p = actor::random_scatterer<test_algebra>().attenuate(
             mpv, sigma, mass, p, generator);
         ASSERT_TRUE(new_p < p);
 

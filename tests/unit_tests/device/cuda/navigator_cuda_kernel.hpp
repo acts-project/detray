@@ -50,9 +50,13 @@ constexpr scalar pos_diff_tolerance{1e-3f};
 template <typename navigation_t>
 struct prop_state {
     using context_t = typename navigation_t::detector_type::geometry_context;
-    stepper_t::state _stepping;
-    navigation_t _navigation;
-    context_t _context{};
+    stepper_t::state m_stepping;
+    navigation_t m_navigation;
+    context_t m_context{};
+
+    constexpr context_t& context() { return m_context; }
+    constexpr navigation_t& navigation() { return m_navigation; }
+    constexpr stepper_t::state& stepping() { return m_stepping; }
 };
 
 /// test function for navigator with single state

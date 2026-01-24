@@ -39,9 +39,13 @@ constexpr std::size_t cache_size{navigation::default_cache_size};
 template <typename stepping_t, typename navigation_t>
 struct prop_state {
     using context_t = typename navigation_t::detector_type::geometry_context;
-    stepping_t _stepping;
-    navigation_t _navigation;
-    context_t _context{};
+    stepping_t m_stepping;
+    navigation_t m_navigation;
+    context_t m_context{};
+
+    constexpr context_t &context() { return m_context; }
+    constexpr navigation_t &navigation() { return m_navigation; }
+    constexpr stepping_t &stepping() { return m_stepping; }
 };
 
 /// Checks for a correct 'towards_surface' state
@@ -99,8 +103,8 @@ inline void step_and_check(navigator_t &nav, stepper_t &stepper,
                            const context_t &ctx, dindex vol_id,
                            std::size_t n_candidates, dindex current_id,
                            dindex next_id) {
-    auto &navigation = propagation._navigation;
-    auto &stepping = propagation._stepping;
+    auto &navigation = propagation.navigation();
+    auto &stepping = propagation.stepping();
 
     // Step onto the surface in volume
     stepper.step(navigation(), stepping, step_cfg);
@@ -185,9 +189,9 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
 
     prop_state<stepper_t::state, navigator_t::state> propagation{
         stepper_t::state{traj}, navigator_t::state(toy_det)};
-    navigator_t::state &navigation = propagation._navigation;
-    stepper_t::state &stepping = propagation._stepping;
-    const auto &ctx = propagation._context;
+    navigator_t::state &navigation = propagation.navigation();
+    stepper_t::state &stepping = propagation.stepping();
+    const auto &ctx = propagation.context();
 
     // Check that the state is unitialized
     // Default volume is zero
@@ -294,8 +298,8 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
 
         // Test the copy constructor of the propagation state
         auto propagation_cpy{propagation};
-        navigator_t::state &navigation_cpy = propagation_cpy._navigation;
-        stepper_t::state &stepping_cpy = propagation_cpy._stepping;
+        navigator_t::state &navigation_cpy = propagation_cpy.navigation();
+        stepper_t::state &stepping_cpy = propagation_cpy.stepping();
 
         // We switched to next barrel volume
         check_volume_switch<navigator_t>(navigation_cpy, vol_id);
@@ -384,9 +388,9 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
 
     prop_state<stepper_t::state, navigator_t::state> propagation{
         stepper_t::state{traj}, navigator_t::state(wire_det)};
-    navigator_t::state &navigation = propagation._navigation;
-    stepper_t::state &stepping = propagation._stepping;
-    const auto &ctx = propagation._context;
+    navigator_t::state &navigation = propagation.navigation();
+    stepper_t::state &stepping = propagation.stepping();
+    const auto &ctx = propagation.context();
 
     // Check that the state is unitialized
     // Default volume is zero
@@ -475,8 +479,8 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
 
         // Test the copy constructor of the propagation state
         auto propagation_cpy{propagation};
-        navigator_t::state &navigation_cpy = propagation_cpy._navigation;
-        stepper_t::state &stepping_cpy = propagation_cpy._stepping;
+        navigator_t::state &navigation_cpy = propagation_cpy.navigation();
+        stepper_t::state &stepping_cpy = propagation_cpy.stepping();
 
         // We switched to next barrel volume
         check_volume_switch<navigator_t>(navigation_cpy, vol_id);

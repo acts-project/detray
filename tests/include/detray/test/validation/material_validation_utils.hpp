@@ -113,7 +113,7 @@ struct get_material_params {
 /// The material is scaled with either the slab thickness or pathlength through
 /// the material.
 template <concepts::scalar scalar_t, template <typename...> class vector_t>
-struct material_tracer : detray::actor {
+struct material_tracer : public detray::base_actor {
 
     using material_record_type = material_record<scalar_t>;
     using material_params_type = material_params<scalar_t>;
@@ -156,26 +156,42 @@ struct material_tracer : detray::actor {
         vector_t<material_params<scalar_t>> m_mat_steps{};
     };
 
+    /// Run as observer to the parameter transporter (covariance transport)
+    template <typename propagator_state_t, concepts::algebra algebra_t>
+    DETRAY_HOST_DEVICE void operator()(
+        state &tracer, const propagator_state_t &prop_state,
+        const detray::actor::parameter_transporter_result<algebra_t> &res)
+        const {
+
+        record_track_dir(tracer, prop_state);
+
+        // Only count material if navigator encountered it
+        const auto &navigation = prop_state.navigation();
+        if (!navigation.encountered_sf_material()) {
+            return;
+        }
+
+        // For now use default context
+        typename propagator_state_t::detector_type::geometry_context gctx{};
+
+        const auto &track_param = res.destination_params();
+        dpoint2D<algebra_t> loc_pos = track_param.bound_local();
+
+        record_mat_step(tracer, gctx, navigation.current_surface(), loc_pos,
+                        track_param.dir());
+    }
+
+    /// Run in a propagation chain without covariance transport
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE void operator()(
         state &tracer, const propagator_state_t &prop_state) const {
-
         using algebra_t =
             typename propagator_state_t::detector_type::algebra_type;
-        using vector3_t = dvector3D<algebra_t>;
-        using point2_t = dpoint2D<algebra_t>;
 
-        const auto &navigation = prop_state.navigation();
-
-        // Record the initial track direction
-        vector3_t glob_dir = prop_state.stepping()().dir();
-        if (detray::detail::is_invalid_value(tracer.m_mat_record.eta) &&
-            detray::detail::is_invalid_value(tracer.m_mat_record.phi)) {
-            tracer.m_mat_record.eta = vector::eta(glob_dir);
-            tracer.m_mat_record.phi = vector::phi(glob_dir);
-        }
+        record_track_dir(tracer, prop_state);
 
         // Only count material if navigator encountered it
+        const auto &navigation = prop_state.navigation();
         if (!navigation.encountered_sf_material()) {
             return;
         }
@@ -186,21 +202,39 @@ struct material_tracer : detray::actor {
         // Current surface
         const auto sf = navigation.current_surface();
 
-        // Track direction and bound position on current surface
-        point2_t loc_pos{};
+        const auto &track_param = prop_state.stepping()();
+        dvector3D<algebra_t> glob_dir = track_param.dir();
+        dpoint2D<algebra_t> loc_pos =
+            sf.global_to_bound(gctx, track_param.pos(), glob_dir);
 
-        // Get the local track position from the bound track parameters,
-        // if covariance transport is enabled in the propagation
-        if constexpr (detail::has_type_v<parameter_transporter<algebra_t>,
-                                         typename propagator_state_t::
-                                             actor_chain_type::actor_tuple>) {
-            const auto &track_param = prop_state.stepping().bound_params();
-            loc_pos = track_param.bound_local();
-        } else {
-            const auto &track_param = prop_state.stepping()();
-            glob_dir = track_param.dir();
-            loc_pos = sf.global_to_bound(gctx, track_param.pos(), glob_dir);
+        record_mat_step(tracer, gctx, sf, loc_pos, glob_dir);
+    }
+
+    private:
+    /// Record the track direction
+    template <typename propagator_state_t>
+    DETRAY_HOST_DEVICE inline auto record_track_dir(
+        state &tracer, const propagator_state_t &prop_state) const {
+        using algebra_t =
+            typename propagator_state_t::detector_type::algebra_type;
+        using vector3_t = dvector3D<algebra_t>;
+
+        // Record the initial track direction
+        vector3_t glob_dir = prop_state.stepping()().dir();
+        if (detray::detail::is_invalid_value(tracer.m_mat_record.eta) &&
+            detray::detail::is_invalid_value(tracer.m_mat_record.phi)) {
+            tracer.m_mat_record.eta = vector::eta(glob_dir);
+            tracer.m_mat_record.phi = vector::phi(glob_dir);
         }
+    }
+
+    /// Record the data for a material step
+    template <typename detector_t>
+    DETRAY_HOST_DEVICE inline auto record_mat_step(
+        state &tracer, const typename detector_t::geometry_context &gctx,
+        const tracking_surface<detector_t> sf,
+        const dpoint2D<typename detector_t::algebra_type> &loc_pos,
+        const dvector3D<typename detector_t::algebra_type> &glob_dir) const {
 
         // Fetch the material parameters and pathlength through the material
         const auto mat_params = sf.template visit_material<get_material_params>(
@@ -243,12 +277,11 @@ inline auto record_material(
     // Propagator with pathlimit aborter
     using material_tracer_t =
         material_validator::material_tracer<scalar_t, vecmem::vector>;
-    using pathlimit_aborter_t = pathlimit_aborter<scalar_t>;
-    using actor_chain_t =
-        actor_chain<pathlimit_aborter_t, parameter_transporter<algebra_t>,
-                    parameter_resetter<algebra_t>,
-                    pointwise_material_interactor<algebra_t>,
-                    material_tracer_t>;
+    using pathlimit_aborter_t = actor::pathlimit_aborter<scalar_t>;
+    using parameter_updater_t = actor::parameter_updater<
+        algebra_t, actor::pointwise_material_interactor<algebra_t>,
+        material_tracer_t>;
+    using actor_chain_t = actor_chain<pathlimit_aborter_t, parameter_updater_t>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Propagator
@@ -257,14 +290,13 @@ inline auto record_material(
     // Build actor and propagator states
     typename pathlimit_aborter_t::state pathlimit_aborter_state{
         cfg.stepping.path_limit};
-    typename parameter_transporter<algebra_t>::state transporter_state{};
-    typename pointwise_material_interactor<algebra_t>::state interactor_state{};
+    actor::parameter_updater_state<algebra_t> updater_state{cfg};
+    typename actor::pointwise_material_interactor<algebra_t>::state
+        interactor_state{};
     typename material_tracer_t::state mat_tracer_state{*host_mr};
-    typename parameter_resetter<algebra_t>::state resetter_state{cfg};
 
-    auto actor_states =
-        detray::tie(pathlimit_aborter_state, transporter_state,
-                    interactor_state, mat_tracer_state, resetter_state);
+    auto actor_states = detray::tie(pathlimit_aborter_state, updater_state,
+                                    interactor_state, mat_tracer_state);
 
     typename propagator_t::state propagation{track, det, cfg.context};
 

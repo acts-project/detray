@@ -21,7 +21,7 @@ namespace detray {
 
 /// Struct that represents the most conservative navigation policy: alway re-
 /// initialize the current volume
-struct always_init : actor {
+struct always_init : public base_actor {
 
     struct state {};
 
@@ -38,7 +38,7 @@ struct always_init : actor {
 
 /// During guided navigation only the next surface should be re-evaluated. This
 /// maps to the 'high trust' level in the navigator
-struct guided_navigation : actor {
+struct guided_navigation : public base_actor {
 
     struct state {};
 
@@ -58,7 +58,7 @@ struct guided_navigation : actor {
 /// The reasoning is, that the track state might have changed much when a
 /// constraint was triggered.
 template <concepts::scalar scalar_t>
-struct stepper_default_policy : actor {
+struct stepper_default_policy : public base_actor {
 
     struct state {
         scalar_t tol{std::numeric_limits<scalar_t>::epsilon()};
@@ -96,7 +96,7 @@ struct stepper_default_policy : actor {
 /// amount of step size correction as a measure for the change in direction of
 /// the track state.
 template <concepts::scalar scalar_t>
-struct stepper_rk_policy : actor {
+struct stepper_rk_policy : public base_actor {
 
     struct state {
         scalar_t m_threshold_fair_trust{0.05f};

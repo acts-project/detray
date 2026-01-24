@@ -27,7 +27,7 @@ namespace detray {
 /// @Note Currently only works with step constraints (will be changed in the
 /// future)
 template <concepts::algebra algebra_t>
-struct perigee_stopper : actor {
+struct perigee_stopper : public base_actor {
 
     using scalar_t = dscalar<algebra_t>;
 
@@ -109,16 +109,12 @@ struct perigee_stopper : actor {
         scalar_t dist_to_cand{std::as_const(navigation).target().path()};
         if (perigee_intr.is_probably_inside() &&
             math::fabs(perigee_intr.path()) < math::fabs(dist_to_cand)) {
-            // The track has reached the perigee: "exit success"
+
             assert(actor_state.m_on_perigee_tol > 0.f);
+
+            // The track has reached the perigee: "exit success"
             if (math::fabs(perigee_intr.path()) <=
                 actor_state.m_on_perigee_tol) {
-                const curvilinear_frame<algebra_t> cf(track);
-
-                // @TODO: Transport covariance as well
-                // assert(!cf.m_bound_vec.is_invalid());
-                stepping.bound_params().set_parameter_vector(cf.m_bound_vec);
-
                 prop_state._heartbeat &= navigation.exit();
             } else {
                 // @TODO: Use a guided navigator for this in order to catch

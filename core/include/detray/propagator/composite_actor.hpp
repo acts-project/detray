@@ -1,13 +1,14 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2025 CERN for the benefit of the ACTS project
+ * (c) 2022-2026 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
 #pragma once
 
-// Propagate include(s)
+// Project include(s)
+#include "detray/definitions/actor.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/propagator/base_actor.hpp"
@@ -21,6 +22,7 @@
 #include <utility>
 
 namespace detray {
+
 /// Composition of actors
 ///
 /// The composition represents an actor together with its observers. In
@@ -29,7 +31,7 @@ namespace detray {
 /// @tparam principal_actor_t the actor the compositions implements itself.
 /// @tparam observers a pack of observing actors that get called on the updated
 ///         actor state of the compositions actor implementation.
-template <concepts::actor principal_actor_t = actor,
+template <concepts::actor principal_actor_t = base_actor,
           concepts::actor... observers>
 class composite_actor final : public principal_actor_t {
 
@@ -40,6 +42,10 @@ class composite_actor final : public principal_actor_t {
     /// The composite is an actor in itself.
     using actor_type = principal_actor_t;
     using state = typename actor_type::state;
+    using result = typename actor_type::result;
+
+    // Make sure the result type contains a status code
+    static_assert(std::is_base_of_v<detray::actor::result, result>);
 
     /// Tuple of states of observing actors
     using observer_states =
@@ -55,13 +61,13 @@ class composite_actor final : public principal_actor_t {
     ///
     /// @param states the states of all actors in the chain
     /// @param p_state the state of the propagator (stepper and navigator)
-    /// @param subject_state the state of the actor this actor observes. Uses
+    /// @param subject_res the result of the actor this actor observes. Uses
     ///                      a dummy type if this is not an observing actor.
     template <typename actor_states_t, typename propagator_state_t,
-              typename subj_state_t = typename actor::state>
-    DETRAY_HOST_DEVICE void operator()(
-        actor_states_t &states, propagator_state_t &p_state,
-        subj_state_t &&subject_state = {}) const {
+              typename subj_result_t = typename actor::empty_result>
+    DETRAY_HOST_DEVICE void operator()(actor_states_t &states,
+                                       propagator_state_t &p_state,
+                                       subj_result_t &&subject_res = {}) const {
 
         // State of the primary actor that is implement by this composite actor
         auto &actor_state = detail::get<typename actor_type::state &>(states);
@@ -69,16 +75,19 @@ class composite_actor final : public principal_actor_t {
         // Do your own work ...
         // Two cases: This is a simple actor or observing actor (pass on its
         // subject's state)
-        if constexpr (std::same_as<subj_state_t, typename actor::state>) {
-            actor_type::operator()(actor_state, p_state);
+        result res{};
+        if constexpr (std::same_as<subj_result_t, actor::empty_result>) {
+            res = actor_type::operator()(actor_state, p_state);
         } else {
-            actor_type::operator()(actor_state, p_state,
-                                   std::forward<subj_state_t>(subject_state));
+            res = actor_type::operator()(
+                actor_state, p_state, std::forward<subj_result_t>(subject_res));
         }
 
-        // ... then run the observers on the updated state
-        notify(m_observers, states, actor_state, p_state,
-               std::make_index_sequence<sizeof...(observers)>{});
+        // ... then run the observers on the new result
+        if (res.status == actor::status::e_notify) {
+            notify(states, p_state, res,
+                   std::make_index_sequence<sizeof...(observers)>{});
+        }
     }
 
     private:
@@ -93,20 +102,20 @@ class composite_actor final : public principal_actor_t {
               typename propagator_state_t>
     DETRAY_HOST_DEVICE inline void notify(const observer_t &observer,
                                           actor_states_t &states,
-                                          state &actor_state,
-                                          propagator_state_t &p_state) const {
+                                          propagator_state_t &p_state,
+                                          result &res) const {
         // Two cases: observer is a simple actor or a composite actor
         if constexpr (!concepts::composite_actor<observer_t>) {
             // No actor state defined (empty)
             if constexpr (std::same_as<typename observer_t::state,
-                                       detray::actor::state>) {
-                observer(actor_state, p_state);
+                                       detray::base_actor::state>) {
+                observer(p_state, res);
             } else {
                 observer(detail::get<typename observer_t::state &>(states),
-                         actor_state, p_state);
+                         p_state, res);
             }
         } else {
-            observer(states, actor_state, p_state);
+            observer(states, p_state, res);
         }
     }
 
@@ -122,13 +131,10 @@ class composite_actor final : public principal_actor_t {
     template <std::size_t... indices, typename actor_states_t,
               typename propagator_state_t>
     DETRAY_HOST_DEVICE inline void notify(
-        const dtuple<observers...> &observer_list, actor_states_t &states,
-        state &actor_state, propagator_state_t &p_state,
+        actor_states_t &states, propagator_state_t &p_state, result &res,
         std::index_sequence<indices...> /*ids*/) const {
 
-        (notify(detail::get<indices>(observer_list), states, actor_state,
-                p_state),
-         ...);
+        (notify(detail::get<indices>(m_observers), states, p_state, res), ...);
     }
 
     /// Keep the observers (might be composites again)

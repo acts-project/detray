@@ -43,9 +43,9 @@ __global__ void navigator_test_kernel(
     prop_state<navigator_device_t::state> propagation{
         stepper_t::state{traj}, navigator_device_t::state(det)};
 
-    navigator_device_t::state& navigation = propagation._navigation;
-    stepper_t::state& stepping = propagation._stepping;
-    const auto& ctx = propagation._context;
+    navigator_device_t::state& navigation = propagation.navigation();
+    stepper_t::state& stepping = propagation.stepping();
+    const auto& ctx = propagation.context();
 
     // Set initial volume
     navigation.set_volume(0u);

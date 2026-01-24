@@ -68,20 +68,7 @@ class base_stepper {
         DETRAY_HOST_DEVICE
         explicit state(const free_track_parameters_type &free_params)
             : m_track(free_params) {
-
-            curvilinear_frame<algebra_t> cf(free_params);
-
-            // Set bound track parameters
-            m_bound_params.set_parameter_vector(cf.m_bound_vec);
-
-            // A dummy covariance - should not be used
-            m_bound_params.set_covariance(
-                matrix::identity<bound_matrix_type>());
-
-            // An invalid barcode - should not be used
-            m_bound_params.set_surface_link(geometry::barcode{});
-
-            assert(!m_bound_params.is_invalid());
+            assert(!m_track.is_invalid());
 
             // HACK: When the overload resolution for the transport Jacobian
             // type is resolved, turn this into a default member
@@ -99,11 +86,10 @@ class base_stepper {
         DETRAY_HOST_DEVICE state(
             const bound_track_parameters_type &bound_params,
             const detector_t &det,
-            const typename detector_t::geometry_context &ctx)
-            : m_bound_params(bound_params) {
+            const typename detector_t::geometry_context &ctx) {
 
-            assert(!m_bound_params.is_invalid());
-            assert(!m_bound_params.surface_link().is_invalid());
+            assert(!bound_params.is_invalid());
+            assert(!bound_params.surface_link().is_invalid());
 
             // Departure surface
             const auto sf = tracking_surface{det, bound_params.surface_link()};
@@ -131,16 +117,6 @@ class base_stepper {
         /// @returns free track parameters - const access
         DETRAY_HOST_DEVICE
         const free_track_parameters_type &operator()() const { return m_track; }
-
-        /// @returns bound track parameters - const access
-        DETRAY_HOST_DEVICE
-        bound_track_parameters_type &bound_params() { return m_bound_params; }
-
-        /// @returns bound track parameters - non-const access
-        DETRAY_HOST_DEVICE
-        const bound_track_parameters_type &bound_params() const {
-            return m_bound_params;
-        }
 
         /// Get stepping direction
         DETRAY_HOST_DEVICE
@@ -287,9 +263,6 @@ class base_stepper {
         private:
         /// Jacobian transport matrix
         internal_jacobian_type m_jac_transport;
-
-        /// Bound covariance
-        bound_track_parameters_type m_bound_params;
 
         /// Free track parameters
         free_track_parameters_type m_track;

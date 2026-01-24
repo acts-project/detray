@@ -8,21 +8,23 @@
 #pragma once
 
 // Project include(s).
+#include "detray/definitions/actor.hpp"
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
 #include "detray/materials/concepts.hpp"
 #include "detray/materials/detail/material_accessor.hpp"
 #include "detray/materials/interaction.hpp"
+#include "detray/propagator/actors/parameter_updater.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/tracks/bound_track_parameters.hpp"
 #include "detray/utils/geometry_utils.hpp"
 #include "detray/utils/logging.hpp"
 
-namespace detray {
+namespace detray::actor {
 
 template <concepts::algebra algebra_t>
-struct pointwise_material_interactor : actor {
+struct pointwise_material_interactor : public base_actor {
 
     using algebra_type = algebra_t;
     using scalar_type = dscalar<algebra_t>;
@@ -132,24 +134,29 @@ struct pointwise_material_interactor : actor {
 
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE inline void operator()(
-        state &interactor_state, propagator_state_t &prop_state) const {
-
-        interactor_state.reset();
+        state &interactor_state, propagator_state_t &prop_state,
+        parameter_transporter_result<algebra_t> &res) const {
 
         const auto &navigation = prop_state.navigation();
 
         // Do material interaction when the track is on material surface
-        if (navigation.encountered_sf_material()) {
+        if (!navigation.encountered_sf_material()) {
+            return;
+        }
 
-            DETRAY_VERBOSE_HOST_DEVICE("Actor: Resolve material effects:");
+        DETRAY_VERBOSE_HOST_DEVICE("Actor: Resolve material effects:");
 
-            auto &stepping = prop_state.stepping();
+        interactor_state.reset();
 
+        const auto &stepping = prop_state.stepping();
+
+        const bool success =
             this->update(prop_state.context(), stepping.particle_hypothesis(),
-                         stepping.bound_params(), interactor_state,
+                         res.destination_params(), interactor_state,
                          static_cast<int>(navigation.direction()),
                          navigation.current_surface());
-        }
+
+        res.status = success ? actor::status::e_success : res.status;
     }
 
     /// @brief Update the bound track parameter
@@ -159,7 +166,7 @@ struct pointwise_material_interactor : actor {
     /// @param[in]  nav_dir navigation direction
     /// @param[in]  sf the surface
     template <typename context_t, typename surface_t>
-    DETRAY_HOST_DEVICE inline void update(
+    DETRAY_HOST_DEVICE inline bool update(
         const context_t gctx, const pdg_particle<scalar_type> &ptc,
         bound_track_parameters<algebra_t> &bound_params,
         state &interactor_state, const int nav_dir, const surface_t &sf) const {
@@ -170,10 +177,10 @@ struct pointwise_material_interactor : actor {
         const scalar_type cos_inc_angle{cos_angle(gctx, sf, bound_params.dir(),
                                                   bound_params.bound_local())};
 
-        const bool succeed = sf.template visit_material<kernel>(
+        const bool success = sf.template visit_material<kernel>(
             interactor_state, ptc, bound_params, cos_inc_angle, approach);
 
-        if (succeed) {
+        if (success) {
 
             auto &covariance = bound_params.covariance();
 
@@ -196,6 +203,8 @@ struct pointwise_material_interactor : actor {
         }
 
         assert(!bound_params.is_invalid());
+
+        return success;
     }
 
     /// @brief Update the q over p of bound track parameter
@@ -219,7 +228,7 @@ struct pointwise_material_interactor : actor {
             math::sqrt(m * m + p * p) -
             math::copysign(e_loss, static_cast<scalar_type>(sign))};
 
-        DETRAY_DEBUG_HOST_DEVICE("-> new energy: %f", next_e);
+        DETRAY_DEBUG_HOST_DEVICE("-> new energy: %f GeV", next_e);
 
         // Put particle at rest if energy loss is too large
         const scalar_type next_p{
@@ -230,10 +239,11 @@ struct pointwise_material_interactor : actor {
         const scalar_type next_qop{(q != 0.f) ? q / next_p : 1.f / next_p};
         vector.set_qop((next_p == 0.f) ? inv : next_qop);
 
-        DETRAY_DEBUG_HOST_DEVICE("-> new abs. momentum: %f", next_p);
+        DETRAY_DEBUG_HOST_DEVICE("-> new abs. momentum: %f GeV", next_p);
 
-        DETRAY_DEBUG_HOST_DEVICE("-> Update qop: before: %f, after: %f", q / p,
-                                 vector.qop());
+        DETRAY_DEBUG_HOST_DEVICE(
+            "-> Update qop: before: %f e/GeV, after: %f e/GeV", q / p,
+            vector.qop());
     }
 
     /// @brief Update the variance of q over p of bound track parameter
@@ -246,13 +256,14 @@ struct pointwise_material_interactor : actor {
 
         const scalar_type variance_qop{sigma_qop * sigma_qop};
 
-        DETRAY_DEBUG_HOST_DEVICE("-> qop variance: %f", variance_qop);
+        DETRAY_DEBUG_HOST_DEVICE("-> qop variance: %f (e/GeV)^2", variance_qop);
 
         getter::element(covariance, e_bound_qoverp, e_bound_qoverp) +=
             variance_qop;
 
         DETRAY_DEBUG_HOST_DEVICE(
-            "-> Update qop variance: before: %f, after: %f",
+            "-> Update qop variance: before: %f (e/GeV)^2, after: %f "
+            "(e/GeV)^2",
             getter::element(covariance, e_bound_qoverp, e_bound_qoverp) -
                 variance_qop,
             getter::element(covariance, e_bound_qoverp, e_bound_qoverp));
@@ -271,14 +282,14 @@ struct pointwise_material_interactor : actor {
         const scalar_type var_scattering_angle{projected_scattering_angle *
                                                projected_scattering_angle};
 
-        DETRAY_DEBUG_HOST_DEVICE("-> Scattering angle variance: %f",
+        DETRAY_DEBUG_HOST_DEVICE("-> Scattering angle variance: %f rad^2",
                                  var_scattering_angle);
 
         constexpr auto inv{detail::invalid_value<scalar_type>()};
 
         DETRAY_DEBUG_HOST_DEVICE("-> Update phi variance:");
         DETRAY_DEBUG_HOST_DEVICE(
-            "--> before: %f",
+            "--> before: %f rad^2",
             getter::element(covariance, e_bound_phi, e_bound_phi));
 
         getter::element(covariance, e_bound_phi, e_bound_phi) +=
@@ -286,21 +297,21 @@ struct pointwise_material_interactor : actor {
                             : var_scattering_angle / (1.f - dir[2] * dir[2]);
 
         DETRAY_DEBUG_HOST_DEVICE(
-            "--> after: %f",
+            "--> after: %f rad^2",
             getter::element(covariance, e_bound_phi, e_bound_phi));
 
         DETRAY_DEBUG_HOST_DEVICE("-> Update theta variance:");
         DETRAY_DEBUG_HOST_DEVICE(
-            "--> before: %f",
+            "--> before: %f rad^2",
             getter::element(covariance, e_bound_theta, e_bound_theta));
 
         getter::element(covariance, e_bound_theta, e_bound_theta) +=
             var_scattering_angle;
 
         DETRAY_DEBUG_HOST_DEVICE(
-            "--> after: %f",
+            "--> after: %f rad^2",
             getter::element(covariance, e_bound_theta, e_bound_theta));
     }
 };
 
-}  // namespace detray
+}  // namespace detray::actor

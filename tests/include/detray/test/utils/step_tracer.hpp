@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2024 CERN for the benefit of the ACTS project
+ * (c) 2024-2026 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -10,6 +10,7 @@
 // Project include(s).
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/propagator/actors/parameter_updater.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/tracks/bound_track_parameters.hpp"
 #include "detray/tracks/free_track_parameters.hpp"
@@ -37,9 +38,11 @@ struct step_data {
 };
 }  // namespace detail
 
+namespace actor {
+
 /// Collect information at every step
 template <concepts::algebra algebra_t, template <typename...> class vector_t>
-struct step_tracer : actor {
+struct step_tracer : public base_actor {
 
     using step_data_t = detail::step_data<algebra_t>;
 
@@ -69,51 +72,62 @@ struct step_tracer : actor {
         DETRAY_HOST
         auto&& release_step_data() && { return std::move(m_steps); }
 
-        /// Collect the data at every step
-        DETRAY_HOST_DEVICE
-        void collect_every_step(bool do_collect_every_step = true) {
-            m_collect_every_step = do_collect_every_step;
-        }
-
-        /// Collect the data only when on surface
-        DETRAY_HOST_DEVICE
-        void collect_only_on_surface(bool do_collect_every_step = true) {
-            m_collect_every_step = !do_collect_every_step;
-        }
-
         private:
-        /// Whether to collect the step data at every step
-        bool m_collect_every_step{true};
         /// The collected data for the steps
         vector_t<step_data_t> m_steps;
     };
 
-    /// Actor call
+    /// Collect data at every step
+    /// @note Primary actor call
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE void operator()(state& tracer_state,
                                        propagator_state_t& prop_state) const {
+        tracer_state.m_steps.push_back(collect_data(prop_state));
+    }
+
+    /// Collect only when transport to bound track parameters happens
+    /// @note Observer to the parameter updater
+    template <typename propagator_state_t>
+    DETRAY_HOST_DEVICE void operator()(
+        state& tracer_state, propagator_state_t& prop_state,
+        const parameter_transporter_result<algebra_t>& res) const {
+        const auto& navigation = prop_state.navigation();
+        assert(navigation.is_on_surface());
+
+        // If the state has already been collected by the other call operator,
+        // update the bound track parameters
+        if (!tracer_state.m_steps.empty() &&
+            navigation.barcode() == tracer_state.m_steps.back().barcode) {
+            tracer_state.m_steps.back().bound_params = res.destination_params();
+        } else {
+            tracer_state.m_steps.push_back(
+                collect_data(prop_state, res.destination_params()));
+        }
+    }
+
+    private:
+    /// Collect step data
+    template <typename propagator_state_t>
+    DETRAY_HOST_DEVICE step_data_t collect_data(
+        propagator_state_t& prop_state,
+        const bound_track_parameters<algebra_t>& bound_param = {}) const {
         const auto& navigation = prop_state.navigation();
         const auto& stepping = prop_state.stepping();
 
-        // Collect the data whenever requested
-        if (navigation.is_on_surface() || tracer_state.m_collect_every_step) {
+        const auto bcd{navigation.is_on_surface() ? navigation.barcode()
+                                                  : geometry::barcode{}};
 
-            const geometry::barcode bcd{navigation.is_on_surface()
-                                            ? navigation.barcode()
-                                            : geometry::barcode{}};
-
-            step_data_t sd{stepping.step_size(),
-                           stepping.path_length(),
-                           stepping.n_total_trials(),
-                           navigation.direction(),
-                           bcd,
-                           stepping(),
-                           stepping.bound_params(),
-                           stepping.transport_jacobian()};
-
-            tracer_state.m_steps.push_back(std::move(sd));
-        }
+        return {stepping.step_size(),
+                stepping.path_length(),
+                stepping.n_total_trials(),
+                navigation.direction(),
+                bcd,
+                stepping(),
+                bound_param,
+                stepping.transport_jacobian()};
     }
 };
+
+}  // namespace actor
 
 }  // namespace detray

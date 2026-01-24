@@ -88,7 +88,7 @@ class multi_store {
     /// (host-side only)
     template <typename allocator_t = vecmem::memory_resource,
               typename T = tuple_t<Ts...>>
-        requires(std::is_same_v<T, detray::tuple<Ts...>> &&
+        requires(std::is_same_v<T, dtuple<Ts...>> &&
                  std::derived_from<allocator_t, std::pmr::memory_resource>)
     DETRAY_HOST explicit multi_store(allocator_t &resource, const Ts &...args)
         : m_tuple_container(resource, args...) {}

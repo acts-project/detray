@@ -48,8 +48,8 @@ struct propagator {
 
     const propagation::config &m_cfg;
 
-    stepper_t m_stepper;
-    navigator_t m_navigator;
+    stepper_t m_stepper{};
+    navigator_t m_navigator{};
 
     /// Register the actor types
     const actor_chain_type run_actors{};
@@ -80,7 +80,7 @@ struct propagator {
             const free_track_parameters_type &free_params,
             const detector_type &det, const context_type &ctx)
             requires(!states_as_reference)
-            : _stepping(free_params), _navigation(det), _context(ctx) {}
+            : m_stepping(free_params), m_navigation(det), m_context(ctx) {}
 
         /// Construct the propagation state with free parameter
         template <typename field_t>
@@ -90,9 +90,9 @@ struct propagator {
             const free_track_parameters_type &free_params,
             const field_t &magnetic_field, const detector_type &det,
             const context_type &ctx = {})
-            : _stepping(free_params, magnetic_field),
-              _navigation(det),
-              _context(ctx) {}
+            : m_stepping(free_params, magnetic_field),
+              m_navigation(det),
+              m_context(ctx) {}
 
         /// Construct the propagation state from the navigator state view
         DETRAY_HOST_DEVICE state_base(
@@ -101,9 +101,9 @@ struct propagator {
             typename navigator_type::state::view_type nav_view,
             const context_type &ctx = {})
             requires(!states_as_reference)
-            : _stepping(free_params),
-              _navigation(det, nav_view),
-              _context(ctx) {}
+            : m_stepping(free_params),
+              m_navigation(det, nav_view),
+              m_context(ctx) {}
 
         /// Construct the propagation state from the navigator state view
         template <typename field_t>
@@ -114,17 +114,17 @@ struct propagator {
             const field_t &magnetic_field, const detector_type &det,
             typename navigator_type::state::view_type nav_view,
             const context_type &ctx = {})
-            : _stepping(free_params, magnetic_field),
-              _navigation(det, nav_view),
-              _context(ctx) {}
+            : m_stepping(free_params, magnetic_field),
+              m_navigation(det, nav_view),
+              m_context(ctx) {}
 
         /// Construct the propagation state with bound parameter
         DETRAY_HOST_DEVICE state_base(const bound_track_parameters_type &param,
                                       const detector_type &det,
                                       const context_type &ctx = {})
             requires(!states_as_reference)
-            : _stepping(param, det, ctx), _navigation(det), _context(ctx) {
-            _navigation.set_volume(param.surface_link().volume());
+            : m_stepping(param, det, ctx), m_navigation(det), m_context(ctx) {
+            m_navigation.set_volume(param.surface_link().volume());
         }
 
         /// Construct the propagation state with propagation and navigation
@@ -133,7 +133,7 @@ struct propagator {
                                       navigator_state_type &navigation,
                                       const context_type &ctx = {})
             requires(states_as_reference)
-            : _stepping(stepping), _navigation(navigation), _context(ctx) {}
+            : m_stepping(stepping), m_navigation(navigation), m_context(ctx) {}
 
         /// Construct the propagation state with bound parameter
         template <typename field_t>
@@ -142,10 +142,10 @@ struct propagator {
                                       const field_t &magnetic_field,
                                       const detector_type &det,
                                       const context_type &ctx = {})
-            : _stepping(param, magnetic_field, det, ctx),
-              _navigation(det),
-              _context(ctx) {
-            _navigation.set_volume(param.surface_link().volume());
+            : m_stepping(param, magnetic_field, det, ctx),
+              m_navigation(det),
+              m_context(ctx) {
+            m_navigation.set_volume(param.surface_link().volume());
         }
 
         /// Construct the propagation state with bound parameter and
@@ -157,67 +157,67 @@ struct propagator {
             const field_t &magnetic_field, const detector_type &det,
             typename navigator_type::state::view_type nav_view,
             const context_type &ctx = {})
-            : _stepping(param, magnetic_field, det, ctx),
-              _navigation(det, nav_view),
-              _context(ctx) {
-            _navigation.set_volume(param.surface_link().volume());
+            : m_stepping(param, magnetic_field, det, ctx),
+              m_navigation(det, nav_view),
+              m_context(ctx) {
+            m_navigation.set_volume(param.surface_link().volume());
         }
 
         /// Set the particle hypothesis
         DETRAY_HOST_DEVICE
         void set_particle(const pdg_particle<scalar_type> &ptc) {
-            _stepping.set_particle(ptc);
+            m_stepping.set_particle(ptc);
         }
 
         /// @returns the propagation heartbeat
         DETRAY_HOST_DEVICE
-        bool is_alive() const { return _heartbeat; }
+        bool is_alive() const { return m_heartbeat; }
 
         /// @returns the propagation heartbeat
         DETRAY_HOST_DEVICE
-        bool heartbeat() const { return _heartbeat; }
+        bool heartbeat() const { return m_heartbeat; }
 
         /// @returns the propagation heartbeat
         DETRAY_HOST_DEVICE
-        void heartbeat(bool heartbeat) { _heartbeat = heartbeat; }
+        void heartbeat(bool heartbeat) { m_heartbeat = heartbeat; }
 
         DETRAY_HOST_DEVICE
-        const stepper_state_type &stepping() const { return _stepping; }
+        const stepper_state_type &stepping() const { return m_stepping; }
 
         DETRAY_HOST_DEVICE
-        stepper_state_type &stepping() { return _stepping; }
+        stepper_state_type &stepping() { return m_stepping; }
 
         DETRAY_HOST_DEVICE
-        const navigator_state_type &navigation() const { return _navigation; }
+        const navigator_state_type &navigation() const { return m_navigation; }
 
         DETRAY_HOST_DEVICE
-        navigator_state_type &navigation() { return _navigation; }
+        navigator_state_type &navigation() { return m_navigation; }
 
         DETRAY_HOST_DEVICE
-        const context_type &context() const { return _context; }
+        const context_type &context() const { return m_context; }
 
         DETRAY_HOST_DEVICE
-        context_type &context() { return _context; }
+        context_type &context() { return m_context; }
 
         DETRAY_HOST_DEVICE
-        bool debug() const { return do_debug; }
+        bool debug() const { return m_do_debug; }
 
         DETRAY_HOST_DEVICE
-        void debug(bool b) { do_debug = b; }
+        void debug(bool b) { m_do_debug = b; }
 
         private:
-        // Is the propagation still alive?
-        bool _heartbeat = false;
-
         std::conditional_t<states_as_reference, stepper_state_type &,
                            stepper_state_type>
-            _stepping;
+            m_stepping;
         std::conditional_t<states_as_reference, navigator_state_type &,
                            navigator_state_type>
-            _navigation;
-        context_type _context;
+            m_navigation;
 
-        bool do_debug = false;
+        context_type m_context;
+
+        // Is the propagation still alive?
+        bool m_heartbeat = false;
+        bool m_do_debug = false;
     };
 
     using state = state_base<false>;
@@ -270,15 +270,6 @@ struct propagator {
         assert(!track.is_invalid());
 
         DETRAY_VERBOSE_HOST("Starting propagation for track:\n" << track);
-
-        // Open the navigation area according to uncertainties in initital
-        // track params
-        if (m_cfg.navigation.estimate_scattering_noise &&
-            !stepping.bound_params().is_invalid()) {
-            detail::estimate_external_mask_tolerance(
-                stepping.bound_params(), propagation,
-                static_cast<scalar_type>(m_cfg.navigation.n_scattering_stddev));
-        }
 
         // Initialize the navigation
         DETRAY_VERBOSE_HOST("Initialize navigation...");
@@ -419,7 +410,7 @@ struct propagator {
 
         std::stringstream debug_stream{};
         debug_stream << std::left << std::setw(10);
-        debug_stream << "status: " << navigation.status() << std::endl;
+        debug_stream << "\nstatus: " << navigation.status() << std::endl;
 
         debug_stream << "volume: " << std::setw(10);
         if (detail::is_invalid_value(navigation.volume())) {
@@ -432,18 +423,20 @@ struct propagator {
         debug_stream << "navigation:" << std::endl;
         if (navigation.is_on_surface()) {
             debug_stream << std::setw(10)
-                         << " ->on surface: " << navigation.barcode();
+                         << " -> on surface: " << navigation.barcode();
         } else {
-            debug_stream << std::setw(10) << " ->target: "
+            debug_stream << std::setw(10) << " -> target: "
                          << navigation.target().surface().barcode();
         }
         debug_stream << std::endl;
-        debug_stream << " ->path: " << navigation() << "mm" << std::endl;
+        debug_stream << std::setw(10) << " -> path: " << navigation() << " mm"
+                     << std::endl;
 
         debug_stream << "stepping:" << std::endl;
-        debug_stream << " -> step size: " << std::setw(10)
-                     << stepping.step_size() << "mm" << std::endl;
-        debug_stream << " ->" << detail::ray<algebra_type>(stepping());
+        debug_stream << std::setw(10)
+                     << " -> step size: " << stepping.step_size() << " mm"
+                     << std::endl;
+        debug_stream << " -> " << detail::ray<algebra_type>(stepping());
 
         return debug_stream.str();
     }

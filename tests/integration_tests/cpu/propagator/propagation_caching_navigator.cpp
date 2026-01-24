@@ -16,6 +16,7 @@
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/tracks/trajectories.hpp"
+#include "detray/utils/logging.hpp"
 
 // Detray test include(s)
 #include "detray/test/common/bfield.hpp"
@@ -38,38 +39,31 @@ using scalar = test::scalar;
 using point3 = test::point3;
 using vector3 = test::vector3;
 
-namespace {
-
 constexpr scalar tol{1e-3f};
 constexpr scalar path_limit{5.f * unit<scalar>::cm};
 constexpr std::size_t cache_size{navigation::default_cache_size};
 
+namespace detray::actor {
+
 /// Compare helical track positions for stepper
-struct helix_inspector : actor {
+struct helix_inspector : public base_actor {
 
     /// Keeps the state of a helix gun to calculate track positions
     struct state {
-        /// navigation status for every step
-        std::vector<navigation::status> _nav_status;
         scalar path_from_surface{0.f};
     };
 
     /// Check that the stepper remains on the right helical track for its pos.
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE void operator()(
-        state& inspector_state, const propagator_state_t& prop_state) const {
+        state& inspector_state, const propagator_state_t& prop_state,
+        parameter_transporter_result<test_algebra>& res) const {
 
         const auto& navigation = prop_state.navigation();
         const auto& stepping = prop_state.stepping();
+        const auto& bound_params = res.destination_params();
 
         typename propagator_state_t::detector_type::geometry_context ctx{};
-
-        // Update inspector state
-        inspector_state._nav_status.push_back(navigation.status());
-        // The propagation does not start on a surface, skipp the inital path
-        if (!stepping.bound_params().surface_link().is_invalid()) {
-            inspector_state.path_from_surface += stepping.step_size();
-        }
 
         // Nothing has happened yet (first call of actor chain)
         if (stepping.path_length() < tol ||
@@ -77,16 +71,16 @@ struct helix_inspector : actor {
             return;
         }
 
-        if (stepping.bound_params().surface_link().is_invalid()) {
+        if (bound_params.surface_link().is_invalid()) {
             return;
         }
 
         // Surface
-        const auto sf = tracking_surface{
-            navigation.detector(), stepping.bound_params().surface_link()};
+        const auto sf = tracking_surface{navigation.detector(),
+                                         bound_params.surface_link()};
 
         const free_track_parameters<test_algebra> free_params =
-            sf.bound_to_free_vector(ctx, stepping.bound_params());
+            sf.bound_to_free_vector(ctx, bound_params);
 
         const auto last_pos = free_params.pos();
 
@@ -113,6 +107,10 @@ struct helix_inspector : actor {
                     inspector_state.path_from_surface * tol * 10.f);
             }
         }
+        // The propagation does not start on a surface, skipp the inital path
+        if (!bound_params.surface_link().is_invalid()) {
+            inspector_state.path_from_surface += stepping.step_size();
+        }
         // Reset path from surface
         if (navigation.is_on_sensitive() ||
             navigation.encountered_sf_material()) {
@@ -121,7 +119,7 @@ struct helix_inspector : actor {
     }
 };
 
-}  // anonymous namespace
+}  // namespace detray::actor
 
 /// Test basic functionality of the propagator using a straight line stepper
 GTEST_TEST(detray_propagator, propagator_line_stepper) {
@@ -203,11 +201,11 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
     using stepper_t =
         rk_stepper<bfield_t::view_t, test_algebra, constraints_t, policy_t>;
     // Include helix actor to check track position/covariance
-    using actor_chain_t =
-        actor_chain<helix_inspector, pathlimit_aborter<scalar>,
-                    parameter_transporter<test_algebra>,
-                    pointwise_material_interactor<test_algebra>,
-                    parameter_resetter<test_algebra>>;
+    using actor_chain_t = actor_chain<
+        actor::pathlimit_aborter<scalar>,
+        actor::parameter_updater<
+            test_algebra, actor::pointwise_material_interactor<test_algebra>,
+            actor::helix_inspector>>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Build detector
@@ -237,11 +235,11 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
         // Build actor states: the helix inspector can be shared
         auto actor_states = actor_chain_t::make_default_actor_states();
         auto actor_states_lim = actor_chain_t::make_default_actor_states();
-        auto actor_states_sync = actor_chain_t::make_default_actor_states();
 
         // Make sure the lim state is being terminated
         auto& pathlimit_aborter_state =
-            detail::get<pathlimit_aborter<scalar>::state>(actor_states_lim);
+            detail::get<actor::pathlimit_aborter<scalar>::state>(
+                actor_states_lim);
         pathlimit_aborter_state.set_path_limit(path_limit);
 
         // Init propagator states
@@ -264,10 +262,12 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
             .template set_constraint<step::constraint::e_accuracy>(step_constr);
 
         // No multiple scattering simulated in this test
-        using resetter_state_t = parameter_resetter<test_algebra>::state;
-        detail::get<resetter_state_t>(actor_states).estimate_scattering_noise =
-            false;
-        detail::get<resetter_state_t>(actor_states_lim)
+        using updater_state_t = actor::parameter_updater_state<test_algebra>;
+        detail::get<updater_state_t>(actor_states)
+            .noise_estimation_cfg()
+            .estimate_scattering_noise = false;
+        detail::get<updater_state_t>(actor_states_lim)
+            .noise_estimation_cfg()
             .estimate_scattering_noise = false;
 
         // Propagate the entire detector
@@ -307,11 +307,10 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
     using stepper_t =
         rk_stepper<bfield_t::view_t, test_algebra, constraints_t, policy_t>;
     // Include helix actor to check track position/covariance
-    using actor_chain_t =
-        actor_chain<pathlimit_aborter<scalar>,
-                    parameter_transporter<test_algebra>,
-                    pointwise_material_interactor<test_algebra>,
-                    parameter_resetter<test_algebra>>;
+    using actor_chain_t = actor_chain<
+        actor::pathlimit_aborter<scalar>,
+        actor::parameter_updater<
+            test_algebra, actor::pointwise_material_interactor<test_algebra>>>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Build detector and magnetic field
@@ -334,19 +333,18 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
         track_t lim_track(track);
 
         // Build actor states: the helix inspector can be shared
-        pathlimit_aborter<scalar>::state unlimted_aborter_state{};
-        pathlimit_aborter<scalar>::state pathlimit_aborter_state{path_limit};
-        parameter_transporter<test_algebra>::state transporter_state{};
-        pointwise_material_interactor<test_algebra>::state interactor_state{};
-        parameter_resetter<test_algebra>::state resetter_state{cfg};
+        actor::pathlimit_aborter<scalar>::state unlimted_aborter_state{};
+        actor::pathlimit_aborter<scalar>::state pathlimit_aborter_state{
+            path_limit};
+        actor::parameter_updater_state<test_algebra> updater_state{cfg};
+        actor::pointwise_material_interactor<test_algebra>::state
+            interactor_state{};
 
         // Create actor states tuples
-        auto actor_states =
-            detray::tie(unlimted_aborter_state, transporter_state,
-                        interactor_state, resetter_state);
-        auto lim_actor_states =
-            detray::tie(pathlimit_aborter_state, transporter_state,
-                        interactor_state, resetter_state);
+        auto actor_states = detray::tie(unlimted_aborter_state, updater_state,
+                                        interactor_state);
+        auto lim_actor_states = detray::tie(pathlimit_aborter_state,
+                                            updater_state, interactor_state);
 
         // Init propagator states
         typename propagator_t::stepper_type::magnetic_field_type bfield_view(
