@@ -14,7 +14,7 @@
 #include "detray/geometry/surface.hpp"
 #include "detray/utils/concepts.hpp"
 #include "detray/utils/grid/detail/concepts.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 
 // System include(s)
 #include <algorithm>

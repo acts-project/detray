@@ -19,7 +19,7 @@
 #include "detray/navigation/intersection/ray_intersector.hpp"
 #include "detray/navigation/navigation_config.hpp"
 #include "detray/navigation/navigation_state.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 
 namespace detray {
 
@@ -62,6 +62,19 @@ class navigator_base {
         // Run local navigation in the current volume
         navigation::local_navigation(track, navigation, cfg, ctx,
                                      resolve_overstepping);
+
+        DETRAY_VERBOSE_HOST("Status: " << navigation.status() << " (next sf.: "
+                                       << navigation.next_surface().index()
+                                       << ")");
+        if (navigation.is_on_surface()) {
+            DETRAY_VERBOSE_HOST("-> Current surface: "
+                                << navigation.current_surface().index()
+                                << ", has material: " << std::boolalpha
+                                << navigation.current_surface().has_material()
+                                << std::noboolalpha);
+        }
+        DETRAY_VERBOSE_HOST_DEVICE("Update complete: dist to next %f mm",
+                                   navigation());
     }
 
     /// @brief Complete update of the navigation flow.
@@ -91,7 +104,7 @@ class navigator_base {
         // Update was completely successful (most likely case)
         if (navigation.trust_level() == navigation::trust_level::e_full) {
             DETRAY_VERBOSE_HOST_DEVICE(
-                "Full trust, nothing left to do: dist to next %f mm",
+                "-> Full trust, nothing left to do: dist to next %f mm",
                 navigation());
             return false;
         }
@@ -123,6 +136,17 @@ class navigator_base {
                                      "Re-init: ");
         }
 
+        DETRAY_VERBOSE_HOST("Status: " << navigation.status() << " (vol.:"
+                                       << navigation.volume() << ", next sf.: "
+                                       << navigation.next_surface().index()
+                                       << ")");
+        if (navigation.is_on_surface()) {
+            DETRAY_VERBOSE_HOST("-> Current surface: "
+                                << navigation.current_surface().index()
+                                << ", has material: " << std::boolalpha
+                                << navigation.current_surface().has_material()
+                                << std::noboolalpha);
+        }
         DETRAY_VERBOSE_HOST_DEVICE("Update complete: dist to next %f mm",
                                    navigation());
 

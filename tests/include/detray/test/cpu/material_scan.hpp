@@ -10,7 +10,7 @@
 // Project include(s)
 #include "detray/geometry/surface.hpp"
 #include "detray/tracks/ray.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 
 // Detray IO include(s)
 #include "detray/io/utils/file_handle.hpp"

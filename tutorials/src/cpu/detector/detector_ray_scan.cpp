@@ -8,7 +8,7 @@
 // Project include(s)
 #include "detray/navigation/volume_graph.hpp"
 #include "detray/tracks/ray.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 
 // Detray test include(s)
 #include "detray/test/common/build_toy_detector.hpp"

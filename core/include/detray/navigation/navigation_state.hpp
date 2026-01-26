@@ -22,7 +22,7 @@
 #include "detray/navigation/intersection/ray_intersector.hpp"
 #include "detray/navigation/navigation_config.hpp"
 #include "detray/utils/invalid_values.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 #include "detray/utils/ranges.hpp"
 
 namespace detray::navigation {
@@ -199,13 +199,13 @@ class base_state : public detray::ranges::view_interface<
     /// Set externally provided mask tolerance according to noise prediction
     DETRAY_HOST_DEVICE
     constexpr void set_external_tol(const scalar_t tol) {
+        DETRAY_VERBOSE_HOST("Setting external mask tolerance: " << tol);
         m_external_mask_tol = tol;
     }
 
     /// @returns navigation trust level - const
     DETRAY_HOST_DEVICE
     constexpr auto trust_level() const -> navigation::trust_level {
-        DETRAY_VERBOSE_HOST("Setting trust level: " << m_trust_level);
         return m_trust_level;
     }
 
@@ -213,7 +213,7 @@ class base_state : public detray::ranges::view_interface<
     /// @{
     DETRAY_HOST_DEVICE
     constexpr void set_no_trust() {
-        DETRAY_VERBOSE_HOST_DEVICE("Flagging \"no trust\"");
+        DETRAY_VERBOSE_HOST_DEVICE("Flagging re-navigation: \"no trust\"");
         m_trust_level = navigation::trust_level::e_no_trust;
     }
 
@@ -277,6 +277,7 @@ class base_state : public detray::ranges::view_interface<
         assert(detray::detail::is_invalid_value(static_cast<nav_link_t>(v)) ||
                v < cast_impl().detector().volumes().size());
         if (v != m_volume_index) {
+            DETRAY_VERBOSE_HOST_DEVICE("Setting new volume %d", v);
             // Make sure the new volume is properly initialized
             cast_impl().set_no_trust();
         }
@@ -389,6 +390,7 @@ class base_state : public detray::ranges::view_interface<
     /// navigation.
     DETRAY_HOST_DEVICE constexpr void exit() {
         m_status = navigation::status::e_exit;
+        DETRAY_VERBOSE_HOST_DEVICE("Exited");
         cast_impl().run_inspector({}, point3_t{0.f, 0.f, 0.f},
                                   vector3_t{0.f, 0.f, 0.f}, "Exited: ");
     }
@@ -396,6 +398,7 @@ class base_state : public detray::ranges::view_interface<
     /// Navigation is being paused by actor: Maintain the navigation state
     /// and resume later
     DETRAY_HOST_DEVICE constexpr void pause() {
+        DETRAY_VERBOSE_HOST_DEVICE("Paused by actor");
         cast_impl().run_inspector({}, point3_t{0.f, 0.f, 0.f},
                                   vector3_t{0.f, 0.f, 0.f},
                                   "Paused by actor: ");
@@ -419,6 +422,8 @@ class base_state : public detray::ranges::view_interface<
         };
 
         assert(custom_msg != nullptr);
+        DETRAY_ERROR_HOST("Aborted: " << custom_msg);
+
         cast_impl().run_inspector({}, point3_t{0.f, 0.f, 0.f},
                                   vector3_t{0.f, 0.f, 0.f},
                                   "Aborted: ", message_wrapper{custom_msg});
@@ -434,6 +439,8 @@ class base_state : public detray::ranges::view_interface<
     DETRAY_HOST_DEVICE constexpr void abort(
         const debug_msg_generator_t &debug_msg_generator) {
         m_status = navigation::status::e_abort;
+
+        DETRAY_ERROR_HOST("Aborted: " << debug_msg_generator());
 
         cast_impl().run_inspector({}, point3_t{0.f, 0.f, 0.f},
                                   vector3_t{0.f, 0.f, 0.f},
@@ -545,11 +552,17 @@ class base_state : public detray::ranges::view_interface<
 
     /// Set the status to @param s
     DETRAY_HOST_DEVICE
-    constexpr void status(navigation::status s) { m_status = s; }
+    constexpr void status(navigation::status s) {
+        DETRAY_DEBUG_HOST("Setting nav. status: " << s);
+        m_status = s;
+    }
 
     /// Reset the trustlevel to @param t
     DETRAY_HOST_DEVICE
-    constexpr void trust_level(navigation::trust_level t) { m_trust_level = t; }
+    constexpr void trust_level(navigation::trust_level t) {
+        DETRAY_DEBUG_HOST("Setting trust level: " << t);
+        m_trust_level = t;
+    }
 
     /// Clear the state
     DETRAY_HOST_DEVICE

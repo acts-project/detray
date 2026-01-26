@@ -9,7 +9,7 @@
 
 // Project include(s)
 #include "detray/definitions/algebra.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 
 // Detray test include(s)
 #include "detray/options/options_handling.hpp"

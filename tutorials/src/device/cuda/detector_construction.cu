@@ -7,7 +7,7 @@
 
 #include "detector_construction.hpp"
 #include "detray/definitions/detail/cuda_definitions.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 
 namespace detray::tutorial {
 

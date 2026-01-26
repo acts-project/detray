@@ -17,7 +17,7 @@
 #include "detray/propagator/base_actor.hpp"
 #include "detray/tracks/bound_track_parameters.hpp"
 #include "detray/utils/geometry_utils.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 
 namespace detray {
 
@@ -141,7 +141,7 @@ struct pointwise_material_interactor : actor {
         // Do material interaction when the track is on material surface
         if (navigation.encountered_sf_material()) {
 
-            DETRAY_VERBOSE_HOST_DEVICE("Resolve material effects:");
+            DETRAY_VERBOSE_HOST_DEVICE("Actor: Resolve material effects:");
 
             auto &stepping = prop_state._stepping;
 

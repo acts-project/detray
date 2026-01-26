@@ -16,7 +16,7 @@
 #include "detray/geometry/detail/volume_kernels.hpp"
 #include "detray/materials/material.hpp"
 #include "detray/navigation/accelerators/search_window.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 #include "detray/utils/ranges.hpp"
 
 // System include(s)

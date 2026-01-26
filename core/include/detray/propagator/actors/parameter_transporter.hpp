@@ -17,7 +17,7 @@
 #include "detray/geometry/tracking_surface.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/detail/jacobian_engine.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 #include "detray/utils/type_registry.hpp"
 
 namespace detray {
@@ -107,7 +107,7 @@ struct parameter_transporter : actor {
             return;
         }
         DETRAY_VERBOSE_HOST_DEVICE(
-            "Transport track parameters to current surface");
+            "Actor: Transport track parameters to current surface");
 
         // Geometry context for this track
         const auto& gctx = propagation._context;

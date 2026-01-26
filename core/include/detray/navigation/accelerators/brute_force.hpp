@@ -15,6 +15,7 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/navigation/accelerators/search_window.hpp"
+#include "detray/utils/logging.hpp"
 #include "detray/utils/ranges.hpp"
 
 // VecMem include(s).
@@ -79,6 +80,7 @@ class brute_force_collection {
             const track_t& /*track*/,
             const search_window<window_size_t, 2>& /*win_size*/,
             const typename detector_t::geometry_context& /*ctx*/) const {
+            DETRAY_DEBUG_HOST("Brute force search...");
             return *this;
         }
 

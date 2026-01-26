@@ -10,7 +10,7 @@
 // Project include(s)
 #include "detray/core/detector.hpp"
 #include "detray/tracks/tracks.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 #include "detray/utils/ranges.hpp"
 
 // Detray test include(s)

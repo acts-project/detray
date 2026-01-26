@@ -12,7 +12,7 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/base_stepper.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 
 // System include(s)
 #include <limits>
@@ -60,6 +60,10 @@ struct pathlimit_aborter : actor {
 
         // Check the path limit
         if (step_limit <= 0.f) {
+            DETRAY_VERBOSE_HOST_DEVICE(
+                "Path lengths: %f mm",
+                math::fabs(prop_state._stepping.abs_path_length()));
+
             // Stop navigation
             nav_state.abort("Aborter: Maximal path length reached");
             prop_state._heartbeat = false;
@@ -118,16 +122,21 @@ struct momentum_aborter : actor {
         const auto &track = step_state();
         const scalar_t q{step_state.particle_hypothesis().charge()};
 
-        if (track.p(q) <= abrt_state.p_limit()) {
-            // Stop navigation
-            nav_state.abort("Aborter: Minimum momentum (p) reached");
-            prop_state._heartbeat = false;
-        }
-
         if (track.pT(q) <= abrt_state.pT_limit()) {
+            DETRAY_VERBOSE_HOST_DEVICE("Track |pT| = %f MeV", track.pT(q));
+
             // Stop navigation
             nav_state.abort(
                 "Aborter: Minimum transverse momentum (pT) reached");
+            prop_state._heartbeat = false;
+            return;
+        }
+
+        if (track.p(q) <= abrt_state.p_limit()) {
+            DETRAY_VERBOSE_HOST_DEVICE("Track |p| = %f MeV", track.p(q));
+
+            // Stop navigation
+            nav_state.abort("Aborter: Minimum momentum (p) reached");
             prop_state._heartbeat = false;
         }
     }

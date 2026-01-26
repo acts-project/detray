@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2025 CERN for the benefit of the ACTS project
+ * (c) 2025-2026 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -8,12 +8,14 @@
 #pragma once
 
 #if DETRAY_LOG_LVL >= 0
+
 // Project include(s)
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/utils/type_list.hpp"
 
 // System include(s)
 #include <cstring>
+#include <iomanip>
 #include <iostream>
 #include <regex>
 #include <source_location>
@@ -68,7 +70,7 @@ inline std::string_view process_typename() {
 
 }  // namespace detray::log::detail
 
-// Define a macro that enables device logging using printf
+// Enable device-side logging
 #if defined(__CUDACC__) || defined(__HIP__) || \
     defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)
 #define __DEVICE_LOGGING__
@@ -118,12 +120,24 @@ inline std::string_view process_typename() {
 
 // Print 'x' in the host logs only
 #ifndef __DEVICE_LOGGING__
-#define DETRAY_LOG_STREAM(lvl, x)                                       \
-    std::clog << "DETRAY " << lvl << " (HOST): " << __FILENAME__ << ":" \
-              << std::source_location::current().line() << " " << x     \
-              << std::endl
-#else
-#define DETRAY_LOG_STREAM(lvl, x)
+
+#define DETRAY_LOG_STREAM(stream, lib, lvl, x)                                 \
+    std::stream << lib << " " << std::left << std::setw(7) << lvl << std::left \
+                << std::setw(9) << " (HOST):" << std::left << std::setw(29)    \
+                << __FILENAME__ << "l." << std::left << std::setw(5)           \
+                << std::source_location::current().line() << x << std::endl
+
+// Log output to stdout
+#define DETRAY_LOG_STREAM_STDOUT(lib, lvl, x) \
+    DETRAY_LOG_STREAM(cout, lib, lvl, x)
+
+// Log output to stderr
+#define DETRAY_LOG_STREAM_STDERR(lib, lvl, x) \
+    DETRAY_LOG_STREAM(clog, lib, lvl, x)
+
+#else  // ifndef __DEVICE_LOGGING__
+#define DETRAY_LOG_STREAM_STDOUT(lib, lvl, x)
+#define DETRAY_LOG_STREAM_STDERR(lib, lvl, x)
 #endif
 
 // Print 'x' in printf
@@ -131,103 +145,89 @@ inline std::string_view process_typename() {
 // values
 // @note logging is currently disabled for SYCL builds
 #if !defined(CL_SYCL_LANGUAGE_VERSION) && !defined(SYCL_LANGUAGE_VERSION)
+// TODO: Move to device specific header for e.g. rate limiting by thread idx
 #ifdef __DEVICE_LOGGING__
-#define DETRAY_LOG_PRINTF(lib, lvl, x, ...)                                  \
-    printf("%s %s (%s): %s:%d " x "\n", lib, lvl, __BACKEND__, __FILENAME__, \
-           __LINE__ __VA_OPT__(, ) __VA_ARGS__);
-#else
-#define DETRAY_LOG_PRINTF(lib, lvl, x, ...)                             \
-    fprintf(stderr, "%s %s (%s): %s:%d " x "\n", lib, lvl, __BACKEND__, \
-            __FILENAME__, __LINE__ __VA_OPT__(, ) __VA_ARGS__);
-#endif
+
+#define DETRAY_LOG_PRINTF(lib, lvl, x, ...)                           \
+    printf("%s %-7s (%s): %-29sl.%-5d" x "\n", lib, lvl, __BACKEND__, \
+           __FILENAME__, __LINE__ __VA_OPT__(, ) __VA_ARGS__)
+
+#define DETRAY_LOG_PRINTF_STDOUT(lib, lvl, x, ...) \
+    DETRAY_LOG_PRINTF(lib, lvl, x, __VA_ARGS__)
+
+#define DETRAY_LOG_PRINTF_STDERR(lib, lvl, x, ...) \
+    DETRAY_LOG_PRINTF(lib, lvl, x, __VA_ARGS__)
+
+#else  // host-side printf logging
+
+#define DETRAY_LOG_PRINTF(stream, lib, lvl, x, ...)                            \
+    fprintf(stream, "%s %-7s (%s): %-29sl.%-5d" x "\n", lib, lvl, __BACKEND__, \
+            __FILENAME__, __LINE__ __VA_OPT__(, ) __VA_ARGS__)
+
+#define DETRAY_LOG_PRINTF_STDOUT(lib, lvl, x, ...) \
+    DETRAY_LOG_PRINTF(stdout, lib, lvl, x, __VA_ARGS__)
+
+#define DETRAY_LOG_PRINTF_STDERR(lib, lvl, x, ...) \
+    DETRAY_LOG_PRINTF(stderr, lib, lvl, x, __VA_ARGS__)
+
+#endif  // ifdef __DEVICE_LOGGING__
+
 #else  // ifndef SYCL
-#define DETRAY_LOG_PRINTF(lib, lvl, x, ...)
+#define DETRAY_LOG_PRINTF_STDOUT(lib, lvl, x, ...)
+#define DETRAY_LOG_PRINTF_STDERR(lib, lvl, x, ...)
 #endif
 
 #else  // DETRAY_LOG_LVL < 0
-#define DETRAY_LOG_STREAM(lvl, x)
-#define DETRAY_LOG_PRINTF(lib, lvl, x, ...)
+#define DETRAY_LOG_STREAM_STDOUT(lib, lvl, x)
+#define DETRAY_LOG_STREAM_STDERR(lib, lvl, x)
+#define DETRAY_LOG_PRINTF_STDOUT(lib, lvl, x, ...)
+#define DETRAY_LOG_PRINTF_STDERR(lib, lvl, x, ...)
 #define DETRAY_TYPENAME(type)
 #endif
 
-// Warnings
-#define DETRAY_WARN_HOST(x) DETRAY_LOG_STREAM("WARNING", x)
-#ifdef __DEVICE_LOGGING__
-#define DETRAY_WARN_DEVICE(x, ...) \
-    DETRAY_LOG_PRINTF("DETRAY", "WARNING", x, __VA_ARGS__)
-#else
-#define DETRAY_WARN_DEVICE(x, ...)
-#endif
-#define DETRAY_WARN_HOST_DEVICE(x, ...) \
-    DETRAY_LOG_PRINTF("DETRAY", "WARNING", x, __VA_ARGS__)
+//
+// Define log levels
+//
 
-#define DETRAY_ERROR_HOST(x) DETRAY_LOG_STREAM("ERROR", x)
-#ifdef __DEVICE_LOGGING__
-#define DETRAY_ERROR_DEVICE(x, ...) \
-    DETRAY_LOG_PRINTF("DETRAY", "ERROR", x, __VA_ARGS__)
-#else
-#define DETRAY_ERROR_DEVICE(x, ...)
-#endif
-#define DETRAY_ERROR_HOST_DEVICE(x, ...) \
-    DETRAY_LOG_PRINTF("DETRAY", "ERROR", x, __VA_ARGS__)
+// Errors and warnings
+#define DETRAY_FATAL_STREAM(lib, x) DETRAY_LOG_STREAM_STDERR(lib, "FATAL", x)
+#define DETRAY_ERROR_STREAM(lib, x) DETRAY_LOG_STREAM_STDERR(lib, "ERROR", x)
+#define DETRAY_WARN_STREAM(lib, x) DETRAY_LOG_STREAM_STDERR(lib, "WARNING", x)
 
-#define DETRAY_FATAL_HOST(x) DETRAY_LOG_STREAM("FATAL", x)
-#ifdef __DEVICE_LOGGING__
-#define DETRAY_FATAL_DEVICE(x, ...) \
-    DETRAY_LOG_PRINTF("DETRAY", "FATAL", x, __VA_ARGS__)
-#else
-#define DETRAY_FATAL_DEVICE(x, ...)
-#endif
-#define DETRAY_FATAL_HOST_DEVICE(x, ...) \
-    DETRAY_LOG_PRINTF("DETRAY", "FATAL", x, __VA_ARGS__)
+#define DETRAY_FATAL_PRINTF(lib, x, ...) \
+    DETRAY_LOG_PRINTF_STDERR(lib, "FATAL", x, __VA_ARGS__)
+#define DETRAY_ERROR_PRINTF(lib, x, ...) \
+    DETRAY_LOG_PRINTF_STDERR(lib, "ERROR", x, __VA_ARGS__)
+#define DETRAY_WARN_PRINTF(lib, x, ...) \
+    DETRAY_LOG_PRINTF_STDERR(lib, "WARNING", x, __VA_ARGS__)
 
 // Info
 #if DETRAY_LOG_LVL > 0
-#define DETRAY_INFO_HOST(x) DETRAY_LOG_STREAM("INFO", x)
-#ifdef __DEVICE_LOGGING__
-#define DETRAY_INFO_DEVICE(x, ...) \
-    DETRAY_LOG_PRINTF("DETRAY", "INFO", x, __VA_ARGS__)
+#define DETRAY_INFO_STREAM(lib, x) DETRAY_LOG_STREAM_STDOUT(lib, "INFO", x)
+#define DETRAY_INFO_PRINTF(lib, x, ...) \
+    DETRAY_LOG_PRINTF_STDOUT(lib, "INFO", x, __VA_ARGS__)
 #else
-#define DETRAY_INFO_DEVICE(x, ...)
-#endif
-#define DETRAY_INFO_HOST_DEVICE(x, ...) \
-    DETRAY_LOG_PRINTF("DETRAY", "INFO", x, __VA_ARGS__)
-#else
-#define DETRAY_INFO_HOST(x)
-#define DETRAY_INFO_DEVICE(x, ...)
-#define DETRAY_INFO_HOST_DEVICE(x, ...)
+#define DETRAY_INFO_STREAM(lib, x)
+#define DETRAY_INFO_PRINTF(lib, x, ...)
 #endif
 
-// Info
+// Verbose
 #if DETRAY_LOG_LVL > 1
-#define DETRAY_VERBOSE_HOST(x) DETRAY_LOG_STREAM("VERBOSE", x)
-#ifdef __DEVICE_LOGGING__
-#define DETRAY_VERBOSE_DEVICE(x, ...) \
-    DETRAY_LOG_PRINTF("DETRAY", "VERBOSE", x, __VA_ARGS__)
+#define DETRAY_VERBOSE_STREAM(lib, x) \
+    DETRAY_LOG_STREAM_STDERR(lib, "VERBOSE", x)
+#define DETRAY_VERBOSE_PRINTF(lib, x, ...) \
+    DETRAY_LOG_PRINTF_STDERR(lib, "VERBOSE", x, __VA_ARGS__)
 #else
-#define DETRAY_VERBOSE_DEVICE(x, ...)
-#endif
-#define DETRAY_VERBOSE_HOST_DEVICE(x, ...) \
-    DETRAY_LOG_PRINTF("DETRAY", "VERBOSE", x, __VA_ARGS__)
-#else
-#define DETRAY_VERBOSE_HOST(x)
-#define DETRAY_VERBOSE_DEVICE(x, ...)
-#define DETRAY_VERBOSE_HOST_DEVICE(x, ...)
+#define DETRAY_VERBOSE_STREAM(lib, x)
+#define DETRAY_VERBOSE_PRINTF(lib, x, ...)
 #endif
 
 // Debug
 #if DETRAY_LOG_LVL > 2
-#define DETRAY_DEBUG_HOST(x) DETRAY_LOG_STREAM("DEBUG", x)
-#ifdef __DEVICE_LOGGING__
-#define DETRAY_DEBUG_DEVICE(x, ...) \
-    DETRAY_LOG_PRINTF("DETRAY", "DEBUG", x, __VA_ARGS__)
+#define DETRAY_DEBUG_STREAM(lib, x) DETRAY_LOG_STREAM_STDERR(lib, "DEBUG", x)
+#define DETRAY_DEBUG_PRINTF(lib, x, ...) \
+    DETRAY_LOG_PRINTF_STDERR(lib, "DEBUG", x, __VA_ARGS__)
 #else
-#define DETRAY_DEBUG_DEVICE(x, ...)
-#endif
-#define DETRAY_DEBUG_HOST_DEVICE(x, ...) \
-    DETRAY_LOG_PRINTF("DETRAY", "DEBUG", x, __VA_ARGS__)
-#else
-#define DETRAY_DEBUG_HOST(x)
-#define DETRAY_DEBUG_DEVICE(x, ...)
-#define DETRAY_DEBUG_HOST_DEVICE(x, ...)
+#define DETRAY_DEBUG_STREAM(lib, x)
+#define DETRAY_DEBUG_PRINTF(lib, x, ...)
 #endif

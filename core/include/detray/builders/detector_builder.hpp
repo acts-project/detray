@@ -13,7 +13,7 @@
 #include "detray/core/concepts.hpp"
 #include "detray/core/detector.hpp"
 #include "detray/utils/detector_statistics.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>
@@ -115,7 +115,7 @@ class detector_builder {
     auto build(vecmem::memory_resource& resource) -> detector_type {
 
         DETRAY_INFO_HOST("Building detector: \"" << name() << "\"... ");
-        DETRAY_INFO_HOST(" -> type: " << DETRAY_TYPENAME(metadata));
+        DETRAY_INFO_HOST("-> type: " << DETRAY_TYPENAME(metadata));
 
         detector_type det{resource};
 

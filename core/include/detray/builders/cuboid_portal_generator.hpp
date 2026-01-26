@@ -16,7 +16,7 @@
 #include "detray/definitions/math.hpp"
 #include "detray/geometry/shapes/cuboid3D.hpp"
 #include "detray/utils/bounding_volume.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 #include "detray/utils/ranges.hpp"
 
 // System include(s)

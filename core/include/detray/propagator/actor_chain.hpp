@@ -12,7 +12,7 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/composite_actor.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 #include "detray/utils/tuple.hpp"
 #include "detray/utils/tuple_helpers.hpp"
 

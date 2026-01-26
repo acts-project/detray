@@ -17,7 +17,7 @@
 #include "detray/io/frontend/payloads.hpp"
 #include "detray/io/json/json_converter.hpp"
 #include "detray/io/utils/io_metadata.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 
 // System include(s)
 #include <filesystem>

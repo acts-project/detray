@@ -171,7 +171,7 @@ class barcode {
             os << "INVALID: ";
         }
 
-        os << " vol = " << c.volume();
+        os << "vol = " << c.volume();
         os << " | id = " << c.id() << "(" << static_cast<int>(c.id()) << ")";
         os << " | index = " << c.index();
         os << " | trf = " << c.transform();

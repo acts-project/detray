@@ -11,7 +11,7 @@
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/propagator/base_actor.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 
 // Vecmem include(s)
 #include <vecmem/containers/device_vector.hpp>
@@ -74,7 +74,8 @@ struct surface_sequencer : actor {
 
         const auto& navigation = propagation._navigation;
 
-        DETRAY_VERBOSE_HOST_DEVICE("Checking for next surface in sequence...");
+        DETRAY_VERBOSE_HOST_DEVICE(
+            "Actor: Checking for next surface in sequence...");
 
         if (actor_state.collect_only_material_surfaces() &&
             navigation.is_on_sensitive()) {

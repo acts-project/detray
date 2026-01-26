@@ -15,7 +15,7 @@
 #include "detray/geometry/coordinates/line2D.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 #include "detray/tracks/helix.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 #include "detray/utils/root_finding.hpp"
 
 namespace detray {

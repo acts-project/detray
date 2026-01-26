@@ -17,7 +17,7 @@
 #include "detray/propagator/propagator.hpp"
 #include "detray/tracks/free_track_parameters.hpp"
 #include "detray/tracks/helix.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 
 // Detray IO include(s)
 #include "detray/io/csv/intersection2D.hpp"

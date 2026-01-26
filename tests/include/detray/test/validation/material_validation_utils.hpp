@@ -16,7 +16,7 @@
 #include "detray/propagator/actors.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/propagator.hpp"
-#include "detray/utils/log.hpp"
+#include "detray/utils/logging.hpp"
 #include "detray/utils/type_list.hpp"
 
 // Detray IO include(s)
