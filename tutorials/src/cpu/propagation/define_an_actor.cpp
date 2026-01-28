@@ -21,7 +21,7 @@ struct empty_prop_state {};
 empty_prop_state prop_state{};
 
 /// Actor that prints its call chain and subject data
-struct print_actor : detray::actor {
+struct print_actor : public detray::base_actor {
 
     /// State keeps an internal string representation
     struct state {
@@ -30,26 +30,36 @@ struct print_actor : detray::actor {
         std::string to_string() const { return stream.str(); }
     };
 
+    using result = detray::actor::result;
+
     /// Actor implementation: append call notification to internal string
     template <typename propagator_state_t>
-    void operator()(state &printer_state,
-                    const propagator_state_t & /*p_state*/) const {
+    result operator()(state &printer_state, const detray::actor::result /*res*/,
+                      const propagator_state_t & /*p_state*/) const {
         printer_state.stream << "[print actor]:";
+
+        return {detray::actor::status::e_notify};
     }
 
     /// Observing actor implementation: append call notification to internal
     /// string
-    template <typename subj_state_t, typename propagator_state_t>
-    void operator()(state &printer_state, const subj_state_t &subject_state,
-                    const propagator_state_t & /*p_state*/) const {
-        printer_state.stream << "[print actor obs "
-                             << subject_state.buffer.back() << "]:";
+    template <typename subj_result_t, typename propagator_state_t>
+    result operator()(state &printer_state, const subj_result_t res,
+                      const propagator_state_t & /*p_state*/) const {
+        printer_state.stream << "[" << res << ": print actor obs "
+                             << res.buffer->back() << "]:";
+
+        return {detray::actor::status::e_notify};
     }
 };
 
 /// Example actor that counts the number of elements in its buffer
 template <template <typename...> class vector_t>
-struct example_actor : detray::actor {
+struct example_actor : public detray::base_actor {
+
+    struct result : detray::actor::result {
+        vector_t<float> *buffer{nullptr};
+    };
 
     /// actor state
     struct state {
@@ -59,25 +69,26 @@ struct example_actor : detray::actor {
 
     /// Actor implementation: Counts vector elements
     template <typename propagator_state_t>
-    void operator()(state &example_state,
-                    const propagator_state_t & /*p_state*/) const {
+    result operator()(state &example_state,
+                      const propagator_state_t & /*p_state*/) const {
         example_state.buffer.push_back(
             static_cast<float>(example_state.buffer.size()));
+
+        return {detray::actor::status::e_notify, &example_state.buffer};
     }
 
     /// Observing actor implementation: Counts vector elements (division)
     template <typename propagator_state_t>
-    void operator()(state &example_state, const state &subject_state,
+    void operator()(state &example_state, const result &res,
                     const propagator_state_t & /*p_state*/) const {
-        example_state.buffer.push_back(
-            static_cast<float>(subject_state.buffer.size()) / 10.f);
+        example_state.buffer.push_back(static_cast<float>(res.buffer->size()) /
+                                       10.f);
     }
 
     /// Observing actor implementation to printer: do nothing
-    template <typename subj_state_t, typename propagator_state_t>
-        requires(!std::is_same_v<subj_state_t, state>)
-    void operator()(state & /*example_state*/,
-                    const subj_state_t & /*subject_state*/,
+    template <typename subj_result_t, typename propagator_state_t>
+        requires(!std::is_same_v<subj_result_t, result>)
+    void operator()(state & /*example_state*/, const subj_result_t & /*res*/,
                     const propagator_state_t & /*p_state*/) const {}
 };
 

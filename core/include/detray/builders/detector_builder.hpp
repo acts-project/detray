@@ -119,8 +119,8 @@ class detector_builder {
 
         detector_type det{resource};
 
-        DETRAY_INFO_HOST("Have " << m_volumes.size()
-                                 << " configured volume builders");
+        DETRAY_VERBOSE_HOST("Have " << m_volumes.size()
+                                    << " configured volume builders");
         DETRAY_VERBOSE_HOST("Start building the volumes...");
         for (auto& vol_builder : m_volumes) {
 
@@ -132,7 +132,6 @@ class detector_builder {
 
         // TODO: Add sorting, data deduplication etc. here later...
 
-        DETRAY_INFO_HOST("Detector building complete: " << name());
         DETRAY_INFO_HOST("-> Built " << det.volumes().size() << " volumes");
         DETRAY_INFO_HOST("-> Built " << det.surfaces().size() << " surfaces:");
         DETRAY_INFO_HOST("--> portals:    " << detray::n_portals(det));
@@ -155,6 +154,7 @@ class detector_builder {
             DETRAY_INFO_HOST("--> slabs: " << detray::n_material_slabs(det));
             DETRAY_INFO_HOST("--> rods:  " << detray::n_material_rods(det));
         }
+        DETRAY_INFO_HOST("Detector building complete: " << name());
 
         return det;
     }

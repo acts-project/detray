@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/definitions/actor.hpp"
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
@@ -22,7 +23,7 @@
 namespace detray {
 
 template <concepts::algebra algebra_t>
-struct pointwise_material_interactor : actor {
+struct pointwise_material_interactor : public base_actor {
 
     using algebra_type = algebra_t;
     using scalar_type = dscalar<algebra_t>;
@@ -136,7 +137,7 @@ struct pointwise_material_interactor : actor {
 
         interactor_state.reset();
 
-        const auto &navigation = prop_state._navigation;
+        auto &navigation = prop_state._navigation;
 
         // Do material interaction when the track is on material surface
         if (navigation.encountered_sf_material()) {
@@ -152,6 +153,33 @@ struct pointwise_material_interactor : actor {
         }
     }
 
+    template <typename transporter_result_t, typename propagator_state_t>
+    DETRAY_HOST_DEVICE inline void operator()(
+        state &interactor_state, transporter_result_t &res,
+        propagator_state_t &prop_state) const {
+
+        auto &navigation = prop_state._navigation;
+
+        // Do material interaction when the track is on material surface
+        if (!navigation.encountered_sf_material()) {
+            return;
+        }
+
+        DETRAY_VERBOSE_HOST_DEVICE("Actor: Resolve material effects:");
+
+        auto &stepping = prop_state._stepping;
+
+        interactor_state.reset();
+
+        const bool success =
+            this->update(prop_state._context, stepping.particle_hypothesis(),
+                         res.destination_params, interactor_state,
+                         static_cast<int>(navigation.direction()),
+                         navigation.current_surface());
+
+        res.status = success ? actor::status::e_success : res.status;
+    }
+
     /// @brief Update the bound track parameter
     ///
     /// @param[out] bound_params bound track parameter
@@ -159,7 +187,7 @@ struct pointwise_material_interactor : actor {
     /// @param[in]  nav_dir navigation direction
     /// @param[in]  sf the surface
     template <typename context_t, typename surface_t>
-    DETRAY_HOST_DEVICE inline void update(
+    DETRAY_HOST_DEVICE inline bool update(
         const context_t gctx, const pdg_particle<scalar_type> &ptc,
         bound_track_parameters<algebra_t> &bound_params,
         state &interactor_state, const int nav_dir, const surface_t &sf) const {
@@ -170,10 +198,10 @@ struct pointwise_material_interactor : actor {
         const scalar_type cos_inc_angle{cos_angle(gctx, sf, bound_params.dir(),
                                                   bound_params.bound_local())};
 
-        const bool succeed = sf.template visit_material<kernel>(
+        const bool success = sf.template visit_material<kernel>(
             interactor_state, ptc, bound_params, cos_inc_angle, approach);
 
-        if (succeed) {
+        if (success) {
 
             auto &covariance = bound_params.covariance();
 
@@ -196,6 +224,8 @@ struct pointwise_material_interactor : actor {
         }
 
         assert(!bound_params.is_invalid());
+
+        return success;
     }
 
     /// @brief Update the q over p of bound track parameter

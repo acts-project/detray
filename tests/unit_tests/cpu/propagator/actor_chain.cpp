@@ -22,7 +22,7 @@
 using namespace detray;
 
 /// Actor that prints its call chain and subject data
-struct print_actor : detray::actor {
+struct print_actor : public detray::base_actor {
 
     /// State keeps an internal string representation
     struct state {
@@ -56,7 +56,9 @@ struct print_actor : detray::actor {
 
 /// Example actor that couts the number of elements in its buffer
 template <template <typename...> class vector_t>
-struct example_actor : detray::actor {
+struct example_actor : public detray::base_actor {
+
+    using result = detray::actor::result;
 
     /// actor state
     struct state {

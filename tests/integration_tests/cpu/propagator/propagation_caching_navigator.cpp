@@ -45,7 +45,7 @@ constexpr scalar path_limit{5.f * unit<scalar>::cm};
 constexpr std::size_t cache_size{navigation::default_cache_size};
 
 /// Compare helical track positions for stepper
-struct helix_inspector : actor {
+struct helix_inspector : public base_actor {
 
     /// Keeps the state of a helix gun to calculate track positions
     struct state {

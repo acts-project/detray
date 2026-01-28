@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2025 CERN for the benefit of the ACTS project
+ * (c) 2022-2026 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -13,7 +13,7 @@
 namespace detray {
 
 /// Base class actor implementation
-struct actor {
+struct base_actor {
     /// Tag whether this is a composite type
     struct is_comp_actor : public std::false_type {};
 
