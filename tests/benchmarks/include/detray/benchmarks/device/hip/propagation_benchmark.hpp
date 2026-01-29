@@ -9,12 +9,11 @@
 
 // Project include(s)
 #include "detray/definitions/algebra.hpp"
-#include "detray/navigation/caching_navigator.hpp"
+#include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actors.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
-#include "detray/utils/logging.hpp"
 
 // Detray test include(s)
 #include "detray/test/common/bfield.hpp"
@@ -59,7 +58,7 @@ template <typename metadata_t, typename bfield_t,
 using hip_propagator_type =
     propagator<rk_stepper<covfie::field_view<bfield_t>,
                           typename detector<metadata_t>::algebra_type>,
-               caching_navigator<detector<metadata_t>>,
+               navigator<detector<metadata_t>>,
                actor_chain_t<typename detector<metadata_t>::algebra_type>>;
 
 /// Launch the propagation kernelfor benchmarking
@@ -162,9 +161,9 @@ struct hip_propagation_bm : public benchmark_base {
                 m_cfg.propagation(), det_view, *bfield, device_actor_state_ptr,
                 warmup_track_buffer, math::min(n_warmup, n_samples));
         } else {
-            DETRAY_WARN_HOST(
-                "Running HIP benchmarks without warmup is "
-                "not recommended");
+            std::cout << "WARNING: Running HIP benchmarks without warmup is "
+                         "not recommended"
+                      << std::endl;
         }
 
         // Calculate the propagation rate
