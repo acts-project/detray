@@ -26,6 +26,9 @@ struct base_actor {
 
 namespace actor {
 
+/// Dummy result type that signals that no result is present
+struct empty_result {};
+
 /// Result of the principal actor to be passed to the obsevers
 struct result {
     actor::status status{actor::status::e_unknown};

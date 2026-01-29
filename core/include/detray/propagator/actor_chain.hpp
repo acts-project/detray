@@ -63,10 +63,11 @@ class actor_chain {
     /// @returns a tuple of default constructible actor states
     DETRAY_HOST_DEVICE
     static constexpr auto make_default_actor_states() {
-        // Only possible if each state is default initializable
-        if constexpr ((std::default_initializable<typename actors_t::state> &&
-                       ...)) {
-            return state_tuple{};
+        // Only possible if each state is default initializable (including
+        // obsevers to the actors in actors_t)
+        if constexpr (detail::tuple_all_v<std::is_default_constructible,
+                                          state_tuple>) {
+            return state_tuple();
         } else {
             return std::nullopt;
         }

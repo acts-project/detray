@@ -45,11 +45,10 @@ int main() {
     using stepper_t = detray::rk_stepper<bfield_t::view_t, algebra_t>;
 
     // Actors
-    using actor_chain_t =
-        detray::actor_chain<detray::pathlimit_aborter<scalar>,
-                            detray::parameter_transporter<algebra_t>,
-                            detray::pointwise_material_interactor<algebra_t>,
-                            detray::parameter_resetter<algebra_t>>;
+    using actor_chain_t = detray::actor_chain<
+        detray::pathlimit_aborter<scalar>,
+        detray::actor::parameter_updater<
+            algebra_t, detray::pointwise_material_interactor<algebra_t>>>;
 
     // Propagator with empty actor chain
     using propagator_t =
@@ -101,13 +100,14 @@ int main() {
         // Prepare actor states
         detray::pathlimit_aborter<scalar>::state aborter_state{
             5.f * detray::unit<scalar>::m};
-        detray::parameter_transporter<algebra_t>::state transporter_state{};
+        detray::actor::parameter_transporter<algebra_t>::state
+            transporter_state{track};
         detray::pointwise_material_interactor<algebra_t>::state
             interactor_state{};
-        detray::parameter_resetter<algebra_t>::state resetter_state{};
+        detray::actor::parameter_setter<algebra_t>::state setter_state{};
 
         auto actor_states = detray::tie(aborter_state, transporter_state,
-                                        interactor_state, resetter_state);
+                                        interactor_state, setter_state);
 
         // Run the actual propagation
         prop.propagate(propagation, actor_states);

@@ -237,4 +237,41 @@ template <typename T1, typename T2>
 constexpr bool is_permutation_v = is_permutation<T1, T2>::value;
 /// @}
 
+/// Check trait on ever element of the tuple
+/// @{
+
+// Any
+template <template <typename...> class trait, typename tuple_t>
+struct tuple_any {};
+
+template <template <typename...> class trait, typename... Args>
+struct tuple_any<trait, std::tuple<Args...>> {
+    static constexpr bool value = (trait<Args>::value || ...);
+};
+template <template <typename...> class trait, typename... Args>
+struct tuple_any<trait, dtuple<Args...>> {
+    static constexpr bool value = (trait<Args>::value || ...);
+};
+
+template <template <typename...> class trait, typename tuple_t>
+constexpr bool tuple_any_v = tuple_any<trait, tuple_t>::value;
+
+// All
+template <template <typename...> class trait, typename tuple_t>
+struct tuple_all {};
+
+template <template <typename...> class trait, typename... Args>
+struct tuple_all<trait, std::tuple<Args...>> {
+    static constexpr bool value = (trait<Args>::value && ...);
+};
+template <template <typename...> class trait, typename... Args>
+struct tuple_all<trait, dtuple<Args...>> {
+    static constexpr bool value = (trait<Args>::value && ...);
+};
+
+template <template <typename...> class trait, typename tuple_t>
+constexpr bool tuple_all_v = tuple_all<trait, tuple_t>::value;
+
+/// @}
+
 }  // namespace detray::detail

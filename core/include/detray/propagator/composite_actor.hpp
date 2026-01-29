@@ -64,7 +64,7 @@ class composite_actor final : public principal_actor_t {
     /// @param subject_res the result of the actor this actor observes. Uses
     ///                      a dummy type if this is not an observing actor.
     template <typename actor_states_t, typename propagator_state_t,
-              typename subj_result_t = typename base_actor::state>
+              typename subj_result_t = typename actor::empty_result>
     DETRAY_HOST_DEVICE void operator()(actor_states_t &states,
                                        propagator_state_t &p_state,
                                        subj_result_t &&subject_res = {}) const {
@@ -76,7 +76,7 @@ class composite_actor final : public principal_actor_t {
         // Two cases: This is a simple actor or observing actor (pass on its
         // subject's state)
         result res{};
-        if constexpr (std::same_as<subj_result_t, typename base_actor::state>) {
+        if constexpr (std::same_as<subj_result_t, actor::empty_result>) {
             res = actor_type::operator()(actor_state, p_state);
         } else {
             res = actor_type::operator()(

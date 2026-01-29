@@ -144,7 +144,8 @@ inline auto record_propagation(
     const navigation::direction nav_dir = navigation::direction::e_forward,
     typename actor_chain<actor_ts...>::state_ref_tuple state_tuple = {},
     const std::array<dscalar<typename detector_t::algebra_type>, e_bound_size>
-        &stddevs = {}) {
+        & /*stddevs*/
+    = {}) {
 
     using algebra_t = typename detector_t::algebra_type;
     using scalar_t = dscalar<algebra_t>;
@@ -215,27 +216,6 @@ inline auto record_propagation(
             track, bfield, det, ctx);
     }
 
-    // Set the initial covariances
-    if (!stddevs.empty() &&
-        !std::ranges::all_of(stddevs, [](scalar_t s) { return s == 0.f; })) {
-        std::random_device rd{};
-        std::mt19937 generator{rd()};
-
-        auto &bound_param = propagation->_stepping.bound_params();
-
-        for (std::size_t i = 0u; i < e_bound_size; i++) {
-
-            if (stddevs[i] != scalar_t{0}) {
-                bound_param[i] = std::normal_distribution<scalar_t>(
-                    bound_param[i], stddevs[i])(generator);
-            }
-
-            getter::element(bound_param.covariance(), i, i) =
-                stddevs[i] * stddevs[i];
-        }
-        assert(!bound_param.is_invalid());
-    }
-
     // Access to navigation information
     auto &nav_inspector = propagation->_navigation.inspector();
     auto &obj_tracer = nav_inspector.template get<object_tracer_t>();
@@ -293,8 +273,6 @@ inline auto record_propagation(
         // Perform forward propagation
         fw_propagation->set_particle(
             update_particle_hypothesis(ptc_hypo, track));
-        fw_propagation->_stepping.bound_params() =
-            propagation->_stepping.bound_params();
 
         const bool fw_success =
             fw_propagator_t{cfg}.propagate(*fw_propagation, fw_actor_states);
@@ -305,10 +283,8 @@ inline auto record_propagation(
                 "prepare backward propagation");
         }
 
-        // USe the result to set up main propagation run
+        // Use the result to set up main propagation run
         propagation->_stepping() = fw_propagation->_stepping();
-        propagation->_stepping.bound_params() =
-            fw_propagation->_stepping.bound_params();
         propagation->_navigation.set_volume(
             fw_propagation->_navigation.volume());
     }
@@ -316,6 +292,7 @@ inline auto record_propagation(
     // Run the propagation
     propagation->_navigation.set_direction(nav_dir);
     propagation->set_particle(update_particle_hypothesis(ptc_hypo, track));
+    // TODO: Copy the bound params from the forward pass into the actor state
     bool success = prop.propagate(*propagation, actor_states);
 
     return std::make_tuple(

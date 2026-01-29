@@ -12,7 +12,7 @@
 #include "detray/definitions/units.hpp"
 #include "detray/navigation/caching_navigator.hpp"
 #include "detray/propagator/actors.hpp"
-#include "detray/propagator/actors/parameter_transporter.hpp"
+#include "detray/propagator/actors/parameter_updater.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
@@ -79,17 +79,17 @@ struct propagator_test_config {
 using step_tracer_host_t = step_tracer<test_algebra, vecmem::vector>;
 using step_tracer_device_t = step_tracer<test_algebra, vecmem::device_vector>;
 using pathlimit_aborter_t = pathlimit_aborter<scalar>;
-using parameter_resetter_t = parameter_resetter<test_algebra>;
+using parameter_setter_t = actor::parameter_setter<test_algebra>;
 using actor_chain_host_t =
-    actor_chain<step_tracer_host_t, pathlimit_aborter_t,
-                parameter_transporter<test_algebra>,
-                pointwise_material_interactor<test_algebra>,
-                parameter_resetter_t>;
+    actor_chain<pathlimit_aborter_t,
+                actor::parameter_updater<
+                    test_algebra, pointwise_material_interactor<test_algebra>,
+                    step_tracer_host_t>>;
 using actor_chain_device_t =
-    actor_chain<step_tracer_device_t, pathlimit_aborter_t,
-                parameter_transporter<test_algebra>,
-                pointwise_material_interactor<test_algebra>,
-                parameter_resetter_t>;
+    actor_chain<pathlimit_aborter_t,
+                actor::parameter_updater<
+                    test_algebra, pointwise_material_interactor<test_algebra>,
+                    step_tracer_device_t>>;
 
 /// Precompute the tracks
 template <typename track_generator_t = uniform_track_generator<test_track>>
@@ -135,15 +135,15 @@ inline auto run_propagation_host(vecmem::memory_resource *mr,
 
         // Create the propagator state
         step_tracer_host_t::state tracer_state{*mr};
-        tracer_state.collect_only_on_surface(true);
         typename pathlimit_aborter_t::state pathlimit_state{
             cfg.stepping.path_limit};
-        typename parameter_transporter<test_algebra>::state transporter_state{};
-        parameter_resetter_t::state resetter_state{cfg};
+        typename actor::parameter_transporter<test_algebra>::state
+            transporter_state{trk};
+        parameter_setter_t::state setter_state{cfg};
         pointwise_material_interactor<test_algebra>::state interactor_state{};
         auto actor_states =
             detray::tie(tracer_state, pathlimit_state, transporter_state,
-                        interactor_state, resetter_state);
+                        interactor_state, setter_state);
 
         typename propagator_host_t::state state(trk, field, det);
 

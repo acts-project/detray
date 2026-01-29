@@ -8,7 +8,7 @@
 // Project include(s)
 #include "detray/navigation/caching_navigator.hpp"
 #include "detray/propagator/actors.hpp"
-#include "detray/propagator/actors/parameter_transporter.hpp"
+#include "detray/propagator/actors/parameter_updater.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
 
@@ -47,10 +47,8 @@ int main(int argc, char** argv) {
     using field_t = bfield::const_field_t<scalar>;
     using stepper_t = rk_stepper<typename field_t::view_t, bench_algebra>;
     using empty_chain_t = actor_chain<>;
-    using default_chain =
-        actor_chain<parameter_transporter<bench_algebra>,
-                    pointwise_material_interactor<bench_algebra>,
-                    parameter_resetter<bench_algebra>>;
+    using default_chain = actor_chain<actor::parameter_updater<
+        bench_algebra, pointwise_material_interactor<bench_algebra>>>;
 
     vecmem::host_memory_resource host_mr;
 
@@ -115,12 +113,12 @@ int main(int argc, char** argv) {
 
     dtuple<> empty_state{};
 
-    parameter_transporter<bench_algebra>::state transporter_state{};
+    actor::parameter_transporter<bench_algebra>::state transporter_state{};
     pointwise_material_interactor<bench_algebra>::state interactor_state{};
-    parameter_resetter<bench_algebra>::state resetter_state{prop_cfg};
+    actor::parameter_setter<bench_algebra>::state setter_state{prop_cfg};
 
     auto actor_states = detail::make_tuple<dtuple>(
-        transporter_state, interactor_state, resetter_state);
+        transporter_state, interactor_state, setter_state);
 
     //
     // Register benchmarks

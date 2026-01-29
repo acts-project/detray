@@ -131,34 +131,12 @@ struct pointwise_material_interactor : public base_actor {
         }
     };
 
-    template <typename propagator_state_t>
-    DETRAY_HOST_DEVICE inline void operator()(
-        state &interactor_state, propagator_state_t &prop_state) const {
-
-        interactor_state.reset();
-
-        auto &navigation = prop_state._navigation;
-
-        // Do material interaction when the track is on material surface
-        if (navigation.encountered_sf_material()) {
-
-            DETRAY_VERBOSE_HOST_DEVICE("Actor: Resolve material effects:");
-
-            auto &stepping = prop_state._stepping;
-
-            this->update(prop_state._context, stepping.particle_hypothesis(),
-                         stepping.bound_params(), interactor_state,
-                         static_cast<int>(navigation.direction()),
-                         navigation.current_surface());
-        }
-    }
-
     template <typename propagator_state_t, typename transporter_result_t>
     DETRAY_HOST_DEVICE inline void operator()(state &interactor_state,
                                               propagator_state_t &prop_state,
                                               transporter_result_t &res) const {
 
-        auto &navigation = prop_state._navigation;
+        const auto &navigation = prop_state._navigation;
 
         // Do material interaction when the track is on material surface
         if (!navigation.encountered_sf_material()) {
@@ -167,9 +145,9 @@ struct pointwise_material_interactor : public base_actor {
 
         DETRAY_VERBOSE_HOST_DEVICE("Actor: Resolve material effects:");
 
-        auto &stepping = prop_state._stepping;
-
         interactor_state.reset();
+
+        const auto &stepping = prop_state._stepping;
 
         const bool success =
             this->update(prop_state._context, stepping.particle_hypothesis(),

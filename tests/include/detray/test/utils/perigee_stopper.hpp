@@ -117,7 +117,7 @@ struct perigee_stopper : public base_actor {
 
                 // @TODO: Transport covariance as well
                 // assert(!cf.m_bound_vec.is_invalid());
-                stepping.bound_params().set_parameter_vector(cf.m_bound_vec);
+                // stepping.bound_params().set_parameter_vector(cf.m_bound_vec);
 
                 prop_state._heartbeat &= navigation.exit();
             } else {

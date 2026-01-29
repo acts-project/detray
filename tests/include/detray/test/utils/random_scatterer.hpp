@@ -127,9 +127,10 @@ struct random_scatterer : public base_actor {
         }
     };
 
-    template <typename propagator_state_t>
+    template <typename propagator_state_t, typename transporter_result_t>
     DETRAY_HOST inline void operator()(state& simulator_state,
-                                       propagator_state_t& prop_state) const {
+                                       propagator_state_t& prop_state,
+                                       transporter_result_t& res) const {
 
         // @Todo: Make context part of propagation state
         using detector_type = typename propagator_state_t::detector_type;
@@ -143,7 +144,7 @@ struct random_scatterer : public base_actor {
 
         auto& stepping = prop_state._stepping;
         const auto& ptc = stepping.particle_hypothesis();
-        auto& bound_params = stepping.bound_params();
+        auto& bound_params = res.destination_params;
         const auto sf = navigation.current_surface();
         const scalar_type cos_inc_angle{cos_angle(geo_context_type{}, sf,
                                                   bound_params.dir(),
@@ -169,8 +170,10 @@ struct random_scatterer : public base_actor {
                 simulator_state.generator);
 
             // Update Phi and Theta
-            stepping.bound_params().set_phi(vector::phi(new_dir));
-            stepping.bound_params().set_theta(vector::theta(new_dir));
+            bound_params.set_phi(vector::phi(new_dir));
+            bound_params.set_theta(vector::theta(new_dir));
+            // Signal parameter update
+            res.status = actor::status::e_success;
 
             // Flag renavigation of the current candidate
             prop_state._navigation.set_high_trust();

@@ -173,51 +173,59 @@ struct parameter_transporter : base_actor {
         result res{actor::status::e_unknown, &actor_state.bound_params(),
                    bound_track_parameters_type{}, bound_matrix_type{}};
 
-        // Do covariance transport when the track is on surface
+        // Do covariance transport only when the track is on surface
         if (!(navigation.is_on_sensitive() ||
               navigation.encountered_sf_material())) {
             return res;
         }
-        // Furthermore, there is no need to transport the initial parameters
-        if (math::fabs(stepping.path_length()) == 0.f) {
-            res.destination_params = actor_state.bound_params();
-            res.status = actor::status::e_notify;
-            return res;
-        }
 
-        // Geometry context for this track
-        const auto& gctx = propagation._context;
-
-        // Current Surface
-        const auto sf = navigation.current_surface();
+        // Destination surface (current)
+        const auto dest_sf = navigation.current_surface();
 
         // Bound track params of departure surface
-        auto& bound_params = actor_state.bound_params();
+        auto& departure_params = actor_state.bound_params();
 
-        DETRAY_VERBOSE_HOST_DEVICE(
-            "Actor: Transport track parameters to surface %d", sf.index());
-
-        // Covariance is transported only when the previous surface is an
+        // Covariance is transported only when the departure surface is an
         // actual tracking surface. (i.e. This disables the covariance transport
         // from curvilinear frame).
-        if (!bound_params.surface_link().is_invalid()) {
+        if (!departure_params.surface_link().is_invalid()) {
 
+            // There is no need to transport the initial parameters
+            if (departure_params.surface_link() == dest_sf.barcode()) {
+                DETRAY_VERBOSE_HOST_DEVICE(
+                    "Actor: On initial surface (%d), parameter transport not "
+                    "needed",
+                    dest_sf.index());
+                res.destination_params = departure_params;
+                res.status = actor::status::e_notify;
+                return res;
+            }
+
+            DETRAY_VERBOSE_HOST_DEVICE(
+                "Actor: Transport track covariance to surface %d",
+                dest_sf.index());
+
+            // Transport the covariance
             res.propagation_step_jacobian =
-                get_full_jacobian(propagation, bound_params);
-            const bound_matrix_type& old_cov = bound_params.covariance();
+                get_full_jacobian(propagation, departure_params);
+
+            const bound_matrix_type& old_cov = departure_params.covariance();
             bound_matrix_type& new_cov = res.destination_params.covariance();
 
             detray::detail::transport_covariance_to_bound_impl(
-                old_cov, res.propagation_step_jacobian,
-                res.destination_params.covariance());
+                old_cov, res.propagation_step_jacobian, new_cov);
         }
 
-        // Convert free to bound vector
+        DETRAY_VERBOSE_HOST_DEVICE(
+            "Actor: Convert track parameter vector to local for surface %d",
+            dest_sf.index());
+
+        // Get the bound parameters at the destination surface
         res.destination_params.set_parameter_vector(
-            sf.free_to_bound_vector(gctx, stepping()));
+            dest_sf.free_to_bound_vector(propagation._context, stepping()));
 
         // Set surface link
-        res.destination_params.set_surface_link(sf.barcode());
+        res.destination_params.set_surface_link(dest_sf.barcode());
 
         assert(!res.destination_params.is_invalid());
 
@@ -395,7 +403,7 @@ struct parameter_setter : base_actor {
         friend parameter_setter;
 
         /// Default construction
-        state() = default;
+        constexpr state() = default;
 
         /// Build from propagation configuration set by the user
         DETRAY_HOST_DEVICE
@@ -407,7 +415,18 @@ struct parameter_setter : base_actor {
                     cfg.navigation.estimate_scattering_noise} {}
 
         /// @return access to the noise estimation configuration
+        DETRAY_HOST_DEVICE
+        void always_update(const bool do_update = true) {
+            m_always_update = do_update;
+        }
+
+        /// @return access to the noise estimation configuration
+        DETRAY_HOST_DEVICE
         const noise_cfg& noise_estimation_cfg() const { return m_cfg; }
+
+        /// @return access to the noise estimation configuration
+        DETRAY_HOST_DEVICE
+        noise_cfg& noise_estimation_cfg() { return m_cfg; }
 
         /// @returns true if the full Jacobian matrix should be assembled.
         DETRAY_HOST_DEVICE
@@ -432,6 +451,8 @@ struct parameter_setter : base_actor {
         bound_matrix_type* m_full_jacobian{nullptr};
         /// Configuration for the niose estimation
         noise_cfg m_cfg{};
+        /// Always update the free track parameters, even if nothing changed
+        bool m_always_update{false};
     };
 
     template <typename propagator_state_t>
@@ -442,7 +463,8 @@ struct parameter_setter : base_actor {
         using scalar_t = dscalar<algebra_t>;
 
         // Update the track parameters if necessary
-        if (res.status != actor::status::e_success) {
+        if (res.status != actor::status::e_success &&
+            !setter_state.m_always_update) {
             return;
         }
 
