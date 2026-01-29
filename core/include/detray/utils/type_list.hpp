@@ -17,7 +17,9 @@
 #include <string_view>
 #include <type_traits>
 
-namespace detray::types {
+namespace detray {
+
+namespace types {
 
 /// @brief type list implementation
 /// @see https://www.codingwiththomas.com/blog/getting-started-with-typelists
@@ -35,6 +37,32 @@ struct get_size<list<Ts...>>
 
 template <typename L>
 constexpr inline std::size_t size{get_size<L>()};
+/// @}
+
+/// Does the list contain a particular type?
+/// @{
+template <typename T, std::size_t = 0, typename = void>
+struct contains_impl : public std::false_type {};
+
+template <typename U, std::size_t I, typename T, typename... Ts>
+struct contains_impl<U, I, list<T, Ts...>>
+    : public contains_impl<U, I + 1u, list<Ts...>> {};
+
+template <typename T, std::size_t I, typename... Ts>
+struct contains_impl<T, I, list<T, Ts...>> : public std::true_type {
+    static constexpr std::size_t pos{I};
+};
+
+template <typename T, std::size_t I>
+struct contains_impl<T, I, list<>> : public std::false_type {
+    static constexpr auto pos{std::numeric_limits<std::size_t>::max()};
+};
+
+template <typename L, typename T>
+inline constexpr bool contains = contains_impl<T, 0u, L>::value;
+
+template <typename L, typename T>
+inline constexpr std::size_t position = contains_impl<T, 0u, L>::pos;
 /// @}
 
 /// Access the first type
@@ -109,6 +137,22 @@ template <typename L, typename N>
 using push_front = typename do_push_front<N, L>::type;
 /// @}
 
+/// Traits for the type list
+/// @{
+namespace detail {
+
+template <typename = void>
+struct is_type_list : public std::false_type {};
+
+template <typename... Ts>
+struct is_type_list<types::list<Ts...>> : public std::true_type {};
+
+template <typename L>
+inline constexpr bool is_type_list_v{is_type_list<L>::value};
+
+}  // namespace detail
+///@}
+
 /// Print the type list
 /// @{
 
@@ -176,7 +220,9 @@ std::string get_name(bool full = false) {
 }
 
 template <typename = void>
-struct print {};
+struct print {
+    print() { std::puts("Not a type_list!\n"); }
+};
 
 template <typename... Ts>
 struct print<list<Ts...>> {
@@ -188,17 +234,111 @@ struct print<list<Ts...>> {
 
         // Keep unrolling the pack
         if constexpr (sizeof...(Ps) > 0) {
-            std::printf(", ");
+            std::puts(", ");
             return print_typeid<Ps...>(full);
         }
     }
 
     print(bool full = true) {
-        std::printf("type_list<");
+        std::puts("type_list<");
         print_typeid<Ts...>(full);
-        std::printf(">\n");
+        std::puts(">\n");
     }
 };
 /// @}
 
-}  // namespace detray::types
+/// @brief Map the types of an existing type list to a new (smaller) type list
+///
+/// @tparam orig_list_t the original type list
+/// @tparam type_selector type trait that maps a given type of the type list
+///                       to a new type in a local typedef 'type'
+/// @tparam I the current type position during recursion in the original list
+/// @tparam Fs the types currently in the list (recursion)
+///
+/// @param [out] list a type list of selected types from the original list
+///
+/// @returns the filled type list
+template <typename orig_list_t, class type_selector, std::size_t I = 0u,
+          typename... Fs>
+DETRAY_HOST_DEVICE consteval auto filtered_list(
+    const list<Fs...>& filtered = list<>{}) {
+    static_assert(sizeof...(Fs) <= I, "Can only map down to list with ");
+
+    // The current list of mapped types
+    using list_t = list<Fs...>;
+
+    if constexpr (I == size<orig_list_t>) {
+        return filtered;
+    } else {
+        // Map the current type corresponding to position 'I'
+        // to the new type according to the given type_selector
+        using next_type = at<orig_list_t, I>;
+        using mapped_t = typename type_selector::template type<next_type>;
+
+        // Don't add the same type multiple times
+        if constexpr (contains<list_t, mapped_t>) {
+            return filtered_list<orig_list_t, type_selector, I + 1u>(filtered);
+        } else {
+            return filtered_list<orig_list_t, type_selector, I + 1u>(
+                push_back<list_t, mapped_t>{});
+        }
+    }
+}
+
+/// @brief Map the types of an existing type list to an array of indices
+/// corresponding to the filtered type list (@see @c filtered_list )
+///
+/// @tparam orig_list_t the original type list
+/// @tparam type_selector type trait that maps a given type of the type list
+///                       to a new type in a local typedef 'type'
+/// @tparam Fs the types currently in the list (recursion)
+///
+/// @param [out] list a type list of selected types from the original list
+/// @param [out] idx_array a type list of selected types from the original list
+///
+/// @returns the filled index array
+template <typename orig_list_t, class type_selector, std::size_t I = 0u,
+          typename... Fs>
+DETRAY_HOST_DEVICE consteval auto filtered_indices(
+    const list<Fs...>& filtered,
+    std::array<dindex, size<orig_list_t>> idx_array = {0}) {
+
+    // The current list of mapped types
+    using list_t = list<Fs...>;
+
+    if constexpr (I == size<orig_list_t>) {
+        return idx_array;
+    } else {
+        // Map the current type corresponding to position 'I'
+        // to the new type according to the given type_selector
+        using next_type = at<orig_list_t, I>;
+        using mapped_t = typename type_selector::template type<next_type>;
+
+        // If the type is already mapped, recover the index
+        if constexpr (contains<list_t, mapped_t>) {
+            idx_array[I] = position<list_t, mapped_t>;
+
+            return filtered_indices<orig_list_t, type_selector, I + 1u>(
+                filtered, idx_array);
+        } else {
+            idx_array[I] = sizeof...(Fs);
+
+            return filtered_indices<orig_list_t, type_selector, I + 1u>(
+                push_back<list_t, mapped_t>{}, idx_array);
+        }
+    }
+}
+
+}  // namespace types
+
+/// Type list concepts
+/// @{
+namespace concepts {
+
+template <typename L>
+concept type_list = types::detail::is_type_list_v<L>;
+
+}
+///@}
+
+}  // namespace detray

@@ -8,7 +8,7 @@
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes/unbounded.hpp"
-#include "detray/navigation/navigator.hpp"
+#include "detray/navigation/caching_navigator.hpp"
 #include "detray/navigation/policies.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
@@ -55,17 +55,19 @@ GTEST_TEST(detray_navigation, guided_navigator) {
     // Inspectors are optional, of course
     using detector_t = decltype(telescope_det);
     using intersection_t =
-        intersection2D<typename detector_t::surface_type, test_algebra>;
+        intersection2D<typename detector_t::surface_type, test_algebra,
+                       intersection::contains_pos>;
     using object_tracer_t =
         object_tracer<intersection_t, dvector, status::e_on_portal,
-                      status::e_on_module>;
+                      status::e_on_object>;
     using inspector_t = aggregate_inspector<object_tracer_t, print_inspector>;
     using b_field_t = bfield::const_field_t<scalar>;
     using runge_kutta_stepper =
         rk_stepper<b_field_t::view_t, test_algebra, unconstrained_step<scalar>,
                    guided_navigation>;
     using guided_navigator =
-        navigator<detector_t, navigation::default_cache_size, inspector_t>;
+        caching_navigator<detector_t, navigation::default_cache_size,
+                          inspector_t, intersection_t>;
     using pathlimit_aborter_t = pathlimit_aborter<scalar>;
     using actor_chain_t = actor_chain<pathlimit_aborter_t>;
     using propagator_t =
@@ -94,7 +96,7 @@ GTEST_TEST(detray_navigation, guided_navigator) {
     auto &obj_tracer = nav_state.inspector().template get<object_tracer_t>();
 
     // Check that navigator exited
-    ASSERT_TRUE(nav_state.is_complete()) << debug_printer.to_string();
+    ASSERT_TRUE(nav_state.finished()) << debug_printer.to_string();
 
     // Sequence of surface ids we expect to see
     const std::vector<unsigned int> sf_sequence = {0u, 1u, 2u, 3u, 4u,  5u,

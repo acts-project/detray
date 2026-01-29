@@ -113,8 +113,7 @@ int main(int argc, char** argv) {
 
     hel_scan_cfg.name(det_name + "_helix_scan");
     // Let the Newton algorithm dynamically choose tol. based on approx. error
-    hel_scan_cfg.mask_tolerance({detray::detail::invalid_value<scalar>(),
-                                 detray::detail::invalid_value<scalar>()});
+    hel_scan_cfg.mask_tolerance(detray::detail::invalid_value<scalar>());
     hel_scan_cfg.intersection_file(file_prefix + "_helix_scan_intersections");
     hel_scan_cfg.track_param_file(file_prefix + "_helix_scan_track_parameters");
 
@@ -131,11 +130,10 @@ int main(int argc, char** argv) {
     // Number of tracks to check
     str_nav_cfg.n_tracks(ray_scan_cfg.track_generator().n_tracks());
     // Ensure that the same mask tolerance is used
-    auto mask_tolerance = ray_scan_cfg.mask_tolerance();
-    str_nav_cfg.propagation().navigation.min_mask_tolerance =
-        static_cast<float>(mask_tolerance[0]);
-    str_nav_cfg.propagation().navigation.max_mask_tolerance =
-        static_cast<float>(mask_tolerance[1]);
+    str_nav_cfg.propagation().navigation.intersection.min_mask_tolerance =
+        static_cast<float>(ray_scan_cfg.mask_tolerance());
+    str_nav_cfg.propagation().navigation.intersection.max_mask_tolerance =
+        static_cast<float>(ray_scan_cfg.mask_tolerance());
     str_nav_cfg.intersection_file(ray_scan_cfg.intersection_file());
     str_nav_cfg.track_param_file(ray_scan_cfg.track_param_file());
 

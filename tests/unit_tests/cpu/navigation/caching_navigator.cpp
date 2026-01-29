@@ -6,10 +6,9 @@
  */
 
 // Project include(s)
-#include "detray/navigation/navigator.hpp"
+#include "detray/navigation/caching_navigator.hpp"
 
 #include "detray/definitions/indexing.hpp"
-#include "detray/navigation/navigator.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
 
@@ -65,7 +64,7 @@ inline void check_on_surface(state_t &state, dindex vol_id,
                              dindex next_id) {
     // The status is: on surface/towards surface if the next candidate is
     // immediately updated and set in the same update call
-    ASSERT_TRUE(state.status() == navigation::status::e_on_module ||
+    ASSERT_TRUE(state.status() == navigation::status::e_on_object ||
                 state.status() == navigation::status::e_on_portal);
     // Points towards next candidate
     ASSERT_TRUE(std::abs(state()) >= 1.f * unit<test::scalar>::um);
@@ -86,16 +85,18 @@ inline void check_volume_switch(state_t &state, dindex vol_id) {
     // The status is towards first surface in new volume
     ASSERT_EQ(state.status(), navigation::status::e_on_portal);
     // Kernel is newly initialized
-    ASSERT_FALSE(state.is_exhausted());
+    ASSERT_FALSE(state.cache_exhausted());
     ASSERT_EQ(state.trust_level(), navigation::trust_level::e_full);
 }
 
 /// Checks an entire step onto the next surface
-template <typename navigator_t, typename stepper_t, typename prop_state_t>
+template <typename navigator_t, typename stepper_t, typename prop_state_t,
+          typename context_t>
 inline void step_and_check(navigator_t &nav, stepper_t &stepper,
                            prop_state_t &propagation,
                            const navigation::config &nav_cfg,
-                           const stepping::config &step_cfg, dindex vol_id,
+                           const stepping::config &step_cfg,
+                           const context_t &ctx, dindex vol_id,
                            std::size_t n_candidates, dindex current_id,
                            dindex next_id) {
     auto &navigation = propagation._navigation;
@@ -106,7 +107,7 @@ inline void step_and_check(navigator_t &nav, stepper_t &stepper,
     navigation.set_high_trust();
     // Stepper reduced trust level
     ASSERT_TRUE(navigation.trust_level() == navigation::trust_level::e_high);
-    nav.update(stepping(), navigation, nav_cfg);
+    nav.update(stepping(), navigation, nav_cfg, ctx);
     ASSERT_TRUE(navigation.is_alive());
     // Trust level is restored
     ASSERT_EQ(navigation.trust_level(), navigation::trust_level::e_full);
@@ -138,17 +139,37 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
 
     using detector_t = decltype(toy_det);
     using inspector_t = navigation::print_inspector;
-    using navigator_t = navigator<detector_t, cache_size, inspector_t>;
+    using navigator_t = caching_navigator<detector_t, cache_size, inspector_t>;
     using constraint_t = constrained_step<scalar>;
     using stepper_t = line_stepper<test_algebra, constraint_t>;
 
     // State type in the nominal navigation (no inspectors)
-    using nav_stat_t = navigator<detector_t, cache_size>::state;
+    using nav_stat_t = caching_navigator<detector_t, cache_size>::state;
 
-    // 256 bytes for single precision
-    static_assert(sizeof(nav_stat_t) ==
-                  16 + navigation::default_cache_size *
-                           sizeof(typename nav_stat_t::value_type));
+    // Check memory layout of intersection struct (currently 224)
+    constexpr std::size_t offset{navigation::default_cache_size *
+                                 sizeof(typename nav_stat_t::value_type)};
+    // Align to GPU read boundaries
+    static_assert(offset % 32 == 0);
+
+    // Private members cannot be accessed this way, but keep for debugging
+    /*static_assert(offsetof(nav_stat_t, m_detector) == offset);
+    static_assert(offsetof(nav_stat_t, m_status) == offset + 8);
+    static_assert(offsetof(nav_stat_t, m_trust_level) == offset + 9);
+    static_assert(offsetof(nav_stat_t, m_direction) == offset + 10);
+    static_assert(offsetof(nav_stat_t, m_heartbeat) == offset + 11);
+    static_assert((offsetof(nav_stat_t, m_external_mask_tol) == offset + 12) ||
+                  (offsetof(nav_stat_t, m_external_mask_tol) == offset + 16));
+    // 16-byte alignment for the candidate indices
+    static_assert((offsetof(nav_stat_t, m_next) == offset + 16) ||
+                  (offsetof(nav_stat_t, m_next) == offset + 24));
+    static_assert((offsetof(nav_stat_t, m_last) == offset + 17) ||
+                  (offsetof(nav_stat_t, m_last) == offset + 25));
+    static_assert((offsetof(nav_stat_t, m_volume_index) == offset + 18) ||
+                  (offsetof(nav_stat_t, m_volume_index) == offset + 26));*/
+
+    // 240 bytes for single precision + padding due to overalignment = 256 bytes
+    static_assert((sizeof(nav_stat_t) <= 256) || (sizeof(nav_stat_t) <= 384));
 
     // test track
     point3 pos{0.f, 0.f, 0.f};
@@ -203,7 +224,7 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
     stepping.template release_step<step::constraint::e_user>();
     ASSERT_TRUE(navigation.trust_level() == trust_level::e_fair);
     // Re-navigate
-    nav.update(stepping(), navigation, nav_cfg);
+    nav.update(stepping(), navigation, nav_cfg, ctx);
     ASSERT_TRUE(navigation.is_alive());
     // Trust level is restored
     ASSERT_EQ(navigation.trust_level(), trust_level::e_full);
@@ -213,14 +234,14 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
     ASSERT_NEAR(navigation(), 9.5f, tol);
 
     // Let's immediately update, nothing should change, as there is full trust
-    nav.update(stepping(), navigation, nav_cfg);
+    nav.update(stepping(), navigation, nav_cfg, ctx);
     ASSERT_TRUE(navigation.is_alive());
     check_towards_surface<navigator_t>(navigation, 0u, 2u, 0u);
     ASSERT_NEAR(navigation(), 9.5f, tol);
 
     // Now step onto the beampipe (idx 0)
-    step_and_check(nav, stepper, propagation, nav_cfg, step_cfg, 0u, 1u, 0u,
-                   3u);
+    step_and_check(nav, stepper, propagation, nav_cfg, step_cfg, ctx, 0u, 1u,
+                   0u, 3u);
     // New target: Distance to the beampipe volume cylinder portal
     ASSERT_NEAR(navigation(), 6.f, tol);
 
@@ -228,7 +249,7 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
     stepper.step(navigation(), stepping, step_cfg);
     navigation.set_high_trust();
     ASSERT_TRUE(navigation.trust_level() == trust_level::e_high);
-    nav.update(stepping(), navigation, nav_cfg);
+    nav.update(stepping(), navigation, nav_cfg, ctx);
     ASSERT_TRUE(navigation.is_alive()) << navigation.inspector().to_string();
     ASSERT_EQ(navigation.trust_level(), trust_level::e_full);
     ASSERT_EQ(navigation.volume(), 8u);
@@ -287,7 +308,7 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
         for (std::size_t sf = 1u; sf < sf_seq.size() - 1u; ++sf) {
             // Count only the currently reachable candidates
             step_and_check(nav, stepper, propagation_cpy, nav_cfg, step_cfg,
-                           vol_id, n_candidates - sf, sf_seq[sf],
+                           ctx, vol_id, n_candidates - sf, sf_seq[sf],
                            sf_seq[sf + 1u]);
         }
 
@@ -297,16 +318,14 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
 
         // Check agianst last volume
         if (vol_id == last_vol_id) {
-            nav.update(stepping_cpy(), navigation_cpy, nav_cfg);
+            nav.update(stepping_cpy(), navigation_cpy, nav_cfg, ctx);
             ASSERT_FALSE(navigation_cpy.is_alive());
             // The status is: exited
-            ASSERT_EQ(navigation_cpy.status(), status::e_on_target);
+            ASSERT_EQ(navigation_cpy.status(), status::e_exit);
             // Keep current volume id, so that nav. direction can be reversed
             ASSERT_EQ(last_vol_id, navigation_cpy.volume());
-            // We know we went out of the detector
-            ASSERT_EQ(navigation_cpy.trust_level(), trust_level::e_full);
         } else {
-            nav.update(stepping_cpy(), navigation_cpy, nav_cfg);
+            nav.update(stepping_cpy(), navigation_cpy, nav_cfg, ctx);
             ASSERT_TRUE(navigation_cpy.is_alive());
         }
 
@@ -314,14 +333,14 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
         propagation = propagation_cpy;
     }
 
-    std::cout << detray::navigation::print_state(navigation) << std::endl;
-    std::cout << detray::navigation::print_candidates(navigation, nav_cfg,
+    std::clog << detray::navigation::print_state(navigation) << std::endl;
+    std::clog << detray::navigation::print_candidates(navigation, nav_cfg,
                                                       traj.pos(), traj.dir())
               << std::endl;
 
     // Leave for debugging
-    // std::cout << navigation.inspector().to_string() << std::endl;
-    ASSERT_TRUE(navigation.is_complete()) << navigation.inspector().to_string();
+    // std::clog << navigation.inspector().to_string() << std::endl;
+    ASSERT_TRUE(navigation.finished()) << navigation.inspector().to_string();
 }
 
 GTEST_TEST(detray_navigation, navigator_wire_chamber) {
@@ -346,7 +365,7 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
 
     using detector_t = decltype(wire_det);
     using inspector_t = navigation::print_inspector;
-    using navigator_t = navigator<detector_t, cache_size, inspector_t>;
+    using navigator_t = caching_navigator<detector_t, cache_size, inspector_t>;
     using constraint_t = constrained_step<scalar>;
     using stepper_t = line_stepper<test_algebra, constraint_t>;
 
@@ -358,8 +377,7 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
     stepper_t stepper;
     navigator_t nav;
     navigation::config nav_cfg{};
-    nav_cfg.mask_tolerance_scalor = 1e-2f;
-    nav_cfg.path_tolerance = 1.f * unit<float>::um;
+    nav_cfg.intersection.mask_tolerance_scalor = 1e-2f;
     nav_cfg.search_window = {3u, 3u};
 
     stepping::config step_cfg{};
@@ -404,7 +422,7 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
     stepping.template release_step<step::constraint::e_user>();
     ASSERT_TRUE(navigation.trust_level() == trust_level::e_fair);
     // Re-navigate
-    nav.update(stepping(), navigation, nav_cfg);
+    nav.update(stepping(), navigation, nav_cfg, ctx);
     ASSERT_TRUE(navigation.is_alive());
     // Trust level is restored
     ASSERT_EQ(navigation.trust_level(), trust_level::e_full);
@@ -414,7 +432,7 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
     ASSERT_NEAR(navigation(), 250.f * unit<scalar>::mm, tol);
 
     // Let's immediately update, nothing should change, as there is full trust
-    nav.update(stepping(), navigation, nav_cfg);
+    nav.update(stepping(), navigation, nav_cfg, ctx);
     ASSERT_TRUE(navigation.is_alive());
     check_towards_surface<navigator_t>(navigation, 0u, 1u, 0u);
     ASSERT_NEAR(navigation(), 250.f * unit<scalar>::mm, tol);
@@ -423,7 +441,7 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
     stepper.step(navigation(), stepping, step_cfg);
     navigation.set_high_trust();
     ASSERT_TRUE(navigation.trust_level() == trust_level::e_high);
-    nav.update(stepping(), navigation, nav_cfg);
+    nav.update(stepping(), navigation, nav_cfg, ctx);
     ASSERT_TRUE(navigation.is_alive()) << navigation.inspector().to_string();
     ASSERT_EQ(navigation.trust_level(), trust_level::e_full);
 
@@ -471,7 +489,7 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
         for (std::size_t sf = 1u; sf < sf_seq.size() - 1u; ++sf) {
             // Count only the currently reachable candidates
             step_and_check(nav, stepper, propagation_cpy, nav_cfg, step_cfg,
-                           vol_id, n_candidates - sf, sf_seq[sf],
+                           ctx, vol_id, n_candidates - sf, sf_seq[sf],
                            sf_seq[sf + 1u]);
         }
 
@@ -481,16 +499,14 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
 
         // Check agianst last volume
         if (vol_id == last_vol_id) {
-            nav.update(stepping_cpy(), navigation_cpy, nav_cfg);
+            nav.update(stepping_cpy(), navigation_cpy, nav_cfg, ctx);
             ASSERT_FALSE(navigation_cpy.is_alive());
             // The status is: exited
-            ASSERT_EQ(navigation_cpy.status(), status::e_on_target);
+            ASSERT_EQ(navigation_cpy.status(), status::e_exit);
             // Keep current volume id, so that nav. direction can be reversed
             ASSERT_EQ(last_vol_id, navigation_cpy.volume());
-            // We know we went out of the detector
-            ASSERT_EQ(navigation_cpy.trust_level(), trust_level::e_full);
         } else {
-            nav.update(stepping_cpy(), navigation_cpy, nav_cfg);
+            nav.update(stepping_cpy(), navigation_cpy, nav_cfg, ctx);
             ASSERT_TRUE(navigation_cpy.is_alive())
                 << navigation_cpy.inspector().to_string();
         }
@@ -499,12 +515,12 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
         propagation = propagation_cpy;
     }
 
-    std::cout << detray::navigation::print_state(navigation) << std::endl;
-    std::cout << detray::navigation::print_candidates(navigation, nav_cfg,
+    std::clog << detray::navigation::print_state(navigation) << std::endl;
+    std::clog << detray::navigation::print_candidates(navigation, nav_cfg,
                                                       traj.pos(), traj.dir())
               << std::endl;
 
     // Leave for debugging
-    // std::cout << navigation.inspector().to_string() << std::endl;
-    ASSERT_TRUE(navigation.is_complete()) << navigation.inspector().to_string();
+    // std::clog << navigation.inspector().to_string() << std::endl;
+    ASSERT_TRUE(navigation.finished()) << navigation.inspector().to_string();
 }

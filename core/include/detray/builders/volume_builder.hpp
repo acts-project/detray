@@ -14,6 +14,7 @@
 #include "detray/geometry/surface.hpp"
 #include "detray/utils/concepts.hpp"
 #include "detray/utils/grid/detail/concepts.hpp"
+#include "detray/utils/logging.hpp"
 
 // System include(s)
 #include <algorithm>
@@ -52,6 +53,8 @@ class volume_builder : public volume_builder_interface<detector_t> {
         m_volume.template set_accel_link<
             static_cast<typename volume_type::object_id>(0)>(
             detector_t::accel::id::e_default, 0);
+
+        DETRAY_VERBOSE_HOST("Created builder for volume: " << idx);
     };
 
     /// @returns the volume index in the detector volume container
@@ -69,13 +72,15 @@ class volume_builder : public volume_builder_interface<detector_t> {
     /// Sets the name @param volume_name for the volume
     DETRAY_HOST void set_name(std::string volume_name) override {
         m_volume_name = std::move(volume_name);
+        DETRAY_VERBOSE_HOST("Set volume name: " << m_volume_name);
     }
 
     /// @returns the name of the volume
     DETRAY_HOST std::string_view name() override {
         if (m_volume_name.empty()) {
             // Consistent default after volume index is known
-            m_volume_name = "volume_" + std::to_string(vol_index());
+            m_volume_name =
+                "unknown(volume_" + std::to_string(vol_index()) + ")";
         }
         return m_volume_name;
     }
@@ -99,6 +104,13 @@ class volume_builder : public volume_builder_interface<detector_t> {
     auto build(detector_t& det,
                typename detector_t::geometry_context ctx = {}) ->
         typename detector_t::volume_type* override {
+
+        DETRAY_VERBOSE_HOST("Build surfaces...");
+
+        assert(!m_surfaces.empty());
+        assert(!m_transforms.empty());
+        assert(!m_masks.all_empty());
+
         // Prepare volume data
         m_volume.set_index(static_cast<dindex>(det.volumes().size()));
 
@@ -112,6 +124,10 @@ class volume_builder : public volume_builder_interface<detector_t> {
         m_surfaces.clear();
         m_transforms.clear(ctx);
         m_masks.clear_all();
+
+        DETRAY_VERBOSE_HOST("Successfully built "
+                            << m_volume.n_surfaces()
+                            << " surfaces for volume: " << this->name());
 
         // Pass to decorator builders
         return &(det._volumes.back());
@@ -147,6 +163,9 @@ class volume_builder : public volume_builder_interface<detector_t> {
     void add_surfaces(
         std::shared_ptr<surface_factory_interface<detector_t>> sf_factory,
         typename detector_t::geometry_context ctx = {}) override {
+
+        DETRAY_VERBOSE_HOST("Add surface factory:");
+
         (*sf_factory)(m_volume, m_surfaces, m_transforms, m_masks, ctx);
     }
 
@@ -248,6 +267,9 @@ class volume_builder : public volume_builder_interface<detector_t> {
 
         // Add portals to brute force navigation method
         if (m_has_accel) {
+
+            DETRAY_VERBOSE_HOST("-> Volume has acceleration structure:");
+
             typename detector_t::surface_container portals{};
             portals.reserve(n_portals);
 
@@ -256,9 +278,17 @@ class volume_builder : public volume_builder_interface<detector_t> {
                 [](auto& sf_desc) { return !sf_desc.is_sensitive(); });
 
             // Add only the portals to the brute force method
+            DETRAY_VERBOSE_HOST(
+                "-> Register only portals/passives with brute force "
+                "accelerator");
+
             det._accelerators.template push_back<default_acc_id>(
                 std::move(portals));
         } else {
+
+            DETRAY_VERBOSE_HOST(
+                "-> Register all surfaces with brute force accelerator");
+
             // Add all surfaces to the brute force method
             det._accelerators.template push_back<default_acc_id>(
                 std::move(descriptors));

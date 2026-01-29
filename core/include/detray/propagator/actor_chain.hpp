@@ -12,6 +12,7 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/composite_actor.hpp"
+#include "detray/utils/logging.hpp"
 #include "detray/utils/tuple.hpp"
 #include "detray/utils/tuple_helpers.hpp"
 
@@ -50,7 +51,7 @@ class actor_chain {
     template <typename actor_states_t, typename propagator_state_t>
     DETRAY_HOST_DEVICE void operator()(actor_states_t &states,
                                        propagator_state_t &p_state) const {
-
+        DETRAY_VERBOSE_HOST_DEVICE("Run actors...");
         run(states, p_state, std::make_index_sequence<sizeof...(actors_t)>{});
     }
 
@@ -122,7 +123,7 @@ class actor_chain {
     }
 
     /// Tuple of actors
-    [[no_unique_address]] actor_tuple m_actors = {};
+    DETRAY_NO_UNIQUE_ADDRESS actor_tuple m_actors = {};
 };
 
 /// Empty actor chain (placeholder)
@@ -165,7 +166,7 @@ class actor_chain<> {
     }
 
     private:
-    [[no_unique_address]] actor_tuple m_actors = {};
+    DETRAY_NO_UNIQUE_ADDRESS actor_tuple m_actors = {};
 };
 
 }  // namespace detray

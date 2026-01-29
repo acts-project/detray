@@ -51,13 +51,19 @@ __global__ void propagator_test_kernel(
     step_tracer_device_t::state tracer_state(steps.at(gid));
     tracer_state.collect_only_on_surface(true);
     pathlimit_aborter_t::state aborter_state{cfg.stepping.path_limit};
+    parameter_transporter<test_algebra>::state transporter_state{};
     pointwise_material_interactor<test_algebra>::state interactor_state{};
+    parameter_resetter_t::state resetter_state{cfg};
 
     // Create the actor states
     auto actor_states =
-        ::detray::tie(tracer_state, aborter_state, interactor_state);
+        ::detray::tie(tracer_state, aborter_state, transporter_state,
+                      interactor_state, resetter_state);
     // Create the propagator state
-    typename propagator_device_t::state state(tracks[gid], field_data, det);
+    typename propagator_device_t::state state(tracks.at(gid), field_data, det);
+
+    auto& ptc = state._stepping.particle_hypothesis();
+    state.set_particle(update_particle_hypothesis(ptc, tracks.at(gid)));
 
     state._stepping.template set_constraint<step::constraint::e_accuracy>(
         cfg.stepping.step_constraint);
@@ -100,10 +106,11 @@ propagator_test<bfield::const_bknd_t<dscalar<test_algebra>>,
 
 /// Explicit instantiation for an inhomogeneous magnetic field
 template void
-propagator_test<bfield::cuda::inhom_bknd_t,
+propagator_test<bfield::cuda::inhom_bknd_t<dscalar<test_algebra>>,
                 detector<toy_metadata<test_algebra>, host_container_types>>(
     detector<toy_metadata<test_algebra>, host_container_types>::view_type,
-    const propagation::config&, covfie::field_view<bfield::cuda::inhom_bknd_t>,
+    const propagation::config&,
+    covfie::field_view<bfield::cuda::inhom_bknd_t<dscalar<test_algebra>>>,
     vecmem::data::vector_view<test_track>&,
     vecmem::data::jagged_vector_view<detail::step_data<test_algebra>>&);
 

@@ -52,11 +52,25 @@ class material_map_reader {
                                               volume_builder> &det_builder,
                              payload_type &&grids_data) {
 
+        DETRAY_VERBOSE_HOST("Reading payload object...");
+
         using scalar_t = dscalar<typename detector_t::algebra_type>;
         using mat_factory_t = material_map_factory<detector_t, bin_index_type>;
         using mat_data_t = typename mat_factory_t::data_type;
         using mat_id = typename detector_t::materials::id;
 
+        // Map the io::shape_id in the payload to the shape types known by
+        // the detector under construction
+        using mat_registry_t =
+            io::detail::filtered_material_map_registry<detector_t>;
+        static_assert(
+            (!types::contains<mat_registry_t, io::detail::unknown_type> &&
+             types::size<mat_registry_t> > 0) ||
+            (types::contains<mat_registry_t, io::detail::unknown_type> &&
+             types::size<mat_registry_t> > 1));
+
+        DETRAY_VERBOSE_HOST("Converting material grids for "
+                            << grids_data.grids.size() << " volumes");
         // Convert the material volume by volume
         for (const auto &[vol_idx, mat_grids] : grids_data.grids) {
 
@@ -65,8 +79,13 @@ class material_map_reader {
                 err_stream << "Volume " << vol_idx << ": "
                            << "Cannot build material map for volume "
                            << "(volume not registered in detector builder)";
+                DETRAY_FATAL_HOST(err_stream.str());
                 throw std::invalid_argument(err_stream.str());
             }
+
+            DETRAY_VERBOSE_HOST(
+                "Reading material maps in volume: "
+                << det_builder[static_cast<dindex>(vol_idx)]->name());
 
             // Decorate the current volume builder with material maps
             auto vm_builder =
@@ -74,35 +93,60 @@ class material_map_reader {
                     .template decorate<material_map_builder<detector_t, dim>>(
                         static_cast<dindex>(vol_idx));
 
+            DETRAY_VERBOSE_HOST("-> Found " << mat_grids.size()
+                                            << " material grids:");
+
             // Add the material data to the factory
             auto mat_factory = std::make_shared<
                 material_map_factory<detector_t, bin_index_type>>();
 
             // Convert the material grid of each surface
-            for (const auto &grid_data : mat_grids) {
+            for (const auto &[idx, grid_data] :
+                 detray::views::enumerate(mat_grids)) {
 
-                mat_id map_id =
-                    from_payload<io::material_id::n_mats, detector_t>(
-                        grid_data.grid_link.type);
-
+                DETRAY_VERBOSE_HOST("Reading material map payload #" << idx
+                                                                     << "...");
                 // Get the number of bins per axis
                 std::vector<std::size_t> n_bins{};
                 for (const auto &axis_data : grid_data.axes) {
                     n_bins.push_back(axis_data.bins);
                 }
 
+                DETRAY_VERBOSE_HOST("-> Belongs to "
+                                    << (dim == 2 ? "surface" : "volume")
+                                    << " = " << grid_data.owner_link.link);
+
+                mat_id map_id = from_payload<mat_registry_t, detector_t>(
+                    grid_data.grid_link.type);
+                DETRAY_VERBOSE_HOST("-> Type id: " << map_id);
+
+                DETRAY_VERBOSE_HOST("-> Reading axis bins: Dims = " << dim);
+                for ([[maybe_unused]] const auto &[i, count] :
+                     detray::views::enumerate(n_bins)) {
+                    DETRAY_VERBOSE_HOST("--> Axis " << i << ": " << count
+                                                    << " bins");
+                }
                 // Get the axis spans
+                DETRAY_VERBOSE_HOST("-> Reading axis spans:");
                 std::vector<std::vector<scalar_t>> axis_spans = {};
-                for (const auto &axis_data : grid_data.axes) {
+                for (const auto &[i, axis_data] :
+                     detray::views::enumerate(grid_data.axes)) {
                     axis_spans.push_back(
                         {static_cast<scalar_t>(axis_data.edges.front()),
                          static_cast<scalar_t>(axis_data.edges.back())});
+                    DETRAY_VERBOSE_HOST(
+                        "--> Axis " << i << " [" << axis_spans.back().at(0)
+                                    << ", " << axis_spans.back().at(1) << "]");
                 }
 
                 // Get the local bin indices and the material parametrization
+                DETRAY_VERBOSE_HOST("-> Reading bin content...");
+
                 std::vector<bin_index_type> loc_bins{};
                 mat_data_t mat_data{detail::basic_converter::from_payload(
                     grid_data.owner_link)};
+                DETRAY_VERBOSE_HOST("--> Found " << grid_data.bins.size()
+                                                 << " bins");
                 for (const auto &bin_data : grid_data.bins) {
 
                     assert(dim == bin_data.loc_index.size() &&
@@ -125,35 +169,52 @@ class material_map_reader {
                     }
                 }
 
+                DETRAY_VERBOSE_HOST("Finished reading data for material map #"
+                                    << idx);
+                DETRAY_DEBUG_HOST(mat_data);
+
+                DETRAY_VERBOSE_HOST("Add material data to factory...");
                 mat_factory->add_material(
                     map_id, std::move(mat_data), std::move(n_bins),
                     std::move(axis_spans), std::move(loc_bins));
             }
 
             // Add the material maps to the volume
+            DETRAY_VERBOSE_HOST("Add the material maps to the volume:");
             vm_builder->add_surfaces(mat_factory);
         }
     }
 
     private:
     /// Get the detector material id from the payload material type id
-    template <io::material_id I, typename detector_t>
+    template <typename mat_registry_t, typename detector_t, std::size_t I = 0u>
     static typename detector_t::materials::id from_payload(
         io::material_id type_id) {
-
-        /// Gets compile-time mask information
-        using map_info = detail::mat_map_info<I, detector_t>;
+        // Get the next mask shape type
+        using frame_t = types::at<mat_registry_t, I>;
+        using algebra_t = typename detector_t::algebra_type;
 
         // Material id of map data found
-        if (type_id == I) {
+        if constexpr (!std::is_same_v<frame_t, io::detail::unknown_type> &&
+                      concepts::coordinate_frame<frame_t>) {
             // Get the corresponding material id for this detector
-            return map_info::value;
+            constexpr auto mat_id{
+                types::id<io::material_registry<algebra_t>, frame_t>};
+            if (type_id == mat_id) {
+                using mat_frame_registry_t =
+                    io::detail::mat_frame_registry<detector_t>;
+
+                constexpr std::size_t mapped_idx{
+                    types::position<mat_frame_registry_t, frame_t>};
+
+                return types::id_cast<typename detector_t::materials,
+                                      mat_frame_registry_t::original_index(
+                                          mapped_idx)>;
+            }
         }
         // Test next material type id
-        constexpr int current_id{static_cast<int>(I)};
-        if constexpr (current_id > 0) {
-            return from_payload<static_cast<io::material_id>(current_id - 1),
-                                detector_t>(type_id);
+        if constexpr (I < types::size<mat_registry_t> - 1u) {
+            return from_payload<mat_registry_t, detector_t, I + 1u>(type_id);
         } else {
             return detector_t::materials::id::e_none;
         }

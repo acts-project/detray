@@ -8,12 +8,15 @@
 #pragma once
 
 // Project include(s)
+#include "detray/builders/detail/radius_getter.hpp"
 #include "detray/core/detector.hpp"
 #include "detray/definitions/grid_axis.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/navigation/concepts.hpp"
 #include "detray/utils/grid/detail/concepts.hpp"
+#include "detray/utils/logging.hpp"
 
-// PLugin include(s)
+// Plugin include(s)
 #include "detray/plugins/svgtools/conversion/grid.hpp"
 #include "detray/plugins/svgtools/styling/styling.hpp"
 
@@ -42,7 +45,7 @@ struct bin_association_getter {
 
         using accel_t = typename group_t::value_type;
 
-        if constexpr (concepts::grid<accel_t>) {
+        if constexpr (concepts::surface_grid<accel_t>) {
 
             using transform3_t =
                 typename accel_t::local_frame_type::transform3_type;
@@ -52,12 +55,11 @@ struct bin_association_getter {
 
             // The actsvg display only works for 2-dimensional grids
             if constexpr (accel_t::dim != 2u) {
-                std::cout << "WARNIGN: Only 2D grids can be displayed in actvg"
-                          << std::endl;
+                DETRAY_ERROR_HOST("Only 2D grids can be displayed in actvg");
                 return {};
             }
 
-            const accel_t grid = group[index];
+            const accel_t grid = group.at(index);
             const std::size_t n_bins{grid.nbins()};
 
             std::vector<std::vector<std::size_t>> bin_assoc;
@@ -79,12 +81,13 @@ struct bin_association_getter {
             }
 
             for (std::size_t i = 1u; i < edges0.size(); ++i) {
-                scalar_t p0 = 0.5f * (edges0[i] + edges0[i - 1]);
+                scalar_t p0 = 0.5f * (edges0.at(i) + edges0.at(i - 1));
 
                 for (std::size_t j = 1u; j < edges1.size(); ++j) {
-                    scalar_t p1 = 0.5f * (edges1[j] + edges1[j - 1]);
+                    scalar_t p1 = 0.5f * (edges1.at(j) + edges1.at(j - 1));
 
-                    // Create the bin center position estimates
+                    // Create the bin center position estimates for detray
+                    // (swap cylinder coordinates back)
                     point2_t bin_center{p0, p1};
                     if constexpr (is_cyl) {
                         bin_center = {p1, p0};
@@ -93,13 +96,27 @@ struct bin_association_getter {
                     // Get all the bin entries and calculate the loc index
                     std::vector<std::size_t> entries;
 
+                    DETRAY_DEBUG_HOST("-> Bin association: ");
+                    if constexpr (is_cyl) {
+                        DETRAY_DEBUG_HOST("--> Bin idx ["
+                                          << j << ", " << i
+                                          << "], Bin center: " << bin_center);
+                    } else {
+                        DETRAY_DEBUG_HOST("--> Bin idx ["
+                                          << i << ", " << j
+                                          << "], Bin center: " << bin_center);
+                    }
                     for (const auto& sf_desc :
                          grid.search(bin_center, search_window)) {
+
+                        DETRAY_DEBUG_HOST(
+                            "--> Surface: "
+                            << vol_desc.to_local_sf_index(sf_desc.index()));
+
                         // actsvg expects the sensitive surfaces to be numbered
-                        // starting from zero
-                        dindex offset{vol_desc.template sf_link<
-                            surface_id::e_sensitive>()[0]};
-                        entries.push_back(sf_desc.index() - offset);
+                        // starting from zero (per volume)
+                        entries.push_back(
+                            vol_desc.to_local_sf_index(sf_desc.index()));
                     }
 
                     // Remove duplicates
@@ -152,10 +169,9 @@ auto surface_grid(const detector_t& detector, const dindex index,
     // sensitive surfaces, since the volume has a grid. Their radii are,
     // however, always within the interval of the portal radii
     for (const auto& pt_desc : vol.portals()) {
-        auto r =
-            detector.mask_store()
-                .template visit<detray::svgtools::utils::outer_radius_getter>(
-                    pt_desc.mask());
+        auto r = detector.mask_store()
+                     .template visit<detray::detail::outer_radius_getter>(
+                         pt_desc.mask());
         if (r.has_value()) {
             radii.push_back(*r);
         }

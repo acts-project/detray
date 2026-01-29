@@ -28,7 +28,7 @@ void configure_options(const boost::program_options::variables_map &,
 /// Print the configuration
 template <typename T>
 void print_options(T &cfg) {
-    std::cout << cfg << std::endl;
+    std::clog << cfg << std::endl;
 }
 
 }  // namespace detray::options

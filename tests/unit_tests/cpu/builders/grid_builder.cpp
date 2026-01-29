@@ -125,7 +125,7 @@ GTEST_TEST(detray_builders, grid_factory_static) {
     auto loc_p = ann_gr.project(Identity, p, d);
     ann_gr.template populate<attach<>>(loc_p, 3u);
     ann_gr.template populate<attach<>>(loc_p, 5u);
-    auto bin2 = ann_gr.search(loc_p);
+    auto bin2 = ann_gr.bin(loc_p);
 
     EXPECT_TRUE(bin2.size() == 2u);
     EXPECT_FALSE(bin2.empty());
@@ -170,8 +170,8 @@ GTEST_TEST(detray_builders, grid_factory_static) {
     cyl_gr.template populate<attach<>>(loc_p, 33u);
     cyl_gr.template populate<attach<>>(loc_p, 55u);
 
-    EXPECT_EQ(cyl_gr.search(loc_p)[0], 33u);
-    EXPECT_EQ(cyl_gr.search(loc_p)[1], 55u);
+    EXPECT_EQ(cyl_gr.bin(loc_p)[0], 33u);
+    EXPECT_EQ(cyl_gr.bin(loc_p)[1], 55u);
 
     // Build the same cylinder grid from a mask
     const scalar r{5.f};
@@ -246,7 +246,7 @@ GTEST_TEST(detray_builders, grid_factory_dynamic) {
     point3 p = {0.5f, 2.f, 0.f};
     vector3 d{};
     auto loc_p = ann_gr.project(Identity, p, d);
-    auto bin2 = ann_gr.search(loc_p);
+    auto bin2 = ann_gr.bin(loc_p);
     EXPECT_TRUE(bin2.capacity() == 2u);
     EXPECT_TRUE(bin2.empty());
     EXPECT_TRUE(bin2.size() == 0u);
@@ -316,7 +316,7 @@ GTEST_TEST(detray_builders, grid_factory_dynamic) {
 
     // Test fill a bin to see, if bin content was correctly initialized
     loc_p = cyl_gr.project(Identity, p, d);
-    auto bin3 = cyl_gr.search(loc_p);
+    auto bin3 = cyl_gr.bin(loc_p);
 
     EXPECT_TRUE(bin3.capacity() == 18u);
     EXPECT_TRUE(bin3.empty());

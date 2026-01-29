@@ -12,6 +12,7 @@
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/indexing.hpp"
+#include "detray/geometry/detail/shape_utils.hpp"
 #include "detray/utils/string_helpers.hpp"
 
 // System include(s)
@@ -44,6 +45,10 @@ class unbounded {
     using local_frame_type =
         typename shape::template local_frame_type<algebra_t>;
 
+    /// Result type of a boundary check
+    template <typename bool_t>
+    using result_type = detail::boundary_check_result<bool_t>;
+
     /// Dimension of the local coordinate system
     static constexpr std::size_t dim{shape_t::dim};
 
@@ -70,13 +75,38 @@ class unbounded {
     /// @note the parameters are ignored
     ///
     /// @return always true
+    /// @{
+    template <concepts::algebra algebra_t>
+    DETRAY_HOST_DEVICE constexpr result_type<dbool<algebra_t>> check_boundaries(
+        const bounds_type<dscalar<algebra_t>>& /*bounds*/,
+        const dtransform3D<algebra_t>& /*trf*/,
+        const dpoint3D<algebra_t>& /*glob_p*/,
+        const dscalar<algebra_t> /*tol*/ = 0.f,
+        const dscalar<algebra_t> /*edge_tol*/ = 0.f) const {
+
+        if constexpr (std::same_as<result_type<dbool<algebra_t>>,
+                                   dbool<algebra_t>>) {
+            return true;
+        } else {
+            return {true, true};
+        }
+    }
+
     template <typename bounds_t, concepts::point point_t,
               concepts::scalar scalar_t>
     DETRAY_HOST_DEVICE constexpr auto check_boundaries(
         const bounds_t& /*bounds*/, const point_t& /*loc_p*/,
-        const scalar_t /*tol*/) const {
-        return true;
+        const scalar_t tol = 0.f, const scalar_t edge_tol = 0.f) const {
+
+        using bool_t = decltype(tol < edge_tol);
+
+        if constexpr (std::same_as<result_type<bool_t>, bool_t>) {
+            return bool_t{true};
+        } else {
+            return result_type<bool_t>{true, true};
+        }
     }
+    /// @}
 
     /// @brief Measure of the shape: Inf
     ///

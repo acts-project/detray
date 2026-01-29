@@ -28,7 +28,7 @@ __global__ void __launch_bounds__(256, 4) propagator_benchmark_kernel(
     using actor_chain_t = typename propagator_t::actor_chain_type;
     using propagator_device_t =
         propagator<typename propagator_t::stepper_type,
-                   navigator<detector_device_t>, actor_chain_t>;
+                   caching_navigator<detector_device_t>, actor_chain_t>;
 
     const detector_device_t det(det_view);
     const vecmem::device_vector<free_track_parameters<algebra_t>> tracks(
@@ -61,7 +61,7 @@ __global__ void __launch_bounds__(256, 4) propagator_benchmark_kernel(
     if constexpr (kOPT == detray::benchmarks::propagation_opt::e_unsync) {
         p.propagate(p_state, actor_state_refs);
     } else if constexpr (kOPT == detray::benchmarks::propagation_opt::e_sync) {
-        p.propagate_sync(p_state, actor_state_refs);
+        /* Do nothing for now */
     }
 }
 
@@ -116,37 +116,46 @@ void run_propagation_kernel(
 }
 
 /// Macro declaring the template instantiations for the different detector types
-#define DECLARE_PROPAGATION_BENCHMARK(METADATA, CHAIN, FIELD, OPT)             \
-                                                                               \
-    template void                                                              \
-    run_propagation_kernel<cuda_propagator_type<METADATA, FIELD, CHAIN>, OPT>( \
-        const propagation::config &, detector<METADATA>::view_type,            \
-        covfie::field_view<FIELD>,                                             \
-        cuda_propagator_type<METADATA, FIELD,                                  \
-                             CHAIN>::actor_chain_type::state_tuple *,          \
-        vecmem::data::vector_view<                                             \
-            free_track_parameters<detector<METADATA>::algebra_type>>,          \
-        const int);                                                            \
-                                                                               \
-    template cuda_propagator_type<METADATA, FIELD,                             \
-                                  CHAIN>::actor_chain_type::state_tuple *      \
-    setup_actor_states<cuda_propagator_type<METADATA, FIELD, CHAIN>>(          \
-        cuda_propagator_type<METADATA, FIELD,                                  \
-                             CHAIN>::actor_chain_type::state_tuple *);         \
-                                                                               \
-    template void                                                              \
-    release_actor_states<cuda_propagator_type<METADATA, FIELD, CHAIN>>(        \
-        cuda_propagator_type<METADATA, FIELD,                                  \
-                             CHAIN>::actor_chain_type::state_tuple *);
+#define DECLARE_PROPAGATION_BENCHMARK(METADATA, CHAIN, FIELD, OPT, COV_TRANS) \
+                                                                              \
+    template void run_propagation_kernel<                                     \
+        cuda_propagator_type<METADATA, FIELD, CHAIN, COV_TRANS>, OPT>(        \
+        const propagation::config &, detector<METADATA>::view_type,           \
+        covfie::field_view<FIELD>,                                            \
+        cuda_propagator_type<METADATA, FIELD, CHAIN,                          \
+                             COV_TRANS>::actor_chain_type::state_tuple *,     \
+        vecmem::data::vector_view<                                            \
+            free_track_parameters<detector<METADATA>::algebra_type>>,         \
+        const int);                                                           \
+                                                                              \
+    template cuda_propagator_type<METADATA, FIELD, CHAIN,                     \
+                                  COV_TRANS>::actor_chain_type::state_tuple * \
+    setup_actor_states<                                                       \
+        cuda_propagator_type<METADATA, FIELD, CHAIN, COV_TRANS>>(             \
+        cuda_propagator_type<METADATA, FIELD, CHAIN,                          \
+                             COV_TRANS>::actor_chain_type::state_tuple *);    \
+                                                                              \
+    template void release_actor_states<                                       \
+        cuda_propagator_type<METADATA, FIELD, CHAIN, COV_TRANS>>(             \
+        cuda_propagator_type<METADATA, FIELD, CHAIN,                          \
+                             COV_TRANS>::actor_chain_type::state_tuple *);
 
 DECLARE_PROPAGATION_BENCHMARK(benchmarks::default_metadata, empty_chain,
-                              const_field_t, propagation_opt::e_unsync)
+                              const_field_t, propagation_opt::e_unsync, true)
 DECLARE_PROPAGATION_BENCHMARK(benchmarks::default_metadata, default_chain,
-                              const_field_t, propagation_opt::e_unsync)
+                              const_field_t, propagation_opt::e_unsync, true)
+DECLARE_PROPAGATION_BENCHMARK(benchmarks::default_metadata, empty_chain,
+                              const_field_t, propagation_opt::e_unsync, false)
+DECLARE_PROPAGATION_BENCHMARK(benchmarks::default_metadata, default_chain,
+                              const_field_t, propagation_opt::e_unsync, false)
 
 DECLARE_PROPAGATION_BENCHMARK(benchmarks::toy_metadata, empty_chain,
-                              const_field_t, propagation_opt::e_unsync)
+                              const_field_t, propagation_opt::e_unsync, true)
 DECLARE_PROPAGATION_BENCHMARK(benchmarks::toy_metadata, default_chain,
-                              const_field_t, propagation_opt::e_unsync)
+                              const_field_t, propagation_opt::e_unsync, true)
+DECLARE_PROPAGATION_BENCHMARK(benchmarks::toy_metadata, empty_chain,
+                              const_field_t, propagation_opt::e_unsync, false)
+DECLARE_PROPAGATION_BENCHMARK(benchmarks::toy_metadata, default_chain,
+                              const_field_t, propagation_opt::e_unsync, false)
 
 }  // namespace detray::benchmarks

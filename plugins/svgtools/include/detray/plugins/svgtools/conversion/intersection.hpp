@@ -44,7 +44,7 @@ inline auto intersection(const detector_t& detector,
             continue;
         }
 
-        const point2_t bound{intr.local[0], intr.local[1]};
+        const point2_t bound{intr.local().at(0), intr.local().at(1)};
         const auto position = sf.local_to_global(gctx, bound, dir);
         const auto p_lm = svgtools::conversion::landmark(position, style);
 
@@ -62,7 +62,7 @@ inline auto intersection(const detector_t& detector,
         highlight_style._fill_color = {styling::colors::red, opacity};
 
         for (std::size_t i = highlight_idx[0]; i <= highlight_idx[1]; ++i) {
-            styling::apply_style(p_ir._landmarks[i], highlight_style);
+            styling::apply_style(p_ir._landmarks.at(i), highlight_style);
         }
     }
 

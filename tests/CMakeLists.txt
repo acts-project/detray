@@ -114,7 +114,10 @@ endif()
 if(DETRAY_BUILD_TESTING)
     # Build host and device specific test code
     add_subdirectory(include/detray/test/cpu)
-    add_subdirectory(include/detray/test/device)
+
+    if(DETRAY_BUILD_CUDA OR DETRAY_BUILD_HIP OR DETRAY_BUILD_SYCL)
+        add_subdirectory(include/detray/test/device)
+    endif()
 
     # Build the unittests
     if(DETRAY_BUILD_UNITTESTS)

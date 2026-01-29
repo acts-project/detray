@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/definitions/algebra.hpp"
+#include "detray/utils/logging.hpp"
 
 // Detray test include(s)
 #include "detray/options/options_handling.hpp"
@@ -102,10 +103,9 @@ void configure_uniform_track_gen_options(
             cfg.p_T(static_cast<scalar_t>(cfg.m_p_mag));
         } else if (pt_range.size() <= 2u) {
             if (pt_range.size() == 2u) {
-                std::cout
-                    << "WARNING: Momentum range not possible with uniform "
-                       "track generator: Using first value."
-                    << std::endl;
+                DETRAY_ERROR_HOST(
+                    "Momentum range not possible with uniform "
+                    "track generator: Using first value.");
             }
             cfg.p_T(pt_range[0] * unit<scalar_t>::GeV);
         } else {
@@ -124,16 +124,17 @@ void configure_uniform_track_gen_options(
             cfg.p_tot(static_cast<scalar_t>(cfg.m_p_mag));
         } else if (p_range.size() <= 2u) {
             if (p_range.size() == 2u) {
-                std::cout
-                    << "WARNING: Momentum range not possible with uniform "
-                       "track generator: Using first value."
-                    << std::endl;
+                DETRAY_ERROR_HOST(
+                    "Momentum range not possible with uniform "
+                    "track generator: Using first value.");
             }
             cfg.p_tot(p_range[0] * unit<scalar_t>::GeV);
         } else {
-            throw std::invalid_argument(
+            std::string err_str{
                 "Wrong number of arguments for p_tot range: Need one argument "
-                "or range");
+                "or range"};
+            DETRAY_FATAL_HOST(err_str);
+            throw std::invalid_argument(err_str);
         }
     }
 }

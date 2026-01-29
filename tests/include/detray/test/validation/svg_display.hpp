@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/definitions/algebra.hpp"
+#include "detray/utils/logging.hpp"
 
 // Detray plugin include(s)
 #include "detray/plugins/svgtools/illustrator.hpp"
@@ -49,8 +50,8 @@ std::unordered_set<dindex> get_volume_indices(
 /// - intersection collection
 template <typename surface_t, concepts::algebra algebra_t>
 std::unordered_set<dindex> get_volume_indices(
-    const dvector<detray::intersection2D<surface_t, algebra_t, true>>
-        &intersections) {
+    const dvector<detray::intersection2D<
+        surface_t, algebra_t, intersection::contains_pos>> &intersections) {
 
     std::unordered_set<dindex> volumes{};
     volumes.reserve(intersections.size());
@@ -69,9 +70,8 @@ std::unordered_set<dindex> get_volume_indices(
 template <template <typename> class candidate_t, typename surface_t,
           concepts::algebra algebra_t>
 std::unordered_set<dindex> get_volume_indices(
-    const dvector<
-        candidate_t<detray::intersection2D<surface_t, algebra_t, true>>>
-        &candidates) {
+    const dvector<candidate_t<detray::intersection2D<
+        surface_t, algebra_t, intersection::contains_pos>>> &candidates) {
 
     std::unordered_set<dindex> volumes{};
     volumes.reserve(candidates.size());
@@ -140,8 +140,8 @@ auto draw_intersection_and_traj_svg(
     }
 
     // Draw an approximation of the trajectory with the recorded intersections
-    const auto path{math::max(math::fabs(truth_intersections.front().path),
-                              math::fabs(truth_intersections.back().path))};
+    const auto path{math::max(math::fabs(truth_intersections.front().path()),
+                              math::fabs(truth_intersections.back().path()))};
     if (!recorded_intersections.empty()) {
         svg_traj.add_object(il.draw_intersections_and_trajectory(
             traj_name, recorded_intersections, traj, view, path, highlight_idx,
@@ -194,7 +194,7 @@ inline void svg_display(
         draw_intersection_and_traj_svg(gctx, il, truth_trace, traj, traj_name,
                                        recorded_trace, xy, highlight_idx);
 
-    const auto vol_xy_svg = il.draw_volumes(volumes, xy, gctx);
+    const auto [vol_xy_svg, _] = il.draw_volumes(volumes, xy, gctx);
     detray::svgtools::write_svg(
         path / (outfile + "_" + vol_xy_svg._id + "_" + traj_name),
         {xy_axis, vol_xy_svg, svg_traj});
@@ -210,8 +210,7 @@ inline void svg_display(
         {zr_axis, vol_zr_svg, svg_traj});
 
     if (verbose) {
-        std::cout << "\nINFO: Wrote svgs for debugging in: " << path << "\n"
-                  << std::endl;
+        DETRAY_INFO_HOST("Wrote svgs for debugging in: " << path << "\n");
     }
 }
 

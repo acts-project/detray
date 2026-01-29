@@ -35,12 +35,18 @@ using tuple_cont_dev_t =
 
 // Regular multi store test (uses vectors as containers in every tuple element)
 /// @{
+enum class reg_type_ids : std::uint_least8_t {
+    e_size = 0u,
+    e_float = 1u,
+    e_double = 2u,
+};
+
 using reg_multi_store_t =
-    regular_multi_store<int, empty_context, dtuple, vecmem::vector, std::size_t,
-                        float, double>;
-using reg_multi_store_dev_t =
-    regular_multi_store<int, empty_context, dtuple, vecmem::device_vector,
+    regular_multi_store<reg_type_ids, empty_context, dtuple, vecmem::vector,
                         std::size_t, float, double>;
+using reg_multi_store_dev_t =
+    regular_multi_store<reg_type_ids, empty_context, dtuple,
+                        vecmem::device_vector, std::size_t, float, double>;
 /// @}
 
 /// Multi store test
@@ -48,8 +54,14 @@ using reg_multi_store_dev_t =
 
 /// Test type that holds vecemem members and forces a hierarchical view/buffer
 /// treatment
+
+enum class type_ids : std::uint_least8_t {
+    e_float = 0u,
+    e_test_class = 1u,
+};
+
 template <template <typename...> class vector_t = dvector>
-struct test {
+struct test_class {
 
     using view_type = dmulti_view<dvector_view<int>, dvector_view<double>>;
     using const_view_type =
@@ -57,11 +69,11 @@ struct test {
     using buffer_type =
         dmulti_buffer<dvector_buffer<int>, dvector_buffer<double>>;
 
-    DETRAY_HOST explicit test(vecmem::memory_resource* mr)
+    DETRAY_HOST explicit test_class(vecmem::memory_resource* mr)
         : first(mr), second(mr) {}
 
     template <concepts::device_view view_t>
-    DETRAY_HOST_DEVICE explicit test(view_t v)
+    DETRAY_HOST_DEVICE explicit test_class(view_t v)
         : first(detail::get<0>(v.m_view)), second(detail::get<1>(v.m_view)) {}
 
     DETRAY_HOST view_type get_data() {
@@ -72,11 +84,12 @@ struct test {
     vector_t<double> second;
 };
 
-using multi_store_t = multi_store<std::size_t, empty_context, dtuple,
-                                  vecmem::vector<float>, test<vecmem::vector>>;
+using multi_store_t =
+    multi_store<type_ids, empty_context, dtuple, vecmem::vector<float>,
+                test_class<vecmem::vector>>;
 using multi_store_dev_t =
-    multi_store<std::size_t, empty_context, dtuple,
-                vecmem::device_vector<float>, test<vecmem::device_vector>>;
+    multi_store<type_ids, empty_context, dtuple, vecmem::device_vector<float>,
+                test_class<vecmem::device_vector>>;
 /// @}
 
 void test_single_store(typename single_store_t::view_type store_view,

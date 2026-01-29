@@ -4,6 +4,8 @@
 #
 # Mozilla Public License Version 2.0
 
+message(STATUS "Building 'detray::test_device' component")
+
 # Set up a device test library
 add_library(detray_test_device INTERFACE "propagator_test.hpp")
 add_library(detray::test_device ALIAS detray_test_device)

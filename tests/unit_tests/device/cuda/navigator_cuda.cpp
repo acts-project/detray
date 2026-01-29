@@ -33,12 +33,13 @@ TEST(navigator_cuda, navigator) {
     // Create detector
     auto [det, names] = build_toy_detector<test_algebra>(mng_mr);
 
+    propagation::config prop_cfg{};
+    navigation::config& nav_cfg = prop_cfg.navigation;
+    stepping::config& step_cfg = prop_cfg.stepping;
+
     // Create navigator
     navigator_host_t nav;
-    navigation::config nav_cfg{};
     nav_cfg.search_window = {3u, 3u};
-
-    stepping::config step_cfg{};
 
     // Create the vector of initial track parameters
     vecmem::vector<free_track_parameters<test_algebra>> tracks_host(&mng_mr);
@@ -86,7 +87,8 @@ TEST(navigator_cuda, navigator) {
 
             navigation.set_high_trust();
 
-            do_reset = nav.update(stepping(), navigation, nav_cfg);
+            do_reset =
+                nav.update(stepping(), navigation, nav_cfg, prop_cfg.context);
             do_reset |= navigation.is_on_surface();
             heartbeat &= navigation.is_alive();
 
@@ -122,8 +124,8 @@ TEST(navigator_cuda, navigator) {
     auto tracks_data = vecmem::get_data(tracks_device);
 
     // Run navigator test
-    navigator_test(det_data, nav_cfg, step_cfg, tracks_data,
-                   volume_records_buffer, position_records_buffer);
+    navigator_test(det_data, prop_cfg, tracks_data, volume_records_buffer,
+                   position_records_buffer);
 
     // Copy volume record buffer into volume & position records device
     copy(volume_records_buffer, volume_records_device)->wait();

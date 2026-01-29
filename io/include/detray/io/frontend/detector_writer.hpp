@@ -12,6 +12,7 @@
 #include "detray/io/frontend/detector_writer_config.hpp"
 #include "detray/io/frontend/impl/json_writers.hpp"
 #include "detray/io/utils/create_path.hpp"
+#include "detray/utils/logging.hpp"
 
 // System include(s)
 #include <filesystem>
@@ -47,8 +48,7 @@ void write_detector(detector_t& det, const typename detector_t::name_map& names,
     }
 
     if (cfg.compactify_json()) {
-        std::cout << "WARNING: Compactifying json files is not yet implemented"
-                  << std::endl;
+        DETRAY_ERROR_HOST("Compactifying json files is not yet implemented");
     }
 
     writer.write(det, names, mode, file_path);

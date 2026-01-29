@@ -8,11 +8,12 @@
 // Project include(s)
 #include "detray/definitions/pdg_particle.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/navigation/navigator.hpp"
+#include "detray/navigation/caching_navigator.hpp"
 #include "detray/propagator/actors.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
+#include "detray/utils/logging.hpp"
 
 // Detray test include(s)
 #include "detray/test/common/bfield.hpp"
@@ -38,7 +39,7 @@ int main() {
     using scalar = detray::tutorial::scalar;
 
     // Navigation
-    using navigator_t = detray::navigator<toy_detector_t>;
+    using navigator_t = detray::caching_navigator<toy_detector_t>;
     // Runge-Kutta-Nystrom stepper (field integration)
     using bfield_t = covfie::field<detray::bfield::const_bknd_t<scalar>>;
     using stepper_t = detray::rk_stepper<bfield_t::view_t, algebra_t>;
@@ -56,8 +57,8 @@ int main() {
 
     vecmem::host_memory_resource host_mr;
 
-    std::cout << "Propagation Tutorial\n====================\n\n";
-    std::cout << "Building toy detector:\n" << std::endl;
+    std::clog << "Propagation Tutorial\n====================\n\n";
+    std::clog << "Building toy detector:\n" << std::endl;
 
     const auto [det, _] = detray::build_toy_detector<algebra_t>(host_mr);
 
@@ -84,8 +85,8 @@ int main() {
     trck_cfg.pT_range(1.f * detray::unit<scalar>::GeV,
                       100.f * detray::unit<scalar>::GeV);
 
-    std::cout << prop_cfg;
-    std::cout << trck_cfg << std::endl;
+    std::clog << prop_cfg;
+    std::clog << trck_cfg << std::endl;
 
     // Iterate through uniformly distributed momentum directions
     bool success{true};
@@ -100,21 +101,23 @@ int main() {
         // Prepare actor states
         detray::pathlimit_aborter<scalar>::state aborter_state{
             5.f * detray::unit<scalar>::m};
+        detray::parameter_transporter<algebra_t>::state transporter_state{};
         detray::pointwise_material_interactor<algebra_t>::state
             interactor_state{};
+        detray::parameter_resetter<algebra_t>::state resetter_state{};
 
-        auto actor_states = detray::tie(aborter_state, interactor_state);
+        auto actor_states = detray::tie(aborter_state, transporter_state,
+                                        interactor_state, resetter_state);
 
         // Run the actual propagation
         prop.propagate(propagation, actor_states);
-        success &= prop.is_complete(propagation);
+        success &= prop.finished(propagation);
     }
 
     if (success) {
-        std::cout << "Successfully propagated " << trck_cfg.n_tracks()
-                  << " tracks!" << std::endl;
+        DETRAY_INFO_HOST("Successfully propagated " << trck_cfg.n_tracks()
+                                                    << " tracks!");
     } else {
-        std::cout << "ERROR: Propagation did not complete successfully!"
-                  << std::endl;
+        DETRAY_ERROR_HOST("Propagation did not complete successfully!");
     }
 }

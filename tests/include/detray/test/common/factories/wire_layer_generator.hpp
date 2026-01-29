@@ -17,6 +17,7 @@
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes/line.hpp"
 #include "detray/utils/axis_rotation.hpp"
+#include "detray/utils/logging.hpp"
 #include "detray/utils/unit_vectors.hpp"
 
 // System include(s)
@@ -125,6 +126,9 @@ class wire_layer_generator final
                     typename detector_t::geometry_context ctx = {})
         -> dindex_range override {
 
+        DETRAY_VERBOSE_HOST("Generate modules for wire chamber layer...");
+        DETRAY_VERBOSE_HOST("-> Generate " << size() << " surfaces");
+
         using surface_t = typename detector_t::surface_type;
         using nav_link_t = typename surface_t::navigation_link;
         using mask_link_t = typename surface_t::mask_link;
@@ -137,8 +141,8 @@ class wire_layer_generator final
         constexpr auto invalid_src_link{detail::invalid_value<std::uint64_t>()};
 
         // The type id of the surface mask shape (drift cell or straw tube)
-        constexpr auto mask_id{detector_t::mask_container::template get_id<
-            mask<mask_shape_t, algebra_t>>::value};
+        constexpr auto mask_id{types::id<typename detector_t::masks,
+                                         mask<mask_shape_t, algebra_t>>};
         // Modules link back to mother volume in navigation
         const auto mask_volume_link{static_cast<nav_link_t>(volume_idx)};
 

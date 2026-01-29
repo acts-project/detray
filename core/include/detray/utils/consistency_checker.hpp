@@ -10,9 +10,11 @@
 // Project include(s)
 #include "detray/geometry/surface.hpp"
 #include "detray/geometry/tracking_volume.hpp"
-#include "detray/materials/detail/concepts.hpp"
+#include "detray/materials/concepts.hpp"
 #include "detray/materials/predefined_materials.hpp"
+#include "detray/utils/logging.hpp"
 #include "detray/utils/ranges.hpp"
+#include "detray/utils/type_registry.hpp"
 
 // System include(s)
 #include <iostream>
@@ -22,26 +24,23 @@
 
 namespace detray::detail {
 
-/// @returns a string that identifies the volume
-template <typename detector_t>
-std::string print_volume_name(const tracking_volume<detector_t> &vol,
-                              const typename detector_t::name_map &names) {
-    if (names.empty()) {
-        return std::to_string(vol.index());
-    } else {
-        return vol.name(names);
-    }
-}
-
 /// Checks every collection in a multistore to be emtpy and prints a warning
 template <typename store_t, std::size_t... I>
-void report_empty(const store_t &store, const std::string &store_name,
+void report_empty(const store_t &store,
+                  [[maybe_unused]] const std::string &store_name,
                   std::index_sequence<I...> /*seq*/) {
 
-    ((store.template empty<store_t::value_types::to_id(I)>()
-          ? std::cout << "WARNING: " << store_name
-                      << " has empty collection no. " << I << std::endl
-          : std::cout << ""),
+    ((store.template empty<types::id_cast<typename store_t::value_types, I>>()
+          ?
+#if DETRAY_LOG_LVL < 0
+          std::clog << ""
+#else
+          // The log macro does not compile here...
+          std::clog << "DETRAY WARNING (HOST): " << __FILENAME__ << ":"
+                    << __LINE__ << " " << store_name
+                    << " has empty collection no. " << I << std::endl
+#endif
+          : std::clog << ""),
      ...);
 }
 
@@ -59,16 +58,17 @@ struct surface_checker {
         const auto sf = geometry::surface{det, sf_descr};
         const auto vol = tracking_volume{det, vol_idx};
         std::stringstream err_stream{};
-        err_stream << "VOLUME \"" << print_volume_name(vol, names) << "\":\n";
+        err_stream << "Volume \"" << vol.name(names) << "\":\n";
 
         if (!sf.self_check(err_stream)) {
             throw std::invalid_argument(err_stream.str());
         }
 
         if (sf.volume() != vol_idx) {
-            err_stream << "ERROR: Incorrect volume index on surface: vol "
+            err_stream << "Incorrect volume index on surface: vol. index "
                        << vol_idx << ", sf: " << sf;
 
+            DETRAY_FATAL_HOST(err_stream.str());
             throw std::invalid_argument(err_stream.str());
         }
 
@@ -77,9 +77,10 @@ struct surface_checker {
         for (const auto vol_link : vol_links) {
             if (!detail::is_invalid_value(vol_link) &&
                 (vol_link >= det.volumes().size())) {
-                err_stream
-                    << "ERROR: Incorrect volume link to non-existent volume "
-                    << vol_link;
+                err_stream << "Incorrect volume link to non-existent volume "
+                           << vol_link << " on surface " << sf;
+
+                DETRAY_FATAL_HOST(err_stream.str());
                 throw std::invalid_argument(err_stream.str());
             }
         }
@@ -88,10 +89,9 @@ struct surface_checker {
         // constructed with material
         if (!det.material_store().all_empty() &&
             (sf.is_passive() && !sf.has_material())) {
-            std::cout << err_stream.str()
-                      << "WARNING: Passive surface without material: "
-                      << sf_descr << "\n"
-                      << std::endl;
+            DETRAY_WARN_HOST(err_stream.str());
+            DETRAY_WARN_HOST("Passive surface without material: " << sf_descr
+                                                                  << "\n");
         }
 
         // Check that the same surface is registered in the detector surface
@@ -99,10 +99,11 @@ struct surface_checker {
         const auto sf_from_lkp =
             geometry::surface{det, det.surface(sf.barcode())};
         if (sf_from_lkp != sf) {
-            err_stream << "ERROR: Surfaces in volume and detector lookups "
-                       << "differ:\n In volume acceleration data structure: "
-                       << sf << "\nIn detector surface lookup: " << sf_from_lkp;
+            err_stream << "Surfaces in volume and detector lookups "
+                       << "differ:\n In volume: " << vol
+                       << "\nFound in detector surface lookup: " << sf_from_lkp;
 
+            DETRAY_FATAL_HOST(err_stream.str());
             throw std::runtime_error(err_stream.str());
         }
     }
@@ -113,20 +114,21 @@ struct surface_checker {
     /// @param ref_descr one of the surfaces in the volumes acceleration data
     /// @param check_descr surface that we are searching for
     /// @param success communicate success to the outside
-    template <typename detector_t>
-    DETRAY_HOST_DEVICE void operator()(
-        const typename detector_t::surface_type &ref_descr,
-        const typename detector_t::surface_type &check_descr, bool &success,
-        const detector_t &det) const {
+    template <typename sf_descr_t, typename sf_source_descr_t>
+    DETRAY_HOST_DEVICE void operator()(const sf_descr_t &ref_descr,
+                                       const sf_source_descr_t &check_descr,
+                                       bool &success) const {
 
-        // Check that the surface is being searched for in the right volume
-        // The volume index of the ref_descr must be checked to be correct
-        // beforehand, e.g. by the call operator above
+        // Check that the other surfaces in the acceleration structure belong
+        // there The volume index of the check_descr must be checked to be
+        // correct beforehand, e.g. by the call operator above
         if (ref_descr.volume() != check_descr.volume()) {
             std::stringstream err_stream{};
-            err_stream << "Incorrect volume index on surface: "
-                       << geometry::surface{det, check_descr};
+            err_stream << "Inconsistent volume index in accel. structure: "
+                       << "Expected: " << check_descr.volume()
+                       << ". Got surface in accel. structure: " << ref_descr;
 
+            DETRAY_FATAL_HOST(err_stream.str());
             throw std::invalid_argument(err_stream.str());
         }
 
@@ -147,7 +149,7 @@ struct material_checker {
         std::stringstream err_stream{};
         err_stream << "Invalid material found in: " << type << " at index "
                    << idx << ": " << mat;
-
+        DETRAY_FATAL_HOST(err_stream.str());
         throw std::invalid_argument(err_stream.str());
     }
 
@@ -161,25 +163,34 @@ struct material_checker {
     DETRAY_HOST_DEVICE void operator()(const material_coll_t &material_coll,
                                        const index_t idx, const id_t id) const {
 
-        const auto mat_map = material_coll[idx];
+        try {
+            const auto mat_map = material_coll.at(idx);
 
-        // Check whether there are any entries in the bins
-        if (mat_map.size() == 0u) {
-            std::stringstream err_stream{};
-            err_stream << "Empty material grid: " << static_cast<int>(id)
-                       << " at index " << idx;
-
-            throw std::invalid_argument(err_stream.str());
-        } else {
-            for (const auto &bin : mat_map.bins()) {
-                if (bin.size() == 0u) {
-                    std::stringstream err_stream{};
-                    err_stream << "Empty material bin: " << static_cast<int>(id)
-                               << " at index " << idx;
-
-                    throw std::invalid_argument(err_stream.str());
+            // Check whether there are any entries in the bins
+            if (mat_map.size() == 0u) {
+                std::stringstream err_stream{};
+                err_stream << "Empty material grid: " << static_cast<int>(id)
+                           << " at index " << idx;
+                DETRAY_FATAL_HOST(err_stream.str());
+                throw std::invalid_argument(err_stream.str());
+            } else {
+                for (const auto &bin : mat_map.bins()) {
+                    if (bin.size() == 0u) {
+                        std::stringstream err_stream{};
+                        err_stream
+                            << "Empty material bin: " << static_cast<int>(id)
+                            << " at index " << idx;
+                        DETRAY_FATAL_HOST(err_stream.str());
+                        throw std::invalid_argument(err_stream.str());
+                    }
                 }
             }
+        } catch (std::out_of_range &) {
+            std::stringstream err_stream{};
+            err_stream << "Out of range material access in: "
+                       << "binned material collection at index " << idx;
+            DETRAY_FATAL_HOST(err_stream.str());
+            throw std::invalid_argument(err_stream.str());
         }
     }
 
@@ -196,20 +207,30 @@ struct material_checker {
         using material_t = typename material_coll_t::value_type;
         using scalar_t = typename material_t::scalar_type;
 
-        const material_t &mat = material_coll.at(idx);
+        try {
+            const material_t &mat = material_coll.at(idx);
 
-        // Homogeneous volume material
-        if constexpr (concepts::material_params<material_t>) {
+            // Homogeneous volume material
+            if constexpr (concepts::material_params<material_t>) {
 
-            if (mat == detray::vacuum<scalar_t>{}) {
-                throw_material_error("homogeneous volume material", idx, mat);
+                if (mat == detray::vacuum<scalar_t>{}) {
+                    throw_material_error("homogeneous volume material", idx,
+                                         mat);
+                }
+
+            } else {
+                // Material slabs and rods
+                if (!mat) {
+                    throw_material_error("homogeneous surface material", idx,
+                                         mat);
+                }
             }
-
-        } else {
-            // Material slabs and rods
-            if (!mat) {
-                throw_material_error("homogeneous surface material", idx, mat);
-            }
+        } catch (std::out_of_range &) {
+            std::stringstream err_stream{};
+            err_stream << "Out of range material access in: "
+                       << "homogeneous material collection at index " << idx;
+            DETRAY_FATAL_HOST(err_stream.str());
+            throw std::invalid_argument(err_stream.str());
         }
     }
 };
@@ -232,35 +253,40 @@ inline void check_empty(const detector_t &det, const bool verbose) {
             det.portals(), [](auto pt_desc) { return pt_desc.is_portal(); });
     };
 
-    // Check if there is at least one volume in the detector volume finder
-    auto find_volumes = [](const typename detector_t::volume_finder &vf) {
-        return std::ranges::any_of(vf.all(), [](const auto &v) {
-            return !detail::is_invalid_value(v);
-        });
-    };
+    // TODO: Check for empty volume acceleration structures
 
     // Fatal errors
     if (det.volumes().empty()) {
-        throw std::runtime_error("ERROR: No volumes in detector");
+        std::string err_str{"No volumes in detector"};
+        DETRAY_FATAL_HOST(err_str);
+        throw std::runtime_error(err_str);
     }
     if (det.surfaces().empty()) {
-        throw std::runtime_error("ERROR: No surfaces found");
+        std::string err_str{"No surfaces found"};
+        DETRAY_FATAL_HOST(err_str);
+        throw std::runtime_error(err_str);
     }
     if (det.transform_store().empty()) {
-        throw std::runtime_error("ERROR: No transforms in detector");
+        std::string err_str{"No transforms in detector"};
+        DETRAY_FATAL_HOST(err_str);
+        throw std::runtime_error(err_str);
     }
     if (det.mask_store().all_empty()) {
-        throw std::runtime_error("ERROR: No masks in detector");
+        std::string err_str{"No masks in detector"};
+        DETRAY_FATAL_HOST(err_str);
+        throw std::runtime_error(err_str);
     }
     if (!find_portals()) {
-        throw std::runtime_error("ERROR: No portals in detector");
+        std::string err_str{"No portals in detector"};
+        DETRAY_FATAL_HOST(err_str);
+        throw std::runtime_error(err_str);
     }
 
     // Warnings
 
     // Check the material description
     if (det.material_store().all_empty()) {
-        std::cout << "WARNING: No material in detector" << std::endl;
+        DETRAY_WARN_HOST("No material in detector");
     } else if (verbose) {
         // Check for empty material collections
         detail::report_empty(
@@ -280,10 +306,7 @@ inline void check_empty(const detector_t &det, const bool verbose) {
             std::make_index_sequence<detector_t::accel::n_types>{});
     }
 
-    // Check volume search data structure
-    if (!find_volumes(det.volume_search_grid())) {
-        std::cout << "WARNING: No entries in volume finder" << std::endl;
-    }
+    // TODO: Implement volume acceleration structure check
 }
 
 /// @brief Checks the internal consistency of a detector
@@ -291,32 +314,115 @@ template <typename detector_t>
 inline bool check_consistency(const detector_t &det, const bool verbose = false,
                               const typename detector_t::name_map &names = {}) {
 
-    std::cout << "INFO: Checking detector consistency..." << std::endl;
+    DETRAY_INFO_HOST("Checking detector consistency...");
 
     check_empty(det, verbose);
 
-    std::stringstream err_stream{};
     // Check the volumes
+    constexpr bool portal_eq_passive{
+        detector_t::volume_type::object_id::e_portal ==
+        detector_t::volume_type::object_id::e_passive};
+
     for (const auto &[idx, vol_desc] :
          detray::views::enumerate(det.volumes())) {
         const auto vol = tracking_volume{det, vol_desc};
-        err_stream << "VOLUME \"" << print_volume_name(vol, names) << "\":\n";
+
+        std::stringstream err_stream{};
+        err_stream << "Volume \"" << vol.name(names) << "\":\n";
 
         // Check that nothing is obviously broken
         if (!vol.self_check(err_stream)) {
+            DETRAY_FATAL_HOST(err_stream.str());
             throw std::invalid_argument(err_stream.str());
         }
 
         // Check consistency in the context of the owning detector
         if (vol.index() != idx) {
-            err_stream << "ERROR: Incorrect volume index! Found volume:\n"
+            err_stream << "Incorrect volume index! Found volume:\n"
                        << vol << "\nat index " << idx;
+
+            DETRAY_FATAL_HOST(err_stream.str());
             throw std::invalid_argument(err_stream.str());
         }
 
+        // Check that only surfaces belonging to this volume are in the surface
+        // range of the detector
+
+        // Check volume indices
+        for (const auto sf_desc : vol.template surfaces<surface_id::e_all>()) {
+            if (sf_desc.volume() != vol.index()) {
+                err_stream << "Surface of other volume detected:\n\nvolume "
+                           << vol << "\n\nsurface " << sf_desc;
+
+                DETRAY_FATAL_HOST(err_stream.str());
+                throw std::invalid_argument(err_stream.str());
+            }
+        }
+        // Check surface type: portal or passive
+        for (const auto sf_desc : vol.portals()) {
+            if (!portal_eq_passive && !sf_desc.is_portal()) {
+                err_stream << "Non-portal surface discovered in portal "
+                              "range: "
+                           << vol_desc.template sf_link<surface_id::e_portal>()
+                           << "\n\nvolume " << vol << "\n\nsurface " << sf_desc;
+
+                DETRAY_FATAL_HOST(err_stream.str());
+                throw std::invalid_argument(err_stream.str());
+            }
+
+            if (portal_eq_passive &&
+                !(sf_desc.is_portal() || sf_desc.is_passive())) {
+                err_stream << "Sensitive surface discovered in portal/passive "
+                              "range: "
+                           << vol_desc.template sf_link<surface_id::e_portal>()
+                           << "\n\nvolume " << vol << "\n\nsurface " << sf_desc;
+
+                DETRAY_FATAL_HOST(err_stream.str());
+                throw std::invalid_argument(err_stream.str());
+            }
+        }
+        // Check surface type: passive or portal
+        for (const auto sf_desc :
+             vol.template surfaces<surface_id::e_passive>()) {
+            if (!portal_eq_passive && !sf_desc.is_passive()) {
+                err_stream << "Non-passive surface discovered in passive "
+                              "range: "
+                           << vol_desc.template sf_link<surface_id::e_passive>()
+                           << "\n\nvolume " << vol << "\n\nsurface " << sf_desc;
+
+                DETRAY_FATAL_HOST(err_stream.str());
+                throw std::invalid_argument(err_stream.str());
+            }
+
+            if (portal_eq_passive &&
+                !(sf_desc.is_portal() || sf_desc.is_passive())) {
+                err_stream << "Sensitive surface discovered in portal/passive "
+                              "range: "
+                           << vol_desc.template sf_link<surface_id::e_passive>()
+                           << "\n\nvolume " << vol << "\n\nsurface " << sf_desc;
+
+                DETRAY_FATAL_HOST(err_stream.str());
+                throw std::invalid_argument(err_stream.str());
+            }
+        }
+        // Check surface type: sensitive
+        for (const auto sf_desc :
+             vol.template surfaces<surface_id::e_sensitive>()) {
+            if (!sf_desc.is_sensitive()) {
+                err_stream
+                    << "Non-sensitive surface discovered in sensitive "
+                       "range: "
+                    << vol_desc.template sf_link<surface_id::e_sensitive>()
+                    << "\n\nvolume " << vol << "\n\nsurface " << sf_desc;
+
+                DETRAY_FATAL_HOST(err_stream.str());
+                throw std::invalid_argument(err_stream.str());
+            }
+        }
+
         // Go through the acceleration data structures and check the surfaces
-        vol.template visit_surfaces<detail::surface_checker>(det, vol.index(),
-                                                             names);
+        vol.template visit_surfaces<surface_id::e_all, detail::surface_checker>(
+            det, vol.index(), names);
 
         // Check the volume material, if present
         if (vol.has_material()) {
@@ -330,7 +436,9 @@ inline bool check_consistency(const detector_t &det, const bool verbose = false,
          detray::views::enumerate(det.surfaces())) {
         const auto sf = geometry::surface{det, sf_desc};
         const auto vol = tracking_volume{det, sf.volume()};
-        err_stream << "VOLUME \"" << print_volume_name(vol, names) << "\":\n";
+
+        std::stringstream err_stream{};
+        err_stream << "Volume \"" << vol.name(names) << "\":\n";
 
         // Check that nothing is obviously broken
         if (!sf.self_check(err_stream)) {
@@ -340,8 +448,10 @@ inline bool check_consistency(const detector_t &det, const bool verbose = false,
 
         // Check consistency in the context of the owning detector
         if (sf.index() != idx) {
-            err_stream << "ERROR: Incorrect surface index! Found surface:\n"
+            err_stream << "Incorrect surface index! Found surface:\n"
                        << sf << "\nat index " << idx;
+
+            DETRAY_FATAL_HOST(err_stream.str());
             throw std::invalid_argument(err_stream.str());
         }
 
@@ -349,25 +459,27 @@ inline bool check_consistency(const detector_t &det, const bool verbose = false,
         // data structures (if there are no grids, must at least be in the
         // brute force method)
         bool is_registered = false;
-
-        vol.template visit_surfaces<detail::surface_checker>(
-            sf_desc, is_registered, det);
+        vol.template visit_surfaces<surface_id::e_all, detail::surface_checker>(
+            sf_desc, is_registered);
 
         if (!is_registered) {
-            err_stream << "ERROR: Found surface that is not part of its "
+            err_stream << "Found surface that is not part of its "
                        << "volume's navigation acceleration data structures:\n"
                        << "Surface: " << sf;
+
+            DETRAY_FATAL_HOST(err_stream.str());
             throw std::invalid_argument(err_stream.str());
         }
 
         // Check the surface material, if present
         if (sf.has_material()) {
+            DETRAY_DEBUG_HOST("Checking surface sf=" << sf);
             sf.template visit_material<detail::material_checker>(
                 sf_desc.material().id());
         }
     }
 
-    std::cout << "INFO: Consistency check: OK" << std::endl;
+    DETRAY_INFO_HOST("Detector consistency check: OK");
 
     return true;
 }

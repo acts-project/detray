@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/utils/logging.hpp"
 #include "detray/utils/ranges.hpp"
 
 // Detray plugin include(s)
@@ -57,7 +58,7 @@ inline dindex_range overlaps_removal(record_container &intersection_records,
 
         // This record and the following are overlapping: Count until we reach
         // the end of the overlapping surfaces or end of trace
-        if (math::fabs(next_rec.intersection.path - rec.intersection.path) <
+        if (math::fabs(next_rec.intersection.path() - rec.intersection.path()) <
                 tol &&
             i != (n_rec - 2u)) {
             ++n_eq_intrs;
@@ -83,15 +84,16 @@ inline dindex_range overlaps_removal(record_container &intersection_records,
                 err_stream << "The following surfaces overlap at\n"
                            << "POS:\n"
                            << "glob: " << prev_rec.track_param.pos()
-                           << ", loc: " << prev_rec.intersection.local
+                           << ", loc: " << prev_rec.intersection.local()
                            << "\nvs.\nglob: " << rec.track_param.pos()
-                           << ", loc: " << rec.intersection.local << std::endl;
+                           << ", loc: " << rec.intersection.local()
+                           << std::endl;
                 err_stream << "SURFACES:\n -> " << prev_sf_desc << std::endl;
                 err_stream << " -> " << sf_desc << std::endl;
 
                 // TODO: Fix wire_chamber geometry
                 // throw std::invalid_argument(err_stream.str());
-                std::cout << "ERROR: " << err_stream.str() << std::endl;
+                DETRAY_ERROR_HOST(err_stream.str());
                 overlap_idx = {static_cast<dindex>(i - 1u),
                                static_cast<dindex>(i)};
             }
@@ -133,9 +135,8 @@ inline dindex_range overlaps_removal(record_container &intersection_records,
 
         // This is not a case of oversized portals, treat as actual overlaps
         if (n_erased != 1u || pt_buckets.empty() || !is_all_portals) {
-            std::cout
-                << "ERROR: Could not resolve exit portal in overlap correction"
-                << std::endl;
+            DETRAY_ERROR_HOST(
+                "Could not resolve exit portal in overlap correction");
 
             overlap_idx = {static_cast<dindex>(first),
                            static_cast<dindex>(last)};
@@ -369,7 +370,7 @@ inline auto trace_intersections(const record_container &intersection_records,
         inline auto &volume_link() const {
             return entry.intersection.volume_link;
         }
-        inline auto &dist() const { return entry.intersection.path; }
+        inline auto dist() const { return entry.intersection.path(); }
         inline bool is_portal() const {
             return entry.intersection.sf_desc.is_portal();
         }
@@ -754,7 +755,7 @@ inline void display_error(
     const typename detector_t::name_map vol_names, const std::string &test_name,
     const trajectory_t &test_track, const truth_trace_t &truth_trace,
     const detray::svgtools::styling::style &svg_style,
-    const std::size_t i_track, const std::size_t n_tracks,
+    const std::size_t i_track, [[maybe_unused]] const std::size_t n_tracks,
     const recorded_trace_t &recorded_trace = {},
     const dindex_range overlap_idx = {detray::detail::invalid_value<dindex>(),
                                       detray::detail::invalid_value<dindex>()},
@@ -778,9 +779,9 @@ inline void display_error(
     }
 
     if (verbose) {
-        std::cout << "\nFailed on " << track_type << ": " << i_track << "/"
-                  << n_tracks << "\n"
-                  << test_track;
+        DETRAY_ERROR_HOST("\nFailed on " << track_type << ": " << i_track << "/"
+                                         << n_tracks << "\n"
+                                         << test_track);
     }
 
     detray::detail::svg_display(gctx, il, truth_trace, test_track,

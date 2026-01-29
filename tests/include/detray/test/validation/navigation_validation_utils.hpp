@@ -11,12 +11,13 @@
 #include "detray/definitions/track_parametrization.hpp"
 #include "detray/geometry/barcode.hpp"
 #include "detray/geometry/surface.hpp"
-#include "detray/navigation/navigator.hpp"
+#include "detray/navigation/caching_navigator.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/tracks/free_track_parameters.hpp"
 #include "detray/tracks/helix.hpp"
+#include "detray/utils/logging.hpp"
 
 // Detray IO include(s)
 #include "detray/io/csv/intersection2D.hpp"
@@ -101,8 +102,7 @@ struct surface_stats {
             }
             default: {
                 if (verbose) {
-                    std::cout << "WARNING: Surface type unknown " << bcd
-                              << std::endl;
+                    DETRAY_ERROR_HOST("Surface type unknown " << bcd);
                 }
                 return false;
             }
@@ -151,12 +151,13 @@ inline auto record_propagation(
 
     /// Type that holds the intersection information
     using intersection_t =
-        intersection2D<typename detector_t::surface_type, algebra_t, true>;
+        intersection2D<typename detector_t::surface_type, algebra_t,
+                       intersection::contains_pos>;
 
     /// Inspector that records all encountered surfaces
     using object_tracer_t =
         navigation::object_tracer<intersection_t, dvector,
-                                  navigation::status::e_on_module,
+                                  navigation::status::e_on_object,
                                   navigation::status::e_on_portal>;
     /// Inspector that prints the navigator state from within the
     /// navigator's method calls (cannot be done with an actor)
@@ -166,8 +167,9 @@ inline auto record_propagation(
         aggregate_inspector<object_tracer_t, nav_print_inspector_t>;
 
     // Navigation with inspection
-    using navigator_t = navigator<detector_t, navigation::default_cache_size,
-                                  inspector_t, intersection_t>;
+    using navigator_t =
+        caching_navigator<detector_t, navigation::default_cache_size,
+                          inspector_t, intersection_t>;
 
     // Propagator with pathlimit aborter and validation actors
     using step_tracer_t = step_tracer<algebra_t, dvector>;
@@ -214,7 +216,8 @@ inline auto record_propagation(
     }
 
     // Set the initial covariances
-    if (!stddevs.empty()) {
+    if (!stddevs.empty() &&
+        !std::ranges::all_of(stddevs, [](scalar_t s) { return s == 0.f; })) {
         std::random_device rd{};
         std::mt19937 generator{rd()};
 
@@ -297,9 +300,9 @@ inline auto record_propagation(
             fw_propagator_t{cfg}.propagate(*fw_propagation, fw_actor_states);
 
         if (!fw_success) {
-            std::cout << "ERROR: Could not propagate to end of track to "
-                         "prepare backward propagation"
-                      << std::endl;
+            DETRAY_ERROR_HOST(
+                "Could not propagate to end of track to "
+                "prepare backward propagation");
         }
 
         // USe the result to set up main propagation run
@@ -377,6 +380,31 @@ auto compare_traces(
         }
     };
 
+    // Intersection records at portal boundary might be flipped
+    // (the portals overlap completely)
+    auto is_swapped_surfaces = [&recorded_trace, &truth_trace](const long j) {
+        const auto idx_j{static_cast<std::size_t>(j)};
+        const std::size_t next_idx{idx_j + 1u};
+
+        if (next_idx < truth_trace.size() && next_idx < recorded_trace.size()) {
+
+            const auto &current_nav_inters =
+                recorded_trace.at(idx_j).intersection.sf_desc.barcode();
+            const auto &current_truth_inters =
+                truth_trace.at(idx_j).intersection.sf_desc.barcode();
+
+            const auto &next_nav_inters =
+                recorded_trace.at(next_idx).intersection.sf_desc.barcode();
+            const auto &next_truth_inters =
+                truth_trace.at(next_idx).intersection.sf_desc.barcode();
+
+            return ((current_nav_inters == next_truth_inters) &&
+                    (next_nav_inters == current_truth_inters));
+        } else {
+            return false;
+        }
+    };
+
     // Iterate until 'max_entries', because dummy records will be added to the
     // shorter trace
     for (long i = 0; i < static_cast<long>(max_entries); ++i) {
@@ -418,34 +446,6 @@ auto compare_traces(
             long missed_sn_tr{0};
             long missed_ps_tr{0};
 
-            // Intersection records at portal boundary might be flipped
-            // (the portals overlap completely)
-            auto is_swapped_portals = [&recorded_trace,
-                                       &truth_trace](const long j) {
-                const auto idx_j{static_cast<std::size_t>(j)};
-                const std::size_t next_idx{idx_j + 1u};
-
-                if (next_idx < truth_trace.size() &&
-                    next_idx < recorded_trace.size()) {
-
-                    const auto &current_nav_inters =
-                        recorded_trace.at(idx_j).intersection.sf_desc.barcode();
-                    const auto &current_truth_inters =
-                        truth_trace.at(idx_j).intersection.sf_desc.barcode();
-
-                    const auto &next_nav_inters =
-                        recorded_trace.at(next_idx)
-                            .intersection.sf_desc.barcode();
-                    const auto &next_truth_inters =
-                        truth_trace.at(next_idx).intersection.sf_desc.barcode();
-
-                    return ((current_nav_inters == next_truth_inters) &&
-                            (next_nav_inters == current_truth_inters));
-                } else {
-                    return false;
-                }
-            };
-
             // Count a missed surface by surface type
             auto count_one_missed = []<typename insers_t>(const insers_t &intr,
                                                           long int &missed_pt,
@@ -474,7 +474,7 @@ auto compare_traces(
 
             // Compare two traces and insert dummy records for any skipped cand.
             auto compare_and_equalize =
-                [&i, &handle_counting_error, &is_swapped_portals,
+                [&i, &handle_counting_error, &is_swapped_surfaces,
                  &count_one_missed,
                  &missed_intersections]<typename trace_t,
                                         typename other_trace_t>(
@@ -496,7 +496,7 @@ auto compare_traces(
 
                         // Portals may be swapped and wrongfully included in the
                         // range of missed surfaces - skip them
-                        if (sfi.sf_desc.is_portal() && is_swapped_portals(j)) {
+                        if (sfi.sf_desc.is_portal() && is_swapped_surfaces(j)) {
                             ++j;
                             continue;
                         }
@@ -544,9 +544,17 @@ auto compare_traces(
             // Check if the portal order is swapped or the surface appears
             // later in the truth/navigation trace (this means one or
             // multiple surfaces were skipped respectively)
-            if (is_swapped_portals(i)) {
+            if (is_swapped_surfaces(i)) {
                 // Was not wrong after all
                 matching_traces = true;
+                if (!recorded_trace.at(idx).intersection.sf_desc.is_portal() ||
+                    !truth_trace.at(idx).intersection.sf_desc.is_portal()) {
+                    DETRAY_WARN_HOST(
+                        "Track "
+                        << trk_no << ", inters. " << idx
+                        << ": Surfaces are swapped in trace, "
+                           "possibly due to overlaps/large mask tolerances.");
+                }
                 // Have already checked the next record
                 ++i;
             } else if (auto last_missed_by_nav = std::ranges::find_if(
@@ -619,7 +627,7 @@ auto compare_traces(
             auto print_err_extra_sf = [&matching_stream, max_entries, i](
                                           const std::string &sf_type,
                                           long n_sf) {
-                matching_stream << "\nERROR: Detray navigator found " << n_sf
+                matching_stream << "\n -> Detray navigator found " << n_sf
                                 << " additional " << sf_type << "(s) at: " << i
                                 << "/" << max_entries
                                 << " (Inserted dummy record(s))";
@@ -627,7 +635,7 @@ auto compare_traces(
 
             auto print_err_missed = [&matching_stream, max_entries, i](
                                         const std::string &sf_type, long n_sf) {
-                matching_stream << "\nERROR: Detray navigator missed " << n_sf
+                matching_stream << "\n -> Detray navigator missed " << n_sf
                                 << " " << sf_type << "(s) at: " << i << "/"
                                 << max_entries << ": "
                                 << " (Inserted dummy record(s))";
@@ -665,31 +673,31 @@ auto compare_traces(
         max_entries = math::max(recorded_trace.size(), truth_trace.size());
     }
 
-    matching_stream << "\n\nDetray navigator skipped "
+    matching_stream << "\n\n -> Detray navigator skipped "
                     << missed_stats_nav.n_total() << " surface(s) and found "
-                    << missed_stats_tr.n_total() << " extra surface(s).";
+                    << missed_stats_tr.n_total() << " extra surface(s).\n";
 
     // Fill the debug stream with the final information from both traces
     debug_stream << std::left;
     for (std::size_t intr_idx = 0u; intr_idx < max_entries; ++intr_idx) {
-        debug_stream << "-------Intersection ( " << intr_idx << " )\n";
+        debug_stream << "   -------Intersection ( " << intr_idx << " )\n";
         if (intr_idx < truth_trace.size()) {
             debug_stream
                 << std::setw(20)
-                << "\nReference: " << truth_trace.at(intr_idx).intersection
+                << "\n   Reference: " << truth_trace.at(intr_idx).intersection
                 << ", vol id: "
                 << truth_trace.at(intr_idx).intersection.sf_desc.volume()
                 << std::endl;
         } else {
-            debug_stream << "\nnReference: -" << std::endl;
+            debug_stream << "\n   Reference: -" << std::endl;
         }
         if (intr_idx < recorded_trace.size()) {
-            debug_stream << std::setw(20) << "\nDetray navigator: "
+            debug_stream << std::setw(20) << "\n   Detray navigator: "
                          << recorded_trace.at(intr_idx).intersection
                          << std::endl
                          << std::endl;
         } else {
-            debug_stream << "\nDetray navigator: -\n" << std::endl;
+            debug_stream << "\n   Detray navigator: -\n" << std::endl;
         }
     }
 
@@ -698,8 +706,10 @@ auto compare_traces(
                          (missed_stats_tr.n_total() != 0u) || (n_errors != 0u)};
 
     // Print debugging information if anything went wrong
-    if (any_error && cfg.verbose()) {
-        std::cout << "--------\n" << matching_stream.str() << std::endl;
+    if (any_error) {
+        if (cfg.verbose()) {
+            DETRAY_ERROR_HOST("--------\n" << matching_stream.str());
+        }
         if (debug_file) {
             *debug_file << "\n>>>>>>>>>>>>>>>>>>\nFAILURE\n<<<<<<<<<<<<<<<<<<\n"
                         << "\nSUMMARY:\n--------\n"
@@ -714,8 +724,10 @@ auto compare_traces(
     // Unknown error occured during matching
     if (n_errors != 0u) {
         std::stringstream err_str{};
-        err_str << "FATAL: Errors during matching: " << n_errors << "\n"
+        err_str << "Errors during matching: " << n_errors << "\n"
                 << matching_stream.str();
+
+        DETRAY_FATAL_HOST(err_str.str());
         throw std::runtime_error(err_str.str());
     }
 
@@ -724,25 +736,25 @@ auto compare_traces(
     if (!is_size) {
         std::stringstream err_str{};
         err_str
-            << "FATAL: Intersection traces have different number "
+            << "Intersection traces have different number "
                "of surfaces after matching! Please check unmatched elements\n"
-            << "Truth: " << truth_trace.size()
-            << "\nNav. : " << recorded_trace.size() << "\n"
+            << " -> Truth: " << truth_trace.size()
+            << "\n -> Nav. : " << recorded_trace.size() << "\n"
             << debug_stream.str();
+
+        DETRAY_FATAL_HOST(err_str.str());
         throw std::runtime_error(err_str.str());
     }
 
     // Multiple missed surfaces are a hint that something might be off with this
     // track
     if ((missed_stats_nav.n_total() > 1u) && cfg.verbose()) {
-        std::cout << "WARNING: Detray navigator skipped multiple surfaces: "
-                  << missed_stats_nav.n_total() << "\n"
-                  << std::endl;
+        DETRAY_WARN_HOST("Detray navigator skipped multiple surfaces: "
+                         << missed_stats_nav.n_total() << "\n");
     }
     if ((missed_stats_tr.n_total() > 1u) && cfg.verbose()) {
-        std::cout << "WARNING: Detray navigator found multiple extra surfaces: "
-                  << missed_stats_tr.n_total() << "\n"
-                  << std::endl;
+        DETRAY_WARN_HOST("Detray navigator found multiple extra surfaces: "
+                         << missed_stats_tr.n_total() << "\n");
     }
 
     // Make sure the mismatches were correctly counted
@@ -755,9 +767,10 @@ auto compare_traces(
             const std::string msg{
                 "Difference to truth trace was not counted correctly"};
             if (cfg.fail_on_diff()) {
+                DETRAY_FATAL_HOST("" << msg);
                 throw std::runtime_error(msg);
             } else {
-                std::cout << "ERROR: " << msg << std::endl;
+                DETRAY_ERROR_HOST("" << msg);
             }
         }
 
@@ -777,29 +790,43 @@ auto compare_traces(
             if (truth_desc.barcode() != nav_desc.barcode() &&
                 !(truth_desc.barcode().is_invalid() ||
                   nav_desc.barcode().is_invalid())) {
-                n_miss_truth++;
-                n_miss_nav++;
+
+                // Swapped in trace, possibly due to overlaps
+                if (!is_swapped_surfaces(static_cast<long>(i))) {
+                    n_miss_truth++;
+                    n_miss_nav++;
+                } else {
+                    // If the surfaces were swapped, we already know the next
+                    // element to be correct
+                    ++i;
+                }
             }
         }
 
         if (n_miss_truth != missed_stats_tr.n_total()) {
             is_counting_error = true;
             const std::string msg{
-                "Missed truth surfaces not counted correctly"};
+                "Missed truth surfaces not counted correctly. Was " +
+                std::to_string(missed_stats_tr.n_total()) + ", should be " +
+                std::to_string(n_miss_truth)};
             if (cfg.fail_on_diff()) {
+                DETRAY_FATAL_HOST("" << msg);
                 throw std::runtime_error(msg);
             } else {
-                std::cout << "ERROR: " << msg << std::endl;
+                DETRAY_ERROR_HOST("" << msg);
             }
         }
         if (n_miss_nav != missed_stats_nav.n_total()) {
             is_counting_error = true;
             const std::string msg{
-                "Missed navigation surfaces not counted correctly"};
+                "Missed navigation surfaces not counted correctly. Was " +
+                std::to_string(missed_stats_nav.n_total()) + ", should be " +
+                std::to_string(n_miss_nav)};
             if (cfg.fail_on_diff()) {
+                DETRAY_FATAL_HOST("" << msg);
                 throw std::runtime_error(msg);
             } else {
-                std::cout << "ERROR: " << msg << std::endl;
+                DETRAY_ERROR_HOST("" << msg);
             }
         }
 
@@ -881,16 +908,16 @@ auto write_dist_to_boundary(
                 geometry::surface{det, missed_sfi.sf_desc.barcode()};
             const auto vol = tracking_volume{det, sf.volume()};
 
-            const auto dist =
-                sf.template visit_mask<min_dist_to_boundary>(missed_sfi.local);
+            const auto dist = sf.template visit_mask<min_dist_to_boundary>(
+                missed_sfi.local());
             const auto glob_pos = sf.local_to_global(
-                gctx, missed_sfi.local, track.dir(missed_sfi.path));
+                gctx, missed_sfi.local(), track.dir(missed_sfi.path()));
 
             *dist_file << i << "," << sf.volume() << ", " << vol.name(names)
                        << "," << vector::phi(glob_pos) << ", "
-                       << vector::eta(glob_pos) << "," << missed_sfi.path
+                       << vector::eta(glob_pos) << "," << missed_sfi.path()
                        << ", " << dist << ", " << std::boolalpha
-                       << sf.is_inside(missed_sfi.local, 0.f) << ", "
+                       << sf.is_inside(missed_sfi.local(), 0.f) << ", "
                        << static_cast<int>(sf.shape_id()) << std::endl;
         }
     }
@@ -910,7 +937,7 @@ inline auto print_efficiency(std::size_t n_tracks,
     if (n_miss_nav.n_total() > 0u || n_miss_truth.n_total() > 0u ||
         n_fatal_error > 0u || n_matching_error > 0u) {
 
-        std::cout
+        std::clog
             << std::left << "-----------------------------------"
             << "Error Statistic:"
             << "\nTotal number of tracks: " << n_tracks
@@ -932,7 +959,7 @@ inline auto print_efficiency(std::size_t n_tracks,
             << "\n\nFatal propagation failures:   " << n_fatal_error
             << "\nErrors during truth matching: " << n_matching_error;
     } else {
-        std::cout << "-----------------------------------\n"
+        std::clog << "-----------------------------------\n"
                   << "Tested " << n_tracks << " tracks: OK\n"
                   << "total number of surfaces:         "
                   << n_surfaces.n_total();
@@ -964,13 +991,13 @@ inline auto print_efficiency(std::size_t n_tracks,
                                       std::pow((n + 2.), 2)};
 
         // In percent
-        std::cout << "\n"
+        std::clog << "\n"
                   << sf_type << " finding eff.: " << std::fixed
                   << std::setprecision(n_sig) << 100. * eff << " \u00b1 "
                   << 100. * math::sqrt(var_bayesian) << "%";
     };
 
-    std::cout << std::endl;
+    std::clog << std::endl;
     if (n_surfaces.n_portals != 0u) {
         print_eff("Portal sf.", n_surfaces.n_portals, n_miss_nav.n_portals);
     }
@@ -982,14 +1009,14 @@ inline auto print_efficiency(std::size_t n_tracks,
         print_eff("Passive sf.", n_surfaces.n_passives, n_miss_nav.n_passives);
     }
 
-    std::cout << std::endl;
+    std::clog << std::endl;
     if (n_surfaces.n_total() != 0u) {
         print_eff("Surface", n_surfaces.n_total(), n_miss_nav.n_total());
     } else {
-        std::cout << "ERROR: No surfaces found in truth data!" << std::endl;
+        DETRAY_ERROR_HOST("No surfaces found in truth data!");
     }
 
-    std::cout << "\n-----------------------------------\n" << std::endl;
+    std::clog << "\n-----------------------------------\n" << std::endl;
 }
 
 /// Run the propagation and compare to an externally provided truth trace.
@@ -1096,11 +1123,11 @@ auto compare_to_navigation(
         if (!success) {
             std::stringstream strm{};
 
-            strm << "ERROR: Track " << i << ": Propagation aborted! "
+            strm << "Track " << i << ": Propagation aborted! "
                  << nav_printer.fata_error_msg << std::endl;
 
-            std::cout << strm.str();
-            *debug_file << strm.str();
+            DETRAY_FATAL_HOST(strm.str());
+            *debug_file << "FATAL: " << strm.str();
 
             n_fatal_error++;
         }
@@ -1161,14 +1188,16 @@ auto compare_to_navigation(
         // After dummy records insertion, traces should have the same size
         if (truth_trace.size() != recorded_trace.size()) {
             throw std::runtime_error(
-                "ERROR: Trace comparison failed: Trace do not have the same "
+                "ERROR: Track " + std::to_string(i) +
+                ": Trace comparison failed: Trace do not have the same "
                 "size after intersection matching");
         }
 
         // Internal error during trace matching
         if (n_error_trace != 0u) {
             throw std::runtime_error(
-                "FATAL: Error during track comparison. Please check log "
+                "FATAL: Track " + std::to_string(i) +
+                ": Error during track comparison. Please check log "
                 "files");
         }
 
@@ -1233,19 +1262,19 @@ auto compare_to_navigation(
     // Column width in output
     constexpr int cw{35};
 
-    std::cout << std::left << std::setw(cw)
+    std::clog << std::left << std::setw(cw)
               << "No. Tracks with miss. surfaces: " << n_tracks_w_holes << "/"
               << n_tracks << " (" << 100. * n_tracks_w_holes / n_tracks << "%)"
               << std::endl;
-    std::cout << std::left << std::setw(cw)
+    std::clog << std::left << std::setw(cw)
               << "No. Tracks with add. surfaces: " << n_tracks_w_extra << "/"
               << n_tracks << " (" << 100. * n_tracks_w_extra / n_tracks << "%)"
               << std::endl;
-    std::cout << std::left << std::setw(cw)
+    std::clog << std::left << std::setw(cw)
               << "No. Good Tracks (exact match):  " << n_good_tracks << "/"
               << n_tracks << " (" << 100. * n_good_tracks / n_tracks << "%)\n"
               << std::endl;
-    std::cout << std::left << std::setw(cw + 5)
+    std::clog << std::left << std::setw(cw + 5)
               << "Max no. of miss. surfaces per track: " << n_max_holes_per_trk
               << " (Mean: "
               << ((n_tracks_w_holes == 0)
@@ -1254,7 +1283,7 @@ auto compare_to_navigation(
                             static_cast<double>(n_miss_nav.n_sensitives) /
                             n_tracks_w_holes))
               << ")" << std::endl;
-    std::cout << std::left << std::setw(cw + 5)
+    std::clog << std::left << std::setw(cw + 5)
               << "Max no. of add. surfaces per track: " << n_max_extra_per_trk
               << " (Mean: "
               << ((n_tracks_w_extra == 0)
@@ -1263,7 +1292,7 @@ auto compare_to_navigation(
                             static_cast<double>(n_miss_truth.n_total()) /
                             n_tracks_w_extra))
               << ")" << std::endl;
-    std::cout << "\n-----------------------------------" << std::endl;
+    std::clog << "\n-----------------------------------" << std::endl;
 
     return std::tuple{trk_stats,   n_surfaces, n_miss_nav, n_miss_truth,
                       step_traces, mat_traces, mat_records};

@@ -6,7 +6,7 @@
  */
 
 // Project include(s)
-#include "detray/navigation/navigator.hpp"
+#include "detray/navigation/caching_navigator.hpp"
 #include "detray/propagator/actors.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
@@ -145,9 +145,12 @@ int main(int argc, char** argv) {
     // Build actor states
     dtuple<> empty_state{};
 
+    parameter_transporter<bench_algebra>::state transporter_state{};
     pointwise_material_interactor<bench_algebra>::state interactor_state{};
+    parameter_resetter<bench_algebra>::state resetter_state{prop_cfg};
 
-    auto actor_states = detail::make_tuple<dtuple>(interactor_state);
+    auto actor_states = detail::make_tuple<dtuple>(
+        transporter_state, interactor_state, resetter_state);
 
     //
     // Register benchmarks

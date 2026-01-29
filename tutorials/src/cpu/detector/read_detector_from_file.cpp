@@ -9,6 +9,7 @@
 #include "detray/core/detector.hpp"
 #include "detray/io/frontend/detector_reader.hpp"
 #include "detray/navigation/volume_graph.hpp"
+#include "detray/utils/logging.hpp"
 
 // Example linear algebra plugin: std::array
 #include "detray/tutorial/types.hpp"
@@ -25,7 +26,7 @@
 /// json geometry reader directly.
 int main(int argc, char** argv) {
 
-    std::cout << "Detector IO Tutorial\n====================\n";
+    std::clog << "Detector IO Tutorial\n====================\n";
 
     // Input data file
     auto reader_cfg = detray::io::detector_reader_config{};
@@ -35,7 +36,7 @@ int main(int argc, char** argv) {
         throw std::runtime_error("Please specify an input file name!");
     }
 
-    std::cout << reader_cfg << std::endl;
+    std::clog << reader_cfg << std::endl;
 
     // Read a toy detector
     using metadata_t = detray::tutorial::default_metadata;
@@ -50,7 +51,7 @@ int main(int argc, char** argv) {
 
     // Print the detector volume graph
     detray::volume_graph graph(det);
-    std::cout << "\nRead " << det.volumes().size() << " volumes from file "
-              << reader_cfg.files()[0u] << ":\n\n"
-              << graph.to_string() << std::endl;
+    DETRAY_INFO_HOST("Read " << det.volumes().size() << " volumes from file "
+                             << reader_cfg.files()[0u] << ":\n\n"
+                             << graph.to_string());
 }

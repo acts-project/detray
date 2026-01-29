@@ -139,7 +139,7 @@ std::map<std::string, std::vector<double>> get_means(
         const std::string sign = num >= 0 ? "p" : "m";
         const std::string root_name = name + ".root";
 
-        std::cout << "Processing file: " << csv_name << std::endl;
+        std::clog << "Processing file: " << csv_name << std::endl;
 
         auto rdf = ROOT::RDF::FromCSV(csv_name);
 
@@ -233,7 +233,7 @@ void draw_graphs(const std::string header_title, const std::string geom_title,
     double yaxis_max = 15;
     double yaxis_margin = 1.;
 
-    std::cout << "Vec size: " << x_vec.size() << std::endl;
+    std::clog << "Vec size: " << x_vec.size() << std::endl;
     mg->GetYaxis()->SetTitle("log_{10}(Mean of #font[12]{#Omega_{R}})");
     mg->GetYaxis()->SetTitleOffset(1.48);
     mg->GetYaxis()->SetTitleSize(title_font_size_rk_tol);

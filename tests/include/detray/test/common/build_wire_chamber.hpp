@@ -21,6 +21,7 @@
 #include "detray/geometry/shapes/line.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/utils/consistency_checker.hpp"
+#include "detray/utils/print_detector.hpp"
 
 // Detray test include(s)
 #include "detray/test/common/factories/wire_layer_generator.hpp"
@@ -168,8 +169,7 @@ inline auto build_wire_chamber(
 
     // Prepare grid building
     constexpr auto grid_id{detector_t::accel::id::e_cylinder2_grid};
-    using cyl_grid_t =
-        typename detector_t::accelerator_container::template get_type<grid_id>;
+    using cyl_grid_t = types::get<typename detector_t::accel, grid_id>;
     using loc_bin_idx_t = typename cyl_grid_t::loc_bin_index;
     static_assert(cyl_grid_t::dim == 2);
     using grid_builder_t =
@@ -321,6 +321,8 @@ inline auto build_wire_chamber(
         const bool verbose_check{false};
         detray::detail::check_consistency(det, verbose_check, name_map);
     }
+
+    DETRAY_DEBUG_HOST("\n" << detray::utils::print_detector(det, name_map));
 
     return std::make_pair(std::move(det), std::move(name_map));
 }

@@ -15,6 +15,7 @@
 #include "detray/io/backend/detail/basic_converter.hpp"
 #include "detray/io/backend/detail/type_info.hpp"
 #include "detray/io/frontend/payloads.hpp"
+#include "detray/utils/logging.hpp"
 #include "detray/utils/ranges.hpp"
 #include "detray/utils/type_list.hpp"
 
@@ -60,15 +61,41 @@ class grid_reader {
             &det_builder,
         const detector_grids_payload<content_t, grid_id_t> &grids_data) {
 
+        DETRAY_VERBOSE_HOST("Generic grid reader: content_t="
+                            << DETRAY_TYPENAME(content_t)
+                            << ", grid_id_t=" << DETRAY_TYPENAME(grid_id_t));
+
         // Convert the grids volume by volume
+        DETRAY_DEBUG_HOST("Converting grids for " << grids_data.grids.size()
+                                                  << " volumes");
         for (const auto &[_, grid_data_coll] : grids_data.grids) {
             for (const auto &[i, grid_data] :
                  detray::views::enumerate(grid_data_coll)) {
 
+                const auto volume_idx{detail::basic_converter::from_payload(
+                    grid_data.owner_link)};
+
+                // Error output
+                std::stringstream err_stream;
+                err_stream << "Volume " << volume_idx << ": ";
+
+                if (!det_builder.has_volume(volume_idx)) {
+                    err_stream << "Cannot build grid for volume "
+                               << "(volume not registered in detector builder)";
+                    DETRAY_FATAL_HOST(err_stream.str());
+                    throw std::invalid_argument(err_stream.str());
+                }
+
+                DETRAY_VERBOSE_HOST("Reading grid #"
+                                    << i << " in volume "
+                                    << det_builder[volume_idx]->name());
+
                 std::queue<axis::bounds> bounds;
                 std::queue<axis::binning> binnings;
 
-                for (const auto &axis_data : grid_data.axes) {
+                for (const auto &[j, axis_data] :
+                     detray::views::enumerate(grid_data.axes)) {
+                    DETRAY_VERBOSE_HOST("--> Axis " << j << ": " << axis_data);
                     bounds.push(axis_data.bounds);
                     binnings.push(axis_data.binning);
                 }
@@ -95,20 +122,30 @@ class grid_reader {
     static void from_payload(std::queue<axis::bounds> &bound_ids,
                              std::queue<axis::binning> &binning_ids,
                              Ts &&...data) {
+        DETRAY_VERBOSE_HOST(
+            "Resolve bounds for axes: " << DETRAY_TYPENAME(bounds_ts));
+
         using namespace axis;
 
         constexpr std::size_t n_bounds_types{types::size<bounds_ts>};
 
         // Base case: If the bounds types are filled, continue with the binnings
         if constexpr (n_bounds_types == dim) {
+            DETRAY_VERBOSE_HOST(
+                "=> Bounds assembled -> proceeding to binning ids");
             return from_payload<detector_t, bounds_ts, binning_ts>(
                 binning_ids, std::forward<Ts>(data)...);
         } else if (!bound_ids.empty()) {
+
             // The axis label, e.g. x, y or z by number
             constexpr auto lb{static_cast<label>(n_bounds_types)};
 
+            DETRAY_VERBOSE_HOST("--> Label = " << lb);
+
             const auto first_id{bound_ids.front()};
             bound_ids.pop();
+
+            DETRAY_VERBOSE_HOST("--> Type id = " << first_id);
 
             // Based on the type id, add the next bounds type to the type list
             // and continue
@@ -132,10 +169,12 @@ class grid_reader {
                 }
                 // Test some edge cases
                 default: {
-                    throw std::invalid_argument(
-                        "Given type id could not be matched to a grid boundary "
-                        "type: " +
-                        std::to_string(static_cast<std::int64_t>(first_id)));
+                    std::stringstream err_str{};
+                    err_str << "Given type id could not be matched to a grid "
+                               "boundary type: "
+                            << first_id;
+                    DETRAY_FATAL_HOST(err_str.str());
+                    throw std::invalid_argument(err_str.str());
                     break;
                 }
             }
@@ -155,6 +194,9 @@ class grid_reader {
     static void from_payload(std::queue<axis::binning> &binning_ids,
                              Ts &&...data) {
 
+        DETRAY_VERBOSE_HOST(
+            "Resolve binning ids for axes: " << DETRAY_TYPENAME(binning_ts));
+
         using namespace axis;
 
         using scalar_t = dscalar<typename detector_t::algebra_type>;
@@ -163,12 +205,18 @@ class grid_reader {
 
         // Base case: If the binning types are filled, continue with the frame
         if constexpr (types::size<binning_ts> == dim) {
+            DETRAY_VERBOSE_HOST(
+                "=> Binning assembled -> proceeding to coord. frame");
+            std::stringstream os;
+
             return from_payload<detector_t, bounds_ts, binning_ts>(
                 std::forward<Ts>(data)...);
         } else if (!binning_ids.empty()) {
 
             const auto first_id{binning_ids.front()};
             binning_ids.pop();
+
+            DETRAY_VERBOSE_HOST("--> Type id = " << first_id);
 
             switch (first_id) {
                 case binning::e_regular: {
@@ -185,10 +233,12 @@ class grid_reader {
                 }
                 // Test some edge cases
                 default: {
-                    throw std::invalid_argument(
-                        "Given type id could not be matched to a grid binning "
-                        "type: " +
-                        std::to_string(static_cast<std::int64_t>(first_id)));
+                    std::stringstream err_str{};
+                    err_str << "Given type id could not be matched to a grid "
+                               "binning type: "
+                            << first_id;
+                    DETRAY_FATAL_HOST(err_str.str());
+                    throw std::invalid_argument(err_str.str());
                     break;
                 }
             }
@@ -211,18 +261,25 @@ class grid_reader {
         detector_builder<typename detector_t::metadata, volume_builder>
             &det_builder) {
 
+        DETRAY_VERBOSE_HOST("Resolve coord. frame for grid: "
+                            << "dim = " << dim << ", type id ="
+                            << grid_data.second.grid_link.type);
+
         using algebra_t = typename detector_t::algebra_type;
 
         // Throw expection if the accelerator link type id is invalid
         auto print_error = [](io::accel_id grid_link) {
             if (grid_link == io::accel_id::unknown) {
-                throw std::invalid_argument(
-                    "Unknown accelerator id in geometry file!");
+                std::string err_str{"Unknown accelerator id in geometry file!"};
+                DETRAY_FATAL_HOST(err_str);
+                throw std::invalid_argument(err_str);
             } else {
-                throw std::invalid_argument(
-                    "Given accelerator id could not be matched to a grid "
-                    "type: " +
-                    std::to_string(static_cast<std::int64_t>(grid_link)));
+                std::stringstream err_str{};
+                err_str << "Given accelerator id could not be matched to a "
+                           "grid type: "
+                        << grid_link;
+                DETRAY_FATAL_HOST(err_str.str());
+                throw std::invalid_argument(err_str.str());
             }
         };
 
@@ -236,22 +293,31 @@ class grid_reader {
             switch (grid_data.second.grid_link.type) {
                 // rectangle, trapezoid, (triangle) grids
                 case io::accel_id::cartesian2_grid: {
+                    DETRAY_VERBOSE_HOST("-> Frame type: " << DETRAY_TYPENAME(
+                                            cartesian2D<algebra_t>));
                     return from_payload<detector_t, cartesian2D<algebra_t>>(
                         grid_data, det_builder, bounds, binnings);
                 }
                 // ring/disc, annulus grids
                 case io::accel_id::polar2_grid: {
+                    DETRAY_VERBOSE_HOST("-> Frame type: "
+                                        << DETRAY_TYPENAME(polar2D<algebra_t>));
                     return from_payload<detector_t, polar2D<algebra_t>>(
                         grid_data, det_builder, bounds, binnings);
                 }
                 // 2D concentric cylinder grid
                 case io::accel_id::concentric_cylinder2_grid: {
+                    DETRAY_VERBOSE_HOST(
+                        "-> Frame type: " << DETRAY_TYPENAME(
+                            concentric_cylindrical2D<algebra_t>));
                     return from_payload<detector_t,
                                         concentric_cylindrical2D<algebra_t>>(
                         grid_data, det_builder, bounds, binnings);
                 }
                 // 2D cylinder grid
                 case io::accel_id::cylinder2_grid: {
+                    DETRAY_VERBOSE_HOST("-> Frame type: " << DETRAY_TYPENAME(
+                                            cylindrical2D<algebra_t>));
                     return from_payload<detector_t, cylindrical2D<algebra_t>>(
                         grid_data, det_builder, bounds, binnings);
                 }
@@ -264,11 +330,15 @@ class grid_reader {
             switch (grid_data.second.grid_link.type) {
                 // cuboid grid
                 case io::accel_id::cuboid3_grid: {
+                    DETRAY_VERBOSE_HOST("-> Frame type: " << DETRAY_TYPENAME(
+                                            cartesian3D<algebra_t>));
                     return from_payload<detector_t, cartesian3D<algebra_t>>(
                         grid_data, det_builder, bounds, binnings);
                 }
                 // 3D cylinder grid
                 case io::accel_id::cylinder3_grid: {
+                    DETRAY_VERBOSE_HOST("-> Frame type: " << DETRAY_TYPENAME(
+                                            cylindrical3D<algebra_t>));
                     return from_payload<detector_t, cylindrical3D<algebra_t>>(
                         grid_data, det_builder, bounds, binnings);
                 }
@@ -278,7 +348,9 @@ class grid_reader {
                 }
             }
         } else {
-            throw std::invalid_argument("No 1D grid type defined in detray");
+            std::string err_str{"No 1D grid type defined in detray"};
+            DETRAY_FATAL_HOST(err_str);
+            throw std::invalid_argument(err_str);
         }
     }
 
@@ -299,9 +371,36 @@ class grid_reader {
         using axes_t =
             axis::multi_axis<false, local_frame_t,
                              axis::single_axis<bounds_ts, binning_ts>...>;
+
         using bin_t =
             std::conditional_t<bin_capacity == 0, bins::dynamic_array<value_t>,
                                bins::static_array<value_t, bin_capacity>>;
+
+        DETRAY_VERBOSE_HOST("Finished resolving grid type");
+        DETRAY_DEBUG_HOST("-> Recap:\n--> bounds:  [" << ([&] {
+                              std::stringstream os;
+                              std::size_t i = 0;
+                              auto helper = [&os, &i]<typename T>(T /*arg*/) {
+                                  if (i > 0) {
+                                      os << ", ";
+                                  }
+                                  i++;
+                                  os << T::type << "<" << T::label << ">";
+                              };
+
+                              (helper(bounds_ts{}), ...);
+                              return os.str();
+                          }()) << "]");
+        DETRAY_DEBUG_HOST(
+            "--> binning: " << DETRAY_TYPENAME(types::list<binning_ts...>));
+        DETRAY_DEBUG_HOST("--> frame:   " << DETRAY_TYPENAME(local_frame_t));
+        DETRAY_DEBUG_HOST("--> bins:    " << DETRAY_TYPENAME(bin_t));
+#if DETRAY_LOG_LVL > 2
+        using single_axes_t =
+            types::list<axis::single_axis<bounds_ts, binning_ts>...>;
+#endif
+        DETRAY_DEBUG_HOST("--> axes=" << DETRAY_TYPENAME(single_axes_t));
+
         using grid_t = grid<algebra_t, axes_t, bin_t, serializer_t>;
 
         static_assert(grid_t::dim == dim,
@@ -315,26 +414,19 @@ class grid_reader {
         std::stringstream err_stream;
         err_stream << "Volume " << volume_idx << ": ";
 
-        if (!det_builder.has_volume(volume_idx)) {
-            err_stream << "Cannot build grid for volume "
-                       << "(volume not registered in detector builder)";
-            throw std::invalid_argument(err_stream.str());
-        }
+        DETRAY_DEBUG_HOST("Grid contains surfaces of type = "
+                          << sf_type << ", in volume = " << volume_idx);
 
         // The compiler will instantiate this function for all possible types of
         // grids: Only proceed, if the grid type is known by the detector
-        if constexpr (detector_t::accel::template is_defined<grid_t>() ||
-                      detector_t::materials::template is_defined<grid_t>()) {
-
+        if constexpr (types::contains<typename detector_t::accel,
+                                      spatial_grid_impl<grid_t>> ||
+                      types::contains<typename detector_t::materials, grid_t>) {
             // Decorate the current volume builder with the grid
             using builder_t = grid_builder_t<detector_t, grid_t, bin_filler_t,
                                              grid_factory_type<grid_t>>;
 
-            auto vgr_builder =
-                det_builder.template decorate<builder_t>(volume_idx);
-            if (!vgr_builder) {
-                throw std::runtime_error("Grid decoration failed");
-            }
+            DETRAY_VERBOSE_HOST("Read grid configuration...");
 
             // Initialize the grid axes
             std::vector<std::size_t> n_bins_per_axis{};
@@ -350,12 +442,25 @@ class grid_reader {
                 spans.push_back(static_cast<scalar_t>(axis_data.edges.back()));
             }
 
+            DETRAY_VERBOSE_HOST("-> #bins per axis = ["
+                                << DETRAY_LOG_VECTOR(n_bins_per_axis) << "]");
+            DETRAY_VERBOSE_HOST("-> spans per axis = ["
+                                << DETRAY_LOG_VECTOR(spans) << "]");
+            DETRAY_VERBOSE_HOST("-> bin edges per axis = [" << [&] {
+                std::vector<std::string> s;
+                for (const auto &edges : ax_bin_edges) {
+                    s.push_back("[" + DETRAY_LOG_VECTOR(edges) + "]");
+                }
+                return DETRAY_LOG_VECTOR(s);
+            }() << "]");
+
             std::vector<std::pair<typename grid_t::loc_bin_index, dindex>>
                 capacities{};
 
             // If the grid has dynamic bin capacities, find them
             if constexpr (std::is_same_v<typename grid_t::bin_type,
                                          bins::dynamic_array<value_t>>) {
+                DETRAY_VERBOSE_HOST("Resolve bin capacities...");
                 axis::multi_bin<dim> mbin;
                 for (const auto &bin_data : grid_data.bins) {
                     assert(
@@ -368,14 +473,27 @@ class grid_reader {
                          detray::views::enumerate(bin_data.loc_index)) {
                         mbin[i] = bin_idx;
                     }
+                    DETRAY_DEBUG_HOST("-> bin idx = "
+                                      << mbin << ", # bin entries = "
+                                      << bin_data.content.size());
                     capacities.emplace_back(mbin, bin_data.content.size());
                 }
+            }
+
+            auto vgr_builder =
+                det_builder.template decorate<builder_t>(volume_idx);
+            if (!vgr_builder) {
+                DETRAY_FATAL_HOST("Grid decoration failed");
+                throw std::runtime_error("Grid decoration failed");
             }
 
             vgr_builder->set_type(sf_type);
             vgr_builder->init_grid(spans, n_bins_per_axis, capacities,
                                    ax_bin_edges);
             auto &grid = vgr_builder->get();
+
+            DETRAY_VERBOSE_HOST("Filling grid...");
+
             const std::size_t n_bins{grid.nbins()};
 
             value_t entry{};
@@ -391,6 +509,7 @@ class grid_reader {
                 const auto gbin = grid.serializer()(grid.axes(), mbin);
                 if (gbin >= n_bins) {
                     err_stream << "Bin index " << mbin << " out of bounds";
+                    DETRAY_FATAL_HOST(err_stream.str());
                     throw std::invalid_argument(err_stream.str());
                 }
 
@@ -398,9 +517,9 @@ class grid_reader {
                 for (const auto c : bin_data.content) {
                     if (detray::detail::is_invalid_value(
                             static_cast<dindex>(c))) {
-                        std::cout << "WARNING: Encountered invalid surface "
-                                  << "index in grid (" << err_stream.str()
-                                  << ")" << std::endl;
+                        DETRAY_ERROR_HOST("Encountered invalid surface "
+                                          << "index in grid ("
+                                          << err_stream.str() << ")");
                         continue;
                     }
                     entry.set_volume(volume_idx);
@@ -408,10 +527,15 @@ class grid_reader {
                     grid.template populate<attach<>>(mbin, entry);
                 }
             }
+
+            DETRAY_VERBOSE_HOST(
+                "...finished filling grid in volume: " << vgr_builder->name());
         } else {
             types::print<types::list<grid_t>>();
             err_stream
                 << "Grid type in file does not match any grid type in detector";
+            DETRAY_FATAL_HOST(err_stream.str()
+                              << "grid_t=" << DETRAY_TYPENAME(grid_t));
             throw std::invalid_argument(err_stream.str());
         }
     }

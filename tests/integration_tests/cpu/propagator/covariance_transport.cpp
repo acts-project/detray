@@ -30,7 +30,8 @@ using test_algebra = test::algebra;
 using scalar = test::scalar;
 using transform3 = test::transform3;
 using vector3 = test::vector3;
-using intersection_t = intersection2D<surface_descriptor<>, test_algebra, true>;
+using intersection_t = intersection2D<surface_descriptor<>, test_algebra,
+                                      intersection::contains_pos>;
 
 // Mask types to be tested
 // @TODO: Remove unbounded tag
@@ -186,12 +187,12 @@ class detray_propagation_HelixCovarianceTransportValidation
         const intersection_t is = get_intersection(helix_inters(
             hlx, surface_descriptor<>{}, mask_1, trf_1, this->mask_tolerance));
         // Check for successfull intersection
-        EXPECT_TRUE(is.status) << is;
+        EXPECT_TRUE(is.is_inside()) << is;
 
         sfis.push_back(is);
 
         // Helical path length between two surfaces
-        const auto path_length = is.path;
+        const auto path_length = is.path();
 
         // Add the path length to the total path length
         total_path_length += path_length;
@@ -344,7 +345,7 @@ TYPED_TEST(detray_propagation_HelixCovarianceTransportValidation,
 
     ASSERT_EQ(sfis.size(), n_planes);
     for (std::size_t i = 0u; i < n_planes; i++) {
-        EXPECT_TRUE(sfis[i].status);
+        EXPECT_TRUE(sfis[i].is_inside());
         EXPECT_TRUE(sfis[i].direction);
     }
 

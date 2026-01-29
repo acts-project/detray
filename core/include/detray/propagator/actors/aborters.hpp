@@ -12,6 +12,7 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/base_stepper.hpp"
+#include "detray/utils/logging.hpp"
 
 // System include(s)
 #include <limits>
@@ -43,11 +44,13 @@ struct pathlimit_aborter : actor {
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE void operator()(state &abrt_state,
                                        propagator_state_t &prop_state) const {
+        DETRAY_VERBOSE_HOST_DEVICE("Aborter: Check path limits");
+
         auto &step_state = prop_state._stepping;
         auto &nav_state = prop_state._navigation;
 
         // Nothing left to do. Propagation will exit successfully
-        if (nav_state.is_complete()) {
+        if (nav_state.finished()) {
             return;
         }
 
@@ -57,9 +60,13 @@ struct pathlimit_aborter : actor {
 
         // Check the path limit
         if (step_limit <= 0.f) {
+            DETRAY_VERBOSE_HOST_DEVICE(
+                "Path lengths: %f mm",
+                math::fabs(prop_state._stepping.abs_path_length()));
+
             // Stop navigation
-            prop_state._heartbeat &=
-                nav_state.abort("Aborter: Maximal path length reached");
+            nav_state.abort("Aborter: Maximal path length reached");
+            prop_state._heartbeat = false;
         }
 
         // Don't go over the path limit in the next step
@@ -102,27 +109,35 @@ struct momentum_aborter : actor {
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE void operator()(state &abrt_state,
                                        propagator_state_t &prop_state) const {
+        DETRAY_VERBOSE_HOST_DEVICE("Aborter: Check momentum");
+
         auto &step_state = prop_state._stepping;
         auto &nav_state = prop_state._navigation;
 
         // Nothing left to do. Propagation will exit successfully
-        if (nav_state.is_complete()) {
+        if (nav_state.finished()) {
             return;
         }
 
         const auto &track = step_state();
         const scalar_t q{step_state.particle_hypothesis().charge()};
 
-        if (track.p(q) <= abrt_state.p_limit()) {
+        if (track.pT(q) <= abrt_state.pT_limit()) {
+            DETRAY_VERBOSE_HOST_DEVICE("Track |pT| = %f MeV", track.pT(q));
+
             // Stop navigation
-            prop_state._heartbeat &=
-                nav_state.abort("Aborter: Minimum momentum (p) reached");
+            nav_state.abort(
+                "Aborter: Minimum transverse momentum (pT) reached");
+            prop_state._heartbeat = false;
+            return;
         }
 
-        if (track.pT(q) <= abrt_state.pT_limit()) {
+        if (track.p(q) <= abrt_state.p_limit()) {
+            DETRAY_VERBOSE_HOST_DEVICE("Track |p| = %f MeV", track.p(q));
+
             // Stop navigation
-            prop_state._heartbeat &= nav_state.abort(
-                "Aborter: Minimum transverse momentum (pT) reached");
+            nav_state.abort("Aborter: Minimum momentum (p) reached");
+            prop_state._heartbeat = false;
         }
     }
 };
@@ -143,6 +158,7 @@ struct target_aborter : actor {
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE void operator()(const state &abrt_state,
                                        propagator_state_t &prop_state) const {
+        DETRAY_VERBOSE_HOST_DEVICE("Aborter: Check target surface");
 
         auto &navigation = prop_state._navigation;
         const auto &stepping = prop_state._stepping;
@@ -152,8 +168,8 @@ struct target_aborter : actor {
         if (navigation.is_on_surface() &&
             (navigation.barcode() == abrt_state._target_surface) &&
             (stepping.path_length() > 0.f)) {
-            prop_state._heartbeat &=
-                navigation.abort("Aborter: Reached target surface");
+            navigation.abort("Aborter: Reached target surface");
+            prop_state._heartbeat = false;
         }
     }
 };

@@ -50,12 +50,12 @@ __global__ void navigation_validation_kernel(
     using intersection_t = typename intersection_record_t::intersection_type;
     using object_tracer_t =
         navigation::object_tracer<intersection_t, vecmem::device_vector,
-                                  navigation::status::e_on_module,
+                                  navigation::status::e_on_object,
                                   navigation::status::e_on_portal>;
     // Navigation with inspection
     using navigator_t =
-        navigator<detector_device_t, navigation::default_cache_size,
-                  object_tracer_t, intersection_t>;
+        caching_navigator<detector_device_t, navigation::default_cache_size,
+                          object_tracer_t, intersection_t>;
 
     // Propagator with pathlimit aborter
     using material_tracer_t =

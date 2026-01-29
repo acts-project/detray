@@ -9,10 +9,12 @@
 #include "detray/core/detector.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/surface.hpp"
+#include "detray/navigation/detail/intersection_kernel.hpp"
+#include "detray/navigation/intersection/intersection_config.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
-#include "detray/navigation/intersection_kernel.hpp"
 #include "detray/tracks/ray.hpp"
 #include "detray/tracks/tracks.hpp"
+#include "detray/utils/logging.hpp"
 #include "detray/utils/ranges.hpp"
 
 // Detray test include(s)
@@ -74,6 +76,11 @@ void BM_INTERSECT_ALL(benchmark::State &state) {
         .phi_steps(phi_steps)
         .origin(origin);
 
+    // Intersector configuration
+    intersection::config intr_cfg{.min_mask_tolerance = 1.f * unit<float>::um,
+                                  .max_mask_tolerance = 1.f * unit<float>::mm};
+    constexpr const scalar_t external_mask_tol{0.f};
+
     for (auto _ : state) {
 
         for (const auto track : trk_generator) {
@@ -82,12 +89,9 @@ void BM_INTERSECT_ALL(benchmark::State &state) {
             for (const sf_desc_t &sf_desc : d.surfaces()) {
                 const auto sf = geometry::surface{d, sf_desc};
                 sf.template visit_mask<
-                    intersection_initialize<ray_intersector>>(
+                    detail::intersection_initialize<ray_intersector>>(
                     intersections, detail::ray(track), sf_desc, transforms,
-                    geo_context,
-                    std::array<scalar_t, 2>{1.f * unit<scalar_t>::um,
-                                            1.f * unit<scalar_t>::mm},
-                    scalar_t{0.f});
+                    geo_context, intr_cfg, external_mask_tol);
 
                 ++n_surfaces;
             }
@@ -103,8 +107,8 @@ void BM_INTERSECT_ALL(benchmark::State &state) {
     }
 
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
-    std::cout << "[detray] hits / missed / total = " << hits << " / " << missed
-              << " / " << hits + missed << std::endl;
+    DETRAY_INFO_HOST("[detray] hits / missed / total = "
+                     << hits << " / " << missed << " / " << hits + missed);
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 

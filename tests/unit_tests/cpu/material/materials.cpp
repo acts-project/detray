@@ -10,7 +10,7 @@
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes/line.hpp"
 #include "detray/geometry/surface_descriptor.hpp"
-#include "detray/materials/detail/concepts.hpp"
+#include "detray/materials/concepts.hpp"
 #include "detray/materials/material.hpp"
 #include "detray/materials/material_rod.hpp"
 #include "detray/materials/material_slab.hpp"
@@ -243,8 +243,8 @@ GTEST_TEST(detray_material, material_rod) {
         detail::ray<test_algebra>(trk), surface_descriptor<>{}, ln, tf);
 
     const scalar cos_inc_ang{std::abs(vector::dot(
-        line2D<test_algebra>::normal(tf, is.local), vector::normalize(dir)))};
-    const scalar approach{is.local[0]};
+        line2D<test_algebra>::normal(tf, is.local()), vector::normalize(dir)))};
+    const scalar approach{is.local()[0]};
 
     EXPECT_NEAR(rod.path_segment(cos_inc_ang, approach),
                 2.f * std::sqrt(10.f - 10.f / 36.f), 1e-5f);

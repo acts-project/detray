@@ -11,6 +11,7 @@
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/geometry/coordinates/cartesian2D.hpp"
+#include "detray/geometry/detail/shape_utils.hpp"
 
 // System include(s)
 #include <limits>
@@ -39,6 +40,10 @@ class square2D {
     /// Local coordinate frame for boundary checks: cartesian
     template <concepts::algebra algebra_t>
     using local_frame_type = cartesian2D<algebra_t>;
+
+    /// Result type of a boundary check
+    template <typename bool_t>
+    using result_type = bool_t;
 
     /// Dimension of the local coordinate system
     static constexpr std::size_t dim{2u};

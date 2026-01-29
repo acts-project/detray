@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/io/utils/create_path.hpp"
+#include "detray/utils/logging.hpp"
 
 // System include(s)
 #include <cassert>
@@ -74,17 +75,24 @@ class file_handle final {
         } else if ((mode == std::ios_base::in) ||
                    (mode == (std::ios_base::in | std::ios_base::binary))) {
             if (file_name.empty()) {
-                throw std::invalid_argument("File name empty");
+                std::stringstream err_str{};
+                err_str << "File name empty";
+
+                DETRAY_FATAL_HOST(err_str.str());
+                throw std::invalid_argument(err_str.str());
             }
 
             std::filesystem::path file_path{file_name + extension};
             if (!std::filesystem::exists(file_path)) {
-                throw std::invalid_argument(
-                    "Could not open file: File does not exist: " + file_name +
-                    extension);
+                std::stringstream err_str{};
+                err_str << "Could not open file: File does not exist: "
+                        << file_name << extension;
+
+                DETRAY_FATAL_HOST(err_str.str());
+                throw std::invalid_argument(err_str.str());
             }
         } else if (file_name.empty()) {
-            std::cout << "WARNING: Empty file name" << std::endl;
+            DETRAY_VERBOSE_HOST("Empty file name");
         }
 
         // Count the new file
@@ -92,32 +100,42 @@ class file_handle final {
         ++n_files;
         ++n_open_files;
         if (n_files >= std::numeric_limits<std::uint_least16_t>::max()) {
-            throw std::runtime_error(
-                "Could not open file: Too many files written: " + file_path);
+            std::stringstream err_str{};
+            err_str << "Could not open file: Too many files written: "
+                    << file_path;
+
+            DETRAY_FATAL_HOST(err_str.str());
+            throw std::runtime_error(err_str.str());
         } else if (n_open_files >= 1000u) {
-            throw std::runtime_error(
-                "Could not open file: Too many files currently open: " +
-                file_path);
+            std::stringstream err_str{};
+            err_str << "Could not open file: Too many files currently open: "
+                    << file_path;
+
+            DETRAY_FATAL_HOST(err_str.str());
+            throw std::runtime_error(err_str.str());
         }
 
         // Open file
         m_stream.open(file_path, mode);
 
         if (!m_stream.is_open()) {
-            throw std::runtime_error("Could not open file: " + file_path);
+            std::stringstream err_str{};
+            err_str << "Could not open file: " << file_path;
+
+            DETRAY_FATAL_HOST(err_str.str());
+            throw std::runtime_error(err_str.str());
         }
     }
 
     /// Destructor closes the file
     ~file_handle() {
         if (m_stream.bad()) {
-            std::cout << "ERROR: Could not read from/write to file";
+            DETRAY_ERROR_HOST("Could not read from/write to file");
         }
         try {
             m_stream.close();
         } catch (std::fstream::failure& err) {
-            std::cout << "ERROR: Could not properly close file:\n"
-                      << err.what() << std::endl;
+            DETRAY_ERROR_HOST("Could not properly close file:\n" << err.what());
         }
         --n_open_files;
     }

@@ -6,8 +6,9 @@
  */
 
 // Project include(s)
-#include "detray/navigation/navigator.hpp"
+#include "detray/navigation/caching_navigator.hpp"
 #include "detray/propagator/actors.hpp"
+#include "detray/propagator/actors/parameter_transporter.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
 
@@ -64,19 +65,21 @@ int main(int argc, char** argv) {
     toy_det_config<scalar> toy_cfg{};
     toy_cfg.use_material_maps(false).n_brl_layers(4u).n_edc_layers(7u);
 
-    std::cout << toy_cfg << std::endl;
+    std::clog << toy_cfg << std::endl;
 
     // Configure wire chamber
     wire_chamber_config<scalar> wire_chamber_cfg{};
     wire_chamber_cfg.half_z(500.f * unit<scalar>::mm);
 
-    std::cout << wire_chamber_cfg << std::endl;
+    std::clog << wire_chamber_cfg << std::endl;
 
     // Configure propagation
     propagation::config prop_cfg{};
     prop_cfg.navigation.search_window = {3u, 3u};
+    // No scattering in test tracks
+    prop_cfg.navigation.estimate_scattering_noise = false;
 
-    std::cout << prop_cfg << std::endl;
+    std::clog << prop_cfg << std::endl;
 
     // Benchmark config
     detray::benchmarks::benchmark_base::configuration bench_cfg{};
@@ -112,14 +115,17 @@ int main(int argc, char** argv) {
 
     dtuple<> empty_state{};
 
+    parameter_transporter<bench_algebra>::state transporter_state{};
     pointwise_material_interactor<bench_algebra>::state interactor_state{};
+    parameter_resetter<bench_algebra>::state resetter_state{prop_cfg};
 
-    auto actor_states = detail::make_tuple<dtuple>(interactor_state);
+    auto actor_states = detail::make_tuple<dtuple>(
+        transporter_state, interactor_state, resetter_state);
 
     //
     // Register benchmarks
     //
-    std::cout << "Propagation Benchmarks\n"
+    std::clog << "Propagation Benchmarks\n"
               << "----------------------\n\n";
 
     prop_cfg.stepping.do_covariance_transport = true;

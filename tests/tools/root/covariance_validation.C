@@ -461,7 +461,7 @@ void read_tree(TTree* t, const std::string& tag,
 
     t->Write("", TObject::kOverwrite);
 
-    std::cout << tag << " n outliers: " << n_outliers << std::endl;
+    std::clog << tag << " n outliers: " << n_outliers << std::endl;
 
     finfo_l0[11u] = double(finfo_l0[10u]) / double(t->GetEntries());
     finfo_l1[11u] = double(finfo_l1[10u]) / double(t->GetEntries());

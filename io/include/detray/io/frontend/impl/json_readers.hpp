@@ -17,6 +17,7 @@
 #include "detray/io/frontend/payloads.hpp"
 #include "detray/io/json/json_converter.hpp"
 #include "detray/io/utils/io_metadata.hpp"
+#include "detray/utils/logging.hpp"
 
 // System include(s)
 #include <filesystem>
@@ -43,9 +44,7 @@ inline common_header_payload deserialize_json_header(
     const common_header_payload& header = h.common;
 
     if (header.tag < io::detail::minimal_io_version) {
-        std::cout
-            << "WARNING: File was generated with a different detray version"
-            << std::endl;
+        DETRAY_WARN_HOST("File was generated with a different detray version");
     }
 
     return header;
@@ -66,8 +65,7 @@ inline void add_json_readers(
     for (const std::filesystem::path file_name : files) {
 
         if (file_name.empty()) {
-            std::cout << "WARNING: Empty file name. Component will not be built"
-                      << std::endl;
+            DETRAY_WARN_HOST("Empty file name. Component will not be built");
             continue;
         }
 

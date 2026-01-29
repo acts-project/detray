@@ -13,7 +13,6 @@
 
 // System include(s)
 #include <concepts>
-#include <ranges>
 #include <type_traits>
 
 namespace detray::concepts {
@@ -37,6 +36,10 @@ concept same_as_cvref =
 template <typename T, typename U>
 concept same_as_no_const = std::same_as<std::remove_cv_t<T>, U>;
 
+/// Type identifier concept
+template <typename T>
+concept type_id = std::is_enum_v<T>;
+
 /// Index concept to access vector/matrix elements
 template <typename T>
 concept index = std::is_integral_v<T> && !std::same_as<T, bool>;
@@ -51,10 +54,5 @@ concept interval = requires(I i) {
 
     { detray::detail::get<1>(i) } -> concepts::arithmetic_cvref;
 };
-
-/// Range of a given type
-template <typename R, typename T>
-concept range_of =
-    std::ranges::range<R> && std::same_as<std::ranges::range_value_t<R>, T>;
 
 }  // namespace detray::concepts

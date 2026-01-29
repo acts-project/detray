@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2025 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -8,13 +8,12 @@
 #pragma once
 
 // Project include(s).
-#include "detray/builders/grid_factory.hpp"
 #include "detray/builders/volume_builder.hpp"
 #include "detray/builders/volume_builder_interface.hpp"
+#include "detray/core/concepts.hpp"
 #include "detray/core/detector.hpp"
-#include "detray/definitions/geometry.hpp"
-#include "detray/utils/grid/detail/concepts.hpp"
-#include "detray/utils/type_traits.hpp"
+#include "detray/utils/detector_statistics.hpp"
+#include "detray/utils/logging.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>
@@ -30,7 +29,6 @@ namespace detray {
 /// @brief Provides functionality to build a detray detector volume by volume
 ///
 /// @tparam metadata the type definitions for the detector
-/// @tparam bfield_bknd_t the type of magnetic field to be used
 /// @tparam volume_builder_t the basic volume builder to be used for the
 ///                          geometry data
 /// @tparam volume_data_t the data structure that holds the volume builders
@@ -43,9 +41,14 @@ class detector_builder {
     using algebra_type = typename detector_type::algebra_type;
     using scalar_type = dscalar<algebra_type>;
 
+    DETRAY_HOST detector_builder() {
+        DETRAY_VERBOSE_HOST("New builder created");
+    }
+
     /// Set the name of the detector under construction to @param det_name
     DETRAY_HOST void set_name(std::string det_name) {
         m_detector_name = std::move(det_name);
+        DETRAY_VERBOSE_HOST("Set detector name: " << m_detector_name);
     }
 
     /// @returns the name of the detector under construction
@@ -56,6 +59,8 @@ class detector_builder {
     template <typename... Args>
     DETRAY_HOST auto new_volume(const volume_id id, Args&&... args)
         -> volume_builder_interface<detector_type>* {
+
+        DETRAY_VERBOSE_HOST("Adding new volume: " << m_volumes.size());
 
         m_volumes.push_back(std::make_unique<volume_builder_t<detector_type>>(
             id, static_cast<dindex>(m_volumes.size()),
@@ -109,15 +114,47 @@ class detector_builder {
     DETRAY_HOST
     auto build(vecmem::memory_resource& resource) -> detector_type {
 
+        DETRAY_INFO_HOST("Building detector: \"" << name() << "\"... ");
+        DETRAY_INFO_HOST("-> type: " << DETRAY_TYPENAME(metadata));
+
         detector_type det{resource};
 
+        DETRAY_INFO_HOST("Have " << m_volumes.size()
+                                 << " configured volume builders");
+        DETRAY_VERBOSE_HOST("Start building the volumes...");
         for (auto& vol_builder : m_volumes) {
+
+            DETRAY_VERBOSE_HOST("-> Build: " << vol_builder->name());
             vol_builder->build(det);
         }
 
-        det.set_volume_finder(std::move(m_vol_finder));
+        // TODO: Make fully generic for more volume accelerator types
 
         // TODO: Add sorting, data deduplication etc. here later...
+
+        DETRAY_INFO_HOST("Detector building complete: " << name());
+        DETRAY_INFO_HOST("-> Built " << det.volumes().size() << " volumes");
+        DETRAY_INFO_HOST("-> Built " << det.surfaces().size() << " surfaces:");
+        DETRAY_INFO_HOST("--> portals:    " << detray::n_portals(det));
+        DETRAY_INFO_HOST("--> sensitives: " << detray::n_sensitives(det));
+        DETRAY_INFO_HOST("--> passives:   " << detray::n_passives(det));
+
+        if constexpr (detray::concepts::has_surface_grids<detector_type>) {
+            DETRAY_INFO_HOST("-> Built " << detray::n_surface_grids(det)
+                                         << " surface grids");
+        }
+
+        if constexpr (detray::concepts::has_material_maps<detector_type>) {
+            DETRAY_INFO_HOST("-> Built " << detray::n_material_maps(det)
+                                         << " material maps");
+        }
+
+        if constexpr (detray::concepts::has_homogeneous_material<
+                          detector_type>) {
+            DETRAY_INFO_HOST("-> Built homogeneous material:");
+            DETRAY_INFO_HOST("--> slabs: " << detray::n_material_slabs(det));
+            DETRAY_INFO_HOST("--> rods:  " << detray::n_material_rods(det));
+        }
 
         return det;
     }
@@ -128,56 +165,19 @@ class detector_builder {
     auto build(vecmem::memory_resource& resource,
                typename detector_type::name_map& name_map) -> detector_type {
 
+        DETRAY_VERBOSE_HOST("detray: filling names for detector " << name());
+
         assert(name_map.empty());
 
         // By convention the name of the detector is at position 0
-        name_map.emplace(0u, m_detector_name);
+        name_map.set_detector_name(m_detector_name);
 
         for (auto& vol_builder : m_volumes) {
-            name_map.emplace(vol_builder->vol_index() + 1u,
-                             vol_builder->name());
+            name_map.emplace(vol_builder->vol_index(),
+                             std::string{vol_builder->name()});
         }
 
         return build(resource);
-    }
-
-    /// Put the volumes into a search data structure
-    template <typename... Args>
-    DETRAY_HOST void set_volume_finder([[maybe_unused]] Args&&... args) {
-
-        using vol_finder_t = typename detector_type::volume_finder;
-
-        // Add dummy volume grid for now
-        if constexpr (concepts::grid<vol_finder_t>) {
-
-            // TODO: Construct it correctly with the grid builder
-            mask<cylinder3D, algebra_type> vgrid_dims{
-                0u,      0.f,   -constant<scalar_type>::pi,
-                -2000.f, 180.f, constant<scalar_type>::pi,
-                2000.f};
-            darray<std::size_t, 3> n_vgrid_bins{1u, 1u, 1u};
-
-            darray<std::vector<scalar_type>, 3UL> bin_edges{
-                std::vector<scalar_type>{0.f, 180.f},
-                std::vector<scalar_type>{-constant<scalar_type>::pi,
-                                         constant<scalar_type>::pi},
-                std::vector<scalar_type>{-2000.f, 2000.f}};
-
-            grid_factory_type<vol_finder_t> vgrid_factory{};
-            m_vol_finder = vgrid_factory.template new_grid<
-                axis::open<axis::label::e_r>,
-                axis::circular<axis::label::e_phi>,
-                axis::open<axis::label::e_z>, axis::irregular<scalar_type>,
-                axis::regular<scalar_type>, axis::irregular<scalar_type>>(
-                vgrid_dims, n_vgrid_bins, {}, bin_edges);
-        } else {
-            m_vol_finder = vol_finder_t{args...};
-        }
-    }
-
-    /// @returns access to the volume finder
-    DETRAY_HOST typename detector_type::volume_finder& volume_finder() {
-        return m_vol_finder;
     }
 
     private:
@@ -186,8 +186,6 @@ class detector_builder {
     /// Data structure that holds a volume builder for every detector volume
     volume_data_t<std::unique_ptr<volume_builder_interface<detector_type>>>
         m_volumes{};
-    /// Data structure to find volumes
-    typename detector_type::volume_finder m_vol_finder{};
 };
 
 }  // namespace detray

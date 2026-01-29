@@ -31,3 +31,15 @@
 #else
 #define DETRAY_ALIGN(x) alignas(x)
 #endif
+
+#if defined(__CUDACC__) || defined(__HIP__) || defined(__GNUC__)
+#define DETRAY_INLINE __attribute__((always_inline))
+#else
+#define DETRAY_INLINE
+#endif
+
+#if defined(DETRAY_INTERNAL_USE_NO_UNIQUE_ADDRESS_ANNOTATION)
+#define DETRAY_NO_UNIQUE_ADDRESS [[no_unique_address]]
+#else
+#define DETRAY_NO_UNIQUE_ADDRESS
+#endif

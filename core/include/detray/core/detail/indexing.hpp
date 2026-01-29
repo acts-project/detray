@@ -26,14 +26,7 @@ template <typename I>
 DETRAY_HOST inline std::ostream& operator<<(std::ostream& os,
                                             const darray<I, 2>& r) {
 
-    bool writeSeparator = false;
-    for (auto i = 0u; i < r.size(); ++i) {
-        if (writeSeparator) {
-            os << ", ";
-        }
-        os << "[" << i << "]: " << r[i];
-        writeSeparator = true;
-    }
+    os << "[0: " << r[0] << ", 1: " << r[1] << "]";
     return os;
 }
 
@@ -529,12 +522,15 @@ struct typed_index {
     /// Print the index
     DETRAY_HOST
     friend std::ostream& operator<<(std::ostream& os, const typed_index ti) {
-        if (ti.is_invalid()) {
-            return (os << "undefined");
-        }
 
-        os << "[id = " << static_cast<value_t>(ti.id()) << " | "
-           << "index = " << ti.index() << "]";
+        os << "[id = " << ti.id() << "(" << static_cast<value_t>(ti.id())
+           << ") | "
+           << "index = " << ti.index();
+
+        if (ti.is_invalid()) {
+            os << " (invalid)";
+        }
+        os << "]";
 
         return os;
     }

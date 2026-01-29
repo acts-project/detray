@@ -6,19 +6,24 @@
  */
 
 // Project include(s).
+#include "./codegen/update_rk_transport_jacobian.hpp"
 #include "detray/geometry/tracking_volume.hpp"
 #include "detray/materials/interaction.hpp"
 #include "detray/materials/predefined_materials.hpp"
+#include "detray/propagator/rk_stepper.hpp"
+#include "detray/utils/logging.hpp"
 #include "detray/utils/matrix_helper.hpp"
 
 template <typename magnetic_field_t, detray::concepts::algebra algebra_t,
-          typename constraint_t, typename policy_t, typename inspector_t>
-DETRAY_HOST_DEVICE inline void detray::rk_stepper<
-    magnetic_field_t, algebra_t, constraint_t, policy_t, inspector_t>::state::
-    advance_track(
-        const detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t,
-                                 policy_t, inspector_t>::intermediate_state& sd,
-        const material<scalar_type>* vol_mat_ptr) {
+          typename constraint_t, typename policy_t, typename inspector_t,
+          std::uint32_t flags_v>
+DETRAY_HOST_DEVICE inline void
+detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
+                   inspector_t, flags_v>::state::
+    advance_track(const detray::rk_stepper<magnetic_field_t, algebra_t,
+                                           constraint_t, policy_t, inspector_t,
+                                           flags_v>::intermediate_state& sd,
+                  const material<scalar_type>* vol_mat_ptr) {
 
     const scalar_type h{this->step_size()};
     const scalar_type h_6{h * static_cast<scalar_type>(1. / 6.)};
@@ -51,13 +56,17 @@ DETRAY_HOST_DEVICE inline void detray::rk_stepper<
 }
 
 template <typename magnetic_field_t, detray::concepts::algebra algebra_t,
-          typename constraint_t, typename policy_t, typename inspector_t>
+          typename constraint_t, typename policy_t, typename inspector_t,
+          std::uint32_t flags_v>
 DETRAY_HOST_DEVICE inline void detray::rk_stepper<
-    magnetic_field_t, algebra_t, constraint_t, policy_t,
-    inspector_t>::state::advance_jacobian(const detray::stepping::config& cfg,
-                                          const intermediate_state& sd,
-                                          const material<scalar_type>*
-                                              vol_mat_ptr) {
+    magnetic_field_t, algebra_t, constraint_t, policy_t, inspector_t,
+    flags_v>::state::advance_jacobian(const detray::stepping::config& cfg,
+                                      const intermediate_state& sd,
+                                      const material<scalar_type>*
+                                          vol_mat_ptr) {
+
+    DETRAY_VERBOSE_HOST_DEVICE("-> Advance Jacobian...");
+
     /// The calculations are based on ATL-SOFT-PUB-2009-002. The update of the
     /// Jacobian matrix is requires only the calculation of eq. 17 and 18.
     /// Since the terms of eq. 18 are currently 0, this matrix is not needed
@@ -77,26 +86,12 @@ DETRAY_HOST_DEVICE inline void detray::rk_stepper<
     /// constant offset does not exist for rectangular matrix dGdu' (due to the
     /// missing Lambda part) and only exists for dFdu' in dlambda/dlambda.
 
-    // Set transport matrix (D) and update Jacobian transport
-    //( JacTransport = D * JacTransport )
-    auto D = matrix::identity<free_matrix<algebra_t>>();
+    using mat_helper = matrix_helper<algebra_t>;
 
     const scalar_type h{this->step_size()};
-    auto& track = (*this)();
-
-    // Half step length
     const scalar_type h2{h * h};
     const scalar_type half_h{h * 0.5f};
     const scalar_type h_6{h * (1.f / 6.f)};
-
-    // 3X3 Identity matrix
-    const auto I33 = matrix::identity<matrix_type<3, 3>>();
-
-    // Initialize derivatives
-    darray<matrix_type<3u, 3u>, 4u> dkndt{I33, I33, I33, I33};
-    darray<vector3_type, 4u> dkndqop;
-    darray<matrix_type<3u, 3u>, 4u> dkndr;
-    darray<scalar_type, 4u> dqopn_dqop{1.f, 1.f, 1.f, 1.f};
 
     /*---------------------------------------------------------------------------
      *  dk_n/dt1
@@ -187,167 +182,209 @@ DETRAY_HOST_DEVICE inline void detray::rk_stepper<
      *  d(dqop4/ds)/dqop1 = d(dqop4/ds)/dqop4 * (1 + h * d(dqop3/ds)/dqop1)
     ---------------------------------------------------------------------------*/
 
-    if (!cfg.use_eloss_gradient) {
-        getter::element(D, e_free_qoverp, e_free_qoverp) = 1.f;
-    } else {
-        // Pre-calculate dqop_n/dqop1
-        const scalar_type d2qop1dsdqop1 =
-            this->d2qopdsdqop(sd.qop[0u], vol_mat_ptr);
+    scalar_type dqopqop;
+    vector3_type dFdqop;
+    vector3_type dGdqop;
 
-        dqopn_dqop[0u] = 1.f;
-        dqopn_dqop[1u] = 1.f + half_h * d2qop1dsdqop1;
+    {
+        darray<scalar_type, 4u> dqopn_dqop{1.f, 1.f, 1.f, 1.f};
 
-        const scalar_type d2qop2dsdqop1 =
-            this->d2qopdsdqop(sd.qop[1u], vol_mat_ptr) * dqopn_dqop[1u];
-        dqopn_dqop[2u] = 1.f + half_h * d2qop2dsdqop1;
+        if (!cfg.use_eloss_gradient) {
+            dqopqop = 1.f;
+        } else {
+            // Pre-calculate dqop_n/dqop1
+            const scalar_type d2qop1dsdqop1 =
+                this->d2qopdsdqop(sd.qop[0u], vol_mat_ptr);
 
-        const scalar_type d2qop3dsdqop1 =
-            this->d2qopdsdqop(sd.qop[2u], vol_mat_ptr) * dqopn_dqop[2u];
-        dqopn_dqop[3u] = 1.f + h * d2qop3dsdqop1;
+            dqopn_dqop[0u] = 1.f;
+            dqopn_dqop[1u] = 1.f + half_h * d2qop1dsdqop1;
 
-        const scalar_type d2qop4dsdqop1 =
-            this->d2qopdsdqop(sd.qop[3u], vol_mat_ptr) * dqopn_dqop[3u];
+            const scalar_type d2qop2dsdqop1 =
+                this->d2qopdsdqop(sd.qop[1u], vol_mat_ptr) * dqopn_dqop[1u];
+            dqopn_dqop[2u] = 1.f + half_h * d2qop2dsdqop1;
+
+            const scalar_type d2qop3dsdqop1 =
+                this->d2qopdsdqop(sd.qop[2u], vol_mat_ptr) * dqopn_dqop[2u];
+            dqopn_dqop[3u] = 1.f + h * d2qop3dsdqop1;
+
+            const scalar_type d2qop4dsdqop1 =
+                this->d2qopdsdqop(sd.qop[3u], vol_mat_ptr) * dqopn_dqop[3u];
+
+            /*-----------------------------------------------------------------
+             * Calculate the first terms of d(dqop_n/ds)/dqop1
+            -------------------------------------------------------------------*/
+
+            dqopqop = 1.f + h_6 * (d2qop1dsdqop1 +
+                                   2.f * (d2qop2dsdqop1 + d2qop3dsdqop1) +
+                                   d2qop4dsdqop1);
+        }
 
         /*-----------------------------------------------------------------
-         * Calculate the first terms of d(dqop_n/ds)/dqop1
+         * Calculate the first and second terms of dk_n/dqop1
         -------------------------------------------------------------------*/
 
-        getter::element(D, e_free_qoverp, e_free_qoverp) =
-            1.f + h_6 * (d2qop1dsdqop1 + 2.f * (d2qop2dsdqop1 + d2qop3dsdqop1) +
-                         d2qop4dsdqop1);
+        {
+            darray<vector3_type, 4u> dkndqop;
+
+            // dk1/dqop1
+            dkndqop[0u] = dqopn_dqop[0u] * vector::cross(sd.t[0u], sd.b_first);
+
+            // dk2/dqop1
+            dkndqop[1u] =
+                dqopn_dqop[1u] * vector::cross(sd.t[1u], sd.b_middle) +
+                sd.qop[1u] * half_h * vector::cross(dkndqop[0u], sd.b_middle);
+
+            // dk3/dqop1
+            dkndqop[2u] =
+                dqopn_dqop[2u] * vector::cross(sd.t[2u], sd.b_middle) +
+                sd.qop[2u] * half_h * vector::cross(dkndqop[1u], sd.b_middle);
+
+            // dk4/dqop1
+            dkndqop[3u] =
+                dqopn_dqop[3u] * vector::cross(sd.t[3u], sd.b_last) +
+                sd.qop[3u] * h * vector::cross(dkndqop[2u], sd.b_last);
+
+            // Set dF/dqop1 and dG/dqop1
+            dFdqop = h * h_6 * (dkndqop[0u] + dkndqop[1u] + dkndqop[2u]);
+            dGdqop = h_6 * (dkndqop[0u] + 2.f * (dkndqop[1u] + dkndqop[2u]) +
+                            dkndqop[3u]);
+        }
     }
 
     /*-----------------------------------------------------------------
      * Calculate the first terms of dk_n/dt1
     -------------------------------------------------------------------*/
-    using mat_helper = matrix_helper<algebra_t>;
-    // dk1/dt1
-    dkndt[0u] =
-        sd.qop[0u] * mat_helper().column_wise_cross(dkndt[0u], sd.b_first);
-
-    // dk2/dt1
-    dkndt[1u] = dkndt[1u] + half_h * dkndt[0u];
-    dkndt[1u] =
-        sd.qop[1u] * mat_helper().column_wise_cross(dkndt[1u], sd.b_middle);
-
-    // dk3/dt1
-    dkndt[2u] = dkndt[2u] + half_h * dkndt[1u];
-    dkndt[2u] =
-        sd.qop[2u] * mat_helper().column_wise_cross(dkndt[2u], sd.b_middle);
-
-    // dk4/dt1
-    dkndt[3u] = dkndt[3u] + h * dkndt[2u];
-    dkndt[3u] =
-        sd.qop[3u] * mat_helper().column_wise_cross(dkndt[3u], sd.b_last);
-
-    /*-----------------------------------------------------------------
-     * Calculate the first and second terms of dk_n/dqop1
-    -------------------------------------------------------------------*/
-    // dk1/dqop1
-    dkndqop[0u] = dqopn_dqop[0u] * vector::cross(sd.t[0u], sd.b_first);
-
-    // dk2/dqop1
-    dkndqop[1u] = dqopn_dqop[1u] * vector::cross(sd.t[1u], sd.b_middle) +
-                  sd.qop[1u] * half_h * vector::cross(dkndqop[0u], sd.b_middle);
-
-    // dk3/dqop1
-    dkndqop[2u] = dqopn_dqop[2u] * vector::cross(sd.t[2u], sd.b_middle) +
-                  sd.qop[2u] * half_h * vector::cross(dkndqop[1u], sd.b_middle);
-
-    // dk4/dqop1
-    dkndqop[3u] = dqopn_dqop[3u] * vector::cross(sd.t[3u], sd.b_last) +
-                  sd.qop[3u] * h * vector::cross(dkndqop[2u], sd.b_last);
-
-    // Calculate dkndr in case of considering B field gradient
-    if (cfg.use_field_gradient) {
-
-        // Positions and field gradients at initial, middle and final points of
-        // the fourth order RKN
-        vector3_type r_ini = track.pos();
-        vector3_type r_mid =
-            r_ini + half_h * sd.t[0u] + h2 * 0.125f * sd.dtds[0u];
-        vector3_type r_fin = r_ini + h * sd.t[0u] + h2 * 0.5f * sd.dtds[2u];
-
-        matrix_type<3, 3> dBdr_ini = evaluate_field_gradient(r_ini);
-        matrix_type<3, 3> dBdr_mid = evaluate_field_gradient(r_mid);
-        matrix_type<3, 3> dBdr_fin = evaluate_field_gradient(r_fin);
-
-        /*-----------------------------------------------------------------
-         * Calculate all terms of dk_n/dr1
-        -------------------------------------------------------------------*/
-
-        // dk1/dr1
-        dkndr[0u] =
-            -sd.qop[0u] * mat_helper().column_wise_cross(dBdr_ini, sd.t[0u]);
-
-        // dk2/dr1
-        dkndr[1u] = sd.qop[1u] * mat_helper().column_wise_cross(
-                                     half_h * dkndr[0u], sd.b_middle);
-        dkndr[1u] = dkndr[1u] -
-                    sd.qop[1u] * mat_helper().column_wise_cross(
-                                     dBdr_mid * (I33 + h2 * 0.125f * dkndr[0u]),
-                                     sd.t[1u]);
-
-        // dk3/dr1
-        dkndr[2u] = sd.qop[2u] * mat_helper().column_wise_cross(
-                                     half_h * dkndr[1u], sd.b_middle);
-        dkndr[2u] = dkndr[2u] -
-                    sd.qop[2u] * mat_helper().column_wise_cross(
-                                     dBdr_mid * (I33 + h2 * 0.125f * dkndr[0u]),
-                                     sd.t[2u]);
-
-        // dk4/dr1
-        dkndr[3u] = sd.qop[3u] *
-                    mat_helper().column_wise_cross(h * dkndr[2u], sd.b_last);
-        dkndr[3u] = dkndr[3u] -
-                    sd.qop[3u] *
-                        mat_helper().column_wise_cross(
-                            dBdr_fin * (I33 + h2 * 0.5f * dkndr[2u]), sd.t[3u]);
-
-        // Set dF/dr1 and dG/dr1
-        auto dFdr = matrix::identity<matrix_type<3, 3>>();
-        auto dGdr = matrix::identity<matrix_type<3, 3>>();
-        dFdr = dFdr + h * h_6 * (dkndr[0u] + dkndr[1u] + dkndr[2u]);
-        dGdr = h_6 * (dkndr[0u] + 2.f * (dkndr[1u] + dkndr[2u]) + dkndr[3u]);
-
-        getter::set_block(D, dFdr, 0u, 0u);
-        getter::set_block(D, dGdr, 4u, 0u);
-    }
-
     // Set dF/dt1 and dG/dt1
     auto dFdt = matrix::identity<matrix_type<3, 3>>();
     auto dGdt = matrix::identity<matrix_type<3, 3>>();
-    dFdt = dFdt + h_6 * (dkndt[0u] + dkndt[1u] + dkndt[2u]);
-    dFdt = h * dFdt;
-    dGdt = dGdt + h_6 * (dkndt[0u] + 2.f * (dkndt[1u] + dkndt[2u]) + dkndt[3u]);
 
-    getter::set_block(D, dFdt, 0u, 4u);
-    getter::set_block(D, dGdt, 4u, 4u);
+    {
+        const auto I33 = matrix::identity<matrix_type<3, 3>>();
+        darray<matrix_type<3u, 3u>, 4u> dkndt{I33, I33, I33, I33};
 
-    // Set dF/dqop1 and dG/dqop1
-    vector3_type dFdqop = h * h_6 * (dkndqop[0u] + dkndqop[1u] + dkndqop[2u]);
-    vector3_type dGdqop =
-        h_6 * (dkndqop[0u] + 2.f * (dkndqop[1u] + dkndqop[2u]) + dkndqop[3u]);
-    getter::set_block(D, dFdqop, 0u, 7u);
-    getter::set_block(D, dGdqop, 4u, 7u);
+        // dk1/dt1
+        dkndt[0u] =
+            sd.qop[0u] * mat_helper().column_wise_cross(dkndt[0u], sd.b_first);
 
-    this->set_transport_jacobian(D * this->transport_jacobian());
+        // dk2/dt1
+        dkndt[1u] = dkndt[1u] + half_h * dkndt[0u];
+        dkndt[1u] =
+            sd.qop[1u] * mat_helper().column_wise_cross(dkndt[1u], sd.b_middle);
+
+        // dk3/dt1
+        dkndt[2u] = dkndt[2u] + half_h * dkndt[1u];
+        dkndt[2u] =
+            sd.qop[2u] * mat_helper().column_wise_cross(dkndt[2u], sd.b_middle);
+
+        // dk4/dt1
+        dkndt[3u] = dkndt[3u] + h * dkndt[2u];
+        dkndt[3u] =
+            sd.qop[3u] * mat_helper().column_wise_cross(dkndt[3u], sd.b_last);
+
+        dFdt = dFdt + h_6 * (dkndt[0u] + dkndt[1u] + dkndt[2u]);
+        dFdt = h * dFdt;
+        dGdt = dGdt +
+               h_6 * (dkndt[0u] + 2.f * (dkndt[1u] + dkndt[2u]) + dkndt[3u]);
+    }
+
+    // Calculate dkndr in case of considering B field gradient
+    auto dFdr = matrix::identity<matrix_type<3, 3>>();
+    auto dGdr = matrix::zero<matrix_type<3, 3>>();
+
+    if constexpr (flags_v & static_cast<std::uint32_t>(
+                                rk_stepper_flags::e_allow_field_gradient)) {
+        if (cfg.use_field_gradient) {
+            darray<matrix_type<3u, 3u>, 4u> dkndr;
+            auto& track = (*this)();
+
+            // Positions and field gradients at initial, middle and final points
+            // of the fourth order RKN
+            vector3_type r_ini = track.pos();
+            vector3_type r_mid =
+                r_ini + half_h * sd.t[0u] + h2 * 0.125f * sd.dtds[0u];
+            vector3_type r_fin = r_ini + h * sd.t[0u] + h2 * 0.5f * sd.dtds[2u];
+
+            matrix_type<3, 3> dBdr_ini = evaluate_field_gradient(r_ini);
+            matrix_type<3, 3> dBdr_mid = evaluate_field_gradient(r_mid);
+            matrix_type<3, 3> dBdr_fin = evaluate_field_gradient(r_fin);
+
+            /*-----------------------------------------------------------------
+             * Calculate all terms of dk_n/dr1
+            -------------------------------------------------------------------*/
+            const auto I33 = matrix::identity<matrix_type<3, 3>>();
+
+            // dk1/dr1
+            dkndr[0u] = -sd.qop[0u] *
+                        mat_helper().column_wise_cross(dBdr_ini, sd.t[0u]);
+
+            const auto dkndr0_tmp = (I33 + h2 * 0.125f * dkndr[0u]);
+
+            // dk2/dr1
+            dkndr[1u] = sd.qop[1u] * mat_helper().column_wise_cross(
+                                         half_h * dkndr[0u], sd.b_middle);
+            dkndr[1u] =
+                dkndr[1u] - sd.qop[1u] * mat_helper().column_wise_cross(
+                                             dBdr_mid * dkndr0_tmp, sd.t[1u]);
+
+            // dk3/dr1
+            dkndr[2u] = sd.qop[2u] * mat_helper().column_wise_cross(
+                                         half_h * dkndr[1u], sd.b_middle);
+            dkndr[2u] =
+                dkndr[2u] - sd.qop[2u] * mat_helper().column_wise_cross(
+                                             dBdr_mid * dkndr0_tmp, sd.t[2u]);
+
+            // dk4/dr1
+            dkndr[3u] = sd.qop[3u] * mat_helper().column_wise_cross(
+                                         h * dkndr[2u], sd.b_last);
+            dkndr[3u] =
+                dkndr[3u] -
+                sd.qop[3u] *
+                    mat_helper().column_wise_cross(
+                        dBdr_fin * (I33 + h2 * 0.5f * dkndr[2u]), sd.t[3u]);
+
+            // Set dF/dr1 and dG/dr1
+            dFdr = dFdr + h * h_6 * (dkndr[0u] + dkndr[1u] + dkndr[2u]);
+            dGdr =
+                h_6 * (dkndr[0u] + 2.f * (dkndr[1u] + dkndr[2u]) + dkndr[3u]);
+        }
+    } else {
+        assert(!cfg.use_field_gradient);
+    }
+
+    const auto old_jacobian = this->transport_jacobian();
+
+    if constexpr (flags_v & static_cast<std::uint32_t>(
+                                rk_stepper_flags::e_allow_field_gradient)) {
+        detail::update_transport_jacobian_with_gradient_impl(
+            old_jacobian, dFdt, dGdt, dFdr, dGdr, dFdqop, dGdqop, dqopqop,
+            this->transport_jacobian());
+    } else {
+        assert(!cfg.use_field_gradient);
+
+        detail::update_transport_jacobian_without_gradient_impl(
+            old_jacobian, dFdt, dGdt, dFdqop, dGdqop, dqopqop,
+            this->transport_jacobian());
+    }
 }
 
 template <typename magnetic_field_t, detray::concepts::algebra algebra_t,
-          typename constraint_t, typename policy_t, typename inspector_t>
+          typename constraint_t, typename policy_t, typename inspector_t,
+          std::uint32_t flags_v>
 DETRAY_HOST_DEVICE inline auto detray::rk_stepper<
-    magnetic_field_t, algebra_t, constraint_t, policy_t, inspector_t>::state::
-    evaluate_dqopds(const std::size_t i, const scalar_type h,
-                    const scalar_type dqopds_prev,
-                    const material<scalar_type>* vol_mat_ptr,
-                    const detray::stepping::config& cfg)
-        -> detray::pair<scalar_type, scalar_type> {
+    magnetic_field_t, algebra_t, constraint_t, policy_t, inspector_t,
+    flags_v>::state::evaluate_dqopds(const std::size_t i, const scalar_type h,
+                                     const scalar_type dqopds_prev,
+                                     const material<scalar_type>* vol_mat_ptr,
+                                     const detray::stepping::config& cfg)
+    -> detray::pair<scalar_type, scalar_type> {
 
     const auto& track = (*this)();
 
     if (!vol_mat_ptr) {
         const scalar_type qop = track.qop();
+        DETRAY_DEBUG_HOST_DEVICE("--> qop: %f", qop);
+        DETRAY_DEBUG_HOST_DEVICE("--> dqopds: 0");
+
         return detray::make_pair(scalar_type(0.f), qop);
     } else if (cfg.use_mean_loss && i != 0u) {
         // qop_n is calculated recursively like the direction of
@@ -357,38 +394,50 @@ DETRAY_HOST_DEVICE inline auto detray::rk_stepper<
         // "For y  we  have  similar  formulae  as  for x, for y' and
         // \lambda similar  formulae as for  x'"
         const scalar_type qop = track.qop() + h * dqopds_prev;
+        DETRAY_DEBUG_HOST_DEVICE("--> qop: %f", qop);
+
         return detray::make_pair(this->dqopds(qop, vol_mat_ptr), qop);
     } else {
         const scalar_type qop = track.qop();
+        DETRAY_DEBUG_HOST_DEVICE("--> qop: %f", qop);
+
         return detray::make_pair(this->dqopds(qop, vol_mat_ptr), qop);
     }
 }
 
 template <typename magnetic_field_t, detray::concepts::algebra algebra_t,
-          typename constraint_t, typename policy_t, typename inspector_t>
+          typename constraint_t, typename policy_t, typename inspector_t,
+          std::uint32_t flags_v>
 DETRAY_HOST_DEVICE inline auto detray::rk_stepper<
-    magnetic_field_t, algebra_t, constraint_t, policy_t,
-    inspector_t>::state::evaluate_dtds(const vector3_type& b_field,
-                                       const std::size_t i, const scalar_type h,
-                                       const vector3_type& dtds_prev,
-                                       const scalar_type qop)
+    magnetic_field_t, algebra_t, constraint_t, policy_t, inspector_t,
+    flags_v>::state::evaluate_dtds(const vector3_type& b_field,
+                                   const std::size_t i, const scalar_type h,
+                                   const vector3_type& dtds_prev,
+                                   const scalar_type qop)
     -> detray::pair<vector3_type, vector3_type> {
     auto& track = (*this)();
     const auto dir = track.dir();
 
+    assert(std::isfinite(qop));
+
     // Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
-    vector3_type t{(i == 0u) ? dir
-                             : static_cast<vector3_type>(dir + h * dtds_prev)};
+    vector3_type t{(i == 0u || h == 0.f)
+                       ? dir
+                       : static_cast<vector3_type>(dir + h * dtds_prev)};
 
     // dtds = qop * (t X B) from Lorentz force
+    DETRAY_DEBUG_HOST(
+        "--> evaluate dtds: " << vector3_type{qop * vector::cross(t, b_field)});
+
     return detray::make_pair(vector3_type{qop * vector::cross(t, b_field)}, t);
 }
 
 template <typename magnetic_field_t, detray::concepts::algebra algebra_t,
-          typename constraint_t, typename policy_t, typename inspector_t>
+          typename constraint_t, typename policy_t, typename inspector_t,
+          std::uint32_t flags_v>
 DETRAY_HOST_DEVICE inline auto detray::rk_stepper<
-    magnetic_field_t, algebra_t, constraint_t, policy_t,
-    inspector_t>::state::evaluate_field_gradient(const point3_type& pos)
+    magnetic_field_t, algebra_t, constraint_t, policy_t, inspector_t,
+    flags_v>::state::evaluate_field_gradient(const point3_type& pos)
     -> matrix_type<3, 3> {
 
     auto dBdr = matrix::zero<matrix_type<3, 3>>();
@@ -427,13 +476,14 @@ DETRAY_HOST_DEVICE inline auto detray::rk_stepper<
 }
 
 template <typename magnetic_field_t, detray::concepts::algebra algebra_t,
-          typename constraint_t, typename policy_t, typename inspector_t>
+          typename constraint_t, typename policy_t, typename inspector_t,
+          std::uint32_t flags_v>
 DETRAY_HOST_DEVICE inline auto
 detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
-                   inspector_t>::state::dtds() const -> vector3_type {
+                   inspector_t, flags_v>::state::dtds() const -> vector3_type {
 
     // In case there was no step before
-    if (this->path_length() == 0.f) {
+    if (this->path_length() == 0.f) [[unlikely]] {
         const point3_type pos = (*this)().pos();
 
         const auto bvec_tmp = this->m_magnetic_field.at(pos[0], pos[1], pos[2]);
@@ -442,6 +492,10 @@ detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
         bvec[1u] = bvec_tmp[1u];
         bvec[2u] = bvec_tmp[2u];
 
+        DETRAY_DEBUG_HOST(
+            "--> dtds: " << (*this)().qop() *
+                                vector::cross((*this)().dir(), bvec));
+
         return (*this)().qop() * vector::cross((*this)().dir(), bvec);
     }
 
@@ -449,14 +503,15 @@ detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
 }
 
 template <typename magnetic_field_t, detray::concepts::algebra algebra_t,
-          typename constraint_t, typename policy_t, typename inspector_t>
+          typename constraint_t, typename policy_t, typename inspector_t,
+          std::uint32_t flags_v>
 DETRAY_HOST_DEVICE inline auto detray::rk_stepper<
-    magnetic_field_t, algebra_t, constraint_t, policy_t,
-    inspector_t>::state::dqopds(const material<scalar_type>* vol_mat_ptr) const
+    magnetic_field_t, algebra_t, constraint_t, policy_t, inspector_t,
+    flags_v>::state::dqopds(const material<scalar_type>* vol_mat_ptr) const
     -> scalar_type {
 
     // In case there was no step before
-    if (this->path_length() == 0.f) {
+    if (this->path_length() == 0.f) [[unlikely]] {
         return this->dqopds((*this)().qop(), vol_mat_ptr);
     }
 
@@ -464,11 +519,12 @@ DETRAY_HOST_DEVICE inline auto detray::rk_stepper<
 }
 
 template <typename magnetic_field_t, detray::concepts::algebra algebra_t,
-          typename constraint_t, typename policy_t, typename inspector_t>
+          typename constraint_t, typename policy_t, typename inspector_t,
+          std::uint32_t flags_v>
 DETRAY_HOST_DEVICE auto detray::rk_stepper<
-    magnetic_field_t, algebra_t, constraint_t, policy_t,
-    inspector_t>::state::dqopds(const scalar_type qop,
-                                const material<scalar_type>* vol_mat_ptr) const
+    magnetic_field_t, algebra_t, constraint_t, policy_t, inspector_t,
+    flags_v>::state::dqopds(const scalar_type qop,
+                            const material<scalar_type>* vol_mat_ptr) const
     -> scalar_type {
 
     // d(qop)ds is zero for empty space
@@ -477,6 +533,7 @@ DETRAY_HOST_DEVICE auto detray::rk_stepper<
     }
 
     assert(qop != 0.f);
+    assert(std::isfinite(qop));
     const scalar_type q = this->particle_hypothesis().charge();
     const scalar_type p = q / qop;
     const scalar_type mass = this->particle_hypothesis().mass();
@@ -491,18 +548,22 @@ DETRAY_HOST_DEVICE auto detray::rk_stepper<
     assert(p >= 0.f);
     assert(q != 0.f);
 
+    DETRAY_DEBUG_HOST_DEVICE("--> dqopds: %f",
+                             qop * qop * qop * E * stopping_power / (q * q));
+
     // d(qop)ds, which is equal to (qop) * E * (-dE/ds) / p^2
     // or equal to (qop)^3 * E * (-dE/ds) / q^2
     return qop * qop * qop * E * stopping_power / (q * q);
 }
 
 template <typename magnetic_field_t, detray::concepts::algebra algebra_t,
-          typename constraint_t, typename policy_t, typename inspector_t>
+          typename constraint_t, typename policy_t, typename inspector_t,
+          std::uint32_t flags_v>
 DETRAY_HOST_DEVICE auto detray::rk_stepper<
-    magnetic_field_t, algebra_t, constraint_t, policy_t,
-    inspector_t>::state::d2qopdsdqop(const scalar_type qop,
-                                     const material<scalar_type>* vol_mat_ptr)
-    const -> scalar_type {
+    magnetic_field_t, algebra_t, constraint_t, policy_t, inspector_t,
+    flags_v>::state::d2qopdsdqop(const scalar_type qop,
+                                 const material<scalar_type>* vol_mat_ptr) const
+    -> scalar_type {
 
     if (!vol_mat_ptr) {
         return 0.f;
@@ -540,17 +601,46 @@ DETRAY_HOST_DEVICE auto detray::rk_stepper<
 }
 
 template <typename magnetic_field_t, detray::concepts::algebra algebra_t,
-          typename constraint_t, typename policy_t, typename inspector_t>
+          typename constraint_t, typename policy_t, typename inspector_t,
+          std::uint32_t flags_v>
 DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
-    magnetic_field_t, algebra_t, constraint_t, policy_t, inspector_t>::
-    step(const scalar_type dist_to_next,
-         detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
-                            inspector_t>::state& stepping,
-         const detray::stepping::config& cfg, const bool do_reset,
-         const material<scalar_type>* vol_mat_ptr) const {
+    magnetic_field_t, algebra_t, constraint_t, policy_t, inspector_t,
+    flags_v>::step(const scalar_type dist_to_next,
+                   detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t,
+                                      policy_t, inspector_t, flags_v>::state&
+                       stepping,
+                   const detray::stepping::config& cfg, const bool do_reset,
+                   const material<scalar_type>* vol_mat_ptr) const {
+    DETRAY_DEBUG_HOST("-> Before: " << stepping());
+
+    // In case of an overlap do nothing
+    if (math::fabs(dist_to_next) < 1.f * unit<float>::um) [[unlikely]] {
+        DETRAY_VERBOSE_HOST_DEVICE("-> Zero stepsize...");
+
+        // Don't allow a too small step size on next step
+        if (math::fabs(stepping.next_step_size()) < cfg.min_stepsize) {
+            stepping.set_next_step_size(math::copysign(
+                static_cast<scalar_type>(cfg.min_stepsize), dist_to_next));
+        }
+        DETRAY_DEBUG_HOST_DEVICE("--> Setting next stepsize: %f mm",
+                                 stepping.next_step_size());
+
+        stepping.run_inspector(cfg, "Step skipped (Overlap): ", dist_to_next);
+
+        DETRAY_DEBUG_HOST("-> After: " << stepping());
+        return true;
+    }
+
+    if (!(do_reset ||
+          math::fabs(stepping.next_step_size()) >= cfg.min_stepsize)) {
+        DETRAY_INFO_HOST("-> Next stepsize: " << stepping.next_step_size()
+                                              << ", " << cfg.min_stepsize);
+    }
 
     // Check navigator and actor results
-    assert(dist_to_next != 0.f);
+    assert(math::fabs(dist_to_next) != 0.f);
+    assert(do_reset ||
+           math::fabs(stepping.next_step_size()) >= cfg.min_stepsize);
     assert(!stepping().is_invalid());
 
     // Get stepper and navigator states
@@ -559,12 +649,18 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
     if (do_reset) {
         stepping.set_step_size(dist_to_next);
     } else if (stepping.next_step_size() > 0) {
+        assert(math::fabs(stepping.next_step_size()) >= cfg.min_stepsize);
         stepping.set_step_size(
             math::min(stepping.next_step_size(), dist_to_next));
     } else {
+        assert(math::fabs(stepping.next_step_size()) >= cfg.min_stepsize);
         stepping.set_step_size(
             math::max(stepping.next_step_size(), dist_to_next));
     }
+
+    DETRAY_DEBUG_HOST_DEVICE("-> Distance to next: %f mm", dist_to_next);
+    DETRAY_DEBUG_HOST_DEVICE("-> Initial stepsize: %f mm",
+                             stepping.step_size());
 
     // Don't allow too small stepsizes, unless the navigation needs it
     const scalar_type min_stepsize{
@@ -575,13 +671,17 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
     intermediate_state sd{};
 
     // First Runge-Kutta point
-    const auto bvec = magnetic_field.at(pos[0], pos[1], pos[2]);
+    auto bvec = magnetic_field.at(pos[0], pos[1], pos[2]);
     assert(math::isfinite(bvec[0]));
     assert(math::isfinite(bvec[1]));
     assert(math::isfinite(bvec[2]));
     sd.b_first[0] = bvec[0];
     sd.b_first[1] = bvec[1];
     sd.b_first[2] = bvec[2];
+
+    DETRAY_DEBUG_HOST_DEVICE("-> First stage:");
+    DETRAY_DEBUG_HOST_DEVICE("--> B-field: [%f, %f, %f]", bvec[0], bvec[1],
+                             bvec[2]);
 
     // qop should be recalcuated at every point
     // Reference: Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
@@ -602,13 +702,16 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
         // Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
         const point3_type pos1 =
             pos + half_h * sd.t[0u] + h2 * 0.125f * sd.dtds[0u];
-        const auto bvec1 = magnetic_field.at(pos1[0], pos1[1], pos1[2]);
-        assert(math::isfinite(bvec1[0]));
-        assert(math::isfinite(bvec1[1]));
-        assert(math::isfinite(bvec1[2]));
-        sd.b_middle[0] = bvec1[0];
-        sd.b_middle[1] = bvec1[1];
-        sd.b_middle[2] = bvec1[2];
+        bvec = magnetic_field.at(pos1[0], pos1[1], pos1[2]);
+        assert(math::isfinite(bvec[0]));
+        assert(math::isfinite(bvec[1]));
+        assert(math::isfinite(bvec[2]));
+        sd.b_middle[0] = bvec[0];
+        sd.b_middle[1] = bvec[1];
+        sd.b_middle[2] = bvec[2];
+        DETRAY_DEBUG_HOST_DEVICE("-> Second stage:");
+        DETRAY_DEBUG_HOST_DEVICE("--> B-field: [%f, %f, %f]", bvec[0], bvec[1],
+                                 bvec[2]);
 
         detray::tie(sd.dqopds[1u], sd.qop[1u]) = stepping.evaluate_dqopds(
             1u, half_h, sd.dqopds[0u], vol_mat_ptr, cfg);
@@ -627,13 +730,17 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
         // qop should be recalcuated at every point
         // Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
         const point3_type pos2 = pos + h * sd.t[0u] + h2 * 0.5f * sd.dtds[2u];
-        const auto bvec2 = magnetic_field.at(pos2[0], pos2[1], pos2[2]);
-        assert(math::isfinite(bvec2[0]));
-        assert(math::isfinite(bvec2[1]));
-        assert(math::isfinite(bvec2[2]));
-        sd.b_last[0] = bvec2[0];
-        sd.b_last[1] = bvec2[1];
-        sd.b_last[2] = bvec2[2];
+        bvec = magnetic_field.at(pos2[0], pos2[1], pos2[2]);
+        assert(math::isfinite(bvec[0]));
+        assert(math::isfinite(bvec[1]));
+        assert(math::isfinite(bvec[2]));
+        sd.b_last[0] = bvec[0];
+        sd.b_last[1] = bvec[1];
+        sd.b_last[2] = bvec[2];
+
+        DETRAY_DEBUG_HOST_DEVICE("-> Third stage:");
+        DETRAY_DEBUG_HOST_DEVICE("--> B-field: [%f, %f, %f]", bvec[0], bvec[1],
+                                 bvec[2]);
 
         detray::tie(sd.dqopds[3u], sd.qop[3u]) =
             stepping.evaluate_dqopds(3u, h, sd.dqopds[2u], vol_mat_ptr, cfg);
@@ -646,6 +753,8 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
         const vector3_type err_vec =
             one_sixth * h2 *
             (sd.dtds[0u] - sd.dtds[1u] - sd.dtds[2u] + sd.dtds[3u]);
+
+        DETRAY_DEBUG_HOST("-> Integration error vector: " << err_vec);
 
         return vector::norm(err_vec);
     };
@@ -671,6 +780,8 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
 
         error = math::max(estimate_error(stepping.step_size()),
                           static_cast<scalar_type>(1e-20));
+
+        DETRAY_DEBUG_HOST_DEVICE("-> Integration error: %f", error);
         assert(math::isfinite(error));
 
         // Error is small enough
@@ -685,7 +796,7 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
                                    step_size_scaling(error));
 
             // Run inspection while the stepsize is getting adjusted
-            stepping.run_inspector(cfg, "Adjust stepsize: ", i,
+            stepping.run_inspector(cfg, "Adjust stepsize: ", dist_to_next, i,
                                    step_size_scaling(error));
         }
     }
@@ -699,7 +810,7 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
         math::fabs(stepping.step_size()) > math::fabs(max_step)) {
 
         // Run inspection before step size is cut
-        stepping.run_inspector(cfg, "Before constraint: ");
+        stepping.run_inspector(cfg, "Before constraint: ", dist_to_next);
 
         stepping.set_step_size(max_step);
     }
@@ -710,14 +821,7 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
             math::copysign(min_stepsize, stepping.step_size()));
     }
 
-    // Advance track state
-    stepping.advance_track(sd, vol_mat_ptr);
-    assert(!stepping().is_invalid());
-
-    // Advance jacobian transport
-    if (cfg.do_covariance_transport) {
-        stepping.advance_jacobian(cfg, sd, vol_mat_ptr);
-    }
+    DETRAY_VERBOSE_HOST_DEVICE("-> Take step: %f mm", stepping.step_size());
 
     // The step size estimation fot the next step
     stepping.set_next_step_size(stepping.step_size() *
@@ -730,8 +834,30 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
                            stepping.next_step_size()));
     }
 
-    // Run final inspection
-    stepping.run_inspector(cfg, "Step complete: ");
+    DETRAY_DEBUG_HOST_DEVICE("-> Estimated next stepsize: %f mm",
+                             stepping.next_step_size());
 
+    assert(math::fabs(stepping.next_step_size()) >= cfg.min_stepsize);
+    assert(math::fabs(stepping.step_size()) >= cfg.min_stepsize);
+
+    // Advance track state
+    stepping.advance_track(sd, vol_mat_ptr);
+    assert(!stepping().is_invalid());
+
+    // Advance jacobian transport
+    if constexpr (flags_v &
+                  static_cast<std::uint32_t>(
+                      detray::rk_stepper_flags::e_allow_covariance_transport)) {
+        if (cfg.do_covariance_transport) {
+            stepping.advance_jacobian(cfg, sd, vol_mat_ptr);
+        }
+    } else {
+        assert(!cfg.do_covariance_transport);
+    }
+
+    // Run final inspection
+    stepping.run_inspector(cfg, "Step complete: ", dist_to_next);
+
+    DETRAY_DEBUG_HOST("After: " << stepping());
     return true;
 }

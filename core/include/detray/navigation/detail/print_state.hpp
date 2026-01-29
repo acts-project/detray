@@ -11,9 +11,9 @@
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/math.hpp"
+#include "detray/definitions/navigation.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/surface.hpp"
-#include "detray/navigation/detail/print_state.hpp"
 #include "detray/navigation/navigation_config.hpp"
 
 // System include(s)
@@ -27,6 +27,9 @@ namespace detray::navigation {
 template <typename state_type>
 DETRAY_HOST inline std::string print_state(const state_type &state) {
 
+    using detector_t = typename state_type::detector_type;
+    using scalar_t = typename detector_t::scalar_type;
+
     // Gathers navigation information accross navigator update calls
     std::stringstream debug_stream{};
     // Column width in output
@@ -36,71 +39,20 @@ DETRAY_HOST inline std::string print_state(const state_type &state) {
                  << std::endl;
 
     debug_stream << std::setw(cw) << std::boolalpha
-                 << "hearbeat:" << state.is_alive() << std::endl;
-    std::cout << std::noboolalpha;
+                 << "is alive:" << state.is_alive() << std::endl;
+    debug_stream << std::noboolalpha;
 
     // Navigation direction
     debug_stream << std::setw(cw) << "direction:";
-    switch (state.direction()) {
-        using enum direction;
-        case e_backward:
-            debug_stream << "backward";
-            break;
-        case e_forward:
-            debug_stream << "forward";
-            break;
-        default:
-            break;
-    }
-    debug_stream << std::endl;
+    debug_stream << state.direction() << std::endl;
 
     // Navigation status
     debug_stream << std::setw(cw) << "status:";
-    switch (state.status()) {
-        using enum status;
-        case e_abort:
-            debug_stream << "abort";
-            break;
-        case e_on_target:
-            debug_stream << "on_target";
-            break;
-        case e_unknown:
-            debug_stream << "unknowm";
-            break;
-        case e_towards_object:
-            debug_stream << "towards_object";
-            break;
-        case e_on_module:
-            debug_stream << "on_object";
-            break;
-        case e_on_portal:
-            debug_stream << "on_portal";
-            break;
-        default:
-            break;
-    }
-    debug_stream << std::endl;
+    debug_stream << state.status() << std::endl;
 
     // Navigation trust level
     debug_stream << std::setw(cw) << "trust:";
-    switch (state.trust_level()) {
-        using enum trust_level;
-        case e_no_trust:
-            debug_stream << "no_trust";
-            break;
-        case e_fair:
-            debug_stream << "fair_trust";
-            break;
-        case e_high:
-            debug_stream << "high_trust";
-            break;
-        case e_full:
-            debug_stream << "full_trust";
-            break;
-        default:
-            break;
-    }
-    debug_stream << std::endl;
+    debug_stream << state.trust_level() << std::endl;
 
     // Number of reachable candidates
     debug_stream << std::setw(cw) << "No. reachable:" << state.n_candidates()
@@ -111,7 +63,7 @@ DETRAY_HOST inline std::string print_state(const state_type &state) {
     if (state.is_on_surface()) {
         // If "exit" is called twice, the state has been cleared
         debug_stream << state.barcode() << std::endl;
-    } else if (state.status() == status::e_on_target) {
+    } else if (state.status() == status::e_exit) {
         debug_stream << "exited" << std::endl;
     } else {
         debug_stream << "undefined" << std::endl;
@@ -129,13 +81,19 @@ DETRAY_HOST inline std::string print_state(const state_type &state) {
 
     // Distance to next
     debug_stream << std::setw(cw) << "distance to next:";
-    if (!state.is_exhausted() && state.is_on_surface()) {
+    if (!state.cache_exhausted() && state.is_on_surface()) {
         debug_stream << "on obj (within tol)" << std::endl;
-    } else if (state.is_exhausted()) {
+    } else if (state.cache_exhausted()) {
         debug_stream << "no target" << std::endl;
     } else {
-        debug_stream << state() << std::endl;
+        debug_stream << state() / detray::unit<scalar_t>::mm << " mm"
+                     << std::endl;
     }
+
+    // Current external mask tolerance
+    debug_stream << std::setw(cw) << "ext. mask tol.:"
+                 << state.external_tol() / detray::unit<scalar_t>::mm << " mm"
+                 << std::endl;
 
     return debug_stream.str();
 }
@@ -163,8 +121,9 @@ DETRAY_HOST inline std::string print_candidates(const state_type &state,
     constexpr int cw{20};
 
     debug_stream << std::left << std::setw(cw) << "Overstep tol.:"
-                 << cfg.overstep_tolerance / detray::unit<scalar_t>::mm << " mm"
-                 << std::endl;
+                 << cfg.intersection.overstep_tolerance /
+                        detray::unit<scalar_t>::um
+                 << " um" << std::endl;
 
     debug_stream << std::setw(cw) << "Track:"
                  << "pos: [r = " << vector::perp(track_pos)
@@ -183,15 +142,19 @@ DETRAY_HOST inline std::string print_candidates(const state_type &state,
         assert(!sf_cand.sf_desc.barcode().is_invalid());
 
         // Use additional debug information that was gathered on the cand.
-        if constexpr (state_type::value_type::is_debug()) {
-            const auto &local = sf_cand.local;
+        if constexpr (state_type::value_type::contains_pos()) {
+            const auto &local = sf_cand.local();
             if (!sf_cand.sf_desc.barcode().is_invalid()) {
                 point3_t pos =
                     geometry::surface{state.detector(), sf_cand.sf_desc}
                         .local_to_global(geo_ctx_t{}, local, track_dir);
                 debug_stream << " glob: [r = " << vector::perp(pos)
                              << ", z = " << pos[2] << "]" << std::endl;
+            } else {
+                debug_stream << "Invalid barcode" << std::endl;
             }
+        } else {
+            debug_stream << std::endl;
         }
     }
 

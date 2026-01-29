@@ -10,18 +10,17 @@
 // Project include(s).
 #include "detray/core/detector.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/navigation/navigator.hpp"
+#include "detray/navigation/caching_navigator.hpp"
 #include "detray/propagator/actors.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
 
-// Tutorial include(s)
-#include "detray/test/common/bfield.hpp"
-#include "detray/tutorial/types.hpp"
+// Detray test include(s)
+#include "detray/test/device/cuda/bfield.hpp"
 
-// Covfie include(s)
-#include <covfie/cuda/backend/primitive/cuda_device_array.hpp>
+// Tutorial include(s)
+#include "detray/tutorial/types.hpp"
 
 namespace detray::tutorial {
 
@@ -33,23 +32,13 @@ using detector_device_t = detector<metadata_t, device_container_types>;
 using algebra_t = metadata_t::algebra_type;
 using scalar = detray::tutorial::scalar;
 
-namespace bfield::cuda {
-
-// Inhomogeneous field (cuda)
-using inhom_bknd_t = covfie::backend::affine<covfie::backend::linear<
-    covfie::backend::strided<covfie::vector::vector_d<std::size_t, 3>,
-                             covfie::backend::cuda_device_array<
-                                 covfie::vector::vector_d<scalar, 3>>>>>;
-
-}  // namespace bfield::cuda
-
 // Navigator
-using navigator_t = navigator<detector_device_t>;
+using navigator_t = caching_navigator<detector_device_t>;
 
 // Stepper
 using host_field_t = covfie::field<detray::bfield::inhom_bknd_t<scalar>>;
 using device_field_t =
-    covfie::field<detray::tutorial::bfield::cuda::inhom_bknd_t>;
+    covfie::field<detray::bfield::cuda::inhom_bknd_t<scalar>>;
 using stepper_t = rk_stepper<device_field_t::view_t, algebra_t>;
 
 // Actors

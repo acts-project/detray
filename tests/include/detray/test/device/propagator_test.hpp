@@ -10,12 +10,14 @@
 // Project include(s).
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/navigation/navigator.hpp"
+#include "detray/navigation/caching_navigator.hpp"
 #include "detray/propagator/actors.hpp"
+#include "detray/propagator/actors/parameter_transporter.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
+#include "detray/utils/logging.hpp"
 
 // Detray test include(s)
 #include "detray/test/common/track_generators.hpp"
@@ -49,7 +51,8 @@ constexpr std::size_t cache_size{navigation::default_cache_size};
 
 // Navigator
 template <typename detector_t, typename inspector_t>
-using navigator_w_insp_t = navigator<detector_t, cache_size, inspector_t>;
+using navigator_w_insp_t =
+    caching_navigator<detector_t, cache_size, inspector_t>;
 template <typename detector_t>
 using navigator_t = navigator_w_insp_t<detector_t, navigation::void_inspector>;
 template <typename detector_t>
@@ -76,16 +79,17 @@ struct propagator_test_config {
 using step_tracer_host_t = step_tracer<test_algebra, vecmem::vector>;
 using step_tracer_device_t = step_tracer<test_algebra, vecmem::device_vector>;
 using pathlimit_aborter_t = pathlimit_aborter<scalar>;
+using parameter_resetter_t = parameter_resetter<test_algebra>;
 using actor_chain_host_t =
     actor_chain<step_tracer_host_t, pathlimit_aborter_t,
                 parameter_transporter<test_algebra>,
                 pointwise_material_interactor<test_algebra>,
-                parameter_resetter<test_algebra>>;
+                parameter_resetter_t>;
 using actor_chain_device_t =
     actor_chain<step_tracer_device_t, pathlimit_aborter_t,
                 parameter_transporter<test_algebra>,
                 pointwise_material_interactor<test_algebra>,
-                parameter_resetter<test_algebra>>;
+                parameter_resetter_t>;
 
 /// Precompute the tracks
 template <typename track_generator_t = uniform_track_generator<test_track>>
@@ -134,9 +138,12 @@ inline auto run_propagation_host(vecmem::memory_resource *mr,
         tracer_state.collect_only_on_surface(true);
         typename pathlimit_aborter_t::state pathlimit_state{
             cfg.stepping.path_limit};
+        typename parameter_transporter<test_algebra>::state transporter_state{};
+        parameter_resetter_t::state resetter_state{cfg};
         pointwise_material_interactor<test_algebra>::state interactor_state{};
         auto actor_states =
-            detray::tie(tracer_state, pathlimit_state, interactor_state);
+            detray::tie(tracer_state, pathlimit_state, transporter_state,
+                        interactor_state, resetter_state);
 
         typename propagator_host_t::state state(trk, field, det);
 
@@ -145,10 +152,10 @@ inline auto run_propagation_host(vecmem::memory_resource *mr,
 
         // Run propagation
         if (!p.propagate(state, actor_states)) {
-            std::cout << state._navigation.inspector().to_string() << std::endl;
+            DETRAY_FATAL_HOST(state._navigation.inspector().to_string());
             throw std::runtime_error("Host propagation failed");
         } else if (tracer_state.get_step_data().empty()) {
-            std::cout << state._navigation.inspector().to_string() << std::endl;
+            DETRAY_FATAL_HOST(state._navigation.inspector().to_string());
             throw std::runtime_error(
                 "Host propagation did not record reference data correctly");
         }

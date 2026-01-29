@@ -7,8 +7,12 @@
 
 #pragma once
 
+// Project include(s)
+#include "detray/definitions/detail/qualifiers.hpp"
+
 // System include(s)
 #include <cstdint>
+#include <ostream>
 
 namespace detray {
 
@@ -41,4 +45,40 @@ enum class surface_id : std::uint_least8_t {
     e_all = e_unknown
 };
 
+// Print the values of an enum by identifier
+#define ENUM_PRINT(x) \
+    case x:           \
+        os << #x;     \
+        break
+
+DETRAY_HOST inline std::ostream& operator<<(std::ostream& os, volume_id vid) {
+
+    switch (vid) {
+        using enum volume_id;
+        ENUM_PRINT(e_cylinder);
+        ENUM_PRINT(e_rectangle);
+        ENUM_PRINT(e_trapezoid);
+        ENUM_PRINT(e_cone);
+        ENUM_PRINT(e_cuboid);
+        ENUM_PRINT(e_unknown);
+    }
+    return os;
+}
+
+DETRAY_HOST inline std::ostream& operator<<(std::ostream& os, surface_id sid) {
+
+    switch (sid) {
+        using enum surface_id;
+        ENUM_PRINT(e_portal);
+        ENUM_PRINT(e_sensitive);
+        ENUM_PRINT(e_passive);
+        case e_unknown:
+            // e_all has same value (3u)
+            os << "e_unknown/e_all";
+            break;
+    }
+    return os;
+}
+
+#undef ENUM_PRINT
 }  // namespace detray

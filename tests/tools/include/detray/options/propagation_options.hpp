@@ -33,24 +33,36 @@ void add_options<detray::navigation::config>(
         "Search window size for the grid")(
         "min_mask_tolerance",
         boost::program_options::value<float>()->default_value(
-            cfg.min_mask_tolerance / unit<float>::mm),
+            cfg.intersection.min_mask_tolerance / unit<float>::mm),
         "Minimum mask tolerance [mm]")(
         "max_mask_tolerance",
         boost::program_options::value<float>()->default_value(
-            cfg.max_mask_tolerance / unit<float>::mm),
+            cfg.intersection.max_mask_tolerance / unit<float>::mm),
         "Maximum mask tolerance [mm]")(
         "mask_tolerance_scalor",
         boost::program_options::value<float>()->default_value(
-            cfg.mask_tolerance_scalor),
+            cfg.intersection.mask_tolerance_scalor),
         "Mask tolerance scale factor")(
         "overstep_tolerance",
         boost::program_options::value<float>()->default_value(
-            cfg.overstep_tolerance / unit<float>::um),
+            cfg.intersection.overstep_tolerance / unit<float>::um),
         "Overstepping tolerance [um] NOTE: Must be negative!")(
         "path_tolerance",
         boost::program_options::value<float>()->default_value(
-            cfg.path_tolerance / unit<float>::um),
-        "Tol. to decide when a track is on surface [um]");
+            cfg.intersection.path_tolerance / unit<float>::um),
+        "Tol. to decide when a track is on surface [um]")(
+        "estimate_scattering_noise",
+        "Open the navigation surface tolerance according to an estimation of "
+        "the noise due to multiple scattering")(
+        "n_scattering_stddev",
+        boost::program_options::value<int>()->default_value(
+            cfg.n_scattering_stddev),
+        "Number of standard deviations of estimated error to use for "
+        "scattering noise")(
+        "accumulated_error",
+        boost::program_options::value<float>()->default_value(
+            cfg.accumulated_error),
+        "Estimation of accumulated positional error [%]");
 }
 
 /// Add options for the track parameter transport
@@ -113,31 +125,60 @@ void configure_options<detray::navigation::config>(
         const float mask_tol{vm["min_mask_tolerance"].as<float>()};
         assert(mask_tol >= 0.f);
 
-        cfg.min_mask_tolerance = mask_tol * unit<float>::mm;
+        cfg.intersection.min_mask_tolerance = mask_tol * unit<float>::mm;
     }
     if (!vm["max_mask_tolerance"].defaulted()) {
         const float mask_tol{vm["max_mask_tolerance"].as<float>()};
         assert(mask_tol >= 0.f);
 
-        cfg.max_mask_tolerance = mask_tol * unit<float>::mm;
+        cfg.intersection.max_mask_tolerance = mask_tol * unit<float>::mm;
     }
     if (!vm["mask_tolerance_scalor"].defaulted()) {
         const float mask_tol_scalor{vm["mask_tolerance_scalor"].as<float>()};
         assert(mask_tol_scalor >= 0.f);
 
-        cfg.mask_tolerance_scalor = mask_tol_scalor;
+        cfg.intersection.mask_tolerance_scalor = mask_tol_scalor;
     }
     if (!vm["overstep_tolerance"].defaulted()) {
         const float overstep_tol{vm["overstep_tolerance"].as<float>()};
         assert(overstep_tol <= 0.f);
 
-        cfg.overstep_tolerance = overstep_tol * unit<float>::um;
+        cfg.intersection.overstep_tolerance = overstep_tol * unit<float>::um;
     }
     if (!vm["path_tolerance"].defaulted()) {
         const float path_tol{vm["path_tolerance"].as<float>()};
         assert(path_tol >= 0.f);
 
-        cfg.path_tolerance = path_tol * unit<float>::um;
+        cfg.intersection.path_tolerance = path_tol * unit<float>::um;
+    }
+    cfg.estimate_scattering_noise = false;
+    if (vm.count("estimate_scattering_noise")) {
+        cfg.estimate_scattering_noise = true;
+
+        if (!vm["n_scattering_stddev"].defaulted()) {
+            const int n_stddev{vm["n_scattering_stddev"].as<int>()};
+            assert(n_stddev >= 0);
+
+            cfg.n_scattering_stddev = n_stddev;
+        }
+
+        if (!vm["accumulated_error"].defaulted()) {
+            const float err{vm["accumulated_error"].as<float>()};
+            assert(err >= 0.f);
+
+            cfg.accumulated_error = err;
+        }
+    } else {
+        if (!vm["n_scattering_stddev"].defaulted()) {
+            throw std::invalid_argument(
+                "Option 'n_scattering_stddev' cannot not be configured unless "
+                "'estimate_scattering_noise' is activated");
+        }
+        if (!vm["accumulated_error"].defaulted()) {
+            throw std::invalid_argument(
+                "Option 'accumulated_error' cannot not be configured unless "
+                "'estimate_scattering_noise' is activated");
+        }
     }
 }
 

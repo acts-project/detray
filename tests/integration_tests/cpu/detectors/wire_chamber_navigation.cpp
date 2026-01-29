@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
     wire_chamber_config<scalar> wire_chamber_cfg{};
     wire_chamber_cfg.half_z(500.f * unit<scalar>::mm);
 
-    std::cout << wire_chamber_cfg << std::endl;
+    std::clog << wire_chamber_cfg << std::endl;
 
     auto [det, names] =
         build_wire_chamber<test_algebra>(host_mr, wire_chamber_cfg);
@@ -75,12 +75,12 @@ int main(int argc, char **argv) {
     cfg_str_nav.name("wire_chamber_straight_line_navigation");
     cfg_str_nav.n_tracks(cfg_ray_scan.track_generator().n_tracks());
     cfg_str_nav.propagation().stepping.min_stepsize = min_stepsize;
+    cfg_str_nav.propagation().navigation.estimate_scattering_noise = false;
     cfg_str_nav.propagation().navigation.search_window = {3u, 3u};
-    auto mask_tolerance = cfg_ray_scan.mask_tolerance();
-    cfg_str_nav.propagation().navigation.min_mask_tolerance =
-        static_cast<float>(mask_tolerance[0]);
-    cfg_str_nav.propagation().navigation.max_mask_tolerance =
-        static_cast<float>(mask_tolerance[1]);
+    cfg_str_nav.propagation().navigation.intersection.min_mask_tolerance =
+        static_cast<float>(cfg_ray_scan.mask_tolerance());
+    cfg_str_nav.propagation().navigation.intersection.max_mask_tolerance =
+        static_cast<float>(cfg_ray_scan.mask_tolerance());
 
     test::register_checks<test::straight_line_navigation>(
         det, names, cfg_str_nav, ctx, white_board);
@@ -89,8 +89,7 @@ int main(int argc, char **argv) {
     test::helix_scan<wire_chamber_t>::config cfg_hel_scan{};
     cfg_hel_scan.name("wire_chamber_helix_scan");
     // Let the Newton algorithm dynamically choose tol. based on approx. error
-    cfg_hel_scan.mask_tolerance({detray::detail::invalid_value<scalar>(),
-                                 detray::detail::invalid_value<scalar>()});
+    cfg_hel_scan.mask_tolerance(detray::detail::invalid_value<scalar>());
     cfg_hel_scan.track_generator().n_tracks(10000u);
     cfg_hel_scan.track_generator().randomize_charge(true);
     cfg_hel_scan.track_generator().eta_range(-1.f, 1.f);
@@ -106,7 +105,9 @@ int main(int argc, char **argv) {
     cfg_hel_nav.name("wire_chamber_helix_navigation");
     cfg_hel_nav.n_tracks(cfg_hel_scan.track_generator().n_tracks());
     cfg_hel_nav.propagation().stepping.min_stepsize = min_stepsize;
-    cfg_hel_nav.propagation().navigation.min_mask_tolerance *= 12.f;
+    cfg_hel_nav.propagation().navigation.estimate_scattering_noise = false;
+    cfg_hel_nav.propagation().navigation.intersection.min_mask_tolerance *=
+        11.f;
     cfg_hel_nav.propagation().navigation.search_window = {3u, 3u};
 
     test::register_checks<test::helix_navigation>(det, names, cfg_hel_nav, ctx,

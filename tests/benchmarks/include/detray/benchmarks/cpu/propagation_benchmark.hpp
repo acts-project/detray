@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/definitions/algebra.hpp"
 #include "detray/tracks/tracks.hpp"
+#include "detray/utils/logging.hpp"
 
 // Detray benchmark include(s)
 #include "detray/benchmarks/benchmark_base.hpp"
@@ -87,12 +88,11 @@ struct host_propagation_bm : public benchmark_base {
             math::min(static_cast<int>(n_samples / n_threads), max_chunk_size)};
         chunk_size = math::max(chunk_size, 1);
         omp_set_schedule(static_cast<omp_sched_t>(thread_schedule), chunk_size);
-#ifndef NDEBUG
-        std::cout << "No. tracks " << n_samples << std::endl;
-        std::cout << "No. threads " << n_threads << std::endl;
-        std::cout << "Schedule type " << thread_schedule << std::endl;
-        std::cout << "Chunk size " << chunk_size << std::endl;
-#endif
+
+        DETRAY_VERBOSE_HOST("No. tracks " << n_samples);
+        DETRAY_VERBOSE_HOST("No. threads " << n_threads);
+        DETRAY_VERBOSE_HOST("Schedule type " << thread_schedule);
+        DETRAY_VERBOSE_HOST("Chunk size " << chunk_size);
 #endif
 
         // Create propagator
@@ -120,10 +120,9 @@ struct host_propagation_bm : public benchmark_base {
                     p.propagate(p_state, actor_state_refs));
             } else if constexpr (kOPT ==
                                  detray::benchmarks::propagation_opt::e_sync) {
-                ::benchmark::DoNotOptimize(
-                    p.propagate_sync(p_state, actor_state_refs));
+                /* Do nothing for now */
             }
-            assert(p.is_complete(p_state));
+            assert(p.finished(p_state));
         };
 
         // Warm-up
@@ -140,8 +139,7 @@ struct host_propagation_bm : public benchmark_base {
                 run_propagation((*tracks)[static_cast<std::size_t>(i)]);
             }
         } else {
-            std::cout << "WARNING: Running host benchmarks without warmup"
-                      << std::endl;
+            DETRAY_WARN_HOST("Running host benchmarks without warmup");
         }
 
         // Run the benchmark

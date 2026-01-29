@@ -8,6 +8,7 @@
 // Project include(s)
 #include "detray/core/detector.hpp"
 #include "detray/navigation/volume_graph.hpp"
+#include "detray/utils/logging.hpp"
 
 // Detray IO inlcude(s)
 #include "detray/io/frontend/detector_reader.hpp"
@@ -29,7 +30,7 @@
 /// a graph in dot format
 int main(int argc, char** argv) {
 
-    std::cout << "Detector Graph Tutorial\n=======================\n";
+    std::clog << "Detector Graph Tutorial\n=======================\n";
 
     // Input data file
     auto reader_cfg = detray::io::detector_reader_config{};
@@ -39,7 +40,7 @@ int main(int argc, char** argv) {
         throw std::runtime_error("Please specify an input file name!");
     }
 
-    std::cout << reader_cfg << std::endl;
+    std::clog << reader_cfg << std::endl;
 
     // Read a toy detector
     using metadata_t = detray::tutorial::toy_metadata;
@@ -61,5 +62,5 @@ int main(int argc, char** argv) {
 
     *out_file << graph.to_dot_string() << std::endl;
 
-    std::cout << "\nWrote file: " << file_stem + ".txt" << std::endl;
+    DETRAY_INFO_HOST("Wrote file: " << file_stem + ".txt");
 }

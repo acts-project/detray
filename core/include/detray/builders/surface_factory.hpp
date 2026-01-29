@@ -16,7 +16,9 @@
 #include "detray/geometry/shapes/unmasked.hpp"
 #include "detray/materials/material_rod.hpp"
 #include "detray/materials/material_slab.hpp"
+#include "detray/utils/logging.hpp"
 #include "detray/utils/ranges.hpp"
+#include "detray/utils/type_registry.hpp"
 
 // System include(s)
 #include <algorithm>
@@ -154,29 +156,34 @@ class surface_factory : public surface_factory_interface<detector_t> {
                     typename detector_t::geometry_context ctx = {})
         -> dindex_range override {
 
+        DETRAY_VERBOSE_HOST("Add geometric surfaces...");
+
         // In case the surfaces container is prefilled with other surfaces
         const auto surfaces_offset{static_cast<dindex>(surfaces.size())};
+
+        DETRAY_VERBOSE_HOST("-> Adding " << size() << " surfaces");
 
         // Nothing to construct
         if (size() == 0u) {
             return {surfaces_offset, surfaces_offset};
         }
 
-        constexpr auto mask_id = detector_t::masks::template get_id<
-            mask<mask_shape_t, algebra_t, volume_link_t>>();
-        if constexpr (static_cast<std::size_t>(mask_id) >=
-                      detector_t::masks::n_types) {
+        using mask_t = mask<mask_shape_t, algebra_t, volume_link_t>;
 
-            throw std::invalid_argument(
-                "ERROR: Cannot match shape type to mask ID: Found " +
-                std::string(mask_shape_t::name) + " at mask id " +
-                std::to_string(static_cast<std::size_t>(mask_id)));
+        if constexpr (!types::contains<typename detector_t::masks, mask_t>) {
+            std::stringstream err_str{};
+            err_str << "Could not find mask type '" << mask_shape_t::name
+                    << "' in detector";
 
+            DETRAY_FATAL_HOST(err_str.str());
+            throw std::invalid_argument(err_str.str());
         } else {
-
             using surface_t = typename detector_t::surface_type;
             using mask_link_t = typename surface_t::mask_link;
             using material_link_t = typename surface_t::material_link;
+
+            constexpr auto mask_id{
+                types::id<typename detector_t::masks, mask_t>};
 
             // The material will be added in a later step
             constexpr auto no_material{surface_t::material_id::e_none};

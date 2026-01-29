@@ -8,6 +8,7 @@
 // Project include(s)
 #include "detray/definitions/algebra.hpp"
 #include "detray/utils/consistency_checker.hpp"
+#include "detray/utils/logging.hpp"
 
 // Detray IO include(s)
 #include "detray/io/backend/geometry_reader.hpp"
@@ -53,15 +54,16 @@ bool compare_files(const std::string& file_name1, const std::string& file_name2,
     while (std::getline(*file1, line1)) {
         if (std::getline(*file2, line2)) {
             if (skip < i && line1 != line2) {
-                std::cout << "In line " << i << ":" << std::endl
-                          << line1 << std::endl
-                          << line2 << std::endl;
+                DETRAY_ERROR_HOST("In line " << i << ":" << std::endl
+                                             << line1 << std::endl
+                                             << line2);
                 return false;
             }
         } else {
-            std::cout << "Could not read next line from file 2:" << std::endl
-                      << "In line " << i << ":" << std::endl
-                      << line1 << std::endl;
+            DETRAY_ERROR_HOST("Could not read next line from file 2:"
+                              << std::endl
+                              << "In line " << i << ":" << std::endl
+                              << line1);
             return false;
         }
         ++i;
@@ -69,9 +71,10 @@ bool compare_files(const std::string& file_name1, const std::string& file_name2,
 
     // Are there more lines in file2 than file1?
     if (std::getline(*file2, line2)) {
-        std::cout << "Could not read next line from file 1:" << std::endl
-                  << "In line " << i << ":" << std::endl
-                  << line2 << std::endl;
+        DETRAY_ERROR_HOST("Could not read next line from file 1:"
+                          << std::endl
+                          << "In line " << i << ":" << std::endl
+                          << line2);
         return false;
     }
 
@@ -109,33 +112,40 @@ auto test_detector_json_io(
     io::write_detector(det2, names2, writer_cfg);
 
     // Compare writing round-trip
-    std::string geometry_file{names.at(0u) + "_geometry_2.json"};
+    std::string geometry_file{names.get_detector_name() + "_geometry_2.json"};
     EXPECT_TRUE(compare_files(file_names["geometry"], geometry_file));
     std::filesystem::remove(geometry_file);
+    std::filesystem::remove(file_names["geometry"]);
 
     // Check a homogeneous material description, if present
     if (auto search = file_names.find("homogeneous_material");
         search != file_names.end()) {
-        std::string hom_mat_file{names.at(0u) + "_homogeneous_material_2.json"};
+        std::string hom_mat_file{names.get_detector_name() +
+                                 "_homogeneous_material_2.json"};
         EXPECT_TRUE(
             compare_files(file_names["homogeneous_material"], hom_mat_file));
         std::filesystem::remove(hom_mat_file);
+        std::filesystem::remove(file_names["homogeneous_material"]);
     }
 
     // Check a material map description, if present
     if (auto search = file_names.find("material_maps");
         search != file_names.end()) {
-        std::string mat_map_file{names.at(0u) + "_material_maps_2.json"};
+        std::string mat_map_file{names.get_detector_name() +
+                                 "_material_maps_2.json"};
         EXPECT_TRUE(compare_files(file_names["material_maps"], mat_map_file));
         std::filesystem::remove(mat_map_file);
+        std::filesystem::remove(file_names["material_maps"]);
     }
 
     // Check a homogeneous material description, if present
     if (auto search = file_names.find("surface_grids");
         search != file_names.end()) {
-        std::string grids_file{names.at(0u) + "_surface_grids_2.json"};
+        std::string grids_file{names.get_detector_name() +
+                               "_surface_grids_2.json"};
         EXPECT_TRUE(compare_files(file_names["surface_grids"], grids_file));
         std::filesystem::remove(grids_file);
+        std::filesystem::remove(file_names["surface_grids"]);
     }
 
     return std::make_pair(std::move(det2), std::move(names2));
@@ -199,7 +209,8 @@ GTEST_TEST(io, json_toy_geometry) {
         toy_det, names, std::ios::out | std::ios::binary | std::ios::trunc);
 
     // Empty volume name map to be filled
-    typename detector_t::name_map volume_name_map = {{0u, "toy_detector"}};
+    typename detector_t::name_map volume_name_map{};
+    volume_name_map.set_detector_name("toy_detector");
 
     // Read the detector back in
     detector_builder<metadata_t> toy_builder;

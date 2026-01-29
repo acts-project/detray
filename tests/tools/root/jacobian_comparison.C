@@ -165,7 +165,7 @@ void draw_lines() {
 TH1D* get_histogram(std::string name, const int n_labels,
                     const int marker_style, double& log10_rk_tol) {
 
-    std::cout << "Generating histogram for " << name << std::endl;
+    std::clog << "Generating histogram for " << name << std::endl;
 
     auto labels = create_labels();
 
@@ -180,8 +180,8 @@ TH1D* get_histogram(std::string name, const int n_labels,
     auto conv_success = rdf.Filter("total_convergence == 1").Count();
     auto conv_failure = rdf.Filter("total_convergence == 0").Count();
 
-    std::cout << "Convergence events: " << *conv_success << std::endl;
-    std::cout << "Non-convergence events: " << *conv_failure << std::endl;
+    std::clog << "Convergence events: " << *conv_success << std::endl;
+    std::clog << "Non-convergence events: " << *conv_failure << std::endl;
 
     TH1D* histo = new TH1D(histo_name.c_str(), histo_name.c_str(), 3, 0, 3);
     histo->GetYaxis()->SetRangeUser(y_min - y_margin, y_max + y_margin);

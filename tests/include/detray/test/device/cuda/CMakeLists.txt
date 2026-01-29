@@ -4,6 +4,8 @@
 #
 # Mozilla Public License Version 2.0
 
+message(STATUS "Building 'detray::test_cuda' component")
+
 # C++17 support for CUDA requires CMake 3.18.
 cmake_minimum_required(VERSION 3.18)
 
@@ -17,6 +19,7 @@ include(detray-compiler-options-cuda)
 add_library(
     detray_test_cuda
     STATIC
+    "bfield.hpp"
     "material_validation.hpp"
     "material_validation.cu"
     "navigation_validation.hpp"

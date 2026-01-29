@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/core/detector.hpp"
 #include "detray/detectors/toy_metadata.hpp"
 
 // Detray test include(s)

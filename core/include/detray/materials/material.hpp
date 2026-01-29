@@ -159,11 +159,11 @@ struct material {
             return strm.str();
         }
         strm << "material: ";
-        strm << " X0: " << m_x0;
-        strm << " | L0: " << m_l0;
-        strm << " | Z: " << m_z;
+        strm << " X0 = " << m_x0;
+        strm << " | L0 = " << m_l0;
+        strm << " | Z = " << m_z;
 
-        strm << " | state: ";
+        strm << " | state = ";
         switch (m_state) {
             using enum material_state;
             case e_solid: {

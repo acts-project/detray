@@ -13,6 +13,7 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/geometry/coordinates/cartesian2D.hpp"
+#include "detray/geometry/detail/shape_utils.hpp"
 
 // System include(s)
 #include <limits>
@@ -37,6 +38,10 @@ class unmasked {
     /// Local coordinate frame for boundary checks
     template <concepts::algebra algebra_t>
     using local_frame_type = cartesian2D<algebra_t>;
+
+    /// Result type of a boundary check
+    template <typename bool_t>
+    using result_type = bool_t;
 
     /// Dimension of the local coordinate system
     static constexpr std::size_t dim{DIM};
@@ -64,12 +69,27 @@ class unmasked {
     /// @note the parameters are ignored
     ///
     /// @return always true
-    template <concepts::scalar scalar_t, concepts::point point_t>
-    DETRAY_HOST_DEVICE inline auto check_boundaries(
-        const bounds_type<scalar_t>& /*bounds*/, const point_t& /*loc_p*/,
-        const scalar_t /*tol*/) const {
+    /// @{
+    template <concepts::algebra algebra_t>
+    DETRAY_HOST_DEVICE constexpr dbool<algebra_t> check_boundaries(
+        const bounds_type<dscalar<algebra_t>>& /*bounds*/,
+        const dtransform3D<algebra_t>& /*trf*/,
+        const dpoint3D<algebra_t>& /*glob_p*/,
+        const dscalar<algebra_t> /*tol*/ = 0.f,
+        const dscalar<algebra_t> /*edge_tol*/ = 0.f) const {
+
         return true;
     }
+
+    template <concepts::scalar scalar_t, concepts::point point_t>
+    DETRAY_HOST_DEVICE constexpr auto check_boundaries(
+        const bounds_type<scalar_t>& /*bounds*/, const point_t& /*loc_p*/,
+        const scalar_t tol = 0.f,
+        const scalar_t edge_tol = 0.f) const -> decltype(tol < edge_tol) {
+
+        return true;
+    }
+    /// @}
 
     /// @brief Measure of the shape: Inf
     ///

@@ -16,9 +16,11 @@
 #include "detray/geometry/tracking_surface.hpp"
 #include "detray/materials/material.hpp"
 #include "detray/propagator/constrained_step.hpp"
+#include "detray/propagator/detail/print_stepper_state.hpp"
 #include "detray/propagator/stepping_config.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/curvilinear_frame.hpp"
+#include "detray/utils/logging.hpp"
 
 namespace detray {
 
@@ -135,6 +137,7 @@ class base_stepper {
         /// Set the current step size
         DETRAY_HOST_DEVICE
         inline void set_step_size(const scalar_type step) {
+            assert(math::fabs(step) >= 1e-4f * unit<scalar_type>::mm);
             m_step_size = step;
         }
 
@@ -188,6 +191,12 @@ class base_stepper {
             return m_jac_transport;
         }
 
+        /// @returns the current transport Jacbian.
+        DETRAY_HOST_DEVICE
+        inline free_matrix_type &transport_jacobian() {
+            return m_jac_transport;
+        }
+
         /// Reset transport Jacbian.
         DETRAY_HOST_DEVICE
         inline void reset_transport_jacobian() {
@@ -207,11 +216,15 @@ class base_stepper {
         /// Call the stepping inspector
         DETRAY_HOST_DEVICE
         inline void run_inspector([[maybe_unused]] const stepping::config &cfg,
-                                  [[maybe_unused]] const char *message) {
+                                  [[maybe_unused]] const char *message,
+                                  [[maybe_unused]] const scalar_type dist) {
             if constexpr (!std::is_same_v<inspector_t,
                                           stepping::void_inspector>) {
-                m_inspector(*this, cfg, message);
+                m_inspector(*this, cfg, message, dist);
             }
+
+            DETRAY_DEBUG_HOST("" << message << "\n"
+                                 << detray::stepping::print_state(*this, dist));
         }
 
         protected:
@@ -247,13 +260,13 @@ class base_stepper {
         scalar_type m_abs_path_length{0.f};
 
         /// Step size constraints (optional)
-        [[no_unique_address]] constraint_t m_constraint = {};
+        DETRAY_NO_UNIQUE_ADDRESS constraint_t m_constraint = {};
 
         /// Navigation policy state
-        [[no_unique_address]] typename policy_t::state m_policy_state = {};
+        DETRAY_NO_UNIQUE_ADDRESS typename policy_t::state m_policy_state = {};
 
         /// The inspector type of the stepping (for debugging only)
-        [[no_unique_address]] inspector_type m_inspector;
+        DETRAY_NO_UNIQUE_ADDRESS inspector_type m_inspector;
     };
 };
 

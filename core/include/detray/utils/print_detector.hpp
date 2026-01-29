@@ -79,7 +79,8 @@ DETRAY_HOST inline std::string print_detector(
             if (!acc_link[j].is_invalid_id() &&
                 !acc_link[j].is_invalid_index()) {
 
-                debug_stream << j << ":" << std::endl;
+                debug_stream << "Surfaces registered in '" << acc_link[j].id()
+                             << "':" << std::endl;
                 det.accelerator_store()
                     .template visit<detail::accelerator_printer>(acc_link[j],
                                                                  debug_stream);

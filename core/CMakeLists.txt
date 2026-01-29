@@ -41,6 +41,20 @@ detray_add_library( detray_core core
 )
 target_link_libraries(detray_core INTERFACE vecmem::core)
 
+message(STATUS "Setting detray log level: ${DETRAY_SET_LOGGING}")
+target_compile_definitions(
+    detray_core
+    INTERFACE DETRAY_LOG_LVL=${DETRAY_LOG_LVL}
+)
+
+# Propagate some compiler definitions
+if(DETRAY_INTERNAL_USE_NO_UNIQUE_ADDRESS_ANNOTATION)
+    target_compile_definitions(
+        detray_core
+        INTERFACE DETRAY_INTERNAL_USE_NO_UNIQUE_ADDRESS_ANNOTATION
+    )
+endif()
+
 # Generate a version header for the project.
 configure_file(
     "cmake/version.hpp.in"

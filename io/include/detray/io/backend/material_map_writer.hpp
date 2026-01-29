@@ -54,6 +54,7 @@ class material_map_writer : public detail::grid_writer {
     static payload_type to_payload(const detector_t& det,
                                    const typename detector_t::name_map&) {
 
+        using algebra_t = typename detector_t::algebra_type;
         using material_t = material_slab<typename detector_t::scalar_type>;
 
         payload_type grids_data;
@@ -78,9 +79,23 @@ class material_map_writer : public detail::grid_writer {
                     continue;
                 }
 
+                // Do not attempt to convert homogeneous material
+                if constexpr (detray::concepts::has_material_slabs<
+                                  detector_t>) {
+                    if (mat_link.id() == detector_t::materials::id::e_slab) {
+                        continue;
+                    }
+                }
+                if constexpr (detray::concepts::has_material_rods<detector_t>) {
+                    if (mat_link.id() == detector_t::materials::id::e_rod) {
+                        continue;
+                    }
+                }
+
                 // How to convert a material slab in the grid
                 auto mat_converter = [&sf_desc](const material_t& mat) {
-                    return mat_writer_t::to_payload(mat, sf_desc.index());
+                    return mat_writer_t::to_payload<algebra_t>(mat,
+                                                               sf_desc.index());
                 };
 
                 // Generate the payload

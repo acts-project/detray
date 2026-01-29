@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/builders/detail/radius_getter.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/utils/grid/detail/concepts.hpp"
 
@@ -47,7 +48,7 @@ auto material_grid(const detector_t& detector, const dindex index,
     // Proactively calculate the reference radius for a cylinder grid
     // (will only be used if the volume actually holds a barrel grid)
     auto r = detector.mask_store()
-                 .template visit<detray::svgtools::utils::outer_radius_getter>(
+                 .template visit<detray::detail::outer_radius_getter>(
                      sf_desc.mask());
 
     scalar_t cyl_ref_radius{0.f};
@@ -80,7 +81,7 @@ struct material_converter {
             using algebra_t =
                 typename material_t::local_frame_type::algebra_type;
 
-            const auto material_map = mat_coll[index];
+            const auto material_map = mat_coll.at(index);
 
             // Create the bin associations
             dindex edges0 = material_map.template get_axis<0>().nbins();

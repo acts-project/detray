@@ -13,6 +13,7 @@
 #include "detray/definitions/math.hpp"
 #include "detray/navigation/policies.hpp"
 #include "detray/propagator/base_stepper.hpp"
+#include "detray/utils/logging.hpp"
 
 namespace detray {
 
@@ -59,6 +60,8 @@ class line_stepper final
         DETRAY_HOST_DEVICE
         inline void advance_jacobian() {
 
+            DETRAY_VERBOSE_HOST_DEVICE("Advance Jacobian");
+
             // The step transport matrix in global coordinates
             free_matrix<algebra_t> D =
                 matrix::identity<free_matrix<algebra_t>>();
@@ -95,8 +98,17 @@ class line_stepper final
                                  const bool = true,
                                  const material<scalar_type>* = nullptr) const {
 
+        // In case of an overlap do nothing
+        if (math::fabs(dist_to_next) <= 1.f * unit<scalar_type>::um) {
+            stepping.run_inspector(cfg,
+                                   "Step skipped (Overlap): ", dist_to_next);
+            return true;
+        }
+
         // Straight line stepping: The distance given by the navigator is exact
         stepping.set_step_size(dist_to_next);
+
+        DETRAY_VERBOSE_HOST_DEVICE("Take step: %f mm", stepping.step_size());
 
         // Check constraints
         if (const scalar_type max_step =
@@ -104,7 +116,7 @@ class line_stepper final
             math::fabs(stepping.step_size()) > math::fabs(max_step)) {
 
             // Run inspection before step size is cut
-            stepping.run_inspector(cfg, "Before constraint: ");
+            stepping.run_inspector(cfg, "Before constraint: ", dist_to_next);
 
             stepping.set_step_size(max_step);
         }
@@ -121,7 +133,7 @@ class line_stepper final
         stepping.count_trials();
 
         // Run inspection if needed
-        stepping.run_inspector(cfg, "Step complete: ");
+        stepping.run_inspector(cfg, "Step complete: ", dist_to_next);
 
         return true;
     }

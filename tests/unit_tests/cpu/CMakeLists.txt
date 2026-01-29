@@ -15,6 +15,7 @@ detray_add_unit_test(cpu
    "utils/ranges.cpp"
    "utils/tuple_helpers.cpp"
    "utils/type_list.cpp"
+   "utils/type_registry.cpp"
    "utils/sort.cpp"
    LINK_LIBRARIES GTest::gtest GTest::gtest_main detray::test_utils detray::core
 )
@@ -62,6 +63,8 @@ macro(detray_add_cpu_test algebra)
        "material/materials.cpp"
        "material/stopping_power_derivative.cpp"
        "material/stopping_power.cpp"
+       "navigation/accelerators/brute_force.cpp"
+       "navigation/accelerators/spatial_grid.cpp"
        "navigation/intersection/cuboid_intersector.cpp"
        "navigation/intersection/cylinder_intersector.cpp"
        "navigation/intersection/helix_intersector.cpp"
@@ -70,9 +73,8 @@ macro(detray_add_cpu_test algebra)
        "navigation/intersection/intersection2D.cpp"
        "navigation/intersection/line_intersector.cpp"
        "navigation/intersection/plane_intersector.cpp"
-       "navigation/brute_force_finder.cpp"
        "navigation/volume_graph.cpp"
-       "navigation/navigator.cpp"
+       "navigation/caching_navigator.cpp"
        "propagator/actor_chain.cpp"
        "propagator/covariance_transport.cpp"
        "propagator/jacobian_cartesian.cpp"

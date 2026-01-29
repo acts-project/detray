@@ -6,10 +6,12 @@
 
 # Temporary setting for the scalar type, until it can be removed.
 set(DETRAY_CUSTOM_SCALARTYPE
-    "double"
+    "float"
     CACHE STRING
     "Scalar type to use in the Detray code"
 )
+
+message(STATUS "Using detray scalar type: ${DETRAY_CUSTOM_SCALARTYPE}")
 
 # Add all subdirectories.
 add_subdirectory(array)

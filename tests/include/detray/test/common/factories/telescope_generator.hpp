@@ -17,6 +17,7 @@
 #include "detray/geometry/shapes/rectangle2D.hpp"
 #include "detray/tracks/ray.hpp"
 #include "detray/utils/axis_rotation.hpp"
+#include "detray/utils/logging.hpp"
 #include "detray/utils/unit_vectors.hpp"
 
 // System include(s)
@@ -107,6 +108,9 @@ class telescope_generator final : public surface_factory_interface<detector_t> {
                     typename detector_t::geometry_context ctx = {})
         -> dindex_range override {
 
+        DETRAY_VERBOSE_HOST("Generate telescope modules...");
+        DETRAY_VERBOSE_HOST("-> Generate " << size() << " surfaces");
+
         using surface_t = typename detector_t::surface_type;
         using nav_link_t = typename surface_t::navigation_link;
         using mask_link_t = typename surface_t::mask_link;
@@ -116,8 +120,8 @@ class telescope_generator final : public surface_factory_interface<detector_t> {
         constexpr auto invalid_src_link{detail::invalid_value<std::uint64_t>()};
 
         // The type id of the surface mask shape
-        constexpr auto mask_id{detector_t::mask_container::template get_id<
-            mask<mask_shape_t, algebra_t>>::value};
+        constexpr auto mask_id{types::id<typename detector_t::masks,
+                                         mask<mask_shape_t, algebra_t>>};
 
         // The material will be added in a later step
         constexpr auto no_material{surface_t::material_id::e_none};

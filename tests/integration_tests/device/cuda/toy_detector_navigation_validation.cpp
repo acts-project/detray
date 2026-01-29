@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
     // Navigation link consistency, discovered by ray intersection
     test::ray_scan<toy_detector_t>::config cfg_ray_scan{};
     cfg_ray_scan.name("toy_detector_ray_scan_for_cuda");
-    cfg_ray_scan.track_generator().n_tracks(1000u);
+    cfg_ray_scan.track_generator().n_tracks(10000u);
     cfg_ray_scan.overlaps_tol(min_stepsize);
 
     test::register_checks<test::ray_scan>(toy_det, toy_names, cfg_ray_scan, ctx,
@@ -75,12 +75,12 @@ int main(int argc, char **argv) {
     cfg_str_nav.name("toy_detector_straight_line_navigation_cuda");
     cfg_str_nav.n_tracks(cfg_ray_scan.track_generator().n_tracks());
     cfg_str_nav.propagation().stepping.min_stepsize = min_stepsize;
+    cfg_str_nav.propagation().navigation.estimate_scattering_noise = false;
     cfg_str_nav.propagation().navigation.search_window = {3u, 3u};
-    auto mask_tolerance = cfg_ray_scan.mask_tolerance();
-    cfg_str_nav.propagation().navigation.min_mask_tolerance =
-        static_cast<float>(mask_tolerance[0]);
-    cfg_str_nav.propagation().navigation.max_mask_tolerance =
-        static_cast<float>(mask_tolerance[1]);
+    cfg_str_nav.propagation().navigation.intersection.min_mask_tolerance =
+        static_cast<float>(cfg_ray_scan.mask_tolerance());
+    cfg_str_nav.propagation().navigation.intersection.max_mask_tolerance =
+        static_cast<float>(cfg_ray_scan.mask_tolerance());
 
     test::register_checks<detray::cuda::straight_line_navigation>(
         toy_det, toy_names, cfg_str_nav, ctx, white_board);
@@ -89,10 +89,15 @@ int main(int argc, char **argv) {
     test::helix_scan<toy_detector_t>::config cfg_hel_scan{};
     cfg_hel_scan.name("toy_detector_helix_scan_for_cuda");
     // Let the Newton algorithm dynamically choose tol. based on approx. error
-    cfg_hel_scan.mask_tolerance({detray::detail::invalid_value<scalar>(),
-                                 detray::detail::invalid_value<scalar>()});
-    cfg_hel_scan.track_generator().n_tracks(1000u);
+    cfg_hel_scan.mask_tolerance(detray::detail::invalid_value<scalar>());
+    // Run only 1000 track in double precision in the CI (time limit)
+    if constexpr (std::same_as<scalar, double>) {
+        cfg_hel_scan.track_generator().n_tracks(1000u);
+    } else {
+        cfg_hel_scan.track_generator().n_tracks(10000u);
+    }
     cfg_hel_scan.overlaps_tol(min_stepsize);
+    cfg_hel_scan.track_generator().randomize_charge(true);
     cfg_hel_scan.track_generator().eta_range(-4.f, 4.f);
     cfg_hel_scan.track_generator().p_T(1.f * unit<scalar>::GeV);
 
@@ -104,6 +109,7 @@ int main(int argc, char **argv) {
     cfg_hel_nav.name("toy_detector_helix_navigation_cuda");
     cfg_hel_nav.n_tracks(cfg_hel_scan.track_generator().n_tracks());
     cfg_hel_nav.propagation().stepping.min_stepsize = min_stepsize;
+    cfg_hel_nav.propagation().navigation.estimate_scattering_noise = false;
     cfg_hel_nav.propagation().navigation.search_window = {3u, 3u};
 
     test::register_checks<detray::cuda::helix_navigation>(
@@ -136,7 +142,8 @@ int main(int argc, char **argv) {
 
     auto [toy_det_hom_mat, toy_names_hom_mat] =
         build_toy_detector<test_algebra>(host_mr, toy_cfg);
-    toy_names_hom_mat.at(0) += "_hom_material";
+    toy_names_hom_mat.set_detector_name(toy_names_hom_mat.get_detector_name() +
+                                        "_hom_material");
 
     // Record the material using a ray scan
     mat_scan_cfg.name("toy_detector_hom_material_scan_for_cuda");

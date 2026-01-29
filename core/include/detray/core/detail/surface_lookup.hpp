@@ -13,6 +13,7 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/geometry/barcode.hpp"
+#include "detray/utils/logging.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>
@@ -234,8 +235,7 @@ class surface_lookup {
     /// index.
     DETRAY_HOST void insert(source_link<sf_desc_t> sf_link) noexcept(false) {
         if (detail::is_invalid_value(sf_link.index())) {
-            std::cout << "ERROR: Invalid surface descriptor: " << sf_link
-                      << std::endl;
+            DETRAY_ERROR_HOST("Invalid surface descriptor: " << sf_link);
         }
         if (m_container.size() <= sf_link.index()) {
             m_container.resize(sf_link.index() + 1u);

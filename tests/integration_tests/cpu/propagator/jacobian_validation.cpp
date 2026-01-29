@@ -9,8 +9,8 @@
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/tracking_surface.hpp"
+#include "detray/navigation/caching_navigator.hpp"
 #include "detray/navigation/intersection/helix_intersector.hpp"
-#include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actors/parameter_resetter.hpp"
 #include "detray/propagator/actors/parameter_transporter.hpp"
 #include "detray/propagator/propagator.hpp"
@@ -184,7 +184,7 @@ struct ridders_derivative {
                         /*
                         // Please leave this for debug
                         if (j == e_bound_theta && i == e_bound_loc0) {
-                            std::cout << q << " " << p << " "
+                            std::clog << q << " " << p << " "
                                       << getter::element(
                                              differentiated_jacobian, j, i)
                                       << "  " << math::fabs(Arr[j][q][p])
@@ -200,7 +200,7 @@ struct ridders_derivative {
             /*
             // Please leave this for debug
             if (j == e_bound_loc0 && i == e_bound_theta) {
-                std::cout << getter::element(differentiated_jacobian, j, i)
+                std::clog << getter::element(differentiated_jacobian, j, i)
                           << "  " << Arr[j][p][p] << "  "
                           << Arr[j][p - 1][p - 1] << "  "
                           << math::fabs(Arr[j][p][p] - Arr[j][p - 1][p - 1])
@@ -214,7 +214,7 @@ struct ridders_derivative {
         }
     }
 
-    bool is_complete() { return (std::ranges::count(complete, false) == 0u); }
+    bool finished() { return (std::ranges::count(complete, false) == 0u); }
 };
 
 void wrap_angles(const bound_param_vector_type& ref_vector,
@@ -413,17 +413,18 @@ struct bound_getter : actor {
 
         // Warning for too many step counts
         if (actor_state.step_count > 1000000) {
-            std::cout << "Too many step counts!" << std::endl;
-            std::cout << "Track ID: " << actor_state.track_ID << std::endl;
-            std::cout << "Path length: " << actor_state.m_path_length
+            std::clog << "Too many step counts!" << std::endl;
+            std::clog << "Track ID: " << actor_state.track_ID << std::endl;
+            std::clog << "Path length: " << actor_state.m_path_length
                       << std::endl;
-            std::cout << "PhiI: " << actor_state.m_param_departure.phi()
+            std::clog << "PhiI: " << actor_state.m_param_departure.phi()
                       << std::endl;
-            std::cout << "ThetaI: " << actor_state.m_param_departure.theta()
+            std::clog << "ThetaI: " << actor_state.m_param_departure.theta()
                       << std::endl;
-            std::cout << "QopI: " << actor_state.m_param_departure.qop()
+            std::clog << "QopI: " << actor_state.m_param_departure.qop()
                       << std::endl;
-            propagation._heartbeat &= navigation.exit();
+            navigation.exit();
+            propagation._heartbeat = false;
         }
 
         if ((navigation.is_on_sensitive() || navigation.is_on_passive()) &&
@@ -444,7 +445,8 @@ struct bound_getter : actor {
                     propagation);
 
             // Stop navigation if the destination surface found
-            propagation._heartbeat &= navigation.exit();
+            navigation.exit();
+            propagation._heartbeat = false;
         }
 
         if (stepping.path_length() > actor_state.m_min_path_length) {
@@ -467,8 +469,11 @@ bound_getter<test_algebra>::state evaluate_bound_param(
 
     // Propagator is built from the stepper and navigator
     propagation::config cfg{};
-    cfg.navigation.overstep_tolerance = static_cast<float>(overstep_tolerance);
-    cfg.navigation.path_tolerance = static_cast<float>(path_tolerance);
+    cfg.navigation.intersection.overstep_tolerance =
+        static_cast<float>(overstep_tolerance);
+    cfg.navigation.intersection.path_tolerance =
+        static_cast<float>(path_tolerance);
+    cfg.navigation.estimate_scattering_noise = false;
     cfg.stepping.rk_error_tol = static_cast<float>(rk_tolerance);
     cfg.stepping.use_eloss_gradient = true;
     cfg.stepping.use_field_gradient = use_field_gradient;
@@ -476,10 +481,13 @@ bound_getter<test_algebra>::state evaluate_bound_param(
     propagator_t p(cfg);
 
     // Actor states
+    parameter_transporter<test_algebra>::state transporter_state{};
     bound_getter<test_algebra>::state bound_getter_state{};
     bound_getter_state.track_ID = trk_count;
     bound_getter_state.m_min_path_length = detector_length * 0.75f;
-    auto actor_states = detray::tie(bound_getter_state);
+    parameter_resetter<test_algebra>::state resetter_state{cfg};
+    auto actor_states =
+        detray::tie(transporter_state, bound_getter_state, resetter_state);
 
     // Init propagator states for the reference track
     typename propagator_t::state state(initial_param, field, det);
@@ -492,9 +500,6 @@ bound_getter<test_algebra>::state evaluate_bound_param(
             static_cast<float>(constraint_step));
 
     p.propagate(state, actor_states);
-    if (do_inspect) {
-        std::cout << state.debug_stream.str() << std::endl;
-    }
 
     return bound_getter_state;
 }
@@ -510,8 +515,11 @@ bound_param_vector_type get_displaced_bound_vector(
     const unsigned int target_index, const scalar displacement) {
 
     propagation::config cfg{};
-    cfg.navigation.overstep_tolerance = static_cast<float>(overstep_tolerance);
-    cfg.navigation.path_tolerance = static_cast<float>(path_tolerance);
+    cfg.navigation.intersection.overstep_tolerance =
+        static_cast<float>(overstep_tolerance);
+    cfg.navigation.intersection.path_tolerance =
+        static_cast<float>(path_tolerance);
+    cfg.navigation.estimate_scattering_noise = false;
     cfg.stepping.rk_error_tol = static_cast<float>(rk_tolerance);
     cfg.stepping.do_covariance_transport = false;
 
@@ -524,11 +532,14 @@ bound_param_vector_type get_displaced_bound_vector(
     typename propagator_t::state dstate(dparam, field, det);
 
     // Actor states
+    parameter_transporter<test_algebra>::state transporter_state{};
     bound_getter<test_algebra>::state bound_getter_state{};
     bound_getter_state.track_ID = trk_count;
     bound_getter_state.m_min_path_length = detector_length * 0.75f;
+    parameter_resetter<test_algebra>::state resetter_state{cfg};
 
-    auto actor_states = detray::tie(bound_getter_state);
+    auto actor_states =
+        detray::tie(transporter_state, bound_getter_state, resetter_state);
     dstate.set_particle(ptc);
     dstate._stepping
         .template set_constraint<detray::step::constraint::e_accuracy>(
@@ -593,7 +604,7 @@ bound_track_parameters<test_algebra>::covariance_type directly_differentiate(
 
             ridder.run(nvec1, nvec2, delta, p, i, differentiated_jacobian);
 
-            if (ridder.is_complete()) {
+            if (ridder.finished()) {
                 num_iterations[i] = p;
                 break;
             }
@@ -623,13 +634,12 @@ bound_track_parameters<test_algebra> get_initial_parameter(
     const auto& departure_mask =
         det.mask_store().template get<mask_id>().at(mask_link.index());
 
-    using mask_t =
-        typename detector_t::mask_container::template get_type<mask_id>;
+    using mask_t = types::get<typename detector_t::masks, mask_id>;
     helix_intersector<typename mask_t::shape, test_algebra> hlx_is{};
     hlx_is.run_rtsafe = false;
     hlx_is.convergence_tolerance = helix_tolerance;
     auto sfi = hlx_is(hlx, departure_sf, departure_mask, departure_trf, 0.f);
-    EXPECT_TRUE(sfi.status)
+    EXPECT_TRUE(sfi.is_inside())
         << " Initial surface not found" << std::endl
         << " log10(Helix tolerance): " << math::log10(helix_tolerance)
         << " Phi: " << vector::phi(vertex.dir())
@@ -637,7 +647,7 @@ bound_track_parameters<test_algebra> get_initial_parameter(
         << " Mom [GeV/c]: " << vertex.p(ptc.charge()) << std::endl
         << sfi;
 
-    const auto path_length = sfi.path;
+    const auto path_length = sfi.path();
     // As we don't rotate or shift the initial surface anymore, the path_length
     // should be 0
     EXPECT_FLOAT_EQ(static_cast<float>(path_length), 0.f);
@@ -994,14 +1004,13 @@ bound_param_vector_type get_displaced_bound_vector_helix(
         tracking_surface{det, departure_sf}.bound_to_free_vector({}, dvec);
     detail::helix<test_algebra> hlx(free_vec, field);
 
-    using mask_t =
-        typename detector_t::mask_container::template get_type<mask_id>;
+    using mask_t = types::get<typename detector_t::masks, mask_id>;
     helix_intersector<typename mask_t::shape, test_algebra> hlx_is{};
     hlx_is.run_rtsafe = false;
     hlx_is.convergence_tolerance = helix_tolerance;
     auto sfi =
         hlx_is(hlx, destination_sf, destination_mask, destination_trf, 0.f);
-    const auto path_length = sfi.path;
+    const auto path_length = sfi.path();
     const auto pos = hlx(path_length);
     const auto dir = hlx.dir(path_length);
 
@@ -1050,8 +1059,7 @@ void evaluate_jacobian_difference_helix(
     const auto& destination_mask =
         det.mask_store().template get<mask_id>().at(mask_link.index());
 
-    using mask_t =
-        typename detector_t::mask_container::template get_type<mask_id>;
+    using mask_t = types::get<typename detector_t::masks, mask_id>;
     helix_intersector<typename mask_t::shape, test_algebra> hlx_is{};
     hlx_is.run_rtsafe = false;
     hlx_is.convergence_tolerance = helix_tolerance;
@@ -1059,13 +1067,13 @@ void evaluate_jacobian_difference_helix(
     auto sfi =
         hlx_is(hlx, destination_sf, destination_mask, destination_trf, 0.f);
 
-    EXPECT_TRUE(sfi.status)
+    EXPECT_TRUE(sfi.is_inside())
         << " Final surface not found" << std::endl
         << " log10(Helix tolerance): " << math::log10(helix_tolerance)
         << " Phi: " << track.phi() << " Theta: " << track.theta()
         << " Mom [GeV/c]: " << track.p(ptc.charge());
 
-    const auto path_length = sfi.path;
+    const auto path_length = sfi.path();
 
     // Get transport Jacobi
     const auto transport_jacobi = hlx.jacobian(path_length);
@@ -1130,7 +1138,7 @@ void evaluate_jacobian_difference_helix(
 
             ridder.run(nvec1, nvec2, delta, p, i, differentiated_jacobian);
 
-            if (ridder.is_complete()) {
+            if (ridder.finished()) {
                 num_iterations[i] = p;
                 break;
             }
@@ -1431,7 +1439,7 @@ int main(int argc, char** argv) {
 
     // Help message
     if (vm.count("help")) {
-        std::cout << desc << std::endl;
+        std::clog << desc << std::endl;
         return EXIT_FAILURE;
     }
 
@@ -1596,8 +1604,8 @@ int main(int argc, char** argv) {
     }
 
     // Navigator types
-    using rect_navigator_t = navigator<rectangle_telescope>;
-    using wire_navigator_t = navigator<wire_telescope>;
+    using rect_navigator_t = caching_navigator<rectangle_telescope>;
+    using wire_navigator_t = caching_navigator<wire_telescope>;
 
     // Stepper types
     using const_field_stepper_t =
@@ -1737,47 +1745,47 @@ int main(int argc, char** argv) {
         track_count++;
 
         if (verbose_lvl >= 1) {
-            std::cout << "[Event Property]" << std::endl;
-            std::cout << "Track ID: " << track_count
+            std::clog << "[Event Property]" << std::endl;
+            std::clog << "Track ID: " << track_count
                       << "  Number of processed tracks per thread: "
                       << track_count - n_skips << std::endl;
         }
         if (verbose_lvl >= 2) {
-            std::cout << "[Detector Property]" << std::endl;
-            std::cout << "Path length for the final surface: "
+            std::clog << "[Detector Property]" << std::endl;
+            std::clog << "Path length for the final surface: "
                       << detector_length << std::endl;
-            std::cout << "Rect initial surface rotation: ("
+            std::clog << "Rect initial surface rotation: ("
                       << euler_rect_initial.alpha << " "
                       << euler_rect_initial.beta << " "
                       << euler_rect_initial.gamma << ")" << std::endl;
-            std::cout << "Rect initial surface shift: ("
+            std::clog << "Rect initial surface shift: ("
                       << shift_rect_initial[0u] << " " << shift_rect_initial[1u]
                       << " " << shift_rect_initial[2u] << ")" << std::endl;
-            std::cout << "Rect final surface rotation: ("
+            std::clog << "Rect final surface rotation: ("
                       << euler_rect_final.alpha << " " << euler_rect_final.beta
                       << " " << euler_rect_final.gamma << ")" << std::endl;
-            std::cout << "Rect final surface shift: (" << shift_rect_final[0u]
+            std::clog << "Rect final surface shift: (" << shift_rect_final[0u]
                       << " " << shift_rect_final[1u] << " "
                       << shift_rect_final[2u] << ")" << std::endl;
-            std::cout << "Wire initial surface rotation: ("
+            std::clog << "Wire initial surface rotation: ("
                       << euler_wire_initial.alpha << " "
                       << euler_wire_initial.beta << " "
                       << euler_wire_initial.gamma << ")" << std::endl;
-            std::cout << "Wire initial surface shift: ("
+            std::clog << "Wire initial surface shift: ("
                       << shift_wire_initial[0u] << " " << shift_wire_initial[1u]
                       << " " << shift_wire_initial[2u] << ")" << std::endl;
-            std::cout << "Wire final surface rotation: ("
+            std::clog << "Wire final surface rotation: ("
                       << euler_wire_final.alpha << " " << euler_wire_final.beta
                       << " " << euler_wire_final.gamma << ")" << std::endl;
-            std::cout << "Wire final surface shift: (" << shift_wire_final[0u]
+            std::clog << "Wire final surface shift: (" << shift_wire_final[0u]
                       << " " << shift_wire_final[1u] << " "
                       << shift_wire_final[2u] << ")" << std::endl;
         }
         if (verbose_lvl >= 3) {
-            std::cout << "[Track Property]" << std::endl;
-            std::cout << "Phi: " << vector::phi(track.dir()) << std::endl;
-            std::cout << "Theta: " << vector::theta(track.dir()) << std::endl;
-            std::cout << "Mom: " << track.p(ptc.charge()) << std::endl;
+            std::clog << "[Track Property]" << std::endl;
+            std::clog << "Phi: " << vector::phi(track.dir()) << std::endl;
+            std::clog << "Theta: " << vector::theta(track.dir()) << std::endl;
+            std::clog << "Mom: " << track.p(ptc.charge()) << std::endl;
         }
 
         /**********************************
@@ -1785,7 +1793,7 @@ int main(int argc, char** argv) {
          **********************************/
 
         if (verbose_lvl >= 3 && !skip_rect) {
-            std::cout << "Simulating rectangular telescope..." << std::endl;
+            std::clog << "Simulating rectangular telescope..." << std::endl;
         }
 
         // Get initial parameter
@@ -1872,7 +1880,7 @@ int main(int argc, char** argv) {
          **********************************/
 
         if (verbose_lvl >= 3 && !skip_wire) {
-            std::cout << "Simulating wire telescope..." << std::endl;
+            std::clog << "Simulating wire telescope..." << std::endl;
         }
 
         // Get initial parameter

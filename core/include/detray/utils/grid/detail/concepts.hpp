@@ -12,7 +12,9 @@
 #include "detray/core/detail/container_views.hpp"
 #include "detray/definitions/grid_axis.hpp"
 #include "detray/definitions/indexing.hpp"
+#include "detray/geometry/surface_descriptor.hpp"
 #include "detray/utils/concepts.hpp"
+#include "detray/utils/ranges/ranges.hpp"
 
 // System include(s)
 #include <concepts>
@@ -49,7 +51,7 @@ concept axis = requires(const A ax) {
         ax.bin_edges(dindex())
     } -> std::same_as<darray<typename A::scalar_type, 2>>;
 
-    { ax.bin_edges() } -> concepts::range_of<typename A::scalar_type>;
+    { ax.bin_edges() } -> detray::ranges::range_of<typename A::scalar_type>;
 
     { ax.span() } -> std::same_as<darray<typename A::scalar_type, 2>>;
 
@@ -60,8 +62,6 @@ concept axis = requires(const A ax) {
 
 template <typename G>
 concept grid = viewable<G> && bufferable<G> && requires(const G g) {
-    G::dim;
-
     typename G::bin_type;
     typename G::value_type;
     typename G::glob_bin_index;
@@ -70,6 +70,7 @@ concept grid = viewable<G> && bufferable<G> && requires(const G g) {
     typename G::algebra_type;
     typename G::point_type;
 
+    G::dim;
     G::is_owning;
 
     // TODO: Implement cooridnate frame concept
@@ -89,7 +90,7 @@ concept grid = viewable<G> && bufferable<G> && requires(const G g) {
         g.serialize(typename G::loc_bin_index())
     } -> std::same_as<typename G::glob_bin_index>;
 
-    { g.bins() } -> concepts::range_of<typename G::bin_type>;
+    { g.bins() } -> detray::ranges::range_of<typename G::bin_type>;
 
     {
         g.bin(typename G::glob_bin_index())
@@ -107,5 +108,21 @@ concept grid = viewable<G> && bufferable<G> && requires(const G g) {
         g.at(typename G::glob_bin_index(), dindex())
     } -> concepts::same_as_cvref<typename G::value_type>;
 };
+
+/// Grid that contains surfaces (used e.g. for grid acceleration structures)
+/// TODO: Add surface descriptor concept to geometry package
+template <class G>
+concept surface_grid =
+    concepts::grid<G> &&
+    std::same_as<typename G::value_type,
+                 surface_descriptor<typename G::value_type::mask_link,
+                                    typename G::value_type::material_link,
+                                    typename G::value_type::transform_link,
+                                    typename G::value_type::navigation_link>>;
+
+/// Acceleration structure that contains volumes (volume indices)
+template <class G>
+concept volume_grid =
+    concepts::grid<G> && std::same_as<typename G::value_type, dindex>;
 
 }  // namespace detray::concepts

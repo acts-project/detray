@@ -10,7 +10,7 @@
 // Project include(s)
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
-#include "detray/materials/detail/concepts.hpp"
+#include "detray/materials/concepts.hpp"
 #include "detray/utils/grid/detail/concepts.hpp"
 #include "detray/utils/ranges/ranges.hpp"
 #include "detray/utils/type_traits.hpp"
@@ -41,7 +41,7 @@ DETRAY_HOST_DEVICE constexpr decltype(auto) get(
         &loc_point) noexcept {
 
     // Find the material slab (only one entry per bin)
-    return material_coll[idx].search(loc_point).ref();
+    return material_coll[idx].bin(loc_point).ref();
 }
 
 }  // namespace detray::detail::material_accessor

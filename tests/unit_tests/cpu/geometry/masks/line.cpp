@@ -9,6 +9,7 @@
 #include "detray/geometry/shapes/line.hpp"
 
 #include "detray/definitions/units.hpp"
+#include "detray/geometry/concepts.hpp"
 #include "detray/geometry/mask.hpp"
 
 // Detray test include(s)
@@ -36,6 +37,9 @@ constexpr scalar hz{50.f * unit<scalar>::mm};
 
 /// This tests the basic functionality of a line with a radial cross section
 GTEST_TEST(detray_masks, line_circular) {
+
+    static_assert(concepts::shape<line_circular, test_algebra>);
+    static_assert(concepts::line_shape<line_circular, test_algebra>);
 
     const point3 ln_in{0.09f, 0.5f, 0.f};
     const point3 ln_edge{1.f, 50.f, 0.f};
@@ -79,11 +83,9 @@ GTEST_TEST(detray_masks, line_circular_ratio_test) {
     struct mask_check {
         bool operator()(const point3 &p,
                         const mask<line_circular, test_algebra> &st,
-                        const test::transform3 &trf, const test::vector3 &dir,
-                        const scalar t) {
-
-            const point3 loc_p{st.to_local_frame(trf, p, dir)};
-            return st.is_inside(loc_p, t);
+                        const test::transform3 &trf,
+                        const test::vector3 & /*dir*/, const scalar t) {
+            return st.is_inside(trf, p, t);
         }
     };
 
@@ -110,6 +112,9 @@ GTEST_TEST(detray_masks, line_circular_ratio_test) {
 
 /// This tests the basic functionality of a line with a square cross section
 GTEST_TEST(detray_masks, line_square) {
+
+    static_assert(concepts::shape<line_square, test_algebra>);
+    static_assert(concepts::line_shape<line_circular, test_algebra>);
 
     const point3 ln_in{1.1f, 0.9f, constant<scalar>::pi_4};
     const point3 ln_edge{1.f, 1.f, 0.f};
@@ -155,11 +160,9 @@ GTEST_TEST(detray_masks, line_square_ratio_test) {
     struct mask_check {
         bool operator()(const point3 &p,
                         const mask<line_square, test_algebra> &dcl,
-                        const test::transform3 &trf, const test::vector3 &dir,
-                        const scalar t) {
-
-            const point3 loc_p{dcl.to_local_frame(trf, p, dir)};
-            return dcl.is_inside(loc_p, t);
+                        const test::transform3 &trf,
+                        const test::vector3 & /*dir*/, const scalar t) {
+            return dcl.is_inside(trf, p, t);
         }
     };
 

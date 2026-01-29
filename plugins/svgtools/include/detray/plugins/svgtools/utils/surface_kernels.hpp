@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/builders/detail/radius_getter.hpp"
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/mask.hpp"
@@ -22,55 +23,6 @@
 
 namespace detray::svgtools::utils {
 
-/// @brief Functor to calculate the outermost radius of a cylinder shape.
-/// If the shape is not defined by a radius, then null option is returned.
-struct outer_radius_getter {
-
-    public:
-    template <typename mask_group_t, concepts::index index_t>
-    DETRAY_HOST inline auto operator()(const mask_group_t& mask_group,
-                                       const index_t& index) const {
-        return outer_radius(mask_group[index]);
-    }
-
-    template <typename mask_group_t, concepts::interval idx_range_t>
-    DETRAY_HOST inline auto operator()(const mask_group_t& mask_group,
-                                       const idx_range_t& idx_range) const {
-        // All masks on the same cylinder surface have the same radius
-        return outer_radius(mask_group[idx_range.lower()]);
-    }
-
-    private:
-    // Struct to access the radius of a surface
-    template <typename mask_t>
-    DETRAY_HOST std::optional<typename mask_t::scalar_type> inline outer_radius(
-        const mask_t& /*mask*/) const {
-        return std::nullopt;
-    }
-
-    // Calculates the outer radius for cylinders (2D).
-    template <concepts::algebra algebra_t>
-    DETRAY_HOST inline auto outer_radius(
-        const detray::mask<detray::cylinder2D, algebra_t>& mask) const {
-        return std::optional(mask[cylinder2D::e_r]);
-    }
-
-    // Calculates the outer radius for concentric cylinders (2D).
-    template <concepts::algebra algebra_t>
-    DETRAY_HOST inline auto outer_radius(
-        const detray::mask<detray::concentric_cylinder2D, algebra_t>& mask)
-        const {
-        return std::optional(mask[concentric_cylinder2D::e_r]);
-    }
-
-    // Calculates the outer radius for cylinders (3D).
-    template <concepts::algebra algebra_t>
-    DETRAY_HOST inline auto outer_radius(
-        const detray::mask<detray::cylinder3D, algebra_t>& mask) const {
-        return std::optional(mask[cylinder3D::e_max_r]);
-    }
-};
-
 /// @brief Functor to calculate a suitable starting point for displaying the
 /// link arrow.
 struct link_start_getter {
@@ -82,7 +34,7 @@ struct link_start_getter {
                                        const index_t& index,
                                        const transform3_t& transform,
                                        const std::size_t = 0) const {
-        return link_start(mask_group[index], transform);
+        return link_start(mask_group.at(index), transform);
     }
 
     template <typename mask_group_t, concepts::interval idx_range_t,
@@ -92,7 +44,8 @@ struct link_start_getter {
                                        const transform3_t& transform,
                                        const std::size_t mask_idx) const {
         assert(mask_idx < idx_range.size());
-        return link_start(mask_group[idx_range.lower() + mask_idx], transform);
+        return link_start(mask_group.at(idx_range.lower() + mask_idx),
+                          transform);
     }
 
     private:
@@ -206,7 +159,7 @@ struct link_end_getter {
         const point3_t& surface_point, const vector3_t& surface_normal,
         const scalar_t& link_length, const std::size_t = 0) const {
 
-        return link_dir(mask_group[index], detector, volume, surface_point,
+        return link_dir(mask_group.at(index), detector, volume, surface_point,
                         surface_normal) *
                    link_length +
                surface_point;
@@ -222,7 +175,7 @@ struct link_end_getter {
         const point3_t& surface_point, const vector3_t& surface_normal,
         const scalar_t& link_length, const std::size_t mask_idx) const {
         assert(mask_idx < idx_range.size());
-        return link_dir(mask_group[idx_range.lower() + mask_idx], detector,
+        return link_dir(mask_group.at(idx_range.lower() + mask_idx), detector,
                         volume, surface_point, surface_normal) *
                    link_length +
                surface_point;
@@ -260,7 +213,8 @@ struct link_end_getter {
 
             const detray::geometry::surface surface{detector, desc};
 
-            if (auto r = surface.template visit_mask<outer_radius_getter>()) {
+            if (auto r = surface.template visit_mask<
+                         detray::detail::outer_radius_getter>()) {
                 if (*r > mask[shape_t::e_r]) {
                     return surface_normal;
                 }

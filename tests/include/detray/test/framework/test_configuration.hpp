@@ -49,18 +49,16 @@ struct configuration {
     const propagation::config& propagation() const { return m_prop_cfg; }
     /// @}
 
+    private:
     /// Print configuration
-    std::ostream& operator<<(std::ostream& os) {
-        os << " -> test tolerance:  \t " << tol() << std::endl;
-        os << " -> trk path limit:  \t " << propagation().stepping.path_limit
-           << std::endl;
-        os << " -> overstepping tol:\t "
-           << propagation().navigation.overstep_tolerance << std::endl;
-        os << " -> step constraint:  \t "
-           << propagation().stepping.step_constraint << std::endl;
-        os << std::endl;
+    friend std::ostream& operator<<(std::ostream& out,
+                                    const configuration& cfg) {
+        out << "Test Configuration\n"
+            << "----------------------------\n"
+            << "  test tolerance        : " << cfg.tol() << "\n\n";
+        out << cfg.propagation();
 
-        return os;
+        return out;
     }
 };
 

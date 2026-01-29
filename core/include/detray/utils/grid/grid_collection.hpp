@@ -21,7 +21,8 @@
 
 namespace detray {
 
-/// @brief A collection of grids that can be moved to device.
+/// @brief A collection of grids that can be moved to device as part of the
+/// detector
 ///
 /// @tparam grid_t The type of grid in this collection. Must be non-owning, so
 ///                that the grid collection can manage the underlying memory.
@@ -29,24 +30,22 @@ template <concepts::grid grid_t, typename = void>
 class grid_collection {};
 
 /// Specialization for @c detray::grid
-///
-/// @todo refactor this, grid_data and grid_view as detray::ranges::grid_view
 template <typename axes_t, typename bin_t,
           template <std::size_t> class serializer_t>
     requires(!detray::grid_impl<axes_t, bin_t, serializer_t>::is_owning)
 class grid_collection<detray::grid_impl<axes_t, bin_t, serializer_t>> {
 
-    using grid_type = detray::grid_impl<axes_t, bin_t, serializer_t>;
-    using const_grid_type =
+    using grid_t = detray::grid_impl<axes_t, bin_t, serializer_t>;
+    using const_grid_t =
         const detray::grid_impl<const axes_t, const bin_t, serializer_t>;
-    using multi_axis_t = typename grid_type::axes_type;
+    using multi_axis_t = typename grid_t::axes_type;
 
     public:
-    using value_type = grid_type;
+    using value_type = grid_t;
     using size_type = dindex;
 
     /// Backend storage type for the grid
-    using bin_container_type = typename grid_type::bin_container_type;
+    using bin_container_type = typename grid_t::bin_container_type;
     /// Offsets into the bin edges container
     using edge_offset_container_type =
         typename multi_axis_t::edge_offset_container_type;
@@ -60,9 +59,9 @@ class grid_collection<detray::grid_impl<axes_t, bin_t, serializer_t>> {
     struct iterator {
 
         using difference_type = std::ptrdiff_t;
-        using value_type = grid_type;
-        using pointer = grid_type *;
-        using reference = grid_type &;
+        using value_type = grid_t;
+        using pointer = grid_t *;
+        using reference = grid_t &;
         using iterator_category = detray::ranges::bidirectional_iterator_tag;
 
         /// Parametrized Constructor from a grid collection and a start index
@@ -251,11 +250,20 @@ class grid_collection<detray::grid_impl<axes_t, bin_t, serializer_t>> {
 
     /// Create grid from container pointers - const
     DETRAY_HOST_DEVICE
-    auto operator[](const size_type i) const -> grid_type {
-        const size_type axes_offset{grid_type::dim * i};
-        return grid_type(
+    auto operator[](const size_type i) const -> grid_t {
+        const size_type axes_offset{grid_t::dim * i};
+        return grid_t(
             &m_bins, multi_axis_t(m_bin_edge_offsets, m_bin_edges, axes_offset),
             m_bin_offsets[i]);
+    }
+
+    /// Create grid from container pointers with range check
+    DETRAY_HOST_DEVICE
+    auto at(const size_type i) const -> grid_t {
+        const size_type axes_offset{grid_t::dim * i};
+        return grid_t(
+            &m_bins, multi_axis_t(m_bin_edge_offsets, m_bin_edges, axes_offset),
+            m_bin_offsets.at(i));
     }
 
     /// @returns a vecmem view on the grid collection data - non-const
@@ -277,8 +285,10 @@ class grid_collection<detray::grid_impl<axes_t, bin_t, serializer_t>> {
 
     /// Add a new grid @param gr to the collection.
     /// @note this takes a data owning grid to transcribe the data from.
-    DETRAY_HOST constexpr auto push_back(
-        const typename grid_type::template type<true> &gr) noexcept(false)
+    template <typename other_grid_t>
+        requires std::constructible_from<typename grid_t::template type<true>,
+                                         other_grid_t>
+    DETRAY_HOST constexpr auto push_back(const other_grid_t &gr) noexcept(false)
         -> void {
         // Current offset into the global bin storage for the new grid
         m_bin_offsets.push_back(static_cast<size_type>(m_bins.size()));
@@ -297,7 +307,7 @@ class grid_collection<detray::grid_impl<axes_t, bin_t, serializer_t>> {
         auto bin_edges_offset{static_cast<dindex>(m_bin_edges.size())};
 
         // Update the bin edges index offset for the axes in the grid collection
-        const auto start_idx{m_bin_edge_offsets.size() - grid_type::dim};
+        const auto start_idx{m_bin_edge_offsets.size() - grid_t::dim};
         for (std::size_t i = start_idx; i < m_bin_edge_offsets.size(); ++i) {
             auto &bin_entry_range = m_bin_edge_offsets.at(i);
             bin_entry_range.shift(bin_edges_offset);
@@ -312,8 +322,8 @@ class grid_collection<detray::grid_impl<axes_t, bin_t, serializer_t>> {
     private:
     /// Insert data into a vector of bins
     DETRAY_HOST void insert_bin_data(
-        vector_type<typename grid_type::bin_type> &bin_data,
-        const typename grid_type::template type<true>::bin_storage &grid_bins) {
+        vector_type<typename grid_t::bin_type> &bin_data,
+        const typename grid_t::template type<true>::bin_storage &grid_bins) {
         bin_data.insert(bin_data.end(), grid_bins.begin(), grid_bins.end());
     }
 
@@ -322,7 +332,7 @@ class grid_collection<detray::grid_impl<axes_t, bin_t, serializer_t>> {
     template <typename container_t>
     DETRAY_HOST void insert_bin_data(
         detray::detail::dynamic_bin_container<bin_t, container_t> &bin_data,
-        const grid_type::template type<true>::bin_storage &grid_bins) {
+        const grid_t::template type<true>::bin_storage &grid_bins) {
         bin_data.append(grid_bins);
     }
 

@@ -10,8 +10,8 @@
 // Project include(s)
 #include "detray/definitions/algebra.hpp"
 #include "detray/geometry/surface.hpp"
+#include "detray/navigation/detail/intersection_kernel.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
-#include "detray/navigation/intersection_kernel.hpp"
 #include "detray/navigation/intersector.hpp"
 #include "detray/tracks/free_track_parameters.hpp"
 #include "detray/tracks/trajectories.hpp"
@@ -35,7 +35,8 @@ struct intersection_record {
     using scalar_t = dscalar<algebra_t>;
     using track_parameter_type = free_track_parameters<algebra_t>;
     using intersection_type =
-        intersection2D<typename detector_t::surface_type, algebra_t, true>;
+        intersection2D<typename detector_t::surface_type, algebra_t,
+                       intersection::contains_pos>;
 
     /// The charge associated with the track parameters
     scalar_t charge{};
@@ -62,21 +63,29 @@ struct brute_force_scan {
     using trajectory_type = trajectory_t;
 
     template <typename detector_t>
-    inline auto operator()(const typename detector_t::geometry_context ctx,
-                           const detector_t &detector, const trajectory_t &traj,
-                           const darray<typename detector_t::scalar_type, 2>
-                               mask_tolerance = {0.f, 0.f},
-                           const typename detector_t::scalar_type p =
-                               1.f *
-                               unit<typename detector_t::scalar_type>::GeV) {
+    inline auto operator()(
+        const typename detector_t::geometry_context ctx,
+        const detector_t &detector, const trajectory_t &traj,
+        const typename detector_t::scalar_type mask_tol = 0.f,
+        const typename detector_t::scalar_type p =
+            1.f * unit<typename detector_t::scalar_type>::GeV) {
 
         using algebra_t = typename detector_t::algebra_type;
         using scalar_t = dscalar<algebra_t>;
         using sf_desc_t = typename detector_t::surface_type;
         using nav_link_t = typename detector_t::surface_type::navigation_link;
 
-        using intersection_t = intersection2D<sf_desc_t, algebra_t, true>;
-        using intersection_kernel_t = intersection_initialize<intersector>;
+        using intersection_t =
+            typename intersection_record<detector_t>::intersection_type;
+        using intersection_kernel_t =
+            detail::intersection_initialize<intersector>;
+
+        constexpr scalar_t external_mask_tol{0.f};
+        const intersection::config intr_cfg{
+            .min_mask_tolerance = static_cast<float>(mask_tol),
+            .max_mask_tolerance = static_cast<float>(mask_tol),
+            .mask_tolerance_scalor = 0.f,
+            .overstep_tolerance = 0.f};
 
         intersection_trace_type<detector_t> intersection_trace;
 
@@ -93,20 +102,19 @@ struct brute_force_scan {
             // Retrieve candidate(s) from the surface
             const auto sf = geometry::surface{detector, sf_desc};
             sf.template visit_mask<intersection_kernel_t>(
-                intersections, traj, sf_desc, trf_store, ctx,
-                sf.is_portal() ? darray<scalar_t, 2>{0.f, 0.f}
-                               : mask_tolerance);
+                intersections, traj, sf_desc, trf_store, ctx, intr_cfg,
+                external_mask_tol);
 
             // Candidate is invalid if it lies in the opposite direction
             for (auto &sfi : intersections) {
                 if (sfi.direction) {
                     sfi.sf_desc = sf_desc;
                     // Record the intersection
-                    intersection_trace.push_back(
-                        {q,
-                         {traj.pos(sfi.path), 0.f, p * traj.dir(sfi.path), q},
-                         sf.volume(),
-                         sfi});
+                    intersection_trace.push_back({q,
+                                                  {traj.pos(sfi.path()), 0.f,
+                                                   p * traj.dir(sfi.path()), q},
+                                                  sf.volume(),
+                                                  sfi});
                 }
             }
             intersections.clear();
@@ -130,8 +138,8 @@ struct brute_force_scan {
         start_intersection.sf_desc.material()
             .set_id(detector_t::materials::id::e_none)
             .set_index(dindex_invalid);
-        start_intersection.path = 0.f;
-        start_intersection.local = {0.f, 0.f, 0.f};
+        start_intersection.set_path(0.f);
+        start_intersection.set_local({0.f, 0.f, 0.f});
         start_intersection.volume_link =
             static_cast<nav_link_t>(first_record.vol_idx);
 

@@ -7,6 +7,12 @@
 
 #pragma once
 
+// Project include(s)
+#include "detray/definitions/detail/qualifiers.hpp"
+
+// System include(s)
+#include <ostream>
+
 namespace detray::axis {
 
 /// axis bounds names.
@@ -43,5 +49,48 @@ enum class binning {
     e_regular = 0,
     e_irregular = 1,
 };
+
+// Print the values of an enum by identifier
+#define ENUM_PRINT(x) \
+    case x:           \
+        os << #x;     \
+        break
+
+DETRAY_HOST inline std::ostream& operator<<(std::ostream& os, bounds b) {
+    switch (b) {
+        using enum bounds;
+        ENUM_PRINT(e_open);
+        ENUM_PRINT(e_closed);
+        ENUM_PRINT(e_circular);
+    }
+    return os;
+}
+
+DETRAY_HOST inline std::ostream& operator<<(std::ostream& os, label l) {
+    switch (l) {
+        using enum label;
+        case e_x:
+            // e_r and e_rphi have same value (0)
+            os << "e_x/e_r/e_rphi";
+            break;
+        case e_y:
+            // e_phi and e_cyl_z have same value (1)
+            os << "e_y/e_phi/e_cyl_z";
+            break;
+            ENUM_PRINT(e_z);
+    }
+    return os;
+}
+
+DETRAY_HOST inline std::ostream& operator<<(std::ostream& os, binning b) {
+    switch (b) {
+        using enum binning;
+        ENUM_PRINT(e_regular);
+        ENUM_PRINT(e_irregular);
+    }
+    return os;
+}
+
+#undef ENUM_PRINT
 
 }  // namespace detray::axis

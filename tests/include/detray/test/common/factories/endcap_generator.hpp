@@ -17,6 +17,7 @@
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes/rectangle2D.hpp"
 #include "detray/materials/material.hpp"
+#include "detray/utils/logging.hpp"
 
 // System include(s)
 #include <cassert>
@@ -177,6 +178,9 @@ class endcap_generator final : public surface_factory_interface<detector_t> {
                     typename detector_t::geometry_context ctx = {})
         -> dindex_range override {
 
+        DETRAY_VERBOSE_HOST("Generate silicon tracker endcap modules...");
+        DETRAY_VERBOSE_HOST("-> Generate " << size() << " surfaces");
+
         using surface_t = typename detector_t::surface_type;
         using nav_link_t = typename surface_t::navigation_link;
         using mask_link_t = typename surface_t::mask_link;
@@ -187,8 +191,8 @@ class endcap_generator final : public surface_factory_interface<detector_t> {
         constexpr auto invalid_src_link{detail::invalid_value<std::uint64_t>()};
 
         // The type id of the surface mask shape
-        constexpr auto mask_id{detector_t::mask_container::template get_id<
-            mask<mask_shape_t, algebra_t>>::value};
+        constexpr auto mask_id{types::id<typename detector_t::masks,
+                                         mask<mask_shape_t, algebra_t>>};
         // The material will be added in a later step
         constexpr auto no_material{surface_t::material_id::e_none};
         // Modules link back to mother volume in navigation
@@ -213,7 +217,7 @@ class endcap_generator final : public surface_factory_interface<detector_t> {
             for (const auto &bounds : m_cfg.module_bounds()) {
                 // Add an extra buffer, so that the trapezoid corners don't poke
                 // out of the cylinder portals
-                tot_length += 2.f * bounds[trapezoid2D::e_half_length_2] +
+                tot_length += 2.f * bounds.at(trapezoid2D::e_half_length_2) +
                               1.f * unit<scalar_t>::mm;
             }
 
@@ -229,7 +233,7 @@ class endcap_generator final : public surface_factory_interface<detector_t> {
 
             for (const auto &bounds : m_cfg.module_bounds()) {
                 const scalar_t mod_hlength{
-                    bounds[trapezoid2D::e_half_length_2]};
+                    bounds.at(trapezoid2D::e_half_length_2)};
                 // Calculate the radius
                 radii.push_back(prev_r + prev_hl - prev_ol + mod_hlength);
                 prev_r = radii.back();
@@ -252,12 +256,12 @@ class endcap_generator final : public surface_factory_interface<detector_t> {
 
             // Generate the ring module positions (observe phi stagger)
             const scalar_t sub_stagger{m_cfg.phi_sub_stagger().size() > 1u
-                                           ? m_cfg.phi_sub_stagger()[ir]
+                                           ? m_cfg.phi_sub_stagger().at(ir)
                                            : 0.f};
 
-            std::vector<point3_t> module_positions =
-                module_positions_ring(rz, radii[ir], m_cfg.phi_stagger()[ir],
-                                      sub_stagger, m_cfg.binning()[ir]);
+            std::vector<point3_t> module_positions = module_positions_ring(
+                rz, radii.at(ir), m_cfg.phi_stagger().at(ir), sub_stagger,
+                m_cfg.binning().at(ir));
 
             // Build the modules
             for (const point3_t &mod_position : module_positions) {
@@ -291,12 +295,12 @@ class endcap_generator final : public surface_factory_interface<detector_t> {
             }
 
             // Build the mask for this ring
-            std::vector<scalar_t> mask_values{m_cfg.module_bounds()[ir]};
+            std::vector<scalar_t> mask_values{m_cfg.module_bounds().at(ir)};
 
             // Precompute trapezoid divisor
             if constexpr (std::is_same_v<mask_shape_t, trapezoid2D>) {
                 const scalar_t div{
-                    1.f / (2.f * mask_values[trapezoid2D::e_half_length_2])};
+                    1.f / (2.f * mask_values.at(trapezoid2D::e_half_length_2))};
 
                 mask_values.insert(mask_values.begin() + trapezoid2D::e_divisor,
                                    div);

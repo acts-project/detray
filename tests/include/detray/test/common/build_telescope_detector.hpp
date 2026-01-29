@@ -21,6 +21,7 @@
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/tracks/trajectories.hpp"
 #include "detray/utils/consistency_checker.hpp"
+#include "detray/utils/print_detector.hpp"
 
 // Detray test include(s)
 #include "detray/test/common/factories/telescope_generator.hpp"
@@ -259,9 +260,7 @@ inline auto build_telescope_detector(
     // (!) The portals must be added after the modules to fit them correctly
     vm_builder->add_surfaces(portal_generator);
 
-    det_builder.set_volume_finder(resource);
-    det_builder.volume_finder().push_back(
-        std::vector<dindex>{vm_builder->vol_index()});
+    // TODO: Add brute force volume searcher
 
     // If requested, add homogeneous volume material
     if (cfg.volume_material() != detray::vacuum<scalar_t>{}) {
@@ -283,6 +282,8 @@ inline auto build_telescope_detector(
         const bool verbose_check{false};
         detray::detail::check_consistency(det, verbose_check, name_map);
     }
+
+    DETRAY_DEBUG_HOST("\n" << detray::utils::print_detector(det, name_map));
 
     return std::make_pair(std::move(det), std::move(name_map));
 }

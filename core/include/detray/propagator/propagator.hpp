@@ -10,14 +10,14 @@
 // Project include(s).
 #include "detray/definitions/detail/macros.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
-#include "detray/navigation/direct_navigator.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
-#include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/base_stepper.hpp"
 #include "detray/propagator/concepts.hpp"
+#include "detray/propagator/detail/noise_estimation.hpp"
 #include "detray/propagator/propagation_config.hpp"
 #include "detray/tracks/tracks.hpp"
+#include "detray/utils/logging.hpp"
 
 // System include(s).
 #include <iomanip>
@@ -35,11 +35,12 @@ struct propagator {
 
     using stepper_type = stepper_t;
     using navigator_type = navigator_t;
-    using intersection_type = typename navigator_type::intersection_type;
-    using detector_type = typename navigator_type::detector_type;
     using actor_chain_type = actor_chain_t;
-    using algebra_type = typename stepper_t::algebra_type;
+
+    using detector_type = typename navigator_type::detector_type;
+    using algebra_type = typename detector_type::algebra_type;
     using scalar_type = dscalar<algebra_type>;
+    using intersection_type = typename navigator_type::intersection_type;
     using free_track_parameters_type =
         typename stepper_t::free_track_parameters_type;
     using bound_track_parameters_type =
@@ -63,10 +64,11 @@ struct propagator {
     struct state {
 
         using detector_type = typename navigator_t::detector_type;
+        using algebra_type = typename detector_type::algebra_type;
         using context_type = typename detector_type::geometry_context;
         using navigator_state_type = typename navigator_t::state;
         using actor_chain_type = actor_chain_t;
-        using scalar_type = typename navigator_t::scalar_type;
+        using scalar_type = typename detector_type::scalar_type;
 
         /// Construct the propagation state with free parameter
         DETRAY_HOST_DEVICE state(const free_track_parameters_type &free_params,
@@ -157,9 +159,6 @@ struct propagator {
         context_type _context;
 
         bool do_debug = false;
-#if defined(__NO_DEVICE__)
-        std::stringstream debug_stream{};
-#endif
     };
 
     /// Propagate method finale: Return whether or not the propagation
@@ -168,8 +167,8 @@ struct propagator {
     /// @param propagation the state of a propagation flow
     ///
     /// @return propagation success.
-    DETRAY_HOST_DEVICE bool is_complete(const state &propagation) const {
-        return propagation._navigation.is_complete();
+    DETRAY_HOST_DEVICE bool finished(const state &propagation) const {
+        return propagation._navigation.finished();
     }
 
     /// @returns true if the @param propagation is suspended
@@ -204,7 +203,19 @@ struct propagator {
         const auto &track = stepping();
         assert(!track.is_invalid());
 
+        DETRAY_VERBOSE_HOST("Starting propagation for track:\n" << track);
+
+        // Open the navigation area according to uncertainties in initital track
+        // params
+        if (m_cfg.navigation.estimate_scattering_noise &&
+            !stepping.bound_params().is_invalid()) {
+            detail::estimate_external_mask_tolerance(
+                stepping.bound_params(), propagation,
+                static_cast<scalar_type>(m_cfg.navigation.n_scattering_stddev));
+        }
+
         // Initialize the navigation
+        DETRAY_VERBOSE_HOST("Initialize navigation...");
         m_navigator.init(track, navigation, m_cfg.navigation, context);
         propagation._heartbeat = navigation.is_alive();
 
@@ -222,16 +233,31 @@ struct propagator {
         // S = propagation step
         //
         // ANSNANSNANSNANSNANSNANS...
+        scalar_type path_length{0.f};
+        unsigned int stall_counter{0u};
         for (unsigned int i = 0; i % 2 == 0 || propagation.is_alive(); ++i) {
+
             if (i % 2 == 0) {
+                DETRAY_VERBOSE_HOST_DEVICE("Propagation step: %d", i / 2);
+                DETRAY_VERBOSE_HOST_DEVICE("-> Path length: %f mm",
+                                           stepping.path_length());
+
                 // Run all registered actors/aborters
                 run_actors(actor_state_refs, propagation);
+
+                // Don't run another navigation update, if already exited
+                if (!propagation.is_alive()) {
+                    continue;
+                }
+
+                path_length = stepping.path_length();
+
                 assert(!track.is_invalid());
             } else {
                 assert(!track.is_invalid());
 
                 // Set access to the volume material for the stepper
-                auto vol = navigation.get_volume();
+                auto vol = navigation.current_volume();
                 const material<scalar_type> *vol_mat_ptr =
                     vol.has_material() ? vol.material_parameters(track.pos())
                                        : nullptr;
@@ -241,34 +267,72 @@ struct propagator {
                 // (re-)initialized
                 const bool reset_stepsize{navigation.is_on_surface() ||
                                           is_init};
+
                 // Take the step
+                DETRAY_VERBOSE_HOST("Calling stepper...");
                 propagation._heartbeat &=
                     m_stepper.step(navigation(), stepping, m_cfg.stepping,
                                    reset_stepsize, vol_mat_ptr);
 
                 // Reduce navigation trust level according to stepper update
+                DETRAY_VERBOSE_HOST("-> Evaluate stepper navigation policy:");
                 typename stepper_t::policy_type{}(stepping.policy_state(),
                                                   propagation);
 
                 if (i > 0) {
                     is_init = false;
                 }
+
+                // Check if the propagation makes progress
+                if (math::fabs(stepping.path_length()) <=
+                    math::fabs(path_length) +
+                        m_cfg.navigation.intersection.path_tolerance) {
+                    if (stall_counter >= 10u) {
+                        propagation._heartbeat = false;
+                        navigation.abort("Propagation stalled");
+                        DETRAY_ERROR_HOST("Propagation stalled");
+                    } else if (stall_counter > 2u) {
+                        // Print a warning if the propagation starts stalling
+                        // (no overlap)
+                        DETRAY_WARN_HOST("Propagation is stalling (counter "
+                                         << stall_counter << ")");
+                        DETRAY_VERBOSE_DEVICE(
+                            "Propagation is stalling (counter %d)",
+                            stall_counter);
+                        DETRAY_WARN_HOST(print(propagation));
+                        DETRAY_WARN_HOST("-> Track: " << stepping());
+                    }
+                    DETRAY_DEBUG_HOST_DEVICE("-> Step stalled. Counter %d",
+                                             stall_counter);
+                    stall_counter++;
+                } else {
+                    stall_counter = 0u;
+                }
             }
 
             // Find next candidate
+            DETRAY_VERBOSE_HOST("Calling navigator...");
             is_init |= m_navigator.update(track, navigation, m_cfg.navigation,
-                                          context, i % 2 == 1 || i == 0);
+                                          context);
+
             propagation._heartbeat &= navigation.is_alive();
 
-#if defined(__NO_DEVICE__)
             if (i % 2 == 0 && i > 0 && propagation.do_debug) {
-                inspect(propagation);
+                DETRAY_VERBOSE_HOST(print(propagation));
             }
-#endif
         }
 
         // Pass on the whether the propagation was successful
-        return is_complete(propagation) || is_paused(propagation);
+        DETRAY_VERBOSE_HOST("Finished propagation for track:\n" << track);
+        if (finished(propagation)) {
+            DETRAY_VERBOSE_HOST_DEVICE("Status: SUCCESS");
+        } else if (is_paused(propagation)) {
+            DETRAY_VERBOSE_HOST_DEVICE("Status: PAUSED");
+        } else {
+            DETRAY_VERBOSE_HOST_DEVICE("Status: ABORT");
+        }
+
+        return finished(propagation) || is_paused(propagation);
     }
 
     /// Overload for emtpy actor chain
@@ -279,162 +343,40 @@ struct propagator {
         return propagate(propagation, empty_state);
     }
 
-    /// Propagate method with two while loops. In the CPU, propagate and
-    /// propagate_sync() should be equivalent to each other. In the SIMT level
-    /// (e.g. GPU), the instruction of threads in the same warp is synchornized
-    /// after the internal while loop.
-    ///
-    /// @tparam state_t is the propagation state type
-    /// @tparam actor_state_t is the actor state type
-    ///
-    /// @param propagation the state of a propagation flow
-    /// @param actor_states the actor state
-    ///
-    /// @return propagation success.
-    template <typename actor_states_t>
-        requires concepts::is_state_of<actor_states_t, actor_chain_type>
-    DETRAY_HOST_DEVICE bool propagate_sync(
-        state &propagation, actor_states_t actor_state_refs) const {
-
-        auto &navigation = propagation._navigation;
-        auto &stepping = propagation._stepping;
-        auto &context = propagation._context;
-        const auto &track = stepping();
-        assert(!track.is_invalid());
-
-        // Initialize the navigation
-        m_navigator.init(track, navigation, m_cfg.navigation, context);
-        propagation._heartbeat = navigation.is_alive();
-
-        // Run all registered actors/aborters after init
-        run_actors(actor_state_refs, propagation);
-        assert(!track.is_invalid());
-
-        // Find next candidate
-        m_navigator.update(track, navigation, m_cfg.navigation, context);
-        propagation._heartbeat &= navigation.is_alive();
-
-        bool is_init = true;
-
-        while (propagation.is_alive()) {
-
-            bool skip = true;
-
-            while (propagation.is_alive()) {
-
-                // Set access to the volume material for the stepper
-                auto vol = navigation.get_volume();
-                const material<scalar_type> *vol_mat_ptr =
-                    vol.has_material() ? vol.material_parameters(track.pos())
-                                       : nullptr;
-
-                // Break automatic step size scaling by the stepper
-                const bool reset_stepsize{navigation.is_on_surface() ||
-                                          is_init};
-                // Take the step
-                propagation._heartbeat &=
-                    m_stepper.step(navigation(), stepping, m_cfg.stepping,
-                                   reset_stepsize, vol_mat_ptr);
-
-                // Reduce navigation trust level according to stepper update
-                typename stepper_t::policy_type{}(stepping.policy_state(),
-                                                  propagation);
-
-                // Find next candidate
-                is_init = m_navigator.update(track, navigation,
-                                             m_cfg.navigation, context);
-                propagation._heartbeat &= navigation.is_alive();
-
-                // If the track is on a sensitive surface, break the loop to
-                // synchornize the threads
-                if (propagation._navigation.is_on_sensitive()) {
-                    skip = false;
-                    break;
-                } else {
-                    run_actors(actor_state_refs, propagation);
-                    assert(!track.is_invalid());
-
-                    // And check the status
-                    is_init |= m_navigator.update(
-                        track, navigation, m_cfg.navigation, context, false);
-                    propagation._heartbeat &= navigation.is_alive();
-                }
-            }
-
-            if (!skip) {
-
-                // Synchronized actor
-                run_actors(actor_state_refs, propagation);
-                assert(!track.is_invalid());
-
-                // And check the status
-                is_init |= m_navigator.update(track, navigation,
-                                              m_cfg.navigation, context, false);
-                propagation._heartbeat &= navigation.is_alive();
-            }
-
-#if defined(__NO_DEVICE__)
-            if (propagation.do_debug) {
-                inspect(propagation);
-            }
-#endif
-        }
-
-        // Pass on the whether the propagation was successful
-        return is_complete(propagation) || is_paused(propagation);
-    }
-
     template <typename state_t>
-    DETRAY_HOST void inspect(state_t &propagation) const {
+    DETRAY_HOST std::string print(state_t &propagation) const {
         const auto &navigation = propagation._navigation;
         const auto &stepping = propagation._stepping;
 
-        propagation.debug_stream << std::left << std::setw(30);
-        switch (navigation.status()) {
-            using enum navigation::status;
-            case e_abort:
-                propagation.debug_stream << "status: abort";
-                break;
-            case e_on_target:
-                propagation.debug_stream << "status: e_on_target";
-                break;
-            case e_unknown:
-                propagation.debug_stream << "status: unknowm";
-                break;
-            case e_towards_object:
-                propagation.debug_stream << "status: towards_surface";
-                break;
-            case e_on_module:
-                propagation.debug_stream << "status: on_module";
-                break;
-            case e_on_portal:
-                propagation.debug_stream << "status: on_portal";
-                break;
-            default:
-                break;
-        }
+        std::stringstream debug_stream{};
+        debug_stream << std::left << std::setw(10);
+        debug_stream << "status: " << navigation.status() << std::endl;
 
+        debug_stream << "volume: " << std::setw(10);
         if (detail::is_invalid_value(navigation.volume())) {
-            propagation.debug_stream << "volume: " << std::setw(10)
-                                     << "invalid";
+            debug_stream << "invalid";
         } else {
-            propagation.debug_stream << "volume: " << std::setw(10)
-                                     << navigation.volume();
+            debug_stream << navigation.volume();
         }
+        debug_stream << std::endl;
 
-        propagation.debug_stream << "surface: " << std::setw(14);
+        debug_stream << "navigation:" << std::endl;
         if (navigation.is_on_surface()) {
-            propagation.debug_stream << navigation.barcode();
+            debug_stream << std::setw(10)
+                         << " ->on surface: " << navigation.barcode();
         } else {
-            propagation.debug_stream << "undefined";
+            debug_stream << std::setw(10) << " ->target: "
+                         << navigation.target().sf_desc.barcode();
         }
+        debug_stream << std::endl;
+        debug_stream << " ->path: " << navigation() << "mm" << std::endl;
 
-        propagation.debug_stream << "step_size: " << std::setw(10)
-                                 << stepping.step_size() << std::endl;
+        debug_stream << "stepping:" << std::endl;
+        debug_stream << " -> step size: " << std::setw(10)
+                     << stepping.step_size() << "mm" << std::endl;
+        debug_stream << " ->" << detail::ray<algebra_type>(stepping());
 
-        propagation.debug_stream << std::setw(10)
-                                 << detail::ray<algebra_type>(stepping())
-                                 << std::endl;
+        return debug_stream.str();
     }
 };
 

@@ -7,6 +7,7 @@
 
 // Detray benchmark include(s)
 #include "detray/benchmarks/types.hpp"
+#include "detray/utils/logging.hpp"
 
 // Detray test include(s)
 #include "detray/test/common/build_toy_detector.hpp"
@@ -41,7 +42,9 @@ void BM_FIND_VOLUMES(benchmark::State &state) {
 
     static const unsigned int itest = 10000u;
 
-    auto &volume_grid = d.volume_search_grid();
+    constexpr auto vol_grid_idx{
+        decltype(d)::accel::id::e_default_volume_searcher};
+    auto volume_grid = d.accelerator_store().template get<vol_grid_idx>()[0];
 
     const auto &axis_r = volume_grid.get_axis<axis::label::e_r>();
     const auto &axis_z = volume_grid.get_axis<axis::label::e_z>();
@@ -76,8 +79,8 @@ void BM_FIND_VOLUMES(benchmark::State &state) {
     }
 
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
-    std::cout << "Successful   : " << successful << std::endl;
-    std::cout << "Unsuccessful : " << unsuccessful << std::endl;
+    DETRAY_INFO_HOST("Successful   : " << successful);
+    DETRAY_INFO_HOST("Unsuccessful : " << unsuccessful);
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 

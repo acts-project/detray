@@ -9,6 +9,7 @@
 #include "detray/geometry/shapes/rectangle2D.hpp"
 
 #include "detray/definitions/units.hpp"
+#include "detray/geometry/concepts.hpp"
 #include "detray/geometry/mask.hpp"
 
 // Detray test include(s)
@@ -32,6 +33,10 @@ constexpr scalar hz{0.5f * unit<scalar>::mm};
 
 /// This tests the basic functionality of a rectangle
 GTEST_TEST(detray_masks, rectangle2D) {
+
+    static_assert(concepts::shape<rectangle2D, test_algebra>);
+    static_assert(concepts::rectilinear_shape<rectangle2D, test_algebra>);
+    static_assert(concepts::planar_shape<rectangle2D, test_algebra>);
 
     point3 p2_in = {0.5f, -9.f, 0.f};
     point3 p2_edge = {1.f, 9.3f, 0.f};
@@ -76,9 +81,7 @@ GTEST_TEST(detray_masks, rectangle2D_ratio_test) {
         bool operator()(const point3 &p,
                         const mask<rectangle2D, test_algebra> &r,
                         const test::transform3 &trf, const scalar t) {
-
-            const point3 loc_p{r.to_local_frame(trf, p)};
-            return r.is_inside(loc_p, t);
+            return r.is_inside(trf, p, t);
         }
     };
 
@@ -103,6 +106,9 @@ GTEST_TEST(detray_masks, rectangle2D_ratio_test) {
 
 /// This tests the basic functionality of a cuboid3D
 GTEST_TEST(detray_masks, cuboid3D) {
+
+    static_assert(concepts::shape<cuboid3D, test_algebra>);
+    static_assert(concepts::rectilinear_shape<cuboid3D, test_algebra>);
 
     point3 p2_in = {0.5f, 8.0f, -0.4f};
     point3 p2_edge = {1.f, 9.3f, 0.5f};
@@ -146,7 +152,7 @@ GTEST_TEST(detray_masks, cuboid3D_ratio_test) {
         bool operator()(const point3 &p, const mask<cuboid3D, test_algebra> &cb,
                         const test::transform3 &trf, const scalar t) {
 
-            const point3 loc_p{cb.to_local_frame(trf, p)};
+            const point3 loc_p{cb.to_local_frame3D(trf, p)};
             return cb.is_inside(loc_p, t);
         }
     };

@@ -12,6 +12,7 @@
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/tracks/ray.hpp"
 #include "detray/tracks/tracks.hpp"
+#include "detray/utils/logging.hpp"
 
 // Detray test include(s)
 #include "detray/test/common/bfield.hpp"
@@ -113,7 +114,7 @@ class navigation_validation : public test::fixture_base<> {
         // Missed by truth finder
         navigation_validator::surface_stats n_miss_truth{};
 
-        std::cout << "\nINFO: Fetching data from white board..." << std::endl;
+        DETRAY_INFO_HOST("Fetching data from white board...");
         if (!m_whiteboard->exists(truth_data_name)) {
             throw std::runtime_error(
                 "White board is empty! Please run detector scan first");
@@ -123,9 +124,8 @@ class navigation_validation : public test::fixture_base<> {
                 truth_data_name);
         ASSERT_EQ(m_cfg.n_tracks(), truth_traces.size());
 
-        std::cout << "\nINFO: Running navigation validation on: " << det_name
-                  << "...\n"
-                  << std::endl;
+        DETRAY_INFO_HOST("Running navigation validation on: " << det_name
+                                                              << "...\n");
 
         std::string momentum_str{""};
         const std::string prefix{k_use_rays ? det_name + "_ray_"
@@ -143,7 +143,7 @@ class navigation_validation : public test::fixture_base<> {
 
         std::ios_base::openmode io_mode = std::ios::trunc | std::ios::out;
         const std::string debug_file_name{
-            make_path(prefix + "navigation_validation", ".txt")};
+            make_path("navigation_validation", ".txt")};
         detray::io::file_handle debug_file{debug_file_name, io_mode};
 
         // Keep a record of track positions and material along the track
@@ -248,7 +248,7 @@ class navigation_validation : public test::fixture_base<> {
             mat_records.push_back(mat_record);
 
             EXPECT_TRUE(success)
-                << "\nINFO: Wrote navigation debugging data in: "
+                << "\nDETRAY INFO (HOST): Wrote navigation debugging data in: "
                 << debug_file_name;
 
             ++n_tracks;
@@ -327,19 +327,16 @@ class navigation_validation : public test::fixture_base<> {
                                               recorded_traces);
         material_validator::write_material(mat_path.string(), mat_records);
 
-        std::cout
-            << "INFO: Wrote distance to boundary of missed intersections to: "
-            << missed_path << std::endl;
-        std::cout << "INFO: Wrote truth track states in: " << truth_trk_path
-                  << std::endl;
-        std::cout << "INFO: Wrote recorded track states in: " << trk_path
-                  << std::endl;
-        std::cout << "INFO: Wrote recorded truth intersections in: "
-                  << truth_intr_path << std::endl;
-        std::cout << "INFO: Wrote recorded track intersections in: "
-                  << intr_path << std::endl;
-        std::cout << "INFO: Wrote accumulated material in: " << mat_path
-                  << std::endl;
+        DETRAY_INFO_HOST(
+            "Wrote distance to boundary of missed intersections in: "
+            << missed_path);
+        DETRAY_INFO_HOST("Wrote truth track states in: " << truth_trk_path);
+        DETRAY_INFO_HOST("Wrote recorded track states in: " << trk_path);
+        DETRAY_INFO_HOST(
+            "Wrote recorded truth intersections in: " << truth_intr_path);
+        DETRAY_INFO_HOST(
+            "Wrote recorded track intersections in: " << intr_path);
+        DETRAY_INFO_HOST("Wrote accumulated material in: " << mat_path);
     }
 
     private:

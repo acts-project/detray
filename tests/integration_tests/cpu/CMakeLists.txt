@@ -28,7 +28,9 @@ macro(detray_add_cpu_test algebra)
        "propagator/backward_propagation.cpp"
        "propagator/covariance_transport.cpp"
        "propagator/guided_navigator.cpp"
-       "propagator/propagator.cpp"
+       "propagator/propagation_caching_navigator.cpp"
+       "propagator/propagation_direct_navigator.cpp"
+       "utils/type_registry.cpp"
        LINK_LIBRARIES GTest::gtest GTest::gtest_main detray::core_${algebra}
                       vecmem::core detray::test_framework detray::test_common detray::test_utils
     )

@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
     toy_cfg.n_brl_layers(4u).n_edc_layers(7u);
     toy_cfg.use_material_maps(true);
 
-    std::cout << toy_cfg << std::endl;
+    std::clog << toy_cfg << std::endl;
 
     // Build the geometry
     vecmem::host_memory_resource host_mr;
@@ -75,12 +75,12 @@ int main(int argc, char **argv) {
     cfg_str_nav.name("toy_detector_straight_line_navigation");
     cfg_str_nav.n_tracks(cfg_ray_scan.track_generator().n_tracks());
     cfg_str_nav.propagation().stepping.min_stepsize = min_stepsize;
+    cfg_str_nav.propagation().navigation.estimate_scattering_noise = false;
     cfg_str_nav.propagation().navigation.search_window = {3u, 3u};
-    auto mask_tolerance = cfg_ray_scan.mask_tolerance();
-    cfg_str_nav.propagation().navigation.min_mask_tolerance =
-        static_cast<float>(mask_tolerance[0]);
-    cfg_str_nav.propagation().navigation.max_mask_tolerance =
-        static_cast<float>(mask_tolerance[1]);
+    cfg_str_nav.propagation().navigation.intersection.min_mask_tolerance =
+        static_cast<float>(cfg_ray_scan.mask_tolerance());
+    cfg_str_nav.propagation().navigation.intersection.max_mask_tolerance =
+        static_cast<float>(cfg_ray_scan.mask_tolerance());
 
     test::register_checks<test::straight_line_navigation>(
         toy_det, toy_names, cfg_str_nav, ctx, white_board);
@@ -89,8 +89,7 @@ int main(int argc, char **argv) {
     test::helix_scan<toy_detector_t>::config cfg_hel_scan{};
     cfg_hel_scan.name("toy_detector_helix_scan");
     // Let the Newton algorithm dynamically choose tol. based on approx. error
-    cfg_hel_scan.mask_tolerance({detray::detail::invalid_value<scalar>(),
-                                 detray::detail::invalid_value<scalar>()});
+    cfg_hel_scan.mask_tolerance(detray::detail::invalid_value<scalar>());
     cfg_hel_scan.track_generator().n_tracks(10000u);
     cfg_hel_scan.overlaps_tol(min_stepsize);
     cfg_hel_scan.track_generator().randomize_charge(true);
@@ -105,6 +104,7 @@ int main(int argc, char **argv) {
     cfg_hel_nav.name("toy_detector_helix_navigation");
     cfg_hel_nav.n_tracks(cfg_hel_scan.track_generator().n_tracks());
     cfg_hel_nav.propagation().stepping.min_stepsize = min_stepsize;
+    cfg_hel_nav.propagation().navigation.estimate_scattering_noise = false;
     cfg_hel_nav.propagation().navigation.search_window = {3u, 3u};
 
     test::register_checks<test::helix_navigation>(
@@ -138,11 +138,12 @@ int main(int argc, char **argv) {
     // Run the material validation - Homogeneous material
     toy_cfg.use_material_maps(false);
 
-    std::cout << toy_cfg << std::endl;
+    std::clog << toy_cfg << std::endl;
 
     auto [toy_det_hom_mat, toy_names_hom_mat] =
         build_toy_detector<test_algebra>(host_mr, toy_cfg);
-    toy_names_hom_mat.at(0) += "_hom_material";
+    toy_names_hom_mat.set_detector_name(toy_names_hom_mat.get_detector_name() +
+                                        "_hom_material");
 
     // Check that the detector was built correctly
     test::register_checks<test::consistency_check>(

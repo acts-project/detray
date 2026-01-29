@@ -14,7 +14,9 @@
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/geometry/coordinates/cartesian3D.hpp"
 #include "detray/geometry/coordinates/cylindrical2D.hpp"
+#include "detray/geometry/detail/shape_utils.hpp"
 
 // System include(s)
 #include <limits>
@@ -46,6 +48,10 @@ class cylinder2D {
     template <concepts::algebra algebra_t>
     using local_frame_type = cylindrical2D<algebra_t>;
 
+    /// Result type of a boundary check
+    template <typename bool_t>
+    using result_type = detail::boundary_check_result<bool_t>;
+
     /// Dimension of the local coordinate system
     static constexpr std::size_t dim{2u};
 
@@ -67,7 +73,30 @@ class cylinder2D {
     }
 
     /// @brief Check boundary values for a local point.
+    /// @{
+    /// @param bounds the boundary values for this shape
+    /// @param trf the surface transform
+    /// @param glob_p the point to be checked in the global coordinate system
+    /// @param tol dynamic tolerance determined by caller
     ///
+    /// @return true if the local point lies within the given boundaries.
+    template <concepts::algebra algebra_t>
+    DETRAY_HOST_DEVICE constexpr result_type<dbool<algebra_t>> check_boundaries(
+        const bounds_type<dscalar<algebra_t>> &bounds,
+        const dtransform3D<algebra_t> &trf, const dpoint3D<algebra_t> &glob_p,
+        const dscalar<algebra_t> tol =
+            std::numeric_limits<dscalar<algebra_t>>::epsilon(),
+        const dscalar<algebra_t> edge_tol = 0.f) const {
+
+        // Rotate to local cartesian
+        const auto loc_p =
+            cartesian3D<algebra_t>::global_to_local(trf, glob_p, {});
+
+        // Only need the z-position for the check
+        return check_boundaries(bounds, dpoint2D<algebra_t>{0.f, loc_p[2]}, tol,
+                                edge_tol);
+    }
+
     /// @note the point is expected to be given in local coordinates by the
     /// caller. For the conversion from global cartesian coordinates, the
     /// nested @c shape struct can be used. The point is assumed to be in
@@ -82,13 +111,24 @@ class cylinder2D {
     ///
     /// @return true if the local point lies within the given boundaries.
     template <concepts::scalar scalar_t, concepts::point point_t>
-    DETRAY_HOST_DEVICE inline auto check_boundaries(
+    DETRAY_HOST_DEVICE constexpr auto check_boundaries(
         const bounds_type<scalar_t> &bounds, const point_t &loc_p,
-        const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
+        const scalar_t tol = std::numeric_limits<scalar_t>::epsilon(),
+        const scalar_t edge_tol = 0.f) const {
 
-        return ((bounds[e_lower_z] - tol) <= loc_p[1] &&
-                loc_p[1] <= (bounds[e_upper_z] + tol));
+        auto inside_mask{((bounds[e_lower_z] - tol) <= loc_p[1] &&
+                          loc_p[1] <= (bounds[e_upper_z] + tol))};
+
+        decltype(inside_mask) inside_edge{false};
+        if (detail::any_of(edge_tol > 0.f)) {
+            const scalar_t full_tol{tol + edge_tol};
+            inside_edge = ((bounds[e_lower_z] - full_tol) <= loc_p[1] &&
+                           loc_p[1] <= (bounds[e_upper_z] + full_tol));
+        }
+
+        return result_type<decltype(inside_mask)>{inside_mask, inside_edge};
     }
+    /// @}
 
     /// @brief Measure of the shape: Area
     ///
@@ -191,13 +231,15 @@ class cylinder2D {
         constexpr auto tol{10.f * std::numeric_limits<scalar_t>::epsilon()};
 
         if (bounds[e_r] < tol) {
-            os << "ERROR: Radius must be in the range (0, numeric_max)"
+            os << "DETRAY ERROR (HOST): Radius must be in the range (0, "
+                  "numeric_max)"
                << std::endl;
             return false;
         }
         if (bounds[e_lower_z] >= bounds[e_upper_z] ||
             math::fabs(bounds[e_lower_z] - bounds[e_upper_z]) < tol) {
-            os << "ERROR: Neg. half length must be smaller than pos. half "
+            os << "DETRAY ERROR (HOST): Neg. half length must be smaller than "
+                  "pos. half "
                   "length.";
             return false;
         }

@@ -90,7 +90,7 @@ if(DETRAY_VC_SOA_PLUGIN)
         # Build the benchmark executable.
         detray_add_executable(benchmark_cpu_vc_soa_vs_${algebra}
          "intersectors.cpp"
-           LINK_LIBRARIES benchmark::benchmark benchmark::benchmark_main vecmem::core detray::core_vc_soa detray::core_vc_aos detray::core_${algebra}
+           LINK_LIBRARIES detray::benchmark_cpu benchmark::benchmark benchmark::benchmark_main vecmem::core detray::core_vc_soa detray::core_vc_aos detray::core_${algebra}
            detray::test_common
         )
 

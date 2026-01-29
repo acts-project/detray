@@ -16,9 +16,11 @@
 // System include(s)
 #include <array>
 #include <cstdint>
+#include <iomanip>
 #include <limits>
 #include <map>
 #include <optional>
+#include <ostream>
 #include <string>
 #include <vector>
 
@@ -77,10 +79,32 @@ using acc_links_payload = typed_link_payload<io::accel_id>;
 
 /// @brief A payload for an affine transformation in homogeneous coordinates
 struct transform_payload {
-    std::array<real_io, 3u> tr{};
+    std::array<io::scalar, 3u> tr{};
     // Column major
-    std::array<real_io, 9u> rot{};
+    std::array<io::scalar, 9u> rot{};
 };
+
+DETRAY_HOST inline std::ostream& operator<<(
+    std::ostream& os, const transform_payload& transform) {
+    const auto& rot = transform.rot;
+    os << "rot: ";
+    os << std::fixed << std::setw(4);
+    auto line = [&](std::size_t i) {
+        os << rot[i] << " " << rot[i + 3] << " " << rot[i + 6];
+    };
+    line(0);
+    os << "\n     ";
+    line(1);
+    os << "\n     ";
+    line(2);
+    os << "\n";
+
+    const auto& tr = transform.tr;
+
+    os << "tr:  ";
+    os << tr[0] << " " << tr[1] << " " << tr[2];
+    return os;
+}
 
 /// @brief A payload object for surface masks
 struct mask_payload {
@@ -88,7 +112,7 @@ struct mask_payload {
 
     mask_shape shape{mask_shape::unknown};
     single_link_payload volume_link{};
-    std::vector<real_io> boundaries{};
+    std::vector<io::scalar> boundaries{};
 };
 
 /// @brief  A payload for surfaces
@@ -135,7 +159,7 @@ using homogeneous_material_header_payload =
 
 /// @brief A payload object for a material parametrization
 struct material_payload {
-    std::array<real_io, 7u> params{};
+    std::array<io::scalar, 7u> params{};
 };
 
 /// @brief A payload object for a material slab/rod
@@ -145,7 +169,7 @@ struct material_slab_payload {
     mat_type type{mat_type::unknown};
     std::optional<std::size_t> index_in_coll;
     single_link_payload surface{};
-    real_io thickness{std::numeric_limits<real_io>::max()};
+    io::scalar thickness{std::numeric_limits<io::scalar>::max()};
     material_payload mat{};
 };
 
@@ -182,8 +206,23 @@ struct axis_payload {
     axis::label label{axis::label::e_r};
 
     std::size_t bins{0u};
-    std::vector<real_io> edges{};
+    std::vector<io::scalar> edges{};
 };
+
+DETRAY_HOST inline std::ostream& operator<<(std::ostream& os,
+                                            const axis_payload& axis) {
+    os << "axis_payload{binning: " << axis.binning
+       << ", bounds: " << axis.bounds << ", label: " << axis.label
+       << ", bins: " << axis.bins << ", edges: [";
+    for (std::size_t i = 0; i < axis.edges.size(); ++i) {
+        if (i > 0) {
+            os << ", ";
+        }
+        os << axis.edges[i];
+    }
+    os << "]}";
+    return os;
+}
 
 /// @brief A payload for a grid bin
 template <typename content_t = std::size_t>

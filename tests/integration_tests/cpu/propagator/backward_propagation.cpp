@@ -9,7 +9,7 @@
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/barcode.hpp"
 #include "detray/geometry/shapes/rectangle2D.hpp"
-#include "detray/navigation/navigator.hpp"
+#include "detray/navigation/caching_navigator.hpp"
 #include "detray/propagator/actors.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
@@ -65,7 +65,7 @@ TEST_P(BackwardPropagation, backward_propagation) {
               1.f * unit<scalar>::T};
     const bfield_t hom_bfield = create_const_field<scalar>(B);
 
-    using navigator_t = navigator<decltype(det)>;
+    using navigator_t = caching_navigator<decltype(det)>;
     using rk_stepper_t = rk_stepper<bfield_t::view_t, test_algebra>;
     using actor_chain_t =
         actor_chain<parameter_transporter<test_algebra>,
@@ -89,13 +89,17 @@ TEST_P(BackwardPropagation, backward_propagation) {
     const bound_track_parameters<test_algebra> bound_param0(
         det.surface(0u).barcode(), bound_vector, bound_cov);
 
-    // Actors
-    pointwise_material_interactor<test_algebra>::state interactor{};
-
     propagation::config prop_cfg{};
     prop_cfg.stepping.rk_error_tol = 1e-7f * unit<float>::mm;
-    prop_cfg.navigation.overstep_tolerance = -100.f * unit<float>::um;
+    prop_cfg.navigation.intersection.overstep_tolerance =
+        -100.f * unit<float>::um;
+    prop_cfg.navigation.estimate_scattering_noise = false;
     propagator_t p{prop_cfg};
+
+    // Actors
+    parameter_transporter<test_algebra>::state transporter_state{};
+    pointwise_material_interactor<test_algebra>::state interactor{};
+    parameter_resetter<test_algebra>::state resetter_state{prop_cfg};
 
     // Forward state
     propagator_t::state fw_state(bound_param0, hom_bfield, det,
@@ -104,10 +108,8 @@ TEST_P(BackwardPropagation, backward_propagation) {
     fw_state.do_debug = true;
 
     // Run propagator
-    p.propagate(fw_state, detray::tie(interactor));
-
-    // Print the debug stream
-    // std::cout << fw_state.debug_stream.str() << std::endl;
+    p.propagate(fw_state,
+                detray::tie(interactor, transporter_state, resetter_state));
 
     // Bound state after propagation
     const auto& bound_param1 = fw_state._stepping.bound_params();
@@ -127,10 +129,8 @@ TEST_P(BackwardPropagation, backward_propagation) {
     bw_state._navigation.set_direction(navigation::direction::e_backward);
 
     // Run propagator
-    p.propagate(bw_state, detray::tie(interactor));
-
-    // Print the debug stream
-    // std::cout << bw_state.debug_stream.str() << std::endl;
+    p.propagate(bw_state,
+                detray::tie(interactor, transporter_state, resetter_state));
 
     // Bound state after propagation
     const auto& bound_param2 = bw_state._stepping.bound_params();

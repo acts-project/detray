@@ -61,12 +61,11 @@ class geometry_writer {
         det_data.volumes.reserve(det.volumes().size());
 
         for (const auto& vol : det.volumes()) {
-            const auto map_itr = names.find(vol.index() + 1u);
-            if (map_itr == names.end()) {
-                det_data.volumes.push_back(to_payload(vol, det, ""));
-            } else {
+            if (names.contains(vol.index())) {
                 det_data.volumes.push_back(
-                    to_payload(vol, det, map_itr->second));
+                    to_payload(vol, det, names.at(vol.index())));
+            } else {
+                det_data.volumes.push_back(to_payload(vol, det, ""));
             }
         }
 
@@ -111,6 +110,7 @@ class geometry_writer {
     template <typename detector_t>
     static surface_payload to_payload(const geometry::surface<detector_t>& sf,
                                       std::size_t sf_idx) {
+        using algebra_t = typename detector_t::algebra_type;
         surface_payload sf_data;
 
         sf_data.index_in_coll = sf_idx;
@@ -119,8 +119,8 @@ class geometry_writer {
         sf_data.transform = to_payload<detector_t>(sf.transform({}));
         sf_data.masks = sf.template visit_mask<get_mask_link_payload>();
         if (sf.has_material()) {
-            sf_data.material =
-                sf.template visit_material<get_material_link_payload>();
+            sf_data.material = sf.template visit_material<
+                get_material_link_payload<algebra_t>>();
         }
         sf_data.source = sf.source();
 
@@ -188,6 +188,7 @@ class geometry_writer {
     };
 
     /// Retrieve @c material_link_payload from material_store element
+    template <detray::concepts::algebra algebra_t>
     struct get_material_link_payload {
         template <typename material_group_t, typename index_t>
         constexpr auto operator()(const material_group_t&,
@@ -195,12 +196,17 @@ class geometry_writer {
             using material_t = typename material_group_t::value_type;
 
             // Find the correct material type index
-            return detail::basic_converter::to_payload(
-                io::detail::get_id<material_t>(), index);
+            if constexpr (detray::concepts::grid<material_t>) {
+                return detail::basic_converter::to_payload(
+                    io::detail::get_id<material_t>(), index);
+            } else {
+                return detail::basic_converter::to_payload(
+                    io::detail::get_id<algebra_t, material_t>(), index);
+            }
         }
     };
 
-    /// Retrieve @c acc_links_payload from surface_tore collection
+    /// Retrieve @c acc_links_payload from accelerator_store collection
     struct get_acc_link_payload {
         template <typename acc_group_t, typename index_t>
         constexpr auto operator()(const acc_group_t&,
@@ -211,7 +217,7 @@ class geometry_writer {
             auto id{acc_links_payload::type_id::unknown};
 
             // Only convert grids
-            if constexpr (detray::concepts::grid<accel_t>) {
+            if constexpr (detray::concepts::surface_grid<accel_t>) {
                 id = io::detail::get_id<accel_t>();
             }
 

@@ -50,7 +50,7 @@ inline void set_vertices(
     // Approximate any arcs in the mask shape with ten line segments
     auto vertices = m.vertices(10u);
     for (std::size_t i = 0; i < vertices.size(); i++) {
-        p_surface._vertices.push_back(trf.point_to_global(vertices[i]));
+        p_surface._vertices.push_back(trf.point_to_global(vertices.at(i)));
     }
 }
 
@@ -67,6 +67,10 @@ auto inline surface(const transform3_t& transform, const mask_t& m) {
     p_surface._type = p_surface_t::type::e_polygon;
     set_measures(p_surface, m);
     set_vertices(p_surface, transform, m);
+
+    const point3_t center = transform.translation();
+    const auto r{static_cast<actsvg::scalar>(vector::perp(center))};
+    p_surface._radii = {r, r};
 
     return p_surface;
 }
@@ -145,7 +149,7 @@ auto inline surface(const transform3_t& transform,
 
     p_surface_t p_surface;
 
-    p_surface._type = p_surface_t::type::e_annulus;
+    p_surface._type = p_surface_t::type::e_trapez;
     set_measures(p_surface, m);
     set_vertices(p_surface, transform, m);
 

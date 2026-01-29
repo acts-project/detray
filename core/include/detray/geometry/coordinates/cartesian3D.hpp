@@ -61,6 +61,15 @@ struct cartesian3D {
         return cartesian3D<algebra_t>::local_to_global(trf, p);
     }
 
+    /// @returns the normal vector in global coordinates given a local position
+    /// @param p
+    DETRAY_HOST_DEVICE static inline vector3_type normal(
+        const transform3_type & /*trf*/, const point3_type & /*p*/) {
+        // Not implemented!
+        assert(false);
+        return {};
+    }
+
 };  // struct cartesian3D
 
 }  // namespace detray

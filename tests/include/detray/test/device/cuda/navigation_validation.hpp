@@ -14,6 +14,7 @@
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/tracks/ray.hpp"
 #include "detray/tracks/tracks.hpp"
+#include "detray/utils/logging.hpp"
 
 // Detray test include(s)
 #include "detray/test/common/bfield.hpp"
@@ -200,7 +201,7 @@ class navigation_validation : public test::fixture_base<> {
 
             std::vector<intersection_trace_t> intersection_traces;
 
-            std::cout << "\nINFO: Reading data from file..." << std::endl;
+            DETRAY_INFO_HOST("Reading data from file...");
 
             // Fill the intersection traces from file
             detray::detector_scanner::read(m_cfg.intersection_file(),
@@ -210,8 +211,7 @@ class navigation_validation : public test::fixture_base<> {
             m_whiteboard->add(m_truth_data_name,
                               std::move(intersection_traces));
         } else if (m_whiteboard->exists(m_truth_data_name)) {
-            std::cout << "\nINFO: Fetching data from white board..."
-                      << std::endl;
+            DETRAY_INFO_HOST("Fetching data from white board...");
         } else {
             throw std::invalid_argument(
                 "Navigation validation: Could not find data files");
@@ -219,6 +219,8 @@ class navigation_validation : public test::fixture_base<> {
 
         // Check that data is ready
         if (!m_whiteboard->exists(m_truth_data_name)) {
+            DETRAY_INFO_HOST(
+                "Data for navigation check is not on the whiteboard");
             throw std::invalid_argument(
                 "Data for navigation check is not on the whiteboard");
         }
@@ -251,9 +253,8 @@ class navigation_validation : public test::fixture_base<> {
                 m_truth_data_name);
         ASSERT_EQ(m_cfg.n_tracks(), truth_intersection_traces.size());
 
-        std::cout << "\nINFO: Running device navigation validation on: "
-                  << m_det.name(m_names) << "...\n"
-                  << std::endl;
+        DETRAY_INFO_HOST("Running device navigation validation on: "
+                         << m_det.name(m_names) << "...\n");
 
         std::string momentum_str{""};
         const std::string det_name{m_det.name(m_names)};
@@ -449,16 +450,13 @@ class navigation_validation : public test::fixture_base<> {
                                               recorded_intersections);
         material_validator::write_material(mat_path.string(), mat_records);
 
-        std::cout
-            << "INFO: Wrote distance to boundary of missed intersections to: "
-            << missed_path << std::endl;
-        std::cout << "INFO: Wrote track states in: " << trk_path << std::endl;
-        std::cout << "INFO: Wrote truth intersections in: " << truth_intr_path
-                  << std::endl;
-        std::cout << "INFO: Wrote track intersections in: " << intr_path
-                  << std::endl;
-        std::cout << "INFO: Wrote accumulated material in: " << mat_path
-                  << std::endl;
+        DETRAY_INFO_HOST(
+            "Wrote distance to boundary of missed intersections in: "
+            << missed_path);
+        DETRAY_INFO_HOST("Wrote track states in: " << trk_path);
+        DETRAY_INFO_HOST("Wrote truth intersections in: " << truth_intr_path);
+        DETRAY_INFO_HOST("Wrote track intersections in: " << intr_path);
+        DETRAY_INFO_HOST("Wrote accumulated material in: " << mat_path);
     }
 
     private:

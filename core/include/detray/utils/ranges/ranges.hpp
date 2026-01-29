@@ -95,6 +95,11 @@ using range_rvalue_reference_t = std::add_rvalue_reference_t<range_value_t<R>>;
 template <class R>
 concept range = std::ranges::range<R>;
 
+/// Range of a given type
+template <typename R, typename T>
+concept range_of =
+    detray::ranges::range<R> && std::same_as<std::ranges::range_value_t<R>, T>;
+
 /// Range category concepts
 /// @{
 template <class R>
@@ -304,7 +309,7 @@ inline constexpr bool viewable_range =
 /// @returns composed range c(r)
 /// @TODO: Add concept for range adaptors, closures etc.
 template <detray::ranges::range R, detray::ranges::range C>
-auto operator|(R&& r, C&& c) {
+DETRAY_HOST_DEVICE auto operator|(R&& r, C&& c) {
     return std::forward<C>(c)(std::forward<R>(r));
 }
 

@@ -13,7 +13,7 @@
 #include "detray/definitions/pdg_particle.hpp"
 #include "detray/definitions/track_parametrization.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/materials/detail/concepts.hpp"
+#include "detray/materials/concepts.hpp"
 #include "detray/materials/detail/material_accessor.hpp"
 #include "detray/materials/interaction.hpp"
 #include "detray/propagator/base_actor.hpp"
@@ -144,7 +144,7 @@ struct random_scatterer : actor {
         auto& stepping = prop_state._stepping;
         const auto& ptc = stepping.particle_hypothesis();
         auto& bound_params = stepping.bound_params();
-        const auto sf = navigation.get_surface();
+        const auto sf = navigation.current_surface();
         const scalar_type cos_inc_angle{cos_angle(geo_context_type{}, sf,
                                                   bound_params.dir(),
                                                   bound_params.bound_local())};

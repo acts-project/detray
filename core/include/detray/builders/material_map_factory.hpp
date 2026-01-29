@@ -13,6 +13,7 @@
 #include "detray/definitions/indexing.hpp"
 #include "detray/geometry/shapes/unmasked.hpp"
 #include "detray/materials/material.hpp"
+#include "detray/utils/logging.hpp"
 #include "detray/utils/ranges.hpp"
 
 // System include(s)
@@ -108,6 +109,8 @@ class material_map_factory final : public factory_decorator<detector_t> {
                       std::vector<std::vector<scalar_type>> &&axis_spans,
                       std::vector<index_type> &&indices) {
 
+        DETRAY_VERBOSE_HOST("Received material map data");
+
         auto [sf_index, mat, thickness] = std::move(mat_data).get_data();
 
         m_links[sf_index] = std::make_pair(id, std::move(indices));
@@ -147,6 +150,8 @@ class material_map_factory final : public factory_decorator<detector_t> {
         std::map<dindex, darray<std::size_t, N>> &n_bins,
         std::map<dindex, darray<std::vector<scalar_type>, N>> &axis_spans) {
 
+        DETRAY_VERBOSE_HOST("Add material maps...");
+
         using link_t = typename detector_t::surface_type::material_link;
 
         // Check data consistency
@@ -157,9 +162,16 @@ class material_map_factory final : public factory_decorator<detector_t> {
 
         assert(surfaces.size() >= n_materials);
 
+        DETRAY_VERBOSE_HOST("-> Have "
+                            << m_materials.size()
+                            << " configured material map(s) to assign");
+
         // Add the material only to those surfaces that the data links against
         for (auto &[i, materials] : m_materials) {
             const auto sf_idx{static_cast<dindex>(i)};
+
+            DETRAY_DEBUG_HOST("--> #" << sf_idx
+                                      << " sf = " << surfaces.at(sf_idx));
 
             // Copy the number of bins to the builder
             assert(m_n_bins.at(sf_idx).size() == N);
@@ -194,8 +206,11 @@ class material_map_factory final : public factory_decorator<detector_t> {
             }
 
             auto map_id{m_links.at(sf_idx).first};
+            DETRAY_DEBUG_HOST("--> Set surface material id: " << map_id);
             surfaces[sf_idx].material() = link_t{map_id, dindex_invalid};
         }
+
+        DETRAY_DEBUG_HOST("Finished");
     }
 
     private:

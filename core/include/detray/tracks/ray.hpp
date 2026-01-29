@@ -83,10 +83,8 @@ class ray {
     DETRAY_HOST
     friend std::ostream &operator<<(std::ostream &os, const ray &r) {
         os << "ray: ";
-        os << "ori = [" << r._pos[0] << ", " << r._pos[1] << ", " << r._pos[2]
-           << "], ";
-        os << "dir = [" << r._dir[0] << ", " << r._dir[1] << ", " << r._dir[2]
-           << "]" << std::endl;
+        os << "ori = " << r._pos;
+        os << ", dir = " << r._dir << std::endl;
 
         return os;
     }

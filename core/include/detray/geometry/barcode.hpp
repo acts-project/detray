@@ -164,26 +164,19 @@ class barcode {
     /// The encoded value. Default: All bits set to 1 (invalid)
     value_t m_value{~static_cast<value_t>(0)};
 
+    /// Print the surface barcode
     DETRAY_HOST
     friend std::ostream& operator<<(std::ostream& os, const barcode c) {
         if (c.is_invalid()) {
             os << "INVALID: ";
         }
 
-        constexpr std::array names{
-            "vol = ", "id = ", "index = ", "trf = ", "extra = "};
-        const std::array levels{c.volume(), static_cast<dindex>(c.id()),
-                                c.index(), c.transform(), c.extra()};
+        os << "vol = " << c.volume();
+        os << " | id = " << c.id() << "(" << static_cast<int>(c.id()) << ")";
+        os << " | index = " << c.index();
+        os << " | trf = " << c.transform();
+        os << " | extra = " << c.extra();
 
-        bool writeSeparator = false;
-        for (auto i = 0u; i < 4u; ++i) {
-            if (writeSeparator) {
-                os << " | ";
-            }
-            os << names[i] << levels[i];
-            writeSeparator = true;
-        }
-        os << " ";
         return os;
     }
 };

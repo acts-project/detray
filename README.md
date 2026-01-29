@@ -59,6 +59,7 @@ The following cmake options are available and can also be specified explicitly f
 
 | Option | Description | Default |
 | --- | --- | --- |
+| DETRAY_SET_LOGGING  | Set log level (NONE, WARN, INFO, VERBOSE, DEBUG) | INFO |
 | DETRAY_BUILD_CUDA  | Build the CUDA sources included in detray | ON (if available) |
 | DETRAY_BUILD_SYCL  | Build the SYCL sources included in detray | OFF |
 | DETRAY_BUILD_TEST_UTILS  | Build the detray test utilities library (contains e.g. test detectors) | OFF |
@@ -68,7 +69,7 @@ The following cmake options are available and can also be specified explicitly f
 | DETRAY_BUILD_BENCHMARKS  | Build the detray benchmarks | OFF |
 | DETRAY_BUILD_CLI_TOOLS  | Build the detray command line tools | OFF |
 | DETRAY_BUILD_TUTORIALS  | Build the examples of detray | OFF |
-| DETRAY_CUSTOM_SCALARTYPE | Floating point precision | double |
+| DETRAY_CUSTOM_SCALARTYPE | Floating point precision | float |
 | DETRAY_EIGEN_PLUGIN | Build Eigen math plugin | OFF |
 | DETRAY_SMATRIX_PLUGIN | Build ROOT/SMatrix math plugin | OFF |
 | DETRAY_VC_AOS_PLUGIN | Build Vc based AoS math plugin | OFF |

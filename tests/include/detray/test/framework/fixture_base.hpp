@@ -13,7 +13,7 @@
 #include "detray/propagator/propagator.hpp"
 
 // Detray test include(s)
-#include "detray/test/common/test_configuration.hpp"
+#include "detray/test/framework/test_configuration.hpp"
 #include "detray/test/framework/types.hpp"
 
 // GTest include(s)
@@ -48,7 +48,8 @@ class fixture_base : public scope {
           inf{cfg.inf},
           epsilon{cfg.epsilon},
           path_limit{cfg.propagation().stepping.path_limit},
-          overstep_tolerance{cfg.propagation().navigation.overstep_tolerance},
+          overstep_tolerance{
+              cfg.propagation().navigation.intersection.overstep_tolerance},
           step_constraint{cfg.propagation().stepping.step_constraint} {}
 
     /// @returns the benchmark name

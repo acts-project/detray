@@ -13,7 +13,6 @@
 #include "detray/utils/grid/detail/axis.hpp"
 #include "detray/utils/grid/detail/axis_helpers.hpp"
 #include "detray/utils/grid/detail/bin_storage.hpp"
-#include "detray/utils/grid/detail/bin_view.hpp"
 #include "detray/utils/grid/populators.hpp"
 #include "detray/utils/grid/serializers.hpp"
 #include "detray/utils/ranges.hpp"
@@ -59,10 +58,6 @@ class grid_impl {
     using point_type = typename axes_type::point_type;
 
     static constexpr bool is_owning{axes_type::is_owning};
-
-    /// How to define a neighborhood for this grid
-    template <typename neighbor_t>
-    using neighborhood_type = darray<neighbor_t, dim>;
 
     /// Backend storage type for the grid
     using bin_storage =
@@ -140,6 +135,23 @@ class grid_impl {
     DETRAY_HOST_DEVICE
     static constexpr auto get_local_frame() -> local_frame_type { return {}; }
 
+    /// Transform a point in global cartesian coordinates to bound coordinates
+    ///
+    /// @param trf the placement transform of the grid (e.g. from a volume or
+    ///            a surface).
+    /// @param p   the point in global coordinates
+    /// @param d   direction of a track at position p
+    ///
+    /// @returns a point in the coordinate system that is spanned by the grid's
+    /// axes.
+    template <concepts::transform3D transform3_t, concepts::point3D point3_t,
+              concepts::vector3D vector3_t>
+    DETRAY_HOST_DEVICE point_type project(const transform3_t &trf,
+                                          const point3_t &p,
+                                          const vector3_t &d) const {
+        return grid_impl::get_local_frame().global_to_local(trf, p, d);
+    }
+
     /// @returns an axis object, corresponding to the index.
     template <std::size_t index>
     DETRAY_HOST_DEVICE constexpr auto get_axis() const {
@@ -214,8 +226,26 @@ class grid_impl {
         return bin(serialize(mbin));
     }
 
+    /// Find the value of a single bin - const
+    ///
+    /// @param p is point in the local (bound) frame
+    ///
+    /// @return the iterable view of the bin content
+    DETRAY_HOST_DEVICE decltype(auto) bin(const point_type &p) const {
+        return bin(m_axes.bins(p));
+    }
+
+    /// Find the value of a single bin
+    ///
+    /// @param p is point in the local (bound) frame
+    ///
+    /// @return the iterable view of the bin content
+    DETRAY_HOST_DEVICE decltype(auto) bin(const point_type &p) {
+        return bin(m_axes.bins(p));
+    }
+
     /// @param indices the single indices corresponding to a multi_bin
-    template <typename... I>
+    template <concepts::index... I>
         requires(sizeof...(I) == dim)
     DETRAY_HOST_DEVICE decltype(auto) bin(I... indices) const {
         return bin(loc_bin_index{indices...});
@@ -252,76 +282,6 @@ class grid_impl {
 
     /// @returns a view over the flatened bin content by joining the bin ranges
     DETRAY_HOST_DEVICE auto all() const { return detray::views::join(bins()); }
-
-    /// Transform a point in global cartesian coordinates to bound coordinates
-    ///
-    /// @param trf the placement transform of the grid (e.g. from a volume or
-    ///            a surface).
-    /// @param p   the point in global coordinates
-    /// @param d   direction of a track at position p
-    ///
-    /// @returns a point in the coordinate system that is spanned by the grid's
-    /// axes.
-    template <concepts::transform3D transform3_t, concepts::point3D point3_t,
-              concepts::vector3D vector3_t>
-    DETRAY_HOST_DEVICE point_type project(const transform3_t &trf,
-                                          const point3_t &p,
-                                          const vector3_t &d) const {
-        return get_local_frame().global_to_local(trf, p, d);
-    }
-
-    /// Interface for the navigator
-    template <typename detector_t, typename track_t, typename config_t>
-    DETRAY_HOST_DEVICE auto search(
-        const detector_t &det, const typename detector_t::volume_type &volume,
-        const track_t &track, const config_t &cfg,
-        const typename detector_t::geometry_context &ctx) const {
-
-        // Track position in grid coordinates
-        const auto &trf = det.transform_store().at(volume.transform(), ctx);
-        const auto loc_pos = project(trf, track.pos(), track.dir());
-
-        // Grid lookup
-        return search(loc_pos, cfg.search_window);
-    }
-
-    /// Find the value of a single bin - const
-    ///
-    /// @param p is point in the local (bound) frame
-    ///
-    /// @return the iterable view of the bin content
-    DETRAY_HOST_DEVICE decltype(auto) search(const point_type &p) const {
-        return bin(m_axes.bins(p));
-    }
-
-    /// Find the value of a single bin
-    ///
-    /// @param p is point in the local (bound) frame
-    ///
-    /// @return the iterable view of the bin content
-    DETRAY_HOST_DEVICE decltype(auto) search(const point_type &p) {
-        return bin(m_axes.bins(p));
-    }
-
-    /// @brief Return a neighborhood of values from the grid
-    ///
-    /// The lookup is done with a search window around the bin
-    ///
-    /// @param p is point in the local frame
-    /// @param win_size size of the binned/scalar search window
-    ///
-    /// @return the sequence of values
-    template <typename neighbor_t>
-    DETRAY_HOST_DEVICE auto search(
-        const point_type &p, const darray<neighbor_t, 2> &win_size) const {
-
-        // Return iterable over bins in the search window
-        auto search_window = axes().bin_ranges(p, win_size);
-        auto search_area = axis::detail::bin_view(*this, search_window);
-
-        // Join the respective bins to a single iteration
-        return detray::views::join(std::move(search_area));
-    }
 
     /// Poupulate a bin with a single one of its corresponding values @param v
     /// @{
@@ -390,7 +350,7 @@ class grid_impl {
     /// @returns a string stream that prints the grid details
     DETRAY_HOST
     friend std::ostream &operator<<(std::ostream &os, const grid_impl &gr) {
-        os << "axes: \n" << gr.axes();
+        os << gr.axes() << std::endl;
 
         for (glob_bin_index gbin = 0; gbin < gr.nbins(); ++gbin) {
             os << "bin " << gbin << ": ";

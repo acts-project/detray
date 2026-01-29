@@ -11,6 +11,7 @@
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/propagator/base_actor.hpp"
+#include "detray/tracks/bound_track_parameters.hpp"
 #include "detray/tracks/free_track_parameters.hpp"
 
 namespace detray {
@@ -22,6 +23,7 @@ struct step_data {
     using scalar_type = dscalar<algebra_t>;
     using vector3_type = dvector3D<algebra_t>;
     using track_param_type = free_track_parameters<algebra_t>;
+    using bound_param_type = bound_track_parameters<algebra_t>;
     using free_matrix_type = free_matrix<algebra_t>;
 
     scalar_type step_size{0.f};
@@ -30,6 +32,7 @@ struct step_data {
     navigation::direction nav_dir = navigation::direction::e_forward;
     geometry::barcode barcode{};
     track_param_type track_params{};
+    bound_param_type bound_params{};
     free_matrix_type jacobian{};
 };
 }  // namespace detail
@@ -105,6 +108,7 @@ struct step_tracer : actor {
                            navigation.direction(),
                            bcd,
                            stepping(),
+                           stepping.bound_params(),
                            stepping.transport_jacobian()};
 
             tracer_state.m_steps.push_back(std::move(sd));

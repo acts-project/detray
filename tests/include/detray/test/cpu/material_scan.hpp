@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/geometry/surface.hpp"
 #include "detray/tracks/ray.hpp"
+#include "detray/utils/logging.hpp"
 
 // Detray IO include(s)
 #include "detray/io/utils/file_handle.hpp"
@@ -115,9 +116,9 @@ class material_scan : public test::fixture_base<> {
         std::size_t n_tracks{0u};
         auto ray_generator = track_generator_t(m_cfg.track_generator());
 
-        std::cout << "INFO: Running material scan on: " << m_det.name(m_names)
-                  << "\n(" << ray_generator.size() << " rays) ...\n"
-                  << std::endl;
+        DETRAY_INFO_HOST("Running material scan on: "
+                         << m_det.name(m_names) << "\n(" << ray_generator.size()
+                         << " rays) ...\n");
 
         // Trace material per ray
         dvector<free_track_parameters<algebra_t>> tracks{};
@@ -139,9 +140,9 @@ class material_scan : public test::fixture_base<> {
             }
 
             if (intersection_record.empty()) {
-                std::cout << "ERROR: Intersection trace empty for ray "
-                          << n_tracks << "/" << ray_generator.size() << ": "
-                          << ray << std::endl;
+                DETRAY_FATAL_HOST("Intersection trace empty for ray "
+                                  << n_tracks << "/" << ray_generator.size()
+                                  << ": " << ray);
                 break;
             }
 
@@ -191,7 +192,7 @@ class material_scan : public test::fixture_base<> {
                     continue;
                 }
 
-                const auto &p = record.intersection.local;
+                const auto &p = record.intersection.local();
                 const auto mat_params = sf.template visit_material<
                     material_validator::get_material_params>(
                     point2_t{p[0], p[1]}, cos_angle(m_gctx, sf, ray.dir(), p));
@@ -205,23 +206,23 @@ class material_scan : public test::fixture_base<> {
                     mat_record.sX0 += seg / mx0;
                     mat_record.tX0 += t / mx0;
                 } else {
-                    std::cout << "WARNING: Encountered invalid X_0: " << mx0
-                              << "\nOn surface: " << sf << std::endl;
+                    DETRAY_ERROR_HOST("Encountered invalid X_0: "
+                                      << mx0 << "\nOn surface: " << sf);
                 }
                 if (ml0 > 0.f) {
                     mat_record.sL0 += seg / ml0;
                     mat_record.tL0 += t / ml0;
                 } else {
-                    std::cout << "WARNING: Encountered invalid L_0: " << ml0
-                              << "\nOn surface: " << sf << std::endl;
+                    DETRAY_ERROR_HOST("Encountered invalid L_0: "
+                                      << ml0 << "\nOn surface: " << sf);
                 }
             }
 
             if (mat_record.sX0 == 0.f || mat_record.sL0 == 0.f ||
                 mat_record.tX0 == 0.f || mat_record.tL0 == 0.f) {
-                std::cout << "WARNING: No material recorded for ray "
-                          << n_tracks << "/" << ray_generator.size() << ": "
-                          << ray << std::endl;
+                DETRAY_VERBOSE_HOST("No material recorded for ray "
+                                    << n_tracks << "/" << ray_generator.size()
+                                    << ": " << ray);
             }
 
             mat_records.push_back(mat_record);
@@ -229,7 +230,7 @@ class material_scan : public test::fixture_base<> {
             ++n_tracks;
         }
 
-        std::cout << "-----------------------------------\n"
+        std::clog << "-----------------------------------\n"
                   << "Tested " << n_tracks << " tracks\n"
                   << "-----------------------------------\n"
                   << std::endl;

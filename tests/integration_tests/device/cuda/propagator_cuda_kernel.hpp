@@ -8,32 +8,20 @@
 #pragma once
 
 // Project include(s)
+#include "detray/core/detector.hpp"
 #include "detray/detectors/toy_metadata.hpp"
 
 // Detray test include(s)
-#include "detray/test/common/bfield.hpp"
+#include "detray/test/device/cuda/bfield.hpp"
 #include "detray/test/device/propagator_test.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>
 #include <vecmem/utils/cuda/copy.hpp>
 
-// Covfie include(s)
-#include <covfie/cuda/backend/primitive/cuda_device_array.hpp>
-
 namespace detray {
 
 using scalar = test::scalar;
-
-namespace bfield::cuda {
-
-// Inhomogeneous field (cuda)
-using inhom_bknd_t = covfie::backend::affine<covfie::backend::linear<
-    covfie::backend::strided<covfie::vector::vector_d<std::size_t, 3>,
-                             covfie::backend::cuda_device_array<
-                                 covfie::vector::vector_d<scalar, 3>>>>>;
-
-}  // namespace bfield::cuda
 
 /// Launch the propagation test kernel
 template <typename bfield_bknd_t, typename detector_t>

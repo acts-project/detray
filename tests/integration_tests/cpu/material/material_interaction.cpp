@@ -14,8 +14,9 @@
 #include "detray/materials/material.hpp"
 #include "detray/materials/material_slab.hpp"
 #include "detray/materials/predefined_materials.hpp"
-#include "detray/navigation/navigator.hpp"
+#include "detray/navigation/caching_navigator.hpp"
 #include "detray/propagator/actors.hpp"
+#include "detray/propagator/actors/parameter_transporter.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
@@ -72,7 +73,7 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
     const auto [det, names] =
         build_telescope_detector<test_algebra>(host_mr, tel_cfg);
 
-    using navigator_t = navigator<decltype(det)>;
+    using navigator_t = caching_navigator<decltype(det)>;
     using stepper_t = line_stepper<test_algebra>;
     using pathlimit_aborter_t = pathlimit_aborter<scalar>;
     using actor_chain_t =
@@ -82,7 +83,8 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
 
     // Propagator is built from the stepper and navigator
     propagation::config prop_cfg{};
-    prop_cfg.navigation.overstep_tolerance = -100.f * unit<float>::um;
+    prop_cfg.navigation.intersection.overstep_tolerance =
+        -100.f * unit<float>::um;
     propagator_t p{prop_cfg};
 
     constexpr scalar iniP{10.f * unit<scalar>::GeV};
@@ -100,17 +102,19 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
         det.surface(0u).barcode(), bound_vector, bound_cov);
 
     pathlimit_aborter_t::state aborter_state{};
+    parameter_transporter<test_algebra>::state transporter_state{};
     interactor_t::state interactor_state{};
+    parameter_resetter<test_algebra>::state resetter_state{};
 
     // Create actor states tuples
-    auto actor_states = detray::tie(aborter_state, interactor_state);
+    auto actor_states = detray::tie(aborter_state, transporter_state,
+                                    interactor_state, resetter_state);
 
     propagator_t::state state(bound_param, det);
     state.do_debug = true;
 
     // Propagate the entire detector
-    ASSERT_TRUE(p.propagate(state, actor_states))
-        << state.debug_stream.str() << std::endl;
+    ASSERT_TRUE(p.propagate(state, actor_states));
 
     // new momentum
     const scalar newP{state._stepping.bound_params().p(ptc.charge())};
@@ -192,7 +196,7 @@ GTEST_TEST(detray_material, telescope_geometry_scattering_angle) {
     const auto [det, names] =
         build_telescope_detector<test_algebra>(host_mr, tel_cfg);
 
-    using navigator_t = navigator<decltype(det)>;
+    using navigator_t = caching_navigator<decltype(det)>;
     using stepper_t = line_stepper<test_algebra>;
     using simulator_t = random_scatterer<test_algebra>;
     using pathlimit_aborter_t = pathlimit_aborter<scalar>;
@@ -203,7 +207,8 @@ GTEST_TEST(detray_material, telescope_geometry_scattering_angle) {
 
     // Propagator is built from the stepper and navigator
     propagation::config prop_cfg{};
-    prop_cfg.navigation.overstep_tolerance = -100.f * unit<float>::um;
+    prop_cfg.navigation.intersection.overstep_tolerance =
+        -100.f * unit<float>::um;
     propagator_t p{prop_cfg};
 
     constexpr scalar q{-1.f};
@@ -230,18 +235,20 @@ GTEST_TEST(detray_material, telescope_geometry_scattering_angle) {
 
         pathlimit_aborter_t::state aborter_state{};
         // Seed = sample id
+        parameter_transporter<test_algebra>::state transporter_state{};
         simulator_t::state simulator_state{i};
         simulator_state.do_energy_loss = false;
+        parameter_resetter<test_algebra>::state resetter_state{};
 
         // Create actor states tuples
-        auto actor_states = detray::tie(aborter_state, simulator_state);
+        auto actor_states = detray::tie(aborter_state, transporter_state,
+                                        simulator_state, resetter_state);
 
         propagator_t::state state(bound_param, det);
         state.do_debug = true;
 
         // Propagate the entire detector
-        ASSERT_TRUE(p.propagate(state, actor_states))
-            << state.debug_stream.str() << std::endl;
+        ASSERT_TRUE(p.propagate(state, actor_states));
 
         const auto& final_param = state._stepping.bound_params();
 
@@ -282,12 +289,14 @@ GTEST_TEST(detray_material, telescope_geometry_volume_material) {
     // Propagator types
     using bfield_t = bfield::const_field_t<scalar>;
     using stepper_t = rk_stepper<bfield_t::view_t, test_algebra>;
+
     using pathlimit_aborter_t = pathlimit_aborter<scalar>;
     using actor_chain_t = actor_chain<pathlimit_aborter_t>;
-    using vector3 = test::vector3;
+
+    constexpr std::size_t cache_size{navigation::default_cache_size};
 
     // Bfield setup
-    vector3 B_z{0.f, 0.f, 2.f * unit<scalar>::T};
+    test::vector3 B_z{0.f, 0.f, 2.f * unit<scalar>::T};
     const bfield_t const_bfield = create_const_field<scalar>(B_z);
 
     // Track setup
@@ -306,14 +315,14 @@ GTEST_TEST(detray_material, telescope_geometry_volume_material) {
 
     // Build in x-direction from given module positions
     detail::ray<test_algebra> traj{{0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
-    std::vector<scalar> positions = {0.f, 10000.f * unit<scalar>::mm};
+    std::vector<scalar> positions = {0.f, 5000.f * unit<scalar>::mm};
 
     // NO material at modules
     const auto module_mat = vacuum<scalar>();
 
     // Create telescope geometry
     tel_det_config<test_algebra, rectangle2D> tel_cfg{
-        100000.f * unit<scalar>::mm, 100000.f * unit<scalar>::mm};
+        50000.f * unit<scalar>::mm, 50000.f * unit<scalar>::mm};
     tel_cfg.positions(positions).pilot_track(traj).module_material(module_mat);
 
     std::vector<material<scalar>> vol_mats = {
@@ -329,12 +338,15 @@ GTEST_TEST(detray_material, telescope_geometry_volume_material) {
         const bound_track_parameters<test_algebra> bound_param(
             det.surface(0u).barcode(), bound_vector, bound_cov);
 
-        using navigator_t = navigator<decltype(det)>;
+        using navigator_t = caching_navigator<decltype(det), cache_size,
+                                              navigation::print_inspector>;
+
         using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
         // Propagator is built from the stepper and navigator
         propagation::config prop_cfg{};
-        prop_cfg.navigation.overstep_tolerance = -100.f * unit<float>::um;
+        prop_cfg.navigation.intersection.overstep_tolerance =
+            -100.f * unit<float>::um;
         propagator_t p{prop_cfg};
 
         propagator_t::state state(bound_param, const_bfield, det);
@@ -359,7 +371,9 @@ GTEST_TEST(detray_material, telescope_geometry_volume_material) {
         if (mat == vacuum<scalar>()) {
             ASSERT_FLOAT_EQ(float(eloss), 0.f);
         } else {
-            ASSERT_TRUE(eloss > 0.f);
+            ASSERT_TRUE(eloss > 0.f)
+                << "mat.: " << mat << "\n"
+                << state._navigation.inspector().to_string();
         }
 
         ASSERT_NEAR(eloss, eloss_approx, eloss * 0.01);

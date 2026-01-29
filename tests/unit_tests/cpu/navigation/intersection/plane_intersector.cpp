@@ -49,44 +49,45 @@ GTEST_TEST(detray_intersection, translated_plane_ray) {
     const auto hit_bound =
         pi(r, surface_descriptor<>{}, unmasked_bound, shifted);
 
-    ASSERT_TRUE(hit_bound.status);
+    ASSERT_TRUE(hit_bound.is_inside());
     // Global intersection information - unchanged
     const auto global0 =
-        unmasked_bound.to_global_frame(shifted, hit_bound.local);
+        unmasked_bound.to_global_frame(shifted, hit_bound.local());
     ASSERT_NEAR(global0[0], 2.f, tol);
     ASSERT_NEAR(global0[1], 1.f, tol);
     ASSERT_NEAR(global0[2], 10.f, tol);
     // Local intersection information
-    ASSERT_NEAR(hit_bound.local[0], -1.f, tol);
-    ASSERT_NEAR(hit_bound.local[1], -1.f, tol);
+    ASSERT_NEAR(hit_bound.local()[0], -1.f, tol);
+    ASSERT_NEAR(hit_bound.local()[1], -1.f, tol);
 
     // The same test but bound to local frame & masked - inside
     mask<rectangle2D, test_algebra> rect_for_inside{0u, 3.f, 3.f};
     const auto hit_bound_inside =
         pi(r, surface_descriptor<>{}, rect_for_inside, shifted, tol);
-    ASSERT_TRUE(hit_bound_inside.status);
+
+    ASSERT_TRUE(hit_bound_inside.is_inside());
     // Global intersection information - unchanged
     const auto global1 =
-        rect_for_inside.to_global_frame(shifted, hit_bound_inside.local);
+        rect_for_inside.to_global_frame(shifted, hit_bound_inside.local());
     ASSERT_NEAR(global1[0], 2.f, tol);
     ASSERT_NEAR(global1[1], 1.f, tol);
     ASSERT_NEAR(global1[2], 10.f, tol);
     // Local intersection infoimation - unchanged
-    ASSERT_NEAR(hit_bound_inside.local[0], -1.f, tol);
-    ASSERT_NEAR(hit_bound_inside.local[1], -1.f, tol);
+    ASSERT_NEAR(hit_bound_inside.local()[0], -1.f, tol);
+    ASSERT_NEAR(hit_bound_inside.local()[1], -1.f, tol);
 
     // The same test but bound to local frame & masked - outside
     mask<rectangle2D, test_algebra> rect_for_outside{0u, 0.5f, 3.5f};
     const auto hit_bound_outside =
         pi(r, surface_descriptor<>{}, rect_for_outside, shifted, tol);
-    ASSERT_FALSE(hit_bound_outside.status);
+    ASSERT_FALSE(hit_bound_outside.is_inside());
     // Global intersection information - not written out anymore
     const auto global2 =
-        rect_for_outside.to_global_frame(shifted, hit_bound_outside.local);
+        rect_for_outside.to_global_frame(shifted, hit_bound_outside.local());
     ASSERT_NEAR(global2[0], 2.f, tol);
     ASSERT_NEAR(global2[1], 1.f, tol);
     ASSERT_NEAR(global2[2], 10.f, tol);
     // Local intersection infoimation - unchanged
-    ASSERT_NEAR(hit_bound_outside.local[0], -1.f, tol);
-    ASSERT_NEAR(hit_bound_outside.local[1], -1.f, tol);
+    ASSERT_NEAR(hit_bound_outside.local()[0], -1.f, tol);
+    ASSERT_NEAR(hit_bound_outside.local()[1], -1.f, tol);
 }

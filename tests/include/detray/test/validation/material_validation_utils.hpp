@@ -9,12 +9,14 @@
 
 // Project include(s)
 #include "detray/definitions/algebra.hpp"
-#include "detray/materials/detail/concepts.hpp"
+#include "detray/materials/concepts.hpp"
 #include "detray/materials/detail/material_accessor.hpp"
-#include "detray/navigation/navigator.hpp"
+#include "detray/navigation/caching_navigator.hpp"
+#include "detray/navigation/detail/print_state.hpp"
 #include "detray/propagator/actors.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/propagator.hpp"
+#include "detray/utils/logging.hpp"
 #include "detray/utils/type_list.hpp"
 
 // Detray IO include(s)
@@ -179,7 +181,7 @@ struct material_tracer : detray::actor {
         typename propagator_state_t::detector_type::geometry_context gctx{};
 
         // Current surface
-        const auto sf = navigation.get_surface();
+        const auto sf = navigation.current_surface();
 
         // Track direction and bound position on current surface
         point2_t loc_pos{};
@@ -233,7 +235,7 @@ inline auto record_material(
     using scalar_t = dscalar<algebra_t>;
 
     using stepper_t = line_stepper<algebra_t>;
-    using navigator_t = navigator<detector_t>;
+    using navigator_t = caching_navigator<detector_t>;
 
     // Propagator with pathlimit aborter
     using material_tracer_t =
@@ -252,11 +254,14 @@ inline auto record_material(
     // Build actor and propagator states
     typename pathlimit_aborter_t::state pathlimit_aborter_state{
         cfg.stepping.path_limit};
+    typename parameter_transporter<algebra_t>::state transporter_state{};
     typename pointwise_material_interactor<algebra_t>::state interactor_state{};
     typename material_tracer_t::state mat_tracer_state{*host_mr};
+    typename parameter_resetter<algebra_t>::state resetter_state{cfg};
 
-    auto actor_states = detray::tie(pathlimit_aborter_state, interactor_state,
-                                    mat_tracer_state);
+    auto actor_states =
+        detray::tie(pathlimit_aborter_state, transporter_state,
+                    interactor_state, mat_tracer_state, resetter_state);
 
     typename propagator_t::state propagation{track, det, cfg.context};
 
@@ -382,7 +387,7 @@ inline auto compare_traces(
     }
 
     if (verbose && (is_bad_comp || is_diff_mat)) {
-        std::cout << debug_msg.str() << std::endl;
+        DETRAY_INFO_HOST(debug_msg.str());
     }
 
     return std::make_tuple(is_bad_comp, is_diff_mat);

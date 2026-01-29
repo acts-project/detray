@@ -11,7 +11,7 @@
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/indexing.hpp"
-#include "detray/materials/detail/concepts.hpp"
+#include "detray/materials/concepts.hpp"
 #include "detray/materials/detail/material_accessor.hpp"
 #include "detray/materials/material.hpp"
 #include "detray/utils/concepts.hpp"
@@ -234,7 +234,7 @@ struct surface_kernels {
             const vector3_type& dir) const {
             using mask_t = typename mask_group_t::value_type;
 
-            return mask_t::to_local_frame(trf3, global, dir);
+            return mask_t::to_local_frame3D(trf3, global, dir);
         }
     };
 

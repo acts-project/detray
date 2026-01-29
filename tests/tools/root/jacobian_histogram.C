@@ -183,7 +183,7 @@ void jacobian_histogram(int num) {
     const std::string csv_name = name + ".csv";
     const std::string root_name = "residual_histogram.root";
 
-    std::cout << "Processing file: " << csv_name << std::endl;
+    std::clog << "Processing file: " << csv_name << std::endl;
 
     auto rdf = ROOT::RDF::FromCSV(csv_name);
     // Create root file

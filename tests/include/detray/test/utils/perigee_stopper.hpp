@@ -14,8 +14,8 @@
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes/line.hpp"
 #include "detray/geometry/tracking_volume.hpp"
+#include "detray/navigation/caching_navigator.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
-#include "detray/navigation/navigator.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/constrained_step.hpp"
 #include "detray/tracks/ray.hpp"
@@ -55,7 +55,7 @@ struct perigee_stopper : actor {
 
         // Nothing left to do. Propagation will exit successfully on its own
         auto &navigation = prop_state._navigation;
-        if (navigation.is_complete()) {
+        if (navigation.finished()) {
             return;
         }
 
@@ -71,6 +71,13 @@ struct perigee_stopper : actor {
 
         // Stop at the perigee (cylindrical detectors only)
         if (inner_vol.id() != volume_id::e_cylinder) {
+            return;
+        }
+
+        // At least the exit portal should be reachable
+        if (navigation.cache_exhausted()) {
+            prop_state._heartbeat &=
+                navigation.abort("Pergigee stopper has no next candidate");
             return;
         }
 
@@ -99,12 +106,13 @@ struct perigee_stopper : actor {
             perigee_intersector_t{}(trk_approx, inv_sf, perigee_mask, identity,
                                     mask_tolerance, overstep_tolerance);
 
-        scalar_t dist_to_cand{std::as_const(navigation).target().path};
-        if (perigee_intr.status &&
-            math::fabs(perigee_intr.path) < math::fabs(dist_to_cand)) {
+        scalar_t dist_to_cand{std::as_const(navigation).target().path()};
+        if (perigee_intr.is_probably_inside() &&
+            math::fabs(perigee_intr.path()) < math::fabs(dist_to_cand)) {
             // The track has reached the perigee: "exit success"
             assert(actor_state.m_on_perigee_tol > 0.f);
-            if (math::fabs(perigee_intr.path) <= actor_state.m_on_perigee_tol) {
+            if (math::fabs(perigee_intr.path()) <=
+                actor_state.m_on_perigee_tol) {
                 const curvilinear_frame<algebra_t> cf(track);
 
                 // @TODO: Transport covariance as well
@@ -116,7 +124,7 @@ struct perigee_stopper : actor {
                 // @TODO: Use a guided navigator for this in order to catch
                 // overstepping correctly
                 stepping.template set_constraint<step::constraint::e_actor>(
-                    perigee_intr.path);
+                    perigee_intr.path());
             }
         }
     }
