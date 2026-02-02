@@ -95,10 +95,9 @@ TEST_P(BackwardPropagation, backward_propagation) {
     propagator_t p{prop_cfg};
 
     // Actors
-    actor::parameter_transporter<test_algebra>::state transporter_state{
-        bound_param0};
+    actor::parameter_updater_state<test_algebra> updater_state{prop_cfg,
+                                                               bound_param0};
     pointwise_material_interactor<test_algebra>::state interactor{};
-    actor::parameter_setter<test_algebra>::state setter_state{prop_cfg};
 
     // Forward state
     propagator_t::state fw_state(bound_param0, hom_bfield, det,
@@ -107,11 +106,10 @@ TEST_P(BackwardPropagation, backward_propagation) {
     fw_state.do_debug = true;
 
     // Run propagator
-    p.propagate(fw_state,
-                detray::tie(interactor, transporter_state, setter_state));
+    p.propagate(fw_state, detray::tie(interactor, updater_state));
 
     // Bound state after propagation
-    const auto bound_param1 = transporter_state.bound_params();
+    const auto bound_param1 = updater_state.bound_params();
 
     // Check if the track reaches the final surface
     EXPECT_EQ(bound_param0.surface_link().volume(), 0u);
@@ -126,14 +124,14 @@ TEST_P(BackwardPropagation, backward_propagation) {
     bw_state.set_particle(ptc);
     bw_state.do_debug = true;
     bw_state._navigation.set_direction(navigation::direction::e_backward);
-    transporter_state.bound_params() = bound_param1;
+    updater_state =
+        actor::parameter_updater_state<test_algebra>{prop_cfg, bound_param1};
 
     // Run propagator
-    p.propagate(bw_state,
-                detray::tie(interactor, transporter_state, setter_state));
+    p.propagate(bw_state, detray::tie(interactor, updater_state));
 
     // Bound state after propagation
-    const auto& bound_param2 = transporter_state.bound_params();
+    const auto& bound_param2 = updater_state.bound_params();
 
     // Check if the track reaches the initial surface
     EXPECT_EQ(bound_param2.surface_link().volume(), 0u);

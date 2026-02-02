@@ -479,14 +479,12 @@ bound_getter<test_algebra>::state evaluate_bound_param(
     propagator_t p(cfg);
 
     // Actor states
-    actor::parameter_transporter<test_algebra>::state transporter_state{
-        initial_param};
+    actor::parameter_updater_state<test_algebra> updater_state{cfg,
+                                                               initial_param};
     bound_getter<test_algebra>::state bound_getter_state{};
     bound_getter_state.track_ID = trk_count;
     bound_getter_state.m_min_path_length = detector_length * 0.75f;
-    actor::parameter_setter<test_algebra>::state setter_state{cfg};
-    auto actor_states =
-        detray::tie(transporter_state, bound_getter_state, setter_state);
+    auto actor_states = detray::tie(updater_state, bound_getter_state);
 
     // Init propagator states for the reference track
     typename propagator_t::state state(initial_param, field, det);
@@ -531,14 +529,12 @@ bound_param_vector_type get_displaced_bound_vector(
     typename propagator_t::state dstate(dparam, field, det);
 
     // Actor states
-    actor::parameter_transporter<test_algebra>::state transporter_state{dparam};
+    actor::parameter_updater_state<test_algebra> updater_state{cfg, dparam};
     bound_getter<test_algebra>::state bound_getter_state{};
     bound_getter_state.track_ID = trk_count;
     bound_getter_state.m_min_path_length = detector_length * 0.75f;
-    actor::parameter_setter<test_algebra>::state setter_state{cfg};
 
-    auto actor_states =
-        detray::tie(transporter_state, bound_getter_state, setter_state);
+    auto actor_states = detray::tie(updater_state, bound_getter_state);
     dstate.set_particle(ptc);
     dstate._stepping
         .template set_constraint<detray::step::constraint::e_accuracy>(

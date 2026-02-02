@@ -102,14 +102,13 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
         det.surface(0u).barcode(), bound_vector, bound_cov);
 
     pathlimit_aborter_t::state aborter_state{};
-    actor::parameter_transporter<test_algebra>::state transporter_state{
-        bound_param};
+    actor::parameter_updater_state<test_algebra> updater_state{prop_cfg,
+                                                               bound_param};
     interactor_t::state interactor_state{};
-    actor::parameter_setter<test_algebra>::state setter_state{};
 
     // Create actor states tuples
-    auto actor_states = detray::tie(aborter_state, transporter_state,
-                                    interactor_state, setter_state);
+    auto actor_states =
+        detray::tie(aborter_state, updater_state, interactor_state);
 
     propagator_t::state state(bound_param, det);
     state.do_debug = true;
@@ -118,7 +117,7 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
     ASSERT_TRUE(p.propagate(state, actor_states));
 
     // new momentum
-    const scalar newP{transporter_state.bound_params().p(ptc.charge())};
+    const scalar newP{updater_state.bound_params().p(ptc.charge())};
 
     // mass
     const auto mass = ptc.mass();
@@ -131,7 +130,7 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
 
     // New qop variance
     const scalar new_var_qop{
-        getter::element(transporter_state.bound_params().covariance(),
+        getter::element(updater_state.bound_params().covariance(),
                         e_bound_qoverp, e_bound_qoverp)};
 
     // Interaction object
@@ -236,15 +235,14 @@ GTEST_TEST(detray_material, telescope_geometry_scattering_angle) {
 
         pathlimit_aborter_t::state aborter_state{};
         // Seed = sample id
-        actor::parameter_transporter<test_algebra>::state transporter_state{
-            bound_param};
+        actor::parameter_updater_state<test_algebra> updater_state{prop_cfg,
+                                                                   bound_param};
         simulator_t::state simulator_state{i};
         simulator_state.do_energy_loss = false;
-        actor::parameter_setter<test_algebra>::state setter_state{};
 
         // Create actor states tuples
-        auto actor_states = detray::tie(aborter_state, transporter_state,
-                                        simulator_state, setter_state);
+        auto actor_states =
+            detray::tie(aborter_state, updater_state, simulator_state);
 
         propagator_t::state state(bound_param, det);
         state.do_debug = true;
@@ -252,7 +250,7 @@ GTEST_TEST(detray_material, telescope_geometry_scattering_angle) {
         // Propagate the entire detector
         ASSERT_TRUE(p.propagate(state, actor_states));
 
-        const auto& final_param = transporter_state.bound_params();
+        const auto& final_param = updater_state.bound_params();
 
         // Updated phi and theta variance
         if (i == 0u) {

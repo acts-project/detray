@@ -106,17 +106,15 @@ GTEST_TEST(detray_propagator, covariance_transport) {
     propagator_t::state propagation(bound_param0, det, prop_cfg.context);
 
     // Run propagator
-    actor::parameter_transporter<test_algebra>::state transporter_state{
-        bound_param0};
-    actor::parameter_setter<test_algebra>::state setter_state{};
-    setter_state.always_update();
+    actor::parameter_updater_state<test_algebra> updater_state{prop_cfg,
+                                                               bound_param0};
+    updater_state.always_update();
 
-    EXPECT_TRUE(
-        p.propagate(propagation, detray::tie(transporter_state, setter_state)))
+    EXPECT_TRUE(p.propagate(propagation, detray::tie(updater_state)))
         << propagation._navigation.inspector().to_string();
 
     // Bound state after one turn propagation
-    const auto& bound_param1 = transporter_state.bound_params();
+    const auto& bound_param1 = updater_state.bound_params();
 
     // Check if the track reaches the final surface
     EXPECT_EQ(bound_param0.surface_link().volume(), 0u);

@@ -186,18 +186,68 @@ struct tuple_cat_type<std::tuple<Args1...>, std::tuple<Args2...>, tuple_ts...> {
 };
 
 template <typename... Args>
-struct tuple_cat_type<dtuple<Args...>> {
-    using type = dtuple<Args...>;
+struct tuple_cat_type<detray::tuple<Args...>> {
+    using type = detray::tuple<Args...>;
 };
 
 template <typename... Args1, typename... Args2, typename... tuple_ts>
-struct tuple_cat_type<dtuple<Args1...>, dtuple<Args2...>, tuple_ts...> {
-    using type =
-        typename tuple_cat_type<dtuple<Args1..., Args2...>, tuple_ts...>::type;
+struct tuple_cat_type<detray::tuple<Args1...>, detray::tuple<Args2...>,
+                      tuple_ts...> {
+    using type = typename tuple_cat_type<detray::tuple<Args1..., Args2...>,
+                                         tuple_ts...>::type;
 };
 
 template <typename... tuple_ts>
 using tuple_cat_t = typename tuple_cat_type<tuple_ts...>::type;
+/// @}
+
+/// Remove duplicate types from tuple
+/// @{
+template <std::size_t I, typename... tuple_ts>
+struct unique_types {};
+
+/// No elements in tuple
+template <std::size_t I>
+struct unique_types<I, std::tuple<>> {
+    using type = std::tuple<>;
+};
+
+/// Recursively check for duplicate entries in the tuple and remove them
+template <std::size_t I, typename Arg1, typename... Args>
+struct unique_types<I, std::tuple<Arg1, Args...>> {
+    using type = std::conditional_t<
+        has_type_v<Arg1, std::tuple<Args...>>,
+        typename unique_types<I - 1u, std::tuple<Args...>>::type,
+        typename unique_types<I - 1u, std::tuple<Args..., Arg1>>::type>;
+};
+
+/// All elements have been checked
+template <typename Arg1, typename... Args>
+struct unique_types<0u, std::tuple<Arg1, Args...>> {
+    using type = std::tuple<Arg1, Args...>;
+};
+
+template <std::size_t I>
+struct unique_types<I, detray::tuple<>> {
+    using type = detray::tuple<>;
+};
+
+template <std::size_t I, typename Arg1, typename... Args>
+struct unique_types<I, detray::tuple<Arg1, Args...>> {
+    using type = std::conditional_t<
+        has_type_v<Arg1, detray::tuple<Args...>>,
+        typename unique_types<I - 1u, detray::tuple<Args...>>::type,
+        typename unique_types<I - 1u, detray::tuple<Args..., Arg1>>::type>;
+};
+
+template <typename Arg1, typename... Args>
+struct unique_types<0u, detray::tuple<Arg1, Args...>> {
+    using type = detray::tuple<Arg1, Args...>;
+};
+
+template <typename tuple_t>
+using unique_t =
+    typename unique_types<tuple_size_v<tuple_t> - 1u, tuple_t>::type;
 /// @}
 
 /// Check for equality of tuple types modulo permutation
@@ -206,13 +256,14 @@ template <typename T1, typename T2>
 struct is_permutation : public std::false_type {};
 
 template <>
-struct is_permutation<dtuple<>, dtuple<>> : public std::true_type {};
+struct is_permutation<detray::tuple<>, detray::tuple<>>
+    : public std::true_type {};
 
 template <typename... Args1, typename... Args2>
-struct is_permutation<dtuple<Args1...>, dtuple<Args2...>> {
+struct is_permutation<detray::tuple<Args1...>, detray::tuple<Args2...>> {
 
-    using T1 = dtuple<Args1...>;
-    using T2 = dtuple<Args2...>;
+    using T1 = detray::tuple<Args1...>;
+    using T2 = detray::tuple<Args2...>;
 
     template <typename o_tuple_t, typename T, typename... U>
     static consteval bool compare() {
@@ -230,7 +281,7 @@ struct is_permutation<dtuple<Args1...>, dtuple<Args2...>> {
     static constexpr bool value =
         ((detray::detail::tuple_size_v<T1> ==
           detray::detail::tuple_size_v<T2>) &&
-         compare<T1, Args2...>() && compare<T2, Args1...>());
+         (compare<T1, Args2...>() && compare<T2, Args1...>()));
 };
 
 template <typename T1, typename T2>
@@ -249,7 +300,7 @@ struct tuple_any<trait, std::tuple<Args...>> {
     static constexpr bool value = (trait<Args>::value || ...);
 };
 template <template <typename...> class trait, typename... Args>
-struct tuple_any<trait, dtuple<Args...>> {
+struct tuple_any<trait, detray::tuple<Args...>> {
     static constexpr bool value = (trait<Args>::value || ...);
 };
 
@@ -265,7 +316,7 @@ struct tuple_all<trait, std::tuple<Args...>> {
     static constexpr bool value = (trait<Args>::value && ...);
 };
 template <template <typename...> class trait, typename... Args>
-struct tuple_all<trait, dtuple<Args...>> {
+struct tuple_all<trait, detray::tuple<Args...>> {
     static constexpr bool value = (trait<Args>::value && ...);
 };
 

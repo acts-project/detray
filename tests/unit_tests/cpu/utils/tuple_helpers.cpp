@@ -81,10 +81,25 @@ GTEST_TEST(detray_utils, tuple_helpers) {
 
     // Permutation check
     static_assert(detail::is_permutation_v<dtuple<>, dtuple<>>);
+    static_assert(detail::is_permutation_v<dtuple<int>, dtuple<int>>);
+    static_assert(!detail::is_permutation_v<dtuple<int>, dtuple<int, int>>);
     static_assert(detail::is_permutation_v<dtuple<int, float, double>,
                                            dtuple<double, int, float>>);
     static_assert(!detail::is_permutation_v<dtuple<int, float, double>,
                                             dtuple<char, int, float>>);
     static_assert(!detail::is_permutation_v<dtuple<int, float, double>,
                                             dtuple<int, int, double, float>>);
+
+    // Check unique element tuple type
+    static_assert(std::same_as<detail::unique_t<dtuple<>>, dtuple<>>);
+    static_assert(std::same_as<detail::unique_t<dtuple<int>>, dtuple<int>>);
+    static_assert(
+        std::same_as<detail::unique_t<dtuple<int, int>>, dtuple<int>>);
+    static_assert(
+        std::same_as<detail::unique_t<dtuple<int, int, int>>, dtuple<int>>);
+    static_assert(std::same_as<detail::unique_t<dtuple<int, float, int, int>>,
+                               dtuple<int, float>>);
+    static_assert(
+        std::same_as<detail::unique_t<dtuple<int, float, int, int, double>>,
+                     dtuple<double, float, int>>);
 }

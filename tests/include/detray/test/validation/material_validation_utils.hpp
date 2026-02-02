@@ -287,15 +287,12 @@ inline auto record_material(
     // Build actor and propagator states
     typename pathlimit_aborter_t::state pathlimit_aborter_state{
         cfg.stepping.path_limit};
-    typename actor::parameter_transporter<algebra_t>::state transporter_state{
-        track};
+    typename actor::parameter_updater_state<algebra_t> updater_state{cfg};
     typename pointwise_material_interactor<algebra_t>::state interactor_state{};
     typename material_tracer_t::state mat_tracer_state{*host_mr};
-    typename actor::parameter_setter<algebra_t>::state setter_state{cfg};
 
-    auto actor_states =
-        detray::tie(pathlimit_aborter_state, transporter_state,
-                    interactor_state, mat_tracer_state, setter_state);
+    auto actor_states = detray::tie(pathlimit_aborter_state, updater_state,
+                                    interactor_state, mat_tracer_state);
 
     typename propagator_t::state propagation{track, det, cfg.context};
 

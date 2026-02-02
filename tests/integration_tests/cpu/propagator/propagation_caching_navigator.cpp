@@ -6,6 +6,7 @@
  */
 
 // Project include(s)
+#include "detray/definitions/algebra.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/tracking_surface.hpp"
 #include "detray/navigation/caching_navigator.hpp"
@@ -16,6 +17,7 @@
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/tracks/trajectories.hpp"
+#include "detray/utils/logging.hpp"
 
 // Detray test include(s)
 #include "detray/test/common/bfield.hpp"
@@ -38,7 +40,7 @@ using scalar = test::scalar;
 using point3 = test::point3;
 using vector3 = test::vector3;
 
-namespace {
+namespace detray {
 
 constexpr scalar tol{1e-3f};
 constexpr scalar path_limit{5.f * unit<scalar>::cm};
@@ -71,6 +73,7 @@ struct helix_inspector : public base_actor {
 
         // Beginning of the propagation, record initial data
         if (stepping.path_length() == 0.f) {
+            inspector_state.path_to_dep_surface = stepping.path_length();
             inspector_state.dep_free_params = stepping();
             return;
         }
@@ -92,7 +95,13 @@ struct helix_inspector : public base_actor {
         const point3 relative_error{1.f / path_from_surface *
                                     (stepping().pos() - expected_pos)};
 
-        ASSERT_NEAR(vector::norm(relative_error), 0.f, tol);
+        ASSERT_NEAR(vector::norm(relative_error), 0.f, tol)
+        /*
+<< "departure pos.:\n"
+<< dep_pos << ", current pos.:\n"
+<< stepping().pos() << ", expected pos.: \n"
+<< expected_pos << "\npath length: " << path_from_surface << " mm"*/
+        ;
 
         for (unsigned int i = 0u; i < e_free_size; i++) {
             for (unsigned int j = 0u; j < e_free_size; j++) {
@@ -112,7 +121,7 @@ struct helix_inspector : public base_actor {
     }
 };
 
-}  // anonymous namespace
+}  // namespace detray
 
 /// Test basic functionality of the propagator using a straight line stepper
 GTEST_TEST(detray_propagator, propagator_line_stepper) {
@@ -252,11 +261,11 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
             .template set_constraint<step::constraint::e_accuracy>(step_constr);
 
         // No multiple scattering simulated in this test
-        using setter_state_t = actor::parameter_setter<test_algebra>::state;
-        detail::get<setter_state_t>(actor_states)
+        using updater_state_t = actor::parameter_updater_state<test_algebra>;
+        detail::get<updater_state_t>(actor_states)
             .noise_estimation_cfg()
             .estimate_scattering_noise = false;
-        detail::get<setter_state_t>(actor_states_lim)
+        detail::get<updater_state_t>(actor_states_lim)
             .noise_estimation_cfg()
             .estimate_scattering_noise = false;
 
@@ -324,18 +333,14 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
         // Build actor states: the helix inspector can be shared
         pathlimit_aborter<scalar>::state unlimted_aborter_state{};
         pathlimit_aborter<scalar>::state pathlimit_aborter_state{path_limit};
-        actor::parameter_transporter<test_algebra>::state transporter_state{
-            track};
+        actor::parameter_updater_state<test_algebra> updater_state{cfg};
         pointwise_material_interactor<test_algebra>::state interactor_state{};
-        actor::parameter_setter<test_algebra>::state setter_state{cfg};
 
         // Create actor states tuples
-        auto actor_states =
-            detray::tie(unlimted_aborter_state, transporter_state,
-                        interactor_state, setter_state);
-        auto lim_actor_states =
-            detray::tie(pathlimit_aborter_state, transporter_state,
-                        interactor_state, setter_state);
+        auto actor_states = detray::tie(unlimted_aborter_state, updater_state,
+                                        interactor_state);
+        auto lim_actor_states = detray::tie(pathlimit_aborter_state,
+                                            updater_state, interactor_state);
 
         // Init propagator states
         propagator_t::state state(track, bfield, det);

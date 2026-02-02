@@ -38,11 +38,12 @@ class actor_chain {
     using actor_tuple = dtuple<actors_t...>;
 
     // Tuple of actor states (including states of observing actors, if present)
-    using state_tuple = detail::tuple_cat_t<detail::state_tuple_t<actors_t>...>;
+    using state_tuple = detail::unique_t<
+        detail::tuple_cat_t<detail::state_tuple_t<actors_t>...>>;
 
     // Tuple of state references that is used in the propagator
-    using state_ref_tuple =
-        detail::tuple_cat_t<detail::state_ref_tuple_t<actors_t>...>;
+    using state_ref_tuple = detail::unique_t<
+        detail::tuple_cat_t<detail::state_ref_tuple_t<actors_t>...>>;
 
     /// Call all actors in the chain.
     ///

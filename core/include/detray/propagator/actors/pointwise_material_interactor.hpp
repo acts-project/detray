@@ -227,7 +227,7 @@ struct pointwise_material_interactor : public base_actor {
             math::sqrt(m * m + p * p) -
             math::copysign(e_loss, static_cast<scalar_type>(sign))};
 
-        DETRAY_DEBUG_HOST_DEVICE("-> new energy: %f", next_e);
+        DETRAY_DEBUG_HOST_DEVICE("-> new energy: %f GeV", next_e);
 
         // Put particle at rest if energy loss is too large
         const scalar_type next_p{
@@ -238,10 +238,11 @@ struct pointwise_material_interactor : public base_actor {
         const scalar_type next_qop{(q != 0.f) ? q / next_p : 1.f / next_p};
         vector.set_qop((next_p == 0.f) ? inv : next_qop);
 
-        DETRAY_DEBUG_HOST_DEVICE("-> new abs. momentum: %f", next_p);
+        DETRAY_DEBUG_HOST_DEVICE("-> new abs. momentum: %f GeV", next_p);
 
-        DETRAY_DEBUG_HOST_DEVICE("-> Update qop: before: %f, after: %f", q / p,
-                                 vector.qop());
+        DETRAY_DEBUG_HOST_DEVICE(
+            "-> Update qop: before: %f e/GeV, after: %f e/GeV", q / p,
+            vector.qop());
     }
 
     /// @brief Update the variance of q over p of bound track parameter
@@ -254,13 +255,15 @@ struct pointwise_material_interactor : public base_actor {
 
         const scalar_type variance_qop{sigma_qop * sigma_qop};
 
-        DETRAY_DEBUG_HOST_DEVICE("-> qop variance: %f", variance_qop);
+        DETRAY_DEBUG_HOST_DEVICE("-> qop variance: %f (e/GeV)**2",
+                                 variance_qop);
 
         getter::element(covariance, e_bound_qoverp, e_bound_qoverp) +=
             variance_qop;
 
         DETRAY_DEBUG_HOST_DEVICE(
-            "-> Update qop variance: before: %f, after: %f",
+            "-> Update qop variance: before: %f (e/GeV)**2, after: %f "
+            "(e/GeV)**2",
             getter::element(covariance, e_bound_qoverp, e_bound_qoverp) -
                 variance_qop,
             getter::element(covariance, e_bound_qoverp, e_bound_qoverp));
@@ -279,14 +282,14 @@ struct pointwise_material_interactor : public base_actor {
         const scalar_type var_scattering_angle{projected_scattering_angle *
                                                projected_scattering_angle};
 
-        DETRAY_DEBUG_HOST_DEVICE("-> Scattering angle variance: %f",
+        DETRAY_DEBUG_HOST_DEVICE("-> Scattering angle variance: %f rad**2",
                                  var_scattering_angle);
 
         constexpr auto inv{detail::invalid_value<scalar_type>()};
 
         DETRAY_DEBUG_HOST_DEVICE("-> Update phi variance:");
         DETRAY_DEBUG_HOST_DEVICE(
-            "--> before: %f",
+            "--> before: %f rad**2",
             getter::element(covariance, e_bound_phi, e_bound_phi));
 
         getter::element(covariance, e_bound_phi, e_bound_phi) +=
@@ -294,19 +297,19 @@ struct pointwise_material_interactor : public base_actor {
                             : var_scattering_angle / (1.f - dir[2] * dir[2]);
 
         DETRAY_DEBUG_HOST_DEVICE(
-            "--> after: %f",
+            "--> after: %f rad**2",
             getter::element(covariance, e_bound_phi, e_bound_phi));
 
         DETRAY_DEBUG_HOST_DEVICE("-> Update theta variance:");
         DETRAY_DEBUG_HOST_DEVICE(
-            "--> before: %f",
+            "--> before: %f rad**2",
             getter::element(covariance, e_bound_theta, e_bound_theta));
 
         getter::element(covariance, e_bound_theta, e_bound_theta) +=
             var_scattering_angle;
 
         DETRAY_DEBUG_HOST_DEVICE(
-            "--> after: %f",
+            "--> after: %f rad**2",
             getter::element(covariance, e_bound_theta, e_bound_theta));
     }
 };

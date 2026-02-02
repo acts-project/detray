@@ -137,13 +137,11 @@ inline auto run_propagation_host(vecmem::memory_resource *mr,
         step_tracer_host_t::state tracer_state{*mr};
         typename pathlimit_aborter_t::state pathlimit_state{
             cfg.stepping.path_limit};
-        typename actor::parameter_transporter<test_algebra>::state
-            transporter_state{trk};
-        parameter_setter_t::state setter_state{cfg};
+        actor::parameter_updater_state<test_algebra> updater_state{cfg};
         pointwise_material_interactor<test_algebra>::state interactor_state{};
-        auto actor_states =
-            detray::tie(tracer_state, pathlimit_state, transporter_state,
-                        interactor_state, setter_state);
+
+        auto actor_states = detray::tie(tracer_state, pathlimit_state,
+                                        updater_state, interactor_state);
 
         typename propagator_host_t::state state(trk, field, det);
 

@@ -62,15 +62,12 @@ __global__ void material_validation_kernel(
 
     // Create the actor states
     typename pathlimit_aborter_t::state aborter_state{cfg.stepping.path_limit};
-    typename actor::parameter_transporter<algebra_t>::state transporter_state{
-        tracks[trk_id]};
+    actor::parameter_updater_state<algebra_t> updater_state{cfg};
     typename pointwise_material_interactor<algebra_t>::state interactor_state{};
     typename material_tracer_t::state mat_tracer_state{mat_steps.at(trk_id)};
-    typename actor::parameter_setter<algebra_t>::state setter_state{cfg};
 
-    auto actor_states =
-        ::detray::tie(aborter_state, transporter_state, interactor_state,
-                      mat_tracer_state, setter_state);
+    auto actor_states = ::detray::tie(aborter_state, updater_state,
+                                      interactor_state, mat_tracer_state);
 
     // Run propagation
     typename navigator_t::state::view_type nav_view{};
