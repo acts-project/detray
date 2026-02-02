@@ -110,7 +110,8 @@ int main(int argc, char** argv) {
     dtuple<> empty_state{};
 
     actor::parameter_updater_state<bench_algebra> updater_state{prop_cfg};
-    pointwise_material_interactor<bench_algebra>::state interactor_state{};
+    actor::pointwise_material_interactor<bench_algebra>::state
+        interactor_state{};
 
     auto actor_states =
         detail::make_tuple<dtuple>(updater_state, interactor_state);

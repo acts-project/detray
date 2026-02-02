@@ -66,9 +66,9 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
 
     // Include helix actor to check track position/covariance
     using actor_chain_t = actor_chain<
-        actor::parameter_updater<test_algebra,
-                                 pointwise_material_interactor<test_algebra>>,
-        surface_sequencer<surface_t>>;
+        actor::parameter_updater<
+            test_algebra, actor::pointwise_material_interactor<test_algebra>>,
+        actor::surface_sequencer<surface_t>>;
 
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
     using direct_propagator_t =
@@ -111,7 +111,8 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
         actor::parameter_updater_state<test_algebra> fw_updater_state{cfg};
         actor::parameter_updater_state<test_algebra> bw_updater_state{cfg};
 
-        pointwise_material_interactor<test_algebra>::state interactor_state{};
+        actor::pointwise_material_interactor<test_algebra>::state
+            interactor_state{};
         vecmem::data::vector_buffer<surface_t> seqs_buffer{
             100u, host_mr, vecmem::data::buffer_type::resizable};
         vecmem::data::vector_buffer<surface_t> seqs_forward_buffer{
@@ -129,10 +130,10 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
         vecmem::device_vector<surface_t> seqs_backward_device(
             seqs_backward_buffer);
 
-        surface_sequencer<surface_t>::state sequencer_state(seqs_device);
-        surface_sequencer<surface_t>::state sequencer_forward_state(
+        actor::surface_sequencer<surface_t>::state sequencer_state(seqs_device);
+        actor::surface_sequencer<surface_t>::state sequencer_forward_state(
             seqs_forward_device);
-        surface_sequencer<surface_t>::state sequencer_backward_state(
+        actor::surface_sequencer<surface_t>::state sequencer_backward_state(
             seqs_backward_device);
 
         auto actor_states =
@@ -256,9 +257,9 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
 
     // Include helix actor to check track position/covariance
     using actor_chain_t = actor_chain<
-        actor::parameter_updater<test_algebra,
-                                 pointwise_material_interactor<test_algebra>>,
-        surface_sequencer<surface_t>>;
+        actor::parameter_updater<
+            test_algebra, actor::pointwise_material_interactor<test_algebra>>,
+        actor::surface_sequencer<surface_t>>;
 
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
     using direct_propagator_t =
@@ -295,7 +296,8 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
         actor::parameter_updater_state<test_algebra> updater_state{cfg};
         actor::parameter_updater_state<test_algebra> fw_updater_state{cfg};
         actor::parameter_updater_state<test_algebra> bw_updater_state{cfg};
-        pointwise_material_interactor<test_algebra>::state interactor_state{};
+        actor::pointwise_material_interactor<test_algebra>::state
+            interactor_state{};
 
         vecmem::data::vector_buffer<surface_t> seqs_buffer{
             100u, host_mr, vecmem::data::buffer_type::resizable};
@@ -314,10 +316,10 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
         vecmem::device_vector<surface_t> seqs_backward_device(
             seqs_backward_buffer);
 
-        surface_sequencer<surface_t>::state sequencer_state(seqs_device);
-        surface_sequencer<surface_t>::state sequencer_forward_state(
+        actor::surface_sequencer<surface_t>::state sequencer_state(seqs_device);
+        actor::surface_sequencer<surface_t>::state sequencer_forward_state(
             seqs_forward_device);
-        surface_sequencer<surface_t>::state sequencer_backward_state(
+        actor::surface_sequencer<surface_t>::state sequencer_backward_state(
             seqs_backward_device);
 
         auto actor_states =

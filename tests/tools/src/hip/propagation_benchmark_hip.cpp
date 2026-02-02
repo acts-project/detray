@@ -140,7 +140,8 @@ int main(int argc, char** argv) {
     // Build actor states
     dtuple<> empty_state{};
 
-    pointwise_material_interactor<bench_algebra>::state interactor_state{};
+    actor::pointwise_material_interactor<bench_algebra>::state
+        interactor_state{};
     actor::parameter_updater_state<bench_algebra> updater_state{prop_cfg};
 
     auto actor_states =

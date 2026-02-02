@@ -15,12 +15,13 @@
 #include "detray/materials/concepts.hpp"
 #include "detray/materials/detail/material_accessor.hpp"
 #include "detray/materials/interaction.hpp"
+#include "detray/propagator/actors/parameter_updater.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/tracks/bound_track_parameters.hpp"
 #include "detray/utils/geometry_utils.hpp"
 #include "detray/utils/logging.hpp"
 
-namespace detray {
+namespace detray::actor {
 
 template <concepts::algebra algebra_t>
 struct pointwise_material_interactor : public base_actor {
@@ -131,10 +132,10 @@ struct pointwise_material_interactor : public base_actor {
         }
     };
 
-    template <typename propagator_state_t, typename transporter_result_t>
-    DETRAY_HOST_DEVICE inline void operator()(state &interactor_state,
-                                              propagator_state_t &prop_state,
-                                              transporter_result_t &res) const {
+    template <typename propagator_state_t>
+    DETRAY_HOST_DEVICE inline void operator()(
+        state &interactor_state, propagator_state_t &prop_state,
+        parameter_transporter_result<algebra_t> &res) const {
 
         const auto &navigation = prop_state._navigation;
 
@@ -255,15 +256,14 @@ struct pointwise_material_interactor : public base_actor {
 
         const scalar_type variance_qop{sigma_qop * sigma_qop};
 
-        DETRAY_DEBUG_HOST_DEVICE("-> qop variance: %f (e/GeV)**2",
-                                 variance_qop);
+        DETRAY_DEBUG_HOST_DEVICE("-> qop variance: %f (e/GeV)^2", variance_qop);
 
         getter::element(covariance, e_bound_qoverp, e_bound_qoverp) +=
             variance_qop;
 
         DETRAY_DEBUG_HOST_DEVICE(
-            "-> Update qop variance: before: %f (e/GeV)**2, after: %f "
-            "(e/GeV)**2",
+            "-> Update qop variance: before: %f (e/GeV)^2, after: %f "
+            "(e/GeV)^2",
             getter::element(covariance, e_bound_qoverp, e_bound_qoverp) -
                 variance_qop,
             getter::element(covariance, e_bound_qoverp, e_bound_qoverp));
@@ -282,14 +282,14 @@ struct pointwise_material_interactor : public base_actor {
         const scalar_type var_scattering_angle{projected_scattering_angle *
                                                projected_scattering_angle};
 
-        DETRAY_DEBUG_HOST_DEVICE("-> Scattering angle variance: %f rad**2",
+        DETRAY_DEBUG_HOST_DEVICE("-> Scattering angle variance: %f rad^2",
                                  var_scattering_angle);
 
         constexpr auto inv{detail::invalid_value<scalar_type>()};
 
         DETRAY_DEBUG_HOST_DEVICE("-> Update phi variance:");
         DETRAY_DEBUG_HOST_DEVICE(
-            "--> before: %f rad**2",
+            "--> before: %f rad^2",
             getter::element(covariance, e_bound_phi, e_bound_phi));
 
         getter::element(covariance, e_bound_phi, e_bound_phi) +=
@@ -297,21 +297,21 @@ struct pointwise_material_interactor : public base_actor {
                             : var_scattering_angle / (1.f - dir[2] * dir[2]);
 
         DETRAY_DEBUG_HOST_DEVICE(
-            "--> after: %f rad**2",
+            "--> after: %f rad^2",
             getter::element(covariance, e_bound_phi, e_bound_phi));
 
         DETRAY_DEBUG_HOST_DEVICE("-> Update theta variance:");
         DETRAY_DEBUG_HOST_DEVICE(
-            "--> before: %f rad**2",
+            "--> before: %f rad^2",
             getter::element(covariance, e_bound_theta, e_bound_theta));
 
         getter::element(covariance, e_bound_theta, e_bound_theta) +=
             var_scattering_angle;
 
         DETRAY_DEBUG_HOST_DEVICE(
-            "--> after: %f rad**2",
+            "--> after: %f rad^2",
             getter::element(covariance, e_bound_theta, e_bound_theta));
     }
 };
 
-}  // namespace detray
+}  // namespace detray::actor

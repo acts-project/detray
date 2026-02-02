@@ -78,7 +78,7 @@ struct example_actor : public detray::base_actor {
         example_state.buffer.push_back(
             static_cast<float>(example_state.buffer.size()));
 
-        return {detray::actor::status::e_notify, &example_state.buffer};
+        return {{detray::actor::status::e_notify}, &example_state.buffer};
     }
 
     /// Observing actor implementation: Counts vector elements (division)
@@ -89,7 +89,7 @@ struct example_actor : public detray::base_actor {
         example_state.buffer.push_back(static_cast<float>(res.buffer->size()) /
                                        10.f);
 
-        return {detray::actor::status::e_notify, &example_state.buffer};
+        return {{detray::actor::status::e_notify}, &example_state.buffer};
     }
 
     /// Observing actor implementation to printer: do nothing
@@ -98,7 +98,7 @@ struct example_actor : public detray::base_actor {
     result operator()(state &example_state,
                       const propagator_state_t & /*p_state*/,
                       const subj_result_t & /*res*/) const {
-        return {detray::actor::status::e_notify, &example_state.buffer};
+        return {{detray::actor::status::e_notify}, &example_state.buffer};
     }
 };
 

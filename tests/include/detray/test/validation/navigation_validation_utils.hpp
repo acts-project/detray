@@ -144,8 +144,7 @@ inline auto record_propagation(
     const navigation::direction nav_dir = navigation::direction::e_forward,
     typename actor_chain<actor_ts...>::state_ref_tuple state_tuple = {},
     const std::array<dscalar<typename detector_t::algebra_type>, e_bound_size>
-        & /*stddevs*/
-    = {}) {
+        &stddevs = {}) {
 
     using algebra_t = typename detector_t::algebra_type;
     using scalar_t = dscalar<algebra_t>;
@@ -173,8 +172,8 @@ inline auto record_propagation(
                           inspector_t, intersection_t>;
 
     // Propagator with pathlimit aborter and validation actors
-    using step_tracer_t = step_tracer<algebra_t, dvector>;
-    using pathlimit_aborter_t = pathlimit_aborter<scalar_t>;
+    using step_tracer_t = actor::step_tracer<algebra_t, dvector>;
+    using pathlimit_aborter_t = actor::pathlimit_aborter<scalar_t>;
     using material_tracer_t =
         material_validator::material_tracer<scalar_t, dvector>;
     using actor_chain_t = actor_chain<pathlimit_aborter_t, actor_ts...,
@@ -185,6 +184,11 @@ inline auto record_propagation(
     propagator_t prop{cfg};
 
     // Build actor states to collect data
+    using updater_state_t = actor::parameter_updater_state<algebra_t>;
+    static constexpr bool has_param_transport{
+        detail::has_type_v<updater_state_t,
+                           typename actor_chain_t::state_tuple>};
+
     typename pathlimit_aborter_t::state pathlimit_aborter_state{
         cfg.stepping.path_limit};
     typename step_tracer_t::state step_tracer_state{*host_mr};
@@ -214,6 +218,40 @@ inline auto record_propagation(
     } else {
         propagation = std::make_unique<typename propagator_t::state>(
             track, bfield, det, ctx);
+    }
+
+    // Set the initial covariances
+    if constexpr (has_param_transport) {
+        if (!stddevs.empty() && !std::ranges::all_of(stddevs, [](scalar_t s) {
+                return s == 0.f;
+            })) {
+            auto &updater_state = detail::get<updater_state_t>(actor_states);
+            updater_state.init(track);
+
+            // Copy of the curvilinear params
+            bound_track_parameters<algebra_t> bound_param =
+                updater_state.bound_params();
+
+            // Smear the covariance
+            std::random_device rd{};
+            std::mt19937 generator{rd()};
+
+            for (std::size_t i = 0u; i < e_bound_size; i++) {
+                // Exclude zero-stddev
+                if (stddevs[i] != scalar_t{0}) {
+                    bound_param[i] = std::normal_distribution<scalar_t>(
+                        bound_param[i], stddevs[i])(generator);
+                }
+
+                getter::element(bound_param.covariance(), i, i) =
+                    stddevs[i] * stddevs[i];
+            }
+            assert(!bound_param.is_invalid());
+
+            // Copy back into updater state
+            updater_state =
+                actor::parameter_updater_state<algebra_t>{cfg, bound_param};
+        }
     }
 
     // Access to navigation information
@@ -274,6 +312,12 @@ inline auto record_propagation(
         fw_propagation->set_particle(
             update_particle_hypothesis(ptc_hypo, track));
 
+        // Make sure parameters are transported, even if there is no actor to
+        // update them and enforce the write back to the updater state
+        if constexpr (has_param_transport) {
+            detail::get<updater_state_t>(fw_actor_states).always_update(true);
+        }
+
         const bool fw_success =
             fw_propagator_t{cfg}.propagate(*fw_propagation, fw_actor_states);
 
@@ -287,6 +331,13 @@ inline auto record_propagation(
         propagation->_stepping() = fw_propagation->_stepping();
         propagation->_navigation.set_volume(
             fw_propagation->_navigation.volume());
+
+        // If parameter transport is part of the propagation, copy the final
+        // bound parameters to the backward propagation
+        if constexpr (has_param_transport) {
+            auto &updater_state = detail::get<updater_state_t>(actor_states);
+            updater_state = detail::get<updater_state_t>(fw_actor_states);
+        }
     }
 
     // Run the propagation
@@ -316,7 +367,7 @@ inline auto record_propagation(
 /// @param trk_no number of the track in the sample
 /// @param debug_file where to output debugging information to
 ///
-/// @returns the counts on missed and additional surfaces, matching errorsm
+/// @returns the counts on missed and additional surfaces, matching errors,
 /// as well as the collections of the intersections that did not match
 template <typename truth_trace_t, typename recorded_trace_t, typename traj_t,
           concepts::algebra algebra_t>

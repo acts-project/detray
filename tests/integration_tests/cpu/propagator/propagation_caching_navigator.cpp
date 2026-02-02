@@ -6,7 +6,6 @@
  */
 
 // Project include(s)
-#include "detray/definitions/algebra.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/tracking_surface.hpp"
 #include "detray/navigation/caching_navigator.hpp"
@@ -40,88 +39,87 @@ using scalar = test::scalar;
 using point3 = test::point3;
 using vector3 = test::vector3;
 
-namespace detray {
-
 constexpr scalar tol{1e-3f};
 constexpr scalar path_limit{5.f * unit<scalar>::cm};
 constexpr std::size_t cache_size{navigation::default_cache_size};
 
-/// Check the position and transport Jacobian at every step since the last
-/// surface
+namespace detray::actor {
+
+/// Compare helical track positions for stepper
 struct helix_inspector : public base_actor {
 
-    /// Keeps the state of a helix to calculate track positions
+    /// Keeps the state of a helix gun to calculate track positions
     struct state {
-        // Free track parameters at departure surface
-        free_track_parameters<test_algebra> dep_free_params{};
-        // Full path length to departure surface
-        scalar path_to_dep_surface{0.f};
+        scalar path_from_surface{0.f};
     };
 
+    /// Check that the stepper remains on the right helical track for its pos.
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE void operator()(
-        state& inspector_state, const propagator_state_t& prop_state) const {
+        state& inspector_state, const propagator_state_t& prop_state,
+        parameter_transporter_result<test_algebra>& res) const {
 
         const auto& navigation = prop_state._navigation;
         const auto& stepping = prop_state._stepping;
+        const auto& bound_params = res.destination_params;
 
         typename propagator_state_t::detector_type::geometry_context ctx{};
 
-        // Find the distance from the departure surface
-        const scalar path_from_surface{stepping.path_length() -
-                                       inspector_state.path_to_dep_surface};
-
-        // Beginning of the propagation, record initial data
-        if (stepping.path_length() == 0.f) {
-            inspector_state.path_to_dep_surface = stepping.path_length();
-            inspector_state.dep_free_params = stepping();
+        // Nothing has happened yet (first call of actor chain)
+        if (stepping.path_length() < tol ||
+            inspector_state.path_from_surface < tol) {
             return;
         }
 
-        // Get B-field at departure surface
-        const auto dep_pos = inspector_state.dep_free_params.pos();
+        if (bound_params.surface_link().is_invalid()) {
+            return;
+        }
+
+        // Surface
+        const auto sf = tracking_surface{navigation.detector(),
+                                         bound_params.surface_link()};
+
+        const free_track_parameters<test_algebra> free_params =
+            sf.bound_to_free_vector(ctx, bound_params);
+
+        const auto last_pos = free_params.pos();
+
         const auto bvec =
-            stepping.field().at(dep_pos[0], dep_pos[1], dep_pos[2]);
+            stepping.field().at(last_pos[0], last_pos[1], last_pos[2]);
         const vector3 b{bvec[0], bvec[1], bvec[2]};
 
-        // Create helix at departure surface and get its position and
-        // transport Jacobian at the current integration path length
-        detail::helix<test_algebra> hlx(inspector_state.dep_free_params, b);
+        detail::helix<test_algebra> hlx(free_params, b);
 
-        const auto expected_pos = hlx.pos(path_from_surface);
-        const auto expected_Jac = hlx.jacobian(path_from_surface);
+        const auto true_pos = hlx(inspector_state.path_from_surface);
 
-        // Compare to stepper
-        const point3 relative_error{1.f / path_from_surface *
-                                    (stepping().pos() - expected_pos)};
+        const point3 relative_error{1.f / inspector_state.path_from_surface *
+                                    (stepping().pos() - true_pos)};
 
-        ASSERT_NEAR(vector::norm(relative_error), 0.f, tol)
-        /*
-<< "departure pos.:\n"
-<< dep_pos << ", current pos.:\n"
-<< stepping().pos() << ", expected pos.: \n"
-<< expected_pos << "\npath length: " << path_from_surface << " mm"*/
-        ;
+        ASSERT_NEAR(vector::norm(relative_error), 0.f, tol);
+
+        auto true_J = hlx.jacobian(inspector_state.path_from_surface);
 
         for (unsigned int i = 0u; i < e_free_size; i++) {
             for (unsigned int j = 0u; j < e_free_size; j++) {
                 ASSERT_NEAR(
                     getter::element(stepping.transport_jacobian(), i, j),
-                    getter::element(expected_Jac, i, j),
-                    path_from_surface * tol * 10.f);
+                    getter::element(true_J, i, j),
+                    inspector_state.path_from_surface * tol * 10.f);
             }
         }
-
-        // Reset path to departure surface, when new surface is reached
+        // The propagation does not start on a surface, skipp the inital path
+        if (!bound_params.surface_link().is_invalid()) {
+            inspector_state.path_from_surface += stepping.step_size();
+        }
+        // Reset path from surface
         if (navigation.is_on_sensitive() ||
             navigation.encountered_sf_material()) {
-            inspector_state.path_to_dep_surface = stepping.path_length();
-            inspector_state.dep_free_params = stepping();
+            inspector_state.path_from_surface = 0.f;
         }
     }
 };
 
-}  // namespace detray
+}  // namespace detray::actor
 
 /// Test basic functionality of the propagator using a straight line stepper
 GTEST_TEST(detray_propagator, propagator_line_stepper) {
@@ -204,9 +202,10 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
         rk_stepper<bfield_t::view_t, test_algebra, constraints_t, policy_t>;
     // Include helix actor to check track position/covariance
     using actor_chain_t = actor_chain<
-        helix_inspector, pathlimit_aborter<scalar>,
-        actor::parameter_updater<test_algebra,
-                                 pointwise_material_interactor<test_algebra>>>;
+        actor::pathlimit_aborter<scalar>,
+        actor::parameter_updater<
+            test_algebra, actor::pointwise_material_interactor<test_algebra>,
+            actor::helix_inspector>>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Build detector
@@ -240,7 +239,8 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
 
         // Make sure the lim state is being terminated
         auto& pathlimit_aborter_state =
-            detail::get<pathlimit_aborter<scalar>::state>(actor_states_lim);
+            detail::get<actor::pathlimit_aborter<scalar>::state>(
+                actor_states_lim);
         pathlimit_aborter_state.set_path_limit(path_limit);
 
         // Init propagator states
@@ -306,9 +306,9 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
         rk_stepper<bfield_t::view_t, test_algebra, constraints_t, policy_t>;
     // Include helix actor to check track position/covariance
     using actor_chain_t = actor_chain<
-        pathlimit_aborter<scalar>,
-        actor::parameter_updater<test_algebra,
-                                 pointwise_material_interactor<test_algebra>>>;
+        actor::pathlimit_aborter<scalar>,
+        actor::parameter_updater<
+            test_algebra, actor::pointwise_material_interactor<test_algebra>>>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Build detector and magnetic field
@@ -331,10 +331,12 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
         track_t lim_track(track);
 
         // Build actor states: the helix inspector can be shared
-        pathlimit_aborter<scalar>::state unlimted_aborter_state{};
-        pathlimit_aborter<scalar>::state pathlimit_aborter_state{path_limit};
+        actor::pathlimit_aborter<scalar>::state unlimted_aborter_state{};
+        actor::pathlimit_aborter<scalar>::state pathlimit_aborter_state{
+            path_limit};
         actor::parameter_updater_state<test_algebra> updater_state{cfg};
-        pointwise_material_interactor<test_algebra>::state interactor_state{};
+        actor::pointwise_material_interactor<test_algebra>::state
+            interactor_state{};
 
         // Create actor states tuples
         auto actor_states = detray::tie(unlimted_aborter_state, updater_state,

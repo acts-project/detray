@@ -395,10 +395,11 @@ struct bound_getter : public base_actor {
         std::size_t track_ID{0u};
     };
 
-    template <typename propagator_state_t, typename transporter_result_t>
-    DETRAY_HOST_DEVICE void operator()(state& actor_state,
-                                       propagator_state_t& propagation,
-                                       const transporter_result_t& res) const {
+    template <typename propagator_state_t>
+    DETRAY_HOST_DEVICE void operator()(
+        state& actor_state, propagator_state_t& propagation,
+        const detray::actor::parameter_transporter_result<algebra_t>& res)
+        const {
 
         auto& navigation = propagation._navigation;
         auto& stepping = propagation._stepping;

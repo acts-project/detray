@@ -58,7 +58,7 @@ int main(int argc, char** argv) {
     using stepper_t = rk_stepper<typename field_t::view_t, bench_algebra>;
     using empty_chain_t = actor_chain<>;
     using default_chain = actor_chain<actor::parameter_updater<
-        bench_algebra, pointwise_material_interactor<bench_algebra>>>;
+        bench_algebra, actor::pointwise_material_interactor<bench_algebra>>>;
 
     // Host memory resource
     vecmem::host_memory_resource host_mr;
@@ -144,7 +144,8 @@ int main(int argc, char** argv) {
     dtuple<> empty_state{};
 
     actor::parameter_updater_state<bench_algebra> updater_state{prop_cfg};
-    pointwise_material_interactor<bench_algebra>::state interactor_state{};
+    actor::pointwise_material_interactor<bench_algebra>::state
+        interactor_state{};
 
     auto actor_states =
         detail::make_tuple<dtuple>(updater_state, interactor_state);

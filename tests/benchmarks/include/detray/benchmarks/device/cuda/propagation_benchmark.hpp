@@ -50,7 +50,7 @@ using empty_chain = actor_chain<>;
 
 template <concepts::algebra algebra_t>
 using default_chain = actor_chain<actor::parameter_updater<
-    algebra_t, pointwise_material_interactor<algebra_t>>>;
+    algebra_t, actor::pointwise_material_interactor<algebra_t>>>;
 
 using const_field_t = bfield::const_bknd_t<benchmarks::scalar>;
 

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2024 CERN for the benefit of the ACTS project
+ * (c) 2024-2026 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -10,6 +10,7 @@
 // Project include(s).
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/propagator/actors/parameter_updater.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/tracks/bound_track_parameters.hpp"
 #include "detray/tracks/free_track_parameters.hpp"
@@ -36,6 +37,8 @@ struct step_data {
     free_matrix_type jacobian{};
 };
 }  // namespace detail
+
+namespace actor {
 
 /// Collect information at every step
 template <concepts::algebra algebra_t, template <typename...> class vector_t>
@@ -84,10 +87,10 @@ struct step_tracer : public base_actor {
 
     /// Collect only when transport to bound track parameters happens
     /// @note Observer to the parameter updater
-    template <typename propagator_state_t, typename transporter_result_t>
-    DETRAY_HOST_DEVICE void operator()(state& tracer_state,
-                                       propagator_state_t& prop_state,
-                                       const transporter_result_t& res) const {
+    template <typename propagator_state_t>
+    DETRAY_HOST_DEVICE void operator()(
+        state& tracer_state, propagator_state_t& prop_state,
+        const parameter_transporter_result<algebra_t>& res) const {
         const auto& navigation = prop_state._navigation;
         assert(navigation.is_on_surface());
 
@@ -123,5 +126,7 @@ struct step_tracer : public base_actor {
                 stepping.transport_jacobian()};
     }
 };
+
+}  // namespace actor
 
 }  // namespace detray

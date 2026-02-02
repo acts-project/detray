@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2025 CERN for the benefit of the ACTS project
+ * (c) 2025-2026 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -16,7 +16,10 @@
 // Vecmem include(s)
 #include <vecmem/containers/device_vector.hpp>
 
-namespace detray {
+// System includes
+#include <utility>
+
+namespace detray::actor {
 
 template <typename sf_descriptor_t>
 struct surface_sequencer : public base_actor {
@@ -102,4 +105,4 @@ struct surface_sequencer : public base_actor {
     }
 };
 
-}  // namespace detray
+}  // namespace detray::actor

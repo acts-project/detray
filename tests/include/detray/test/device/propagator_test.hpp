@@ -76,20 +76,21 @@ struct propagator_test_config {
 };
 
 // Assemble actor chain type
-using step_tracer_host_t = step_tracer<test_algebra, vecmem::vector>;
-using step_tracer_device_t = step_tracer<test_algebra, vecmem::device_vector>;
-using pathlimit_aborter_t = pathlimit_aborter<scalar>;
+using step_tracer_host_t = actor::step_tracer<test_algebra, vecmem::vector>;
+using step_tracer_device_t =
+    actor::step_tracer<test_algebra, vecmem::device_vector>;
+using pathlimit_aborter_t = actor::pathlimit_aborter<scalar>;
 using parameter_setter_t = actor::parameter_setter<test_algebra>;
-using actor_chain_host_t =
-    actor_chain<pathlimit_aborter_t,
-                actor::parameter_updater<
-                    test_algebra, pointwise_material_interactor<test_algebra>,
-                    step_tracer_host_t>>;
-using actor_chain_device_t =
-    actor_chain<pathlimit_aborter_t,
-                actor::parameter_updater<
-                    test_algebra, pointwise_material_interactor<test_algebra>,
-                    step_tracer_device_t>>;
+using actor_chain_host_t = actor_chain<
+    pathlimit_aborter_t,
+    actor::parameter_updater<test_algebra,
+                             actor::pointwise_material_interactor<test_algebra>,
+                             step_tracer_host_t>>;
+using actor_chain_device_t = actor_chain<
+    pathlimit_aborter_t,
+    actor::parameter_updater<test_algebra,
+                             actor::pointwise_material_interactor<test_algebra>,
+                             step_tracer_device_t>>;
 
 /// Precompute the tracks
 template <typename track_generator_t = uniform_track_generator<test_track>>
@@ -138,7 +139,8 @@ inline auto run_propagation_host(vecmem::memory_resource *mr,
         typename pathlimit_aborter_t::state pathlimit_state{
             cfg.stepping.path_limit};
         actor::parameter_updater_state<test_algebra> updater_state{cfg};
-        pointwise_material_interactor<test_algebra>::state interactor_state{};
+        actor::pointwise_material_interactor<test_algebra>::state
+            interactor_state{};
 
         auto actor_states = detray::tie(tracer_state, pathlimit_state,
                                         updater_state, interactor_state);

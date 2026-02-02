@@ -104,6 +104,13 @@ struct parameter_updater_state {
         m_bound_params.set_surface_link(geometry::barcode{});
     }
 
+    /// Initialize the state from bound track parameters
+    DETRAY_HOST_DEVICE
+    constexpr void init(const bound_track_parameters<algebra_t>& bound_params) {
+        assert(!bound_params.is_invalid());
+        m_bound_params = bound_params;
+    }
+
     /// @return access to the noise estimation configuration
     DETRAY_HOST_DEVICE
     void always_update(const bool do_update = true) {
@@ -124,6 +131,12 @@ struct parameter_updater_state {
         return m_bound_params;
     }
 
+    /// @returns bound track parameters.
+    DETRAY_HOST_DEVICE
+    constexpr bound_track_parameters<algebra_t>& bound_params() {
+        return m_bound_params;
+    }
+
     /// @returns true if the full Jacobian matrix should be assembled.
     DETRAY_HOST_DEVICE
     constexpr bool has_full_jacobian() const {
@@ -136,20 +149,13 @@ struct parameter_updater_state {
         return *m_full_jacobian;
     }
 
-    private:
     /// Set new full Jacbian.
     DETRAY_HOST_DEVICE
     constexpr void set_full_jacobian(const bound_matrix<algebra_t>& jac) {
         *m_full_jacobian = jac;
     }
 
-    /// Set the bound parameters to @param bound_param
-    DETRAY_HOST_DEVICE
-    constexpr void set_bound_params(
-        const bound_track_parameters<algebra_t>& bound_param) {
-        m_bound_params = bound_param;
-    }
-
+    private:
     /// bound covariance
     bound_track_parameters<algebra_t> m_bound_params{};
     /// Full jacobian for up to the current destination surface
@@ -158,6 +164,24 @@ struct parameter_updater_state {
     noise_cfg m_cfg{};
     /// Always update the free track parameters, even if nothing changed
     bool m_always_update{false};
+};
+
+/// Result of the param. transporter: bound track parameters at dest. sf.
+template <concepts::algebra algebra_t>
+struct parameter_transporter_result : public actor::result {
+    /// bound track parameters of destination surface
+    bound_track_parameters<algebra_t> destination_params{};
+    /// The Jacobian between the departure and destination surface
+    bound_matrix<algebra_t> propagation_step_jacobian{};
+
+    /// @returns a string stream that prints the transporter result details
+    DETRAY_HOST
+    friend std::ostream& operator<<(
+        std::ostream& os, const parameter_transporter_result<algebra_t>& res) {
+        os << static_cast<actor::result>(res) << std::endl;
+        os << "destination params:\n" << res.destination_params << std::endl;
+        return os;
+    }
 };
 
 template <concepts::algebra algebra_t>
@@ -177,23 +201,7 @@ struct parameter_transporter : base_actor {
 
     /// Use the parameter updater state
     using state = parameter_updater_state<algebra_t>;
-
-    /// Result of the param. transporter: bound track parameters at dest. sf.
-    struct result : public actor::result {
-        /// bound track parameters of destination surface
-        bound_track_parameters_type destination_params{};
-        /// The Jacobian between the departure and destination surface
-        bound_matrix_type propagation_step_jacobian{};
-
-        /// @returns a string stream that prints the transporter result details
-        DETRAY_HOST
-        friend std::ostream& operator<<(std::ostream& os, const result& res) {
-            os << static_cast<actor::result>(res) << std::endl;
-            os << "destination params:\n"
-               << res.destination_params << std::endl;
-            return os;
-        }
-    };
+    using result = parameter_transporter_result<algebra_t>;
 
     /// Filter the masks of a detector according to the local frame type
     struct select_frame {
@@ -247,14 +255,12 @@ struct parameter_transporter : base_actor {
         const auto& stepping = propagation._stepping;
         const auto& navigation = propagation._navigation;
 
-        // Result to be passed on to observing actors
-        result res{actor::status::e_unknown, bound_track_parameters_type{},
-                   bound_matrix_type{}};
-
         // Do covariance transport only when the track is on surface
         if (!(navigation.is_on_sensitive() ||
               navigation.encountered_sf_material())) {
-            return res;
+            return {{actor::status::e_unknown},
+                    bound_track_parameters_type{},
+                    bound_matrix_type{}};
         }
 
         assert(navigation.is_on_surface());
@@ -266,8 +272,9 @@ struct parameter_transporter : base_actor {
         auto& departure_params = updater_state.bound_params();
 
         // Covariance is transported only when the departure surface is an
-        // actual tracking surface. (i.e. This disables the covariance transport
-        // from curvilinear frame).
+        // actual tracking surface. (i.e. This disables the covariance
+        // transport from curvilinear frame).
+        result res{};
         if (!departure_params.surface_link().is_invalid()) {
 
             // There is no need to transport the initial parameters
@@ -339,8 +346,8 @@ struct parameter_transporter : base_actor {
         // J_full = J_F2B * (D + I) * J_transport * J_B2F
         //
         // The transport Jacobian is given, but the free-to-bound and
-        // bound-to-free matrices as well as the derivative matrix $D$ need to
-        // be computed still. In order to avoid full-rank matrix
+        // bound-to-free matrices as well as the derivative matrix $D$ need
+        // to be computed still. In order to avoid full-rank matrix
         // multiplications, we use the known substructure of the
         // aforementioned matrices in order to perform fewer operations. We
         // describe in detail the mathematics performed throughout the
@@ -361,8 +368,8 @@ struct parameter_transporter : base_actor {
         const free_track_parameters<algebra_t>& dest_free_params = stepping();
 
         // First, we will compute the bound-to-free Jacobian, which is given
-        // by three sub-Jacobians. In particular, the matrix has an 8x6 shape
-        // and looks like this:
+        // by three sub-Jacobians. In particular, the matrix has an 8x6
+        // shape and looks like this:
         //
         //        l0  l1 phi  th q/p   t
         //  px [[  A,  A,  B,  B,  0,  0],
@@ -377,11 +384,12 @@ struct parameter_transporter : base_actor {
         // Note that we thus only have 17 out of 48 non-trivial matrix
         // elements.
         //
-        // In this matrix, A represents the d(pos)/d(loc) submatrix, B is the
-        // d(pos)/d(angle) submatrix, and C is the d(dir)/d(angle) submatrix,
-        // all of which are 3x2 in size. Also, A and B depend on the frame
-        // type while C is computed in the same way for all frames. Finally,
-        // note that submatrix B is the zero matrix for most frame types.
+        // In this matrix, A represents the d(pos)/d(loc) submatrix, B is
+        // the d(pos)/d(angle) submatrix, and C is the d(dir)/d(angle)
+        // submatrix, all of which are 3x2 in size. Also, A and B depend on
+        // the frame type while C is computed in the same way for all
+        // frames. Finally, note that submatrix B is the zero matrix for
+        // most frame types.
         const auto& dep_trf3 = dep_sf.transform(gctx);
         const dmatrix<algebra_t, 3, 2> b2f_dpos_dloc =
             types::visit<frame_registry_t, get_bound_to_free_dpos_dloc_visitor>(
@@ -398,8 +406,8 @@ struct parameter_transporter : base_actor {
 
         // Next, we compute the derivative which is defined as the outer
         // product of the two 8x1 vectors representing the path to free
-        // derivative and the free to path derivative. Thus, it is the product
-        // of the following two vectors:
+        // derivative and the free to path derivative. Thus, it is the
+        // product of the following two vectors:
         //
         //  px [[ A],  [[ B],^T
         //  py  [ A],   [ B],
@@ -410,9 +418,9 @@ struct parameter_transporter : base_actor {
         //  dz  [ A],   [ C],
         // q/p  [ A],   [ 0]]
         //
-        // Where A is frame independent and non-zero, B is frame-dependent and
-        // non-zero, while C is frame-dependent and non-zero only for line
-        // frames.
+        // Where A is frame independent and non-zero, B is frame-dependent
+        // and non-zero, while C is frame-dependent and non-zero only for
+        // line frames.
         const dpoint3D<algebra_t> dest_glob_pos{dest_free_params.pos()};
         const dvector3D<algebra_t> dest_glob_dir{dest_free_params.dir()};
 
@@ -428,8 +436,8 @@ struct parameter_transporter : base_actor {
         const auto free_to_path_derivative = dest_sf.free_to_path_derivative(
             gctx, dest_glob_pos, dest_glob_dir, stepping.dtds());
 
-        // Now, we compute the free-to-bound Jacobian which is of size 6x8 and
-        // has the following structure:
+        // Now, we compute the free-to-bound Jacobian which is of size 6x8
+        // and has the following structure:
         //
         //        px  py  pz   t  dx  dy  dz q/p
         //  l0 [[  A,  A,  A,  0,  0,  0,  0,  0],
@@ -440,8 +448,8 @@ struct parameter_transporter : base_actor {
         //   t  [  0,  0,  0,  1,  0,  0,  0,  0]]
         //
         // Thus, the number of non-trivial elements is only 11 out of the 48
-        // matrix elements. Also, submatrix A depends on the frame type while
-        // submatrix B is the same for all frame types.
+        // matrix elements. Also, submatrix A depends on the frame type
+        // while submatrix B is the same for all frame types.
         const dmatrix<algebra_t, 2, 3> f2b_dloc_dpos =
             types::visit<frame_registry_t, get_free_to_bound_dloc_dpos_visitor>(
                 dest_sf.shape_id(), dest_sf.transform(gctx), stepping);
@@ -472,7 +480,7 @@ struct parameter_setter : base_actor {
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE void operator()(
         state& updater_state, propagator_state_t& propagation,
-        const typename parameter_transporter<algebra_t>::result& res) const {
+        const parameter_transporter_result<algebra_t>& res) const {
 
         using scalar_t = dscalar<algebra_t>;
 
@@ -487,12 +495,13 @@ struct parameter_setter : base_actor {
 
         assert(navigation.is_on_surface());
 
-        // If the navigation trust level has been reduced, the track parameters
-        // might have been updated. Otherwise do nothing before prop. starts
+        // If the navigation trust level has been reduced, the track
+        // parameters might have been updated. Otherwise do nothing before
+        // prop. starts
         DETRAY_VERBOSE_HOST_DEVICE("Actor: Update the track parameters");
 
         // Update the bound parameters of the propagation flow
-        updater_state.set_bound_params(res.destination_params);
+        updater_state.bound_params() = res.destination_params;
         const bound_track_parameters<algebra_t>& bound_params =
             updater_state.bound_params();
 
@@ -517,7 +526,8 @@ struct parameter_setter : base_actor {
             stepping.reset_transport_jacobian();
         }
 
-        // Track pos/dir is not known precisely: adjust navigation tolerances
+        // Track pos/dir is not known precisely: adjust navigation
+        // tolerances
         const noise_cfg& cfg = updater_state.noise_estimation_cfg();
         if (cfg.estimate_scattering_noise) {
             detail::estimate_external_mask_tolerance(
@@ -527,8 +537,8 @@ struct parameter_setter : base_actor {
     }
 };
 
-/// Call actors that depend on the bound track parameters safely together with
-/// the parameter transporter and parameter setter
+/// Call actors that depend on the bound track parameters safely together
+/// with the parameter transporter and parameter setter
 template <typename algebra_t, typename... transporter_observers>
 using parameter_updater =
     composite_actor<parameter_transporter<algebra_t>, transporter_observers...,

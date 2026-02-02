@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2024 CERN for the benefit of the ACTS project
+ * (c) 2022-2026 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -16,6 +16,7 @@
 #include "detray/materials/concepts.hpp"
 #include "detray/materials/detail/material_accessor.hpp"
 #include "detray/materials/interaction.hpp"
+#include "detray/propagator/actors/parameter_updater.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/tracks/bound_track_parameters.hpp"
 #include "detray/utils/axis_rotation.hpp"
@@ -29,7 +30,7 @@
 // System include(s).
 #include <random>
 
-namespace detray {
+namespace detray::actor {
 
 template <concepts::algebra algebra_t>
 struct random_scatterer : public base_actor {
@@ -127,10 +128,10 @@ struct random_scatterer : public base_actor {
         }
     };
 
-    template <typename propagator_state_t, typename transporter_result_t>
-    DETRAY_HOST inline void operator()(state& simulator_state,
-                                       propagator_state_t& prop_state,
-                                       transporter_result_t& res) const {
+    template <typename propagator_state_t>
+    DETRAY_HOST inline void operator()(
+        state& simulator_state, propagator_state_t& prop_state,
+        parameter_transporter_result<algebra_t>& res) const {
 
         // @Todo: Make context part of propagation state
         using detector_type = typename propagator_state_t::detector_type;
@@ -226,4 +227,4 @@ struct random_scatterer : public base_actor {
     }
 };
 
-}  // namespace detray
+}  // namespace detray::actor

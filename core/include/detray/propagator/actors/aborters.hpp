@@ -17,7 +17,7 @@
 // System include(s)
 #include <limits>
 
-namespace detray {
+namespace detray::actor {
 
 /// Aborter that checks whether the track has exceeded its pathlimit
 template <concepts::scalar scalar_t>
@@ -174,4 +174,4 @@ struct target_aborter : public base_actor {
     }
 };
 
-}  // namespace detray
+}  // namespace detray::actor

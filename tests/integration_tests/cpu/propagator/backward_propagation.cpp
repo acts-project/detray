@@ -68,7 +68,7 @@ TEST_P(BackwardPropagation, backward_propagation) {
     using navigator_t = caching_navigator<decltype(det)>;
     using rk_stepper_t = rk_stepper<bfield_t::view_t, test_algebra>;
     using actor_chain_t = actor_chain<actor::parameter_updater<
-        test_algebra, pointwise_material_interactor<test_algebra>>>;
+        test_algebra, actor::pointwise_material_interactor<test_algebra>>>;
     using propagator_t = propagator<rk_stepper_t, navigator_t, actor_chain_t>;
 
     // Particle hypothesis
@@ -97,7 +97,7 @@ TEST_P(BackwardPropagation, backward_propagation) {
     // Actors
     actor::parameter_updater_state<test_algebra> updater_state{prop_cfg,
                                                                bound_param0};
-    pointwise_material_interactor<test_algebra>::state interactor{};
+    actor::pointwise_material_interactor<test_algebra>::state interactor{};
 
     // Forward state
     propagator_t::state fw_state(bound_param0, hom_bfield, det,

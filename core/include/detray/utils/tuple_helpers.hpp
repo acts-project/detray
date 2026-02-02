@@ -29,25 +29,25 @@ using std::get;
 
 template <std::size_t I, typename... value_types>
 DETRAY_HOST_DEVICE constexpr decltype(auto) get(
-    const ::detray::tuple<value_types...>& tuple) noexcept {
+    const ::detray::dtuple<value_types...>& tuple) noexcept {
     return ::detray::get<I>(tuple);
 }
 
 template <std::size_t I, typename... value_types>
 DETRAY_HOST_DEVICE constexpr decltype(auto) get(
-    ::detray::tuple<value_types...>& tuple) noexcept {
+    ::detray::dtuple<value_types...>& tuple) noexcept {
     return ::detray::get<I>(tuple);
 }
 
 template <typename query_t, typename... value_types>
 DETRAY_HOST_DEVICE constexpr decltype(auto) get(
-    const ::detray::tuple<value_types...>& tuple) noexcept {
+    const ::detray::dtuple<value_types...>& tuple) noexcept {
     return ::detray::get<get_type_pos_v<query_t, value_types...>>(tuple);
 }
 
 template <typename query_t, typename... value_types>
 DETRAY_HOST_DEVICE constexpr decltype(auto) get(
-    ::detray::tuple<value_types...>& tuple) noexcept {
+    ::detray::dtuple<value_types...>& tuple) noexcept {
     return ::detray::get<get_type_pos_v<query_t, value_types...>>(tuple);
 }
 /// @}
@@ -65,11 +65,11 @@ template <std::size_t N, typename... value_types>
 struct tuple_element<N, std::tuple<value_types...>>
     : std::tuple_element<N, std::tuple<value_types...>> {};
 
-// detray::tuple
+// detray::dtuple
 template <std::size_t N, typename... value_types>
-struct tuple_element<N, detray::tuple<value_types...>> {
+struct tuple_element<N, detray::dtuple<value_types...>> {
     using type = std::decay_t<decltype(::detray::get<N>(
-        std::declval<detray::tuple<value_types...>>()))>;
+        std::declval<detray::dtuple<value_types...>>()))>;
 };
 
 template <std::size_t N, class T>
@@ -89,9 +89,9 @@ template <typename... value_types>
 struct tuple_size<std::tuple<value_types...>>
     : std::tuple_size<std::tuple<value_types...>> {};
 
-// detray::tuple
+// detray::dtuple
 template <typename... value_types>
-struct tuple_size<::detray::tuple<value_types...>> {
+struct tuple_size<::detray::dtuple<value_types...>> {
     static constexpr std::size_t value = sizeof...(value_types);
 };
 
@@ -126,13 +126,13 @@ DETRAY_HOST constexpr std::tuple<unwrap_decay_t<value_types>...> make_tuple(
     return std::make_tuple(std::forward<value_types>(args)...);
 }
 
-// make_tuple for detray::tuple
+// make_tuple for detray::dtuple
 template <template <typename...> class tuple_t, class... value_types>
     requires std::is_same_v<tuple_t<value_types...>,
-                            detray::tuple<value_types...>>
-DETRAY_HOST_DEVICE constexpr detray::tuple<unwrap_decay_t<value_types>...>
+                            detray::dtuple<value_types...>>
+DETRAY_HOST_DEVICE constexpr detray::dtuple<unwrap_decay_t<value_types>...>
 make_tuple(value_types&&... args) {
-    return detray::tuple<unwrap_decay_t<value_types>...>{
+    return detray::dtuple<unwrap_decay_t<value_types>...>{
         std::forward<value_types>(args)...};
 }
 /// @}
@@ -154,16 +154,16 @@ struct has_type<T, std::tuple<U, Ts...>> : has_type<T, std::tuple<Ts...>> {};
 template <typename T, typename... Ts>
 struct has_type<T, std::tuple<T, Ts...>> : std::true_type {};
 
-// detray::tuple
+// detray::dtuple
 template <typename T>
-struct has_type<T, detray::tuple<>> : std::false_type {};
+struct has_type<T, detray::dtuple<>> : std::false_type {};
 
 template <typename T, typename U, typename... Ts>
-struct has_type<T, detray::tuple<U, Ts...>>
-    : has_type<T, detray::tuple<Ts...>> {};
+struct has_type<T, detray::dtuple<U, Ts...>>
+    : has_type<T, detray::dtuple<Ts...>> {};
 
 template <typename T, typename... Ts>
-struct has_type<T, detray::tuple<T, Ts...>> : std::true_type {};
+struct has_type<T, detray::dtuple<T, Ts...>> : std::true_type {};
 
 template <typename T, class tuple_t>
 constexpr bool has_type_v = has_type<T, tuple_t>::value;
@@ -186,14 +186,14 @@ struct tuple_cat_type<std::tuple<Args1...>, std::tuple<Args2...>, tuple_ts...> {
 };
 
 template <typename... Args>
-struct tuple_cat_type<detray::tuple<Args...>> {
-    using type = detray::tuple<Args...>;
+struct tuple_cat_type<detray::dtuple<Args...>> {
+    using type = detray::dtuple<Args...>;
 };
 
 template <typename... Args1, typename... Args2, typename... tuple_ts>
-struct tuple_cat_type<detray::tuple<Args1...>, detray::tuple<Args2...>,
+struct tuple_cat_type<detray::dtuple<Args1...>, detray::dtuple<Args2...>,
                       tuple_ts...> {
-    using type = typename tuple_cat_type<detray::tuple<Args1..., Args2...>,
+    using type = typename tuple_cat_type<detray::dtuple<Args1..., Args2...>,
                                          tuple_ts...>::type;
 };
 
@@ -228,21 +228,21 @@ struct unique_types<0u, std::tuple<Arg1, Args...>> {
 };
 
 template <std::size_t I>
-struct unique_types<I, detray::tuple<>> {
-    using type = detray::tuple<>;
+struct unique_types<I, detray::dtuple<>> {
+    using type = detray::dtuple<>;
 };
 
 template <std::size_t I, typename Arg1, typename... Args>
-struct unique_types<I, detray::tuple<Arg1, Args...>> {
+struct unique_types<I, detray::dtuple<Arg1, Args...>> {
     using type = std::conditional_t<
-        has_type_v<Arg1, detray::tuple<Args...>>,
-        typename unique_types<I - 1u, detray::tuple<Args...>>::type,
-        typename unique_types<I - 1u, detray::tuple<Args..., Arg1>>::type>;
+        has_type_v<Arg1, detray::dtuple<Args...>>,
+        typename unique_types<I - 1u, detray::dtuple<Args...>>::type,
+        typename unique_types<I - 1u, detray::dtuple<Args..., Arg1>>::type>;
 };
 
 template <typename Arg1, typename... Args>
-struct unique_types<0u, detray::tuple<Arg1, Args...>> {
-    using type = detray::tuple<Arg1, Args...>;
+struct unique_types<0u, detray::dtuple<Arg1, Args...>> {
+    using type = detray::dtuple<Arg1, Args...>;
 };
 
 template <typename tuple_t>
@@ -256,14 +256,14 @@ template <typename T1, typename T2>
 struct is_permutation : public std::false_type {};
 
 template <>
-struct is_permutation<detray::tuple<>, detray::tuple<>>
+struct is_permutation<detray::dtuple<>, detray::dtuple<>>
     : public std::true_type {};
 
 template <typename... Args1, typename... Args2>
-struct is_permutation<detray::tuple<Args1...>, detray::tuple<Args2...>> {
+struct is_permutation<detray::dtuple<Args1...>, detray::dtuple<Args2...>> {
 
-    using T1 = detray::tuple<Args1...>;
-    using T2 = detray::tuple<Args2...>;
+    using T1 = detray::dtuple<Args1...>;
+    using T2 = detray::dtuple<Args2...>;
 
     template <typename o_tuple_t, typename T, typename... U>
     static consteval bool compare() {
@@ -300,7 +300,7 @@ struct tuple_any<trait, std::tuple<Args...>> {
     static constexpr bool value = (trait<Args>::value || ...);
 };
 template <template <typename...> class trait, typename... Args>
-struct tuple_any<trait, detray::tuple<Args...>> {
+struct tuple_any<trait, detray::dtuple<Args...>> {
     static constexpr bool value = (trait<Args>::value || ...);
 };
 
@@ -316,7 +316,7 @@ struct tuple_all<trait, std::tuple<Args...>> {
     static constexpr bool value = (trait<Args>::value && ...);
 };
 template <template <typename...> class trait, typename... Args>
-struct tuple_all<trait, detray::tuple<Args...>> {
+struct tuple_all<trait, detray::dtuple<Args...>> {
     static constexpr bool value = (trait<Args>::value && ...);
 };
 

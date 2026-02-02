@@ -36,12 +36,12 @@ __global__ void material_validation_kernel(
     // material tracer
     using material_tracer_t =
         material_validator::material_tracer<scalar_t, vecmem::device_vector>;
-    using pathlimit_aborter_t = pathlimit_aborter<scalar_t>;
-    using actor_chain_t =
-        actor_chain<pathlimit_aborter_t,
-                    actor::parameter_updater<
-                        algebra_t, pointwise_material_interactor<algebra_t>,
-                        material_tracer_t>>;
+    using pathlimit_aborter_t = actor::pathlimit_aborter<scalar_t>;
+    using actor_chain_t = actor_chain<
+        pathlimit_aborter_t,
+        actor::parameter_updater<
+            algebra_t, actor::pointwise_material_interactor<algebra_t>,
+            material_tracer_t>>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     detector_device_t det(det_data);
@@ -63,7 +63,8 @@ __global__ void material_validation_kernel(
     // Create the actor states
     typename pathlimit_aborter_t::state aborter_state{cfg.stepping.path_limit};
     actor::parameter_updater_state<algebra_t> updater_state{cfg};
-    typename pointwise_material_interactor<algebra_t>::state interactor_state{};
+    typename actor::pointwise_material_interactor<algebra_t>::state
+        interactor_state{};
     typename material_tracer_t::state mat_tracer_state{mat_steps.at(trk_id)};
 
     auto actor_states = ::detray::tie(aborter_state, updater_state,

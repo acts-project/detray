@@ -41,7 +41,7 @@ using test_algebra = test::algebra;
 using scalar = test::scalar;
 using covariance_t =
     typename bound_track_parameters<test_algebra>::covariance_type;
-using interactor_t = pointwise_material_interactor<test_algebra>;
+using interactor_t = actor::pointwise_material_interactor<test_algebra>;
 
 static_assert(detray::concepts::actor<interactor_t>);
 
@@ -75,7 +75,7 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
 
     using navigator_t = caching_navigator<decltype(det)>;
     using stepper_t = line_stepper<test_algebra>;
-    using pathlimit_aborter_t = pathlimit_aborter<scalar>;
+    using pathlimit_aborter_t = actor::pathlimit_aborter<scalar>;
     using actor_chain_t =
         actor_chain<pathlimit_aborter_t,
                     actor::parameter_updater<test_algebra, interactor_t>>;
@@ -198,8 +198,8 @@ GTEST_TEST(detray_material, telescope_geometry_scattering_angle) {
 
     using navigator_t = caching_navigator<decltype(det)>;
     using stepper_t = line_stepper<test_algebra>;
-    using simulator_t = random_scatterer<test_algebra>;
-    using pathlimit_aborter_t = pathlimit_aborter<scalar>;
+    using simulator_t = actor::random_scatterer<test_algebra>;
+    using pathlimit_aborter_t = actor::pathlimit_aborter<scalar>;
     using actor_chain_t =
         actor_chain<pathlimit_aborter_t,
                     actor::parameter_updater<test_algebra, simulator_t>>;
@@ -290,7 +290,7 @@ GTEST_TEST(detray_material, telescope_geometry_volume_material) {
     using bfield_t = bfield::const_field_t<scalar>;
     using stepper_t = rk_stepper<bfield_t::view_t, test_algebra>;
 
-    using pathlimit_aborter_t = pathlimit_aborter<scalar>;
+    using pathlimit_aborter_t = actor::pathlimit_aborter<scalar>;
     using actor_chain_t = actor_chain<pathlimit_aborter_t>;
 
     constexpr std::size_t cache_size{navigation::default_cache_size};

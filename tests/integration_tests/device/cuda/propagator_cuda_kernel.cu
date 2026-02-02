@@ -51,7 +51,8 @@ __global__ void propagator_test_kernel(
     step_tracer_device_t::state tracer_state(steps.at(gid));
     pathlimit_aborter_t::state aborter_state{cfg.stepping.path_limit};
     actor::parameter_updater_state<test_algebra> updater_state{cfg};
-    pointwise_material_interactor<test_algebra>::state interactor_state{};
+    actor::pointwise_material_interactor<test_algebra>::state
+        interactor_state{};
 
     // Create the actor states
     auto actor_states = ::detray::tie(tracer_state, aborter_state,

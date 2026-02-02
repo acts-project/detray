@@ -45,27 +45,25 @@ GTEST_TEST(detray_utils, tuple_helpers) {
     EXPECT_EQ(detail::get<std::string>(s_tuple), std::string("std::tuple"));
     EXPECT_EQ(detail::get<unsigned long>(s_tuple), 4UL);
 
-    // detray::tuple test
-    auto d_tuple = detail::make_tuple<detray::tuple>(
-        1.0f, 2UL, std::string("detray::tuple"));
-    static_assert(
-        std::is_same_v<detray::tuple<float, unsigned long, std::string>,
-                       decltype(d_tuple)>,
-        "detail::make_tuple failed for detray::tuple");
+    // dtuple test
+    auto d_tuple = detail::make_tuple<dtuple>(1.0f, 2UL, std::string("dtuple"));
+    static_assert(std::is_same_v<dtuple<float, unsigned long, std::string>,
+                                 decltype(d_tuple)>,
+                  "detail::make_tuple failed for dtuple");
 
     static_assert(std::is_same_v<detail::tuple_element_t<1, decltype(d_tuple)>,
                                  unsigned long>,
-                  "detail::tuple_element retrieval failed for detray::tuple");
+                  "detail::tuple_element retrieval failed for dtuple");
 
     const auto d_tuple_size = detail::tuple_size_v<decltype(d_tuple)>;
     EXPECT_EQ(d_tuple_size, 3UL);
 
     EXPECT_FLOAT_EQ(detail::get<0>(d_tuple), 1.0f);
     EXPECT_EQ(detail::get<1>(d_tuple), 2UL);
-    EXPECT_EQ(detail::get<2>(d_tuple), std::string("detray::tuple"));
+    EXPECT_EQ(detail::get<2>(d_tuple), std::string("dtuple"));
     EXPECT_FLOAT_EQ(detail::get<float>(d_tuple), 1.0f);
     EXPECT_EQ(detail::get<unsigned long>(d_tuple), 2UL);
-    EXPECT_EQ(detail::get<std::string>(d_tuple), std::string("detray::tuple"));
+    EXPECT_EQ(detail::get<std::string>(d_tuple), std::string("dtuple"));
 
     // Check type concatenation
     static_assert(

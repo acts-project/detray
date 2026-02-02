@@ -154,12 +154,11 @@ struct material_tracer : public detray::base_actor {
     };
 
     /// Run as observer to the parameter transporter (covariance transport)
-    template <typename propagator_state_t, typename transporter_result_t>
-    DETRAY_HOST_DEVICE void operator()(state &tracer,
-                                       const propagator_state_t &prop_state,
-                                       const transporter_result_t &res) const {
-        using algebra_t =
-            typename propagator_state_t::detector_type::algebra_type;
+    template <typename propagator_state_t, concepts::algebra algebra_t>
+    DETRAY_HOST_DEVICE void operator()(
+        state &tracer, const propagator_state_t &prop_state,
+        const detray::actor::parameter_transporter_result<algebra_t> &res)
+        const {
 
         record_track_dir(tracer, prop_state);
 
@@ -275,9 +274,10 @@ inline auto record_material(
     // Propagator with pathlimit aborter
     using material_tracer_t =
         material_validator::material_tracer<scalar_t, vecmem::vector>;
-    using pathlimit_aborter_t = pathlimit_aborter<scalar_t>;
+    using pathlimit_aborter_t = actor::pathlimit_aborter<scalar_t>;
     using parameter_updater_t = actor::parameter_updater<
-        algebra_t, pointwise_material_interactor<algebra_t>, material_tracer_t>;
+        algebra_t, actor::pointwise_material_interactor<algebra_t>,
+        material_tracer_t>;
     using actor_chain_t = actor_chain<pathlimit_aborter_t, parameter_updater_t>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
@@ -287,8 +287,9 @@ inline auto record_material(
     // Build actor and propagator states
     typename pathlimit_aborter_t::state pathlimit_aborter_state{
         cfg.stepping.path_limit};
-    typename actor::parameter_updater_state<algebra_t> updater_state{cfg};
-    typename pointwise_material_interactor<algebra_t>::state interactor_state{};
+    actor::parameter_updater_state<algebra_t> updater_state{cfg};
+    typename actor::pointwise_material_interactor<algebra_t>::state
+        interactor_state{};
     typename material_tracer_t::state mat_tracer_state{*host_mr};
 
     auto actor_states = detray::tie(pathlimit_aborter_state, updater_state,

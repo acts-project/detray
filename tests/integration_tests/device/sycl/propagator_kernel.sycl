@@ -67,7 +67,7 @@ void propagator_test(
                 pathlimit_aborter_t::state aborter_state{
                     cfg.stepping.path_limit};
                 actor::parameter_updater_state<test_algebra> updater_state{cfg};
-                pointwise_material_interactor<test_algebra>::state
+                actor::pointwise_material_interactor<test_algebra>::state
                     interactor_state{};
 
                 // Create the actor states

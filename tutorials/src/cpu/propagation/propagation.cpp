@@ -46,9 +46,10 @@ int main() {
 
     // Actors
     using actor_chain_t = detray::actor_chain<
-        detray::pathlimit_aborter<scalar>,
+        detray::actor::pathlimit_aborter<scalar>,
         detray::actor::parameter_updater<
-            algebra_t, detray::pointwise_material_interactor<algebra_t>>>;
+            algebra_t,
+            detray::actor::pointwise_material_interactor<algebra_t>>>;
 
     // Propagator with empty actor chain
     using propagator_t =
@@ -98,11 +99,11 @@ int main() {
             detray::update_particle_hypothesis(ptc, track));
 
         // Prepare actor states
-        detray::pathlimit_aborter<scalar>::state aborter_state{
+        detray::actor::pathlimit_aborter<scalar>::state aborter_state{
             5.f * detray::unit<scalar>::m};
         detray::actor::parameter_updater_state<algebra_t> updater_state{
             prop_cfg};
-        detray::pointwise_material_interactor<algebra_t>::state
+        detray::actor::pointwise_material_interactor<algebra_t>::state
             interactor_state{};
 
         auto actor_states =
