@@ -16,7 +16,7 @@
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/navigation/caching_navigator.hpp"
 #include "detray/propagator/actors.hpp"
-#include "detray/propagator/actors/parameter_transporter.hpp"
+#include "detray/propagator/actors/parameter_updater.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
@@ -41,7 +41,7 @@ using test_algebra = test::algebra;
 using scalar = test::scalar;
 using covariance_t =
     typename bound_track_parameters<test_algebra>::covariance_type;
-using interactor_t = pointwise_material_interactor<test_algebra>;
+using interactor_t = actor::pointwise_material_interactor<test_algebra>;
 
 static_assert(detray::concepts::actor<interactor_t>);
 
@@ -75,10 +75,10 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
 
     using navigator_t = caching_navigator<decltype(det)>;
     using stepper_t = line_stepper<test_algebra>;
-    using pathlimit_aborter_t = pathlimit_aborter<scalar>;
+    using pathlimit_aborter_t = actor::pathlimit_aborter<scalar>;
     using actor_chain_t =
-        actor_chain<pathlimit_aborter_t, parameter_transporter<test_algebra>,
-                    interactor_t, parameter_resetter<test_algebra>>;
+        actor_chain<pathlimit_aborter_t,
+                    actor::parameter_updater<test_algebra, interactor_t>>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Propagator is built from the stepper and navigator
@@ -102,13 +102,13 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
         det.surface(0u).barcode(), bound_vector, bound_cov);
 
     pathlimit_aborter_t::state aborter_state{};
-    parameter_transporter<test_algebra>::state transporter_state{};
+    actor::parameter_updater_state<test_algebra> updater_state{prop_cfg,
+                                                               bound_param};
     interactor_t::state interactor_state{};
-    parameter_resetter<test_algebra>::state resetter_state{};
 
     // Create actor states tuples
-    auto actor_states = detray::tie(aborter_state, transporter_state,
-                                    interactor_state, resetter_state);
+    auto actor_states =
+        detray::tie(aborter_state, updater_state, interactor_state);
 
     propagator_t::state state(bound_param, det);
     state.do_debug = true;
@@ -117,7 +117,7 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
     ASSERT_TRUE(p.propagate(state, actor_states));
 
     // new momentum
-    const scalar newP{state._stepping.bound_params().p(ptc.charge())};
+    const scalar newP{updater_state.bound_params().p(ptc.charge())};
 
     // mass
     const auto mass = ptc.mass();
@@ -130,7 +130,7 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
 
     // New qop variance
     const scalar new_var_qop{
-        getter::element(state._stepping.bound_params().covariance(),
+        getter::element(updater_state.bound_params().covariance(),
                         e_bound_qoverp, e_bound_qoverp)};
 
     // Interaction object
@@ -155,9 +155,9 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
                                           ptc, {ptc, ptc.charge() / iniP}) *
         static_cast<scalar>(positions.size())};
 
-    // Check if the new energy after propagation is enough close to the
+    // Check if the new energy after propagation is close enough to the
     // expected value
-    EXPECT_NEAR(newE, iniE - dE, 1e-5f);
+    EXPECT_NEAR(newE, iniE - dE, 1e-5f) << "dE = " << dE;
 
     const scalar sigma_qop{I.compute_energy_loss_landau_sigma_QOverP(
         path_segment, slab.get_material(), ptc, {ptc, ptc.charge() / iniP})};
@@ -198,11 +198,11 @@ GTEST_TEST(detray_material, telescope_geometry_scattering_angle) {
 
     using navigator_t = caching_navigator<decltype(det)>;
     using stepper_t = line_stepper<test_algebra>;
-    using simulator_t = random_scatterer<test_algebra>;
-    using pathlimit_aborter_t = pathlimit_aborter<scalar>;
+    using simulator_t = actor::random_scatterer<test_algebra>;
+    using pathlimit_aborter_t = actor::pathlimit_aborter<scalar>;
     using actor_chain_t =
-        actor_chain<pathlimit_aborter_t, parameter_transporter<test_algebra>,
-                    simulator_t, parameter_resetter<test_algebra>>;
+        actor_chain<pathlimit_aborter_t,
+                    actor::parameter_updater<test_algebra, simulator_t>>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Propagator is built from the stepper and navigator
@@ -235,14 +235,14 @@ GTEST_TEST(detray_material, telescope_geometry_scattering_angle) {
 
         pathlimit_aborter_t::state aborter_state{};
         // Seed = sample id
-        parameter_transporter<test_algebra>::state transporter_state{};
+        actor::parameter_updater_state<test_algebra> updater_state{prop_cfg,
+                                                                   bound_param};
         simulator_t::state simulator_state{i};
         simulator_state.do_energy_loss = false;
-        parameter_resetter<test_algebra>::state resetter_state{};
 
         // Create actor states tuples
-        auto actor_states = detray::tie(aborter_state, transporter_state,
-                                        simulator_state, resetter_state);
+        auto actor_states =
+            detray::tie(aborter_state, updater_state, simulator_state);
 
         propagator_t::state state(bound_param, det);
         state.do_debug = true;
@@ -250,7 +250,7 @@ GTEST_TEST(detray_material, telescope_geometry_scattering_angle) {
         // Propagate the entire detector
         ASSERT_TRUE(p.propagate(state, actor_states));
 
-        const auto& final_param = state._stepping.bound_params();
+        const auto& final_param = updater_state.bound_params();
 
         // Updated phi and theta variance
         if (i == 0u) {
@@ -290,7 +290,7 @@ GTEST_TEST(detray_material, telescope_geometry_volume_material) {
     using bfield_t = bfield::const_field_t<scalar>;
     using stepper_t = rk_stepper<bfield_t::view_t, test_algebra>;
 
-    using pathlimit_aborter_t = pathlimit_aborter<scalar>;
+    using pathlimit_aborter_t = actor::pathlimit_aborter<scalar>;
     using actor_chain_t = actor_chain<pathlimit_aborter_t>;
 
     constexpr std::size_t cache_size{navigation::default_cache_size};

@@ -67,10 +67,8 @@ TEST_P(BackwardPropagation, backward_propagation) {
 
     using navigator_t = caching_navigator<decltype(det)>;
     using rk_stepper_t = rk_stepper<bfield_t::view_t, test_algebra>;
-    using actor_chain_t =
-        actor_chain<parameter_transporter<test_algebra>,
-                    pointwise_material_interactor<test_algebra>,
-                    parameter_resetter<test_algebra>>;
+    using actor_chain_t = actor_chain<actor::parameter_updater<
+        test_algebra, actor::pointwise_material_interactor<test_algebra>>>;
     using propagator_t = propagator<rk_stepper_t, navigator_t, actor_chain_t>;
 
     // Particle hypothesis
@@ -97,9 +95,9 @@ TEST_P(BackwardPropagation, backward_propagation) {
     propagator_t p{prop_cfg};
 
     // Actors
-    parameter_transporter<test_algebra>::state transporter_state{};
-    pointwise_material_interactor<test_algebra>::state interactor{};
-    parameter_resetter<test_algebra>::state resetter_state{prop_cfg};
+    actor::parameter_updater_state<test_algebra> updater_state{prop_cfg,
+                                                               bound_param0};
+    actor::pointwise_material_interactor<test_algebra>::state interactor{};
 
     // Forward state
     propagator_t::state fw_state(bound_param0, hom_bfield, det,
@@ -108,11 +106,10 @@ TEST_P(BackwardPropagation, backward_propagation) {
     fw_state.do_debug = true;
 
     // Run propagator
-    p.propagate(fw_state,
-                detray::tie(interactor, transporter_state, resetter_state));
+    p.propagate(fw_state, detray::tie(interactor, updater_state));
 
     // Bound state after propagation
-    const auto& bound_param1 = fw_state._stepping.bound_params();
+    const auto bound_param1 = updater_state.bound_params();
 
     // Check if the track reaches the final surface
     EXPECT_EQ(bound_param0.surface_link().volume(), 0u);
@@ -127,13 +124,14 @@ TEST_P(BackwardPropagation, backward_propagation) {
     bw_state.set_particle(ptc);
     bw_state.do_debug = true;
     bw_state._navigation.set_direction(navigation::direction::e_backward);
+    updater_state =
+        actor::parameter_updater_state<test_algebra>{prop_cfg, bound_param1};
 
     // Run propagator
-    p.propagate(bw_state,
-                detray::tie(interactor, transporter_state, resetter_state));
+    p.propagate(bw_state, detray::tie(interactor, updater_state));
 
     // Bound state after propagation
-    const auto& bound_param2 = bw_state._stepping.bound_params();
+    const auto& bound_param2 = updater_state.bound_params();
 
     // Check if the track reaches the initial surface
     EXPECT_EQ(bound_param2.surface_link().volume(), 0u);
@@ -146,22 +144,23 @@ TEST_P(BackwardPropagation, backward_propagation) {
     // Check vector
     for (unsigned int i = 0u; i < e_bound_size; i++) {
         EXPECT_NEAR(getter::element(bound_vec0, i, 0),
-                    getter::element(bound_vec2, i, 0), tol);
+                    getter::element(bound_vec2, i, 0), tol)
+            << "index: " << i;
     }
 
     const auto bound_cov0 = bound_param0.covariance();
     const auto bound_cov1 = bound_param1.covariance();
 
     // Some sanity checks
-    EXPECT_TRUE(bound_param0.p(ptc.charge()) > bound_param1.p(ptc.charge()));
-    EXPECT_TRUE(bound_param2.p(ptc.charge()) > bound_param1.p(ptc.charge()));
+    EXPECT_GT(bound_param0.p(ptc.charge()), bound_param1.p(ptc.charge()));
+    EXPECT_GT(bound_param2.p(ptc.charge()), bound_param1.p(ptc.charge()));
 
-    EXPECT_TRUE(getter::element(bound_cov1, e_bound_qoverp, e_bound_qoverp) >
-                getter::element(bound_cov0, e_bound_qoverp, e_bound_qoverp));
-    EXPECT_TRUE(getter::element(bound_cov1, e_bound_theta, e_bound_theta) >
-                getter::element(bound_cov0, e_bound_theta, e_bound_theta));
-    EXPECT_TRUE(getter::element(bound_cov1, e_bound_phi, e_bound_phi) >
-                getter::element(bound_cov0, e_bound_phi, e_bound_phi));
+    EXPECT_GT(getter::element(bound_cov1, e_bound_qoverp, e_bound_qoverp),
+              getter::element(bound_cov0, e_bound_qoverp, e_bound_qoverp));
+    EXPECT_GT(getter::element(bound_cov1, e_bound_theta, e_bound_theta),
+              getter::element(bound_cov0, e_bound_theta, e_bound_theta));
+    EXPECT_GT(getter::element(bound_cov1, e_bound_phi, e_bound_phi),
+              getter::element(bound_cov0, e_bound_phi, e_bound_phi));
 }
 
 INSTANTIATE_TEST_SUITE_P(

@@ -102,7 +102,7 @@ struct material_slab {
                                     const material_slab& mat) {
         os << "slab: ";
         os << mat.get_material();
-        os << " | thickness = " << mat.thickness() << "mm";
+        os << " | thickness = " << mat.thickness() << " mm";
 
         return os;
     }

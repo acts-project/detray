@@ -205,15 +205,6 @@ struct propagator {
 
         DETRAY_VERBOSE_HOST("Starting propagation for track:\n" << track);
 
-        // Open the navigation area according to uncertainties in initital track
-        // params
-        if (m_cfg.navigation.estimate_scattering_noise &&
-            !stepping.bound_params().is_invalid()) {
-            detail::estimate_external_mask_tolerance(
-                stepping.bound_params(), propagation,
-                static_cast<scalar_type>(m_cfg.navigation.n_scattering_stddev));
-        }
-
         // Initialize the navigation
         DETRAY_VERBOSE_HOST("Initialize navigation...");
         m_navigator.init(track, navigation, m_cfg.navigation, context);

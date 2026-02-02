@@ -13,8 +13,7 @@
 #include "detray/geometry/surface_descriptor.hpp"
 #include "detray/navigation/caching_navigator.hpp"
 #include "detray/propagator/actor_chain.hpp"
-#include "detray/propagator/actors/parameter_resetter.hpp"
-#include "detray/propagator/actors/parameter_transporter.hpp"
+#include "detray/propagator/actors/parameter_updater.hpp"
 #include "detray/propagator/concepts.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/propagator.hpp"
@@ -57,8 +56,10 @@ constexpr std::size_t cache_size{navigation::default_cache_size};
 
 GTEST_TEST(detray_propagator, covariance_transport) {
 
-    static_assert(detray::concepts::actor<parameter_transporter<test_algebra>>);
-    static_assert(detray::concepts::actor<parameter_resetter<test_algebra>>);
+    static_assert(
+        detray::concepts::actor<actor::parameter_transporter<test_algebra>>);
+    static_assert(
+        detray::concepts::actor<actor::parameter_setter<test_algebra>>);
 
     vecmem::host_memory_resource host_mr;
 
@@ -77,8 +78,7 @@ GTEST_TEST(detray_propagator, covariance_transport) {
     using navigator_t = caching_navigator<decltype(det), cache_size,
                                           navigation::print_inspector>;
     using cline_stepper_t = line_stepper<test_algebra>;
-    using actor_chain_t = actor_chain<parameter_transporter<test_algebra>,
-                                      parameter_resetter<test_algebra>>;
+    using actor_chain_t = actor_chain<actor::parameter_updater<test_algebra>>;
     using propagator_t =
         propagator<cline_stepper_t, navigator_t, actor_chain_t>;
 
@@ -106,14 +106,15 @@ GTEST_TEST(detray_propagator, covariance_transport) {
     propagator_t::state propagation(bound_param0, det, prop_cfg.context);
 
     // Run propagator
-    parameter_transporter<test_algebra>::state transporter_state{};
-    parameter_resetter<test_algebra>::state resetter_state{};
-    EXPECT_TRUE(p.propagate(propagation,
-                            detray::tie(transporter_state, resetter_state)))
+    actor::parameter_updater_state<test_algebra> updater_state{prop_cfg,
+                                                               bound_param0};
+    updater_state.always_update();
+
+    EXPECT_TRUE(p.propagate(propagation, detray::tie(updater_state)))
         << propagation._navigation.inspector().to_string();
 
     // Bound state after one turn propagation
-    const auto& bound_param1 = propagation._stepping.bound_params();
+    const auto& bound_param1 = updater_state.bound_params();
 
     // Check if the track reaches the final surface
     EXPECT_EQ(bound_param0.surface_link().volume(), 0u);

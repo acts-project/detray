@@ -27,7 +27,7 @@ namespace detray {
 /// @Note Currently only works with step constraints (will be changed in the
 /// future)
 template <concepts::algebra algebra_t>
-struct perigee_stopper : actor {
+struct perigee_stopper : public base_actor {
 
     using scalar_t = dscalar<algebra_t>;
 
@@ -117,7 +117,7 @@ struct perigee_stopper : actor {
 
                 // @TODO: Transport covariance as well
                 // assert(!cf.m_bound_vec.is_invalid());
-                stepping.bound_params().set_parameter_vector(cf.m_bound_vec);
+                // stepping.bound_params().set_parameter_vector(cf.m_bound_vec);
 
                 prop_state._heartbeat &= navigation.exit();
             } else {

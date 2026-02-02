@@ -10,7 +10,7 @@
 #include "detray/navigation/caching_navigator.hpp"
 #include "detray/navigation/direct_navigator.hpp"
 #include "detray/propagator/actors.hpp"
-#include "detray/propagator/actors/parameter_transporter.hpp"
+#include "detray/propagator/actors/parameter_updater.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
@@ -65,11 +65,10 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
     using stepper_t = rk_stepper<bfield_t::view_t, test_algebra>;
 
     // Include helix actor to check track position/covariance
-    using actor_chain_t =
-        actor_chain<parameter_transporter<test_algebra>,
-                    pointwise_material_interactor<test_algebra>,
-                    parameter_resetter<test_algebra>,
-                    surface_sequencer<surface_t>>;
+    using actor_chain_t = actor_chain<
+        actor::parameter_updater<
+            test_algebra, actor::pointwise_material_interactor<test_algebra>>,
+        actor::surface_sequencer<surface_t>>;
 
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
     using direct_propagator_t =
@@ -108,9 +107,12 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
     for (auto track : generator_t{trk_gen_cfg}) {
 
         // Build actor states: the helix inspector can be shared
-        parameter_transporter<test_algebra>::state transporter_state{};
-        pointwise_material_interactor<test_algebra>::state interactor_state{};
-        parameter_resetter<test_algebra>::state resetter_state{cfg};
+        actor::parameter_updater_state<test_algebra> updater_state{cfg};
+        actor::parameter_updater_state<test_algebra> fw_updater_state{cfg};
+        actor::parameter_updater_state<test_algebra> bw_updater_state{cfg};
+
+        actor::pointwise_material_interactor<test_algebra>::state
+            interactor_state{};
         vecmem::data::vector_buffer<surface_t> seqs_buffer{
             100u, host_mr, vecmem::data::buffer_type::resizable};
         vecmem::data::vector_buffer<surface_t> seqs_forward_buffer{
@@ -128,14 +130,14 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
         vecmem::device_vector<surface_t> seqs_backward_device(
             seqs_backward_buffer);
 
-        surface_sequencer<surface_t>::state sequencer_state(seqs_device);
-        surface_sequencer<surface_t>::state sequencer_forward_state(
+        actor::surface_sequencer<surface_t>::state sequencer_state(seqs_device);
+        actor::surface_sequencer<surface_t>::state sequencer_forward_state(
             seqs_forward_device);
-        surface_sequencer<surface_t>::state sequencer_backward_state(
+        actor::surface_sequencer<surface_t>::state sequencer_backward_state(
             seqs_backward_device);
 
-        auto actor_states = detray::tie(transporter_state, interactor_state,
-                                        sequencer_state, resetter_state);
+        auto actor_states =
+            detray::tie(updater_state, interactor_state, sequencer_state);
 
         propagator_t::state state(track, bfield, det);
         navigator_t::state& navigation = state._navigation;
@@ -146,12 +148,10 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
 
         if (seqs_device.size() > 0) {
 
-            auto direct_forward_actor_states =
-                detray::tie(transporter_state, interactor_state,
-                            sequencer_forward_state, resetter_state);
-            auto direct_backward_actor_states =
-                detray::tie(transporter_state, interactor_state,
-                            sequencer_backward_state, resetter_state);
+            auto direct_forward_actor_states = detray::tie(
+                fw_updater_state, interactor_state, sequencer_forward_state);
+            auto direct_backward_actor_states = detray::tie(
+                bw_updater_state, interactor_state, sequencer_backward_state);
 
             direct_propagator_t::state direct_forward_state(track, bfield, det,
                                                             seqs_buffer);
@@ -177,16 +177,14 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
 
             // The initial momentum should be higher than the momentum at the
             // last surface
-            ASSERT_TRUE(track.p(q) > state._stepping.bound_params().p(q));
+            ASSERT_TRUE(track.p(q) > updater_state.bound_params().p(q));
             ASSERT_NEAR(
-                static_cast<float>(state._stepping.bound_params().p(q)),
-                static_cast<float>(
-                    direct_forward_state._stepping.bound_params().p(q)),
-                static_cast<float>(state._stepping.bound_params().p(q)) * tol);
+                static_cast<float>(updater_state.bound_params().p(q)),
+                static_cast<float>(fw_updater_state.bound_params().p(q)),
+                static_cast<float>(updater_state.bound_params().p(q)) * tol);
 
             direct_propagator_t::state direct_backward_state(
-                direct_forward_state._stepping.bound_params(), bfield, det,
-                seqs_buffer);
+                fw_updater_state.bound_params(), bfield, det, seqs_buffer);
             direct_backward_state._navigation.set_direction(
                 detray::navigation::direction::e_backward);
             direct_backward_state._navigation.reset();
@@ -206,11 +204,10 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
 
             ASSERT_NEAR(
                 static_cast<float>(track.p(q)),
-                static_cast<float>(
-                    direct_backward_state._stepping.bound_params().p(q)),
+                static_cast<float>(bw_updater_state.bound_params().p(q)),
                 static_cast<float>(track.p(q)) * tol);
-            ASSERT_TRUE(direct_backward_state._stepping.bound_params().p(q) >
-                        direct_forward_state._stepping.bound_params().p(q));
+            ASSERT_TRUE(bw_updater_state.bound_params().p(q) >
+                        fw_updater_state.bound_params().p(q));
         }
     }
 }
@@ -259,11 +256,10 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
     using stepper_t = rk_stepper<bfield_t::view_t, test_algebra>;
 
     // Include helix actor to check track position/covariance
-    using actor_chain_t =
-        actor_chain<parameter_transporter<test_algebra>,
-                    pointwise_material_interactor<test_algebra>,
-                    parameter_resetter<test_algebra>,
-                    surface_sequencer<surface_t>>;
+    using actor_chain_t = actor_chain<
+        actor::parameter_updater<
+            test_algebra, actor::pointwise_material_interactor<test_algebra>>,
+        actor::surface_sequencer<surface_t>>;
 
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
     using direct_propagator_t =
@@ -297,9 +293,11 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
     for (auto track : generator_t{trk_gen_cfg}) {
 
         // Build actor states: the helix inspector can be shared
-        parameter_transporter<test_algebra>::state transporter_state{};
-        pointwise_material_interactor<test_algebra>::state interactor_state{};
-        parameter_resetter<test_algebra>::state resetter_state{cfg};
+        actor::parameter_updater_state<test_algebra> updater_state{cfg};
+        actor::parameter_updater_state<test_algebra> fw_updater_state{cfg};
+        actor::parameter_updater_state<test_algebra> bw_updater_state{cfg};
+        actor::pointwise_material_interactor<test_algebra>::state
+            interactor_state{};
 
         vecmem::data::vector_buffer<surface_t> seqs_buffer{
             100u, host_mr, vecmem::data::buffer_type::resizable};
@@ -318,14 +316,14 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
         vecmem::device_vector<surface_t> seqs_backward_device(
             seqs_backward_buffer);
 
-        surface_sequencer<surface_t>::state sequencer_state(seqs_device);
-        surface_sequencer<surface_t>::state sequencer_forward_state(
+        actor::surface_sequencer<surface_t>::state sequencer_state(seqs_device);
+        actor::surface_sequencer<surface_t>::state sequencer_forward_state(
             seqs_forward_device);
-        surface_sequencer<surface_t>::state sequencer_backward_state(
+        actor::surface_sequencer<surface_t>::state sequencer_backward_state(
             seqs_backward_device);
 
-        auto actor_states = detray::tie(transporter_state, interactor_state,
-                                        sequencer_state, resetter_state);
+        auto actor_states =
+            detray::tie(updater_state, interactor_state, sequencer_state);
 
         propagator_t::state state(track, bfield, det);
         navigator_t::state& navigation = state._navigation;
@@ -336,12 +334,10 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
 
         if (seqs_device.size() > 0) {
 
-            auto direct_forward_actor_states =
-                detray::tie(transporter_state, interactor_state,
-                            sequencer_forward_state, resetter_state);
-            auto direct_backward_actor_states =
-                detray::tie(transporter_state, interactor_state,
-                            sequencer_backward_state, resetter_state);
+            auto direct_forward_actor_states = detray::tie(
+                fw_updater_state, interactor_state, sequencer_forward_state);
+            auto direct_backward_actor_states = detray::tie(
+                bw_updater_state, interactor_state, sequencer_backward_state);
 
             direct_propagator_t::state direct_forward_state(track, bfield, det,
                                                             seqs_buffer);
@@ -367,16 +363,14 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
 
             // The initial momentum should be higher than or equal to the
             // momentum at the last surface
-            ASSERT_GE(track.p(q), state._stepping.bound_params().p(q));
+            ASSERT_GE(track.p(q), updater_state.bound_params().p(q));
             ASSERT_NEAR(
-                static_cast<float>(state._stepping.bound_params().p(q)),
-                static_cast<float>(
-                    direct_forward_state._stepping.bound_params().p(q)),
-                static_cast<float>(state._stepping.bound_params().p(q)) * tol);
+                static_cast<float>(updater_state.bound_params().p(q)),
+                static_cast<float>(fw_updater_state.bound_params().p(q)),
+                static_cast<float>(updater_state.bound_params().p(q)) * tol);
 
             direct_propagator_t::state direct_backward_state(
-                direct_forward_state._stepping.bound_params(), bfield, det,
-                seqs_buffer);
+                fw_updater_state.bound_params(), bfield, det, seqs_buffer);
             direct_backward_state._navigation.set_direction(
                 detray::navigation::direction::e_backward);
             direct_backward_state._navigation.reset();
@@ -398,11 +392,10 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
 
             ASSERT_NEAR(
                 static_cast<float>(track.p(q)),
-                static_cast<float>(
-                    direct_backward_state._stepping.bound_params().p(q)),
+                static_cast<float>(bw_updater_state.bound_params().p(q)),
                 static_cast<float>(track.p(q)) * tol);
-            ASSERT_GE(direct_backward_state._stepping.bound_params().p(q),
-                      direct_forward_state._stepping.bound_params().p(q));
+            ASSERT_GE(bw_updater_state.bound_params().p(q),
+                      fw_updater_state.bound_params().p(q));
         }
     }
 }

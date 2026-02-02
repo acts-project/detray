@@ -45,11 +45,11 @@ int main() {
     using stepper_t = detray::rk_stepper<bfield_t::view_t, algebra_t>;
 
     // Actors
-    using actor_chain_t =
-        detray::actor_chain<detray::pathlimit_aborter<scalar>,
-                            detray::parameter_transporter<algebra_t>,
-                            detray::pointwise_material_interactor<algebra_t>,
-                            detray::parameter_resetter<algebra_t>>;
+    using actor_chain_t = detray::actor_chain<
+        detray::actor::pathlimit_aborter<scalar>,
+        detray::actor::parameter_updater<
+            algebra_t,
+            detray::actor::pointwise_material_interactor<algebra_t>>>;
 
     // Propagator with empty actor chain
     using propagator_t =
@@ -99,15 +99,15 @@ int main() {
             detray::update_particle_hypothesis(ptc, track));
 
         // Prepare actor states
-        detray::pathlimit_aborter<scalar>::state aborter_state{
+        detray::actor::pathlimit_aborter<scalar>::state aborter_state{
             5.f * detray::unit<scalar>::m};
-        detray::parameter_transporter<algebra_t>::state transporter_state{};
-        detray::pointwise_material_interactor<algebra_t>::state
+        detray::actor::parameter_updater_state<algebra_t> updater_state{
+            prop_cfg};
+        detray::actor::pointwise_material_interactor<algebra_t>::state
             interactor_state{};
-        detray::parameter_resetter<algebra_t>::state resetter_state{};
 
-        auto actor_states = detray::tie(aborter_state, transporter_state,
-                                        interactor_state, resetter_state);
+        auto actor_states =
+            detray::tie(aborter_state, updater_state, interactor_state);
 
         // Run the actual propagation
         prop.propagate(propagation, actor_states);
