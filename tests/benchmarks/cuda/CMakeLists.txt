@@ -46,5 +46,6 @@ detray_add_executable(cuda_propagation
 
 target_compile_options(
     detray_cuda_propagation
-    PRIVATE "-march=native" "-ftree-vectorize"
+    PRIVATE "-march=native" "-ftree-vectorize" "-use_fast_math"
+    #$<$<COMPILE_LANGUAGE:CUDA>:"-src-in-ptx"
 )

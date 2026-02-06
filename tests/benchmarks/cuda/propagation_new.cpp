@@ -98,11 +98,12 @@ int main(int argc, char** argv) {
 
     auto bfield = create_const_field<scalar>(B);
 
+    parameter_transporter<algebra_t>::state transporter_state{};
     pointwise_material_interactor<algebra_t>::state interactor_state{};
     parameter_resetter<algebra_t>::state resetter_state{};
 
-    auto actor_states =
-        detail::make_tuple<dtuple>(interactor_state, resetter_state);
+    auto actor_states = detail::make_tuple<dtuple>(
+        transporter_state, interactor_state, resetter_state);
 
     //
     // Register benchmarks

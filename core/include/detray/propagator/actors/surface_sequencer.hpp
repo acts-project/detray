@@ -16,6 +16,9 @@
 // Vecmem include(s)
 #include <vecmem/containers/device_vector.hpp>
 
+// System include(s)
+#include <utility>
+
 namespace detray {
 
 template <typename sf_descriptor_t>

@@ -51,6 +51,6 @@ foreach(algebra ${algebra_plugins})
 
     set_property(
         TARGET detray_benchmark_cuda_${algebra}
-        PROPERTY CUDA_ARCHITECTURES 75
+        PROPERTY CUDA_ARCHITECTURES 86
     )
 endforeach()

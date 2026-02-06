@@ -107,7 +107,7 @@ class base_state : public detray::ranges::view_interface<
     using detector_type = detector_t;
 
     /// Default constructor (needs a detector)
-    base_state() = delete;
+    base_state() = default;
 
     /// Constructor using a given detector @param det
     DETRAY_HOST_DEVICE
@@ -631,7 +631,7 @@ class base_state : public detray::ranges::view_interface<
     }
 
     /// Our cache of candidates (intersections with any kind of surface)
-    candidate_cache_t m_candidates;
+    candidate_cache_t m_candidates{};
 
     /// Detector pointer
     const detector_t *m_detector{nullptr};

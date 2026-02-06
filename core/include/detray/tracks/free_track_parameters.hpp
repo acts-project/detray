@@ -79,12 +79,14 @@ struct free_parameters_vector {
     /// Convenience access to the track parameters - const
     DETRAY_HOST_DEVICE
     scalar_type operator[](std::size_t i) const {
+        assert(i < 8u);
         return getter::element(m_vector, static_cast<unsigned int>(i), 0u);
     }
 
     /// Convenience access to the track parameters - non-const
     DETRAY_HOST_DEVICE
     decltype(auto) operator[](std::size_t i) {
+        assert(i < 8u);
         return getter::element(m_vector, static_cast<unsigned int>(i), 0u);
     }
 
