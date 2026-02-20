@@ -74,8 +74,7 @@ void run_propagation_kernel(
     typename stepper_t::magnetic_field_type,
     vecmem::data::vector_view<typename stepper_t::free_track_parameters_type>,
     vecmem::data::vector_view<typename navigator_t::state>,
-    vecmem::data::vector_view<stepping::result<
-        typename navigator_t::detector_type::algebra_type, 32u>>,
+    vecmem::data::vector_view<typename stepper_t::state>,
     typename actor_chain_t::state_tuple *);
 
 /// Allocate space for the device detector opbject to be shared between kenels
@@ -191,17 +190,22 @@ struct cuda_propagation {
         auto *pinned_actor_state_ptr =
             setup_actor_states<actor_chain_t>(input_actor_states);
 
-        // Navigation results (SoA per warp)
+        // Navigation states
         vecmem::data::vector_buffer<typename navigator_t::state>
-            navigation_res_buffer(n_tracks, *dev_mr);
-        cuda_cpy.setup(navigation_res_buffer)->wait();
-        auto navigation_res_view = vecmem::get_data(navigation_res_buffer);
+            navigation_states_buffer(n_tracks, *dev_mr);
+        cuda_cpy.setup(navigation_states_buffer)->wait();
+        auto navigation_res_view = vecmem::get_data(navigation_states_buffer);
 
-        // Stepper results
-        vecmem::data::vector_buffer<stepping::result<algebra_t, 32u>>
-            stepper_res_buffer((n_tracks + 31u) / 32u, *dev_mr);
-        cuda_cpy.setup(stepper_res_buffer)->wait();
-        auto stepper_res_view = vecmem::get_data(stepper_res_buffer);
+        // Stepper states
+        vecmem::data::vector_buffer<typename stepper_t::state>
+            stepper_states_buffer(n_tracks, *dev_mr);
+        cuda_cpy.setup(stepper_states_buffer)->wait();
+        auto stepper_states_view = vecmem::get_data(stepper_states_buffer);
+
+        std::cout << "thread,block,warp_pair,nav_cylces,step_cylces,nav_work,"
+                     "step_work,nav_mem,step_mem,nav_wait,step_wait,nav_total,"
+                     "step_total,prop_init,prop_total,block_total"
+                  << std::endl;
 
         std::chrono::high_resolution_clock::time_point t1_prop =
             std::chrono::high_resolution_clock::now();
@@ -214,7 +218,8 @@ struct cuda_propagation {
             // Launch the propagation for GPU device
             run_propagation_kernel<navigator_t, stepper_t, actor_chain_t>(
                 m_cfg, pinned_detector_ptr, field_view, tracks_view,
-                navigation_res_view, stepper_res_view, pinned_actor_state_ptr);
+                navigation_res_view, stepper_states_view,
+                pinned_actor_state_ptr);
 
             ++iterations;
         }
@@ -230,9 +235,7 @@ struct cuda_propagation {
                                                                       t1_prop);
         const double prop_ms{prop_time.count() * 1000.};
 
-        DETRAY_INFO_HOST("Propagation kernel took: "
-                         << prop_ms << "ms (" << prop_ms / (n_tracks / 3000.)
-                         << " ms/evt)\n");
+        std::cout << "Propagation run took: " << prop_ms << "ms\n";
     }
 };
 

@@ -16,7 +16,7 @@
 namespace detray::stepping {
 
 template <concepts::algebra algebra_t, std::size_t N = 1u>
-struct result {
+struct alignas(16) result {
     using scalar_t = dscalar<algebra_t>;
 
     /// TODO: replace with @c dsimd<algebra_t, T>
@@ -46,7 +46,7 @@ struct result {
         qop[i] = param[7u];
     };
 
-    private:
+    // private:
     simd_t<scalar_t> pos0{};
     simd_t<scalar_t> pos1{};
     simd_t<scalar_t> pos2{};

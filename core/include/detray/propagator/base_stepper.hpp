@@ -237,7 +237,7 @@ class base_stepper {
             m_jac_transport = jac;
         }
 
-        private:
+        public:
         /// Jacobian transport matrix
         free_matrix_type m_jac_transport = matrix::identity<free_matrix_type>();
 

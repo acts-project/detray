@@ -23,7 +23,7 @@ namespace detray::navigation {
 
 /// Result type of a navigation update
 template <typename metadata_t, std::size_t N = 1u>
-struct result {
+struct alignas(128) result {
     using detector_t = detector<metadata_t, device_container_types>;
     using nav_link_t = typename detector_t::surface_type::navigation_link;
     using algebra_t = typename detector_t::algebra_type;
@@ -43,7 +43,7 @@ struct result {
     /// @returns the navigation heartbeat (is this stream still being updated?)
     DETRAY_HOST_DEVICE
     constexpr bool is_alive(const std::size_t i = 0u) const {
-        return status(i) > navigation::status::e_exit;
+        return status(i) > navigation::status::e_unknown;
     }
 
     /// @returns the externally provided mask tolerance - const
@@ -259,7 +259,6 @@ struct result {
         DETRAY_ERROR_HOST("Aborted: " << debug_msg_generator());
     }
 
-    detector_t *m_detector{nullptr};
     simd_t<typename detector_t::surface_type> m_current{};
     simd_t<geometry::barcode> m_target{};
     simd_t<scalar_t> m_dist_to_next{detail::invalid_value<scalar_t>()};
@@ -270,6 +269,7 @@ struct result {
     simd_t<navigation::status> m_status{navigation::status::e_unknown};
     simd_t<navigation::trust_level> m_trust_level{
         navigation::trust_level::e_no_trust};
+    detector_t *m_detector{nullptr};
 };
 
 }  // namespace detray::navigation

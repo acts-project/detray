@@ -619,7 +619,8 @@ class base_state : public detray::ranges::view_interface<
                                     derived, cfg, track_pos, track_dir));
     }
 
-    private:
+    // private:
+    public:
     /// @returns a string stream that prints the navigation state details
     DETRAY_HOST
     friend std::ostream &operator<<(std::ostream &os, const derived_t &s) {

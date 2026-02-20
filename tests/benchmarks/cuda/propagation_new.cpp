@@ -81,9 +81,11 @@ int main(int argc, char** argv) {
     //
     // Prepare data
     //
-    // Generate track sample for strong scaling
-    track_generator_t::configuration trk_cfg{};
-    trk_cfg.n_tracks(n_tracks);
+    auto trk_cfg =
+        detray::benchmarks::get_default_trk_gen_config<track_generator_t>(
+            {static_cast<int>(n_tracks)});
+
+    // Specific configuration for the random track generation
     trk_cfg.seed(detail::random_numbers<scalar>::default_seed());
 
     std::cout << trk_cfg << std::endl;
@@ -131,7 +133,5 @@ int main(int argc, char** argv) {
     const double total_time_ms{total_time.count() * 1000.};
 
     // Assumption: 1 event = 3000 truth tracks + 2 seeds per track
-    std::cout << "It took: " << total_time_ms << "ms ("
-              << total_time_ms / (static_cast<double>(n_tracks) / 3000.)
-              << " ms/evt)" << std::endl;
+    std::cout << "Total time: " << total_time_ms << "ms" << std::endl;
 }

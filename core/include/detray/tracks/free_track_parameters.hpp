@@ -19,7 +19,7 @@
 namespace detray {
 
 template <concepts::algebra algebra_t>
-struct free_parameters_vector {
+struct alignas(16) free_parameters_vector {
 
     /// @name Type definitions for the struct
     /// @{
@@ -209,7 +209,7 @@ struct free_parameters_vector {
                                       scalar_type{1e-5f});
     }
 
-    private:
+    public:
     /// Transform to a string for debugging output
     DETRAY_HOST
     friend std::ostream& operator<<(std::ostream& out_stream,
