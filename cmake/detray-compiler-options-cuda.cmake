@@ -21,7 +21,7 @@ if(PROJECT_IS_TOP_LEVEL)
 
     # Set the CUDA architecture to build code for.
     set(CMAKE_CUDA_ARCHITECTURES
-        "52"
+        "86"
         CACHE STRING
         "CUDA architectures to build device code for"
     )

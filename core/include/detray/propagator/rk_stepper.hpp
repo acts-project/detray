@@ -77,6 +77,9 @@ class rk_stepper final
 
         static constexpr const stepping::id id = stepping::id::e_rk;
 
+        constexpr explicit state(const magnetic_field_t& mag_field)
+            : m_magnetic_field(mag_field) {}
+
         DETRAY_HOST_DEVICE
         state(const free_track_parameters_type& t,
               const magnetic_field_t& mag_field)
@@ -172,14 +175,14 @@ class rk_stepper final
         }
 
         private:
-        vector3_type m_dtds_3;
-        scalar_type m_dqopds_3;
+        vector3_type m_dtds_3{};
+        scalar_type m_dqopds_3{};
 
         /// Next step size after adaptive step size scaling
         scalar_type m_next_step_size{0.f};
 
         /// Magnetic field view
-        const magnetic_field_t m_magnetic_field;
+        magnetic_field_t m_magnetic_field;
     };
 
     /// Take a step, using an adaptive Runge-Kutta algorithm.

@@ -774,8 +774,7 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
 
     // If the estimated error is larger than the tolerance with an additional
     // margin, reduce the step size and try again
-    const auto n_trials{cfg.max_rk_updates};
-    for (unsigned int i = 0u; i < n_trials; i++) {
+    for (unsigned int i = 0u; i < cfg.max_rk_updates; i++) {
         stepping.count_trials();
 
         error = math::max(estimate_error(stepping.step_size()),

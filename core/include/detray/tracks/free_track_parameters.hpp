@@ -19,7 +19,7 @@
 namespace detray {
 
 template <concepts::algebra algebra_t>
-struct free_parameters_vector {
+struct alignas(16) free_parameters_vector {
 
     /// @name Type definitions for the struct
     /// @{
@@ -79,12 +79,14 @@ struct free_parameters_vector {
     /// Convenience access to the track parameters - const
     DETRAY_HOST_DEVICE
     scalar_type operator[](std::size_t i) const {
+        assert(i < 8u);
         return getter::element(m_vector, static_cast<unsigned int>(i), 0u);
     }
 
     /// Convenience access to the track parameters - non-const
     DETRAY_HOST_DEVICE
     decltype(auto) operator[](std::size_t i) {
+        assert(i < 8u);
         return getter::element(m_vector, static_cast<unsigned int>(i), 0u);
     }
 
@@ -207,7 +209,7 @@ struct free_parameters_vector {
                                       scalar_type{1e-5f});
     }
 
-    private:
+    public:
     /// Transform to a string for debugging output
     DETRAY_HOST
     friend std::ostream& operator<<(std::ostream& out_stream,

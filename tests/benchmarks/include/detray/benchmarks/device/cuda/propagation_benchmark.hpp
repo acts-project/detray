@@ -104,7 +104,7 @@ template <typename propagator_t>
 void release_actor_states(
     typename propagator_t::actor_chain_type::state_tuple *);
 
-/// Device Propagation becnhmark
+/// Device Propagation benchmark
 template <typename propagator_t, typename bfield_bknd_t,
           detray::benchmarks::propagation_opt kOPT =
               detray::benchmarks::propagation_opt::e_unsync>

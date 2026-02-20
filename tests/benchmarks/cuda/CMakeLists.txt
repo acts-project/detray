@@ -38,3 +38,14 @@ foreach(algebra ${algebra_plugins})
         PRIVATE "-march=native" "-ftree-vectorize"
     )
 endforeach()
+
+detray_add_executable(cuda_propagation
+    "propagation_new.cpp"
+    LINK_LIBRARIES detray::benchmark_cuda_array detray::core_array vecmem::cuda detray::test_common
+)
+
+target_compile_options(
+    detray_cuda_propagation
+    PRIVATE "-march=native" "-ftree-vectorize" "-use_fast_math"
+    #$<$<COMPILE_LANGUAGE:CUDA>:"-src-in-ptx"
+)

@@ -60,12 +60,14 @@ class base_stepper {
     /// @note It has to cast into a const track via the call operation.
     struct state {
 
+        constexpr state() = default;
+
         /// Sets track parameters.
         DETRAY_HOST_DEVICE
         explicit state(const free_track_parameters_type &free_params)
             : m_track(free_params) {
 
-            curvilinear_frame<algebra_t> cf(free_params);
+            /*curvilinear_frame<algebra_t> cf(free_params);
 
             // Set bound track parameters
             m_bound_params.set_parameter_vector(cf.m_bound_vec);
@@ -77,7 +79,7 @@ class base_stepper {
             // An invalid barcode - should not be used
             m_bound_params.set_surface_link(geometry::barcode{});
 
-            assert(!m_bound_params.is_invalid());
+            assert(!m_bound_params.is_invalid());*/
         }
 
         /// Sets track parameters from bound track parameter.
@@ -126,12 +128,13 @@ class base_stepper {
         }
 
         /// Updates the total number of step trials
-        DETRAY_HOST_DEVICE inline void count_trials() { ++m_n_total_trials; }
+        DETRAY_HOST_DEVICE inline void count_trials() { /*++m_n_total_trials;*/
+        }
 
         /// @returns the total number of step trials. For steppers that don't
         /// use adaptive step size scaling, this is the number of steps
         DETRAY_HOST_DEVICE inline std::size_t n_total_trials() const {
-            return m_n_total_trials;
+            return 0;
         }
 
         /// Set the current step size
@@ -234,7 +237,7 @@ class base_stepper {
             m_jac_transport = jac;
         }
 
-        private:
+        public:
         /// Jacobian transport matrix
         free_matrix_type m_jac_transport = matrix::identity<free_matrix_type>();
 
