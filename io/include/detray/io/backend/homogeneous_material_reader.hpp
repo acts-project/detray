@@ -90,11 +90,11 @@ class homogeneous_material_reader {
                               << " material slabs to material factory");
             for (const auto& mat_data : mv_data.surface_mat) {
                 // Determine the material type id
-                auto mat_type{mat_id::e_slab};
+                auto mat_type{mat_id::e_material_slab};
                 if constexpr (detray::concepts::has_material_rods<detector_t>) {
                     mat_type = mat_data.type == io::material_id::slab
-                                   ? mat_id::e_slab
-                                   : mat_id::e_rod;
+                                   ? mat_id::e_material_slab
+                                   : mat_id::e_material_rod;
                 } else {
                     assert(mat_data.type == io::material_id::slab);
                 }

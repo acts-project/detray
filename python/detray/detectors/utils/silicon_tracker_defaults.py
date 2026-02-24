@@ -8,8 +8,8 @@
 # Function that will add types commonly needed for silicon trackers
 # --------------------------------------------------------------------------
 
-from impl import metadata
-from impl import Shape, Material, Accelerator
+from ..impl import metadata
+from ..impl import Shape, Material, Accelerator
 
 import logging
 
@@ -48,11 +48,10 @@ def add_silicon_tracker_defaults(
     logger.info("-> adding endcap section types")
     metadata.add_sensitive(Shape.TRAPEZOID)
     metadata.add_accel_struct(Accelerator.DISC_GRID2D, "sensitive")
-    metadata.add_accel_struct(Accelerator.BLA, "sensitive")
     if use_mat_maps:
         metadata.add_material(Material.DISC_MAP2D)
 
-    # Slabs can be used for both barrel and endcap surface shapes
+    # Material slabs can be used for both barrel and endcap surface shapes
     if use_homogeneous_mat:
         logger.info("-> requested homogeneous material types")
         metadata.add_material(Material.SLAB)

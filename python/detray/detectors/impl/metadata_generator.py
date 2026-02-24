@@ -19,6 +19,7 @@ from collections import Counter
 from datetime import datetime
 import itertools
 import logging
+import numbers
 import os
 from typing import Optional
 
@@ -242,7 +243,8 @@ class metadata_generator:
     def __generate(
         self, md: metadata, src_dir="../detectors/include/detray/detectors/"
     ):
-        filename = f"{os.path.abspath(src_dir)}/{md.det_name}_metadata.hpp"
+        det_name = md.det_name.replace("_detector", "")
+        filename = f"{os.path.abspath(src_dir)}/{det_name}_metadata.hpp"
         self.logger.debug(f'Open "{filename}"')
         self.file = open(filename, "w+")
 
@@ -401,10 +403,10 @@ class metadata_generator:
 
         # Add the corresponding includes
         root_dir = '#include "detray'
-        shape_names.remove(None)
+        shape_names.discard(None)
         [self.__put(f'{root_dir}/geometry/shapes/{n}.hpp"\n') for n in shape_names]
 
-        [self.__put(f'{root_dir}/materials/{n}.hpp"\n') for n in mat_names]
+        [self.__put(f'{root_dir}/material/{n}.hpp"\n') for n in mat_names]
 
         [
             self.__put(f'{root_dir}/navigation/accelerators/{n}.hpp"\n')
@@ -439,15 +441,18 @@ template <template <typename...> class vector_t = dvector>\n\
     def __declare_type_enum(self, specifier, items, base_type, extra_items={}):
         self.__put(f"enum class {specifier} : {base_type} {{\n")
 
-        # print(items)
-        # print(extra_items)
+        print(items)
+        print(extra_items)
 
         self.indent = self.indent + 1
         for i, values in itertools.chain(items.items(), extra_items.items()):
             for v in values:
                 # Special value was passed
                 item = v[0] if isinstance(v, list) else v
-                value = v[1] if isinstance(v, list) else f"{i}u"
+                tmp_value = v[1] if isinstance(v, list) else i
+                value = f"{i}u" if isinstance(tmp_value, numbers.Number) else tmp_value
+
+                print(value)
                 # Remove the trailing '_t' suffix
                 sub_specifier = f"e_{item[:-2]}" if item.endswith("_t") else f"e_{item}"
                 self.__put(f"{sub_specifier} = {value},\n")
@@ -517,14 +522,20 @@ template <template <typename...> class vector_t = dvector>\n\
         else:
             # The brute force searcher needs to be at the beginning of the store
             type_list = []
-            if "surface_brute_force_t" in types:
-                types.remove("surface_brute_force_t")
+            flattened_types = [t for t in itertools.chain(*types.values())]
+
+            if "surface_brute_force_t" in flattened_types:
+                flattened_types = [
+                    t for t in flattened_types if t != "surface_brute_force_t"
+                ]
                 type_list.append("brute_force_collection<surface_type, container_t>")
 
             # Have the volume acceleration structure at the end of the store
             volume_brute_force = ""
-            if "volume_brute_force_t" in types:
-                types.remove("volume_brute_force_t")
+            if "volume_brute_force_t" in flattened_types:
+                flattened_types = [
+                    t for t in flattened_types if t != "volume_brute_force_t"
+                ]
                 volume_brute_force = "brute_force_collection<dindex, container_t>"
 
             type_list = type_list + [
@@ -533,7 +544,7 @@ template <template <typename...> class vector_t = dvector>\n\
                     if (t.endswith("map_t") or t.endswith("grid_t"))
                     else f"typename container_t::template vector_type<{t}>"
                 )
-                for t in itertools.chain(*types.values())
+                for t in flattened_types
             ]
 
             if volume_brute_force:
@@ -672,10 +683,11 @@ template <template <typename...> class vector_t = dvector>\n\
 
             shape_specifier = acc.param["shape"].specifier
             type_specifier = f"{self.__name_from_specifier(shape_specifier)}_grid_t"
+            entry_type = "surface_type" if value_type == "surface" else "dindex"
 
             template_list = "template <typename container_t>\n"
             self.__put(
-                f"{template_list}{self.__tabs()}using {obj_type}_{type_specifier} = spatial_grid_t<axes<{shape_specifier}>, {value_type}, container_t>;\n"
+                f"{template_list}{self.__tabs()}using {obj_type}_{type_specifier} = spatial_grid_t<axes<{shape_specifier}>, {entry_type}, container_t>;\n"
             )
 
         self.accel_specifiers.setdefault(type_id, []).append(
@@ -735,8 +747,8 @@ template <template <typename...> class vector_t = dvector>\n\
             volume_default = f"e_volume_{self.__name_from_specifier(md.default_volume_accel.specifier)}"
 
         extra_items = {
-            "surface_default": [surface_default],
-            "volume_default": [volume_default],
+            surface_default: ["surface_default"],
+            volume_default: ["volume_default"],
         }
         self.__declare_type_enum(
             "accel_id",
@@ -757,7 +769,7 @@ template <template <typename...> class vector_t = dvector>\n\
             "accelerator_store", "accel_id", self.accel_specifiers, is_regular=False
         )
 
-    # Declare the geo,etry object types (e.g. passive, portal, sensitive)
+    # Declare the geometry object types (e.g. passive, portal, sensitive)
     # that are distinguishable to the volume: use enum values to link a
     # geometry object type category to the corresponding accel. struct
     def __declare_geometry_objects(self, md: metadata):

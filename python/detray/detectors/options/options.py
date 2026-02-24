@@ -17,9 +17,7 @@ from datetime import datetime
 """ Parent parser that contains logging options """
 
 
-def add_logging_options(prog_name=sys.argv[0]):
-
-    parser = argparse.ArgumentParser(prog=prog_name)
+def add_logging_options(parser):
 
     parser.add_argument(
         "-v",

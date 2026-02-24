@@ -4,13 +4,13 @@
 #
 # Mozilla Public License Version 2.0
 
-from impl import metadata, metadata_generator
-from impl import Type, Algebra, Shape, Material, Accelerator
-from utils import (
-    add_logging_options,
-    parse_logging_options,
-    add_calorimeter_defaults,
+import detray
+
+from detray.detectors import metadata, metadata_generator
+from detray.detectors import Type, Algebra, Shape, Material, Accelerator
+from detray.detectors import (
     add_silicon_tracker_defaults,
+    add_calorimeter_defaults,
     add_telescope_detector_defaults,
     add_wire_chamber_defaults,
 )
@@ -18,7 +18,9 @@ from utils import (
 from itk_metadata import add_itk_types
 from odd_metadata import add_odd_types
 
+import argparse
 import logging
+import sys
 
 # --------------------------------------------------------------------------
 # Generate the default metadata type (can represent all detectors)
@@ -27,8 +29,9 @@ import logging
 
 def __main__():
     # Commandline options
-    parser = add_logging_options()
-    parse_logging_options(parser.parse_args())
+    parser = argparse.ArgumentParser(prog=sys.argv[0])
+    detray.detectors.add_logging_options(parser)
+    detray.detectors.parse_logging_options(parser.parse_args())
 
     logger = logging.getLogger(__name__)
 

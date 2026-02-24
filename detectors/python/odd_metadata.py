@@ -4,15 +4,15 @@
 #
 # Mozilla Public License Version 2.0
 
-from impl import metadata, metadata_generator
-from impl import Shape
-from utils import (
-    add_logging_options,
-    parse_logging_options,
-    add_silicon_tracker_defaults,
-)
+import detray
 
+from detray.detectors import metadata, metadata_generator
+from detray.detectors import Shape
+from detray.detectors import add_silicon_tracker_defaults
+
+import argparse
 import logging
+import sys
 
 # --------------------------------------------------------------------------
 # Generate the Open Data Detector metadata type
@@ -21,24 +21,25 @@ import logging
 """ Add all types needed to describe the ACTS Open Data Detector (ODD) """
 
 
-def add_odd_types(metadata: metadata):
+def add_odd_types(md: metadata):
     logger = logging.getLogger(__name__)
     logger.info("Define types required by the ACTS Open Data Detector (ODD):")
 
     # Add default types for silicon trackers (cylindrical detector shape)
     add_silicon_tracker_defaults(
-        metadata=metadata, use_homogeneous_mat=True, use_mat_maps=True
+        metadata=md, use_homogeneous_mat=True, use_mat_maps=True
     )
 
     # Beampipe passive surface
     logger.info("-> adding ODD beampipe")
-    metadata.add_passive(Shape.CYLINDER2D)
+    md.add_passive(Shape.CYLINDER2D)
 
 
 def __main__():
     # Commandline options
-    parser = add_logging_options()
-    parse_logging_options(parser.parse_args())
+    parser = argparse.ArgumentParser(prog=sys.argv[0])
+    detray.detectors.add_logging_options(parser)
+    detray.detectors.parse_logging_options(parser.parse_args())
 
     md = metadata("odd")
 

@@ -198,34 +198,31 @@ struct default_metadata {
 
     template <typename container_t>
     using surface_concentric_cylinder2D_grid_t =
-        spatial_grid_t<axes<detray::concentric_cylinder2D>, surface,
+        spatial_grid_t<axes<detray::concentric_cylinder2D>, surface_type,
                        container_t>;
     template <typename container_t>
     using surface_ring2D_grid_t =
-        spatial_grid_t<axes<detray::ring2D>, surface, container_t>;
+        spatial_grid_t<axes<detray::ring2D>, surface_type, container_t>;
     template <typename container_t>
     using surface_cylinder2D_grid_t =
-        spatial_grid_t<axes<detray::cylinder2D>, surface, container_t>;
+        spatial_grid_t<axes<detray::cylinder2D>, surface_type, container_t>;
     template <typename container_t>
     using volume_cylinder3D_grid_t =
-        spatial_grid_t<axes<detray::cylinder3D>, index, container_t>;
+        spatial_grid_t<axes<detray::cylinder3D>, dindex, container_t>;
     template <typename container_t>
     using volume_cuboid3D_grid_t =
-        spatial_grid_t<axes<detray::cuboid3D>, index, container_t>;
+        spatial_grid_t<axes<detray::cuboid3D>, dindex, container_t>;
 
     enum class accel_id : std::uint_least8_t {
-        e_surface_brute_force = -1u,
-        e_surface_brute_force = -1u,
-        e_surface_concentric_cylinder2D_grid = -1u,
-        e_surface_ring2D_grid = -1u,
-        e_surface_bla = -1u,
-        e_surface_brute_force = -1u,
-        e_surface_cylinder2D_grid = -1u,
-        e_volume_cylinder3D_grid = -1u,
-        e_volume_cuboid3D_grid = -1u,
-        e_volume_brute_force = -1u,
-        e_e_surface_brute_force = surface_defaultu,
-        e_e_volume_cylinder3D_grid = volume_defaultu,
+        e_surface_brute_force = 0,
+        e_surface_concentric_cylinder2D_grid = 1,
+        e_surface_ring2D_grid = 2,
+        e_surface_cylinder2D_grid = 3,
+        e_volume_cylinder3D_grid = 4,
+        e_volume_cuboid3D_grid = 5,
+        e_volume_brute_force = 6,
+        e_surface_default = e_surface_brute_force,
+        e_volume_default = e_volume_cylinder3D_grid,
     };
 
     DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
@@ -234,20 +231,11 @@ struct default_metadata {
             case accel_id::e_surface_brute_force:
                 os << "e_surface_brute_force";
                 break;
-            case accel_id::e_surface_brute_force:
-                os << "e_surface_brute_force";
-                break;
             case accel_id::e_surface_concentric_cylinder2D_grid:
                 os << "e_surface_concentric_cylinder2D_grid";
                 break;
             case accel_id::e_surface_ring2D_grid:
                 os << "e_surface_ring2D_grid";
-                break;
-            case accel_id::e_surface_bla:
-                os << "e_surface_bla";
-                break;
-            case accel_id::e_surface_brute_force:
-                os << "e_surface_brute_force";
                 break;
             case accel_id::e_surface_cylinder2D_grid:
                 os << "e_surface_cylinder2D_grid";
@@ -270,23 +258,20 @@ struct default_metadata {
     template <typename container_t = host_container_types>
     using accelerator_store = multi_store<
         accel_id, empty_context, dtuple,
-        typename container_t::template vector_type<surface_brute_force_t>,
-        typename container_t::template vector_type<surface_brute_force_t>,
+        brute_force_collection<surface_type, container_t>,
         grid_collection<surface_concentric_cylinder2D_grid_t<container_t>>,
         grid_collection<surface_ring2D_grid_t<container_t>>,
-        typename container_t::template vector_type<surface_bla_t>,
-        typename container_t::template vector_type<surface_brute_force_t>,
         grid_collection<surface_cylinder2D_grid_t<container_t>>,
         grid_collection<volume_cylinder3D_grid_t<container_t>>,
         grid_collection<volume_cuboid3D_grid_t<container_t>>,
-        typename container_t::template vector_type<volume_brute_force_t>>;
+        brute_force_collection<dindex, container_t>>;
 
     enum geo_objects : std::uint_least8_t {
-        e_sensitive = 0u,
         e_passive = 0u,
         e_portal = 0u,
-        e_volume = 1u,
-        e_size = 2u,
+        e_sensitive = 1u,
+        e_volume = 2u,
+        e_size = 3u,
         e_all = e_size,
     };
 

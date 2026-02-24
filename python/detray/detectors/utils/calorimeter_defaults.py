@@ -8,8 +8,8 @@
 # Function that will add types commonly needed for calorimeters
 # --------------------------------------------------------------------------
 
-from impl import metadata
-from impl import Shape, Material, Accelerator
+from ..impl import metadata
+from ..impl import Shape, Material, Accelerator
 
 import logging
 
@@ -17,35 +17,35 @@ import logging
 
 
 def add_calorimeter_defaults(
-    metadata: metadata, use_mat_maps=False, use_homogeneous_mat=False
+    md: metadata, use_mat_maps=False, use_homogeneous_mat=False
 ):
     # Don't run more than once on given metadata (prevents spurious log entries)
-    if metadata in add_calorimeter_defaults.clients:
+    if md in add_calorimeter_defaults.clients:
         return
 
-    add_calorimeter_defaults.clients.append(metadata)
+    add_calorimeter_defaults.clients.append(md)
 
     logger = logging.getLogger(__name__)
     logger.info("Define calorimeter types:")
 
     logger.info("-> adding sensitive types")
-    metadata.add_sensitive(Shape.RECTANGLE)
-    metadata.add_sensitive(Shape.TRAPEZOID)
+    md.add_sensitive(Shape.RECTANGLE)
+    md.add_sensitive(Shape.TRAPEZOID)
 
     logger.info("-> adding portal types")
-    metadata.add_portal(Shape.CONCENTRIC_CYLINDER)
-    metadata.add_portal(Shape.RING)
+    md.add_portal(Shape.CONCENTRIC_CYLINDER)
+    md.add_portal(Shape.RING)
 
     # Acceleration Struct for portals and passives
-    metadata.add_accel_struct(Accelerator.BRUTE_FORCE, "portal", is_default=True)
-    metadata.add_accel_struct(Accelerator.BRUTE_FORCE, "passive")
+    md.add_accel_struct(Accelerator.BRUTE_FORCE, "portal", is_default=True)
+    md.add_accel_struct(Accelerator.BRUTE_FORCE, "passive")
 
     if use_mat_maps:
         logger.info("-> requested material map types")
-        metadata.add_material(Material.CYLINDER_MAP3D)
+        md.add_material(Material.CYLINDER_MAP3D)
     if use_homogeneous_mat:
         logger.info("-> requested homogeneous material types")
-        metadata.add_material(Material.RAW)
+        md.add_material(Material.RAW)
 
     # Add acceleration structures (e.g. Frustum navigation) in the future...
 

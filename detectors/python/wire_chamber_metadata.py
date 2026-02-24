@@ -17,18 +17,16 @@ import logging
 """ Add all types needed to describe the wire chamber test detector """
 
 
-def add_wire_chamber_types(metadata: metadata):
+def add_wire_chamber_types(md: metadata):
     logger = logging.getLogger(__name__)
     logger.info("Define types required by the wire chamber detector:")
 
     # Add default types for wire chambers
-    add_wire_chamber_defaults(
-        metadata=metadata, use_homogeneous_mat=True, use_mat_maps=False
-    )
+    add_wire_chamber_defaults(metadata=md, use_homogeneous_mat=True, use_mat_maps=False)
 
     # Beampipe passive surface
     logger.info("-> adding wire chamber beampipe")
-    metadata.add_passive(Shape.CYLINDER2D)
+    md.add_passive(Shape.CYLINDER2D)
 
 
 def __main__():

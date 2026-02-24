@@ -4,15 +4,15 @@
 #
 # Mozilla Public License Version 2.0
 
-from impl import metadata, metadata_generator
-from impl import Shape, Material
-from utils import (
-    add_logging_options,
-    parse_logging_options,
-    add_telescope_detector_defaults,
-)
+import detray
 
+from detray.detectors import metadata, metadata_generator
+from detray.detectors import Shape, Material
+from detray.detectors import add_telescope_detector_defaults
+
+import argparse
 import logging
+import sys
 
 # --------------------------------------------------------------------------
 # Generate the metadata type for the detray telescope test detector
@@ -21,17 +21,18 @@ import logging
 
 def __main__():
     # Commandline options
-    parser = add_logging_options()
-    parse_logging_options(parser.parse_args())
-    logger = logging.getLogger(__name__)
+    parser = argparse.ArgumentParser(prog=sys.argv[0])
+    detray.detectors.add_logging_options(parser)
+    detray.detectors.parse_logging_options(parser.parse_args())
 
     # Collect the types required for a telescope test detector
-    md = metadata("telescope_test_detector")
+    md = metadata("telescope_detector")
 
     # Cuboid volume based detector shape
     add_telescope_detector_defaults(md)
 
     # Add more geometric shape types for telescope test detector
+    logger = logging.getLogger(__name__)
     logger.info("-> adding additional telescope sensitive types")
     md.add_sensitive(Shape.ANNULUS)
     md.add_sensitive(Shape.CONCENTRIC_CYLINDER)
@@ -40,9 +41,9 @@ def __main__():
     md.add_sensitive(Shape.TRAPEZOID)
     md.add_sensitive(Shape.DRIFT_CELL)
     md.add_sensitive(Shape.STRAW_TUBE)
-    md.add_sensitive(Shape.UNBOUNDED)  # Always hit the surface
 
     # Add more material types
+    md.add_material(Material.SLAB)
     md.add_material(Material.ROD)
 
     # Dump the metadata to header file
