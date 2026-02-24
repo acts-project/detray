@@ -47,52 +47,7 @@ set(ALGEBRA_PLUGINS_BUILD_BENCHMARKS
     CACHE BOOL
     "Turn off the build of the Algebra Plugins benchmarks"
 )
-set(ALGEBRA_PLUGINS_INCLUDE_EIGEN
-    ${DETRAY_EIGEN_PLUGIN}
-    CACHE BOOL
-    "Turn on the build of algebra::eigen"
-)
-set(ALGEBRA_PLUGINS_INCLUDE_VC
-    ${DETRAY_VC_AOS_PLUGIN}
-    CACHE BOOL
-    "Turn on the build of algebra::vc_aos"
-)
-set(ALGEBRA_PLUGINS_INCLUDE_VECMEM
-    TRUE
-    CACHE BOOL
-    "Turn on the build of algebra::vecmem_array"
-)
 
-# Build smatrix plugin only when it needs to be
-# ROOT is not provided in native github compilers :/
-set(ALGEBRA_PLUGINS_INCLUDE_SMATRIX
-    ${DETRAY_SMATRIX_PLUGIN}
-    CACHE BOOL
-    "Turn on/off the build of algebra::smatrix"
-)
-
-set(ALGEBRA_PLUGINS_SETUP_EIGEN3
-    ${DETRAY_EIGEN_PLUGIN}
-    CACHE BOOL
-    "Have Algebra Plugins set up Eigen3 for itself"
-)
-set(ALGEBRA_PLUGINS_USE_SYSTEM_EIGEN3
-    FALSE
-    CACHE BOOL
-    "Have Algebra Plugins pick up Eigen3 from the system"
-)
-set(ALGEBRA_PLUGINS_SETUP_VC
-    ${DETRAY_VC_AOS_PLUGIN}
-    OR
-    ${DETRAY_VC_SOA_PLUGIN}
-    CACHE BOOL
-    "Have Algebra Plugins set up Vc for itself"
-)
-set(ALGEBRA_PLUGINS_USE_SYSTEM_VC
-    FALSE
-    CACHE BOOL
-    "Have Algebra Plugins build Vc itself"
-)
 set(ALGEBRA_PLUGINS_SETUP_VECMEM
     FALSE
     CACHE BOOL
@@ -103,6 +58,67 @@ set(ALGEBRA_PLUGINS_SETUP_GOOGLETEST
     CACHE BOOL
     "Do not set up GoogleTest in Algebra Plugins"
 )
+set(ALGEBRA_PLUGINS_SETUP_BENCHMARK
+    FALSE
+    CACHE BOOL
+    "Do not set up Google Benchmark in Algebra Plugins"
+)
+
+set(ALGEBRA_PLUGINS_INCLUDE_VECMEM
+    FALSE
+    CACHE BOOL
+    "Turn off the build of algebra::vecmem_array"
+)
+
+if(DETRAY_EIGEN_PLUGIN)
+    set(ALGEBRA_PLUGINS_INCLUDE_EIGEN
+        TRUE
+        CACHE BOOL
+        "Turn on the build of algebra::eigen"
+    )
+
+    set(ALGEBRA_PLUGINS_SETUP_EIGEN3
+        TRUE
+        CACHE BOOL
+        "Have Algebra Plugins set up Eigen3 for itself"
+    )
+
+    set(ALGEBRA_PLUGINS_USE_SYSTEM_EIGEN3
+        FALSE
+        CACHE BOOL
+        "Have Algebra Plugins pick up Eigen3 from the system"
+    )
+endif()
+
+if(DETRAY_VC_AOS_PLUGIN OR DETRAY_VC_SOA_PLUGIN)
+    set(ALGEBRA_PLUGINS_INCLUDE_VC
+        TRUE
+        CACHE BOOL
+        "Turn on the build of algebra::vc_aos"
+    )
+
+    set(ALGEBRA_PLUGINS_SETUP_VC
+        TRUE
+        CACHE BOOL
+        "Have Algebra Plugins set up Vc for itself"
+    )
+
+    set(ALGEBRA_PLUGINS_USE_SYSTEM_VC
+        FALSE
+        CACHE BOOL
+        "Have Algebra Plugins build Vc itself"
+    )
+endif()
+
+# Build smatrix plugin only when it needs to be
+# ROOT is not provided in native github compilers :/
+if(DETRAY_SMATRIX_PLUGIN)
+    set(ALGEBRA_PLUGINS_INCLUDE_SMATRIX
+        TRUE
+        CACHE BOOL
+        "Turn on/off the build of algebra::smatrix"
+    )
+endif()
 
 # Disable a deprecation warning coming from the Vc build.
 include(CheckCXXCompilerFlag)
