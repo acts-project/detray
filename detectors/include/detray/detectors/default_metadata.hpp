@@ -14,246 +14,284 @@
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/geometry/mask.hpp"
-#include "detray/geometry/surface_descriptor.hpp"
-#include "detray/geometry/shapes/ring2D.hpp"
-#include "detray/geometry/shapes/cylinder2D.hpp"
-#include "detray/geometry/shapes/cylinder3D.hpp"
 #include "detray/geometry/shapes/annulus2D.hpp"
-#include "detray/geometry/shapes/trapezoid2D.hpp"
-#include "detray/geometry/shapes/rectangle2D.hpp"
 #include "detray/geometry/shapes/concentric_cylinder2D.hpp"
 #include "detray/geometry/shapes/cuboid3D.hpp"
+#include "detray/geometry/shapes/cylinder2D.hpp"
+#include "detray/geometry/shapes/cylinder3D.hpp"
 #include "detray/geometry/shapes/line.hpp"
-#include "detray/materials/material_rod.hpp"
-#include "detray/materials/material_slab.hpp"
+#include "detray/geometry/shapes/rectangle2D.hpp"
+#include "detray/geometry/shapes/ring2D.hpp"
+#include "detray/geometry/shapes/trapezoid2D.hpp"
+#include "detray/geometry/surface_descriptor.hpp"
 #include "detray/materials/material.hpp"
 #include "detray/materials/material_map.hpp"
-#include "detray/navigation/accelerators/spatial_grid.hpp"
-#include "detray/navigation/accelerators/bla.hpp"
+#include "detray/materials/material_rod.hpp"
+#include "detray/materials/material_slab.hpp"
 #include "detray/navigation/accelerators/brute_force.hpp"
-
+#include "detray/navigation/accelerators/spatial_grid.hpp"
 
 namespace detray {
 
 template <concepts::algebra algebra_t>
 struct default_metadata {
 
-	using algebra_type = algebra_t;
-	using scalar_t = dscalar<algebra_type>;
+    using algebra_type = algebra_t;
+    using scalar_t = dscalar<algebra_type>;
 
-	using nav_link = std::uint_least16_t;
+    using nav_link = std::uint_least16_t;
 
-	template <template <typename...> class vector_t = dvector>
-	using transform_store =
-	    single_store<dtransform3D<algebra_type>, vector_t, geometry_context>;
+    template <template <typename...> class vector_t = dvector>
+    using transform_store =
+        single_store<dtransform3D<algebra_type>, vector_t, geometry_context>;
 
-	using concentric_cylinder2D_t = mask<detray::concentric_cylinder2D, algebra_type, nav_link>;
-	using ring2D_t = mask<detray::ring2D, algebra_type, nav_link>;
-	using rectangle2D_t = mask<detray::rectangle2D, algebra_type, nav_link>;
-	using trapezoid2D_t = mask<detray::trapezoid2D, algebra_type, nav_link>;
-	using drift_cell_t = mask<detray::line_square, algebra_type, nav_link>;
-	using straw_tube_t = mask<detray::line_circular, algebra_type, nav_link>;
-	using cylinder2D_t = mask<detray::cylinder2D, algebra_type, nav_link>;
-	using annulus2D_t = mask<detray::annulus2D, algebra_type, nav_link>;
+    using concentric_cylinder2D_t =
+        mask<detray::concentric_cylinder2D, algebra_type, nav_link>;
+    using ring2D_t = mask<detray::ring2D, algebra_type, nav_link>;
+    using rectangle2D_t = mask<detray::rectangle2D, algebra_type, nav_link>;
+    using trapezoid2D_t = mask<detray::trapezoid2D, algebra_type, nav_link>;
+    using drift_cell_t = mask<detray::line_square, algebra_type, nav_link>;
+    using straw_tube_t = mask<detray::line_circular, algebra_type, nav_link>;
+    using cylinder2D_t = mask<detray::cylinder2D, algebra_type, nav_link>;
+    using annulus2D_t = mask<detray::annulus2D, algebra_type, nav_link>;
 
-	enum class mask_id : std::uint_least8_t {
-		e_concentric_cylinder2D = 0u,
-		e_ring2D = 1u,
-		e_rectangle2D = 2u,
-		e_trapezoid2D = 3u,
-		e_drift_cell = 4u,
-		e_straw_tube = 5u,
-		e_cylinder2D = 6u,
-		e_annulus2D = 7u,
-	};
+    enum class mask_id : std::uint_least8_t {
+        e_concentric_cylinder2D = 0u,
+        e_ring2D = 1u,
+        e_rectangle2D = 2u,
+        e_trapezoid2D = 3u,
+        e_drift_cell = 4u,
+        e_straw_tube = 5u,
+        e_cylinder2D = 6u,
+        e_annulus2D = 7u,
+    };
 
-	DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os, mask_id id) {
-		switch (id) {
-			case mask_id::e_concentric_cylinder2D:
-				os << "e_concentric_cylinder2D";
-				break;
-			case mask_id::e_ring2D:
-				os << "e_ring2D";
-				break;
-			case mask_id::e_rectangle2D:
-				os << "e_rectangle2D";
-				break;
-			case mask_id::e_trapezoid2D:
-				os << "e_trapezoid2D";
-				break;
-			case mask_id::e_drift_cell:
-				os << "e_drift_cell";
-				break;
-			case mask_id::e_straw_tube:
-				os << "e_straw_tube";
-				break;
-			case mask_id::e_cylinder2D:
-				os << "e_cylinder2D";
-				break;
-			case mask_id::e_annulus2D:
-				os << "e_annulus2D";
-				break;
-			default:
-				os << "invalid";
-		}
-		return os;
-	};
+    DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
+                                                       mask_id id) {
+        switch (id) {
+            case mask_id::e_concentric_cylinder2D:
+                os << "e_concentric_cylinder2D";
+                break;
+            case mask_id::e_ring2D:
+                os << "e_ring2D";
+                break;
+            case mask_id::e_rectangle2D:
+                os << "e_rectangle2D";
+                break;
+            case mask_id::e_trapezoid2D:
+                os << "e_trapezoid2D";
+                break;
+            case mask_id::e_drift_cell:
+                os << "e_drift_cell";
+                break;
+            case mask_id::e_straw_tube:
+                os << "e_straw_tube";
+                break;
+            case mask_id::e_cylinder2D:
+                os << "e_cylinder2D";
+                break;
+            case mask_id::e_annulus2D:
+                os << "e_annulus2D";
+                break;
+            default:
+                os << "invalid";
+        }
+        return os;
+    };
 
-	template <template<typename...> class vector_t = dvector>
-	using mask_store =
-		regular_multi_store<mask_id, empty_context, dtuple, vector_t, concentric_cylinder2D_t,ring2D_t,rectangle2D_t,trapezoid2D_t,drift_cell_t,straw_tube_t,cylinder2D_t,annulus2D_t>;
+    template <template <typename...> class vector_t = dvector>
+    using mask_store =
+        regular_multi_store<mask_id, empty_context, dtuple, vector_t,
+                            concentric_cylinder2D_t, ring2D_t, rectangle2D_t,
+                            trapezoid2D_t, drift_cell_t, straw_tube_t,
+                            cylinder2D_t, annulus2D_t>;
 
-	template <typename container_t>
-	using concentric_cylinder2D_map_t = material_map<algebra_type, detray::concentric_cylinder2D, container_t>;
-	template <typename container_t>
-	using ring2D_map_t = material_map<algebra_type, detray::ring2D, container_t>;
-	using material_slab_t = material_slab<scalar_t>;
-	template <typename container_t>
-	using cylinder3D_map_t = material_map<algebra_type, detray::cylinder3D, container_t>;
-	using raw_material_t = material<scalar_t>;
-	template <typename container_t>
-	using rectangle2D_map_t = material_map<algebra_type, detray::rectangle2D, container_t>;
-	using material_rod_t = material_rod<scalar_t>;
-	template <typename container_t>
-	using cylinder2D_map_t = material_map<algebra_type, detray::cylinder2D, container_t>;
+    template <typename container_t>
+    using concentric_cylinder2D_map_t =
+        material_map<algebra_type, detray::concentric_cylinder2D, container_t>;
+    template <typename container_t>
+    using ring2D_map_t =
+        material_map<algebra_type, detray::ring2D, container_t>;
+    using material_slab_t = material_slab<scalar_t>;
+    template <typename container_t>
+    using cylinder3D_map_t =
+        material_map<algebra_type, detray::cylinder3D, container_t>;
+    using raw_material_t = material<scalar_t>;
+    template <typename container_t>
+    using rectangle2D_map_t =
+        material_map<algebra_type, detray::rectangle2D, container_t>;
+    using material_rod_t = material_rod<scalar_t>;
+    template <typename container_t>
+    using cylinder2D_map_t =
+        material_map<algebra_type, detray::cylinder2D, container_t>;
 
-	enum class material_id : std::uint_least8_t {
-		e_concentric_cylinder2D_map = 0u,
-		e_ring2D_map = 1u,
-		e_material_slab = 2u,
-		e_cylinder3D_map = 3u,
-		e_raw_material = 4u,
-		e_rectangle2D_map = 5u,
-		e_material_rod = 6u,
-		e_cylinder2D_map = 7u,
-		e_none = 8u,
-	};
+    enum class material_id : std::uint_least8_t {
+        e_concentric_cylinder2D_map = 0u,
+        e_ring2D_map = 1u,
+        e_material_slab = 2u,
+        e_cylinder3D_map = 3u,
+        e_raw_material = 4u,
+        e_rectangle2D_map = 5u,
+        e_material_rod = 6u,
+        e_cylinder2D_map = 7u,
+        e_none = 8u,
+    };
 
-	DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os, material_id id) {
-		switch (id) {
-			case material_id::e_concentric_cylinder2D_map:
-				os << "e_concentric_cylinder2D_map";
-				break;
-			case material_id::e_ring2D_map:
-				os << "e_ring2D_map";
-				break;
-			case material_id::e_material_slab:
-				os << "e_material_slab";
-				break;
-			case material_id::e_cylinder3D_map:
-				os << "e_cylinder3D_map";
-				break;
-			case material_id::e_raw_material:
-				os << "e_raw_material";
-				break;
-			case material_id::e_rectangle2D_map:
-				os << "e_rectangle2D_map";
-				break;
-			case material_id::e_material_rod:
-				os << "e_material_rod";
-				break;
-			case material_id::e_cylinder2D_map:
-				os << "e_cylinder2D_map";
-				break;
-			case material_id::e_none:
-				os << "e_none";
-				break;
-			default:
-				os << "invalid";
-		}
-		return os;
-	};
+    DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
+                                                       material_id id) {
+        switch (id) {
+            case material_id::e_concentric_cylinder2D_map:
+                os << "e_concentric_cylinder2D_map";
+                break;
+            case material_id::e_ring2D_map:
+                os << "e_ring2D_map";
+                break;
+            case material_id::e_material_slab:
+                os << "e_material_slab";
+                break;
+            case material_id::e_cylinder3D_map:
+                os << "e_cylinder3D_map";
+                break;
+            case material_id::e_raw_material:
+                os << "e_raw_material";
+                break;
+            case material_id::e_rectangle2D_map:
+                os << "e_rectangle2D_map";
+                break;
+            case material_id::e_material_rod:
+                os << "e_material_rod";
+                break;
+            case material_id::e_cylinder2D_map:
+                os << "e_cylinder2D_map";
+                break;
+            case material_id::e_none:
+                os << "e_none";
+                break;
+            default:
+                os << "invalid";
+        }
+        return os;
+    };
 
-	template <typename container_t = host_container_types>
-	using material_store =
-		multi_store<material_id, empty_context, dtuple, grid_collection<concentric_cylinder2D_map_t<container_t>>,grid_collection<ring2D_map_t<container_t>>,typename container_t::template vector_type<material_slab_t>,grid_collection<cylinder3D_map_t<container_t>>,typename container_t::template vector_type<raw_material_t>,grid_collection<rectangle2D_map_t<container_t>>,typename container_t::template vector_type<material_rod_t>,grid_collection<cylinder2D_map_t<container_t>>>;
+    template <typename container_t = host_container_types>
+    using material_store =
+        multi_store<material_id, empty_context, dtuple,
+                    grid_collection<concentric_cylinder2D_map_t<container_t>>,
+                    grid_collection<ring2D_map_t<container_t>>,
+                    typename container_t::template vector_type<material_slab_t>,
+                    grid_collection<cylinder3D_map_t<container_t>>,
+                    typename container_t::template vector_type<raw_material_t>,
+                    grid_collection<rectangle2D_map_t<container_t>>,
+                    typename container_t::template vector_type<material_rod_t>,
+                    grid_collection<cylinder2D_map_t<container_t>>>;
 
-	using transform_link = typename transform_store<>::single_link;
-	using mask_link = typename mask_store<>::range_link;
-	using material_link = typename material_store<>::single_link;
-	using surface_type = surface_descriptor<mask_link, material_link, transform_link, nav_link>;
+    using transform_link = typename transform_store<>::single_link;
+    using mask_link = typename mask_store<>::range_link;
+    using material_link = typename material_store<>::single_link;
+    using surface_type =
+        surface_descriptor<mask_link, material_link, transform_link, nav_link>;
 
-	template <typename axes_t, typename bin_entry_t, typename container_t>
-	using spatial_grid_t = spatial_grid<algebra_type, axes_t,bins::dynamic_array<bin_entry_t>, simple_serializer, container_t, false>;
+    template <typename axes_t, typename bin_entry_t, typename container_t>
+    using spatial_grid_t =
+        spatial_grid<algebra_type, axes_t, bins::dynamic_array<bin_entry_t>,
+                     simple_serializer, container_t, false>;
 
-	template <typename container_t>
-	using surface_concentric_cylinder2D_grid_t = spatial_grid_t<axes<detray::concentric_cylinder2D>, surface, container_t>;
-	template <typename container_t>
-	using surface_ring2D_grid_t = spatial_grid_t<axes<detray::ring2D>, surface, container_t>;
-	template <typename container_t>
-	using surface_cylinder2D_grid_t = spatial_grid_t<axes<detray::cylinder2D>, surface, container_t>;
-	template <typename container_t>
-	using volume_cylinder3D_grid_t = spatial_grid_t<axes<detray::cylinder3D>, index, container_t>;
-	template <typename container_t>
-	using volume_cuboid3D_grid_t = spatial_grid_t<axes<detray::cuboid3D>, index, container_t>;
+    template <typename container_t>
+    using surface_concentric_cylinder2D_grid_t =
+        spatial_grid_t<axes<detray::concentric_cylinder2D>, surface,
+                       container_t>;
+    template <typename container_t>
+    using surface_ring2D_grid_t =
+        spatial_grid_t<axes<detray::ring2D>, surface, container_t>;
+    template <typename container_t>
+    using surface_cylinder2D_grid_t =
+        spatial_grid_t<axes<detray::cylinder2D>, surface, container_t>;
+    template <typename container_t>
+    using volume_cylinder3D_grid_t =
+        spatial_grid_t<axes<detray::cylinder3D>, index, container_t>;
+    template <typename container_t>
+    using volume_cuboid3D_grid_t =
+        spatial_grid_t<axes<detray::cuboid3D>, index, container_t>;
 
-	enum class accel_id : std::uint_least8_t {
-		e_surface_brute_force = -1u,
-		e_surface_brute_force = -1u,
-		e_surface_concentric_cylinder2D_grid = -1u,
-		e_surface_ring2D_grid = -1u,
-		e_surface_bla = -1u,
-		e_surface_brute_force = -1u,
-		e_surface_cylinder2D_grid = -1u,
-		e_volume_cylinder3D_grid = -1u,
-		e_volume_cuboid3D_grid = -1u,
-		e_volume_brute_force = -1u,
-		e_e_surface_brute_force = surface_defaultu,
-		e_e_volume_cylinder3D_grid = volume_defaultu,
-	};
+    enum class accel_id : std::uint_least8_t {
+        e_surface_brute_force = -1u,
+        e_surface_brute_force = -1u,
+        e_surface_concentric_cylinder2D_grid = -1u,
+        e_surface_ring2D_grid = -1u,
+        e_surface_bla = -1u,
+        e_surface_brute_force = -1u,
+        e_surface_cylinder2D_grid = -1u,
+        e_volume_cylinder3D_grid = -1u,
+        e_volume_cuboid3D_grid = -1u,
+        e_volume_brute_force = -1u,
+        e_e_surface_brute_force = surface_defaultu,
+        e_e_volume_cylinder3D_grid = volume_defaultu,
+    };
 
-	DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os, accel_id id) {
-		switch (id) {
-			case accel_id::e_surface_brute_force:
-				os << "e_surface_brute_force";
-				break;
-			case accel_id::e_surface_brute_force:
-				os << "e_surface_brute_force";
-				break;
-			case accel_id::e_surface_concentric_cylinder2D_grid:
-				os << "e_surface_concentric_cylinder2D_grid";
-				break;
-			case accel_id::e_surface_ring2D_grid:
-				os << "e_surface_ring2D_grid";
-				break;
-			case accel_id::e_surface_bla:
-				os << "e_surface_bla";
-				break;
-			case accel_id::e_surface_brute_force:
-				os << "e_surface_brute_force";
-				break;
-			case accel_id::e_surface_cylinder2D_grid:
-				os << "e_surface_cylinder2D_grid";
-				break;
-			case accel_id::e_volume_cylinder3D_grid:
-				os << "e_volume_cylinder3D_grid";
-				break;
-			case accel_id::e_volume_cuboid3D_grid:
-				os << "e_volume_cuboid3D_grid";
-				break;
-			case accel_id::e_volume_brute_force:
-				os << "e_volume_brute_force";
-				break;
-			default:
-				os << "invalid";
-		}
-		return os;
-	};
+    DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
+                                                       accel_id id) {
+        switch (id) {
+            case accel_id::e_surface_brute_force:
+                os << "e_surface_brute_force";
+                break;
+            case accel_id::e_surface_brute_force:
+                os << "e_surface_brute_force";
+                break;
+            case accel_id::e_surface_concentric_cylinder2D_grid:
+                os << "e_surface_concentric_cylinder2D_grid";
+                break;
+            case accel_id::e_surface_ring2D_grid:
+                os << "e_surface_ring2D_grid";
+                break;
+            case accel_id::e_surface_bla:
+                os << "e_surface_bla";
+                break;
+            case accel_id::e_surface_brute_force:
+                os << "e_surface_brute_force";
+                break;
+            case accel_id::e_surface_cylinder2D_grid:
+                os << "e_surface_cylinder2D_grid";
+                break;
+            case accel_id::e_volume_cylinder3D_grid:
+                os << "e_volume_cylinder3D_grid";
+                break;
+            case accel_id::e_volume_cuboid3D_grid:
+                os << "e_volume_cuboid3D_grid";
+                break;
+            case accel_id::e_volume_brute_force:
+                os << "e_volume_brute_force";
+                break;
+            default:
+                os << "invalid";
+        }
+        return os;
+    };
 
-	template <typename container_t = host_container_types>
-	using accelerator_store =
-		multi_store<accel_id, empty_context, dtuple, typename container_t::template vector_type<surface_brute_force_t>,typename container_t::template vector_type<surface_brute_force_t>,grid_collection<surface_concentric_cylinder2D_grid_t<container_t>>,grid_collection<surface_ring2D_grid_t<container_t>>,typename container_t::template vector_type<surface_bla_t>,typename container_t::template vector_type<surface_brute_force_t>,grid_collection<surface_cylinder2D_grid_t<container_t>>,grid_collection<volume_cylinder3D_grid_t<container_t>>,grid_collection<volume_cuboid3D_grid_t<container_t>>,typename container_t::template vector_type<volume_brute_force_t>>;
+    template <typename container_t = host_container_types>
+    using accelerator_store = multi_store<
+        accel_id, empty_context, dtuple,
+        typename container_t::template vector_type<surface_brute_force_t>,
+        typename container_t::template vector_type<surface_brute_force_t>,
+        grid_collection<surface_concentric_cylinder2D_grid_t<container_t>>,
+        grid_collection<surface_ring2D_grid_t<container_t>>,
+        typename container_t::template vector_type<surface_bla_t>,
+        typename container_t::template vector_type<surface_brute_force_t>,
+        grid_collection<surface_cylinder2D_grid_t<container_t>>,
+        grid_collection<volume_cylinder3D_grid_t<container_t>>,
+        grid_collection<volume_cuboid3D_grid_t<container_t>>,
+        typename container_t::template vector_type<volume_brute_force_t>>;
 
-	enum geo_objects : std::uint_least8_t {
-		e_sensitive = 0u,
-		e_passive = 0u,
-		e_portal = 0u,
-		e_volume = 1u,
-		e_size = 2u,
-		e_all = e_size,
-	};
+    enum geo_objects : std::uint_least8_t {
+        e_sensitive = 0u,
+        e_passive = 0u,
+        e_portal = 0u,
+        e_volume = 1u,
+        e_size = 2u,
+        e_all = e_size,
+    };
 
-	using object_link_type = dmulti_index<dtyped_index<accel_id, dindex>, geo_objects::e_size>;
+    using object_link_type =
+        dmulti_index<dtyped_index<accel_id, dindex>, geo_objects::e_size>;
 };
 
-} // namespace detray
+}  // namespace detray

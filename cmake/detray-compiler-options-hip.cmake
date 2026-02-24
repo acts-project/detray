@@ -11,6 +11,9 @@ if(PROJECT_IS_TOP_LEVEL)
 
     #find HIP
     find_package(HIP REQUIRED)
+
+    set(CMAKE_HIP_ARCHITECTURES gfx1031)
+
     # Basic flags for all build modes.
     if(
         ("${CMAKE_HIP_PLATFORM}" STREQUAL "hcc")

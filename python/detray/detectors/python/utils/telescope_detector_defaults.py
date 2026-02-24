@@ -8,8 +8,8 @@
 # Function that will add types commonly needed for telescope detectors
 # --------------------------------------------------------------------------
 
-from impl import metadata
-from impl import Shape, Material, Accelerator
+from ..impl import metadata
+from ..impl import Shape, Material, Accelerator
 
 import logging
 
@@ -17,39 +17,39 @@ import logging
 
 
 def add_telescope_detector_defaults(
-    metadata: metadata, use_mat_maps=False, use_homogeneous_mat=False
+    md: metadata, use_mat_maps=False, use_homogeneous_mat=False
 ):
     # Don't run more than once on given metadata (prevents spurious log entries)
-    if metadata in add_telescope_detector_defaults.clients:
+    if md in add_telescope_detector_defaults.clients:
         return
 
-    add_telescope_detector_defaults.clients.append(metadata)
+    add_telescope_detector_defaults.clients.append(md)
 
     logger = logging.getLogger(__name__)
     logger.info("Define telescope detector types:")
 
     # Sensitive and portal shapes
-    metadata.add_sensitive(Shape.RECTANGLE)
-    metadata.add_portal(Shape.RECTANGLE)
+    md.add_sensitive(Shape.RECTANGLE)
+    md.add_portal(Shape.RECTANGLE)
 
     # Acceleration struct for portals and passives
-    metadata.add_accel_struct(Accelerator.BRUTE_FORCE, "portal", is_default=True)
-    metadata.add_accel_struct(Accelerator.BRUTE_FORCE, "passive")
-    metadata.add_accel_struct(Accelerator.BRUTE_FORCE, "sensitive")
+    md.add_accel_struct(Accelerator.BRUTE_FORCE, "portal", is_default=True)
+    md.add_accel_struct(Accelerator.BRUTE_FORCE, "passive")
+    md.add_accel_struct(Accelerator.BRUTE_FORCE, "sensitive")
 
     # Map the material for the support structures onto the portals
     if use_mat_maps:
         logger.info("-> requested material map types")
-        metadata.add_material(Material.RECTANGLE_MAP2D)
+        md.add_material(Material.RECTANGLE_MAP2D)
 
     # Sensitive material
     if use_homogeneous_mat:
         logger.info("-> requested homogeneous material types")
-        metadata.add_material(Material.SLAB)
+        md.add_material(Material.SLAB)
 
     # Acceleration struct for telescope detector volumes
     logger.info("-> adding detector volume acceleration structure")
-    metadata.add_accel_struct(Accelerator.BRUTE_FORCE, "volume", is_default=True)
+    md.add_accel_struct(Accelerator.BRUTE_FORCE, "volume", is_default=True)
 
 
 add_telescope_detector_defaults.clients = []

@@ -78,28 +78,28 @@ class metadata:
                 f'Precision "{precision}" will be ignored for generic algebra type'
             )
 
-    # Register a new geometric shape for a portal surface at a given position 
+    # Register a new geometric shape for a portal surface at a given position
     # in the mask store (type_id)
     def add_portal(self, shape: Shape, type_id: int = -1):
         self.add_shape(shape, type_id)
         if "portal" not in self.surface_types:
             self.surface_types.append("portal")
 
-    # Register a new geometric shape for a sensitive surface at a given position 
+    # Register a new geometric shape for a sensitive surface at a given position
     # in the mask store (type_id)
     def add_sensitive(self, shape: Shape, type_id: int = -1):
         self.add_shape(shape, type_id)
         if "sensitive" not in self.surface_types:
             self.surface_types.append("sensitive")
 
-    # Register a new geometric shape for a passive surface at a given position 
+    # Register a new geometric shape for a passive surface at a given position
     # in the mask store (type_id)
     def add_passive(self, shape: Shape, type_id: int = -1):
         self.add_shape(shape, type_id)
         if "passive" not in self.surface_types:
             self.surface_types.append("passive")
 
-    # Register a new geometric shape for the detector at a given position 
+    # Register a new geometric shape for the detector at a given position
     # in the mask store (type_id)
     def add_shape(self, shape: Shape, type_id: int):
         if shape not in itertools.chain(*self.shapes.values()):
@@ -126,7 +126,12 @@ class metadata:
 
     # Register a new acceleration structure for a geometric object type
     def add_accel_struct(
-        self, accel: Accelerator, obj_type: str = "sensitive", type_id: int = -1, value_type : str = "surface", is_default: bool = False
+        self,
+        accel: Accelerator,
+        obj_type: str = "sensitive",
+        type_id: int = -1,
+        value_type: str = "surface",
+        is_default: bool = False,
     ):
         print(f"{type_id}, {value_type}")
         # Make sure volume acceleration structures have indices as values
@@ -155,7 +160,13 @@ class metadata:
             self.set_default_accel_struct(accel, obj_type, value_type)
 
     # Mark an acceleration struct as default for the given object type
-    def set_default_accel_struct(self, accel: Accelerator, obj_type: str, type_id: int = -1, value_type : str = "surface"):
+    def set_default_accel_struct(
+        self,
+        accel: Accelerator,
+        obj_type: str,
+        type_id: int = -1,
+        value_type: str = "surface",
+    ):
         # Make sure volume acceleration structures have indices as values
         value_type = "index" if "volume" in obj_type else value_type
 
@@ -182,12 +193,12 @@ class metadata:
             )
 
         # Make sure the requested default exists
-        if (
-            obj_type not in self.acceleration_structs.keys()
-            or (accel, value_type) not in [(a, v) for a, i, v in self.acceleration_structs[obj_type]]
-        ):
-            #print(obj_type)
-            #print(self.acceleration_structs)
+        if obj_type not in self.acceleration_structs.keys() or (
+            accel,
+            value_type,
+        ) not in [(a, v) for a, i, v in self.acceleration_structs[obj_type]]:
+            # print(obj_type)
+            # print(self.acceleration_structs)
             self.logger.warning(
                 f"Requested default acceleration structure ({obj_type}, {accel_type}) not defined in metadata: Adding it now..."
             )
@@ -337,7 +348,10 @@ class metadata_generator:
         self.__put(self.__common_includes)
 
         # Set of shape class names
-        shape_names = {self.__name_from_specifier(s.specifier) for s in itertools.chain(*shapes.values())}
+        shape_names = {
+            self.__name_from_specifier(s.specifier)
+            for s in itertools.chain(*shapes.values())
+        }
 
         # Correct the header name for the line surfaces
         add_line = False
@@ -352,7 +366,10 @@ class metadata_generator:
             shape_names.add("line")
 
         # Set of material class names
-        mat_names = {self.__name_from_specifier(m.specifier) for m in itertools.chain(*materials.values())}
+        mat_names = {
+            self.__name_from_specifier(m.specifier)
+            for m in itertools.chain(*materials.values())
+        }
         # Add shapes for material maps that have not been added, yet
         if "material_map" in mat_names:
             shape_names.update(
@@ -422,8 +439,8 @@ template <template <typename...> class vector_t = dvector>\n\
     def __declare_type_enum(self, specifier, items, base_type, extra_items={}):
         self.__put(f"enum class {specifier} : {base_type} {{\n")
 
-        #print(items)
-        #print(extra_items)
+        # print(items)
+        # print(extra_items)
 
         self.indent = self.indent + 1
         for i, values in itertools.chain(items.items(), extra_items.items()):
@@ -460,7 +477,9 @@ template <template <typename...> class vector_t = dvector>\n\
 
                 self.__put(f"case {specifier}::{sub_specifier}:\n")
                 self.indent = self.indent + 1
-                self.__put(f'os << "{value if isinstance(v, list) else sub_specifier}";\n')
+                self.__put(
+                    f'os << "{value if isinstance(v, list) else sub_specifier}";\n'
+                )
                 self.__put("break;\n")
                 self.indent = self.indent - 1
 
@@ -572,7 +591,9 @@ template <template <typename...> class vector_t = dvector>\n\
         self.__lines(2)
         for type_id, shapes in md.shapes.items():
             for shape in shapes:
-                self.__declare_mask(shape, type_id, "algebra_type", "nav_link", shape.param)
+                self.__declare_mask(
+                    shape, type_id, "algebra_type", "nav_link", shape.param
+                )
 
         self.__lines(1)
         self.__declare_type_enum("mask_id", self.shape_specifiers, md.id_base)
@@ -613,11 +634,14 @@ template <template <typename...> class vector_t = dvector>\n\
             for type_id, materials in md.materials.items():
                 for mat in materials:
                     self.__declare_material(mat, type_id, "algebra_type")
-                
+
             self.__lines(1)
             # Add an option for 'no material'
             self.__declare_type_enum(
-                "material_id", self.material_specifiers, md.id_base, {len(md.materials): ["none"]}
+                "material_id",
+                self.material_specifiers,
+                md.id_base,
+                {len(md.materials): ["none"]},
             )
             self.__lines(2)
             self.__define_enum_stream_op(
@@ -636,7 +660,10 @@ template <template <typename...> class vector_t = dvector>\n\
 
         if type_specifier.endswith("grid_t"):
             # First spatial grid declaration?
-            if not any(sc.endswith("grid_t") for sc in itertools.chain(*self.accel_specifiers.values())):
+            if not any(
+                sc.endswith("grid_t")
+                for sc in itertools.chain(*self.accel_specifiers.values())
+            ):
                 template_list = "template <typename axes_t, typename bin_entry_t, typename container_t>\n"
                 self.__put(
                     f"{template_list}{self.__tabs()}using spatial_grid_t = spatial_grid<algebra_type, axes_t,bins::dynamic_array<bin_entry_t>, simple_serializer, container_t, false>;"
@@ -651,7 +678,9 @@ template <template <typename...> class vector_t = dvector>\n\
                 f"{template_list}{self.__tabs()}using {obj_type}_{type_specifier} = spatial_grid_t<axes<{shape_specifier}>, {value_type}, container_t>;\n"
             )
 
-        self.accel_specifiers.setdefault(type_id, []).append(f"{obj_type}_{type_specifier}")
+        self.accel_specifiers.setdefault(type_id, []).append(
+            f"{obj_type}_{type_specifier}"
+        )
 
     # Declare the accleration structure types and accel store for the detector
     def __declare_accel_store(self, md: metadata):
@@ -780,28 +809,40 @@ template <template <typename...> class vector_t = dvector>\n\
         accel_to_types_merged = {}
         for acc, type_id, value_type in accel_to_types.keys():
             representative = acc
-            if not is_default_accel(value_type, acc) and (type_id, value_type) in type_id_dict.keys() and len(type_id_dict[type_id, value_type]) > 1:
+            if (
+                not is_default_accel(value_type, acc)
+                and (type_id, value_type) in type_id_dict.keys()
+                and len(type_id_dict[type_id, value_type]) > 1
+            ):
                 tmp_repr = type_id_dict[type_id, value_type][0]
-                representative = type_id_dict[type_id, value_type][1] if is_default_accel(value_type, tmp_repr) else tmp_repr
+                representative = (
+                    type_id_dict[type_id, value_type][1]
+                    if is_default_accel(value_type, tmp_repr)
+                    else tmp_repr
+                )
 
-            accel_to_types_merged.setdefault((representative, value_type, type_id), set()).update(accel_to_types[acc, type_id, value_type])
+            accel_to_types_merged.setdefault(
+                (representative, value_type, type_id), set()
+            ).update(accel_to_types[acc, type_id, value_type])
 
-        
         print(f"Accel to types (merged):\n{accel_to_types_merged}\n")
 
         # Check duplicate sets (make the set hashable by converting to tuple)
         counted_dict = Counter([tuple(v) for v in accel_to_types_merged.values()])
-        duplicates = {key: value for key, value in accel_to_types_merged.items()
-                          if counted_dict[tuple(value)] > 1}
+        duplicates = {
+            key: value
+            for key, value in accel_to_types_merged.items()
+            if counted_dict[tuple(value)] > 1
+        }
 
         print(f"Counted: {counted_dict}")
         print(f"duplicates: {duplicates}")
-        
+
         # Get the list of keys for every duplicate
         flipped_duplicates = {}
         for key, value in duplicates.items():
             flipped_duplicates.setdefault(tuple(value), []).append(key)
-            
+
         print(f"flipped_duplicates: {flipped_duplicates}")
 
         # Find best representative key for the duplicates and remove the others
@@ -825,7 +866,11 @@ template <template <typename...> class vector_t = dvector>\n\
 
         # Sort, in order to find the largest geo object sets
         accel_to_types_sorted = dict(
-            sorted(accel_to_types_merged.items(), key=lambda item: len(item[1]), reverse=True)
+            sorted(
+                accel_to_types_merged.items(),
+                key=lambda item: len(item[1]),
+                reverse=True,
+            )
         )
 
         print(f"Accel to types (sorted):\n{accel_to_types_sorted}\n")
@@ -835,7 +880,11 @@ template <template <typename...> class vector_t = dvector>\n\
 
         # Add a new link slot, if there are previously unknown object types
         def add_link(key, new_objects):
-            new_link_types = [l for l in new_objects if l not in itertools.chain(*accel_link_types.values())]
+            new_link_types = [
+                l
+                for l in new_objects
+                if l not in itertools.chain(*accel_link_types.values())
+            ]
 
             if new_link_types:
                 accel_link_types[key] = new_link_types
@@ -851,13 +900,21 @@ template <template <typename...> class vector_t = dvector>\n\
         print(f"Final accel distinct link types:\n{accel_link_types}\n")
 
         # Add the default link for the leftover surface and volume types
-        surface_default_list = [v for k, v in accel_to_types_sorted.items() if "surface" in k and md.default_surface_accel.specifier in k]
+        surface_default_list = [
+            v
+            for k, v in accel_to_types_sorted.items()
+            if "surface" in k and md.default_surface_accel.specifier in k
+        ]
         add_link(
             key="surface_default",
             new_objects=itertools.chain.from_iterable(surface_default_list),
         )
 
-        volume_default_list = [v for k, v in accel_to_types_sorted.items() if "index" in k and md.default_volume_accel.specifier in k]
+        volume_default_list = [
+            v
+            for k, v in accel_to_types_sorted.items()
+            if "index" in k and md.default_volume_accel.specifier in k
+        ]
         add_link(
             key="volume_default",
             new_objects=itertools.chain.from_iterable(volume_default_list),
@@ -905,13 +962,13 @@ template <template <typename...> class vector_t = dvector>\n\
         self.__put("};")
 
         # Add streaming operator for geo_objects enum
-        #print(list(itertools.chain.from_iterable(accel_link_types.values())))
-        #self.__lines(2)
-        #self.__define_enum_stream_op(
+        # print(list(itertools.chain.from_iterable(accel_link_types.values())))
+        # self.__lines(2)
+        # self.__define_enum_stream_op(
         #    "geo_objects",
         #    list(itertools.chain.from_iterable(accel_link_types.values())),
         #    extra_items={"size": ["e_size"]},
-        #)
+        # )
 
         # Add the surface acceleration struct link to the volume descriptor
         self.__lines(2)

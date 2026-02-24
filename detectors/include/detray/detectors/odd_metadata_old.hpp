@@ -218,7 +218,8 @@ struct odd_metadata {
 
     /// Acceleration data structures
     enum class accel_ids : std::uint_least8_t {
-        e_surface_brute_force = 0u,// test all surfaces in a volume (brute force)
+        e_surface_brute_force =
+            0u,  // test all surfaces in a volume (brute force)
         e_surface_cylinder2D_grid = 1u,  // e.g. barrel layers
         e_surface_ring2D_grid = 2u,      // e.g. endcap layers
         e_volume_cylinder3D_grid = 3u,

@@ -21,25 +21,26 @@ import logging
 """ Add all types needed to describe the ATLAS ITk detector """
 
 
-def add_itk_types(metadata: metadata):
+def add_itk_types(md: metadata):
     logger = logging.getLogger(__name__)
     logger.info("Define types required by the ATLAS Inner Tracker (ITk):")
 
     # Strip stereo annulus shape
     logger.info("-> adding ITk strip detecor custom shape")
-    metadata.add_sensitive(Shape.ANNULUS)
+    md.add_sensitive(Shape.ANNULUS)
 
     # Add default types for silicon trackers (cylindrical detector shape)
-    add_silicon_tracker_defaults(metadata=metadata, use_mat_maps=True)
+    add_silicon_tracker_defaults(metadata=md, use_mat_maps=True)
 
     # Beampipe passive surface
     logger.info("-> adding ITk beampipe")
-    metadata.add_passive(Shape.CYLINDER2D)
+    md.add_passive(Shape.CYLINDER2D)
 
 
 def __main__():
     # Commandline options
-    parser = add_logging_options()
+    parser = argparse.ArgumentParser(prog=sys.argv[0])
+    add_logging_options(parser)
     parse_logging_options(parser.parse_args())
 
     md = metadata("itk")
