@@ -59,8 +59,8 @@ struct helix_inspector : actor {
     DETRAY_HOST_DEVICE void operator()(
         state& inspector_state, const propagator_state_t& prop_state) const {
 
-        const auto& navigation = prop_state._navigation;
-        const auto& stepping = prop_state._stepping;
+        const auto& navigation = prop_state.navigation();
+        const auto& stepping = prop_state.stepping();
 
         typename propagator_state_t::detector_type::geometry_context ctx{};
 
@@ -146,7 +146,7 @@ GTEST_TEST(detray_propagator, propagator_line_stepper) {
     propagator_t::state state(track, d, prop_cfg.context);
 
     EXPECT_TRUE(p.propagate(state))
-        << state._navigation.inspector().to_string() << std::endl;
+        << state.navigation().inspector().to_string() << std::endl;
 }
 
 /// Fixture for Runge-Kutta Propagation
@@ -249,16 +249,16 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
         propagator_t::state sync_state(track, bfield, det);
         propagator_t::state lim_state(lim_track, bfield, det);
 
-        state.do_debug = true;
-        sync_state.do_debug = true;
-        lim_state.do_debug = true;
+        state.debug(true);
+        sync_state.debug(true);
+        lim_state.debug(true);
 
         // Set step constraints
-        state._stepping.template set_constraint<step::constraint::e_accuracy>(
+        state.stepping().template set_constraint<step::constraint::e_accuracy>(
             step_constr);
-        sync_state._stepping
+        sync_state.stepping()
             .template set_constraint<step::constraint::e_accuracy>(step_constr);
-        lim_state._stepping
+        lim_state.stepping()
             .template set_constraint<step::constraint::e_accuracy>(step_constr);
 
         // No multiple scattering simulated in this test
@@ -271,17 +271,18 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
         // Propagate the entire detector
         ASSERT_TRUE(
             p.propagate(state, actor_chain_t::setup_actor_states(actor_states)))
-            << state._navigation.inspector().to_string() << std::endl;
+            << state.navigation().inspector().to_string() << std::endl;
 
         // Propagate with path limit
         ASSERT_FALSE(p.propagate(
             lim_state, actor_chain_t::setup_actor_states(actor_states_lim)))
-            << lim_state._navigation.inspector().to_string() << std::endl;
+            << lim_state.navigation().inspector().to_string() << std::endl;
 
-        ASSERT_GE(std::abs(path_limit), lim_state._stepping.abs_path_length())
-            << "Absolute path length: " << lim_state._stepping.abs_path_length()
+        ASSERT_GE(std::abs(path_limit), lim_state.stepping().abs_path_length())
+            << "Absolute path length: "
+            << lim_state.stepping().abs_path_length()
             << ", path limit: " << path_limit << std::endl;
-        //<< state._navigation.inspector().to_string() << std::endl;
+        //<< state.navigation().inspector().to_string() << std::endl;
     }
 }
 
@@ -350,27 +351,27 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
         propagator_t::state lim_state(lim_track, bfield, det);
 
         // Set step constraints
-        state._stepping.template set_constraint<step::constraint::e_accuracy>(
+        state.stepping().template set_constraint<step::constraint::e_accuracy>(
             step_constr);
-        lim_state._stepping
+        lim_state.stepping()
             .template set_constraint<step::constraint::e_accuracy>(step_constr);
 
         // Propagate the entire detector
-        state.do_debug = true;
+        state.debug(true);
         ASSERT_TRUE(p.propagate(state, actor_states))
-            << state._navigation.inspector().to_string() << std::endl;
+            << state.navigation().inspector().to_string() << std::endl;
 
         // Propagate with path limit
         ASSERT_NEAR(pathlimit_aborter_state.path_limit(), path_limit, tol);
-        lim_state.do_debug = true;
+        lim_state.debug(true);
         ASSERT_FALSE(p.propagate(lim_state, lim_actor_states))
-            << lim_state._navigation.inspector().to_string() << std::endl;
+            << lim_state.navigation().inspector().to_string() << std::endl;
 
-        ASSERT_TRUE(lim_state._stepping.path_length() <
+        ASSERT_TRUE(lim_state.stepping().path_length() <
                     std::abs(path_limit) + tol)
-            << "path length: " << lim_state._stepping.path_length()
+            << "path length: " << lim_state.stepping().path_length()
             << ", path limit: " << path_limit << std::endl;
-        //<< state._navigation.inspector().to_string() << std::endl;
+        //<< state.navigation().inspector().to_string() << std::endl;
     }
 }
 

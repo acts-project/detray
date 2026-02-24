@@ -107,7 +107,7 @@ int main() {
         prop.propagate(propagation);
 
         // Retrieve navigation information
-        auto &inspector = propagation._navigation.inspector();
+        auto &inspector = propagation.navigation().inspector();
         auto &obj_tracer = inspector.template get<object_tracer_t>();
         auto &debug_printer = inspector.template get<nav_print_inspector_t>();
 

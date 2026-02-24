@@ -91,7 +91,7 @@ GTEST_TEST(detray_navigation, guided_navigator) {
     // Propagate
     p.propagate(guided_state, detray::tie(pathlimit));
 
-    auto &nav_state = guided_state._navigation;
+    auto &nav_state = guided_state.navigation();
     auto &debug_printer = nav_state.inspector().template get<print_inspector>();
     auto &obj_tracer = nav_state.inspector().template get<object_tracer_t>();
 

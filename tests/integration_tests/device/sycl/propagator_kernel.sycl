@@ -80,7 +80,7 @@ void propagator_test(
                 typename propagator_device_t::state state(tracks[gid],
                                                           field_data, dev_det);
 
-                state._stepping
+                state.stepping()
                     .template set_constraint<step::constraint::e_accuracy>(
                         cfg.stepping.step_constraint);
 

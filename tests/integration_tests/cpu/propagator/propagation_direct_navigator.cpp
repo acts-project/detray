@@ -138,7 +138,7 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
                                         sequencer_state, resetter_state);
 
         propagator_t::state state(track, bfield, det);
-        navigator_t::state& navigation = state._navigation;
+        navigator_t::state& navigation = state.navigation();
 
         // Propagate the entire detector
         ASSERT_TRUE(p.propagate(state, actor_states))
@@ -160,7 +160,7 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
                                            direct_forward_actor_states));
 
             // Check if all surfaces in the sequence are encountered
-            ASSERT_TRUE(direct_forward_state._navigation.finished());
+            ASSERT_TRUE(direct_forward_state.navigation().finished());
             ASSERT_EQ(sequencer_state.sequence().size(),
                       sequencer_forward_state.sequence().size());
             for (unsigned int i = 0; i < sequencer_state.sequence().size();
@@ -169,32 +169,32 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
                           sequencer_forward_state.sequence().at(i));
             }
 
-            const auto ptc = state._stepping.particle_hypothesis();
-            ASSERT_EQ(
-                ptc.pdg_num(),
-                direct_forward_state._stepping.particle_hypothesis().pdg_num());
+            const auto ptc = state.stepping().particle_hypothesis();
+            ASSERT_EQ(ptc.pdg_num(), direct_forward_state.stepping()
+                                         .particle_hypothesis()
+                                         .pdg_num());
             const auto q = ptc.charge();
 
             // The initial momentum should be higher than the momentum at the
             // last surface
-            ASSERT_TRUE(track.p(q) > state._stepping.bound_params().p(q));
+            ASSERT_TRUE(track.p(q) > state.stepping().bound_params().p(q));
             ASSERT_NEAR(
-                static_cast<float>(state._stepping.bound_params().p(q)),
+                static_cast<float>(state.stepping().bound_params().p(q)),
                 static_cast<float>(
-                    direct_forward_state._stepping.bound_params().p(q)),
-                static_cast<float>(state._stepping.bound_params().p(q)) * tol);
+                    direct_forward_state.stepping().bound_params().p(q)),
+                static_cast<float>(state.stepping().bound_params().p(q)) * tol);
 
             direct_propagator_t::state direct_backward_state(
-                direct_forward_state._stepping.bound_params(), bfield, det,
+                direct_forward_state.stepping().bound_params(), bfield, det,
                 seqs_buffer);
-            direct_backward_state._navigation.set_direction(
+            direct_backward_state.navigation().set_direction(
                 detray::navigation::direction::e_backward);
-            direct_backward_state._navigation.reset();
+            direct_backward_state.navigation().reset();
 
             ASSERT_TRUE(direct_p.propagate(direct_backward_state,
                                            direct_backward_actor_states));
             // Check if all surfaces in the sequence are encountered
-            ASSERT_TRUE(direct_backward_state._navigation.finished());
+            ASSERT_TRUE(direct_backward_state.navigation().finished());
             ASSERT_EQ(sequencer_state.sequence().size(),
                       sequencer_backward_state.sequence().size());
             for (unsigned int i = 0; i < sequencer_state.sequence().size();
@@ -207,10 +207,10 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
             ASSERT_NEAR(
                 static_cast<float>(track.p(q)),
                 static_cast<float>(
-                    direct_backward_state._stepping.bound_params().p(q)),
+                    direct_backward_state.stepping().bound_params().p(q)),
                 static_cast<float>(track.p(q)) * tol);
-            ASSERT_TRUE(direct_backward_state._stepping.bound_params().p(q) >
-                        direct_forward_state._stepping.bound_params().p(q));
+            ASSERT_TRUE(direct_backward_state.stepping().bound_params().p(q) >
+                        direct_forward_state.stepping().bound_params().p(q));
         }
     }
 }
@@ -328,7 +328,7 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
                                         sequencer_state, resetter_state);
 
         propagator_t::state state(track, bfield, det);
-        navigator_t::state& navigation = state._navigation;
+        navigator_t::state& navigation = state.navigation();
 
         // Propagate the entire detector
         ASSERT_TRUE(p.propagate(state, actor_states))
@@ -350,7 +350,7 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
                                            direct_forward_actor_states));
 
             // Check if all surfaces in the sequence are encountered
-            ASSERT_TRUE(direct_forward_state._navigation.finished());
+            ASSERT_TRUE(direct_forward_state.navigation().finished());
             ASSERT_EQ(sequencer_state.sequence().size(),
                       sequencer_forward_state.sequence().size());
             for (unsigned int i = 0; i < sequencer_state.sequence().size();
@@ -359,33 +359,33 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
                           sequencer_forward_state.sequence().at(i));
             }
 
-            const auto ptc = state._stepping.particle_hypothesis();
-            ASSERT_EQ(
-                ptc.pdg_num(),
-                direct_forward_state._stepping.particle_hypothesis().pdg_num());
+            const auto ptc = state.stepping().particle_hypothesis();
+            ASSERT_EQ(ptc.pdg_num(), direct_forward_state.stepping()
+                                         .particle_hypothesis()
+                                         .pdg_num());
             const auto q = ptc.charge();
 
             // The initial momentum should be higher than or equal to the
             // momentum at the last surface
-            ASSERT_GE(track.p(q), state._stepping.bound_params().p(q));
+            ASSERT_GE(track.p(q), state.stepping().bound_params().p(q));
             ASSERT_NEAR(
-                static_cast<float>(state._stepping.bound_params().p(q)),
+                static_cast<float>(state.stepping().bound_params().p(q)),
                 static_cast<float>(
-                    direct_forward_state._stepping.bound_params().p(q)),
-                static_cast<float>(state._stepping.bound_params().p(q)) * tol);
+                    direct_forward_state.stepping().bound_params().p(q)),
+                static_cast<float>(state.stepping().bound_params().p(q)) * tol);
 
             direct_propagator_t::state direct_backward_state(
-                direct_forward_state._stepping.bound_params(), bfield, det,
+                direct_forward_state.stepping().bound_params(), bfield, det,
                 seqs_buffer);
-            direct_backward_state._navigation.set_direction(
+            direct_backward_state.navigation().set_direction(
                 detray::navigation::direction::e_backward);
-            direct_backward_state._navigation.reset();
+            direct_backward_state.navigation().reset();
 
             ASSERT_TRUE(direct_p.propagate(direct_backward_state,
                                            direct_backward_actor_states));
 
             // Check if all surfaces in the sequence are encountered
-            ASSERT_TRUE(direct_backward_state._navigation.finished());
+            ASSERT_TRUE(direct_backward_state.navigation().finished());
 
             ASSERT_EQ(sequencer_state.sequence().size(),
                       sequencer_backward_state.sequence().size());
@@ -399,10 +399,10 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
             ASSERT_NEAR(
                 static_cast<float>(track.p(q)),
                 static_cast<float>(
-                    direct_backward_state._stepping.bound_params().p(q)),
+                    direct_backward_state.stepping().bound_params().p(q)),
                 static_cast<float>(track.p(q)) * tol);
-            ASSERT_GE(direct_backward_state._stepping.bound_params().p(q),
-                      direct_forward_state._stepping.bound_params().p(q));
+            ASSERT_GE(direct_backward_state.stepping().bound_params().p(q),
+                      direct_forward_state.stepping().bound_params().p(q));
         }
     }
 }

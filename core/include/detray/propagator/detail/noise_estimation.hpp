@@ -29,8 +29,8 @@ DETRAY_HOST_DEVICE constexpr void estimate_external_mask_tolerance(
 
     using scalar_t = dscalar<algebra_t>;
 
-    auto& navigation = propagation._navigation;
-    auto& stepping = propagation._stepping;
+    auto& navigation = propagation.navigation();
+    auto& stepping = propagation.stepping();
 
     DETRAY_VERBOSE_HOST_DEVICE(
         "-> Is material surface: %s",

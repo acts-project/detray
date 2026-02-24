@@ -162,10 +162,10 @@ struct material_tracer : detray::actor {
         using vector3_t = dvector3D<algebra_t>;
         using point2_t = dpoint2D<algebra_t>;
 
-        const auto &navigation = prop_state._navigation;
+        const auto &navigation = prop_state.navigation();
 
         // Record the initial track direction
-        vector3_t glob_dir = prop_state._stepping().dir();
+        vector3_t glob_dir = prop_state.stepping()().dir();
         if (detray::detail::is_invalid_value(tracer.m_mat_record.eta) &&
             detray::detail::is_invalid_value(tracer.m_mat_record.phi)) {
             tracer.m_mat_record.eta = vector::eta(glob_dir);
@@ -191,10 +191,10 @@ struct material_tracer : detray::actor {
         if constexpr (detail::has_type_v<parameter_transporter<algebra_t>,
                                          typename propagator_state_t::
                                              actor_chain_type::actor_tuple>) {
-            const auto &track_param = prop_state._stepping.bound_params();
+            const auto &track_param = prop_state.stepping().bound_params();
             loc_pos = track_param.bound_local();
         } else {
-            const auto &track_param = prop_state._stepping();
+            const auto &track_param = prop_state.stepping()();
             glob_dir = track_param.dir();
             loc_pos = sf.global_to_bound(gctx, track_param.pos(), glob_dir);
         }

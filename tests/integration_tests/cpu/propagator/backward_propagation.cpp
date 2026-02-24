@@ -105,14 +105,14 @@ TEST_P(BackwardPropagation, backward_propagation) {
     propagator_t::state fw_state(bound_param0, hom_bfield, det,
                                  prop_cfg.context);
     fw_state.set_particle(ptc);
-    fw_state.do_debug = true;
+    fw_state.debug(true);
 
     // Run propagator
     p.propagate(fw_state,
                 detray::tie(interactor, transporter_state, resetter_state));
 
     // Bound state after propagation
-    const auto& bound_param1 = fw_state._stepping.bound_params();
+    const auto& bound_param1 = fw_state.stepping().bound_params();
 
     // Check if the track reaches the final surface
     EXPECT_EQ(bound_param0.surface_link().volume(), 0u);
@@ -125,15 +125,15 @@ TEST_P(BackwardPropagation, backward_propagation) {
     propagator_t::state bw_state(bound_param1, hom_bfield, det,
                                  prop_cfg.context);
     bw_state.set_particle(ptc);
-    bw_state.do_debug = true;
-    bw_state._navigation.set_direction(navigation::direction::e_backward);
+    bw_state.debug(true);
+    bw_state.navigation().set_direction(navigation::direction::e_backward);
 
     // Run propagator
     p.propagate(bw_state,
                 detray::tie(interactor, transporter_state, resetter_state));
 
     // Bound state after propagation
-    const auto& bound_param2 = bw_state._stepping.bound_params();
+    const auto& bound_param2 = bw_state.stepping().bound_params();
 
     // Check if the track reaches the initial surface
     EXPECT_EQ(bound_param2.surface_link().volume(), 0u);

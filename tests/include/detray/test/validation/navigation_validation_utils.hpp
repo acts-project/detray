@@ -221,7 +221,7 @@ inline auto record_propagation(
         std::random_device rd{};
         std::mt19937 generator{rd()};
 
-        auto &bound_param = propagation->_stepping.bound_params();
+        auto &bound_param = propagation->stepping().bound_params();
 
         for (std::size_t i = 0u; i < e_bound_size; i++) {
 
@@ -237,13 +237,13 @@ inline auto record_propagation(
     }
 
     // Access to navigation information
-    auto &nav_inspector = propagation->_navigation.inspector();
+    auto &nav_inspector = propagation->navigation().inspector();
     auto &obj_tracer = nav_inspector.template get<object_tracer_t>();
     auto &nav_printer =
         nav_inspector.template get<navigation::print_inspector>();
 
     // Acces to the stepper information
-    auto &step_printer = propagation->_stepping.inspector();
+    auto &step_printer = propagation->stepping().inspector();
 
     // Find the end point and direction of the track (approximately) for
     // backward propagation
@@ -293,8 +293,8 @@ inline auto record_propagation(
         // Perform forward propagation
         fw_propagation->set_particle(
             update_particle_hypothesis(ptc_hypo, track));
-        fw_propagation->_stepping.bound_params() =
-            propagation->_stepping.bound_params();
+        fw_propagation->stepping().bound_params() =
+            propagation->stepping().bound_params();
 
         const bool fw_success =
             fw_propagator_t{cfg}.propagate(*fw_propagation, fw_actor_states);
@@ -306,15 +306,15 @@ inline auto record_propagation(
         }
 
         // USe the result to set up main propagation run
-        propagation->_stepping() = fw_propagation->_stepping();
-        propagation->_stepping.bound_params() =
-            fw_propagation->_stepping.bound_params();
-        propagation->_navigation.set_volume(
-            fw_propagation->_navigation.volume());
+        propagation->stepping()() = fw_propagation->stepping()();
+        propagation->stepping().bound_params() =
+            fw_propagation->stepping().bound_params();
+        propagation->navigation().set_volume(
+            fw_propagation->navigation().volume());
     }
 
     // Run the propagation
-    propagation->_navigation.set_direction(nav_dir);
+    propagation->navigation().set_direction(nav_dir);
     propagation->set_particle(update_particle_hypothesis(ptc_hypo, track));
     bool success = prop.propagate(*propagation, actor_states);
 

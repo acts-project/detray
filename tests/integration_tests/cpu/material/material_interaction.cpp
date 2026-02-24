@@ -111,13 +111,13 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
                                     interactor_state, resetter_state);
 
     propagator_t::state state(bound_param, det);
-    state.do_debug = true;
+    state.debug(true);
 
     // Propagate the entire detector
     ASSERT_TRUE(p.propagate(state, actor_states));
 
     // new momentum
-    const scalar newP{state._stepping.bound_params().p(ptc.charge())};
+    const scalar newP{state.stepping().bound_params().p(ptc.charge())};
 
     // mass
     const auto mass = ptc.mass();
@@ -130,7 +130,7 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
 
     // New qop variance
     const scalar new_var_qop{
-        getter::element(state._stepping.bound_params().covariance(),
+        getter::element(state.stepping().bound_params().covariance(),
                         e_bound_qoverp, e_bound_qoverp)};
 
     // Interaction object
@@ -245,12 +245,12 @@ GTEST_TEST(detray_material, telescope_geometry_scattering_angle) {
                                         simulator_state, resetter_state);
 
         propagator_t::state state(bound_param, det);
-        state.do_debug = true;
+        state.debug(true);
 
         // Propagate the entire detector
         ASSERT_TRUE(p.propagate(state, actor_states));
 
-        const auto& final_param = state._stepping.bound_params();
+        const auto& final_param = state.stepping().bound_params();
 
         // Updated phi and theta variance
         if (i == 0u) {
@@ -356,12 +356,12 @@ GTEST_TEST(detray_material, telescope_geometry_volume_material) {
 
         p.propagate(state, actor_states);
 
-        const auto newP = state._stepping().p(ptc.charge());
+        const auto newP = state.stepping()().p(ptc.charge());
         const auto mass = ptc.mass();
 
         const auto eloss_approx =
             interaction<scalar>().compute_energy_loss_bethe_bloch(
-                state._stepping.path_length(), mat, ptc,
+                state.stepping().path_length(), mat, ptc,
                 {ptc, bound_param.qop()});
 
         const auto iniE = std::sqrt(iniP * iniP + mass * mass);
@@ -373,7 +373,7 @@ GTEST_TEST(detray_material, telescope_geometry_volume_material) {
         } else {
             ASSERT_TRUE(eloss > 0.f)
                 << "mat.: " << mat << "\n"
-                << state._navigation.inspector().to_string();
+                << state.navigation().inspector().to_string();
         }
 
         ASSERT_NEAR(eloss, eloss_approx, eloss * 0.01);

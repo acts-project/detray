@@ -400,8 +400,8 @@ struct bound_getter : actor {
     DETRAY_HOST_DEVICE void operator()(state& actor_state,
                                        propagator_state_t& propagation) const {
 
-        auto& navigation = propagation._navigation;
-        auto& stepping = propagation._stepping;
+        auto& navigation = propagation.navigation();
+        auto& stepping = propagation.stepping();
 
         actor_state.step_count++;
 
@@ -424,7 +424,7 @@ struct bound_getter : actor {
             std::clog << "QopI: " << actor_state.m_param_departure.qop()
                       << std::endl;
             navigation.exit();
-            propagation._heartbeat = false;
+            propagation.heartbeat(false);
         }
 
         if ((navigation.is_on_sensitive() || navigation.is_on_passive()) &&
@@ -446,11 +446,11 @@ struct bound_getter : actor {
 
             // Stop navigation if the destination surface found
             navigation.exit();
-            propagation._heartbeat = false;
+            propagation.heartbeat(false);
         }
 
         if (stepping.path_length() > actor_state.m_min_path_length) {
-            propagation._navigation.set_no_trust();
+            propagation.navigation().set_no_trust();
         }
 
         return;
@@ -494,8 +494,8 @@ bound_getter<test_algebra>::state evaluate_bound_param(
 
     // Run the propagation for the reference track
     state.set_particle(ptc);
-    state.do_debug = do_inspect;
-    state._stepping
+    state.debug(do_inspect);
+    state.stepping()
         .template set_constraint<detray::step::constraint::e_accuracy>(
             static_cast<float>(constraint_step));
 
@@ -541,7 +541,7 @@ bound_param_vector_type get_displaced_bound_vector(
     auto actor_states =
         detray::tie(transporter_state, bound_getter_state, resetter_state);
     dstate.set_particle(ptc);
-    dstate._stepping
+    dstate.stepping()
         .template set_constraint<detray::step::constraint::e_accuracy>(
             constraint_step);
 

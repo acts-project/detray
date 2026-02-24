@@ -32,7 +32,7 @@ struct always_init : actor {
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE inline void operator()(
         const state & /*pol_state*/, propagator_state_t &propagation) const {
-        propagation._navigation.set_no_trust();
+        propagation.navigation().set_no_trust();
     }
 };
 
@@ -49,7 +49,7 @@ struct guided_navigation : actor {
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE inline void operator()(
         const state & /*pol_state*/, propagator_state_t &propagation) const {
-        propagation._navigation.set_high_trust();
+        propagation.navigation().set_high_trust();
     }
 };
 
@@ -72,8 +72,8 @@ struct stepper_default_policy : actor {
     DETRAY_HOST_DEVICE inline void operator()(
         state &pol_state, propagator_state_t &propagation) const {
 
-        const auto &stepping = propagation._stepping;
-        auto &navigation = propagation._navigation;
+        const auto &stepping = propagation.stepping();
+        auto &navigation = propagation.navigation();
 
         // Not a severe change to track state expected
         if (math::fabs(stepping.step_size()) <
@@ -111,8 +111,8 @@ struct stepper_rk_policy : actor {
     DETRAY_HOST_DEVICE inline void operator()(
         const state &pol_state, propagator_state_t &propagation) const {
 
-        const auto &stepping = propagation._stepping;
-        auto &navigation = propagation._navigation;
+        const auto &stepping = propagation.stepping();
+        auto &navigation = propagation.navigation();
 
         // In case of an overlap, have navigator re-evaluate the next candidate
         if (math::fabs(navigation()) <= 1.f * unit<float>::um) {

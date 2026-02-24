@@ -110,10 +110,10 @@ GTEST_TEST(detray_propagator, covariance_transport) {
     parameter_resetter<test_algebra>::state resetter_state{};
     EXPECT_TRUE(p.propagate(propagation,
                             detray::tie(transporter_state, resetter_state)))
-        << propagation._navigation.inspector().to_string();
+        << propagation.navigation().inspector().to_string();
 
     // Bound state after one turn propagation
-    const auto& bound_param1 = propagation._stepping.bound_params();
+    const auto& bound_param1 = propagation.stepping().bound_params();
 
     // Check if the track reaches the final surface
     EXPECT_EQ(bound_param0.surface_link().volume(), 0u);

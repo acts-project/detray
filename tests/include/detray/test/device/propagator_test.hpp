@@ -147,15 +147,15 @@ inline auto run_propagation_host(vecmem::memory_resource *mr,
 
         typename propagator_host_t::state state(trk, field, det);
 
-        state._stepping.template set_constraint<step::constraint::e_accuracy>(
+        state.stepping().template set_constraint<step::constraint::e_accuracy>(
             cfg.stepping.step_constraint);
 
         // Run propagation
         if (!p.propagate(state, actor_states)) {
-            DETRAY_FATAL_HOST(state._navigation.inspector().to_string());
+            DETRAY_FATAL_HOST(state.navigation().inspector().to_string());
             throw std::runtime_error("Host propagation failed");
         } else if (tracer_state.get_step_data().empty()) {
-            DETRAY_FATAL_HOST(state._navigation.inspector().to_string());
+            DETRAY_FATAL_HOST(state.navigation().inspector().to_string());
             throw std::runtime_error(
                 "Host propagation did not record reference data correctly");
         }

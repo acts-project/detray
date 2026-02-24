@@ -72,7 +72,7 @@ struct surface_sequencer : actor {
     DETRAY_HOST_DEVICE void operator()(state& actor_state,
                                        propagator_state_t& propagation) const {
 
-        const auto& navigation = propagation._navigation;
+        const auto& navigation = propagation.navigation();
 
         DETRAY_VERBOSE_HOST_DEVICE(
             "Actor: Checking for next surface in sequence...");
@@ -89,8 +89,8 @@ struct surface_sequencer : actor {
             actor_state.sequence().capacity()) {
             DETRAY_VERBOSE_HOST_DEVICE("Sequence overflow!");
             actor_state.set_overflow();
-            propagation._navigation.exit();
-            propagation._heartbeat = false;
+            propagation.navigation().exit();
+            propagation.heartbeat(false);
             return;
         }
 

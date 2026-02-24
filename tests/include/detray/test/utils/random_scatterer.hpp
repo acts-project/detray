@@ -135,13 +135,13 @@ struct random_scatterer : actor {
         using detector_type = typename propagator_state_t::detector_type;
         using geo_context_type = typename detector_type::geometry_context;
 
-        auto& navigation = prop_state._navigation;
+        auto& navigation = prop_state.navigation();
 
         if (!navigation.encountered_sf_material()) {
             return;
         }
 
-        auto& stepping = prop_state._stepping;
+        auto& stepping = prop_state.stepping();
         const auto& ptc = stepping.particle_hypothesis();
         auto& bound_params = stepping.bound_params();
         const auto sf = navigation.current_surface();
@@ -173,7 +173,7 @@ struct random_scatterer : actor {
             stepping.bound_params().set_theta(vector::theta(new_dir));
 
             // Flag renavigation of the current candidate
-            prop_state._navigation.set_high_trust();
+            prop_state.navigation().set_high_trust();
         }
     }
 
