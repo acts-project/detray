@@ -448,8 +448,7 @@ DETRAY_HOST_DEVICE inline auto detray::rk_stepper<
 
         point3_type dpos1 = pos;
         dpos1[i] += delta;
-        const auto bvec1_tmp =
-            this->m_magnetic_field.at(dpos1[0], dpos1[1], dpos1[2]);
+        const auto bvec1_tmp = this->field().at(dpos1[0], dpos1[1], dpos1[2]);
         vector3_type bvec1;
         bvec1[0u] = bvec1_tmp[0u];
         bvec1[1u] = bvec1_tmp[1u];
@@ -457,8 +456,7 @@ DETRAY_HOST_DEVICE inline auto detray::rk_stepper<
 
         point3_type dpos2 = pos;
         dpos2[i] -= delta;
-        const auto bvec2_tmp =
-            this->m_magnetic_field.at(dpos2[0], dpos2[1], dpos2[2]);
+        const auto bvec2_tmp = this->field().at(dpos2[0], dpos2[1], dpos2[2]);
         vector3_type bvec2;
         bvec2[0u] = bvec2_tmp[0u];
         bvec2[1u] = bvec2_tmp[1u];
@@ -486,7 +484,7 @@ detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
     if (this->path_length() == 0.f) [[unlikely]] {
         const point3_type pos = (*this)().pos();
 
-        const auto bvec_tmp = this->m_magnetic_field.at(pos[0], pos[1], pos[2]);
+        const auto bvec_tmp = this->field().at(pos[0], pos[1], pos[2]);
         vector3_type bvec;
         bvec[0u] = bvec_tmp[0u];
         bvec[1u] = bvec_tmp[1u];
@@ -644,7 +642,7 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
     assert(!stepping().is_invalid());
 
     // Get stepper and navigator states
-    auto& magnetic_field = stepping.m_magnetic_field;
+    const auto& magnetic_field = stepping.field();
 
     if (do_reset) {
         stepping.set_step_size(dist_to_next);

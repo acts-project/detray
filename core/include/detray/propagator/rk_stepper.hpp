@@ -91,7 +91,8 @@ class rk_stepper final
               m_magnetic_field(mag_field) {}
 
         /// @returns the B-field view
-        magnetic_field_type field() const { return m_magnetic_field; }
+        DETRAY_HOST_DEVICE
+        const magnetic_field_type& field() const { return m_magnetic_field; }
 
         /// Set the next step size
         DETRAY_HOST_DEVICE
@@ -179,7 +180,7 @@ class rk_stepper final
         scalar_type m_next_step_size{0.f};
 
         /// Magnetic field view
-        const magnetic_field_t m_magnetic_field;
+        const magnetic_field_type m_magnetic_field;
     };
 
     /// Take a step, using an adaptive Runge-Kutta algorithm.
