@@ -269,29 +269,3 @@ def my_expression_print(
                 lines.extend(code.split("\n"))
 
     return "\n".join(lines)
-
-
-def my_function_print(printer, name, inputs, name_exprs, outputs, run_cse=True):
-    def input_param(input):
-        if isinstance(input, MatrixSymbol):
-            return f"const T* {input.name}"
-        return f"const T {input.name}"
-
-    def output_param(name):
-        return f"T* {name}"
-
-    lines = []
-
-    params = [input_param(input) for input in inputs] + [
-        output_param(output) for output in outputs
-    ]
-    head = f"template<typename T> void {name}({", ".join(params)}) {{"
-
-    lines.append(head)
-
-    code = my_expression_print(printer, name_exprs, outputs, run_cse=run_cse)
-    lines.extend([f"  {l}" for l in code.split("\n")])
-
-    lines.append("}")
-
-    return "\n".join(lines)

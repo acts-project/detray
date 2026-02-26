@@ -14,16 +14,20 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 
 namespace detray::detail {
-template <typename full_jac_matrix_t, typename transport_jac_matrix_t,
-          typename matrix23_t, typename matrix32_t, typename matrix81_t,
-          typename matrix18_t>
+template <typename transport_jacobian_t, typename b2f_dpos_dloc_t,
+          typename b2f_ddir_dangle_t, typename b2f_dpos_dangle_t,
+          typename path_to_free_derivative_t,
+          typename free_to_path_derivative_t, typename f2b_dloc_dpos_t,
+          typename f2b_dangle_ddir_t, typename full_jacobian_t>
 DETRAY_HOST_DEVICE void inline update_full_jacobian_impl(
-    const transport_jac_matrix_t& transport_jacobian,
-    const matrix32_t& b2f_dpos_dloc, const matrix32_t& b2f_ddir_dangle,
-    const matrix32_t& b2f_dpos_dangle,
-    const matrix81_t& path_to_free_derivative,
-    const matrix18_t& free_to_path_derivative, const matrix23_t& f2b_dloc_dpos,
-    const matrix23_t& f2b_dangle_ddir, full_jac_matrix_t& full_jacobian) {
+    const transport_jacobian_t& transport_jacobian,
+    const b2f_dpos_dloc_t& b2f_dpos_dloc,
+    const b2f_ddir_dangle_t& b2f_ddir_dangle,
+    const b2f_dpos_dangle_t& b2f_dpos_dangle,
+    const path_to_free_derivative_t& path_to_free_derivative,
+    const free_to_path_derivative_t& free_to_path_derivative,
+    const f2b_dloc_dpos_t& f2b_dloc_dpos,
+    const f2b_dangle_ddir_t& f2b_dangle_ddir, full_jacobian_t& full_jacobian) {
     const auto x0 = getter::element(f2b_dloc_dpos, 0u, 0u) *
                     getter::element(path_to_free_derivative, 0u, 0u);
     const auto x1 = getter::element(f2b_dloc_dpos, 0u, 1u) *

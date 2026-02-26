@@ -14,9 +14,9 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 
 namespace detray::detail {
-template <typename jac_matrix_t, typename cov_matrix_t>
+template <typename C_t, typename J_full_t, typename new_C_t>
 DETRAY_HOST_DEVICE void inline transport_covariance_to_bound_impl(
-    const cov_matrix_t& C, const jac_matrix_t& J_full, cov_matrix_t& new_C) {
+    const C_t& C, const J_full_t& J_full, new_C_t& new_C) {
     const auto x4 =
         getter::element(C, 4u, 4u) * getter::element(J_full, 0u, 4u);
     const auto x10 =

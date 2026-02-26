@@ -14,12 +14,13 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 
 namespace detray::detail {
-template <typename jac_matrix_t, typename matrix33_t, typename matrix31_t,
-          typename scalar_t>
+template <typename J_transport_t, typename dFdt_t, typename dGdt_t,
+          typename dFdqop_t, typename dGdqop_t, typename dqopqop_t,
+          typename new_J_t>
 DETRAY_HOST_DEVICE void inline update_transport_jacobian_without_gradient_impl(
-    const jac_matrix_t& J_transport, const matrix33_t& dFdt,
-    const matrix33_t& dGdt, const matrix31_t& dFdqop, const matrix31_t& dGdqop,
-    const scalar_t& dqopqop, jac_matrix_t& new_J) {
+    const J_transport_t& J_transport, const dFdt_t& dFdt, const dGdt_t& dGdt,
+    const dFdqop_t& dFdqop, const dGdqop_t& dGdqop, const dqopqop_t& dqopqop,
+    new_J_t& new_J) {
     getter::element(new_J, 0u, 0u) =
         getter::element(J_transport, 0u, 0u) +
         getter::element(J_transport, 4u, 0u) * getter::element(dFdt, 0u, 0u) +
@@ -309,13 +310,13 @@ DETRAY_HOST_DEVICE void inline update_transport_jacobian_without_gradient_impl(
     getter::element(new_J, 7u, 7u) =
         dqopqop * getter::element(J_transport, 7u, 7u);
 }
-template <typename jac_matrix_t, typename matrix33_t, typename matrix31_t,
-          typename scalar_t>
+template <typename J_transport_t, typename dFdr_t, typename dGdr_t,
+          typename dFdt_t, typename dGdt_t, typename dFdqop_t,
+          typename dGdqop_t, typename dqopqop_t, typename new_J_t>
 DETRAY_HOST_DEVICE void inline update_transport_jacobian_with_gradient_impl(
-    const jac_matrix_t& J_transport, const matrix33_t& dFdt,
-    const matrix33_t& dGdt, const matrix33_t& dFdr, const matrix33_t& dGdr,
-    const matrix31_t& dFdqop, const matrix31_t& dGdqop, const scalar_t& dqopqop,
-    jac_matrix_t& new_J) {
+    const J_transport_t& J_transport, const dFdr_t& dFdr, const dGdr_t& dGdr,
+    const dFdt_t& dFdt, const dGdt_t& dGdt, const dFdqop_t& dFdqop,
+    const dGdqop_t& dGdqop, const dqopqop_t& dqopqop, new_J_t& new_J) {
     getter::element(new_J, 0u, 0u) =
         getter::element(J_transport, 0u, 0u) * getter::element(dFdr, 0u, 0u) +
         getter::element(J_transport, 1u, 0u) * getter::element(dFdr, 0u, 1u) +

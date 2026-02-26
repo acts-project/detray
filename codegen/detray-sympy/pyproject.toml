@@ -12,4 +12,5 @@ dependencies = [
 [dependency-groups]
 dev = [
     "black>=25.1.0",
+    "pytest>=9.0.2",
 ]
