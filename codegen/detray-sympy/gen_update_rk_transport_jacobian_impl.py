@@ -24,6 +24,9 @@ def gen_code(gradient=True):
     )
 
     J_transport = sympy.MatrixSymbol("J_transport", 8, 8).as_explicit().as_mutable()
+    J_transport = detray_sympy.matrices.add_transport_jacobian_substructure(
+        J_transport, gradient=gradient
+    )
 
     new_transport_jacobian = D * J_transport
 
