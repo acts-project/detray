@@ -4,11 +4,15 @@ import sympy
 from detray_sympy.common import name_expr
 from detray_sympy.output import write_out_file
 from detray_sympy.codegen import gen_cxx_code
+from detray_sympy.matrices import add_transport_jacobian_substructure
 
 
-def gen_code():
+def gen_code(gradient=True):
     transport_jacobian = (
         sympy.MatrixSymbol("transport_jacobian", 8, 8).as_explicit().as_mutable()
+    )
+    transport_jacobian = add_transport_jacobian_substructure(
+        transport_jacobian, gradient=gradient
     )
 
     b2f_dpos_dloc = sympy.MatrixSymbol("b2f_dpos_dloc", 3, 2).as_explicit().as_mutable()
@@ -57,11 +61,6 @@ def gen_code():
         * bound_to_free_jacobian
     )
 
-    tmp = sympy.eye(6)
-    tmp[0:4, 0:5] = full_jacobian[0:4, 0:5]
-    tmp[5:6, 0:5] = full_jacobian[5:6, 0:5]
-    full_jacobian = tmp
-
     input_name_exprs = [
         name_expr("transport_jacobian", transport_jacobian),
         name_expr("b2f_dpos_dloc", b2f_dpos_dloc),
@@ -74,7 +73,9 @@ def gen_code():
     ]
     output_name_exprs = [name_expr("full_jacobian", full_jacobian)]
     code = gen_cxx_code(
-        "update_full_jacobian_impl",
+        "update_full_jacobian_"
+        + ("with_gradient" if gradient else "without_gradient")
+        + "_impl",
         input_name_exprs,
         output_name_exprs,
         run_cse=True,
@@ -88,6 +89,7 @@ if __name__ == "__main__":
     else:
         output = None
 
-    code = gen_code()
+    c1 = gen_code(gradient=True)
+    c2 = gen_code(gradient=False)
 
-    write_out_file(code, output)
+    write_out_file(c1 + c2, output)

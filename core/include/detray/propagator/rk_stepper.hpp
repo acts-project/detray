@@ -45,6 +45,10 @@ class rk_stepper final
         base_stepper<algebra_t, constraint_t, policy_t, inspector_t>;
 
     public:
+    static constexpr bool uses_gradient = static_cast<bool>(
+        flags_v &
+        static_cast<std::uint32_t>(rk_stepper_flags::e_allow_field_gradient));
+
     using algebra_type = algebra_t;
     using scalar_type = dscalar<algebra_t>;
     using point3_type = dpoint3D<algebra_t>;

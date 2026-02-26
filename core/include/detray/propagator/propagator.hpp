@@ -73,6 +73,9 @@ struct propagator {
         using actor_chain_type = actor_chain_t;
         using scalar_type = typename detector_type::scalar_type;
 
+        static constexpr bool stepper_uses_gradient =
+            stepper_type::uses_gradient;
+
         /// Construct the propagation state with free parameter
         DETRAY_HOST_DEVICE state_base(
             const free_track_parameters_type &free_params,
