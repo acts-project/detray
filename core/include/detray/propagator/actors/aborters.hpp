@@ -46,8 +46,8 @@ struct pathlimit_aborter : actor {
                                        propagator_state_t &prop_state) const {
         DETRAY_VERBOSE_HOST_DEVICE("Aborter: Check path limits");
 
-        auto &step_state = prop_state._stepping;
-        auto &nav_state = prop_state._navigation;
+        auto &step_state = prop_state.stepping();
+        auto &nav_state = prop_state.navigation();
 
         // Nothing left to do. Propagation will exit successfully
         if (nav_state.finished()) {
@@ -56,17 +56,17 @@ struct pathlimit_aborter : actor {
 
         const scalar_t step_limit =
             abrt_state.path_limit() -
-            math::fabs(prop_state._stepping.abs_path_length());
+            math::fabs(prop_state.stepping().abs_path_length());
 
         // Check the path limit
         if (step_limit <= 0.f) {
             DETRAY_VERBOSE_HOST_DEVICE(
                 "Path lengths: %f mm",
-                math::fabs(prop_state._stepping.abs_path_length()));
+                math::fabs(prop_state.stepping().abs_path_length()));
 
             // Stop navigation
             nav_state.abort("Aborter: Maximal path length reached");
-            prop_state._heartbeat = false;
+            prop_state.heartbeat(false);
         }
 
         // Don't go over the path limit in the next step
@@ -111,8 +111,8 @@ struct momentum_aborter : actor {
                                        propagator_state_t &prop_state) const {
         DETRAY_VERBOSE_HOST_DEVICE("Aborter: Check momentum");
 
-        auto &step_state = prop_state._stepping;
-        auto &nav_state = prop_state._navigation;
+        auto &step_state = prop_state.stepping();
+        auto &nav_state = prop_state.navigation();
 
         // Nothing left to do. Propagation will exit successfully
         if (nav_state.finished()) {
@@ -128,7 +128,7 @@ struct momentum_aborter : actor {
             // Stop navigation
             nav_state.abort(
                 "Aborter: Minimum transverse momentum (pT) reached");
-            prop_state._heartbeat = false;
+            prop_state.heartbeat(false);
             return;
         }
 
@@ -137,7 +137,7 @@ struct momentum_aborter : actor {
 
             // Stop navigation
             nav_state.abort("Aborter: Minimum momentum (p) reached");
-            prop_state._heartbeat = false;
+            prop_state.heartbeat(false);
         }
     }
 };
@@ -160,8 +160,8 @@ struct target_aborter : actor {
                                        propagator_state_t &prop_state) const {
         DETRAY_VERBOSE_HOST_DEVICE("Aborter: Check target surface");
 
-        auto &navigation = prop_state._navigation;
-        const auto &stepping = prop_state._stepping;
+        auto &navigation = prop_state.navigation();
+        const auto &stepping = prop_state.stepping();
 
         // In case the propagation starts on a module, make sure to not abort
         // directly
@@ -169,7 +169,7 @@ struct target_aborter : actor {
             (navigation.barcode() == abrt_state._target_surface) &&
             (stepping.path_length() > 0.f)) {
             navigation.abort("Aborter: Reached target surface");
-            prop_state._heartbeat = false;
+            prop_state.heartbeat(false);
         }
     }
 };

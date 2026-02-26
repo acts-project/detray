@@ -92,8 +92,8 @@ struct step_tracer : actor {
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE void operator()(state& tracer_state,
                                        propagator_state_t& prop_state) const {
-        const auto& navigation = prop_state._navigation;
-        const auto& stepping = prop_state._stepping;
+        const auto& navigation = prop_state.navigation();
+        const auto& stepping = prop_state.stepping();
 
         // Collect the data whenever requested
         if (navigation.is_on_surface() || tracer_state.m_collect_every_step) {

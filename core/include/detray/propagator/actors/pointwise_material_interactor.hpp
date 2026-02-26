@@ -136,16 +136,16 @@ struct pointwise_material_interactor : actor {
 
         interactor_state.reset();
 
-        const auto &navigation = prop_state._navigation;
+        const auto &navigation = prop_state.navigation();
 
         // Do material interaction when the track is on material surface
         if (navigation.encountered_sf_material()) {
 
             DETRAY_VERBOSE_HOST_DEVICE("Actor: Resolve material effects:");
 
-            auto &stepping = prop_state._stepping;
+            auto &stepping = prop_state.stepping();
 
-            this->update(prop_state._context, stepping.particle_hypothesis(),
+            this->update(prop_state.context(), stepping.particle_hypothesis(),
                          stepping.bound_params(), interactor_state,
                          static_cast<int>(navigation.direction()),
                          navigation.current_surface());

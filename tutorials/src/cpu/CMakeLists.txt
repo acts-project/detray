@@ -6,12 +6,6 @@
 
 message(STATUS "Building detray host tutorials")
 
-# Set up the tutorial(s) that are algebra agnostic.
-detray_add_tutorial( define_an_actor
-   "propagation/define_an_actor.cpp"
-   LINK_LIBRARIES detray::core
-)
-
 # Set up the rest of the tutorials
 set(source_files
     "detector/build_predefined_detectors.cpp"
@@ -23,6 +17,7 @@ set(source_files
     "detector/write_detector_to_file.cpp"
     "propagation/navigation_inspection.cpp"
     "propagation/propagation.cpp"
+    "propagation/define_an_actor.cpp"
 )
 
 foreach(file ${source_files})

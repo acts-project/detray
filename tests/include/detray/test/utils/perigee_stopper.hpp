@@ -54,7 +54,7 @@ struct perigee_stopper : actor {
         using perigee_intersector_t = ray_intersector<line_circular, algebra_t>;
 
         // Nothing left to do. Propagation will exit successfully on its own
-        auto &navigation = prop_state._navigation;
+        auto &navigation = prop_state.navigation();
         if (navigation.finished()) {
             return;
         }
@@ -81,7 +81,7 @@ struct perigee_stopper : actor {
             return;
         }
 
-        auto &stepping = prop_state._stepping;
+        auto &stepping = prop_state.stepping();
         auto &track = stepping();
 
         // Linear track approximation

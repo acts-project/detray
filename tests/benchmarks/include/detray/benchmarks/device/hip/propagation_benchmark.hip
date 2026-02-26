@@ -54,7 +54,7 @@ __global__ void __launch_bounds__(256, 4) propagator_benchmark_kernel(
                                                 det);
 
     // Particle hypothesis
-    auto &ptc = p_state._stepping.particle_hypothesis();
+    auto &ptc = p_state.stepping().particle_hypothesis();
     p_state.set_particle(update_particle_hypothesis(ptc, tracks.at(gid)));
 
     // Run propagation

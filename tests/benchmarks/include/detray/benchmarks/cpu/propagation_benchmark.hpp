@@ -110,7 +110,7 @@ struct host_propagation_bm : public benchmark_base {
 
             typename propagator_t::state p_state(track, *bfield, *det);
             // Particle hypothesis
-            auto &ptc = p_state._stepping.particle_hypothesis();
+            auto &ptc = p_state.stepping().particle_hypothesis();
             p_state.set_particle(update_particle_hypothesis(ptc, track));
 
             // Run propagation

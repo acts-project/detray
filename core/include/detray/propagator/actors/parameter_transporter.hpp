@@ -98,8 +98,8 @@ struct parameter_transporter : actor {
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE void operator()(state& actor_state,
                                        propagator_state_t& propagation) const {
-        auto& stepping = propagation._stepping;
-        const auto& navigation = propagation._navigation;
+        auto& stepping = propagation.stepping();
+        const auto& navigation = propagation.navigation();
 
         // Do covariance transport when the track is on surface
         if (!(navigation.is_on_sensitive() ||
@@ -110,7 +110,7 @@ struct parameter_transporter : actor {
             "Actor: Transport track parameters to current surface");
 
         // Geometry context for this track
-        const auto& gctx = propagation._context;
+        const auto& gctx = propagation.context();
 
         // Current Surface
         const auto sf = navigation.current_surface();
@@ -155,11 +155,11 @@ struct parameter_transporter : actor {
             types::mapped_registry<typename detector_t::masks,
                                    detail::select_frame>;
 
-        const auto& stepping = propagation._stepping;
-        const auto& navigation = propagation._navigation;
+        const auto& stepping = propagation.stepping();
+        const auto& navigation = propagation.navigation();
 
         // Geometry context for this track
-        const auto& gctx = propagation._context;
+        const auto& gctx = propagation.context();
 
         // Our goal here is to compute the full Jacobian, which is given as:
         //
@@ -269,7 +269,7 @@ struct parameter_transporter : actor {
         // submatrix B is the same for all frame types.
         const dmatrix<algebra_t, 2, 3> f2b_dloc_dpos =
             types::visit<frame_registry_t, get_free_to_bound_dloc_dpos_visitor>(
-                sf.shape_id(), sf.transform(gctx), propagation._stepping);
+                sf.shape_id(), sf.transform(gctx), propagation.stepping());
 
         const dmatrix<algebra_t, 2, 3> f2b_dangle_ddir =
             detail::jacobian_engine<algebra_t>::

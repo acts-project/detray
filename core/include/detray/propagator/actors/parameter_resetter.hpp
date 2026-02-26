@@ -50,8 +50,8 @@ struct parameter_resetter : actor {
 
         using scalar_t = dscalar<algebra_t>;
 
-        auto& navigation = propagation._navigation;
-        auto& stepping = propagation._stepping;
+        auto& navigation = propagation.navigation();
+        auto& stepping = propagation.stepping();
 
         // Do covariance transport when the track is on surface
         if (!(navigation.is_on_sensitive() ||
@@ -64,7 +64,7 @@ struct parameter_resetter : actor {
         const auto sf = navigation.current_surface();
         const auto& bound_params = stepping.bound_params();
         stepping() =
-            sf.bound_to_free_vector(propagation._context, bound_params);
+            sf.bound_to_free_vector(propagation.context(), bound_params);
         assert(!stepping().is_invalid());
 
         // Reset jacobian transport to identity matrix

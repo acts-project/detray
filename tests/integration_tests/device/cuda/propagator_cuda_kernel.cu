@@ -62,10 +62,10 @@ __global__ void propagator_test_kernel(
     // Create the propagator state
     typename propagator_device_t::state state(tracks.at(gid), field_data, det);
 
-    auto& ptc = state._stepping.particle_hypothesis();
+    auto& ptc = state.stepping().particle_hypothesis();
     state.set_particle(update_particle_hypothesis(ptc, tracks.at(gid)));
 
-    state._stepping.template set_constraint<step::constraint::e_accuracy>(
+    state.stepping().template set_constraint<step::constraint::e_accuracy>(
         cfg.stepping.step_constraint);
 
     // Run propagation

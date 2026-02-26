@@ -8,6 +8,7 @@
 #pragma once
 
 // Include all core actors
+#include "detray/definitions/pdg_particle.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/utils/concepts.hpp"
 #include "detray/utils/tuple_helpers.hpp"
@@ -56,5 +57,53 @@ concept is_state_of =
                                                  typename T::state_tuple>)) ||
 
     (actor<T> && std::same_as<std::remove_cvref_t<S>, typename T::state>);
+
+/// Check if a type can function as a propagator state
+template <typename S>
+concept propagator_state = requires {
+    typename S::detector_type;
+    typename S::detector_type::scalar_type;
+    typename S::stepper_state_type;
+    typename S::navigator_state_type;
+    typename S::context_type;
+} && requires(S &s) {
+    requires requires(
+        const pdg_particle<typename S::detector_type::scalar_type> &ptc) {
+        { s.set_particle(ptc) };
+    };
+
+    requires requires(bool b) {
+        { s.heartbeat(b) };
+        { s.debug(b) };
+    };
+
+    { s.stepping() } -> std::same_as<typename S::stepper_state_type &>;
+    { s.navigation() } -> std::same_as<typename S::navigator_state_type &>;
+    { s.context() } -> std::same_as<typename S::context_type &>;
+} && requires(const S &s) {
+    { s.debug() } -> std::same_as<bool>;
+    { s.is_alive() } -> std::same_as<bool>;
+    { s.heartbeat() } -> std::same_as<bool>;
+    { s.stepping() } -> std::same_as<const typename S::stepper_state_type &>;
+    {
+        s.navigation()
+    } -> std::same_as<const typename S::navigator_state_type &>;
+    { s.context() } -> std::same_as<const typename S::context_type &>;
+};
+
+/// Check if a type can function as a propagator state for a specific
+/// propagator type
+template <typename S, typename P>
+concept is_propagator_state_of = propagator_state<S> && requires {
+    typename P::detector_type;
+    typename P::stepper_type;
+    typename P::navigator_type;
+
+    requires std::same_as<typename P::detector_type, typename S::detector_type>;
+    requires std::same_as<typename P::stepper_type::state,
+                          typename S::stepper_state_type>;
+    requires std::same_as<typename P::navigator_type::state,
+                          typename S::navigator_state_type>;
+};
 
 }  // namespace detray::concepts
