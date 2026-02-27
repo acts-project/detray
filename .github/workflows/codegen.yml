@@ -1,0 +1,46 @@
+name: Codegen
+
+on:
+  push:
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  host-container:
+    runs-on: ubuntu-latest
+    container: ghcr.io/astral-sh/uv:debian
+    name: "codegen"
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+    - name: Install dependencies
+      run: |
+        apt-get update
+        apt-get install git
+    - name: Configure git
+      run: git config --global --add safe.directory ${GITHUB_WORKSPACE}
+    - uses: actions/checkout@v4
+    - name: ls
+      run: ls -la ${GITHUB_WORKSPACE}
+    - name: Synchronize environment
+      run: |
+        cd ${GITHUB_WORKSPACE}/codegen/detray-sympy
+        uv sync
+    - name: Python tests
+      run: |
+        cd ${GITHUB_WORKSPACE}/codegen/detray-sympy
+        uv run pytest
+    - name: Check consistency
+      run: |
+        cd ${GITHUB_WORKSPACE}/codegen/detray-sympy
+        uv run ./generate_all.sh
+        uvx pre-commit run --all || true
+        git diff --exit-code
