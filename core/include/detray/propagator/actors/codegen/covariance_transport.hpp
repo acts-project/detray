@@ -10,13 +10,32 @@
 
 #pragma once
 
+#include "algebra/type_traits.hpp"
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 
 namespace detray::detail {
-template <typename jac_matrix_t, typename cov_matrix_t>
+template <typename C_t, typename J_full_t, typename new_C_t>
 DETRAY_HOST_DEVICE void inline transport_covariance_to_bound_impl(
-    const cov_matrix_t& C, const jac_matrix_t& J_full, cov_matrix_t& new_C) {
+    const C_t& C, const J_full_t& J_full, new_C_t& new_C)
+    requires((algebra::concepts::square_matrix<C_t> &&
+              algebra::traits::rank<C_t> == 6) &&
+             (algebra::concepts::square_matrix<J_full_t> &&
+              algebra::traits::rank<J_full_t> == 6) &&
+             (algebra::concepts::square_matrix<new_C_t> &&
+              algebra::traits::rank<new_C_t> == 6))
+{
+    assert(getter::element(J_full, 0u, 5u) == 0.f);
+    assert(getter::element(J_full, 1u, 5u) == 0.f);
+    assert(getter::element(J_full, 2u, 5u) == 0.f);
+    assert(getter::element(J_full, 3u, 5u) == 0.f);
+    assert(getter::element(J_full, 4u, 0u) == 0.f);
+    assert(getter::element(J_full, 4u, 1u) == 0.f);
+    assert(getter::element(J_full, 4u, 2u) == 0.f);
+    assert(getter::element(J_full, 4u, 3u) == 0.f);
+    assert(getter::element(J_full, 4u, 4u) == 1.f);
+    assert(getter::element(J_full, 4u, 5u) == 0.f);
+    assert(getter::element(J_full, 5u, 5u) == 1.f);
     const auto x4 =
         getter::element(C, 4u, 4u) * getter::element(J_full, 0u, 4u);
     const auto x10 =

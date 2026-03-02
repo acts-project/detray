@@ -10,20 +10,55 @@
 
 #pragma once
 
+#include "algebra/type_traits.hpp"
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 
 namespace detray::detail {
-template <typename full_jac_matrix_t, typename transport_jac_matrix_t,
-          typename matrix23_t, typename matrix32_t, typename matrix81_t,
-          typename matrix18_t>
+template <typename transport_jacobian_t, typename b2f_dpos_dloc_t,
+          typename b2f_ddir_dangle_t, typename b2f_dpos_dangle_t,
+          typename path_to_free_derivative_t,
+          typename free_to_path_derivative_t, typename f2b_dloc_dpos_t,
+          typename f2b_dangle_ddir_t, typename full_jacobian_t>
 DETRAY_HOST_DEVICE void inline update_full_jacobian_impl(
-    const transport_jac_matrix_t& transport_jacobian,
-    const matrix32_t& b2f_dpos_dloc, const matrix32_t& b2f_ddir_dangle,
-    const matrix32_t& b2f_dpos_dangle,
-    const matrix81_t& path_to_free_derivative,
-    const matrix18_t& free_to_path_derivative, const matrix23_t& f2b_dloc_dpos,
-    const matrix23_t& f2b_dangle_ddir, full_jac_matrix_t& full_jacobian) {
+    const transport_jacobian_t& transport_jacobian,
+    const b2f_dpos_dloc_t& b2f_dpos_dloc,
+    const b2f_ddir_dangle_t& b2f_ddir_dangle,
+    const b2f_dpos_dangle_t& b2f_dpos_dangle,
+    const path_to_free_derivative_t& path_to_free_derivative,
+    const free_to_path_derivative_t& free_to_path_derivative,
+    const f2b_dloc_dpos_t& f2b_dloc_dpos,
+    const f2b_dangle_ddir_t& f2b_dangle_ddir, full_jacobian_t& full_jacobian)
+    requires((algebra::concepts::square_matrix<transport_jacobian_t> &&
+              algebra::traits::rank<transport_jacobian_t> == 8) &&
+             (algebra::concepts::matrix<b2f_dpos_dloc_t> &&
+              algebra::traits::rows<b2f_dpos_dloc_t> == 3 &&
+              algebra::traits::columns<b2f_dpos_dloc_t> == 2) &&
+             (algebra::concepts::matrix<b2f_ddir_dangle_t> &&
+              algebra::traits::rows<b2f_ddir_dangle_t> == 3 &&
+              algebra::traits::columns<b2f_ddir_dangle_t> == 2) &&
+             (algebra::concepts::matrix<b2f_dpos_dangle_t> &&
+              algebra::traits::rows<b2f_dpos_dangle_t> == 3 &&
+              algebra::traits::columns<b2f_dpos_dangle_t> == 2) &&
+             (algebra::concepts::matrix<path_to_free_derivative_t> &&
+              algebra::traits::rows<path_to_free_derivative_t> == 8 &&
+              algebra::traits::columns<path_to_free_derivative_t> == 1) &&
+             (algebra::concepts::row_matrix<free_to_path_derivative_t> &&
+              algebra::traits::columns<free_to_path_derivative_t> == 8) &&
+             (algebra::concepts::matrix<f2b_dloc_dpos_t> &&
+              algebra::traits::rows<f2b_dloc_dpos_t> == 2 &&
+              algebra::traits::columns<f2b_dloc_dpos_t> == 3) &&
+             (algebra::concepts::matrix<f2b_dangle_ddir_t> &&
+              algebra::traits::rows<f2b_dangle_ddir_t> == 2 &&
+              algebra::traits::columns<f2b_dangle_ddir_t> == 3) &&
+             (algebra::concepts::square_matrix<full_jacobian_t> &&
+              algebra::traits::rank<full_jacobian_t> == 6))
+{
+    assert(getter::element(b2f_ddir_dangle, 2u, 0u) == 0.f);
+    assert(getter::element(path_to_free_derivative, 3u, 0u) == 0.f);
+    assert(getter::element(free_to_path_derivative, 0u, 3u) == 0.f);
+    assert(getter::element(free_to_path_derivative, 0u, 7u) == 0.f);
+    assert(getter::element(f2b_dangle_ddir, 0u, 2u) == 0.f);
     const auto x0 = getter::element(f2b_dloc_dpos, 0u, 0u) *
                     getter::element(path_to_free_derivative, 0u, 0u);
     const auto x1 = getter::element(f2b_dloc_dpos, 0u, 1u) *
