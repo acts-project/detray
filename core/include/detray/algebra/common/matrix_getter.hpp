@@ -137,6 +137,25 @@ DETRAY_HOST_DEVICE constexpr decltype(auto) element(
     return element_getter{}(v, row);
 }
 
+template <std::size_t I, std::size_t J, typename T>
+DETRAY_HOST_DEVICE decltype(auto) element(T &matrix) {
+    if constexpr (concepts::permits_compile_time_matrix_index_element<T>) {
+        return matrix.template element<I, J>();
+    } else {
+        return element(matrix, detray::traits::index_t<std::decay_t<T>>(I),
+                       detray::traits::index_t<std::decay_t<T>>(J));
+    }
+}
+
+template <std::size_t I, typename T>
+DETRAY_HOST_DEVICE decltype(auto) element(T &vector) {
+    if constexpr (concepts::permits_compile_time_vector_index_element<T>) {
+        return vector.template element<I>();
+    } else {
+        return element(vector, detray::traits::index_t<std::decay_t<T>>(I));
+    }
+}
+
 /// Functor used to access a submatrix of a matrix
 struct block_getter {
 

@@ -15,7 +15,7 @@
 #include "algebra/impl/vc_soa_matrix.hpp"
 #include "algebra/impl/vc_soa_types.hpp"
 #include "algebra/impl/vc_soa_vector.hpp"
-#include "detray/algebra/generic/impl/generic_matrix.hpp"
+#include "detray/algebra/generic/generic.hpp"
 
 // System include(s).
 #include <cassert>
