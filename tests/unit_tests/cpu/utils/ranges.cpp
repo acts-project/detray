@@ -199,7 +199,7 @@ GTEST_TEST(detray_utils, ranges_iota_single) {
     static_assert(detray::ranges::view<decltype(seq)>);
     static_assert(detray::ranges::forward_range<decltype(seq)>);
     static_assert(detray::ranges::bidirectional_range<decltype(seq)>);
-    static_assert(!detray::ranges::random_access_range<decltype(seq)>);
+    static_assert(detray::ranges::random_access_range<decltype(seq)>);
 
     // Test prerequisits for LagacyIterator
     static_assert(
@@ -230,7 +230,7 @@ GTEST_TEST(detray_utils, ranges_iota_interval) {
     static_assert(std::is_copy_assignable_v<decltype(seq)>);
     static_assert(detray::ranges::forward_range<decltype(seq)>);
     static_assert(detray::ranges::bidirectional_range<decltype(seq)>);
-    static_assert(!detray::ranges::random_access_range<decltype(seq)>);
+    static_assert(detray::ranges::random_access_range<decltype(seq)>);
 
     // Test prerequisits for LagacyIterator
     static_assert(
