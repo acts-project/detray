@@ -8,7 +8,7 @@
 #pragma once
 
 // Algebra-Plugins include
-#include "algebra/vc_soa.hpp"
+#include "detray/algebra/vc_soa.hpp"
 
 namespace detray {
 

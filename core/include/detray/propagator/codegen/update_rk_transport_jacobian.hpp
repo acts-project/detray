@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "algebra/type_traits.hpp"
+#include "detray/algebra/type_traits.hpp"
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 
