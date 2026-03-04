@@ -73,25 +73,29 @@ def gen_cxx_code(function_name, inputs, outputs, run_cse=True):
             for k in range(j.shape[0]):
                 if j[k] == 0:
                     lines.append(
-                        "assert(getter::element({}, {}u) == 0.f);".format(i, k)
+                        "assert((getter::element<{idx}>({var}) == 0.f));".format(
+                            var=i, idx=k
+                        )
                     )
                 elif j[k] == 1:
                     lines.append(
-                        "assert(getter::element({}, {}u) == 1.f);".format(i, k)
+                        "assert((getter::element<{idx}>({var}) == 1.f));".format(
+                            var=i, idx=k
+                        )
                     )
         elif len(j.shape) == 2:
             for k in range(j.shape[0]):
                 for l in range(j.shape[1]):
                     if j[k, l] == 0:
                         lines.append(
-                            "assert(getter::element({}, {}u, {}u) == 0.f);".format(
-                                i, k, l
+                            "assert((getter::element<{idx1}, {idx2}>({var}) == 0.f));".format(
+                                var=i, idx1=k, idx2=l
                             )
                         )
                     elif j[k, l] == 1:
                         lines.append(
-                            "assert(getter::element({}, {}u, {}u) == 1.f);".format(
-                                i, k, l
+                            "assert((getter::element<{idx1}, {idx2}>({var}) == 1.f));".format(
+                                var=i, idx1=k, idx2=l
                             )
                         )
 
