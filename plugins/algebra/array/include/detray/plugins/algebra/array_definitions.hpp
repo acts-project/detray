@@ -8,7 +8,7 @@
 #pragma once
 
 // Algebra-Plugins include
-#include "algebra/array_cmath.hpp"
+#include "algebra/array.hpp"
 
 namespace detray {
 
@@ -16,45 +16,45 @@ namespace detray {
 template <algebra::concepts::scalar scalar_t>
 using array = algebra::plugin::array<scalar_t>;
 
-using algebra::cmath::operator*;
-using algebra::cmath::operator-;
-using algebra::cmath::operator+;
+using algebra::array::operator*;
+using algebra::array::operator-;
+using algebra::array::operator+;
 
 namespace getter {
 
-using algebra::cmath::storage::block;
-using algebra::cmath::storage::element;
-using algebra::cmath::storage::set_block;
-using algebra::cmath::storage::vector;
+using algebra::array::storage::block;
+using algebra::array::storage::element;
+using algebra::array::storage::set_block;
+using algebra::array::storage::vector;
 
 }  // namespace getter
 
 namespace vector {
 
 // array specific implementations
-using algebra::cmath::dot;
-using algebra::cmath::normalize;
+using algebra::array::dot;
+using algebra::array::normalize;
 
 // generic implementations
-using algebra::cmath::cross;
-using algebra::cmath::eta;
-using algebra::cmath::norm;
-using algebra::cmath::perp;
-using algebra::cmath::phi;
-using algebra::cmath::theta;
+using algebra::array::cross;
+using algebra::array::eta;
+using algebra::array::norm;
+using algebra::array::perp;
+using algebra::array::phi;
+using algebra::array::theta;
 
 }  // namespace vector
 
 namespace matrix {
 
-using algebra::cmath::identity;
-using algebra::cmath::set_identity;
-using algebra::cmath::set_zero;
-using algebra::cmath::zero;
+using algebra::array::identity;
+using algebra::array::set_identity;
+using algebra::array::set_zero;
+using algebra::array::zero;
 
-using algebra::cmath::determinant;
-using algebra::cmath::inverse;
-using algebra::cmath::transpose;
+using algebra::array::determinant;
+using algebra::array::inverse;
+using algebra::array::transpose;
 
 }  // namespace matrix
 

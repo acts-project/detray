@@ -13,7 +13,7 @@
 #endif
 
 // Algebra-Plugins include
-#include "algebra/smatrix_smatrix.hpp"
+#include "algebra/smatrix.hpp"
 
 namespace detray {
 
