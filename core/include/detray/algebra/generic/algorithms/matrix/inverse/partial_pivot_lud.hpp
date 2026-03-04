@@ -8,10 +8,10 @@
 #pragma once
 
 // Project include(s).
-#include "detray/algebra/algorithms/matrix/decomposition/partial_pivot_lud.hpp"
-#include "detray/algebra/concepts.hpp"
-#include "detray/algebra/qualifiers.hpp"
-#include "detray/algebra/type_traits.hpp"
+#include "detray/algebra/common/concepts.hpp"
+#include "detray/algebra/common/qualifiers.hpp"
+#include "detray/algebra/common/type_traits.hpp"
+#include "detray/algebra/generic/algorithms/matrix/decomposition/partial_pivot_lud.hpp"
 
 namespace detray::algebra::generic::matrix::inverse {
 
@@ -19,11 +19,11 @@ namespace detray::algebra::generic::matrix::inverse {
 template <concepts::square_matrix matrix_t>
 struct partial_pivot_lud {
 
-    using scalar_t = algebra::traits::value_t<matrix_t>;
-    using index_t = algebra::traits::index_t<matrix_t>;
+    using scalar_t = detray::traits::value_t<matrix_t>;
+    using index_t = detray::traits::index_t<matrix_t>;
 
     /// Function (object) used for accessing a matrix element
-    using element_getter_t = algebra::traits::element_getter_t<matrix_t>;
+    using element_getter_t = detray::traits::element_getter_t<matrix_t>;
 
     using decomposition_t =
         typename algebra::generic::matrix::decomposition::partial_pivot_lud<
@@ -32,7 +32,7 @@ struct partial_pivot_lud {
     ALGEBRA_HOST_DEVICE constexpr matrix_t operator()(const matrix_t& m) const {
 
         constexpr element_getter_t elem{};
-        constexpr index_t N{algebra::traits::rank<matrix_t>};
+        constexpr index_t N{detray::traits::rank<matrix_t>};
 
         const typename decomposition_t::template lud<N> decomp_res =
             decomposition_t()(m);

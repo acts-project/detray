@@ -8,10 +8,10 @@
 #pragma once
 
 // Project include(s).
-#include "detray/algebra/concepts.hpp"
-#include "detray/algebra/math.hpp"
-#include "detray/algebra/qualifiers.hpp"
-#include "detray/algebra/type_traits.hpp"
+#include "detray/algebra/common/concepts.hpp"
+#include "detray/algebra/common/math.hpp"
+#include "detray/algebra/common/qualifiers.hpp"
+#include "detray/algebra/common/type_traits.hpp"
 
 namespace detray::algebra::generic::math {
 
@@ -19,10 +19,10 @@ namespace detray::algebra::generic::math {
 ///
 /// @param v the input vector
 template <concepts::vector vector_t>
-ALGEBRA_HOST_DEVICE constexpr algebra::traits::scalar_t<vector_t> phi(
+ALGEBRA_HOST_DEVICE constexpr detray::traits::scalar_t<vector_t> phi(
     const vector_t &v) noexcept {
 
-    using element_getter_t = algebra::traits::element_getter_t<vector_t>;
+    using element_getter_t = detray::traits::element_getter_t<vector_t>;
 
     return algebra::math::atan2(element_getter_t{}(v, 1),
                                 element_getter_t{}(v, 0));
@@ -32,10 +32,10 @@ ALGEBRA_HOST_DEVICE constexpr algebra::traits::scalar_t<vector_t> phi(
 ///
 /// @param v the input vector
 template <concepts::vector vector_t>
-ALGEBRA_HOST_DEVICE constexpr algebra::traits::scalar_t<vector_t> perp(
+ALGEBRA_HOST_DEVICE constexpr detray::traits::scalar_t<vector_t> perp(
     const vector_t &v) noexcept {
 
-    using element_getter_t = algebra::traits::element_getter_t<vector_t>;
+    using element_getter_t = detray::traits::element_getter_t<vector_t>;
 
     return algebra::math::sqrt(algebra::math::fma(
         element_getter_t{}(v, 0), element_getter_t{}(v, 0),
@@ -46,10 +46,10 @@ ALGEBRA_HOST_DEVICE constexpr algebra::traits::scalar_t<vector_t> perp(
 ///
 /// @param v the input vector
 template <concepts::vector vector_t>
-ALGEBRA_HOST_DEVICE constexpr algebra::traits::scalar_t<vector_t> theta(
+ALGEBRA_HOST_DEVICE constexpr detray::traits::scalar_t<vector_t> theta(
     const vector_t &v) noexcept {
 
-    using element_getter_t = algebra::traits::element_getter_t<vector_t>;
+    using element_getter_t = detray::traits::element_getter_t<vector_t>;
 
     return algebra::math::atan2(perp(v), element_getter_t{}(v, 2));
 }
@@ -68,10 +68,10 @@ template <typename vector1_t, typename vector2_t>
               concepts::column_matrix3D<vector1_t>) &&
              (concepts::vector3D<vector2_t> ||
               concepts::column_matrix3D<vector2_t>))
-ALGEBRA_HOST_DEVICE constexpr algebra::traits::vector_t<vector1_t> cross(
+ALGEBRA_HOST_DEVICE constexpr detray::traits::vector_t<vector1_t> cross(
     const vector1_t &a, const vector2_t &b) {
 
-    using element_getter_t = algebra::traits::element_getter_t<vector1_t>;
+    using element_getter_t = detray::traits::element_getter_t<vector1_t>;
 
     return {algebra::math::fma(
                 element_getter_t{}(a, 1), element_getter_t{}(b, 2),
@@ -97,16 +97,16 @@ template <typename vector1_t, typename vector2_t>
     requires(
         (concepts::vector<vector1_t> || concepts::column_matrix<vector1_t>) &&
         (concepts::vector<vector2_t> || concepts::column_matrix<vector2_t>))
-ALGEBRA_HOST_DEVICE constexpr algebra::traits::scalar_t<vector1_t> dot(
+ALGEBRA_HOST_DEVICE constexpr detray::traits::scalar_t<vector1_t> dot(
     const vector1_t &a, const vector2_t &b) {
 
-    using scalar_t = algebra::traits::scalar_t<vector1_t>;
-    using index_t = algebra::traits::index_t<vector1_t>;
-    using element_getter_t = algebra::traits::element_getter_t<vector1_t>;
+    using scalar_t = detray::traits::scalar_t<vector1_t>;
+    using index_t = detray::traits::index_t<vector1_t>;
+    using element_getter_t = detray::traits::element_getter_t<vector1_t>;
 
     scalar_t ret{element_getter_t{}(a, 0) * element_getter_t{}(b, 0)};
 
-    for (index_t i = 1; i < algebra::traits::size<vector1_t>; i++) {
+    for (index_t i = 1; i < detray::traits::size<vector1_t>; i++) {
         ret = std::fma(element_getter_t{}(a, i), element_getter_t{}(b, i), ret);
     }
 
@@ -117,7 +117,7 @@ ALGEBRA_HOST_DEVICE constexpr algebra::traits::scalar_t<vector1_t> dot(
 ///
 /// @param v the input vector
 template <concepts::vector vector_t>
-ALGEBRA_HOST_DEVICE constexpr algebra::traits::scalar_t<vector_t> norm(
+ALGEBRA_HOST_DEVICE constexpr detray::traits::scalar_t<vector_t> norm(
     const vector_t &v) {
 
     return algebra::math::sqrt(dot(v, v));
@@ -128,10 +128,10 @@ ALGEBRA_HOST_DEVICE constexpr algebra::traits::scalar_t<vector_t> norm(
 ///
 /// @param v the input vector
 template <concepts::vector vector_t>
-ALGEBRA_HOST_DEVICE constexpr algebra::traits::scalar_t<vector_t> eta(
+ALGEBRA_HOST_DEVICE constexpr detray::traits::scalar_t<vector_t> eta(
     const vector_t &v) noexcept {
 
-    using element_getter_t = algebra::traits::element_getter_t<vector_t>;
+    using element_getter_t = detray::traits::element_getter_t<vector_t>;
 
     return algebra::math::atanh(element_getter_t{}(v, 2) / norm(v));
 }
@@ -146,7 +146,7 @@ ALGEBRA_HOST_DEVICE constexpr algebra::traits::scalar_t<vector_t> eta(
 template <concepts::vector vector_t>
 ALGEBRA_HOST_DEVICE constexpr vector_t normalize(const vector_t &v) {
 
-    using scalar_t = algebra::traits::scalar_t<vector_t>;
+    using scalar_t = detray::traits::scalar_t<vector_t>;
 
     return v * static_cast<scalar_t>(1.) / norm(v);
 }

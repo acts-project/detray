@@ -91,6 +91,14 @@ if(DETRAY_EIGEN_PLUGIN)
     )
 endif()
 
+if(DETRAY_FASTOR_PLUGIN)
+    detray_add_library( detray_core_fastor core_fastor )
+    target_link_libraries(
+        detray_core_fastor
+        INTERFACE detray::core detray::algebra_fastor
+    )
+endif()
+
 if(DETRAY_SMATRIX_PLUGIN)
     detray_add_library( detray_core_smatrix core_smatrix )
     target_link_libraries(

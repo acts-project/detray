@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "detray/algebra/type_traits.hpp"
+#include "detray/algebra/common/type_traits.hpp"
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 
@@ -29,30 +29,30 @@ DETRAY_HOST_DEVICE void inline update_full_jacobian_with_gradient_impl(
     const free_to_path_derivative_t& free_to_path_derivative,
     const f2b_dloc_dpos_t& f2b_dloc_dpos,
     const f2b_dangle_ddir_t& f2b_dangle_ddir, full_jacobian_t& full_jacobian)
-    requires((algebra::concepts::square_matrix<transport_jacobian_t> &&
-              algebra::traits::rank<transport_jacobian_t> == 8) &&
-             (algebra::concepts::matrix<b2f_dpos_dloc_t> &&
-              algebra::traits::rows<b2f_dpos_dloc_t> == 3 &&
-              algebra::traits::columns<b2f_dpos_dloc_t> == 2) &&
-             (algebra::concepts::matrix<b2f_ddir_dangle_t> &&
-              algebra::traits::rows<b2f_ddir_dangle_t> == 3 &&
-              algebra::traits::columns<b2f_ddir_dangle_t> == 2) &&
-             (algebra::concepts::matrix<b2f_dpos_dangle_t> &&
-              algebra::traits::rows<b2f_dpos_dangle_t> == 3 &&
-              algebra::traits::columns<b2f_dpos_dangle_t> == 2) &&
-             (algebra::concepts::matrix<path_to_free_derivative_t> &&
-              algebra::traits::rows<path_to_free_derivative_t> == 8 &&
-              algebra::traits::columns<path_to_free_derivative_t> == 1) &&
-             (algebra::concepts::row_matrix<free_to_path_derivative_t> &&
-              algebra::traits::columns<free_to_path_derivative_t> == 8) &&
-             (algebra::concepts::matrix<f2b_dloc_dpos_t> &&
-              algebra::traits::rows<f2b_dloc_dpos_t> == 2 &&
-              algebra::traits::columns<f2b_dloc_dpos_t> == 3) &&
-             (algebra::concepts::matrix<f2b_dangle_ddir_t> &&
-              algebra::traits::rows<f2b_dangle_ddir_t> == 2 &&
-              algebra::traits::columns<f2b_dangle_ddir_t> == 3) &&
-             (algebra::concepts::square_matrix<full_jacobian_t> &&
-              algebra::traits::rank<full_jacobian_t> == 6))
+    requires((detray::concepts::square_matrix<transport_jacobian_t> &&
+              detray::traits::rank<transport_jacobian_t> == 8) &&
+             (detray::concepts::matrix<b2f_dpos_dloc_t> &&
+              detray::traits::rows<b2f_dpos_dloc_t> == 3 &&
+              detray::traits::columns<b2f_dpos_dloc_t> == 2) &&
+             (detray::concepts::matrix<b2f_ddir_dangle_t> &&
+              detray::traits::rows<b2f_ddir_dangle_t> == 3 &&
+              detray::traits::columns<b2f_ddir_dangle_t> == 2) &&
+             (detray::concepts::matrix<b2f_dpos_dangle_t> &&
+              detray::traits::rows<b2f_dpos_dangle_t> == 3 &&
+              detray::traits::columns<b2f_dpos_dangle_t> == 2) &&
+             (detray::concepts::matrix<path_to_free_derivative_t> &&
+              detray::traits::rows<path_to_free_derivative_t> == 8 &&
+              detray::traits::columns<path_to_free_derivative_t> == 1) &&
+             (detray::concepts::row_matrix<free_to_path_derivative_t> &&
+              detray::traits::columns<free_to_path_derivative_t> == 8) &&
+             (detray::concepts::matrix<f2b_dloc_dpos_t> &&
+              detray::traits::rows<f2b_dloc_dpos_t> == 2 &&
+              detray::traits::columns<f2b_dloc_dpos_t> == 3) &&
+             (detray::concepts::matrix<f2b_dangle_ddir_t> &&
+              detray::traits::rows<f2b_dangle_ddir_t> == 2 &&
+              detray::traits::columns<f2b_dangle_ddir_t> == 3) &&
+             (detray::concepts::square_matrix<full_jacobian_t> &&
+              detray::traits::rank<full_jacobian_t> == 6))
 {
     assert(getter::element(transport_jacobian, 0u, 3u) == 0.f);
     assert(getter::element(transport_jacobian, 1u, 3u) == 0.f);
@@ -536,30 +536,30 @@ DETRAY_HOST_DEVICE void inline update_full_jacobian_without_gradient_impl(
     const free_to_path_derivative_t& free_to_path_derivative,
     const f2b_dloc_dpos_t& f2b_dloc_dpos,
     const f2b_dangle_ddir_t& f2b_dangle_ddir, full_jacobian_t& full_jacobian)
-    requires((algebra::concepts::square_matrix<transport_jacobian_t> &&
-              algebra::traits::rank<transport_jacobian_t> == 8) &&
-             (algebra::concepts::matrix<b2f_dpos_dloc_t> &&
-              algebra::traits::rows<b2f_dpos_dloc_t> == 3 &&
-              algebra::traits::columns<b2f_dpos_dloc_t> == 2) &&
-             (algebra::concepts::matrix<b2f_ddir_dangle_t> &&
-              algebra::traits::rows<b2f_ddir_dangle_t> == 3 &&
-              algebra::traits::columns<b2f_ddir_dangle_t> == 2) &&
-             (algebra::concepts::matrix<b2f_dpos_dangle_t> &&
-              algebra::traits::rows<b2f_dpos_dangle_t> == 3 &&
-              algebra::traits::columns<b2f_dpos_dangle_t> == 2) &&
-             (algebra::concepts::matrix<path_to_free_derivative_t> &&
-              algebra::traits::rows<path_to_free_derivative_t> == 8 &&
-              algebra::traits::columns<path_to_free_derivative_t> == 1) &&
-             (algebra::concepts::row_matrix<free_to_path_derivative_t> &&
-              algebra::traits::columns<free_to_path_derivative_t> == 8) &&
-             (algebra::concepts::matrix<f2b_dloc_dpos_t> &&
-              algebra::traits::rows<f2b_dloc_dpos_t> == 2 &&
-              algebra::traits::columns<f2b_dloc_dpos_t> == 3) &&
-             (algebra::concepts::matrix<f2b_dangle_ddir_t> &&
-              algebra::traits::rows<f2b_dangle_ddir_t> == 2 &&
-              algebra::traits::columns<f2b_dangle_ddir_t> == 3) &&
-             (algebra::concepts::square_matrix<full_jacobian_t> &&
-              algebra::traits::rank<full_jacobian_t> == 6))
+    requires((detray::concepts::square_matrix<transport_jacobian_t> &&
+              detray::traits::rank<transport_jacobian_t> == 8) &&
+             (detray::concepts::matrix<b2f_dpos_dloc_t> &&
+              detray::traits::rows<b2f_dpos_dloc_t> == 3 &&
+              detray::traits::columns<b2f_dpos_dloc_t> == 2) &&
+             (detray::concepts::matrix<b2f_ddir_dangle_t> &&
+              detray::traits::rows<b2f_ddir_dangle_t> == 3 &&
+              detray::traits::columns<b2f_ddir_dangle_t> == 2) &&
+             (detray::concepts::matrix<b2f_dpos_dangle_t> &&
+              detray::traits::rows<b2f_dpos_dangle_t> == 3 &&
+              detray::traits::columns<b2f_dpos_dangle_t> == 2) &&
+             (detray::concepts::matrix<path_to_free_derivative_t> &&
+              detray::traits::rows<path_to_free_derivative_t> == 8 &&
+              detray::traits::columns<path_to_free_derivative_t> == 1) &&
+             (detray::concepts::row_matrix<free_to_path_derivative_t> &&
+              detray::traits::columns<free_to_path_derivative_t> == 8) &&
+             (detray::concepts::matrix<f2b_dloc_dpos_t> &&
+              detray::traits::rows<f2b_dloc_dpos_t> == 2 &&
+              detray::traits::columns<f2b_dloc_dpos_t> == 3) &&
+             (detray::concepts::matrix<f2b_dangle_ddir_t> &&
+              detray::traits::rows<f2b_dangle_ddir_t> == 2 &&
+              detray::traits::columns<f2b_dangle_ddir_t> == 3) &&
+             (detray::concepts::square_matrix<full_jacobian_t> &&
+              detray::traits::rank<full_jacobian_t> == 6))
 {
     assert(getter::element(transport_jacobian, 0u, 0u) == 1.f);
     assert(getter::element(transport_jacobian, 0u, 1u) == 0.f);

@@ -8,11 +8,11 @@
 #pragma once
 
 // Project include(s).
-#include "detray/algebra/algorithms/matrix/inverse/hard_coded.hpp"
-#include "detray/algebra/impl/generic_matrix.hpp"
-#include "detray/algebra/impl/generic_vector.hpp"
-#include "detray/algebra/qualifiers.hpp"
-#include "detray/algebra/type_traits.hpp"
+#include "detray/algebra/common/qualifiers.hpp"
+#include "detray/algebra/common/type_traits.hpp"
+#include "detray/algebra/generic/algorithms/matrix/inverse/hard_coded.hpp"
+#include "detray/algebra/generic/impl/generic_matrix.hpp"
+#include "detray/algebra/generic/impl/generic_vector.hpp"
 #include "detray/algebra/utils/approximately_equal.hpp"
 
 // System include(s)
@@ -42,13 +42,13 @@ struct transform3 {
     using matrix44 = matrix_t<scalar_t, 4, 4>;
     static_assert(concepts::square_matrix<matrix44>);
 
-    using vector3 = algebra::traits::get_vector_t<matrix44, 3, scalar_t>;
+    using vector3 = detray::traits::get_vector_t<matrix44, 3, scalar_t>;
     using point3 = vector3;
-    using point2 = algebra::traits::get_vector_t<matrix44, 2, scalar_t>;
+    using point2 = detray::traits::get_vector_t<matrix44, 2, scalar_t>;
 
     /// Function (object) used for accessing a matrix element/block
-    using element_getter = algebra::traits::element_getter_t<matrix44>;
-    using block_getter = algebra::traits::block_getter_t<matrix44>;
+    using element_getter = detray::traits::element_getter_t<matrix44>;
+    using block_getter = detray::traits::block_getter_t<matrix44>;
 
     /// Matrix inversion algorithm
     using matrix_inversion = generic::matrix::inverse::hard_coded<matrix44>;

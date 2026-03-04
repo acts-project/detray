@@ -8,8 +8,8 @@
 #pragma once
 
 // Project include(s)
-#include "detray/algebra/concepts.hpp"
-#include "detray/algebra/qualifiers.hpp"
+#include "detray/algebra/common/concepts.hpp"
+#include "detray/algebra/common/qualifiers.hpp"
 
 // System include(s).
 #include <iomanip>
@@ -22,9 +22,9 @@ template <typename vector_t>
     requires(concepts::vector<vector_t> || concepts::point<vector_t>)
 ALGEBRA_HOST std::ostream& operator<<(std::ostream& out, const vector_t& v) {
 
-    using index_t = algebra::traits::index_t<vector_t>;
+    using index_t = detray::traits::index_t<vector_t>;
 
-    constexpr index_t size{algebra::traits::size<vector_t>};
+    constexpr index_t size{detray::traits::size<vector_t>};
 
     out << "[";
     for (index_t i = 0; i < size; ++i) {
@@ -42,10 +42,10 @@ ALGEBRA_HOST std::ostream& operator<<(std::ostream& out, const vector_t& v) {
 template <concepts::column_matrix vector_t>
 ALGEBRA_HOST std::ostream& operator<<(std::ostream& out, const vector_t& v) {
 
-    using index_t = algebra::traits::index_t<vector_t>;
-    using element_getter_t = algebra::traits::element_getter_t<vector_t>;
+    using index_t = detray::traits::index_t<vector_t>;
+    using element_getter_t = detray::traits::element_getter_t<vector_t>;
 
-    constexpr index_t rows{algebra::traits::rows<vector_t>};
+    constexpr index_t rows{detray::traits::rows<vector_t>};
 
     out << "[";
     for (index_t i = 0; i < rows; ++i) {
@@ -61,11 +61,11 @@ ALGEBRA_HOST std::ostream& operator<<(std::ostream& out, const vector_t& v) {
 template <concepts::matrix matrix_t>
 ALGEBRA_HOST std::ostream& operator<<(std::ostream& out, const matrix_t& m) {
 
-    using index_t = algebra::traits::index_t<matrix_t>;
-    using element_getter_t = algebra::traits::element_getter_t<matrix_t>;
+    using index_t = detray::traits::index_t<matrix_t>;
+    using element_getter_t = detray::traits::element_getter_t<matrix_t>;
 
-    constexpr index_t rows{algebra::traits::rows<matrix_t>};
-    constexpr index_t columns{algebra::traits::columns<matrix_t>};
+    constexpr index_t rows{detray::traits::rows<matrix_t>};
+    constexpr index_t columns{detray::traits::columns<matrix_t>};
 
     out << "[";
     for (index_t i = 0; i < rows; ++i) {

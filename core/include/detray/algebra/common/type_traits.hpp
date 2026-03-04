@@ -12,7 +12,7 @@
 #include <cmath>
 #include <type_traits>
 
-namespace detray::algebra {
+namespace detray {
 
 namespace traits {
 
@@ -197,22 +197,22 @@ template <typename A, std::size_t R, std::size_t C>
 using get_matrix_t = typename traits::get_algebra<A>::template matrix<R, C>;
 /// @}
 
-}  // namespace algebra
+}  // namespace detray
 
 /// Default type trait specializations
 /// @{
-#define ALGEBRA_PLUGINS_DEFINE_TYPE_TRAITS(A)                               \
+#define DETRAY_ALGEBRA_DEFINE_TYPE_TRAITS(A)                                \
                                                                             \
     namespace traits {                                                      \
                                                                             \
     template <typename T, auto N>                                           \
     struct index<A::vector_type<T, N>> {                                    \
-        using type = algebra::A::index_type;                                \
+        using type = detray::A::index_type;                                 \
     };                                                                      \
                                                                             \
     template <typename T, auto ROWS, auto COLS>                             \
     struct index<A::matrix_type<T, ROWS, COLS>> {                           \
-        using type = algebra::A::index_type;                                \
+        using type = detray::A::index_type;                                 \
     };                                                                      \
                                                                             \
     template <typename T, auto N>                                           \
@@ -294,4 +294,4 @@ using get_matrix_t = typename traits::get_algebra<A>::template matrix<R, C>;
         using type = A::block_getter;                                       \
     };                                                                      \
                                                                             \
-    }  // namespace detray::algebra::traits
+    }  // namespace detray::traits

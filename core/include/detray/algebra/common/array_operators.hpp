@@ -7,8 +7,8 @@
 #pragma once
 
 // Project include(s)
-#include "detray/algebra/concepts.hpp"
-#include "detray/algebra/qualifiers.hpp"
+#include "detray/algebra/common/concepts.hpp"
+#include "detray/algebra/common/qualifiers.hpp"
 
 // System include(s).
 #include <cstddef>

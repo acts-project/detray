@@ -8,9 +8,9 @@
 #pragma once
 
 // Project include(s).
-#include "detray/algebra/concepts.hpp"
-#include "detray/algebra/math.hpp"
-#include "detray/algebra/qualifiers.hpp"
+#include "detray/algebra/common/concepts.hpp"
+#include "detray/algebra/common/math.hpp"
+#include "detray/algebra/common/qualifiers.hpp"
 
 // System include(s).
 #include <array>
@@ -21,9 +21,9 @@ namespace detray::algebra::generic::matrix::decomposition {
 template <concepts::matrix matrix_t>
 struct partial_pivot_lud {
 
-    using scalar_t = algebra::traits::value_t<matrix_t>;
-    using index_t = algebra::traits::index_t<matrix_t>;
-    using vector_t = algebra::traits::vector_t<matrix_t>;
+    using scalar_t = detray::traits::value_t<matrix_t>;
+    using index_t = detray::traits::index_t<matrix_t>;
+    using vector_t = detray::traits::vector_t<matrix_t>;
 
     template <index_t N>
     struct lud {
@@ -38,14 +38,14 @@ struct partial_pivot_lud {
         int n_pivot = 0;
     };
 
-    ALGEBRA_HOST_DEVICE constexpr lud<algebra::traits::rank<matrix_t>>
+    ALGEBRA_HOST_DEVICE constexpr lud<detray::traits::rank<matrix_t>>
     operator()(const matrix_t& m) const {
 
         // Function (object) used for accessing a matrix element
-        using element_getter_t = algebra::traits::element_getter_t<matrix_t>;
+        using element_getter_t = detray::traits::element_getter_t<matrix_t>;
 
         constexpr element_getter_t elem{};
-        constexpr index_t N{algebra::traits::rank<matrix_t>};
+        constexpr index_t N{detray::traits::rank<matrix_t>};
 
         // LU decomposition matrix
         matrix_t lu = m;

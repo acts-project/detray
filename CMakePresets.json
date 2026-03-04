@@ -36,11 +36,7 @@
             "DETRAY_SETUP_ACTSVG": "TRUE",
             "DETRAY_SETUP_BENCHMARK": "TRUE",
             "DETRAY_SETUP_COVFIE": "TRUE",
-            "DETRAY_SETUP_NLOHMANN": "TRUE",
-            "ALGEBRA_PLUGINS_INCLUDE_EIGEN": "TRUE",
-            "ALGEBRA_PLUGINS_SETUP_EIGEN3": "TRUE",
-            "ALGEBRA_PLUGINS_INCLUDE_VC": "TRUE",
-            "ALGEBRA_PLUGINS_SETUP_VC": "TRUE"
+            "DETRAY_SETUP_NLOHMANN": "TRUE"
          }
       },
       {

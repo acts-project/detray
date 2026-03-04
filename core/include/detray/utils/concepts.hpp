@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/algebra/common/concepts.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/utils/type_traits.hpp"
 
@@ -19,13 +20,6 @@ namespace detray::concepts {
 
 template <typename T, typename... U>
 concept any_of = std::disjunction_v<std::is_same<T, U>...>;
-
-/// Arithmetic types
-template <typename T>
-concept arithmetic = std::is_arithmetic_v<T>;
-
-template <typename T>
-concept arithmetic_cvref = concepts::arithmetic<std::remove_cvref_t<T>>;
 
 /// Same, except for cv qualifiers and reference
 template <typename T, typename U>
@@ -39,10 +33,6 @@ concept same_as_no_const = std::same_as<std::remove_cv_t<T>, U>;
 /// Type identifier concept
 template <typename T>
 concept type_id = std::is_enum_v<T>;
-
-/// Index concept to access vector/matrix elements
-template <typename T>
-concept index = std::is_integral_v<T> && !std::same_as<T, bool>;
 
 /// Concept that checks if a type models an interval of some value that can
 /// be obtained with 'get'.

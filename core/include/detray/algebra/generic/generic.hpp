@@ -8,18 +8,18 @@
 #pragma once
 
 // Impl include(s).
-#include "detray/algebra/boolean.hpp"
-#include "detray/algebra/impl/generic_matrix.hpp"
-#include "detray/algebra/impl/generic_transform3.hpp"
-#include "detray/algebra/impl/generic_vector.hpp"
-#include "detray/algebra/math.hpp"
+#include "detray/algebra/common/boolean.hpp"
+#include "detray/algebra/common/math.hpp"
+#include "detray/algebra/generic/impl/generic_matrix.hpp"
+#include "detray/algebra/generic/impl/generic_transform3.hpp"
+#include "detray/algebra/generic/impl/generic_vector.hpp"
 
 // Algorithms include(s).
-#include "detray/algebra/algorithms/matrix/decomposition/partial_pivot_lud.hpp"
-#include "detray/algebra/algorithms/matrix/determinant/cofactor.hpp"
-#include "detray/algebra/algorithms/matrix/determinant/hard_coded.hpp"
-#include "detray/algebra/algorithms/matrix/determinant/partial_pivot_lud.hpp"
-#include "detray/algebra/algorithms/matrix/inverse/cofactor.hpp"
-#include "detray/algebra/algorithms/matrix/inverse/hard_coded.hpp"
-#include "detray/algebra/algorithms/matrix/inverse/partial_pivot_lud.hpp"
-#include "detray/algebra/algorithms/utils/algorithm_selector.hpp"
+#include "detray/algebra/generic/algorithms/matrix/decomposition/partial_pivot_lud.hpp"
+#include "detray/algebra/generic/algorithms/matrix/determinant/cofactor.hpp"
+#include "detray/algebra/generic/algorithms/matrix/determinant/hard_coded.hpp"
+#include "detray/algebra/generic/algorithms/matrix/determinant/partial_pivot_lud.hpp"
+#include "detray/algebra/generic/algorithms/matrix/inverse/cofactor.hpp"
+#include "detray/algebra/generic/algorithms/matrix/inverse/hard_coded.hpp"
+#include "detray/algebra/generic/algorithms/matrix/inverse/partial_pivot_lud.hpp"
+#include "detray/algebra/generic/algorithms/utils/algorithm_selector.hpp"

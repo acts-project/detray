@@ -8,39 +8,41 @@
 #pragma once
 
 // Project include(s)
-#include "detray/algebra/type_traits.hpp"
+#include "detray/algebra/common/type_traits.hpp"
 
 // System include(s).
 #include <concepts>
 
-namespace detray::algebra::concepts {
+namespace detray::concepts {
 
 /// Arithmetic types
 template <typename T>
 concept arithmetic = std::is_arithmetic_v<T>;
 
-/// Arithmetic types
+template <typename T>
+concept arithmetic_cvref = concepts::arithmetic<std::remove_cvref_t<T>>;
+
+/// Enumeration types
 template <typename T>
 concept enumeration = std::is_enum_v<T>;
 
 // Value concept: Single entry
 template <typename T>
-concept value = algebra::concepts::arithmetic<std::decay_t<T>>;
+concept value = concepts::arithmetic<std::decay_t<T>>;
 
 // Element concept: Single entry, not necessarily for vector/matrix operations
 template <typename T>
-concept element = algebra::concepts::value<T> ||
-                  algebra::concepts::enumeration<std::decay_t<T>>;
+concept element = concepts::value<T> || concepts::enumeration<std::decay_t<T>>;
 
 /// Scalar concept: Elements of vectors/matrices (can be simd vectors)
 template <typename T>
-concept scalar = !algebra::traits::is_matrix<T> &&
-                 !algebra::traits::is_vector<T> && requires(T a, T b) {
-                     { a + b } -> std::convertible_to<T>;
-                     { a - b } -> std::convertible_to<T>;
-                     { a* b } -> std::convertible_to<T>;
-                     { a / b } -> std::convertible_to<T>;
-                 };
+concept scalar =
+    !traits::is_matrix<T> && !traits::is_vector<T> && requires(T a, T b) {
+        { a + b } -> std::convertible_to<T>;
+        { a - b } -> std::convertible_to<T>;
+        { a* b } -> std::convertible_to<T>;
+        { a / b } -> std::convertible_to<T>;
+    };
 
 /// Check if a scalar is simd
 template <typename T>
@@ -53,13 +55,13 @@ concept index = std::is_integral_v<T> && !std::same_as<T, bool>;
 /// Vector concepts
 /// @{
 template <typename V>
-concept vector = algebra::traits::is_vector<V>;
+concept vector = traits::is_vector<V>;
 
 template <typename V>
-concept vector2D = vector<V> && (algebra::traits::size<V> == 2);
+concept vector2D = vector<V> && (traits::size<V> == 2);
 
 template <typename V>
-concept vector3D = vector<V> && (algebra::traits::size<V> == 3);
+concept vector3D = vector<V> && (traits::size<V> == 3);
 /// @}
 
 /// Point concepts
@@ -68,56 +70,52 @@ template <typename V>
 concept point = vector<V>;
 
 template <typename V>
-concept point2D = point<V> && (algebra::traits::size<V> == 2);
+concept point2D = point<V> && (traits::size<V> == 2);
 
 template <typename V>
-concept point3D = point<V> && (algebra::traits::size<V> == 3);
+concept point3D = point<V> && (traits::size<V> == 3);
 /// @}
 
 /// Matrix concepts
 /// @{
 template <typename M>
-concept matrix = algebra::traits::is_matrix<M>;
+concept matrix = traits::is_matrix<M>;
 
 template <typename M>
-concept square_matrix = matrix<M> && algebra::traits::is_square<M>;
+concept square_matrix = matrix<M> && traits::is_square<M>;
 
 template <typename M>
-concept row_matrix = matrix<M> && (algebra::traits::rows<M> == 1);
+concept row_matrix = matrix<M> && (traits::rows<M> == 1);
 
 template <typename M>
-concept row_matrix3D = row_matrix<M> && (algebra::traits::rows<M> == 3);
+concept row_matrix3D = row_matrix<M> && (traits::rows<M> == 3);
 
 template <typename M>
-concept column_matrix = matrix<M> && (algebra::traits::columns<M> == 1);
+concept column_matrix = matrix<M> && (traits::columns<M> == 1);
 
 template <typename M>
-concept column_matrix3D = column_matrix<M> && (algebra::traits::rows<M> == 3);
+concept column_matrix3D = column_matrix<M> && (traits::rows<M> == 3);
 
 template <typename MA, typename MB>
-concept matrix_compatible = matrix<MA> && matrix<MB> &&
-                            std::convertible_to<algebra::traits::index_t<MA>,
-                                                algebra::traits::index_t<MB>> &&
-                            std::convertible_to<algebra::traits::index_t<MB>,
-                                                algebra::traits::index_t<MA>>;
+concept matrix_compatible =
+    matrix<MA> && matrix<MB> &&
+    std::convertible_to<traits::index_t<MA>, traits::index_t<MB>> &&
+    std::convertible_to<traits::index_t<MB>, traits::index_t<MA>>;
 
 template <typename MA, typename MB>
 concept matrix_multipliable =
-    matrix_compatible<MA, MB> &&
-    (algebra::traits::columns<MA> == algebra::traits::rows<MB>) &&
-    requires(algebra::traits::scalar_t<MA> sa,
-             algebra::traits::scalar_t<MB> sb) {
+    matrix_compatible<MA, MB> && (traits::columns<MA> == traits::rows<MB>) &&
+    requires(traits::scalar_t<MA> sa, traits::scalar_t<MB> sb) {
         { (sa * sb) + (sa * sb) };
     };
 
 template <typename MA, typename MB, typename MC>
 concept matrix_multipliable_into =
     matrix_multipliable<MA, MB> && matrix_compatible<MA, MC> &&
-    matrix_compatible<MB, MC> &&
-    (algebra::traits::rows<MC> == algebra::traits::rows<MA>) &&
-    (algebra::traits::columns<MC> == algebra::traits::columns<MB>) &&
-    requires(algebra::traits::scalar_t<MA> sa, algebra::traits::scalar_t<MB> sb,
-             algebra::traits::scalar_t<MC>& sc) {
+    matrix_compatible<MB, MC> && (traits::rows<MC> == traits::rows<MA>) &&
+    (traits::columns<MC> == traits::columns<MB>) &&
+    requires(traits::scalar_t<MA> sa, traits::scalar_t<MB> sb,
+             traits::scalar_t<MC>& sc) {
         { sc += (sa * sb) };
     };
 /// @}
@@ -154,10 +152,10 @@ concept algebra = (concepts::value<typename A::value_type> &&
 /// Check if an algebra has soa layout
 /// @{
 template <typename A>
-concept soa = (!concepts::arithmetic<algebra::get_scalar_t<A>>);
+concept soa = (!concepts::arithmetic<get_scalar_t<A>>);
 
 template <typename A>
 concept aos = (!concepts::soa<A>);
 /// @}
 
-}  // namespace detray::algebra::concepts
+}  // namespace detray::concepts
