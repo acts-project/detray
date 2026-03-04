@@ -24,7 +24,7 @@ namespace detray {
 
 /// Container types used in device code
 using device_container_types =
-    container_types<vecmem::device_vector, vecmem::jagged_device_vector>;
+    container_types<compact_device_vector, vecmem::jagged_device_vector>;
 
 /// Specialized view for @c vecmem::vector containers
 template <typename T>
@@ -120,6 +120,18 @@ struct get_view<vecmem::device_vector<T>> : public std::true_type {
 /// Specialization of the view getter for @c vecmem::device_vector - const
 template <typename T>
 struct get_view<const vecmem::device_vector<T>> : public std::true_type {
+    using type = dvector_view<const T>;
+};
+
+/// Specialization of the view getter for @c vecmem::device_vector
+template <typename T>
+struct get_view<compact_device_vector<T>> : public std::true_type {
+    using type = dvector_view<T>;
+};
+
+/// Specialization of the view getter for @c vecmem::device_vector - const
+template <typename T>
+struct get_view<const compact_device_vector<T>> : public std::true_type {
     using type = dvector_view<const T>;
 };
 
