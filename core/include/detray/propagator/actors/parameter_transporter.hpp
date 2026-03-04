@@ -279,10 +279,19 @@ struct parameter_transporter : actor {
         // and return its result.
         bound_matrix_t full_jacobian;
 
-        detail::update_full_jacobian_impl(
-            stepping.transport_jacobian(), b2f_dpos_dloc, b2f_ddir_dangle,
-            b2f_dpos_dangle, path_to_free_derivative, free_to_path_derivative,
-            f2b_dloc_dpos, f2b_dangle_ddir, full_jacobian);
+        if constexpr (std::decay_t<propagator_state_t>::stepper_uses_gradient) {
+            detail::update_full_jacobian_with_gradient_impl(
+                stepping.internal_transport_jacobian(), b2f_dpos_dloc,
+                b2f_ddir_dangle, b2f_dpos_dangle, path_to_free_derivative,
+                free_to_path_derivative, f2b_dloc_dpos, f2b_dangle_ddir,
+                full_jacobian);
+        } else {
+            detail::update_full_jacobian_without_gradient_impl(
+                stepping.internal_transport_jacobian(), b2f_dpos_dloc,
+                b2f_ddir_dangle, b2f_dpos_dangle, path_to_free_derivative,
+                free_to_path_derivative, f2b_dloc_dpos, f2b_dangle_ddir,
+                full_jacobian);
+        }
 
         return full_jacobian;
     }

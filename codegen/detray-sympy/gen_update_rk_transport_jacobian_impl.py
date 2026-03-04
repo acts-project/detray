@@ -1,7 +1,7 @@
 import sys
 import sympy
 
-from detray_sympy.common import name_expr
+from detray_sympy.common import name_expr, cxx_printer_wo_known
 from detray_sympy.output import write_out_file
 from detray_sympy.codegen import gen_cxx_code
 import detray_sympy.matrices
@@ -48,6 +48,7 @@ def gen_code(gradient=True):
         input_name_exprs,
         output_name_exprs,
         run_cse=True,
+        printer=cxx_printer_wo_known,
     )
     return code
 

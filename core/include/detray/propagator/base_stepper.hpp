@@ -18,6 +18,7 @@
 #include "detray/propagator/constrained_step.hpp"
 #include "detray/propagator/detail/print_stepper_state.hpp"
 #include "detray/propagator/stepping_config.hpp"
+#include "detray/propagator/transport_jacobian.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/curvilinear_frame.hpp"
 #include "detray/utils/logging.hpp"
@@ -58,7 +59,10 @@ class base_stepper {
     /// @brief State struct holding the track
     ///
     /// @note It has to cast into a const track via the call operation.
+    template <typename internal_transport_jacobian_matrix_t = free_matrix_type>
     struct state {
+        using internal_transport_jacobian_matrix_type =
+            internal_transport_jacobian_matrix_t;
 
         /// Sets track parameters.
         DETRAY_HOST_DEVICE
@@ -187,20 +191,38 @@ class base_stepper {
 
         /// @returns the current transport Jacbian.
         DETRAY_HOST_DEVICE
-        inline const free_matrix_type &transport_jacobian() const {
+        inline const free_matrix_type transport_jacobian() const {
             return m_jac_transport;
         }
 
         /// @returns the current transport Jacbian.
         DETRAY_HOST_DEVICE
-        inline free_matrix_type &transport_jacobian() {
+        inline free_matrix_type &transport_jacobian()
+            requires std::same_as<free_matrix_type,
+                                  internal_transport_jacobian_matrix_type>
+        {
+            return m_jac_transport;
+        }
+
+        /// @returns the current transport Jacbian.
+        DETRAY_HOST_DEVICE
+        inline internal_transport_jacobian_matrix_type &
+        internal_transport_jacobian() {
+            return m_jac_transport;
+        }
+
+        /// @returns the current transport Jacbian.
+        DETRAY_HOST_DEVICE
+        inline const internal_transport_jacobian_matrix_type &
+        internal_transport_jacobian() const {
             return m_jac_transport;
         }
 
         /// Reset transport Jacbian.
         DETRAY_HOST_DEVICE
         inline void reset_transport_jacobian() {
-            m_jac_transport = matrix::identity<free_matrix_type>();
+            m_jac_transport =
+                matrix::identity<std::decay_t<decltype(m_jac_transport)>>();
         }
 
         /// @returns access to this states navigation policy state
@@ -227,16 +249,10 @@ class base_stepper {
                                  << detray::stepping::print_state(*this, dist));
         }
 
-        protected:
-        /// Set new transport Jacbian.
-        DETRAY_HOST_DEVICE
-        inline void set_transport_jacobian(const free_matrix_type &jac) {
-            m_jac_transport = jac;
-        }
-
         private:
         /// Jacobian transport matrix
-        free_matrix_type m_jac_transport = matrix::identity<free_matrix_type>();
+        internal_transport_jacobian_matrix_type m_jac_transport =
+            matrix::identity<internal_transport_jacobian_matrix_type>();
 
         /// Bound covariance
         bound_track_parameters_type m_bound_params;
