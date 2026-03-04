@@ -14,6 +14,7 @@ def write_out_file_to_fp(code, output):
 
         #include "detray/definitions/algebra.hpp"
         #include "detray/definitions/detail/qualifiers.hpp"
+        #include "detray/propagator/element_getter.hpp"
         #include "algebra/type_traits.hpp"
 
         namespace detray::detail {
