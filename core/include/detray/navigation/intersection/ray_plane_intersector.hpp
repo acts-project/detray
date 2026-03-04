@@ -26,7 +26,7 @@ template <typename frame_t, concepts::algebra algebra_t, bool resolve_pos>
 struct ray_intersector_impl;
 
 /// A functor to find intersections between straight line and planar surface
-template <algebra::concepts::aos algebra_t, bool resolve_pos>
+template <detray::concepts::aos algebra_t, bool resolve_pos>
 struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, resolve_pos> {
 
     using algebra_type = algebra_t;
@@ -87,7 +87,7 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, resolve_pos> {
     }
 };
 
-template <algebra::concepts::aos algebra_t, bool resolve_pos>
+template <detray::concepts::aos algebra_t, bool resolve_pos>
 struct ray_intersector_impl<polar2D<algebra_t>, algebra_t, resolve_pos>
     : public ray_intersector_impl<cartesian2D<algebra_t>, algebra_t,
                                   resolve_pos> {};

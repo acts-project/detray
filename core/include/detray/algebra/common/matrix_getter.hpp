@@ -7,9 +7,9 @@
 #pragma once
 
 // Project include(s).
-#include "detray/algebra/concepts.hpp"
-#include "detray/algebra/matrix.hpp"
-#include "detray/algebra/vector.hpp"
+#include "detray/algebra/common/concepts.hpp"
+#include "detray/algebra/common/matrix.hpp"
+#include "detray/algebra/common/vector.hpp"
 
 // System include(s).
 #include <cassert>

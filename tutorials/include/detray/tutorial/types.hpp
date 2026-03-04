@@ -13,8 +13,8 @@
 /// @c detray/plugins/algebra/
 
 // Detray core include(s).
+#include "algebra/array.hpp"
 #include "detray/definitions/algebra.hpp"
-#include "detray/plugins/algebra/array_definitions.hpp"
 
 // Detray detector include(s)
 #include "detray/detectors/default_metadata.hpp"

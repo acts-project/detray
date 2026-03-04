@@ -8,8 +8,8 @@
 // Algebra include(s).
 // #include "detray/plugins/algebra/array_definitions.hpp"
 // #include "detray/plugins/algebra/eigen_definitions.hpp"
-#include "detray/plugins/algebra/vc_aos_definitions.hpp"
-#include "detray/plugins/algebra/vc_soa_definitions.hpp"
+#include "algebra/vc_aos.hpp"
+#include "algebra/vc_soa.hpp"
 
 // Detray core include(s).
 #include "detray/definitions/containers.hpp"

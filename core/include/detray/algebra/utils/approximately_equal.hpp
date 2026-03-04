@@ -8,9 +8,9 @@
 #pragma once
 
 // Project include(s)
-#include "detray/algebra/concepts.hpp"
-#include "detray/algebra/math.hpp"
-#include "detray/algebra/qualifiers.hpp"
+#include "detray/algebra/common/concepts.hpp"
+#include "detray/algebra/common/math.hpp"
+#include "detray/algebra/common/qualifiers.hpp"
 
 // System include(s)
 #include <concepts>
@@ -70,22 +70,23 @@ template <typename vector1_t, typename vector2_t>
              !concepts::simd_scalar<vector2_t>)
 ALGEBRA_HOST_DEVICE constexpr auto approx_equal(
     const vector1_t& v1, const vector2_t& v2,
-    const algebra::traits::value_t<vector1_t> rel_error =
+    const detray::traits::value_t<vector1_t> rel_error =
         16.f *
-        std::numeric_limits<algebra::traits::value_t<vector1_t>>::epsilon(),
-    const algebra::traits::value_t<vector1_t> max_error =
-        std::numeric_limits<algebra::traits::value_t<vector1_t>>::epsilon()) {
+        std::numeric_limits<detray::traits::value_t<vector1_t>>::epsilon(),
+    const detray::traits::value_t<vector1_t> max_error =
+        std::numeric_limits<detray::traits::value_t<vector1_t>>::epsilon()) {
 
-    static_assert(std::same_as<algebra::traits::value_t<vector1_t>,
-                               algebra::traits::value_t<vector2_t>>);
+    static_assert(std::same_as<detray::traits::value_t<vector1_t>,
+                               detray::traits::value_t<vector2_t>>);
 
-    using index_t = algebra::traits::index_t<vector1_t>;
+    using index_t = detray::traits::index_t<vector1_t>;
 
-    constexpr index_t size{algebra::traits::size<vector1_t>};
+    constexpr index_t size{detray::traits::size<vector1_t>};
 
     bool ret{true};
     for (index_t i = 0; i < size; ++i) {
-        ret &= ::algebra::approx_equal(v1[i], v2[i], rel_error, max_error);
+        ret &=
+            ::detray::algebra::approx_equal(v1[i], v2[i], rel_error, max_error);
     }
 
     return ret;
@@ -104,25 +105,25 @@ ALGEBRA_HOST_DEVICE constexpr auto approx_equal(
 template <concepts::column_matrix vector1_t, concepts::column_matrix vector2_t>
 ALGEBRA_HOST_DEVICE constexpr auto approx_equal(
     const vector1_t& v1, const vector2_t& v2,
-    const algebra::traits::value_t<vector1_t> rel_error =
+    const detray::traits::value_t<vector1_t> rel_error =
         16.f *
-        std::numeric_limits<algebra::traits::value_t<vector1_t>>::epsilon(),
-    const algebra::traits::value_t<vector1_t> max_error =
-        std::numeric_limits<algebra::traits::value_t<vector1_t>>::epsilon()) {
+        std::numeric_limits<detray::traits::value_t<vector1_t>>::epsilon(),
+    const detray::traits::value_t<vector1_t> max_error =
+        std::numeric_limits<detray::traits::value_t<vector1_t>>::epsilon()) {
 
-    static_assert(std::same_as<algebra::traits::value_t<vector1_t>,
-                               algebra::traits::value_t<vector2_t>>);
+    static_assert(std::same_as<detray::traits::value_t<vector1_t>,
+                               detray::traits::value_t<vector2_t>>);
 
-    using index_t = algebra::traits::index_t<vector1_t>;
-    using element_getter_t = algebra::traits::element_getter_t<vector1_t>;
+    using index_t = detray::traits::index_t<vector1_t>;
+    using element_getter_t = detray::traits::element_getter_t<vector1_t>;
 
-    constexpr index_t rows{algebra::traits::rows<vector1_t>};
+    constexpr index_t rows{detray::traits::rows<vector1_t>};
 
     bool ret{true};
     for (index_t i = 0; i < rows; ++i) {
-        ret &= ::algebra::approx_equal(element_getter_t{}(v1, i, 0),
-                                       element_getter_t{}(v2, i, 0), rel_error,
-                                       max_error);
+        ret &= ::detray::algebra::approx_equal(element_getter_t{}(v1, i, 0),
+                                               element_getter_t{}(v2, i, 0),
+                                               rel_error, max_error);
     }
 
     return ret;
@@ -140,27 +141,27 @@ ALGEBRA_HOST_DEVICE constexpr auto approx_equal(
 template <concepts::matrix matrix1_t, concepts::matrix matrix2_t>
 ALGEBRA_HOST_DEVICE constexpr auto approx_equal(
     const matrix1_t& m1, const matrix2_t& m2,
-    const algebra::traits::value_t<matrix1_t> rel_error =
+    const detray::traits::value_t<matrix1_t> rel_error =
         16.f *
-        std::numeric_limits<algebra::traits::value_t<matrix1_t>>::epsilon(),
-    const algebra::traits::value_t<matrix1_t> max_error =
-        std::numeric_limits<algebra::traits::value_t<matrix1_t>>::epsilon()) {
+        std::numeric_limits<detray::traits::value_t<matrix1_t>>::epsilon(),
+    const detray::traits::value_t<matrix1_t> max_error =
+        std::numeric_limits<detray::traits::value_t<matrix1_t>>::epsilon()) {
 
-    static_assert(std::same_as<algebra::traits::value_t<matrix1_t>,
-                               algebra::traits::value_t<matrix2_t>>);
+    static_assert(std::same_as<detray::traits::value_t<matrix1_t>,
+                               detray::traits::value_t<matrix2_t>>);
 
-    using index_t = algebra::traits::index_t<matrix1_t>;
-    using element_getter_t = algebra::traits::element_getter_t<matrix1_t>;
+    using index_t = detray::traits::index_t<matrix1_t>;
+    using element_getter_t = detray::traits::element_getter_t<matrix1_t>;
 
-    constexpr index_t rows{algebra::traits::rows<matrix1_t>};
-    constexpr index_t columns{algebra::traits::columns<matrix1_t>};
+    constexpr index_t rows{detray::traits::rows<matrix1_t>};
+    constexpr index_t columns{detray::traits::columns<matrix1_t>};
 
     bool ret{true};
     for (index_t j = 0; j < columns; ++j) {
         for (index_t i = 0; i < rows; ++i) {
-            ret &= ::algebra::approx_equal(element_getter_t{}(m1, i, j),
-                                           element_getter_t{}(m2, i, j),
-                                           rel_error, max_error);
+            ret &= ::detray::algebra::approx_equal(element_getter_t{}(m1, i, j),
+                                                   element_getter_t{}(m2, i, j),
+                                                   rel_error, max_error);
         }
     }
 
@@ -180,18 +181,18 @@ ALGEBRA_HOST_DEVICE constexpr auto approx_equal(
 template <concepts::transform3D transform_t>
 ALGEBRA_HOST_DEVICE constexpr auto approx_equal(
     const transform_t& trf1, const transform_t& trf2,
-    const algebra::traits::value_t<typename transform_t::scalar_type>
-        rel_error = 16.f * std::numeric_limits<algebra::traits::value_t<
-                               typename transform_t::scalar_type>>::epsilon(),
-    const algebra::traits::value_t<typename transform_t::scalar_type>
-        max_error = std::numeric_limits<algebra::traits::value_t<
+    const detray::traits::value_t<typename transform_t::scalar_type> rel_error =
+        16.f * std::numeric_limits<detray::traits::value_t<
+                   typename transform_t::scalar_type>>::epsilon(),
+    const detray::traits::value_t<typename transform_t::scalar_type> max_error =
+        std::numeric_limits<detray::traits::value_t<
             typename transform_t::scalar_type>>::epsilon()) {
 
-    return (::algebra::approx_equal(trf1.matrix(), trf2.matrix(), rel_error,
-                                    max_error) &&
-            ::algebra::approx_equal(trf1.matrix_inverse(),
-                                    trf2.matrix_inverse(), rel_error,
-                                    max_error));
+    return (::detray::algebra::approx_equal(trf1.matrix(), trf2.matrix(),
+                                            rel_error, max_error) &&
+            ::detray::algebra::approx_equal(trf1.matrix_inverse(),
+                                            trf2.matrix_inverse(), rel_error,
+                                            max_error));
 }
 
 }  // namespace detray::algebra

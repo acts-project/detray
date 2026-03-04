@@ -8,9 +8,9 @@
 #pragma once
 
 // Project include(s).
-#include "detray/algebra/concepts.hpp"
-#include "detray/algebra/qualifiers.hpp"
-#include "detray/algebra/type_traits.hpp"
+#include "detray/algebra/common/concepts.hpp"
+#include "detray/algebra/common/qualifiers.hpp"
+#include "detray/algebra/common/type_traits.hpp"
 
 // System include(s)
 #include <type_traits>
@@ -21,12 +21,12 @@ namespace detray::algebra::generic::matrix::determinant {
 template <concepts::square_matrix matrix_t>
 struct cofactor {
 
-    using scalar_type = algebra::traits::value_t<matrix_t>;
-    using index_type = algebra::traits::index_t<matrix_t>;
+    using scalar_type = detray::traits::value_t<matrix_t>;
+    using index_type = detray::traits::index_t<matrix_t>;
 
     ALGEBRA_HOST_DEVICE constexpr scalar_type operator()(
         const matrix_t &m) const {
-        return determinant_getter_helper<algebra::traits::rank<matrix_t>>()(m);
+        return determinant_getter_helper<detray::traits::rank<matrix_t>>()(m);
     }
 
     template <index_type N>
@@ -40,7 +40,7 @@ struct cofactor {
             const input_matrix_type &m) const {
 
             using element_getter_t =
-                algebra::traits::element_getter_t<input_matrix_type>;
+                detray::traits::element_getter_t<input_matrix_type>;
 
             constexpr element_getter_t elem{};
 
@@ -56,10 +56,10 @@ struct cofactor {
         ALGEBRA_HOST_DEVICE constexpr scalar_type operator()(
             const input_matrix_type &m) const {
 
-            using scalar_t = algebra::traits::value_t<input_matrix_type>;
-            using index_t = algebra::traits::index_t<input_matrix_type>;
+            using scalar_t = detray::traits::value_t<input_matrix_type>;
+            using index_t = detray::traits::index_t<input_matrix_type>;
             using element_getter_t =
-                algebra::traits::element_getter_t<input_matrix_type>;
+                detray::traits::element_getter_t<input_matrix_type>;
 
             constexpr element_getter_t elem{};
 
@@ -90,9 +90,9 @@ struct cofactor {
             const input_matrix_type &m, input_matrix_type &temp, index_type p,
             index_type q) const {
 
-            using index_t = algebra::traits::index_t<input_matrix_type>;
+            using index_t = detray::traits::index_t<input_matrix_type>;
             using element_getter_t =
-                algebra::traits::element_getter_t<input_matrix_type>;
+                detray::traits::element_getter_t<input_matrix_type>;
 
             constexpr element_getter_t elem{};
 

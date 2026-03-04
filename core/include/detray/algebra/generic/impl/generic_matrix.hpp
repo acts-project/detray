@@ -8,10 +8,10 @@
 #pragma once
 
 // Project include(s).
-#include "detray/algebra/algorithms/utils/algorithm_selector.hpp"
-#include "detray/algebra/concepts.hpp"
-#include "detray/algebra/math.hpp"
-#include "detray/algebra/qualifiers.hpp"
+#include "detray/algebra/common/concepts.hpp"
+#include "detray/algebra/common/math.hpp"
+#include "detray/algebra/common/qualifiers.hpp"
+#include "detray/algebra/generic/algorithms/utils/algorithm_selector.hpp"
 
 namespace detray::algebra::generic::math {
 
@@ -19,13 +19,13 @@ namespace detray::algebra::generic::math {
 template <concepts::matrix M>
 ALGEBRA_HOST_DEVICE constexpr M zero() {
 
-    using index_t = algebra::traits::index_t<M>;
-    using element_getter_t = algebra::traits::element_getter_t<M>;
+    using index_t = detray::traits::index_t<M>;
+    using element_getter_t = detray::traits::element_getter_t<M>;
 
     M ret;
 
-    for (index_t j = 0; j < algebra::traits::columns<M>; ++j) {
-        for (index_t i = 0; i < algebra::traits::rows<M>; ++i) {
+    for (index_t j = 0; j < detray::traits::columns<M>; ++j) {
+        for (index_t i = 0; i < detray::traits::rows<M>; ++i) {
             element_getter_t{}(ret, i, j) = 0;
         }
     }
@@ -37,12 +37,12 @@ ALGEBRA_HOST_DEVICE constexpr M zero() {
 template <concepts::matrix M>
 ALGEBRA_HOST_DEVICE constexpr M identity() {
 
-    using index_t = algebra::traits::index_t<M>;
-    using element_getter_t = algebra::traits::element_getter_t<M>;
+    using index_t = detray::traits::index_t<M>;
+    using element_getter_t = detray::traits::element_getter_t<M>;
 
     auto ret{zero<M>()};
 
-    for (index_t i = 0; i < algebra::traits::rank<M>; ++i) {
+    for (index_t i = 0; i < detray::traits::rank<M>; ++i) {
         element_getter_t{}(ret, i, i) = 1;
     }
 
@@ -65,14 +65,14 @@ ALGEBRA_HOST_DEVICE constexpr void set_identity(M &m) {
 template <concepts::matrix M>
 ALGEBRA_HOST_DEVICE constexpr auto transpose(const M &m) {
 
-    using index_t = algebra::traits::index_t<M>;
-    using value_t = algebra::traits::value_t<M>;
-    using element_getter_t = algebra::traits::element_getter_t<M>;
+    using index_t = detray::traits::index_t<M>;
+    using value_t = detray::traits::value_t<M>;
+    using element_getter_t = detray::traits::element_getter_t<M>;
 
-    constexpr index_t rows{algebra::traits::rows<M>};
-    constexpr index_t columns{algebra::traits::columns<M>};
+    constexpr index_t rows{detray::traits::rows<M>};
+    constexpr index_t columns{detray::traits::columns<M>};
 
-    algebra::traits::get_matrix_t<M, columns, rows, value_t> ret;
+    detray::traits::get_matrix_t<M, columns, rows, value_t> ret;
 
     for (index_t i = 0; i < rows; ++i) {
         for (index_t j = 0; j < columns; ++j) {
@@ -86,21 +86,21 @@ ALGEBRA_HOST_DEVICE constexpr auto transpose(const M &m) {
 // Set matrix C to the product AB
 template <concepts::matrix MC, concepts::matrix MA, concepts::matrix MB>
 ALGEBRA_HOST_DEVICE constexpr void set_product(MC &C, const MA &A, const MB &B)
-    requires(algebra::concepts::matrix_multipliable_into<MA, MB, MC>)
+    requires(detray::concepts::matrix_multipliable_into<MA, MB, MC>)
 {
-    using index_t = algebra::traits::index_t<MC>;
-    using value_t = algebra::traits::value_t<MC>;
+    using index_t = detray::traits::index_t<MC>;
+    using value_t = detray::traits::value_t<MC>;
 
-    for (index_t i = 0; i < algebra::traits::rows<MC>; ++i) {
-        for (index_t j = 0; j < algebra::traits::columns<MC>; ++j) {
+    for (index_t i = 0; i < detray::traits::rows<MC>; ++i) {
+        for (index_t j = 0; j < detray::traits::columns<MC>; ++j) {
             value_t t = 0.f;
 
-            for (index_t k = 0; k < algebra::traits::rows<MB>; ++k) {
-                t += algebra::traits::element_getter_t<MA>()(A, i, k) *
-                     algebra::traits::element_getter_t<MB>()(B, k, j);
+            for (index_t k = 0; k < detray::traits::rows<MB>; ++k) {
+                t += detray::traits::element_getter_t<MA>()(A, i, k) *
+                     detray::traits::element_getter_t<MB>()(B, k, j);
             }
 
-            algebra::traits::element_getter_t<MC>()(C, i, j) = t;
+            detray::traits::element_getter_t<MC>()(C, i, j) = t;
         }
     }
 }
@@ -110,22 +110,22 @@ template <concepts::matrix MC, concepts::matrix MA, concepts::matrix MB>
 ALGEBRA_HOST_DEVICE constexpr void set_product_left_transpose(MC &C,
                                                               const MA &A,
                                                               const MB &B)
-    requires(algebra::concepts::matrix_multipliable_into<
+    requires(detray::concepts::matrix_multipliable_into<
              decltype(transpose(std::declval<MA>())), MB, MC>)
 {
-    using index_t = algebra::traits::index_t<MC>;
-    using value_t = algebra::traits::value_t<MC>;
+    using index_t = detray::traits::index_t<MC>;
+    using value_t = detray::traits::value_t<MC>;
 
-    for (index_t i = 0; i < algebra::traits::rows<MC>; ++i) {
-        for (index_t j = 0; j < algebra::traits::columns<MC>; ++j) {
+    for (index_t i = 0; i < detray::traits::rows<MC>; ++i) {
+        for (index_t j = 0; j < detray::traits::columns<MC>; ++j) {
             value_t t = 0.f;
 
-            for (index_t k = 0; k < algebra::traits::rows<MB>; ++k) {
-                t += algebra::traits::element_getter_t<MA>()(A, k, i) *
-                     algebra::traits::element_getter_t<MB>()(B, k, j);
+            for (index_t k = 0; k < detray::traits::rows<MB>; ++k) {
+                t += detray::traits::element_getter_t<MA>()(A, k, i) *
+                     detray::traits::element_getter_t<MB>()(B, k, j);
             }
 
-            algebra::traits::element_getter_t<MC>()(C, i, j) = t;
+            detray::traits::element_getter_t<MC>()(C, i, j) = t;
         }
     }
 }
@@ -135,22 +135,22 @@ template <concepts::matrix MC, concepts::matrix MA, concepts::matrix MB>
 ALGEBRA_HOST_DEVICE constexpr void set_product_right_transpose(MC &C,
                                                                const MA &A,
                                                                const MB &B)
-    requires(algebra::concepts::matrix_multipliable_into<
+    requires(detray::concepts::matrix_multipliable_into<
              MA, decltype(transpose(std::declval<MB>())), MC>)
 {
-    using index_t = algebra::traits::index_t<MC>;
-    using value_t = algebra::traits::value_t<MC>;
+    using index_t = detray::traits::index_t<MC>;
+    using value_t = detray::traits::value_t<MC>;
 
-    for (index_t i = 0; i < algebra::traits::rows<MC>; ++i) {
-        for (index_t j = 0; j < algebra::traits::columns<MC>; ++j) {
+    for (index_t i = 0; i < detray::traits::rows<MC>; ++i) {
+        for (index_t j = 0; j < detray::traits::columns<MC>; ++j) {
             value_t t = 0.f;
 
-            for (index_t k = 0; k < algebra::traits::columns<MA>; ++k) {
-                t += algebra::traits::element_getter_t<MA>()(A, i, k) *
-                     algebra::traits::element_getter_t<MB>()(B, j, k);
+            for (index_t k = 0; k < detray::traits::columns<MA>; ++k) {
+                t += detray::traits::element_getter_t<MA>()(A, i, k) *
+                     detray::traits::element_getter_t<MB>()(B, j, k);
             }
 
-            algebra::traits::element_getter_t<MC>()(C, i, j) = t;
+            detray::traits::element_getter_t<MC>()(C, i, j) = t;
         }
     }
 }
@@ -158,30 +158,30 @@ ALGEBRA_HOST_DEVICE constexpr void set_product_right_transpose(MC &C,
 // Set matrix A to the product AB in place
 template <concepts::matrix MA, concepts::matrix MB>
 ALGEBRA_HOST_DEVICE constexpr void set_inplace_product_right(MA &A, const MB &B)
-    requires(algebra::concepts::matrix_multipliable_into<MA, MB, MA>)
+    requires(detray::concepts::matrix_multipliable_into<MA, MB, MA>)
 {
-    using index_t = algebra::traits::index_t<MA>;
-    using value_t = algebra::traits::value_t<MA>;
+    using index_t = detray::traits::index_t<MA>;
+    using value_t = detray::traits::value_t<MA>;
 
-    for (index_t i = 0; i < algebra::traits::rows<MA>; ++i) {
-        algebra::traits::get_matrix_t<MA, 1, algebra::traits::columns<MA>,
-                                      value_t>
+    for (index_t i = 0; i < detray::traits::rows<MA>; ++i) {
+        detray::traits::get_matrix_t<MA, 1, detray::traits::columns<MA>,
+                                     value_t>
             Q;
 
-        for (index_t j = 0; j < algebra::traits::columns<MA>; ++j) {
-            algebra::traits::element_getter_t<decltype(Q)>()(Q, 0, j) =
-                algebra::traits::element_getter_t<MA>()(A, i, j);
+        for (index_t j = 0; j < detray::traits::columns<MA>; ++j) {
+            detray::traits::element_getter_t<decltype(Q)>()(Q, 0, j) =
+                detray::traits::element_getter_t<MA>()(A, i, j);
         }
 
-        for (index_t j = 0; j < algebra::traits::columns<MA>; ++j) {
+        for (index_t j = 0; j < detray::traits::columns<MA>; ++j) {
             value_t t = 0.f;
 
-            for (index_t k = 0; k < algebra::traits::rows<MB>; ++k) {
-                t += algebra::traits::element_getter_t<decltype(Q)>()(Q, 0, k) *
-                     algebra::traits::element_getter_t<MB>()(B, k, j);
+            for (index_t k = 0; k < detray::traits::rows<MB>; ++k) {
+                t += detray::traits::element_getter_t<decltype(Q)>()(Q, 0, k) *
+                     detray::traits::element_getter_t<MB>()(B, k, j);
             }
 
-            algebra::traits::element_getter_t<MA>()(A, i, j) = t;
+            detray::traits::element_getter_t<MA>()(A, i, j) = t;
         }
     }
 }
@@ -189,30 +189,30 @@ ALGEBRA_HOST_DEVICE constexpr void set_inplace_product_right(MA &A, const MB &B)
 // Set matrix A to the product BA in place
 template <concepts::matrix MA, concepts::matrix MB>
 ALGEBRA_HOST_DEVICE constexpr void set_inplace_product_left(MA &A, const MB &B)
-    requires(algebra::concepts::matrix_multipliable_into<MB, MA, MA>)
+    requires(detray::concepts::matrix_multipliable_into<MB, MA, MA>)
 {
-    using index_t = algebra::traits::index_t<MA>;
-    using value_t = algebra::traits::value_t<MA>;
+    using index_t = detray::traits::index_t<MA>;
+    using value_t = detray::traits::value_t<MA>;
 
-    for (index_t j = 0; j < algebra::traits::columns<MA>; ++j) {
-        algebra::traits::get_matrix_t<MA, 1, algebra::traits::columns<MA>,
-                                      value_t>
+    for (index_t j = 0; j < detray::traits::columns<MA>; ++j) {
+        detray::traits::get_matrix_t<MA, 1, detray::traits::columns<MA>,
+                                     value_t>
             Q;
 
-        for (index_t i = 0; i < algebra::traits::rows<MA>; ++i) {
-            algebra::traits::element_getter_t<decltype(Q)>()(Q, 0, i) =
-                algebra::traits::element_getter_t<MA>()(A, i, j);
+        for (index_t i = 0; i < detray::traits::rows<MA>; ++i) {
+            detray::traits::element_getter_t<decltype(Q)>()(Q, 0, i) =
+                detray::traits::element_getter_t<MA>()(A, i, j);
         }
 
-        for (index_t i = 0; i < algebra::traits::rows<MA>; ++i) {
+        for (index_t i = 0; i < detray::traits::rows<MA>; ++i) {
             value_t t = 0.f;
 
-            for (index_t k = 0; k < algebra::traits::columns<MB>; ++k) {
-                t += algebra::traits::element_getter_t<MB>()(B, i, k) *
-                     algebra::traits::element_getter_t<decltype(Q)>()(Q, 0, k);
+            for (index_t k = 0; k < detray::traits::columns<MB>; ++k) {
+                t += detray::traits::element_getter_t<MB>()(B, i, k) *
+                     detray::traits::element_getter_t<decltype(Q)>()(Q, 0, k);
             }
 
-            algebra::traits::element_getter_t<MA>()(A, i, j) = t;
+            detray::traits::element_getter_t<MA>()(A, i, j) = t;
         }
     }
 }
@@ -221,31 +221,31 @@ ALGEBRA_HOST_DEVICE constexpr void set_inplace_product_left(MA &A, const MB &B)
 template <concepts::matrix MA, concepts::matrix MB>
 ALGEBRA_HOST_DEVICE constexpr void set_inplace_product_right_transpose(
     MA &A, const MB &B)
-    requires(algebra::concepts::matrix_multipliable_into<
+    requires(detray::concepts::matrix_multipliable_into<
              MA, decltype(transpose(std::declval<MB>())), MA>)
 {
-    using index_t = algebra::traits::index_t<MA>;
-    using value_t = algebra::traits::value_t<MA>;
+    using index_t = detray::traits::index_t<MA>;
+    using value_t = detray::traits::value_t<MA>;
 
-    for (index_t i = 0; i < algebra::traits::rows<MA>; ++i) {
-        algebra::traits::get_matrix_t<MA, 1, algebra::traits::columns<MA>,
-                                      value_t>
+    for (index_t i = 0; i < detray::traits::rows<MA>; ++i) {
+        detray::traits::get_matrix_t<MA, 1, detray::traits::columns<MA>,
+                                     value_t>
             Q;
 
-        for (index_t j = 0; j < algebra::traits::columns<MA>; ++j) {
-            algebra::traits::element_getter_t<decltype(Q)>()(Q, 0, j) =
-                algebra::traits::element_getter_t<MA>()(A, i, j);
+        for (index_t j = 0; j < detray::traits::columns<MA>; ++j) {
+            detray::traits::element_getter_t<decltype(Q)>()(Q, 0, j) =
+                detray::traits::element_getter_t<MA>()(A, i, j);
         }
 
-        for (index_t j = 0; j < algebra::traits::columns<MA>; ++j) {
+        for (index_t j = 0; j < detray::traits::columns<MA>; ++j) {
             value_t T = 0.f;
 
-            for (index_t k = 0; k < algebra::traits::columns<MB>; ++k) {
-                T += algebra::traits::element_getter_t<decltype(Q)>()(Q, 0, k) *
-                     algebra::traits::element_getter_t<MB>()(B, j, k);
+            for (index_t k = 0; k < detray::traits::columns<MB>; ++k) {
+                T += detray::traits::element_getter_t<decltype(Q)>()(Q, 0, k) *
+                     detray::traits::element_getter_t<MB>()(B, j, k);
             }
 
-            algebra::traits::element_getter_t<MA>()(A, i, j) = T;
+            detray::traits::element_getter_t<MA>()(A, i, j) = T;
         }
     }
 }
@@ -254,57 +254,57 @@ ALGEBRA_HOST_DEVICE constexpr void set_inplace_product_right_transpose(
 template <concepts::matrix MA, concepts::matrix MB>
 ALGEBRA_HOST_DEVICE constexpr void set_inplace_product_left_transpose(
     MA &A, const MB &B)
-    requires(algebra::concepts::matrix_multipliable_into<
+    requires(detray::concepts::matrix_multipliable_into<
              decltype(transpose(std::declval<MB>())), MA, MA>)
 {
-    using index_t = algebra::traits::index_t<MA>;
-    using value_t = algebra::traits::value_t<MA>;
+    using index_t = detray::traits::index_t<MA>;
+    using value_t = detray::traits::value_t<MA>;
 
-    for (index_t j = 0; j < algebra::traits::columns<MA>; ++j) {
-        algebra::traits::get_matrix_t<MA, 1, algebra::traits::columns<MA>,
-                                      value_t>
+    for (index_t j = 0; j < detray::traits::columns<MA>; ++j) {
+        detray::traits::get_matrix_t<MA, 1, detray::traits::columns<MA>,
+                                     value_t>
             Q;
 
-        for (index_t i = 0; i < algebra::traits::rows<MA>; ++i) {
-            algebra::traits::element_getter_t<decltype(Q)>()(Q, 0, i) =
-                algebra::traits::element_getter_t<MA>()(A, i, j);
+        for (index_t i = 0; i < detray::traits::rows<MA>; ++i) {
+            detray::traits::element_getter_t<decltype(Q)>()(Q, 0, i) =
+                detray::traits::element_getter_t<MA>()(A, i, j);
         }
 
-        for (index_t i = 0; i < algebra::traits::rows<MA>; ++i) {
+        for (index_t i = 0; i < detray::traits::rows<MA>; ++i) {
             value_t T = 0.f;
 
-            for (index_t k = 0; k < algebra::traits::rows<MB>; ++k) {
-                T += algebra::traits::element_getter_t<MB>()(B, k, i) *
-                     algebra::traits::element_getter_t<decltype(Q)>()(Q, 0, k);
+            for (index_t k = 0; k < detray::traits::rows<MB>; ++k) {
+                T += detray::traits::element_getter_t<MB>()(B, k, i) *
+                     detray::traits::element_getter_t<decltype(Q)>()(Q, 0, k);
             }
 
-            algebra::traits::element_getter_t<MA>()(A, i, j) = T;
+            detray::traits::element_getter_t<MA>()(A, i, j) = T;
         }
     }
 }
 
 template <bool transpose, concepts::matrix M>
-ALGEBRA_HOST_DEVICE constexpr algebra::traits::value_t<M> transposable_get(
-    const M &A, const algebra::traits::index_t<M> i,
-    const algebra::traits::index_t<M> j) {
+ALGEBRA_HOST_DEVICE constexpr detray::traits::value_t<M> transposable_get(
+    const M &A, const detray::traits::index_t<M> i,
+    const detray::traits::index_t<M> j) {
     if constexpr (transpose) {
-        return algebra::traits::element_getter_t<M>()(A, j, i);
+        return detray::traits::element_getter_t<M>()(A, j, i);
     } else {
-        return algebra::traits::element_getter_t<M>()(A, i, j);
+        return detray::traits::element_getter_t<M>()(A, i, j);
     }
 }
 
 template <bool transpose_left, bool transpose_right, concepts::matrix MA,
           concepts::matrix MB>
 ALGEBRA_HOST_DEVICE constexpr auto transposed_product(const MA &A, const MB &B)
-    requires(algebra::concepts::matrix_multipliable<
+    requires(detray::concepts::matrix_multipliable<
              std::conditional_t<transpose_left,
                                 decltype(transpose(std::declval<MA>())), MA>,
              std::conditional_t<transpose_right,
                                 decltype(transpose(std::declval<MB>())), MB> >)
 {
-    using index_t = algebra::traits::index_t<MA>;
-    using value_t = algebra::traits::value_t<MA>;
+    using index_t = detray::traits::index_t<MA>;
+    using value_t = detray::traits::value_t<MA>;
 
     using effective_lhs_t =
         std::conditional_t<transpose_left,
@@ -313,16 +313,17 @@ ALGEBRA_HOST_DEVICE constexpr auto transposed_product(const MA &A, const MB &B)
         std::conditional_t<transpose_right,
                            decltype(transpose(std::declval<MB>())), MB>;
 
-    using result_t = algebra::traits::get_matrix_t<
-        MA, algebra::traits::rows<effective_lhs_t>,
-        algebra::traits::columns<effective_rhs_t>, value_t>;
+    using result_t =
+        detray::traits::get_matrix_t<MA, detray::traits::rows<effective_lhs_t>,
+                                     detray::traits::columns<effective_rhs_t>,
+                                     value_t>;
 
     result_t C = zero<result_t>();
 
-    for (index_t i = 0; i < algebra::traits::columns<effective_lhs_t>; ++i) {
-        for (index_t j = 0; j < algebra::traits::columns<result_t>; ++j) {
-            for (index_t k = 0; k < algebra::traits::rows<result_t>; ++k) {
-                algebra::traits::element_getter_t<result_t>()(C, k, j) +=
+    for (index_t i = 0; i < detray::traits::columns<effective_lhs_t>; ++i) {
+        for (index_t j = 0; j < detray::traits::columns<result_t>; ++j) {
+            for (index_t k = 0; k < detray::traits::rows<result_t>; ++k) {
+                detray::traits::element_getter_t<result_t>()(C, k, j) +=
                     transposable_get<transpose_left>(A, k, i) *
                     transposable_get<transpose_right>(B, i, j);
             }
@@ -334,7 +335,7 @@ ALGEBRA_HOST_DEVICE constexpr auto transposed_product(const MA &A, const MB &B)
 
 /// @returns the determinant of @param m
 template <concepts::square_matrix M>
-ALGEBRA_HOST_DEVICE constexpr algebra::traits::scalar_t<M> determinant(
+ALGEBRA_HOST_DEVICE constexpr detray::traits::scalar_t<M> determinant(
     const M &m) {
 
     return determinant_t<M>{}(m);

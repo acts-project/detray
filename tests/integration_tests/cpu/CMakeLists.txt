@@ -52,6 +52,11 @@ if(DETRAY_EIGEN_PLUGIN)
     detray_add_cpu_test( eigen )
 endif()
 
+# Build the Fastor tests.
+if(DETRAY_FASTOR_PLUGIN)
+    detray_add_cpu_test( fastor )
+endif()
+
 # Build the SMatrix tests.
 if(DETRAY_SMATRIX_PLUGIN)
     detray_add_cpu_test( smatrix )

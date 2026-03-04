@@ -8,9 +8,9 @@
 #pragma once
 
 // Project include(s).
-#include "detray/algebra/concepts.hpp"
-#include "detray/algebra/qualifiers.hpp"
-#include "detray/algebra/type_traits.hpp"
+#include "detray/algebra/common/concepts.hpp"
+#include "detray/algebra/common/qualifiers.hpp"
+#include "detray/algebra/common/type_traits.hpp"
 
 // System include(s)
 #include <type_traits>
@@ -21,15 +21,15 @@ namespace detray::algebra::generic::matrix::determinant {
 template <concepts::square_matrix matrix_t>
 struct hard_coded {
 
-    using scalar_t = algebra::traits::value_t<matrix_t>;
-    using index_t = algebra::traits::index_t<matrix_t>;
+    using scalar_t = detray::traits::value_t<matrix_t>;
+    using index_t = detray::traits::index_t<matrix_t>;
 
     /// Function (object) used for accessing a matrix element
-    using element_getter_t = algebra::traits::element_getter_t<matrix_t>;
+    using element_getter_t = detray::traits::element_getter_t<matrix_t>;
 
     // 2 X 2 matrix determinant
     template <typename M = matrix_t>
-        requires(algebra::traits::rank<M> == 2)
+        requires(detray::traits::rank<M> == 2)
     ALGEBRA_HOST_DEVICE constexpr scalar_t operator()(const matrix_t &m) const {
 
         constexpr element_getter_t elem{};
@@ -39,7 +39,7 @@ struct hard_coded {
 
     // 4 X 4 matrix determinant
     template <typename M = matrix_t>
-        requires(algebra::traits::rank<M> == 4)
+        requires(detray::traits::rank<M> == 4)
     ALGEBRA_HOST_DEVICE constexpr scalar_t operator()(const matrix_t &m) const {
 
         constexpr element_getter_t elem{};

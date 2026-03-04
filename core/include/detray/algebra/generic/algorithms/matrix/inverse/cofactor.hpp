@@ -8,10 +8,10 @@
 #pragma once
 
 // Project include(s).
-#include "detray/algebra/algorithms/matrix/determinant/cofactor.hpp"
-#include "detray/algebra/concepts.hpp"
-#include "detray/algebra/qualifiers.hpp"
-#include "detray/algebra/type_traits.hpp"
+#include "detray/algebra/common/concepts.hpp"
+#include "detray/algebra/common/qualifiers.hpp"
+#include "detray/algebra/common/type_traits.hpp"
+#include "detray/algebra/generic/algorithms/matrix/determinant/cofactor.hpp"
 
 // System include(s)
 #include <type_traits>
@@ -24,10 +24,10 @@ namespace adjoint {
 template <concepts::square_matrix matrix_t>
 struct cofactor {
 
-    using index_type = algebra::traits::index_t<matrix_t>;
+    using index_type = detray::traits::index_t<matrix_t>;
 
     ALGEBRA_HOST_DEVICE constexpr matrix_t operator()(const matrix_t &m) const {
-        return adjoint_getter_helper<algebra::traits::rank<matrix_t>>()(m);
+        return adjoint_getter_helper<detray::traits::rank<matrix_t>>()(m);
     }
 
     template <index_type N>
@@ -39,8 +39,7 @@ struct cofactor {
         ALGEBRA_HOST_DEVICE constexpr matrix_t operator()(
             const matrix_t & /*m*/) const {
 
-            using element_getter_t =
-                algebra::traits::element_getter_t<matrix_t>;
+            using element_getter_t = detray::traits::element_getter_t<matrix_t>;
             constexpr element_getter_t elem{};
 
             matrix_t ret;
@@ -59,9 +58,8 @@ struct cofactor {
         ALGEBRA_HOST_DEVICE constexpr matrix_t operator()(
             const matrix_t &m) const {
 
-            using index_t = algebra::traits::index_t<matrix_t>;
-            using element_getter_t =
-                algebra::traits::element_getter_t<matrix_t>;
+            using index_t = detray::traits::index_t<matrix_t>;
+            using element_getter_t = detray::traits::element_getter_t<matrix_t>;
             constexpr element_getter_t elem{};
 
             // temp is used to store cofactors of m
@@ -103,18 +101,18 @@ namespace inverse {
 template <class matrix_t>
 struct cofactor {
 
-    using scalar_t = algebra::traits::value_t<matrix_t>;
-    using index_t = algebra::traits::index_t<matrix_t>;
+    using scalar_t = detray::traits::value_t<matrix_t>;
+    using index_t = detray::traits::index_t<matrix_t>;
 
     /// Function (object) used for accessing a matrix element
-    using element_getter_t = algebra::traits::element_getter_t<matrix_t>;
+    using element_getter_t = detray::traits::element_getter_t<matrix_t>;
     using determinant_getter = determinant::cofactor<matrix_t>;
     using adjoint_getter = adjoint::cofactor<matrix_t>;
 
     ALGEBRA_HOST_DEVICE constexpr matrix_t operator()(const matrix_t &m) const {
 
         constexpr element_getter_t elem{};
-        constexpr index_t N{algebra::traits::rank<matrix_t>};
+        constexpr index_t N{detray::traits::rank<matrix_t>};
 
         matrix_t ret;
 

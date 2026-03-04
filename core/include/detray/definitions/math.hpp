@@ -23,7 +23,7 @@ namespace math {
 #if defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)
 using namespace ::sycl;
 #else
-using namespace ::algebra::math;
+using namespace ::detray::algebra::math;
 #endif  // SYCL
 
 }  // namespace math

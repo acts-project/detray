@@ -68,7 +68,9 @@ if(CMAKE_CUDA_COMPILER)
 endif()
 
 # Flags controlling which parts of Detray to build.
+option(DETRAY_ARRAY_PLUGIN "Build Fastor math plugin" ON)
 option(DETRAY_EIGEN_PLUGIN "Build Eigen math plugin" OFF)
+option(DETRAY_FASTOR_PLUGIN "Build Fastor math plugin" OFF)
 option(DETRAY_SMATRIX_PLUGIN "Build ROOT/SMatrix math plugin" OFF)
 option(DETRAY_VC_AOS_PLUGIN "Build Vc based AoS math plugin" OFF)
 option(DETRAY_VC_SOA_PLUGIN "Build Vc based SoA math plugin" OFF)
@@ -188,6 +190,7 @@ if(${DETRAY_BUILD_HIP} AND ${CMAKE_HIP_STANDARD} LESS 20)
         "CMAKE_HIP_STANDARD=${CMAKE_HIP_STANDARD}, but detray requires C++>=20"
     )
 endif()
+
 # Set up VecMem.
 option(DETRAY_SETUP_VECMEM "Set up the VecMem target(s) explicitly" TRUE)
 option(
@@ -208,22 +211,68 @@ endif()
 # Check if HIP is available
 include(vecmem-check-language)
 
-# Set up Algebra Plugins.
+# Set up Eigen3.
 option(
-    DETRAY_SETUP_ALGEBRA_PLUGINS
-    "Set up the Algebra Plugins target(s) explicitly"
-    TRUE
+    DETRAY_SETUP_EIGEN3
+    "Set up the Eigen3 target(s) explicitly"
+    ${DETRAY_EIGEN_PLUGIN}
 )
 option(
-    DETRAY_USE_SYSTEM_ALGEBRA_PLUGINS
-    "Pick up an existing installation of Algebra Plugins from the build environment"
+    DETRAY_USE_SYSTEM_EIGEN3
+    "Pick up an existing installation of Eigen3 from the build environment"
     ${DETRAY_USE_SYSTEM_LIBS}
 )
-if(DETRAY_SETUP_ALGEBRA_PLUGINS)
-    if(DETRAY_USE_SYSTEM_ALGEBRA_PLUGINS)
-        find_package(algebra-plugins REQUIRED)
+if(DETRAY_SETUP_EIGEN3)
+    if(DETRAY_USE_SYSTEM_EIGEN3)
+        find_package(Eigen3 REQUIRED)
     else()
-        add_subdirectory(extern/algebra-plugins)
+        add_subdirectory(extern/eigen3)
+    endif()
+endif()
+
+# Set up Fastor.
+option(
+    DETRAY_SETUP_FASTOR
+    "Set up the Fastor target(s) explicitly"
+    ${DETRAY_FASTOR_PLUGIN}
+)
+option(
+    DETRAY_USE_SYSTEM_FASTOR
+    "Pick up an existing installation of Fastor from the build environment"
+    ${DETRAY_USE_SYSTEM_LIBS}
+)
+if(DETRAY_SETUP_FASTOR)
+    if(DETRAY_USE_SYSTEM_FASTOR)
+        find_package(Fastor 0.6.3 REQUIRED)
+    else()
+        add_subdirectory(extern/fastor)
+    endif()
+endif()
+
+# Set up Vc.
+if(DETRAY_VC_AOS_PLUGIN OR DETRAY_VC_SOA_PLUGIN)
+    set(DETRAY_VC_PLUGIN ON)
+endif()
+
+option(DETRAY_SETUP_VC "Set up the Vc target(s) explicitly" ${DETRAY_VC_PLUGIN})
+option(
+    DETRAY_USE_SYSTEM_VC
+    "Pick up an existing installation of Vc from the build environment"
+    ${DETRAY_USE_SYSTEM_LIBS}
+)
+if(DETRAY_SETUP_VC)
+    if(DETRAY_USE_SYSTEM_VC)
+        find_package(Vc 1.4.2 REQUIRED)
+    else()
+        add_subdirectory(extern/vc)
+    endif()
+    if(NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES "MSVC")
+        # Use the preferred compiler flags from Vc for the entire project. Do not
+        # set them on the libraries individually, as the clients of the libraries
+        # may want to use a different optimisation.
+        vc_set_preferred_compiler_flags()
+        add_compile_definitions(${Vc_DEFINITIONS})
+        add_compile_options(${Vc_COMPILE_FLAGS} ${Vc_ARCHITECTURE_FLAGS})
     endif()
 endif()
 

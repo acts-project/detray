@@ -7,9 +7,9 @@
 #pragma once
 
 // Project include(s).
-#include "detray/algebra/concepts.hpp"
-#include "detray/algebra/type_traits.hpp"
-#include "detray/algebra/vector.hpp"
+#include "detray/algebra/common/concepts.hpp"
+#include "detray/algebra/common/type_traits.hpp"
+#include "detray/algebra/common/vector.hpp"
 
 // System include(s).
 #include <array>
@@ -157,7 +157,7 @@ ALGEBRA_HOST_DEVICE constexpr void set_zero(matrix_t &m) noexcept {
 
 /// Build an identity matrix
 template <concepts::matrix matrix_t,
-          std::size_t R = algebra::traits::rank<matrix_t>>
+          std::size_t R = detray::traits::rank<matrix_t>>
 ALGEBRA_HOST_DEVICE constexpr matrix_t identity() noexcept {
 
     // Zero initialized
@@ -217,7 +217,7 @@ template <concepts::matrix matrix_t, concepts::scalar scalar_t,
           std::size_t... J>
 ALGEBRA_HOST_DEVICE constexpr matrix_t matrix_scalar_mul(
     scalar_t a, const matrix_t &rhs, std::index_sequence<J...>) noexcept {
-    using mat_scalar_t = algebra::traits::scalar_t<matrix_t>;
+    using mat_scalar_t = detray::traits::scalar_t<matrix_t>;
 
     return matrix_t{(static_cast<mat_scalar_t>(a) * rhs[J])...};
 }
