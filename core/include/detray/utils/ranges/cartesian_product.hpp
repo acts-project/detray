@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/utils/ranges/detail/iterator_functions.hpp"
 #include "detray/utils/ranges/ranges.hpp"
 #include "detray/utils/tuple.hpp"
 
@@ -22,7 +23,10 @@ namespace detail {
 template <std::input_iterator... T>
 struct cartesian_product_iterator;
 
-}
+template <std::input_iterator... T>
+struct cartesian_product_random_access_iterator;
+
+}  // namespace detail
 
 /// @brief Range adaptor that generates a cartesian product from the given input
 /// ranges
@@ -36,8 +40,14 @@ struct cartesian_product_view : public detray::ranges::view_interface<
 
     using iterator_coll_t =
         detray::tuple<detray::ranges::iterator_t<range_ts>...>;
-    using iterator_t = detray::ranges::detail::cartesian_product_iterator<
-        detray::ranges::iterator_t<range_ts>...>;
+    static constexpr bool use_random_access_iterator =
+        (random_access_iterator<detray::ranges::iterator_t<range_ts>> && ...);
+    using iterator_t = std::conditional_t<
+        use_random_access_iterator,
+        detray::ranges::detail::cartesian_product_random_access_iterator<
+            detray::ranges::iterator_t<range_ts>...>,
+        detray::ranges::detail::cartesian_product_iterator<
+            detray::ranges::iterator_t<range_ts>...>>;
     using value_type = detray::tuple<
         std::iter_reference_t<detray::ranges::iterator_t<range_ts>>...>;
 
@@ -55,8 +65,13 @@ struct cartesian_product_view : public detray::ranges::view_interface<
     constexpr auto begin() const -> iterator_t { return {m_begins, m_ends}; }
 
     /// @returns sentinel of the range - const
-    DETRAY_HOST_DEVICE
-    constexpr auto end() const -> iterator_t { return {m_ends, m_ends}; }
+    DETRAY_HOST_DEVICE constexpr auto end() const -> iterator_t {
+        if constexpr (use_random_access_iterator) {
+            return {m_begins, m_ends, size()};
+        } else {
+            return {m_ends, m_ends};
+        }
+    }
 
     /// @returns a pointer to the beginning of the data of the first underlying
     /// range - const
@@ -119,7 +134,6 @@ namespace detail {
 /// @brief Iterator implementation for the cartesian product view
 template <std::input_iterator... iterator_ts>
 struct cartesian_product_iterator {
-
     using difference_type = std::ptrdiff_t;
     using value_type = std::tuple<std::iter_reference_t<iterator_ts>...>;
     using pointer = value_type *;
@@ -229,6 +243,141 @@ struct cartesian_product_iterator {
     detray::tuple<iterator_ts...> m_ends;
     /// Current iterator states
     detray::tuple<iterator_ts...> m_itrs;
+};
+
+/// @brief Iterator implementation for the cartesian product view; special
+/// case for when all iterators are random-access.
+template <std::input_iterator... iterator_ts>
+struct cartesian_product_random_access_iterator {
+    static_assert((random_access_iterator<iterator_ts> && ...));
+    using difference_type = std::ptrdiff_t;
+    using value_type = std::tuple<std::iter_reference_t<iterator_ts>...>;
+    using pointer = value_type *;
+    using reference = value_type;
+    using iterator_category = detray::ranges::random_access_iterator_tag;
+
+    /// Default constructor required by LegacyIterator trait
+    constexpr cartesian_product_random_access_iterator() = default;
+
+    /// Construct from a collection of @param begin and @param end positions
+    DETRAY_HOST_DEVICE
+    constexpr cartesian_product_random_access_iterator(
+        detray::tuple<iterator_ts...> begins,
+        detray::tuple<iterator_ts...> ends, unsigned int idx)
+        : m_begins(begins),
+          m_factors(make_factors(begins, ends)),
+          m_index(idx) {}
+
+    /// Construct from a collection of @param begin and @param end positions
+    DETRAY_HOST_DEVICE
+    constexpr cartesian_product_random_access_iterator(
+        detray::tuple<iterator_ts...> begins,
+        detray::tuple<iterator_ts...> ends)
+        : cartesian_product_random_access_iterator(begins, ends, 0) {}
+
+    /// @returns true if the last range iterators are equal.
+    DETRAY_HOST_DEVICE constexpr bool operator==(
+        const cartesian_product_random_access_iterator &rhs) const {
+        return rhs.m_index == m_index;
+    }
+
+    /// Increment iterators.
+    /// @{
+    DETRAY_HOST_DEVICE constexpr auto operator++()
+        -> cartesian_product_random_access_iterator & {
+        ++m_index;
+        return *this;
+    }
+
+    DETRAY_HOST_DEVICE constexpr auto operator++(int)
+        -> cartesian_product_random_access_iterator {
+        auto tmp(*this);
+        ++(*this);
+        return tmp;
+    }
+    /// @}
+
+    /// Decrement iterators.
+    /// @{
+    DETRAY_HOST_DEVICE constexpr auto operator--()
+        -> cartesian_product_random_access_iterator & {
+        --m_index;
+        return *this;
+    }
+
+    DETRAY_HOST_DEVICE constexpr auto operator--(int)
+        -> cartesian_product_random_access_iterator {
+        auto tmp(*this);
+        ++(*this);
+        return tmp;
+    }
+    /// @}
+
+    /// @returns the structured binding of all current iterator values - const
+    DETRAY_HOST_DEVICE
+    constexpr decltype(auto) operator*() const {
+        return unroll_values(
+            std::make_integer_sequence<std::size_t, sizeof...(iterator_ts)>{});
+    }
+
+    private:
+    static constexpr std::array<unsigned int, (sizeof...(iterator_ts) - 1)>
+    make_factors(const detray::tuple<iterator_ts...> &begins,
+                 const detray::tuple<iterator_ts...> &ends) {
+        return make_factors_helper(
+            begins, ends,
+            std::make_integer_sequence<std::size_t,
+                                       sizeof...(iterator_ts) - 1>{});
+    }
+
+    template <std::size_t... I>
+    static constexpr std::array<unsigned int, (sizeof...(iterator_ts) - 1)>
+    make_factors_helper(const detray::tuple<iterator_ts...> &begins,
+                        const detray::tuple<iterator_ts...> &ends,
+                        std::index_sequence<I...>) {
+        std::array<unsigned int, (sizeof...(iterator_ts) - 1)> rv;
+        ((rv[I] = make_factors_helper_helper<I>(
+              begins, ends,
+              std::make_integer_sequence<std::size_t,
+                                         sizeof...(iterator_ts)>{})),
+         ...);
+        return rv;
+    }
+
+    template <std::size_t I, std::size_t... Js>
+    static constexpr unsigned int make_factors_helper_helper(
+        const detray::tuple<iterator_ts...> &begins,
+        const detray::tuple<iterator_ts...> &ends, std::index_sequence<Js...>) {
+        const auto rv =
+            ((Js <= I ? 1 : (detray::get<Js>(ends) - detray::get<Js>(begins))) *
+             ...);
+        return static_cast<unsigned int>(rv);
+    }
+
+    /// Pack the return values
+    /// @note uses @c std::tuple for structured binding
+    template <std::size_t... I>
+    DETRAY_HOST_DEVICE constexpr auto unroll_values(
+        std::index_sequence<I...>) const {
+        return std::tuple<std::iter_reference_t<iterator_ts>...>(
+            (detray::get<I>(m_begins)[get_relative_index<I>()])...);
+    }
+
+    template <std::size_t I>
+    DETRAY_HOST_DEVICE constexpr auto get_relative_index() const {
+        if constexpr (I == 0) {
+            return m_index / m_factors[I];
+        } else if constexpr (I == sizeof...(iterator_ts) - 1) {
+            return m_index % m_factors[I - 1];
+        } else {
+            return ((m_index % m_factors[I - 1]) / m_factors[I]);
+        }
+    }
+
+    /// Global range collection of begin and end iterators
+    detray::tuple<iterator_ts...> m_begins;
+    std::array<unsigned int, (sizeof...(iterator_ts) - 1)> m_factors;
+    unsigned int m_index = 0;
 };
 
 }  // namespace detail
