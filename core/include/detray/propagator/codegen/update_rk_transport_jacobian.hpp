@@ -73,38 +73,7 @@ DETRAY_HOST_DEVICE void inline update_transport_jacobian_without_gradient_impl(
     assert((getter::element<7, 4>(J_transport) == 0.f));
     assert((getter::element<7, 5>(J_transport) == 0.f));
     assert((getter::element<7, 6>(J_transport) == 0.f));
-    getter::element<0, 0>(new_J) = 1;
-    getter::element<1, 0>(new_J) = 0;
-    getter::element<2, 0>(new_J) = 0;
-    getter::element<3, 0>(new_J) = 0;
-    getter::element<4, 0>(new_J) = 0;
-    getter::element<5, 0>(new_J) = 0;
-    getter::element<6, 0>(new_J) = 0;
-    getter::element<7, 0>(new_J) = 0;
-    getter::element<0, 1>(new_J) = 0;
-    getter::element<1, 1>(new_J) = 1;
-    getter::element<2, 1>(new_J) = 0;
-    getter::element<3, 1>(new_J) = 0;
-    getter::element<4, 1>(new_J) = 0;
-    getter::element<5, 1>(new_J) = 0;
-    getter::element<6, 1>(new_J) = 0;
-    getter::element<7, 1>(new_J) = 0;
-    getter::element<0, 2>(new_J) = 0;
-    getter::element<1, 2>(new_J) = 0;
-    getter::element<2, 2>(new_J) = 1;
-    getter::element<3, 2>(new_J) = 0;
-    getter::element<4, 2>(new_J) = 0;
-    getter::element<5, 2>(new_J) = 0;
-    getter::element<6, 2>(new_J) = 0;
-    getter::element<7, 2>(new_J) = 0;
-    getter::element<0, 3>(new_J) = 0;
-    getter::element<1, 3>(new_J) = 0;
-    getter::element<2, 3>(new_J) = 0;
-    getter::element<3, 3>(new_J) = 1;
-    getter::element<4, 3>(new_J) = 0;
-    getter::element<5, 3>(new_J) = 0;
-    getter::element<6, 3>(new_J) = 0;
-    getter::element<7, 3>(new_J) = 0;
+
     getter::element<0, 4>(new_J) =
         getter::element<0, 4>(J_transport) +
         getter::element<4, 4>(J_transport) * getter::element<0, 0>(dFdt) +
@@ -120,7 +89,7 @@ DETRAY_HOST_DEVICE void inline update_transport_jacobian_without_gradient_impl(
         getter::element<4, 4>(J_transport) * getter::element<2, 0>(dFdt) +
         getter::element<5, 4>(J_transport) * getter::element<2, 1>(dFdt) +
         getter::element<6, 4>(J_transport) * getter::element<2, 2>(dFdt);
-    getter::element<3, 4>(new_J) = 0;
+
     getter::element<4, 4>(new_J) =
         getter::element<4, 4>(J_transport) * getter::element<0, 0>(dGdt) +
         getter::element<5, 4>(J_transport) * getter::element<0, 1>(dGdt) +
@@ -133,7 +102,7 @@ DETRAY_HOST_DEVICE void inline update_transport_jacobian_without_gradient_impl(
         getter::element<4, 4>(J_transport) * getter::element<2, 0>(dGdt) +
         getter::element<5, 4>(J_transport) * getter::element<2, 1>(dGdt) +
         getter::element<6, 4>(J_transport) * getter::element<2, 2>(dGdt);
-    getter::element<7, 4>(new_J) = 0;
+
     getter::element<0, 5>(new_J) =
         getter::element<0, 5>(J_transport) +
         getter::element<4, 5>(J_transport) * getter::element<0, 0>(dFdt) +
@@ -149,7 +118,7 @@ DETRAY_HOST_DEVICE void inline update_transport_jacobian_without_gradient_impl(
         getter::element<4, 5>(J_transport) * getter::element<2, 0>(dFdt) +
         getter::element<5, 5>(J_transport) * getter::element<2, 1>(dFdt) +
         getter::element<6, 5>(J_transport) * getter::element<2, 2>(dFdt);
-    getter::element<3, 5>(new_J) = 0;
+
     getter::element<4, 5>(new_J) =
         getter::element<4, 5>(J_transport) * getter::element<0, 0>(dGdt) +
         getter::element<5, 5>(J_transport) * getter::element<0, 1>(dGdt) +
@@ -162,7 +131,7 @@ DETRAY_HOST_DEVICE void inline update_transport_jacobian_without_gradient_impl(
         getter::element<4, 5>(J_transport) * getter::element<2, 0>(dGdt) +
         getter::element<5, 5>(J_transport) * getter::element<2, 1>(dGdt) +
         getter::element<6, 5>(J_transport) * getter::element<2, 2>(dGdt);
-    getter::element<7, 5>(new_J) = 0;
+
     getter::element<0, 6>(new_J) =
         getter::element<0, 6>(J_transport) +
         getter::element<4, 6>(J_transport) * getter::element<0, 0>(dFdt) +
@@ -178,7 +147,7 @@ DETRAY_HOST_DEVICE void inline update_transport_jacobian_without_gradient_impl(
         getter::element<4, 6>(J_transport) * getter::element<2, 0>(dFdt) +
         getter::element<5, 6>(J_transport) * getter::element<2, 1>(dFdt) +
         getter::element<6, 6>(J_transport) * getter::element<2, 2>(dFdt);
-    getter::element<3, 6>(new_J) = 0;
+
     getter::element<4, 6>(new_J) =
         getter::element<4, 6>(J_transport) * getter::element<0, 0>(dGdt) +
         getter::element<5, 6>(J_transport) * getter::element<0, 1>(dGdt) +
@@ -191,7 +160,7 @@ DETRAY_HOST_DEVICE void inline update_transport_jacobian_without_gradient_impl(
         getter::element<4, 6>(J_transport) * getter::element<2, 0>(dGdt) +
         getter::element<5, 6>(J_transport) * getter::element<2, 1>(dGdt) +
         getter::element<6, 6>(J_transport) * getter::element<2, 2>(dGdt);
-    getter::element<7, 6>(new_J) = 0;
+
     getter::element<0, 7>(new_J) =
         getter::element<0, 7>(J_transport) +
         getter::element<4, 7>(J_transport) * getter::element<0, 0>(dFdt) +
@@ -210,7 +179,7 @@ DETRAY_HOST_DEVICE void inline update_transport_jacobian_without_gradient_impl(
         getter::element<5, 7>(J_transport) * getter::element<2, 1>(dFdt) +
         getter::element<6, 7>(J_transport) * getter::element<2, 2>(dFdt) +
         getter::element<7, 7>(J_transport) * getter::element<2>(dFdqop);
-    getter::element<3, 7>(new_J) = 0;
+
     getter::element<4, 7>(new_J) =
         getter::element<4, 7>(J_transport) * getter::element<0, 0>(dGdt) +
         getter::element<5, 7>(J_transport) * getter::element<0, 1>(dGdt) +
@@ -293,7 +262,7 @@ DETRAY_HOST_DEVICE void inline update_transport_jacobian_with_gradient_impl(
         getter::element<4, 0>(J_transport) * getter::element<2, 0>(dFdt) +
         getter::element<5, 0>(J_transport) * getter::element<2, 1>(dFdt) +
         getter::element<6, 0>(J_transport) * getter::element<2, 2>(dFdt);
-    getter::element<3, 0>(new_J) = 0;
+
     getter::element<4, 0>(new_J) =
         getter::element<0, 0>(J_transport) * getter::element<0, 0>(dGdr) +
         getter::element<1, 0>(J_transport) * getter::element<0, 1>(dGdr) +
@@ -315,7 +284,7 @@ DETRAY_HOST_DEVICE void inline update_transport_jacobian_with_gradient_impl(
         getter::element<4, 0>(J_transport) * getter::element<2, 0>(dGdt) +
         getter::element<5, 0>(J_transport) * getter::element<2, 1>(dGdt) +
         getter::element<6, 0>(J_transport) * getter::element<2, 2>(dGdt);
-    getter::element<7, 0>(new_J) = 0;
+
     getter::element<0, 1>(new_J) =
         getter::element<0, 1>(J_transport) * getter::element<0, 0>(dFdr) +
         getter::element<1, 1>(J_transport) * getter::element<0, 1>(dFdr) +
@@ -337,7 +306,7 @@ DETRAY_HOST_DEVICE void inline update_transport_jacobian_with_gradient_impl(
         getter::element<4, 1>(J_transport) * getter::element<2, 0>(dFdt) +
         getter::element<5, 1>(J_transport) * getter::element<2, 1>(dFdt) +
         getter::element<6, 1>(J_transport) * getter::element<2, 2>(dFdt);
-    getter::element<3, 1>(new_J) = 0;
+
     getter::element<4, 1>(new_J) =
         getter::element<0, 1>(J_transport) * getter::element<0, 0>(dGdr) +
         getter::element<1, 1>(J_transport) * getter::element<0, 1>(dGdr) +
@@ -359,7 +328,7 @@ DETRAY_HOST_DEVICE void inline update_transport_jacobian_with_gradient_impl(
         getter::element<4, 1>(J_transport) * getter::element<2, 0>(dGdt) +
         getter::element<5, 1>(J_transport) * getter::element<2, 1>(dGdt) +
         getter::element<6, 1>(J_transport) * getter::element<2, 2>(dGdt);
-    getter::element<7, 1>(new_J) = 0;
+
     getter::element<0, 2>(new_J) =
         getter::element<0, 2>(J_transport) * getter::element<0, 0>(dFdr) +
         getter::element<1, 2>(J_transport) * getter::element<0, 1>(dFdr) +
@@ -381,7 +350,7 @@ DETRAY_HOST_DEVICE void inline update_transport_jacobian_with_gradient_impl(
         getter::element<4, 2>(J_transport) * getter::element<2, 0>(dFdt) +
         getter::element<5, 2>(J_transport) * getter::element<2, 1>(dFdt) +
         getter::element<6, 2>(J_transport) * getter::element<2, 2>(dFdt);
-    getter::element<3, 2>(new_J) = 0;
+
     getter::element<4, 2>(new_J) =
         getter::element<0, 2>(J_transport) * getter::element<0, 0>(dGdr) +
         getter::element<1, 2>(J_transport) * getter::element<0, 1>(dGdr) +
@@ -403,15 +372,7 @@ DETRAY_HOST_DEVICE void inline update_transport_jacobian_with_gradient_impl(
         getter::element<4, 2>(J_transport) * getter::element<2, 0>(dGdt) +
         getter::element<5, 2>(J_transport) * getter::element<2, 1>(dGdt) +
         getter::element<6, 2>(J_transport) * getter::element<2, 2>(dGdt);
-    getter::element<7, 2>(new_J) = 0;
-    getter::element<0, 3>(new_J) = 0;
-    getter::element<1, 3>(new_J) = 0;
-    getter::element<2, 3>(new_J) = 0;
-    getter::element<3, 3>(new_J) = 1;
-    getter::element<4, 3>(new_J) = 0;
-    getter::element<5, 3>(new_J) = 0;
-    getter::element<6, 3>(new_J) = 0;
-    getter::element<7, 3>(new_J) = 0;
+
     getter::element<0, 4>(new_J) =
         getter::element<0, 4>(J_transport) * getter::element<0, 0>(dFdr) +
         getter::element<1, 4>(J_transport) * getter::element<0, 1>(dFdr) +
@@ -433,7 +394,7 @@ DETRAY_HOST_DEVICE void inline update_transport_jacobian_with_gradient_impl(
         getter::element<4, 4>(J_transport) * getter::element<2, 0>(dFdt) +
         getter::element<5, 4>(J_transport) * getter::element<2, 1>(dFdt) +
         getter::element<6, 4>(J_transport) * getter::element<2, 2>(dFdt);
-    getter::element<3, 4>(new_J) = 0;
+
     getter::element<4, 4>(new_J) =
         getter::element<0, 4>(J_transport) * getter::element<0, 0>(dGdr) +
         getter::element<1, 4>(J_transport) * getter::element<0, 1>(dGdr) +
@@ -455,7 +416,7 @@ DETRAY_HOST_DEVICE void inline update_transport_jacobian_with_gradient_impl(
         getter::element<4, 4>(J_transport) * getter::element<2, 0>(dGdt) +
         getter::element<5, 4>(J_transport) * getter::element<2, 1>(dGdt) +
         getter::element<6, 4>(J_transport) * getter::element<2, 2>(dGdt);
-    getter::element<7, 4>(new_J) = 0;
+
     getter::element<0, 5>(new_J) =
         getter::element<0, 5>(J_transport) * getter::element<0, 0>(dFdr) +
         getter::element<1, 5>(J_transport) * getter::element<0, 1>(dFdr) +
@@ -477,7 +438,7 @@ DETRAY_HOST_DEVICE void inline update_transport_jacobian_with_gradient_impl(
         getter::element<4, 5>(J_transport) * getter::element<2, 0>(dFdt) +
         getter::element<5, 5>(J_transport) * getter::element<2, 1>(dFdt) +
         getter::element<6, 5>(J_transport) * getter::element<2, 2>(dFdt);
-    getter::element<3, 5>(new_J) = 0;
+
     getter::element<4, 5>(new_J) =
         getter::element<0, 5>(J_transport) * getter::element<0, 0>(dGdr) +
         getter::element<1, 5>(J_transport) * getter::element<0, 1>(dGdr) +
@@ -499,7 +460,7 @@ DETRAY_HOST_DEVICE void inline update_transport_jacobian_with_gradient_impl(
         getter::element<4, 5>(J_transport) * getter::element<2, 0>(dGdt) +
         getter::element<5, 5>(J_transport) * getter::element<2, 1>(dGdt) +
         getter::element<6, 5>(J_transport) * getter::element<2, 2>(dGdt);
-    getter::element<7, 5>(new_J) = 0;
+
     getter::element<0, 6>(new_J) =
         getter::element<0, 6>(J_transport) * getter::element<0, 0>(dFdr) +
         getter::element<1, 6>(J_transport) * getter::element<0, 1>(dFdr) +
@@ -521,7 +482,7 @@ DETRAY_HOST_DEVICE void inline update_transport_jacobian_with_gradient_impl(
         getter::element<4, 6>(J_transport) * getter::element<2, 0>(dFdt) +
         getter::element<5, 6>(J_transport) * getter::element<2, 1>(dFdt) +
         getter::element<6, 6>(J_transport) * getter::element<2, 2>(dFdt);
-    getter::element<3, 6>(new_J) = 0;
+
     getter::element<4, 6>(new_J) =
         getter::element<0, 6>(J_transport) * getter::element<0, 0>(dGdr) +
         getter::element<1, 6>(J_transport) * getter::element<0, 1>(dGdr) +
@@ -543,7 +504,7 @@ DETRAY_HOST_DEVICE void inline update_transport_jacobian_with_gradient_impl(
         getter::element<4, 6>(J_transport) * getter::element<2, 0>(dGdt) +
         getter::element<5, 6>(J_transport) * getter::element<2, 1>(dGdt) +
         getter::element<6, 6>(J_transport) * getter::element<2, 2>(dGdt);
-    getter::element<7, 6>(new_J) = 0;
+
     getter::element<0, 7>(new_J) =
         getter::element<0, 7>(J_transport) * getter::element<0, 0>(dFdr) +
         getter::element<1, 7>(J_transport) * getter::element<0, 1>(dFdr) +
@@ -568,7 +529,7 @@ DETRAY_HOST_DEVICE void inline update_transport_jacobian_with_gradient_impl(
         getter::element<5, 7>(J_transport) * getter::element<2, 1>(dFdt) +
         getter::element<6, 7>(J_transport) * getter::element<2, 2>(dFdt) +
         getter::element<7, 7>(J_transport) * getter::element<2>(dFdqop);
-    getter::element<3, 7>(new_J) = 0;
+
     getter::element<4, 7>(new_J) =
         getter::element<0, 7>(J_transport) * getter::element<0, 0>(dGdr) +
         getter::element<1, 7>(J_transport) * getter::element<0, 1>(dGdr) +

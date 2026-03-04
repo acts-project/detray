@@ -75,7 +75,15 @@ class MyCXXCodePrinter(CXX17CodePrinter):
         return super()._print_Pow(expr)
 
 
+class MyCXXCodePrinterWithoutKnownAssignment(MyCXXCodePrinter):
+    def _print_Assignment(self, expr):
+        if expr.rhs == 0 or expr.rhs == 1:
+            return ""
+        return super()._print_Assignment(expr)
+
+
 cxx_printer = MyCXXCodePrinter()
+cxx_printer_wo_known = MyCXXCodePrinterWithoutKnownAssignment()
 
 
 def inflate_expr(name_expr):
