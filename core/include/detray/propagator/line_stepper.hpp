@@ -40,10 +40,10 @@ class line_stepper final
     template <std::size_t ROWS, std::size_t COLS>
     using matrix_type = dmatrix<algebra_t, ROWS, COLS>;
 
-    struct state : public base_type::state {
+    struct state : public base_type::template state<> {
         static constexpr const stepping::id id = stepping::id::e_linear;
 
-        using base_state = typename base_type::state;
+        using base_state = typename base_type::template state<>;
 
         /// Import base class constructors
         using base_state::base_state;
@@ -73,8 +73,7 @@ class line_stepper final
 
             /// NOTE: Let's skip the element for d(time)/d(qoverp) for the
             /// moment..
-
-            this->set_transport_jacobian(D * this->transport_jacobian());
+            this->transport_jacobian() = D * this->transport_jacobian();
         }
 
         DETRAY_HOST_DEVICE
