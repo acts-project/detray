@@ -45,4 +45,14 @@ concept interval = requires(I i) {
     { detray::detail::get<1>(i) } -> concepts::arithmetic_cvref;
 };
 
+/// Concept that checks whether a type can be incremented with arbitrary
+/// integer values.
+template <typename T>
+concept random_access_incrementable = requires(T i, const T j, int n) {
+    { i += n } -> std::same_as<T &>;
+    { j + n } -> std::same_as<T>;
+    { n + j } -> std::same_as<T>;
+    { i -= n } -> std::same_as<T &>;
+    { j - n } -> std::same_as<T>;
+};
 }  // namespace detray::concepts

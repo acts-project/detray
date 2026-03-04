@@ -26,7 +26,7 @@ GTEST_TEST(detray_utils, ranges_subrange_iota) {
     // Check iterator category
     static_assert(detray::ranges::forward_range<decltype(iota_sr)>);
     static_assert(detray::ranges::bidirectional_range<decltype(iota_sr)>);
-    static_assert(!detray::ranges::random_access_range<decltype(iota_sr)>);
+    static_assert(detray::ranges::random_access_range<decltype(iota_sr)>);
 
     std::size_t i{4u};
     for (const auto v : iota_sr) {
@@ -102,10 +102,10 @@ GTEST_TEST(detray_utils, ranges_pick_static_joined_sequence) {
     // Check iterator category
     static_assert(detray::ranges::forward_range<decltype(indices)>);
     static_assert(detray::ranges::bidirectional_range<decltype(indices)>);
-    static_assert(!detray::ranges::random_access_range<decltype(indices)>);
+    static_assert(detray::ranges::random_access_range<decltype(indices)>);
     static_assert(detray::ranges::forward_range<decltype(selected)>);
     static_assert(detray::ranges::bidirectional_range<decltype(selected)>);
-    static_assert(!detray::ranges::random_access_range<decltype(selected)>);
+    static_assert(detray::ranges::random_access_range<decltype(selected)>);
 
     // Test inherited member functions
     const auto [i, v] = selected[2];
