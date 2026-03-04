@@ -10,7 +10,7 @@
 // Project include(s).
 #include "./codegen/covariance_transport.hpp"
 #include "./codegen/full_jacobian.hpp"
-#include "algebra/utils/approximately_equal.hpp"
+#include "detray/algebra/utils/approximately_equal.hpp"
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"

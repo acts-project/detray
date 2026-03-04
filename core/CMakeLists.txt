@@ -11,6 +11,9 @@ message(STATUS "Building 'detray::core' component")
 file(
     GLOB _detray_core_public_headers
     RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
+    "include/detray/algebra/common/*.hpp"
+    "include/detray/algebra/generic/*.hpp"
+    "include/detray/algebra/utils/*.hpp"
     "include/detray/builders/*.hpp"
     "include/detray/core/*.hpp"
     "include/detray/definitions/*.hpp"

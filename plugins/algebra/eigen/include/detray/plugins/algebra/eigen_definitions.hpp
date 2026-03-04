@@ -8,7 +8,7 @@
 #pragma once
 
 // Algebra-Plugins include
-#include "algebra/eigen.hpp"
+#include "detray/algebra/eigen.hpp"
 
 namespace detray {
 

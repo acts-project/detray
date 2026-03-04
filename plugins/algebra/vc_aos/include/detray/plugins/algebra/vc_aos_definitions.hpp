@@ -8,7 +8,7 @@
 #pragma once
 
 // Algebra-Plugins include
-#include "algebra/vc_aos.hpp"
+#include "detray/algebra/vc_aos.hpp"
 
 namespace detray {
 
