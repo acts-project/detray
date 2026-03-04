@@ -20,7 +20,7 @@ template <typename transport_jacobian_t, typename b2f_dpos_dloc_t,
           typename path_to_free_derivative_t,
           typename free_to_path_derivative_t, typename f2b_dloc_dpos_t,
           typename f2b_dangle_ddir_t, typename full_jacobian_t>
-DETRAY_HOST_DEVICE void inline update_full_jacobian_impl(
+DETRAY_HOST_DEVICE void inline update_full_jacobian_with_gradient_impl(
     const transport_jacobian_t& transport_jacobian,
     const b2f_dpos_dloc_t& b2f_dpos_dloc,
     const b2f_ddir_dangle_t& b2f_ddir_dangle,
@@ -54,6 +54,27 @@ DETRAY_HOST_DEVICE void inline update_full_jacobian_impl(
              (algebra::concepts::square_matrix<full_jacobian_t> &&
               algebra::traits::rank<full_jacobian_t> == 6))
 {
+    assert(getter::element(transport_jacobian, 0u, 3u) == 0.f);
+    assert(getter::element(transport_jacobian, 1u, 3u) == 0.f);
+    assert(getter::element(transport_jacobian, 2u, 3u) == 0.f);
+    assert(getter::element(transport_jacobian, 3u, 0u) == 0.f);
+    assert(getter::element(transport_jacobian, 3u, 1u) == 0.f);
+    assert(getter::element(transport_jacobian, 3u, 2u) == 0.f);
+    assert(getter::element(transport_jacobian, 3u, 3u) == 1.f);
+    assert(getter::element(transport_jacobian, 3u, 4u) == 0.f);
+    assert(getter::element(transport_jacobian, 3u, 5u) == 0.f);
+    assert(getter::element(transport_jacobian, 3u, 6u) == 0.f);
+    assert(getter::element(transport_jacobian, 3u, 7u) == 0.f);
+    assert(getter::element(transport_jacobian, 4u, 3u) == 0.f);
+    assert(getter::element(transport_jacobian, 5u, 3u) == 0.f);
+    assert(getter::element(transport_jacobian, 6u, 3u) == 0.f);
+    assert(getter::element(transport_jacobian, 7u, 0u) == 0.f);
+    assert(getter::element(transport_jacobian, 7u, 1u) == 0.f);
+    assert(getter::element(transport_jacobian, 7u, 2u) == 0.f);
+    assert(getter::element(transport_jacobian, 7u, 3u) == 0.f);
+    assert(getter::element(transport_jacobian, 7u, 4u) == 0.f);
+    assert(getter::element(transport_jacobian, 7u, 5u) == 0.f);
+    assert(getter::element(transport_jacobian, 7u, 6u) == 0.f);
     assert(getter::element(b2f_ddir_dangle, 2u, 0u) == 0.f);
     assert(getter::element(path_to_free_derivative, 3u, 0u) == 0.f);
     assert(getter::element(free_to_path_derivative, 0u, 3u) == 0.f);
@@ -96,6 +117,18 @@ DETRAY_HOST_DEVICE void inline update_full_jacobian_impl(
                      getter::element(path_to_free_derivative, 5u, 0u);
     const auto x48 = getter::element(f2b_dangle_ddir, 1u, 2u) *
                      getter::element(path_to_free_derivative, 6u, 0u);
+    const auto x60 = getter::element(free_to_path_derivative, 0u, 0u) *
+                     getter::element(path_to_free_derivative, 7u, 0u);
+    const auto x61 = getter::element(free_to_path_derivative, 0u, 1u) *
+                     getter::element(path_to_free_derivative, 7u, 0u);
+    const auto x62 = getter::element(free_to_path_derivative, 0u, 2u) *
+                     getter::element(path_to_free_derivative, 7u, 0u);
+    const auto x63 = getter::element(free_to_path_derivative, 0u, 4u) *
+                     getter::element(path_to_free_derivative, 7u, 0u);
+    const auto x64 = getter::element(free_to_path_derivative, 0u, 5u) *
+                     getter::element(path_to_free_derivative, 7u, 0u);
+    const auto x65 = getter::element(free_to_path_derivative, 0u, 6u) *
+                     getter::element(path_to_free_derivative, 7u, 0u);
     const auto x33 =
         (x31 + x32) * getter::element(free_to_path_derivative, 0u, 0u);
     const auto x34 =
@@ -156,6 +189,36 @@ DETRAY_HOST_DEVICE void inline update_full_jacobian_impl(
                           getter::element(path_to_free_derivative, 6u, 0u) +
                       1) *
                          getter::element(f2b_dangle_ddir, 1u, 2u);
+    const auto x66 = x60 * getter::element(transport_jacobian, 0u, 0u) +
+                     x61 * getter::element(transport_jacobian, 1u, 0u) +
+                     x62 * getter::element(transport_jacobian, 2u, 0u) +
+                     x63 * getter::element(transport_jacobian, 4u, 0u) +
+                     x64 * getter::element(transport_jacobian, 5u, 0u) +
+                     x65 * getter::element(transport_jacobian, 6u, 0u);
+    const auto x67 = x60 * getter::element(transport_jacobian, 0u, 1u) +
+                     x61 * getter::element(transport_jacobian, 1u, 1u) +
+                     x62 * getter::element(transport_jacobian, 2u, 1u) +
+                     x63 * getter::element(transport_jacobian, 4u, 1u) +
+                     x64 * getter::element(transport_jacobian, 5u, 1u) +
+                     x65 * getter::element(transport_jacobian, 6u, 1u);
+    const auto x68 = x60 * getter::element(transport_jacobian, 0u, 2u) +
+                     x61 * getter::element(transport_jacobian, 1u, 2u) +
+                     x62 * getter::element(transport_jacobian, 2u, 2u) +
+                     x63 * getter::element(transport_jacobian, 4u, 2u) +
+                     x64 * getter::element(transport_jacobian, 5u, 2u) +
+                     x65 * getter::element(transport_jacobian, 6u, 2u);
+    const auto x69 = x60 * getter::element(transport_jacobian, 0u, 4u) +
+                     x61 * getter::element(transport_jacobian, 1u, 4u) +
+                     x62 * getter::element(transport_jacobian, 2u, 4u) +
+                     x63 * getter::element(transport_jacobian, 4u, 4u) +
+                     x64 * getter::element(transport_jacobian, 5u, 4u) +
+                     x65 * getter::element(transport_jacobian, 6u, 4u);
+    const auto x70 = x60 * getter::element(transport_jacobian, 0u, 5u) +
+                     x61 * getter::element(transport_jacobian, 1u, 5u) +
+                     x62 * getter::element(transport_jacobian, 2u, 5u) +
+                     x63 * getter::element(transport_jacobian, 4u, 5u) +
+                     x64 * getter::element(transport_jacobian, 5u, 5u) +
+                     x65 * getter::element(transport_jacobian, 6u, 5u);
     const auto x12 = x11 * getter::element(transport_jacobian, 2u, 0u) +
                      x3 * getter::element(transport_jacobian, 4u, 0u) +
                      x4 * getter::element(transport_jacobian, 5u, 0u) +
@@ -292,14 +355,11 @@ DETRAY_HOST_DEVICE void inline update_full_jacobian_impl(
         x55 * getter::element(b2f_dpos_dloc, 0u, 0u) +
         x56 * getter::element(b2f_dpos_dloc, 1u, 0u) +
         x57 * getter::element(b2f_dpos_dloc, 2u, 0u);
-    getter::element(full_jacobian, 4u, 0u) = 0;
-    getter::element(full_jacobian, 5u, 0u) =
-        getter::element(b2f_dpos_dloc, 0u, 0u) *
-            getter::element(transport_jacobian, 3u, 0u) +
-        getter::element(b2f_dpos_dloc, 1u, 0u) *
-            getter::element(transport_jacobian, 3u, 1u) +
-        getter::element(b2f_dpos_dloc, 2u, 0u) *
-            getter::element(transport_jacobian, 3u, 2u);
+    getter::element(full_jacobian, 4u, 0u) =
+        x66 * getter::element(b2f_dpos_dloc, 0u, 0u) +
+        x67 * getter::element(b2f_dpos_dloc, 1u, 0u) +
+        x68 * getter::element(b2f_dpos_dloc, 2u, 0u);
+    getter::element(full_jacobian, 5u, 0u) = 0;
     getter::element(full_jacobian, 0u, 1u) =
         x12 * getter::element(b2f_dpos_dloc, 0u, 1u) +
         x13 * getter::element(b2f_dpos_dloc, 1u, 1u) +
@@ -316,14 +376,11 @@ DETRAY_HOST_DEVICE void inline update_full_jacobian_impl(
         x55 * getter::element(b2f_dpos_dloc, 0u, 1u) +
         x56 * getter::element(b2f_dpos_dloc, 1u, 1u) +
         x57 * getter::element(b2f_dpos_dloc, 2u, 1u);
-    getter::element(full_jacobian, 4u, 1u) = 0;
-    getter::element(full_jacobian, 5u, 1u) =
-        getter::element(b2f_dpos_dloc, 0u, 1u) *
-            getter::element(transport_jacobian, 3u, 0u) +
-        getter::element(b2f_dpos_dloc, 1u, 1u) *
-            getter::element(transport_jacobian, 3u, 1u) +
-        getter::element(b2f_dpos_dloc, 2u, 1u) *
-            getter::element(transport_jacobian, 3u, 2u);
+    getter::element(full_jacobian, 4u, 1u) =
+        x66 * getter::element(b2f_dpos_dloc, 0u, 1u) +
+        x67 * getter::element(b2f_dpos_dloc, 1u, 1u) +
+        x68 * getter::element(b2f_dpos_dloc, 2u, 1u);
+    getter::element(full_jacobian, 5u, 1u) = 0;
     getter::element(full_jacobian, 0u, 2u) =
         x12 * getter::element(b2f_dpos_dangle, 0u, 0u) +
         x13 * getter::element(b2f_dpos_dangle, 1u, 0u) +
@@ -348,18 +405,13 @@ DETRAY_HOST_DEVICE void inline update_full_jacobian_impl(
         x57 * getter::element(b2f_dpos_dangle, 2u, 0u) +
         x58 * getter::element(b2f_ddir_dangle, 0u, 0u) +
         x59 * getter::element(b2f_ddir_dangle, 1u, 0u);
-    getter::element(full_jacobian, 4u, 2u) = 0;
-    getter::element(full_jacobian, 5u, 2u) =
-        getter::element(b2f_ddir_dangle, 0u, 0u) *
-            getter::element(transport_jacobian, 3u, 4u) +
-        getter::element(b2f_ddir_dangle, 1u, 0u) *
-            getter::element(transport_jacobian, 3u, 5u) +
-        getter::element(b2f_dpos_dangle, 0u, 0u) *
-            getter::element(transport_jacobian, 3u, 0u) +
-        getter::element(b2f_dpos_dangle, 1u, 0u) *
-            getter::element(transport_jacobian, 3u, 1u) +
-        getter::element(b2f_dpos_dangle, 2u, 0u) *
-            getter::element(transport_jacobian, 3u, 2u);
+    getter::element(full_jacobian, 4u, 2u) =
+        x66 * getter::element(b2f_dpos_dangle, 0u, 0u) +
+        x67 * getter::element(b2f_dpos_dangle, 1u, 0u) +
+        x68 * getter::element(b2f_dpos_dangle, 2u, 0u) +
+        x69 * getter::element(b2f_ddir_dangle, 0u, 0u) +
+        x70 * getter::element(b2f_ddir_dangle, 1u, 0u);
+    getter::element(full_jacobian, 5u, 2u) = 0;
     getter::element(full_jacobian, 0u, 3u) =
         x12 * getter::element(b2f_dpos_dangle, 0u, 1u) +
         x13 * getter::element(b2f_dpos_dangle, 1u, 1u) +
@@ -412,20 +464,20 @@ DETRAY_HOST_DEVICE void inline update_full_jacobian_impl(
          x53 * getter::element(transport_jacobian, 5u, 6u) +
          x54 * getter::element(transport_jacobian, 6u, 6u)) *
             getter::element(b2f_ddir_dangle, 2u, 1u);
-    getter::element(full_jacobian, 4u, 3u) = 0;
-    getter::element(full_jacobian, 5u, 3u) =
-        getter::element(b2f_ddir_dangle, 0u, 1u) *
-            getter::element(transport_jacobian, 3u, 4u) +
-        getter::element(b2f_ddir_dangle, 1u, 1u) *
-            getter::element(transport_jacobian, 3u, 5u) +
-        getter::element(b2f_ddir_dangle, 2u, 1u) *
-            getter::element(transport_jacobian, 3u, 6u) +
-        getter::element(b2f_dpos_dangle, 0u, 1u) *
-            getter::element(transport_jacobian, 3u, 0u) +
-        getter::element(b2f_dpos_dangle, 1u, 1u) *
-            getter::element(transport_jacobian, 3u, 1u) +
-        getter::element(b2f_dpos_dangle, 2u, 1u) *
-            getter::element(transport_jacobian, 3u, 2u);
+    getter::element(full_jacobian, 4u, 3u) =
+        x66 * getter::element(b2f_dpos_dangle, 0u, 1u) +
+        x67 * getter::element(b2f_dpos_dangle, 1u, 1u) +
+        x68 * getter::element(b2f_dpos_dangle, 2u, 1u) +
+        x69 * getter::element(b2f_ddir_dangle, 0u, 1u) +
+        x70 * getter::element(b2f_ddir_dangle, 1u, 1u) +
+        (x60 * getter::element(transport_jacobian, 0u, 6u) +
+         x61 * getter::element(transport_jacobian, 1u, 6u) +
+         x62 * getter::element(transport_jacobian, 2u, 6u) +
+         x63 * getter::element(transport_jacobian, 4u, 6u) +
+         x64 * getter::element(transport_jacobian, 5u, 6u) +
+         x65 * getter::element(transport_jacobian, 6u, 6u)) *
+            getter::element(b2f_ddir_dangle, 2u, 1u);
+    getter::element(full_jacobian, 5u, 3u) = 0;
     getter::element(full_jacobian, 0u, 4u) =
         x11 * getter::element(transport_jacobian, 2u, 7u) +
         x3 * getter::element(transport_jacobian, 4u, 7u) +
@@ -454,9 +506,450 @@ DETRAY_HOST_DEVICE void inline update_full_jacobian_impl(
         x52 * getter::element(transport_jacobian, 4u, 7u) +
         x53 * getter::element(transport_jacobian, 5u, 7u) +
         x54 * getter::element(transport_jacobian, 6u, 7u);
-    getter::element(full_jacobian, 4u, 4u) = 1;
-    getter::element(full_jacobian, 5u, 4u) =
-        getter::element(transport_jacobian, 3u, 7u);
+    getter::element(full_jacobian, 4u, 4u) =
+        x60 * getter::element(transport_jacobian, 0u, 7u) +
+        x61 * getter::element(transport_jacobian, 1u, 7u) +
+        x62 * getter::element(transport_jacobian, 2u, 7u) +
+        x63 * getter::element(transport_jacobian, 4u, 7u) +
+        x64 * getter::element(transport_jacobian, 5u, 7u) +
+        x65 * getter::element(transport_jacobian, 6u, 7u) +
+        getter::element(transport_jacobian, 7u, 7u);
+    getter::element(full_jacobian, 5u, 4u) = 0;
+    getter::element(full_jacobian, 0u, 5u) = 0;
+    getter::element(full_jacobian, 1u, 5u) = 0;
+    getter::element(full_jacobian, 2u, 5u) = 0;
+    getter::element(full_jacobian, 3u, 5u) = 0;
+    getter::element(full_jacobian, 4u, 5u) = 0;
+    getter::element(full_jacobian, 5u, 5u) = 1;
+}
+template <typename transport_jacobian_t, typename b2f_dpos_dloc_t,
+          typename b2f_ddir_dangle_t, typename b2f_dpos_dangle_t,
+          typename path_to_free_derivative_t,
+          typename free_to_path_derivative_t, typename f2b_dloc_dpos_t,
+          typename f2b_dangle_ddir_t, typename full_jacobian_t>
+DETRAY_HOST_DEVICE void inline update_full_jacobian_without_gradient_impl(
+    const transport_jacobian_t& transport_jacobian,
+    const b2f_dpos_dloc_t& b2f_dpos_dloc,
+    const b2f_ddir_dangle_t& b2f_ddir_dangle,
+    const b2f_dpos_dangle_t& b2f_dpos_dangle,
+    const path_to_free_derivative_t& path_to_free_derivative,
+    const free_to_path_derivative_t& free_to_path_derivative,
+    const f2b_dloc_dpos_t& f2b_dloc_dpos,
+    const f2b_dangle_ddir_t& f2b_dangle_ddir, full_jacobian_t& full_jacobian)
+    requires((algebra::concepts::square_matrix<transport_jacobian_t> &&
+              algebra::traits::rank<transport_jacobian_t> == 8) &&
+             (algebra::concepts::matrix<b2f_dpos_dloc_t> &&
+              algebra::traits::rows<b2f_dpos_dloc_t> == 3 &&
+              algebra::traits::columns<b2f_dpos_dloc_t> == 2) &&
+             (algebra::concepts::matrix<b2f_ddir_dangle_t> &&
+              algebra::traits::rows<b2f_ddir_dangle_t> == 3 &&
+              algebra::traits::columns<b2f_ddir_dangle_t> == 2) &&
+             (algebra::concepts::matrix<b2f_dpos_dangle_t> &&
+              algebra::traits::rows<b2f_dpos_dangle_t> == 3 &&
+              algebra::traits::columns<b2f_dpos_dangle_t> == 2) &&
+             (algebra::concepts::matrix<path_to_free_derivative_t> &&
+              algebra::traits::rows<path_to_free_derivative_t> == 8 &&
+              algebra::traits::columns<path_to_free_derivative_t> == 1) &&
+             (algebra::concepts::row_matrix<free_to_path_derivative_t> &&
+              algebra::traits::columns<free_to_path_derivative_t> == 8) &&
+             (algebra::concepts::matrix<f2b_dloc_dpos_t> &&
+              algebra::traits::rows<f2b_dloc_dpos_t> == 2 &&
+              algebra::traits::columns<f2b_dloc_dpos_t> == 3) &&
+             (algebra::concepts::matrix<f2b_dangle_ddir_t> &&
+              algebra::traits::rows<f2b_dangle_ddir_t> == 2 &&
+              algebra::traits::columns<f2b_dangle_ddir_t> == 3) &&
+             (algebra::concepts::square_matrix<full_jacobian_t> &&
+              algebra::traits::rank<full_jacobian_t> == 6))
+{
+    assert(getter::element(transport_jacobian, 0u, 0u) == 1.f);
+    assert(getter::element(transport_jacobian, 0u, 1u) == 0.f);
+    assert(getter::element(transport_jacobian, 0u, 2u) == 0.f);
+    assert(getter::element(transport_jacobian, 0u, 3u) == 0.f);
+    assert(getter::element(transport_jacobian, 1u, 0u) == 0.f);
+    assert(getter::element(transport_jacobian, 1u, 1u) == 1.f);
+    assert(getter::element(transport_jacobian, 1u, 2u) == 0.f);
+    assert(getter::element(transport_jacobian, 1u, 3u) == 0.f);
+    assert(getter::element(transport_jacobian, 2u, 0u) == 0.f);
+    assert(getter::element(transport_jacobian, 2u, 1u) == 0.f);
+    assert(getter::element(transport_jacobian, 2u, 2u) == 1.f);
+    assert(getter::element(transport_jacobian, 2u, 3u) == 0.f);
+    assert(getter::element(transport_jacobian, 3u, 0u) == 0.f);
+    assert(getter::element(transport_jacobian, 3u, 1u) == 0.f);
+    assert(getter::element(transport_jacobian, 3u, 2u) == 0.f);
+    assert(getter::element(transport_jacobian, 3u, 3u) == 1.f);
+    assert(getter::element(transport_jacobian, 3u, 4u) == 0.f);
+    assert(getter::element(transport_jacobian, 3u, 5u) == 0.f);
+    assert(getter::element(transport_jacobian, 3u, 6u) == 0.f);
+    assert(getter::element(transport_jacobian, 3u, 7u) == 0.f);
+    assert(getter::element(transport_jacobian, 4u, 0u) == 0.f);
+    assert(getter::element(transport_jacobian, 4u, 1u) == 0.f);
+    assert(getter::element(transport_jacobian, 4u, 2u) == 0.f);
+    assert(getter::element(transport_jacobian, 4u, 3u) == 0.f);
+    assert(getter::element(transport_jacobian, 5u, 0u) == 0.f);
+    assert(getter::element(transport_jacobian, 5u, 1u) == 0.f);
+    assert(getter::element(transport_jacobian, 5u, 2u) == 0.f);
+    assert(getter::element(transport_jacobian, 5u, 3u) == 0.f);
+    assert(getter::element(transport_jacobian, 6u, 0u) == 0.f);
+    assert(getter::element(transport_jacobian, 6u, 1u) == 0.f);
+    assert(getter::element(transport_jacobian, 6u, 2u) == 0.f);
+    assert(getter::element(transport_jacobian, 6u, 3u) == 0.f);
+    assert(getter::element(transport_jacobian, 7u, 0u) == 0.f);
+    assert(getter::element(transport_jacobian, 7u, 1u) == 0.f);
+    assert(getter::element(transport_jacobian, 7u, 2u) == 0.f);
+    assert(getter::element(transport_jacobian, 7u, 3u) == 0.f);
+    assert(getter::element(transport_jacobian, 7u, 4u) == 0.f);
+    assert(getter::element(transport_jacobian, 7u, 5u) == 0.f);
+    assert(getter::element(transport_jacobian, 7u, 6u) == 0.f);
+    assert(getter::element(b2f_ddir_dangle, 2u, 0u) == 0.f);
+    assert(getter::element(path_to_free_derivative, 3u, 0u) == 0.f);
+    assert(getter::element(free_to_path_derivative, 0u, 3u) == 0.f);
+    assert(getter::element(free_to_path_derivative, 0u, 7u) == 0.f);
+    assert(getter::element(f2b_dangle_ddir, 0u, 2u) == 0.f);
+    const auto x0 = getter::element(f2b_dloc_dpos, 0u, 1u) *
+                    getter::element(path_to_free_derivative, 1u, 0u);
+    const auto x1 = getter::element(f2b_dloc_dpos, 0u, 2u) *
+                    getter::element(path_to_free_derivative, 2u, 0u);
+    const auto x2 = getter::element(free_to_path_derivative, 0u, 0u) *
+                        getter::element(path_to_free_derivative, 0u, 0u) +
+                    1;
+    const auto x4 = getter::element(f2b_dloc_dpos, 0u, 0u) *
+                    getter::element(path_to_free_derivative, 0u, 0u);
+    const auto x5 = getter::element(free_to_path_derivative, 0u, 1u) *
+                        getter::element(path_to_free_derivative, 1u, 0u) +
+                    1;
+    const auto x7 = getter::element(free_to_path_derivative, 0u, 2u) *
+                        getter::element(path_to_free_derivative, 2u, 0u) +
+                    1;
+    const auto x14 = getter::element(f2b_dloc_dpos, 1u, 1u) *
+                     getter::element(path_to_free_derivative, 1u, 0u);
+    const auto x15 = getter::element(f2b_dloc_dpos, 1u, 2u) *
+                     getter::element(path_to_free_derivative, 2u, 0u);
+    const auto x17 = getter::element(f2b_dloc_dpos, 1u, 0u) *
+                     getter::element(path_to_free_derivative, 0u, 0u);
+    const auto x25 = getter::element(f2b_dangle_ddir, 0u, 0u) *
+                     getter::element(path_to_free_derivative, 4u, 0u);
+    const auto x26 = getter::element(f2b_dangle_ddir, 0u, 1u) *
+                     getter::element(path_to_free_derivative, 5u, 0u);
+    const auto x31 = getter::element(free_to_path_derivative, 0u, 4u) *
+                         getter::element(path_to_free_derivative, 4u, 0u) +
+                     1;
+    const auto x33 = getter::element(free_to_path_derivative, 0u, 5u) *
+                         getter::element(path_to_free_derivative, 5u, 0u) +
+                     1;
+    const auto x37 = getter::element(f2b_dangle_ddir, 1u, 0u) *
+                     getter::element(path_to_free_derivative, 4u, 0u);
+    const auto x38 = getter::element(f2b_dangle_ddir, 1u, 1u) *
+                     getter::element(path_to_free_derivative, 5u, 0u);
+    const auto x39 = getter::element(f2b_dangle_ddir, 1u, 2u) *
+                     getter::element(path_to_free_derivative, 6u, 0u);
+    const auto x48 = getter::element(free_to_path_derivative, 0u, 0u) *
+                     getter::element(path_to_free_derivative, 7u, 0u);
+    const auto x49 = getter::element(free_to_path_derivative, 0u, 1u) *
+                     getter::element(path_to_free_derivative, 7u, 0u);
+    const auto x50 = getter::element(free_to_path_derivative, 0u, 2u) *
+                     getter::element(path_to_free_derivative, 7u, 0u);
+    const auto x51 = getter::element(free_to_path_derivative, 0u, 4u) *
+                     getter::element(path_to_free_derivative, 7u, 0u);
+    const auto x52 = getter::element(free_to_path_derivative, 0u, 5u) *
+                     getter::element(path_to_free_derivative, 7u, 0u);
+    const auto x53 = getter::element(free_to_path_derivative, 0u, 6u) *
+                     getter::element(path_to_free_derivative, 7u, 0u);
+    const auto x27 =
+        (x25 + x26) * getter::element(free_to_path_derivative, 0u, 0u);
+    const auto x28 =
+        (x25 + x26) * getter::element(free_to_path_derivative, 0u, 1u);
+    const auto x29 =
+        (x25 + x26) * getter::element(free_to_path_derivative, 0u, 2u);
+    const auto x30 =
+        (x25 + x26) * getter::element(free_to_path_derivative, 0u, 6u);
+    const auto x9 =
+        (x0 + x1 + x4) * getter::element(free_to_path_derivative, 0u, 4u);
+    const auto x10 =
+        (x0 + x1 + x4) * getter::element(free_to_path_derivative, 0u, 5u);
+    const auto x11 =
+        (x0 + x1 + x4) * getter::element(free_to_path_derivative, 0u, 6u);
+    const auto x20 =
+        (x14 + x15 + x17) * getter::element(free_to_path_derivative, 0u, 4u);
+    const auto x21 =
+        (x14 + x15 + x17) * getter::element(free_to_path_derivative, 0u, 5u);
+    const auto x22 =
+        (x14 + x15 + x17) * getter::element(free_to_path_derivative, 0u, 6u);
+    const auto x32 = x26 * getter::element(free_to_path_derivative, 0u, 4u) +
+                     x31 * getter::element(f2b_dangle_ddir, 0u, 0u);
+    const auto x34 = x25 * getter::element(free_to_path_derivative, 0u, 5u) +
+                     x33 * getter::element(f2b_dangle_ddir, 0u, 1u);
+    const auto x40 =
+        (x37 + x38 + x39) * getter::element(free_to_path_derivative, 0u, 0u);
+    const auto x41 =
+        (x37 + x38 + x39) * getter::element(free_to_path_derivative, 0u, 1u);
+    const auto x42 =
+        (x37 + x38 + x39) * getter::element(free_to_path_derivative, 0u, 2u);
+    const auto x3 = x0 * getter::element(free_to_path_derivative, 0u, 0u) +
+                    x1 * getter::element(free_to_path_derivative, 0u, 0u) +
+                    x2 * getter::element(f2b_dloc_dpos, 0u, 0u);
+    const auto x6 = x1 * getter::element(free_to_path_derivative, 0u, 1u) +
+                    x4 * getter::element(free_to_path_derivative, 0u, 1u) +
+                    x5 * getter::element(f2b_dloc_dpos, 0u, 1u);
+    const auto x8 = x0 * getter::element(free_to_path_derivative, 0u, 2u) +
+                    x4 * getter::element(free_to_path_derivative, 0u, 2u) +
+                    x7 * getter::element(f2b_dloc_dpos, 0u, 2u);
+    const auto x16 = x14 * getter::element(free_to_path_derivative, 0u, 0u) +
+                     x15 * getter::element(free_to_path_derivative, 0u, 0u) +
+                     x2 * getter::element(f2b_dloc_dpos, 1u, 0u);
+    const auto x18 = x15 * getter::element(free_to_path_derivative, 0u, 1u) +
+                     x17 * getter::element(free_to_path_derivative, 0u, 1u) +
+                     x5 * getter::element(f2b_dloc_dpos, 1u, 1u);
+    const auto x19 = x14 * getter::element(free_to_path_derivative, 0u, 2u) +
+                     x17 * getter::element(free_to_path_derivative, 0u, 2u) +
+                     x7 * getter::element(f2b_dloc_dpos, 1u, 2u);
+    const auto x43 = x31 * getter::element(f2b_dangle_ddir, 1u, 0u) +
+                     x38 * getter::element(free_to_path_derivative, 0u, 4u) +
+                     x39 * getter::element(free_to_path_derivative, 0u, 4u);
+    const auto x44 = x33 * getter::element(f2b_dangle_ddir, 1u, 1u) +
+                     x37 * getter::element(free_to_path_derivative, 0u, 5u) +
+                     x39 * getter::element(free_to_path_derivative, 0u, 5u);
+    const auto x45 = x37 * getter::element(free_to_path_derivative, 0u, 6u) +
+                     x38 * getter::element(free_to_path_derivative, 0u, 6u) +
+                     (getter::element(free_to_path_derivative, 0u, 6u) *
+                          getter::element(path_to_free_derivative, 6u, 0u) +
+                      1) *
+                         getter::element(f2b_dangle_ddir, 1u, 2u);
+    const auto x54 = x48 * getter::element(transport_jacobian, 0u, 4u) +
+                     x49 * getter::element(transport_jacobian, 1u, 4u) +
+                     x50 * getter::element(transport_jacobian, 2u, 4u) +
+                     x51 * getter::element(transport_jacobian, 4u, 4u) +
+                     x52 * getter::element(transport_jacobian, 5u, 4u) +
+                     x53 * getter::element(transport_jacobian, 6u, 4u);
+    const auto x55 = x48 * getter::element(transport_jacobian, 0u, 5u) +
+                     x49 * getter::element(transport_jacobian, 1u, 5u) +
+                     x50 * getter::element(transport_jacobian, 2u, 5u) +
+                     x51 * getter::element(transport_jacobian, 4u, 5u) +
+                     x52 * getter::element(transport_jacobian, 5u, 5u) +
+                     x53 * getter::element(transport_jacobian, 6u, 5u);
+    const auto x12 = x10 * getter::element(transport_jacobian, 5u, 4u) +
+                     x11 * getter::element(transport_jacobian, 6u, 4u) +
+                     x3 * getter::element(transport_jacobian, 0u, 4u) +
+                     x6 * getter::element(transport_jacobian, 1u, 4u) +
+                     x8 * getter::element(transport_jacobian, 2u, 4u) +
+                     x9 * getter::element(transport_jacobian, 4u, 4u);
+    const auto x13 = x10 * getter::element(transport_jacobian, 5u, 5u) +
+                     x11 * getter::element(transport_jacobian, 6u, 5u) +
+                     x3 * getter::element(transport_jacobian, 0u, 5u) +
+                     x6 * getter::element(transport_jacobian, 1u, 5u) +
+                     x8 * getter::element(transport_jacobian, 2u, 5u) +
+                     x9 * getter::element(transport_jacobian, 4u, 5u);
+    const auto x23 = x16 * getter::element(transport_jacobian, 0u, 4u) +
+                     x18 * getter::element(transport_jacobian, 1u, 4u) +
+                     x19 * getter::element(transport_jacobian, 2u, 4u) +
+                     x20 * getter::element(transport_jacobian, 4u, 4u) +
+                     x21 * getter::element(transport_jacobian, 5u, 4u) +
+                     x22 * getter::element(transport_jacobian, 6u, 4u);
+    const auto x24 = x16 * getter::element(transport_jacobian, 0u, 5u) +
+                     x18 * getter::element(transport_jacobian, 1u, 5u) +
+                     x19 * getter::element(transport_jacobian, 2u, 5u) +
+                     x20 * getter::element(transport_jacobian, 4u, 5u) +
+                     x21 * getter::element(transport_jacobian, 5u, 5u) +
+                     x22 * getter::element(transport_jacobian, 6u, 5u);
+    const auto x35 = x27 * getter::element(transport_jacobian, 0u, 4u) +
+                     x28 * getter::element(transport_jacobian, 1u, 4u) +
+                     x29 * getter::element(transport_jacobian, 2u, 4u) +
+                     x30 * getter::element(transport_jacobian, 6u, 4u) +
+                     x32 * getter::element(transport_jacobian, 4u, 4u) +
+                     x34 * getter::element(transport_jacobian, 5u, 4u);
+    const auto x36 = x27 * getter::element(transport_jacobian, 0u, 5u) +
+                     x28 * getter::element(transport_jacobian, 1u, 5u) +
+                     x29 * getter::element(transport_jacobian, 2u, 5u) +
+                     x30 * getter::element(transport_jacobian, 6u, 5u) +
+                     x32 * getter::element(transport_jacobian, 4u, 5u) +
+                     x34 * getter::element(transport_jacobian, 5u, 5u);
+    const auto x46 = x40 * getter::element(transport_jacobian, 0u, 4u) +
+                     x41 * getter::element(transport_jacobian, 1u, 4u) +
+                     x42 * getter::element(transport_jacobian, 2u, 4u) +
+                     x43 * getter::element(transport_jacobian, 4u, 4u) +
+                     x44 * getter::element(transport_jacobian, 5u, 4u) +
+                     x45 * getter::element(transport_jacobian, 6u, 4u);
+    const auto x47 = x40 * getter::element(transport_jacobian, 0u, 5u) +
+                     x41 * getter::element(transport_jacobian, 1u, 5u) +
+                     x42 * getter::element(transport_jacobian, 2u, 5u) +
+                     x43 * getter::element(transport_jacobian, 4u, 5u) +
+                     x44 * getter::element(transport_jacobian, 5u, 5u) +
+                     x45 * getter::element(transport_jacobian, 6u, 5u);
+    getter::element(full_jacobian, 0u, 0u) =
+        x3 * getter::element(b2f_dpos_dloc, 0u, 0u) +
+        x6 * getter::element(b2f_dpos_dloc, 1u, 0u) +
+        x8 * getter::element(b2f_dpos_dloc, 2u, 0u);
+    getter::element(full_jacobian, 1u, 0u) =
+        x16 * getter::element(b2f_dpos_dloc, 0u, 0u) +
+        x18 * getter::element(b2f_dpos_dloc, 1u, 0u) +
+        x19 * getter::element(b2f_dpos_dloc, 2u, 0u);
+    getter::element(full_jacobian, 2u, 0u) =
+        x27 * getter::element(b2f_dpos_dloc, 0u, 0u) +
+        x28 * getter::element(b2f_dpos_dloc, 1u, 0u) +
+        x29 * getter::element(b2f_dpos_dloc, 2u, 0u);
+    getter::element(full_jacobian, 3u, 0u) =
+        x40 * getter::element(b2f_dpos_dloc, 0u, 0u) +
+        x41 * getter::element(b2f_dpos_dloc, 1u, 0u) +
+        x42 * getter::element(b2f_dpos_dloc, 2u, 0u);
+    getter::element(full_jacobian, 4u, 0u) =
+        x48 * getter::element(b2f_dpos_dloc, 0u, 0u) +
+        x49 * getter::element(b2f_dpos_dloc, 1u, 0u) +
+        x50 * getter::element(b2f_dpos_dloc, 2u, 0u);
+    getter::element(full_jacobian, 5u, 0u) = 0;
+    getter::element(full_jacobian, 0u, 1u) =
+        x3 * getter::element(b2f_dpos_dloc, 0u, 1u) +
+        x6 * getter::element(b2f_dpos_dloc, 1u, 1u) +
+        x8 * getter::element(b2f_dpos_dloc, 2u, 1u);
+    getter::element(full_jacobian, 1u, 1u) =
+        x16 * getter::element(b2f_dpos_dloc, 0u, 1u) +
+        x18 * getter::element(b2f_dpos_dloc, 1u, 1u) +
+        x19 * getter::element(b2f_dpos_dloc, 2u, 1u);
+    getter::element(full_jacobian, 2u, 1u) =
+        x27 * getter::element(b2f_dpos_dloc, 0u, 1u) +
+        x28 * getter::element(b2f_dpos_dloc, 1u, 1u) +
+        x29 * getter::element(b2f_dpos_dloc, 2u, 1u);
+    getter::element(full_jacobian, 3u, 1u) =
+        x40 * getter::element(b2f_dpos_dloc, 0u, 1u) +
+        x41 * getter::element(b2f_dpos_dloc, 1u, 1u) +
+        x42 * getter::element(b2f_dpos_dloc, 2u, 1u);
+    getter::element(full_jacobian, 4u, 1u) =
+        x48 * getter::element(b2f_dpos_dloc, 0u, 1u) +
+        x49 * getter::element(b2f_dpos_dloc, 1u, 1u) +
+        x50 * getter::element(b2f_dpos_dloc, 2u, 1u);
+    getter::element(full_jacobian, 5u, 1u) = 0;
+    getter::element(full_jacobian, 0u, 2u) =
+        x12 * getter::element(b2f_ddir_dangle, 0u, 0u) +
+        x13 * getter::element(b2f_ddir_dangle, 1u, 0u) +
+        x3 * getter::element(b2f_dpos_dangle, 0u, 0u) +
+        x6 * getter::element(b2f_dpos_dangle, 1u, 0u) +
+        x8 * getter::element(b2f_dpos_dangle, 2u, 0u);
+    getter::element(full_jacobian, 1u, 2u) =
+        x16 * getter::element(b2f_dpos_dangle, 0u, 0u) +
+        x18 * getter::element(b2f_dpos_dangle, 1u, 0u) +
+        x19 * getter::element(b2f_dpos_dangle, 2u, 0u) +
+        x23 * getter::element(b2f_ddir_dangle, 0u, 0u) +
+        x24 * getter::element(b2f_ddir_dangle, 1u, 0u);
+    getter::element(full_jacobian, 2u, 2u) =
+        x27 * getter::element(b2f_dpos_dangle, 0u, 0u) +
+        x28 * getter::element(b2f_dpos_dangle, 1u, 0u) +
+        x29 * getter::element(b2f_dpos_dangle, 2u, 0u) +
+        x35 * getter::element(b2f_ddir_dangle, 0u, 0u) +
+        x36 * getter::element(b2f_ddir_dangle, 1u, 0u);
+    getter::element(full_jacobian, 3u, 2u) =
+        x40 * getter::element(b2f_dpos_dangle, 0u, 0u) +
+        x41 * getter::element(b2f_dpos_dangle, 1u, 0u) +
+        x42 * getter::element(b2f_dpos_dangle, 2u, 0u) +
+        x46 * getter::element(b2f_ddir_dangle, 0u, 0u) +
+        x47 * getter::element(b2f_ddir_dangle, 1u, 0u);
+    getter::element(full_jacobian, 4u, 2u) =
+        x48 * getter::element(b2f_dpos_dangle, 0u, 0u) +
+        x49 * getter::element(b2f_dpos_dangle, 1u, 0u) +
+        x50 * getter::element(b2f_dpos_dangle, 2u, 0u) +
+        x54 * getter::element(b2f_ddir_dangle, 0u, 0u) +
+        x55 * getter::element(b2f_ddir_dangle, 1u, 0u);
+    getter::element(full_jacobian, 5u, 2u) = 0;
+    getter::element(full_jacobian, 0u, 3u) =
+        x12 * getter::element(b2f_ddir_dangle, 0u, 1u) +
+        x13 * getter::element(b2f_ddir_dangle, 1u, 1u) +
+        x3 * getter::element(b2f_dpos_dangle, 0u, 1u) +
+        x6 * getter::element(b2f_dpos_dangle, 1u, 1u) +
+        x8 * getter::element(b2f_dpos_dangle, 2u, 1u) +
+        (x10 * getter::element(transport_jacobian, 5u, 6u) +
+         x11 * getter::element(transport_jacobian, 6u, 6u) +
+         x3 * getter::element(transport_jacobian, 0u, 6u) +
+         x6 * getter::element(transport_jacobian, 1u, 6u) +
+         x8 * getter::element(transport_jacobian, 2u, 6u) +
+         x9 * getter::element(transport_jacobian, 4u, 6u)) *
+            getter::element(b2f_ddir_dangle, 2u, 1u);
+    getter::element(full_jacobian, 1u, 3u) =
+        x16 * getter::element(b2f_dpos_dangle, 0u, 1u) +
+        x18 * getter::element(b2f_dpos_dangle, 1u, 1u) +
+        x19 * getter::element(b2f_dpos_dangle, 2u, 1u) +
+        x23 * getter::element(b2f_ddir_dangle, 0u, 1u) +
+        x24 * getter::element(b2f_ddir_dangle, 1u, 1u) +
+        (x16 * getter::element(transport_jacobian, 0u, 6u) +
+         x18 * getter::element(transport_jacobian, 1u, 6u) +
+         x19 * getter::element(transport_jacobian, 2u, 6u) +
+         x20 * getter::element(transport_jacobian, 4u, 6u) +
+         x21 * getter::element(transport_jacobian, 5u, 6u) +
+         x22 * getter::element(transport_jacobian, 6u, 6u)) *
+            getter::element(b2f_ddir_dangle, 2u, 1u);
+    getter::element(full_jacobian, 2u, 3u) =
+        x27 * getter::element(b2f_dpos_dangle, 0u, 1u) +
+        x28 * getter::element(b2f_dpos_dangle, 1u, 1u) +
+        x29 * getter::element(b2f_dpos_dangle, 2u, 1u) +
+        x35 * getter::element(b2f_ddir_dangle, 0u, 1u) +
+        x36 * getter::element(b2f_ddir_dangle, 1u, 1u) +
+        (x27 * getter::element(transport_jacobian, 0u, 6u) +
+         x28 * getter::element(transport_jacobian, 1u, 6u) +
+         x29 * getter::element(transport_jacobian, 2u, 6u) +
+         x30 * getter::element(transport_jacobian, 6u, 6u) +
+         x32 * getter::element(transport_jacobian, 4u, 6u) +
+         x34 * getter::element(transport_jacobian, 5u, 6u)) *
+            getter::element(b2f_ddir_dangle, 2u, 1u);
+    getter::element(full_jacobian, 3u, 3u) =
+        x40 * getter::element(b2f_dpos_dangle, 0u, 1u) +
+        x41 * getter::element(b2f_dpos_dangle, 1u, 1u) +
+        x42 * getter::element(b2f_dpos_dangle, 2u, 1u) +
+        x46 * getter::element(b2f_ddir_dangle, 0u, 1u) +
+        x47 * getter::element(b2f_ddir_dangle, 1u, 1u) +
+        (x40 * getter::element(transport_jacobian, 0u, 6u) +
+         x41 * getter::element(transport_jacobian, 1u, 6u) +
+         x42 * getter::element(transport_jacobian, 2u, 6u) +
+         x43 * getter::element(transport_jacobian, 4u, 6u) +
+         x44 * getter::element(transport_jacobian, 5u, 6u) +
+         x45 * getter::element(transport_jacobian, 6u, 6u)) *
+            getter::element(b2f_ddir_dangle, 2u, 1u);
+    getter::element(full_jacobian, 4u, 3u) =
+        x48 * getter::element(b2f_dpos_dangle, 0u, 1u) +
+        x49 * getter::element(b2f_dpos_dangle, 1u, 1u) +
+        x50 * getter::element(b2f_dpos_dangle, 2u, 1u) +
+        x54 * getter::element(b2f_ddir_dangle, 0u, 1u) +
+        x55 * getter::element(b2f_ddir_dangle, 1u, 1u) +
+        (x48 * getter::element(transport_jacobian, 0u, 6u) +
+         x49 * getter::element(transport_jacobian, 1u, 6u) +
+         x50 * getter::element(transport_jacobian, 2u, 6u) +
+         x51 * getter::element(transport_jacobian, 4u, 6u) +
+         x52 * getter::element(transport_jacobian, 5u, 6u) +
+         x53 * getter::element(transport_jacobian, 6u, 6u)) *
+            getter::element(b2f_ddir_dangle, 2u, 1u);
+    getter::element(full_jacobian, 5u, 3u) = 0;
+    getter::element(full_jacobian, 0u, 4u) =
+        x10 * getter::element(transport_jacobian, 5u, 7u) +
+        x11 * getter::element(transport_jacobian, 6u, 7u) +
+        x3 * getter::element(transport_jacobian, 0u, 7u) +
+        x6 * getter::element(transport_jacobian, 1u, 7u) +
+        x8 * getter::element(transport_jacobian, 2u, 7u) +
+        x9 * getter::element(transport_jacobian, 4u, 7u);
+    getter::element(full_jacobian, 1u, 4u) =
+        x16 * getter::element(transport_jacobian, 0u, 7u) +
+        x18 * getter::element(transport_jacobian, 1u, 7u) +
+        x19 * getter::element(transport_jacobian, 2u, 7u) +
+        x20 * getter::element(transport_jacobian, 4u, 7u) +
+        x21 * getter::element(transport_jacobian, 5u, 7u) +
+        x22 * getter::element(transport_jacobian, 6u, 7u);
+    getter::element(full_jacobian, 2u, 4u) =
+        x27 * getter::element(transport_jacobian, 0u, 7u) +
+        x28 * getter::element(transport_jacobian, 1u, 7u) +
+        x29 * getter::element(transport_jacobian, 2u, 7u) +
+        x30 * getter::element(transport_jacobian, 6u, 7u) +
+        x32 * getter::element(transport_jacobian, 4u, 7u) +
+        x34 * getter::element(transport_jacobian, 5u, 7u);
+    getter::element(full_jacobian, 3u, 4u) =
+        x40 * getter::element(transport_jacobian, 0u, 7u) +
+        x41 * getter::element(transport_jacobian, 1u, 7u) +
+        x42 * getter::element(transport_jacobian, 2u, 7u) +
+        x43 * getter::element(transport_jacobian, 4u, 7u) +
+        x44 * getter::element(transport_jacobian, 5u, 7u) +
+        x45 * getter::element(transport_jacobian, 6u, 7u);
+    getter::element(full_jacobian, 4u, 4u) =
+        x48 * getter::element(transport_jacobian, 0u, 7u) +
+        x49 * getter::element(transport_jacobian, 1u, 7u) +
+        x50 * getter::element(transport_jacobian, 2u, 7u) +
+        x51 * getter::element(transport_jacobian, 4u, 7u) +
+        x52 * getter::element(transport_jacobian, 5u, 7u) +
+        x53 * getter::element(transport_jacobian, 6u, 7u) +
+        getter::element(transport_jacobian, 7u, 7u);
+    getter::element(full_jacobian, 5u, 4u) = 0;
     getter::element(full_jacobian, 0u, 5u) = 0;
     getter::element(full_jacobian, 1u, 5u) = 0;
     getter::element(full_jacobian, 2u, 5u) = 0;

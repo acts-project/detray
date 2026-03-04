@@ -29,6 +29,8 @@ class line_stepper final
         base_stepper<algebra_t, constraint_t, policy_t, inspector_t>;
 
     public:
+    static constexpr bool uses_gradient = true;
+
     using algebra_type = algebra_t;
     using scalar_type = dscalar<algebra_t>;
     using vector3_type = dvector3D<algebra_t>;
