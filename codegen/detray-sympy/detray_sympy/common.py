@@ -49,15 +49,15 @@ class MyCXXCodePrinter(CXX17CodePrinter):
 
         # HACK: This is for the 8x1 path-to-free matrix.
         if expr.parent.shape[1] == 1 and expr.parent.shape[0] <= 3:
-            return "getter::element({}, {}u)".format(
-                self.parenthesize(expr.parent, PRECEDENCE["Atom"], strict=True),
-                expr.i,
+            return "getter::element<{idx}>({var})".format(
+                var=self.parenthesize(expr.parent, PRECEDENCE["Atom"], strict=True),
+                idx=expr.i,
             )
         else:
-            return "getter::element({}, {}u, {}u)".format(
-                self.parenthesize(expr.parent, PRECEDENCE["Atom"], strict=True),
-                expr.i,
-                expr.j,
+            return "getter::element<{idx1}, {idx2}>({var})".format(
+                var=self.parenthesize(expr.parent, PRECEDENCE["Atom"], strict=True),
+                idx1=expr.i,
+                idx2=expr.j,
             )
 
     def _print_Pow(self, expr):
