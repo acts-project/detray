@@ -248,7 +248,7 @@ class rk_stepper final
         scalar_type m_next_step_size{0.f};
 
         /// Magnetic field view
-        const magnetic_field_type m_magnetic_field;
+        const magnetic_field_type& m_magnetic_field;
     };
 
     /// Take a step, using an adaptive Runge-Kutta algorithm.
