@@ -12,8 +12,10 @@ namespace detray::benchmarks {
 
 template <typename propagator_t, detray::benchmarks::propagation_opt kOPT>
 __global__ void __launch_bounds__(256, 4) propagator_benchmark_kernel(
-    propagation::config cfg,
+    const DETRAY_GRID_CONSTANT propagation::config cfg,
+    const DETRAY_GRID_CONSTANT
     typename propagator_t::detector_type::view_type det_view,
+    const DETRAY_GRID_CONSTANT
     typename propagator_t::stepper_type::magnetic_field_type field_view,
     const typename propagator_t::actor_chain_type::state_tuple
         *device_actor_state_ptr,

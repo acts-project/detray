@@ -115,8 +115,10 @@ __global__ void navigation_validation_kernel(
 
         p.propagate(propagation, actor_states);
     } else {
+        typename propagator_t::stepper_type::magnetic_field_type bfield_view(
+            field_data);
         typename propagator_t::state propagation(
-            track, field_data, det,
+            track, bfield_view, det,
             typename navigator_t::state::view_type{
                 recorded_intersections_view.ptr()[trk_id]});
         propagation.set_particle(update_particle_hypothesis(ptc_hypo, track));

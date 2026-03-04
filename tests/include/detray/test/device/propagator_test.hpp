@@ -114,7 +114,7 @@ template <typename bfield_bknd_t, typename host_detector_t>
 inline auto run_propagation_host(vecmem::memory_resource *mr,
                                  const host_detector_t &det,
                                  const propagation::config &cfg,
-                                 covfie::field<bfield_bknd_t> &field,
+                                 const covfie::field<bfield_bknd_t> &field,
                                  const vecmem::vector<test_track> &tracks)
     -> vecmem::jagged_vector<detail::step_data<test_algebra>> {
 
@@ -145,7 +145,8 @@ inline auto run_propagation_host(vecmem::memory_resource *mr,
             detray::tie(tracer_state, pathlimit_state, transporter_state,
                         interactor_state, resetter_state);
 
-        typename propagator_host_t::state state(trk, field, det);
+        typename covfie::field<bfield_bknd_t>::view_t bfield_view(field);
+        typename propagator_host_t::state state(trk, bfield_view, det);
 
         state.stepping().template set_constraint<step::constraint::e_accuracy>(
             cfg.stepping.step_constraint);

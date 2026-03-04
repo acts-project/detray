@@ -58,6 +58,7 @@ GTEST_TEST(detray_propagator, rk_stepper) {
     vector3 B{1.f * unit<scalar>::T, 1.f * unit<scalar>::T,
               1.f * unit<scalar>::T};
     const bfield_t hom_bfield = create_const_field<scalar>(B);
+    const bfield_t::view_t bfield_view(hom_bfield);
 
     // RK stepper
     rk_stepper_t<bfield_t> rk_stepper;
@@ -83,8 +84,8 @@ GTEST_TEST(detray_propagator, rk_stepper) {
         detail::helix helix(track, B);
 
         // RK Stepping into forward direction
-        rk_stepper_t<bfield_t>::state rk_state{track, hom_bfield};
-        crk_stepper_t<bfield_t>::state crk_state{c_track, hom_bfield};
+        rk_stepper_t<bfield_t>::state rk_state{track, bfield_view};
+        crk_stepper_t<bfield_t>::state crk_state{c_track, bfield_view};
 
         // Set step size constraint to half the nominal step size =>
         // crk_stepper will need twice as many steps
@@ -149,6 +150,7 @@ TEST(detray_propagator, rk_stepper_inhomogeneous_bfield) {
     // Read the magnetic field map
     using bfield_t = bfield::inhom_field_t<scalar>;
     bfield_t inhom_bfield = create_inhom_field<scalar>();
+    const bfield_t::view_t bfield_view(inhom_bfield);
 
     // RK stepper
     rk_stepper_t<bfield_t> rk_stepper;
@@ -171,8 +173,8 @@ TEST(detray_propagator, rk_stepper_inhomogeneous_bfield) {
         free_track_parameters<test_algebra> c_track(track);
 
         // RK Stepping into forward direction
-        rk_stepper_t<bfield_t>::state rk_state{track, inhom_bfield};
-        crk_stepper_t<bfield_t>::state crk_state{c_track, inhom_bfield};
+        rk_stepper_t<bfield_t>::state rk_state{track, bfield_view};
+        crk_stepper_t<bfield_t>::state crk_state{c_track, bfield_view};
 
         crk_state.template set_constraint<constraint::e_user>(stepsize_constr);
         ASSERT_NEAR(crk_state.constraints().template size<>(),

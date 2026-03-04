@@ -489,7 +489,8 @@ bound_getter<test_algebra>::state evaluate_bound_param(
         detray::tie(transporter_state, bound_getter_state, resetter_state);
 
     // Init propagator states for the reference track
-    typename propagator_t::state state(initial_param, field, det);
+    typename propagator_t::stepper_type::magnetic_field_type bfield_view(field);
+    typename propagator_t::state state(initial_param, bfield_view, det);
 
     // Run the propagation for the reference track
     state.set_particle(ptc);
@@ -528,7 +529,8 @@ bound_param_vector_type get_displaced_bound_vector(
     bound_track_parameters<test_algebra> dparam = ref_param;
     dparam[target_index] += displacement;
 
-    typename propagator_t::state dstate(dparam, field, det);
+    typename propagator_t::stepper_type::magnetic_field_type bfield_view(field);
+    typename propagator_t::state dstate(dparam, bfield_view, det);
 
     // Actor states
     parameter_transporter<test_algebra>::state transporter_state{};

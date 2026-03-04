@@ -67,6 +67,7 @@ int main() {
     // Create the bfield
     detray::tutorial::vector3 B{0.f, 0.f, 2.f * detray::unit<scalar>::T};
     const bfield_t bfield = detray::create_const_field<scalar>(B);
+    const bfield_t::view_t bfield_view(bfield);
 
     // Build the propagator
     detray::propagation::config prop_cfg{};
@@ -93,7 +94,8 @@ int main() {
     prop_cfg.context = gctx;
     for (auto track : track_generator_t{trck_cfg}) {
 
-        propagator_t::state propagation(track, bfield, det, prop_cfg.context);
+        propagator_t::state propagation(track, bfield_view, det,
+                                        prop_cfg.context);
 
         propagation.set_particle(
             detray::update_particle_hypothesis(ptc, track));

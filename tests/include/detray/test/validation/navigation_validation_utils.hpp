@@ -211,8 +211,10 @@ inline auto record_propagation(
         propagation =
             std::make_unique<typename propagator_t::state>(track, det, ctx);
     } else {
+        typename propagator_t::stepper_type::magnetic_field_type bfield_view(
+            bfield);
         propagation = std::make_unique<typename propagator_t::state>(
-            track, bfield, det, ctx);
+            track, bfield_view, det, ctx);
     }
 
     // Set the initial covariances
@@ -257,8 +259,10 @@ inline auto record_propagation(
             fw_propagation = std::make_unique<typename fw_propagator_t::state>(
                 track, det, ctx);
         } else {
+            typename fw_propagator_t::stepper_type::magnetic_field_type
+                bfield_view(bfield);
             fw_propagation = std::make_unique<typename fw_propagator_t::state>(
-                track, bfield, det, ctx);
+                track, bfield_view, det, ctx);
         }
 
         // Make a deep copy of states for forward propagation, but omit the

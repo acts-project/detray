@@ -64,6 +64,7 @@ TEST_P(BackwardPropagation, backward_propagation) {
     vector3 B{0.f * unit<scalar>::T, 0.f * unit<scalar>::T,
               1.f * unit<scalar>::T};
     const bfield_t hom_bfield = create_const_field<scalar>(B);
+    const bfield_t::view_t bfield_view(hom_bfield);
 
     using navigator_t = caching_navigator<decltype(det)>;
     using rk_stepper_t = rk_stepper<bfield_t::view_t, test_algebra>;
@@ -102,7 +103,7 @@ TEST_P(BackwardPropagation, backward_propagation) {
     parameter_resetter<test_algebra>::state resetter_state{prop_cfg};
 
     // Forward state
-    propagator_t::state fw_state(bound_param0, hom_bfield, det,
+    propagator_t::state fw_state(bound_param0, bfield_view, det,
                                  prop_cfg.context);
     fw_state.set_particle(ptc);
     fw_state.debug(true);
@@ -122,7 +123,7 @@ TEST_P(BackwardPropagation, backward_propagation) {
     EXPECT_EQ(bound_param1.surface_link().index(), positions.size() - 1u);
 
     // Backward state
-    propagator_t::state bw_state(bound_param1, hom_bfield, det,
+    propagator_t::state bw_state(bound_param1, bfield_view, det,
                                  prop_cfg.context);
     bw_state.set_particle(ptc);
     bw_state.debug(true);

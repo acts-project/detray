@@ -108,7 +108,9 @@ struct host_propagation_bm : public benchmark_base {
             typename actor_chain_t::state_ref_tuple actor_state_refs =
                 actor_chain_t::setup_actor_states(actor_states);
 
-            typename propagator_t::state p_state(track, *bfield, *det);
+            typename propagator_t::stepper_type::magnetic_field_type
+                bfield_view(*bfield);
+            typename propagator_t::state p_state(track, bfield_view, *det);
             // Particle hypothesis
             auto &ptc = p_state.stepping().particle_hypothesis();
             p_state.set_particle(update_particle_hypothesis(ptc, track));

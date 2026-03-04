@@ -61,3 +61,9 @@
 #else
 #define DETRAY_NO_UNIQUE_ADDRESS
 #endif
+
+#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 700
+#define DETRAY_GRID_CONSTANT __grid_constant__
+#else
+#define DETRAY_GRID_CONSTANT
+#endif

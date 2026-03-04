@@ -245,9 +245,11 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
         pathlimit_aborter_state.set_path_limit(path_limit);
 
         // Init propagator states
-        propagator_t::state state(track, bfield, det);
-        propagator_t::state sync_state(track, bfield, det);
-        propagator_t::state lim_state(lim_track, bfield, det);
+        typename propagator_t::stepper_type::magnetic_field_type bfield_view(
+            bfield);
+        propagator_t::state state(track, bfield_view, det);
+        propagator_t::state sync_state(track, bfield_view, det);
+        propagator_t::state lim_state(lim_track, bfield_view, det);
 
         state.debug(true);
         sync_state.debug(true);
@@ -347,8 +349,10 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
                         interactor_state, resetter_state);
 
         // Init propagator states
-        propagator_t::state state(track, bfield, det);
-        propagator_t::state lim_state(lim_track, bfield, det);
+        typename propagator_t::stepper_type::magnetic_field_type bfield_view(
+            bfield);
+        propagator_t::state state(track, bfield_view, det);
+        propagator_t::state lim_state(lim_track, bfield_view, det);
 
         // Set step constraints
         state.stepping().template set_constraint<step::constraint::e_accuracy>(
