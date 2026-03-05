@@ -1,4 +1,4 @@
-/** Algebra plugins library, part of the ACTS project
+/** Detray library, part of the ACTS project (R&D line)
  *
  * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
@@ -8,16 +8,16 @@
 #pragma once
 
 // Project include(s).
-#include "detray/algebra/common/concepts.hpp"
 #include "detray/algebra/common/math.hpp"
-#include "detray/algebra/common/qualifiers.hpp"
+#include "detray/algebra/concepts.hpp"
 #include "detray/algebra/generic/algorithms/utils/algorithm_selector.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 
 namespace detray::algebra::generic::math {
 
 /// Create zero matrix - generic transform3
 template <concepts::matrix M>
-ALGEBRA_HOST_DEVICE constexpr M zero() {
+DETRAY_HOST_DEVICE constexpr M zero() {
 
     using index_t = detray::traits::index_t<M>;
     using element_getter_t = detray::traits::element_getter_t<M>;
@@ -35,7 +35,7 @@ ALGEBRA_HOST_DEVICE constexpr M zero() {
 
 /// Create identity matrix - generic transform3
 template <concepts::matrix M>
-ALGEBRA_HOST_DEVICE constexpr M identity() {
+DETRAY_HOST_DEVICE constexpr M identity() {
 
     using index_t = detray::traits::index_t<M>;
     using element_getter_t = detray::traits::element_getter_t<M>;
@@ -51,19 +51,19 @@ ALGEBRA_HOST_DEVICE constexpr M identity() {
 
 /// Set @param m as zero matrix
 template <concepts::matrix M>
-ALGEBRA_HOST_DEVICE constexpr void set_zero(M &m) {
+DETRAY_HOST_DEVICE constexpr void set_zero(M &m) {
     m = zero<M>();
 }
 
 /// Set @param m as identity matrix
 template <concepts::matrix M>
-ALGEBRA_HOST_DEVICE constexpr void set_identity(M &m) {
+DETRAY_HOST_DEVICE constexpr void set_identity(M &m) {
     m = identity<M>();
 }
 
 /// @returns the transpose matrix of @param m
 template <concepts::matrix M>
-ALGEBRA_HOST_DEVICE constexpr auto transpose(const M &m) {
+DETRAY_HOST_DEVICE constexpr auto transpose(const M &m) {
 
     using index_t = detray::traits::index_t<M>;
     using value_t = detray::traits::value_t<M>;
@@ -85,7 +85,7 @@ ALGEBRA_HOST_DEVICE constexpr auto transpose(const M &m) {
 
 // Set matrix C to the product AB
 template <concepts::matrix MC, concepts::matrix MA, concepts::matrix MB>
-ALGEBRA_HOST_DEVICE constexpr void set_product(MC &C, const MA &A, const MB &B)
+DETRAY_HOST_DEVICE constexpr void set_product(MC &C, const MA &A, const MB &B)
     requires(detray::concepts::matrix_multipliable_into<MA, MB, MC>)
 {
     using index_t = detray::traits::index_t<MC>;
@@ -107,9 +107,8 @@ ALGEBRA_HOST_DEVICE constexpr void set_product(MC &C, const MA &A, const MB &B)
 
 // Set matrix C to the product A^TB
 template <concepts::matrix MC, concepts::matrix MA, concepts::matrix MB>
-ALGEBRA_HOST_DEVICE constexpr void set_product_left_transpose(MC &C,
-                                                              const MA &A,
-                                                              const MB &B)
+DETRAY_HOST_DEVICE constexpr void set_product_left_transpose(MC &C, const MA &A,
+                                                             const MB &B)
     requires(detray::concepts::matrix_multipliable_into<
              decltype(transpose(std::declval<MA>())), MB, MC>)
 {
@@ -132,9 +131,9 @@ ALGEBRA_HOST_DEVICE constexpr void set_product_left_transpose(MC &C,
 
 // Set matrix C to the product AB^T
 template <concepts::matrix MC, concepts::matrix MA, concepts::matrix MB>
-ALGEBRA_HOST_DEVICE constexpr void set_product_right_transpose(MC &C,
-                                                               const MA &A,
-                                                               const MB &B)
+DETRAY_HOST_DEVICE constexpr void set_product_right_transpose(MC &C,
+                                                              const MA &A,
+                                                              const MB &B)
     requires(detray::concepts::matrix_multipliable_into<
              MA, decltype(transpose(std::declval<MB>())), MC>)
 {
@@ -157,7 +156,7 @@ ALGEBRA_HOST_DEVICE constexpr void set_product_right_transpose(MC &C,
 
 // Set matrix A to the product AB in place
 template <concepts::matrix MA, concepts::matrix MB>
-ALGEBRA_HOST_DEVICE constexpr void set_inplace_product_right(MA &A, const MB &B)
+DETRAY_HOST_DEVICE constexpr void set_inplace_product_right(MA &A, const MB &B)
     requires(detray::concepts::matrix_multipliable_into<MA, MB, MA>)
 {
     using index_t = detray::traits::index_t<MA>;
@@ -188,7 +187,7 @@ ALGEBRA_HOST_DEVICE constexpr void set_inplace_product_right(MA &A, const MB &B)
 
 // Set matrix A to the product BA in place
 template <concepts::matrix MA, concepts::matrix MB>
-ALGEBRA_HOST_DEVICE constexpr void set_inplace_product_left(MA &A, const MB &B)
+DETRAY_HOST_DEVICE constexpr void set_inplace_product_left(MA &A, const MB &B)
     requires(detray::concepts::matrix_multipliable_into<MB, MA, MA>)
 {
     using index_t = detray::traits::index_t<MA>;
@@ -219,7 +218,7 @@ ALGEBRA_HOST_DEVICE constexpr void set_inplace_product_left(MA &A, const MB &B)
 
 // Set matrix A to the product AB^T in place
 template <concepts::matrix MA, concepts::matrix MB>
-ALGEBRA_HOST_DEVICE constexpr void set_inplace_product_right_transpose(
+DETRAY_HOST_DEVICE constexpr void set_inplace_product_right_transpose(
     MA &A, const MB &B)
     requires(detray::concepts::matrix_multipliable_into<
              MA, decltype(transpose(std::declval<MB>())), MA>)
@@ -252,7 +251,7 @@ ALGEBRA_HOST_DEVICE constexpr void set_inplace_product_right_transpose(
 
 // Set matrix A to the product B^TA in place
 template <concepts::matrix MA, concepts::matrix MB>
-ALGEBRA_HOST_DEVICE constexpr void set_inplace_product_left_transpose(
+DETRAY_HOST_DEVICE constexpr void set_inplace_product_left_transpose(
     MA &A, const MB &B)
     requires(detray::concepts::matrix_multipliable_into<
              decltype(transpose(std::declval<MB>())), MA, MA>)
@@ -284,7 +283,7 @@ ALGEBRA_HOST_DEVICE constexpr void set_inplace_product_left_transpose(
 }
 
 template <bool transpose, concepts::matrix M>
-ALGEBRA_HOST_DEVICE constexpr detray::traits::value_t<M> transposable_get(
+DETRAY_HOST_DEVICE constexpr detray::traits::value_t<M> transposable_get(
     const M &A, const detray::traits::index_t<M> i,
     const detray::traits::index_t<M> j) {
     if constexpr (transpose) {
@@ -296,7 +295,7 @@ ALGEBRA_HOST_DEVICE constexpr detray::traits::value_t<M> transposable_get(
 
 template <bool transpose_left, bool transpose_right, concepts::matrix MA,
           concepts::matrix MB>
-ALGEBRA_HOST_DEVICE constexpr auto transposed_product(const MA &A, const MB &B)
+DETRAY_HOST_DEVICE constexpr auto transposed_product(const MA &A, const MB &B)
     requires(detray::concepts::matrix_multipliable<
              std::conditional_t<transpose_left,
                                 decltype(transpose(std::declval<MA>())), MA>,
@@ -335,7 +334,7 @@ ALGEBRA_HOST_DEVICE constexpr auto transposed_product(const MA &A, const MB &B)
 
 /// @returns the determinant of @param m
 template <concepts::square_matrix M>
-ALGEBRA_HOST_DEVICE constexpr detray::traits::scalar_t<M> determinant(
+DETRAY_HOST_DEVICE constexpr detray::traits::scalar_t<M> determinant(
     const M &m) {
 
     return determinant_t<M>{}(m);
@@ -343,7 +342,7 @@ ALGEBRA_HOST_DEVICE constexpr detray::traits::scalar_t<M> determinant(
 
 /// @returns the determinant of @param m
 template <concepts::square_matrix M>
-ALGEBRA_HOST_DEVICE constexpr M inverse(const M &m) {
+DETRAY_HOST_DEVICE constexpr M inverse(const M &m) {
 
     return inversion_t<M>{}(m);
 }

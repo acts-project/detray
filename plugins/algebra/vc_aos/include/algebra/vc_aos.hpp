@@ -1,4 +1,4 @@
-/** Algebra plugins library, part of the ACTS project
+/** Detray library, part of the ACTS project (R&D line)
  *
  * (c) 2020-2026 CERN for the benefit of the ACTS project
  *
@@ -10,7 +10,6 @@
 // Project include(s).
 #include "algebra/impl/vc_aos_getter.hpp"
 #include "algebra/impl/vc_aos_matrix.hpp"
-#include "algebra/impl/vc_aos_transform3.hpp"
 #include "algebra/impl/vc_aos_types.hpp"
 #include "algebra/impl/vc_aos_vector.hpp"
 #include "detray/algebra/common/boolean.hpp"
@@ -21,18 +20,6 @@
 #include <type_traits>
 
 namespace detray {
-
-namespace algebra::vc_aos {
-
-/// @name Vc based transforms on @c algebra::vc_aos::storage_type
-/// @{
-
-template <concepts::value T>
-using transform3 = math::transform3<vc_aos::storage_type, T>;
-
-/// @}
-
-}  // namespace algebra::vc_aos
 
 /// Define the plugin types
 /// @{

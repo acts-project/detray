@@ -1,6 +1,6 @@
-/** Algebra plugins, part of the ACTS project
+/** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2024 CERN for the benefit of the ACTS project
+ * (c) 2024-2026 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -8,19 +8,20 @@
 #pragma once
 
 // Project include(s)
-#include "detray/algebra/common/concepts.hpp"
-#include "detray/algebra/common/qualifiers.hpp"
+#include "detray/algebra/concepts.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 
 // System include(s).
 #include <iomanip>
 #include <iostream>
 
-namespace detray::algebra {
+namespace detray {
 
+namespace algebra {
 /// Print a generic vector or point @param v
 template <typename vector_t>
     requires(concepts::vector<vector_t> || concepts::point<vector_t>)
-ALGEBRA_HOST std::ostream& operator<<(std::ostream& out, const vector_t& v) {
+DETRAY_HOST std::ostream& operator<<(std::ostream& out, const vector_t& v) {
 
     using index_t = detray::traits::index_t<vector_t>;
 
@@ -40,7 +41,7 @@ ALGEBRA_HOST std::ostream& operator<<(std::ostream& out, const vector_t& v) {
 
 /// Print a column matrix @param v
 template <concepts::column_matrix vector_t>
-ALGEBRA_HOST std::ostream& operator<<(std::ostream& out, const vector_t& v) {
+DETRAY_HOST std::ostream& operator<<(std::ostream& out, const vector_t& v) {
 
     using index_t = detray::traits::index_t<vector_t>;
     using element_getter_t = detray::traits::element_getter_t<vector_t>;
@@ -59,7 +60,7 @@ ALGEBRA_HOST std::ostream& operator<<(std::ostream& out, const vector_t& v) {
 
 /// Print a generic matrix @param m
 template <concepts::matrix matrix_t>
-ALGEBRA_HOST std::ostream& operator<<(std::ostream& out, const matrix_t& m) {
+DETRAY_HOST std::ostream& operator<<(std::ostream& out, const matrix_t& m) {
 
     using index_t = detray::traits::index_t<matrix_t>;
     using element_getter_t = detray::traits::element_getter_t<matrix_t>;
@@ -86,11 +87,16 @@ ALGEBRA_HOST std::ostream& operator<<(std::ostream& out, const matrix_t& m) {
 
 /// Print a 3D transform @param trf
 template <concepts::transform3D transform_t>
-ALGEBRA_HOST std::ostream& operator<<(std::ostream& out,
-                                      const transform_t& trf) {
+DETRAY_HOST std::ostream& operator<<(std::ostream& out,
+                                     const transform_t& trf) {
     out << trf.matrix();
 
     return out;
 }
 
-}  // namespace detray::algebra
+}  // namespace algebra
+
+// Pull in the print operator definitions for the algebra types
+using algebra::operator<<;
+
+}  // namespace detray

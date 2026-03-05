@@ -1,6 +1,6 @@
-/** Algebra plugins, part of the ACTS project
+/** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2025 CERN for the benefit of the ACTS project
+ * (c) 2025-2026 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -8,9 +8,9 @@
 #pragma once
 
 // Project include(s)
-#include "detray/algebra/common/concepts.hpp"
 #include "detray/algebra/common/math.hpp"
-#include "detray/algebra/common/qualifiers.hpp"
+#include "detray/algebra/concepts.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 
 // System include(s)
 #include <concepts>
@@ -31,7 +31,7 @@ namespace detray::algebra {
 /// @returns true if the two values are approximaterly equal
 template <concepts::scalar scalar_t, concepts::value value_t>
     requires std::convertible_to<scalar_t, value_t>
-ALGEBRA_HOST_DEVICE constexpr auto approx_equal(
+DETRAY_HOST_DEVICE constexpr auto approx_equal(
     const scalar_t a, const scalar_t b,
     const value_t rel_error = 16.f * std::numeric_limits<value_t>::epsilon(),
     const value_t max_error = std::numeric_limits<value_t>::epsilon()) {
@@ -68,7 +68,7 @@ template <typename vector1_t, typename vector2_t>
              (concepts::vector<vector2_t> || concepts::point<vector2_t>) &&
              !concepts::simd_scalar<vector1_t> &&
              !concepts::simd_scalar<vector2_t>)
-ALGEBRA_HOST_DEVICE constexpr auto approx_equal(
+DETRAY_HOST_DEVICE constexpr auto approx_equal(
     const vector1_t& v1, const vector2_t& v2,
     const detray::traits::value_t<vector1_t> rel_error =
         16.f *
@@ -103,7 +103,7 @@ ALGEBRA_HOST_DEVICE constexpr auto approx_equal(
 ///
 /// @returns true if the two column matrices are approximaterly equal
 template <concepts::column_matrix vector1_t, concepts::column_matrix vector2_t>
-ALGEBRA_HOST_DEVICE constexpr auto approx_equal(
+DETRAY_HOST_DEVICE constexpr auto approx_equal(
     const vector1_t& v1, const vector2_t& v2,
     const detray::traits::value_t<vector1_t> rel_error =
         16.f *
@@ -139,7 +139,7 @@ ALGEBRA_HOST_DEVICE constexpr auto approx_equal(
 ///
 /// @returns true if the two matrices are approximaterly equal
 template <concepts::matrix matrix1_t, concepts::matrix matrix2_t>
-ALGEBRA_HOST_DEVICE constexpr auto approx_equal(
+DETRAY_HOST_DEVICE constexpr auto approx_equal(
     const matrix1_t& m1, const matrix2_t& m2,
     const detray::traits::value_t<matrix1_t> rel_error =
         16.f *
@@ -179,7 +179,7 @@ ALGEBRA_HOST_DEVICE constexpr auto approx_equal(
 ///
 /// @returns true if the two transforms are approximaterly equal
 template <concepts::transform3D transform_t>
-ALGEBRA_HOST_DEVICE constexpr auto approx_equal(
+DETRAY_HOST_DEVICE constexpr auto approx_equal(
     const transform_t& trf1, const transform_t& trf2,
     const detray::traits::value_t<typename transform_t::scalar_type> rel_error =
         16.f * std::numeric_limits<detray::traits::value_t<

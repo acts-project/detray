@@ -1,4 +1,4 @@
-/** Algebra plugins library, part of the ACTS project
+/** Detray library, part of the ACTS project (R&D line)
  *
  * (c) 2020-2026 CERN for the benefit of the ACTS project
  *
@@ -9,8 +9,9 @@
 
 // Project include(s)
 #include "algebra/impl/smatrix_getter.hpp"
-#include "detray/algebra/common/concepts.hpp"
-#include "detray/algebra/common/type_traits.hpp"
+#include "algebra/impl/smatrix_transform3.hpp"
+#include "detray/algebra/concepts.hpp"
+#include "detray/algebra/type_traits.hpp"
 
 // ROOT/Smatrix include(s).
 #include <Math/SMatrix.h>
@@ -53,6 +54,10 @@ using vector2 = storage_type<T, 2>;
 /// Point in 2D space, using @c ROOT::Math::SVector
 template <concepts::scalar T>
 using point2 = vector2<T>;
+
+/// Geometry transformation implementation using @c ROOT::Math::SVector
+template <typename T>
+using transform3 = smatrix::math::transform3<T>;
 
 /// Element Getter
 using element_getter = smatrix::storage::element_getter;

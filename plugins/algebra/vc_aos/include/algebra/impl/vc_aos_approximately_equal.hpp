@@ -1,4 +1,4 @@
-/** Algebra plugins, part of the ACTS project
+/** Detray library, part of the ACTS project (R&D line)
  *
  * (c) 2025-2026 CERN for the benefit of the ACTS project
  *
@@ -8,8 +8,8 @@
 #pragma once
 
 // Project include(s)
-#include "detray/algebra/common/concepts.hpp"
-#include "detray/algebra/common/qualifiers.hpp"
+#include "detray/algebra/concepts.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 
 // Vc include(s).
 #ifdef _MSC_VER
@@ -43,7 +43,7 @@ template <typename simd1_t, typename simd2_t>
               std::convertible_to<simd2_t, simd1_t>) ||
              (Vc::is_simd_vector<simd2_t>::value &&
               std::convertible_to<simd1_t, simd2_t>))
-ALGEBRA_HOST_DEVICE constexpr auto approx_equal(
+DETRAY_HOST_DEVICE constexpr auto approx_equal(
     const simd1_t a, const simd2_t b,
     const typename simd1_t::value_type rel_error =
         16.f * std::numeric_limits<typename simd1_t::value_type>::epsilon(),

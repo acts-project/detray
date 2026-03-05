@@ -1,4 +1,4 @@
-/** Algebra plugins library, part of the ACTS project
+/** Detray library, part of the ACTS project (R&D line)
  *
  * (c) 2022-2026 CERN for the benefit of the ACTS project
  *
@@ -10,7 +10,6 @@
 // Project include(s).
 #include "algebra/impl/fastor_getter.hpp"
 #include "algebra/impl/fastor_matrix.hpp"
-#include "algebra/impl/fastor_transform3.hpp"
 #include "algebra/impl/fastor_types.hpp"
 #include "algebra/impl/fastor_vector.hpp"
 #include "detray/algebra/common/boolean.hpp"
@@ -27,17 +26,11 @@
 
 namespace detray {
 
-namespace algebra::fastor {
-
-/// @name Transform on @c algebra::fastor::storage_type
-/// @{
-
-template <concepts::scalar T>
-using transform3 = math::transform3<T>;
-
-/// @}
-
-}  // namespace algebra::fastor
+template <std::size_t N, concepts::scalar S>
+constexpr bool operator==(const Fastor::Tensor<S, N>& lhs,
+                          const Fastor::Tensor<S, N>& rhs) {
+    return Fastor::isequal(lhs, rhs, 0.f);
+}
 
 /// Define the plugin types
 /// @{

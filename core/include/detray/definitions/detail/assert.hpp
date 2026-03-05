@@ -1,5 +1,4 @@
-/**
- * ALGEBRA PLUGIN library, part of the ACTS project (R&D line)
+/** Detray library, part of the ACTS project (R&D line)
  *
  * (c) 2025-2026 CERN for the benefit of the ACTS project
  *

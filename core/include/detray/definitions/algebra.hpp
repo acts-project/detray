@@ -24,14 +24,13 @@
 #endif
 
 // Algebra-plugins include(s)
+#include "detray/algebra/common/boolean.hpp"
+#include "detray/algebra/common/math.hpp"
 #include "detray/algebra/utils/approximately_equal.hpp"
 #include "detray/algebra/utils/casts.hpp"
 #include "detray/algebra/utils/print.hpp"
 
 namespace detray {
-
-// Pull in the print operator definitions for the algebra types
-using algebra::operator<<;
 
 template <typename A>
 using dvalue = get_value_t<A>;
@@ -62,11 +61,5 @@ using dtransform3D = get_transform3D_t<A>;
 
 template <typename A, std::size_t R, std::size_t C>
 using dmatrix = get_matrix_t<A, R, C>;
-
-namespace detail {
-
-using namespace ::detray::algebra::boolean;
-
-}  // namespace detail
 
 }  // namespace detray

@@ -1,4 +1,4 @@
-/** Algebra plugins library, part of the ACTS project
+/** Detray library, part of the ACTS project (R&D line)
  *
  * (c) 2020-2024 CERN for the benefit of the ACTS project
  *
@@ -8,12 +8,12 @@
 #pragma once
 
 // Project include(s).
-#include "detray/algebra/common/qualifiers.hpp"
-#include "detray/algebra/common/type_traits.hpp"
 #include "detray/algebra/generic/algorithms/matrix/inverse/hard_coded.hpp"
 #include "detray/algebra/generic/impl/generic_matrix.hpp"
 #include "detray/algebra/generic/impl/generic_vector.hpp"
+#include "detray/algebra/type_traits.hpp"
 #include "detray/algebra/utils/approximately_equal.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 
 // System include(s)
 #include <cassert>
@@ -75,7 +75,7 @@ struct transform3 {
     /// @param x the x axis of the new frame
     /// @param y the y axis of the new frame
     /// @param z the z axis of the new frame, normal vector for planes
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     transform3(const vector3 &t, const vector3 &x, const vector3 &y,
                const vector3 &z, bool get_inverse = true) {
 
@@ -108,7 +108,7 @@ struct transform3 {
     /// @param x the x axis of the new frame
     ///
     /// @note y will be constructed by cross product
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     transform3(const vector3 &t, const vector3 &z, const vector3 &x,
                bool get_inverse = true)
         : transform3(t, x, cross(z, x), z, get_inverse) {}
@@ -116,7 +116,7 @@ struct transform3 {
     /// Constructor with arguments: translation
     ///
     /// @param t is the transform
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     explicit transform3(const vector3 &t) {
 
         element_getter{}(_data, 0, 0) = 1.f;
@@ -142,7 +142,7 @@ struct transform3 {
     /// Constructor with arguments: matrix
     ///
     /// @param m is the full 4x4 matrix
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     explicit transform3(const matrix44 &m) : _data{m} {
         _data_inv = matrix_inversion{}(_data);
     }
@@ -151,7 +151,7 @@ struct transform3 {
     ///
     /// @param m is the full 4x4 matrix
     /// @param m_inv is the inverse to m
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     transform3(const matrix44 &m, const matrix44 &m_inv)
         : _data{m}, _data_inv{m_inv} {
         // The assertion will not hold for (casts to) int
@@ -180,7 +180,7 @@ struct transform3 {
     /// Constructor with arguments: matrix as array of scalar
     ///
     /// @param ma is the full 4x4 matrix 16 array
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     explicit transform3(const array_type<16> &ma) {
 
         element_getter{}(_data, 0, 0) = ma[0];
@@ -204,7 +204,7 @@ struct transform3 {
     }
 
     /// Equality operator
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     constexpr bool operator==(const transform3 &rhs) const {
 
         for (index_t j = 0; j < 4; j++) {
@@ -224,7 +224,7 @@ struct transform3 {
     ///
     /// @param m is the rotation matrix
     /// @param v is the vector to be rotated
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     static constexpr vector3 rotate(const matrix44 &m, const vector3 &v) {
 
         vector3 ret{0.f, 0.f, 0.f};
@@ -254,51 +254,50 @@ struct transform3 {
     }
 
     /// This method retrieves the rotation of a transform
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     auto constexpr rotation() const {
         return block_getter{}.template operator()<3, 3>(_data, 0, 0);
     }
 
     /// This method retrieves x axis
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     constexpr point3 x() const {
         return {element_getter{}(_data, 0, 0), element_getter{}(_data, 1, 0),
                 element_getter{}(_data, 2, 0)};
     }
 
     /// This method retrieves y axis
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     constexpr point3 y() const {
         return {element_getter{}(_data, 0, 1), element_getter{}(_data, 1, 1),
                 element_getter{}(_data, 2, 1)};
     }
 
     /// This method retrieves z axis
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     constexpr point3 z() const {
         return {element_getter{}(_data, 0, 2), element_getter{}(_data, 1, 2),
                 element_getter{}(_data, 2, 2)};
     }
 
     /// This method retrieves the translation of a transform
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     constexpr point3 translation() const {
         return {element_getter{}(_data, 0, 3), element_getter{}(_data, 1, 3),
                 element_getter{}(_data, 2, 3)};
     }
 
     /// This method retrieves the 4x4 matrix of a transform
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     constexpr const matrix44 &matrix() const { return _data; }
 
     /// This method retrieves the 4x4 matrix of an inverse transform
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     constexpr const matrix44 &matrix_inverse() const { return _data_inv; }
 
     /// This method transform from a point from the local 3D cartesian frame to
     /// the global 3D cartesian frame
-    ALGEBRA_HOST_DEVICE constexpr point3 point_to_global(
-        const point3 &v) const {
+    DETRAY_HOST_DEVICE constexpr point3 point_to_global(const point3 &v) const {
 
         const vector3 rg = rotate(_data, v);
 
@@ -309,7 +308,7 @@ struct transform3 {
 
     /// This method transform from a vector from the global 3D cartesian frame
     /// into the local 3D cartesian frame
-    ALGEBRA_HOST_DEVICE constexpr point3 point_to_local(const point3 &v) const {
+    DETRAY_HOST_DEVICE constexpr point3 point_to_local(const point3 &v) const {
 
         const vector3 rg = rotate(_data_inv, v);
 
@@ -320,14 +319,14 @@ struct transform3 {
 
     /// This method transform from a vector from the local 3D cartesian frame to
     /// the global 3D cartesian frame
-    ALGEBRA_HOST_DEVICE constexpr vector3 vector_to_global(
+    DETRAY_HOST_DEVICE constexpr vector3 vector_to_global(
         const vector3 &v) const {
         return rotate(_data, v);
     }
 
     /// This method transform from a vector from the global 3D cartesian frame
     /// into the local 3D cartesian frame
-    ALGEBRA_HOST_DEVICE constexpr vector3 vector_to_local(
+    DETRAY_HOST_DEVICE constexpr vector3 vector_to_local(
         const vector3 &v) const {
         return rotate(_data_inv, v);
     }

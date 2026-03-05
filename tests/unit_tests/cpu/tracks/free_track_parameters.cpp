@@ -92,7 +92,7 @@ GTEST_TEST(detray_tracks, free_track_parameters) {
     // Test the setters and subscript operator
     pos = {1.f, 2.f, 3.f};
     time = 0.5f;
-    const auto dir{vector::normalize(vector3{40.f, 50.f, 60.f})};
+    const vector3 dir{vector::normalize(vector3{40.f, 50.f, 60.f})};
     const scalar qop{0.634f};
 
     free_param2.set_pos(pos);

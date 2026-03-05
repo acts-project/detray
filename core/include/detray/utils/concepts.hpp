@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/algebra/common/concepts.hpp"
+#include "detray/algebra/concepts.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/utils/type_traits.hpp"
 

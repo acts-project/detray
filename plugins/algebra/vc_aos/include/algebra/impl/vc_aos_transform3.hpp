@@ -1,4 +1,4 @@
-/** Algebra plugins library, part of the ACTS project
+/** Detray library, part of the ACTS project (R&D line)
  *
  * (c) 2020-2026 CERN for the benefit of the ACTS project
  *
@@ -9,13 +9,13 @@
 
 // Project include(s).
 #include "algebra/impl/vc_aos_approximately_equal.hpp"
-#include "detray/algebra/common/concepts.hpp"
 #include "detray/algebra/common/math.hpp"
 #include "detray/algebra/common/matrix.hpp"
 #include "detray/algebra/common/matrix_getter.hpp"
-#include "detray/algebra/common/qualifiers.hpp"
 #include "detray/algebra/common/vector.hpp"
+#include "detray/algebra/concepts.hpp"
 #include "detray/algebra/utils/approximately_equal.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 
 // Vc include(s).
 #ifdef _MSC_VER
@@ -90,7 +90,7 @@ struct transform3 {
 
     /// @}
     /// Default constructor: identity
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     constexpr transform3()
         : _data{algebra::storage::identity<matrix44>()},
           _data_inv{algebra::storage::identity<matrix44>()} {}
@@ -101,7 +101,7 @@ struct transform3 {
     /// @param x the x axis of the new frame
     /// @param y the y axis of the new frame
     /// @param z the z axis of the new frame, normal vector for planes
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     transform3(const vector3 &t, const vector3 &x, const vector3 &y,
                const vector3 &z)
         : _data{x, y, z, t}, _data_inv{invert(_data)} {}
@@ -113,7 +113,7 @@ struct transform3 {
     /// @param x the x axis of the new frame
     ///
     /// @note y will be constructed by cross product
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     transform3(const vector3 &t, const vector3 &z, const vector3 &x)
         : transform3(
               t, x,
@@ -124,7 +124,7 @@ struct transform3 {
     /// Constructor with arguments: translation
     ///
     /// @param t is the transform
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     explicit transform3(const vector3 &t)
         : _data{column_t{1.f, 0.f, 0.f}, column_t{0.f, 1.f, 0.f},
                 column_t{0.f, 0.f, 1.f}, t},
@@ -133,7 +133,7 @@ struct transform3 {
     /// Constructor with arguments: matrix
     ///
     /// @param m is the full 4x4 matrix with simd-vector elements
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     explicit transform3(const matrix44 &m)
         : _data{m}, _data_inv{invert(_data)} {}
 
@@ -141,7 +141,7 @@ struct transform3 {
     ///
     /// @param m is the full 4x4 matrix
     /// @param m_inv is the inverse to m
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     transform3(const matrix44 &m, const matrix44 &m_inv)
         : _data{m}, _data_inv{m_inv} {
         // The assertion will not hold for (casts to) int
@@ -156,7 +156,7 @@ struct transform3 {
     /// Constructor with arguments: matrix as std::aray of scalar
     ///
     /// @param ma is the full 4x4 matrix 16 array
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     explicit transform3(const array_type<16> &ma) {
 
         // The values that are not set here, are known to be zero or one
@@ -174,18 +174,18 @@ struct transform3 {
     ~transform3() = default;
 
     /// Equality operator
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     constexpr bool operator==(const transform3 &rhs) const {
         return (_data == rhs._data);
     }
 
     /// Matrix access operator
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     constexpr const scalar_type &operator()(std::size_t row,
                                             std::size_t col) const {
         return _data[col][row];
     }
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     constexpr scalar_type &operator()(std::size_t row, std::size_t col) {
         return _data[col][row];
     }
@@ -195,7 +195,7 @@ struct transform3 {
     /// @param m is the matrix
     ///
     /// @return a sacalar determinant - no checking done
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     constexpr scalar_type determinant(const matrix44 &m) const {
         return -m[e_z][0] * m[e_y][1] * m[e_x][2] +
                m[e_y][0] * m[e_z][1] * m[e_x][2] +
@@ -210,7 +210,7 @@ struct transform3 {
     /// @param m is the matrix
     ///
     /// @return an inverse matrix
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     constexpr matrix44 invert(const matrix44 &m) const {
         matrix44 i;
         i[e_x][0] = -m[e_z][1] * m[e_y][2] + m[e_y][1] * m[e_z][2];
@@ -259,14 +259,14 @@ struct transform3 {
     /// @param m is the rotation matrix
     /// @param v is the vector to be rotated
     template <concepts::vector3D vector3_type>
-    ALGEBRA_HOST_DEVICE constexpr auto rotate(const matrix44 &m,
-                                              const vector3_type &v) const {
+    DETRAY_HOST_DEVICE constexpr auto rotate(const matrix44 &m,
+                                             const vector3_type &v) const {
 
         return m[e_x] * v[0] + m[e_y] * v[1] + m[e_z] * v[2];
     }
 
     /// This method retrieves the rotation of a transform
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     constexpr auto rotation() const {
 
         using matrix_t = algebra::storage::matrix<array_t, scalar_type, 3u, 3u>;
@@ -279,27 +279,27 @@ struct transform3 {
     }
 
     /// This method retrieves the new x-axis
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     constexpr const auto &x() const { return _data[e_x]; }
 
     /// This method retrieves the new y-axis
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     constexpr const auto &y() const { return _data[e_y]; }
 
     /// This method retrieves the new z-axis
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     constexpr const auto &z() const { return _data[e_z]; }
 
     /// This method retrieves the translation
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     constexpr const auto &translation() const { return _data[e_t]; }
 
     /// This method retrieves the 4x4 matrix of a transform
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     constexpr const matrix44 &matrix() const { return _data; }
 
     /// This method retrieves the 4x4 matrix of an inverse transform
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     constexpr const matrix44 &matrix_inverse() const { return _data_inv; }
 
     /// This method transform from a point from the local 3D cartesian frame
@@ -311,7 +311,7 @@ struct transform3 {
     ///
     /// @return a global point
     template <concepts::point3D point3_type>
-    ALGEBRA_HOST_DEVICE constexpr auto point_to_global(
+    DETRAY_HOST_DEVICE constexpr auto point_to_global(
         const point3_type &p) const {
         return rotate(_data, p) + _data[e_t];
     }
@@ -325,7 +325,7 @@ struct transform3 {
     ///
     /// @return a local point
     template <concepts::point3D point3_type>
-    ALGEBRA_HOST_DEVICE constexpr auto point_to_local(
+    DETRAY_HOST_DEVICE constexpr auto point_to_local(
         const point3_type &p) const {
         return rotate(_data_inv, p) + _data_inv[e_t];
     }
@@ -339,7 +339,7 @@ struct transform3 {
     ///
     /// @return a vector in global coordinates
     template <concepts::vector3D vector3_type>
-    ALGEBRA_HOST_DEVICE constexpr auto vector_to_global(
+    DETRAY_HOST_DEVICE constexpr auto vector_to_global(
         const vector3_type &v) const {
         return rotate(_data, v);
     }
@@ -353,7 +353,7 @@ struct transform3 {
     ///
     /// @return a vector in global coordinates
     template <concepts::vector3D vector3_type>
-    ALGEBRA_HOST_DEVICE constexpr auto vector_to_local(
+    DETRAY_HOST_DEVICE constexpr auto vector_to_local(
         const vector3_type &v) const {
         return rotate(_data_inv, v);
     }

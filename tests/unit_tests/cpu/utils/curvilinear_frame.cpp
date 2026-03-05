@@ -37,20 +37,22 @@ GTEST_TEST(detray_utils, curvilinear_frame) {
 
     const auto bound_vec = cf.m_bound_vec;
 
-    const auto phi = vector::phi(mom);
-    const auto theta = vector::theta(mom);
+    const scalar phi = vector::phi(mom);
+    const scalar theta = vector::theta(mom);
 
-    EXPECT_NEAR(bound_vec.bound_local()[e_bound_loc0], 0.f, tolerance);
-    EXPECT_NEAR(bound_vec.bound_local()[e_bound_loc1], 0.f, tolerance);
+    EXPECT_NEAR(getter::element(bound_vec.bound_local(), e_bound_loc0), 0.f,
+                tolerance);
+    EXPECT_NEAR(getter::element(bound_vec.bound_local(), e_bound_loc1), 0.f,
+                tolerance);
     EXPECT_NEAR(bound_vec.phi(), phi, tolerance);
     EXPECT_NEAR(bound_vec.theta(), theta, tolerance);
     EXPECT_NEAR(bound_vec.qop(), charge / vector::norm(mom), tolerance);
 
-    const auto unit_p = vector::normalize(mom);
-    const auto trf_x = cf.m_trf.x();
-    const auto trf_y = cf.m_trf.y();
-    const auto trf_z = cf.m_trf.z();
-    const auto trf_t = cf.m_trf.translation();
+    const vector3 unit_p = vector::normalize(mom);
+    const vector3 trf_x = cf.m_trf.x();
+    const vector3 trf_y = cf.m_trf.y();
+    const vector3 trf_z = cf.m_trf.z();
+    const vector3 trf_t = cf.m_trf.translation();
 
     // local x axis transform does not have global z components
     EXPECT_NEAR(trf_x[2], 0.f, tolerance);

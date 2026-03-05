@@ -1,4 +1,4 @@
-/** Algebra plugins library, part of the ACTS project
+/** Detray library, part of the ACTS project (R&D line)
  *
  * (c) 2020-2026 CERN for the benefit of the ACTS project
  *
@@ -8,8 +8,8 @@
 #pragma once
 
 // Project include(s).
-#include "detray/algebra/common/concepts.hpp"
-#include "detray/algebra/common/qualifiers.hpp"
+#include "detray/algebra/concepts.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 
 // ROOT/Smatrix include(s).
 #include <Math/Expression.h>
@@ -27,7 +27,7 @@ namespace detray::algebra::smatrix::storage {
 struct element_getter {
 
     template <unsigned int ROWS, unsigned int COLS, concepts::scalar scalar_t>
-    ALGEBRA_HOST_DEVICE constexpr scalar_t &operator()(
+    DETRAY_HOST_DEVICE constexpr scalar_t &operator()(
         ROOT::Math::SMatrix<scalar_t, ROWS, COLS> &m, unsigned int row,
         unsigned int col) const {
         assert(row < ROWS);
@@ -36,7 +36,7 @@ struct element_getter {
     }
 
     template <unsigned int ROWS, unsigned int COLS, concepts::scalar scalar_t>
-    ALGEBRA_HOST_DEVICE constexpr scalar_t operator()(
+    DETRAY_HOST_DEVICE constexpr scalar_t operator()(
         const ROOT::Math::SMatrix<scalar_t, ROWS, COLS> &m, unsigned int row,
         unsigned int col) const {
         assert(row < ROWS);
@@ -45,28 +45,28 @@ struct element_getter {
     }
 
     template <unsigned int N, concepts::scalar scalar_t>
-    ALGEBRA_HOST_DEVICE constexpr scalar_t &operator()(
+    DETRAY_HOST_DEVICE constexpr scalar_t &operator()(
         ROOT::Math::SMatrix<scalar_t, N, 1> &m, unsigned int row) const {
         assert(row < N);
         return m(row);
     }
 
     template <unsigned int N, concepts::scalar scalar_t>
-    ALGEBRA_HOST_DEVICE constexpr scalar_t operator()(
+    DETRAY_HOST_DEVICE constexpr scalar_t operator()(
         const ROOT::Math::SMatrix<scalar_t, N, 1> &m, unsigned int row) const {
         assert(row < N);
         return m(row, 0);
     }
 
     template <concepts::scalar scalar_t, unsigned int N>
-    ALGEBRA_HOST_DEVICE constexpr scalar_t &operator()(
+    DETRAY_HOST_DEVICE constexpr scalar_t &operator()(
         ROOT::Math::SVector<scalar_t, N> &m, unsigned int row) const {
         assert(row < N);
         return m(row);
     }
 
     template <unsigned int N, concepts::scalar scalar_t>
-    ALGEBRA_HOST_DEVICE constexpr scalar_t operator()(
+    DETRAY_HOST_DEVICE constexpr scalar_t operator()(
         const ROOT::Math::SVector<scalar_t, N> &m, unsigned int row) const {
         assert(row < N);
         return m(row);
@@ -75,7 +75,7 @@ struct element_getter {
 
 /// Function extracting an element from a matrix (const)
 template <concepts::scalar scalar_t, unsigned int ROWS, unsigned int COLS>
-ALGEBRA_HOST_DEVICE constexpr scalar_t element(
+DETRAY_HOST_DEVICE constexpr scalar_t element(
     const ROOT::Math::SMatrix<scalar_t, ROWS, COLS> &m, std::size_t row,
     std::size_t col) {
     return element_getter()(m, static_cast<unsigned int>(row),
@@ -84,7 +84,7 @@ ALGEBRA_HOST_DEVICE constexpr scalar_t element(
 
 /// Function extracting an element from a matrix (non-const)
 template <concepts::scalar scalar_t, unsigned int ROWS, unsigned int COLS>
-ALGEBRA_HOST_DEVICE constexpr scalar_t &element(
+DETRAY_HOST_DEVICE constexpr scalar_t &element(
     ROOT::Math::SMatrix<scalar_t, ROWS, COLS> &m, std::size_t row,
     std::size_t col) {
     return element_getter()(m, static_cast<unsigned int>(row),
@@ -93,28 +93,28 @@ ALGEBRA_HOST_DEVICE constexpr scalar_t &element(
 
 /// Function extracting an element from a matrix (const)
 template <concepts::scalar scalar_t, unsigned int N>
-ALGEBRA_HOST_DEVICE constexpr scalar_t element(
+DETRAY_HOST_DEVICE constexpr scalar_t element(
     const ROOT::Math::SMatrix<scalar_t, N, 1> &m, std::size_t row) {
     return element_getter()(m, static_cast<unsigned int>(row));
 }
 
 /// Function extracting an element from a matrix (non-const)
 template <concepts::scalar scalar_t, unsigned int N>
-ALGEBRA_HOST_DEVICE constexpr scalar_t &element(
+DETRAY_HOST_DEVICE constexpr scalar_t &element(
     ROOT::Math::SMatrix<scalar_t, N, 1> &m, std::size_t row) {
     return element_getter()(m, static_cast<unsigned int>(row));
 }
 
 /// Function extracting an element from a matrix (const)
 template <concepts::scalar scalar_t, unsigned int N>
-ALGEBRA_HOST_DEVICE constexpr scalar_t element(
+DETRAY_HOST_DEVICE constexpr scalar_t element(
     const ROOT::Math::SVector<scalar_t, N> &m, std::size_t row) {
     return element_getter()(m, static_cast<unsigned int>(row));
 }
 
 /// Function extracting an element from a matrix (non-const)
 template <concepts::scalar scalar_t, unsigned int N>
-ALGEBRA_HOST_DEVICE constexpr scalar_t &element(
+DETRAY_HOST_DEVICE constexpr scalar_t &element(
     ROOT::Math::SVector<scalar_t, N> &m, std::size_t row) {
     return element_getter()(m, static_cast<unsigned int>(row));
 }
@@ -124,7 +124,7 @@ struct block_getter {
 
     template <unsigned int ROWS, unsigned int COLS, unsigned int oROWS,
               unsigned int oCOLS, concepts::scalar scalar_t>
-    ALGEBRA_HOST_DEVICE ROOT::Math::SMatrix<scalar_t, ROWS, COLS> operator()(
+    DETRAY_HOST_DEVICE ROOT::Math::SMatrix<scalar_t, ROWS, COLS> operator()(
         const ROOT::Math::SMatrix<scalar_t, oROWS, oCOLS> &m, unsigned int row,
         unsigned int col) const {
 
@@ -134,7 +134,7 @@ struct block_getter {
 
     template <unsigned int SIZE, unsigned int ROWS, unsigned int COLS,
               concepts::scalar scalar_t>
-    ALGEBRA_HOST_DEVICE ROOT::Math::SVector<scalar_t, SIZE> vector(
+    DETRAY_HOST_DEVICE ROOT::Math::SVector<scalar_t, SIZE> vector(
         const ROOT::Math::SMatrix<scalar_t, ROWS, COLS> &m, unsigned int row,
         unsigned int col) const {
 
@@ -158,7 +158,7 @@ struct block_getter {
 /// Operator getting a block of a const matrix
 template <unsigned int ROWS, unsigned int COLS, unsigned int oROWS,
           unsigned int oCOLS, concepts::scalar scalar_t>
-ALGEBRA_HOST_DEVICE ROOT::Math::SMatrix<scalar_t, ROWS, COLS> block(
+DETRAY_HOST_DEVICE ROOT::Math::SMatrix<scalar_t, ROWS, COLS> block(
     const ROOT::Math::SMatrix<scalar_t, oROWS, oCOLS> &m, std::size_t row,
     std::size_t col) {
     return block_getter{}.template operator()<ROWS, COLS>(
@@ -169,7 +169,7 @@ ALGEBRA_HOST_DEVICE ROOT::Math::SMatrix<scalar_t, ROWS, COLS> block(
 /// @c algebra::smatrix::transform3
 template <unsigned int SIZE, unsigned int ROWS, unsigned int COLS,
           concepts::scalar scalar_t>
-ALGEBRA_HOST_DEVICE constexpr auto vector(
+DETRAY_HOST_DEVICE constexpr auto vector(
     const ROOT::Math::SMatrix<scalar_t, ROWS, COLS> &m, std::size_t row,
     std::size_t col) {
 
@@ -180,7 +180,7 @@ ALGEBRA_HOST_DEVICE constexpr auto vector(
 /// Operator setting a block with a matrix
 template <unsigned int ROWS, unsigned int COLS, concepts::scalar scalar_t,
           concepts::matrix input_matrix_type>
-ALGEBRA_HOST_DEVICE void set_block(
+DETRAY_HOST_DEVICE void set_block(
     input_matrix_type &m, const ROOT::Math::SMatrix<scalar_t, ROWS, COLS> &b,
     std::size_t row, std::size_t col) {
     for (unsigned int i = 0; i < ROWS; ++i) {
@@ -194,9 +194,9 @@ ALGEBRA_HOST_DEVICE void set_block(
 /// Operator setting a block with a vector
 template <unsigned int ROWS, concepts::scalar scalar_t,
           concepts::matrix input_matrix_type>
-ALGEBRA_HOST_DEVICE void set_block(input_matrix_type &m,
-                                   const ROOT::Math::SVector<scalar_t, ROWS> &b,
-                                   unsigned int row, unsigned int col) {
+DETRAY_HOST_DEVICE void set_block(input_matrix_type &m,
+                                  const ROOT::Math::SVector<scalar_t, ROWS> &b,
+                                  unsigned int row, unsigned int col) {
     for (unsigned int i = 0; i < ROWS; ++i) {
         m(i + row, col) = b[i];
     }

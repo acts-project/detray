@@ -7,7 +7,9 @@
 
 #pragma once
 
-namespace detray::algebra::boolean {
+namespace detray {
+
+namespace algebra::boolean {
 
 /// Utilities for single booleans: default case
 /// @{
@@ -22,4 +24,13 @@ constexpr bool none_of(bool b) {
 }
 /// @}
 
-}  // namespace detray::algebra::boolean
+}  // namespace algebra::boolean
+
+namespace detail {
+
+// Pull the boolean functions into the detray namespace
+using namespace ::detray::algebra::boolean;
+
+}  // namespace detail
+
+}  // namespace detray

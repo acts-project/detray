@@ -1,4 +1,4 @@
-/** Algebra plugins library, part of the ACTS project
+/** Detray library, part of the ACTS project (R&D line)
  *
  * (c) 2020-2026 CERN for the benefit of the ACTS project
  *
@@ -14,24 +14,8 @@
 #include "algebra/impl/array_types.hpp"
 #include "algebra/impl/array_vector.hpp"
 #include "detray/algebra/generic/generic.hpp"
-#include "detray/algebra/generic/impl/generic_matrix.hpp"
 
 namespace detray {
-
-namespace algebra::array {
-
-/// @name array based transforms on @c algebra::array
-/// @{
-
-template <concepts::scalar T>
-using transform3 =
-    algebra::generic::math::transform3<algebra::array::index_type, T,
-                                       algebra::array::matrix_type,
-                                       algebra::array::storage_type>;
-
-/// @}
-
-}  // namespace algebra::array
 
 /// Define the plugin types
 /// @{

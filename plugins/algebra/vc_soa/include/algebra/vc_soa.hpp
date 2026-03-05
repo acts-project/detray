@@ -1,4 +1,4 @@
-/** Algebra plugins library, part of the ACTS project
+/** Detray library, part of the ACTS project (R&D line)
  *
  * (c) 2023-2026 CERN for the benefit of the ACTS project
  *
@@ -8,7 +8,6 @@
 #pragma once
 
 // Project include(s).
-#include "algebra/impl/vc_aos_transform3.hpp"
 #include "algebra/impl/vc_soa_boolean.hpp"
 #include "algebra/impl/vc_soa_casts.hpp"
 #include "algebra/impl/vc_soa_getter.hpp"
@@ -33,19 +32,6 @@ using algebra::storage::operator-;
 using algebra::storage::operator+;
 
 /// @}
-
-namespace algebra::vc_soa {
-
-/// @name Vc based transforms on @c algebra::vc_soa types
-/// @{
-
-template <concepts::value T>
-using transform3 =
-    vc_aos::math::transform3<vc_soa::storage_type, Vc::Vector<T>>;
-
-/// @}
-
-}  // namespace algebra::vc_soa
 
 /// Define the plugin types
 /// @{

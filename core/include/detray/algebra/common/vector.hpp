@@ -1,4 +1,4 @@
-/** Algebra plugins, part of the ACTS project
+/** Detray library, part of the ACTS project (R&D line)
  *
  * (c) 2023-2026 CERN for the benefit of the ACTS project
  *
@@ -13,8 +13,8 @@
 
 // Project include(s)
 #include "detray/algebra/common/array_operators.hpp"
-#include "detray/algebra/common/concepts.hpp"
-#include "detray/algebra/common/qualifiers.hpp"
+#include "detray/algebra/concepts.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 
 // System include(s).
 #include <array>
@@ -31,7 +31,7 @@ namespace detail {
 /// Make sure the vector/matrix dimension aligns with simd sizes
 /// @see
 /// https://gitlab.in2p3.fr/CodeursIntensifs/Fast5x5/-/blob/master/fast5x5.hpp?ref_type=heads
-ALGEBRA_HOST_DEVICE
+DETRAY_HOST_DEVICE
 consteval std::size_t nearest_power_of_two(std::size_t min_value,
                                            std::size_t current_value) {
     // Computes the nearest power of two relative to `min_value` starting from
@@ -47,12 +47,12 @@ consteval std::size_t nearest_power_of_two(std::size_t min_value,
 /// SIMD vector.
 template <std::size_t N, concepts::scalar scalar_t,
           template <typename, std::size_t> class array_t>
-class ALGEBRA_ALIGN(
+class DETRAY_ALIGN(
     alignof(array_t<scalar_t, detail::nearest_power_of_two(N, 2u)>)) vector {
 
     public:
     /// @returns the required size of the underlying array storage
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     static consteval std::size_t simd_size() {
         return concepts::value<scalar_t> ? detail::nearest_power_of_two(N, 2u)
                                          : N;
@@ -64,7 +64,7 @@ class ALGEBRA_ALIGN(
     using array_type = array_t<scalar_t, simd_size()>;
 
     /// Default contructor sets all entries to zero.
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     constexpr vector() {
         if constexpr (!concepts::simd_scalar<scalar_type>) {
             zero_fill(std::make_index_sequence<simd_size()>{});
@@ -81,7 +81,7 @@ class ALGEBRA_ALIGN(
                  ((concepts::simd_scalar<Scalars> ||
                    std::convertible_to<Scalars, scalar_t>) &&
                   ...))
-    ALGEBRA_HOST_DEVICE constexpr vector(Scalars &&...scals)
+    DETRAY_HOST_DEVICE constexpr vector(Scalars &&...scals)
         : m_data{std::forward<Scalars>(scals)...} {}
 
     /// In order to avoid uninitialized values, which deteriorate the
@@ -92,7 +92,7 @@ class ALGEBRA_ALIGN(
                  ((concepts::value<Values> ||
                    std::convertible_to<Values, scalar_t>) &&
                   ...))
-    ALGEBRA_HOST_DEVICE constexpr vector(Values &&...vals) {
+    DETRAY_HOST_DEVICE constexpr vector(Values &&...vals) {
 
         static_assert(sizeof...(Values) <= N);
 
@@ -114,10 +114,10 @@ class ALGEBRA_ALIGN(
 
     /// Construct from existing array storage @param vals
     /// @{
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     constexpr vector(array_type &&vals) : m_data{std::move(vals)} {}
 
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     constexpr vector(const array_type &vals) : m_data{vals} {}
     /// @}
 
@@ -127,7 +127,7 @@ class ALGEBRA_ALIGN(
     template <std::size_t M>
         requires(vector<N, scalar_t, array_t>::simd_size() ==
                  vector<M, scalar_t, array_t>::simd_size())
-    ALGEBRA_HOST_DEVICE constexpr const vector &operator=(
+    DETRAY_HOST_DEVICE constexpr const vector &operator=(
         const vector<M, scalar_t, array_t> &lhs) {
         m_data = lhs;
         return *this;
@@ -135,20 +135,20 @@ class ALGEBRA_ALIGN(
 
     /// Conversion operator from wrapper to underlying data array.
     /// @{
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     constexpr operator array_type &() { return m_data; }
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     constexpr operator const array_type &() const { return m_data; }
     /// @}
 
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     constexpr const auto &get() const { return m_data; }
 
     /// Subscript operator[]
     /// @{
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     constexpr decltype(auto) operator[](std::size_t i) { return m_data[i]; }
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     constexpr decltype(auto) operator[](std::size_t i) const {
         return m_data[i];
     }
@@ -157,7 +157,7 @@ class ALGEBRA_ALIGN(
     /// Operator*=
     ///
     /// @return Vector expression/return type according to the operation.
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     constexpr decltype(auto) operator*=(scalar_type factor) noexcept {
         return m_data *= factor;
     }
@@ -167,13 +167,13 @@ class ALGEBRA_ALIGN(
     /// AoS
     template <concepts::scalar S = scalar_t>
         requires(!concepts::simd_scalar<S>)
-    ALGEBRA_HOST_DEVICE constexpr friend bool operator==(
+    DETRAY_HOST_DEVICE constexpr friend bool operator==(
         const vector &lhs, const vector &rhs) noexcept {
 
         const auto comp = lhs.compare(rhs);
         bool is_full = true;
 
-        ALGEBRA_UNROLL_N(N)
+        DETRAY_UNROLL_N(N)
         for (unsigned int i{0u}; i < N; ++i) {
             is_full &= comp[i];
         }
@@ -184,13 +184,13 @@ class ALGEBRA_ALIGN(
     /// SoA
     template <concepts::scalar S = scalar_t>
         requires(concepts::simd_scalar<S>)
-    ALGEBRA_HOST_DEVICE constexpr friend bool operator==(
+    DETRAY_HOST_DEVICE constexpr friend bool operator==(
         const vector &lhs, const vector &rhs) noexcept {
 
         const auto comp = lhs.compare(rhs);
         bool is_full = true;
 
-        ALGEBRA_UNROLL_N(N)
+        DETRAY_UNROLL_N(N)
         for (unsigned int i{0u}; i < N; ++i) {
             // Ducktyping the Vc::Vector::MaskType
             is_full &= comp[i].isFull();
@@ -202,20 +202,20 @@ class ALGEBRA_ALIGN(
 
     /// Inequality operator
     template <typename other_t>
-    ALGEBRA_HOST_DEVICE constexpr bool operator!=(
+    DETRAY_HOST_DEVICE constexpr bool operator!=(
         const other_t &rhs) const noexcept {
         return ((*this == rhs) == false);
     }
 
     /// Elementwise comparison. Can result in a vector-of-masks for SoA vectors
     template <typename other_t>
-    ALGEBRA_HOST_DEVICE constexpr auto compare(
+    DETRAY_HOST_DEVICE constexpr auto compare(
         const other_t &rhs) const noexcept {
         using result_t = decltype(m_data[0] == rhs[0]);
 
         std::array<result_t, N> comp;
 
-        ALGEBRA_UNROLL_N(N)
+        DETRAY_UNROLL_N(N)
         for (unsigned int i{0u}; i < N; ++i) {
             comp[i] = (m_data[i] == rhs[i]);
         }
@@ -229,7 +229,7 @@ class ALGEBRA_ALIGN(
     private:
     /// Sets the trailing uninitialized values to zero.
     template <std::size_t... Is>
-    ALGEBRA_HOST_DEVICE constexpr void zero_fill(
+    DETRAY_HOST_DEVICE constexpr void zero_fill(
         std::index_sequence<Is...>) noexcept {
         ((m_data[simd_size() - sizeof...(Is) + Is] = scalar_t(0)), ...);
     }
@@ -240,20 +240,20 @@ class ALGEBRA_ALIGN(
     template <std::size_t N, concepts::scalar scalar_t,                       \
               concepts::value value_t,                                        \
               template <typename, std::size_t> class array_t>                 \
-    ALGEBRA_HOST_DEVICE constexpr decltype(auto) operator OP(                 \
+    DETRAY_HOST_DEVICE constexpr decltype(auto) operator OP(                  \
         const vector<N, scalar_t, array_t> &lhs, value_t rhs) noexcept {      \
         return lhs.m_data OP static_cast<scalar_t>(rhs);                      \
     }                                                                         \
     template <std::size_t N, concepts::scalar scalar_t,                       \
               concepts::value value_t,                                        \
               template <typename, std::size_t> class array_t>                 \
-    ALGEBRA_HOST_DEVICE constexpr decltype(auto) operator OP(                 \
+    DETRAY_HOST_DEVICE constexpr decltype(auto) operator OP(                  \
         value_t lhs, const vector<N, scalar_t, array_t> &rhs) noexcept {      \
         return static_cast<scalar_t>(lhs) OP rhs.m_data;                      \
     }                                                                         \
     template <std::size_t N, concepts::scalar scalar_t,                       \
               template <typename, std::size_t> class array_t>                 \
-    ALGEBRA_HOST_DEVICE constexpr decltype(auto) operator OP(                 \
+    DETRAY_HOST_DEVICE constexpr decltype(auto) operator OP(                  \
         const vector<N, scalar_t, array_t> &lhs,                              \
         const vector<N, scalar_t, array_t> &rhs) noexcept {                   \
         return lhs.m_data OP rhs.m_data;                                      \
@@ -262,7 +262,7 @@ class ALGEBRA_ALIGN(
               template <typename, std::size_t> class array_t,                 \
               typename other_t>                                               \
         requires(concepts::vector<other_t> || concepts::simd_scalar<other_t>) \
-    ALGEBRA_HOST_DEVICE constexpr decltype(auto) operator OP(                 \
+    DETRAY_HOST_DEVICE constexpr decltype(auto) operator OP(                  \
         const vector<N, scalar_t, array_t> &lhs,                              \
         const other_t &rhs) noexcept {                                        \
         return lhs.m_data OP rhs;                                             \
@@ -271,7 +271,7 @@ class ALGEBRA_ALIGN(
               template <typename, std::size_t> class array_t,                 \
               typename other_t>                                               \
         requires(concepts::vector<other_t> || concepts::simd_scalar<other_t>) \
-    ALGEBRA_HOST_DEVICE constexpr decltype(auto) operator OP(                 \
+    DETRAY_HOST_DEVICE constexpr decltype(auto) operator OP(                  \
         const other_t &lhs,                                                   \
         const vector<N, scalar_t, array_t> &rhs) noexcept {                   \
         return lhs OP rhs.m_data;                                             \

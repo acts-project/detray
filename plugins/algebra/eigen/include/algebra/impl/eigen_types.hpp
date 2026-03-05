@@ -1,4 +1,4 @@
-/** Algebra plugins library, part of the ACTS project
+/** Detray library, part of the ACTS project (R&D line)
  *
  * (c) 2020-2026 CERN for the benefit of the ACTS project
  *
@@ -10,8 +10,9 @@
 // Project include(s).
 #include "algebra/impl/detail/eigen_array.hpp"
 #include "algebra/impl/eigen_getter.hpp"
-#include "detray/algebra/common/concepts.hpp"
-#include "detray/algebra/common/type_traits.hpp"
+#include "algebra/impl/eigen_transform3.hpp"
+#include "detray/algebra/concepts.hpp"
+#include "detray/algebra/type_traits.hpp"
 
 // System include(s).
 #include <cstddef>
@@ -51,6 +52,10 @@ using vector2 = storage_type<T, 2>;
 /// Point in 2D space, using @c eigen::vector_type
 template <concepts::scalar T>
 using point2 = vector2<T>;
+
+/// Geometry transformation implementation using @c eigen::vector_type
+template <concepts::scalar T>
+using transform3 = eigen::math::transform3<T>;
 
 /// Element Getter
 using element_getter = eigen::storage::element_getter;
