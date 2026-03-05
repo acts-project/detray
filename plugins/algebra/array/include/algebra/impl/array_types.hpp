@@ -1,4 +1,4 @@
-/** Algebra plugins library, part of the ACTS project
+/** Detray library, part of the ACTS project (R&D line)
  *
  * (c) 2020-2026 CERN for the benefit of the ACTS project
  *
@@ -9,8 +9,9 @@
 
 // Project include(s)
 #include "algebra/impl/array_getter.hpp"
-#include "detray/algebra/common/concepts.hpp"
-#include "detray/algebra/common/type_traits.hpp"
+#include "detray/algebra/concepts.hpp"
+#include "detray/algebra/generic/generic.hpp"
+#include "detray/algebra/type_traits.hpp"
 
 // System include(s).
 #include <array>
@@ -50,6 +51,13 @@ using vector2 = storage_type<T, 2>;
 /// Point in 2D space, using @c std::array
 template <concepts::scalar T>
 using point2 = vector2<T>;
+
+/// Generic geometry transformation implementation using @c std::array
+template <concepts::scalar T>
+using transform3 =
+    algebra::generic::math::transform3<algebra::array::index_type, T,
+                                       algebra::array::matrix_type,
+                                       algebra::array::storage_type>;
 
 /// Element Getter
 using element_getter = array::storage::element_getter;

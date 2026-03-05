@@ -1,4 +1,4 @@
-/** Algebra plugins, part of the ACTS project
+/** Detray library, part of the ACTS project (R&D line)
  *
  * (c) 2022-2026 CERN for the benefit of the ACTS project
  *
@@ -8,8 +8,8 @@
 #pragma once
 
 // Project include(s).
-#include "detray/algebra/common/concepts.hpp"
-#include "detray/algebra/common/qualifiers.hpp"
+#include "detray/algebra/concepts.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 
 // Fastor include(s).
 #ifdef _MSC_VER
@@ -27,7 +27,7 @@ namespace detray::algebra::fastor::math {
 
 /// This method retrieves phi from a vector @param v
 template <typename Derived, auto N>
-ALGEBRA_HOST_DEVICE constexpr auto phi(
+DETRAY_HOST_DEVICE constexpr auto phi(
     const Fastor::AbstractTensor<Derived, N> &a) {
     // we first force evaluation of whatever was passed in.
     auto v = Fastor::evaluate(a);
@@ -44,7 +44,7 @@ ALGEBRA_HOST_DEVICE constexpr auto phi(
 ///
 /// @param v the input vector
 template <typename Derived, auto N>
-ALGEBRA_HOST constexpr auto theta(
+DETRAY_HOST constexpr auto theta(
     const Fastor::AbstractTensor<Derived, N> &a) noexcept {
     // we first force evaluation of whatever was passed in.
     auto v = Fastor::evaluate(a);
@@ -61,7 +61,7 @@ ALGEBRA_HOST constexpr auto theta(
 ///
 /// @param v the input vector
 template <typename Derived, auto N>
-ALGEBRA_HOST constexpr auto perp(
+DETRAY_HOST constexpr auto perp(
     const Fastor::AbstractTensor<Derived, N> &a) noexcept {
 
     // we first force evaluation of whatever was passed in.
@@ -80,7 +80,7 @@ ALGEBRA_HOST constexpr auto perp(
 ///
 /// @param v the input vector
 template <typename Derived, auto N>
-ALGEBRA_HOST constexpr auto norm(const Fastor::AbstractTensor<Derived, N> &v) {
+DETRAY_HOST constexpr auto norm(const Fastor::AbstractTensor<Derived, N> &v) {
 
     return Fastor::norm(v);
 }
@@ -90,7 +90,7 @@ ALGEBRA_HOST constexpr auto norm(const Fastor::AbstractTensor<Derived, N> &v) {
 ///
 /// @param v the input vector
 template <typename Derived, auto N>
-ALGEBRA_HOST constexpr auto eta(
+DETRAY_HOST constexpr auto eta(
     const Fastor::AbstractTensor<Derived, N> &a) noexcept {
     auto v = Fastor::evaluate(a);
 
@@ -103,7 +103,7 @@ ALGEBRA_HOST constexpr auto eta(
 ///
 /// @param v the input vector
 template <typename Derived, auto N>
-ALGEBRA_HOST constexpr auto normalize(
+DETRAY_HOST constexpr auto normalize(
     const Fastor::AbstractTensor<Derived, N> &v) {
 
     return v / Fastor::norm(v);
@@ -116,8 +116,8 @@ ALGEBRA_HOST constexpr auto normalize(
 ///
 /// @return the scalar dot product value
 template <typename Derived0, auto N0, typename Derived1, auto N1>
-ALGEBRA_HOST constexpr auto dot(const Fastor::AbstractTensor<Derived0, N0> &a,
-                                const Fastor::AbstractTensor<Derived1, N1> &b) {
+DETRAY_HOST constexpr auto dot(const Fastor::AbstractTensor<Derived0, N0> &a,
+                               const Fastor::AbstractTensor<Derived1, N1> &b) {
     return Fastor::inner(a, b);
 }
 
@@ -128,7 +128,7 @@ ALGEBRA_HOST constexpr auto dot(const Fastor::AbstractTensor<Derived0, N0> &a,
 ///
 /// @return the scalar dot product value
 template <concepts::scalar scalar_t, auto N>
-ALGEBRA_HOST_DEVICE constexpr scalar_t dot(
+DETRAY_HOST_DEVICE constexpr scalar_t dot(
     const Fastor::Tensor<scalar_t, N> &a,
     const Fastor::Tensor<scalar_t, N> &b) {
     return Fastor::inner(a, b);
@@ -141,8 +141,8 @@ ALGEBRA_HOST_DEVICE constexpr scalar_t dot(
 ///
 /// @return the scalar dot product value
 template <concepts::scalar scalar_t, auto N>
-ALGEBRA_HOST constexpr scalar_t dot(const Fastor::Tensor<scalar_t, N> &a,
-                                    const Fastor::Tensor<scalar_t, N, 1> &b) {
+DETRAY_HOST constexpr scalar_t dot(const Fastor::Tensor<scalar_t, N> &a,
+                                   const Fastor::Tensor<scalar_t, N, 1> &b) {
 
     // We need to specify the type of the Tensor slice because Fastor by default
     // is lazy, so it returns an intermediate type which does not play well with
@@ -158,8 +158,8 @@ ALGEBRA_HOST constexpr scalar_t dot(const Fastor::Tensor<scalar_t, N> &a,
 ///
 /// @return the scalar dot product value
 template <concepts::scalar scalar_t, auto N>
-ALGEBRA_HOST constexpr scalar_t dot(const Fastor::Tensor<scalar_t, N, 1> &a,
-                                    const Fastor::Tensor<scalar_t, N> &b) {
+DETRAY_HOST constexpr scalar_t dot(const Fastor::Tensor<scalar_t, N, 1> &a,
+                                   const Fastor::Tensor<scalar_t, N> &b) {
 
     return Fastor::inner(
         Fastor::Tensor<scalar_t, N>(a(Fastor::fseq<0, N>(), 0)), b);
@@ -172,8 +172,8 @@ ALGEBRA_HOST constexpr scalar_t dot(const Fastor::Tensor<scalar_t, N, 1> &a,
 ///
 /// @return the scalar dot product value
 template <concepts::scalar scalar_t, auto N>
-ALGEBRA_HOST constexpr scalar_t dot(const Fastor::Tensor<scalar_t, N, 1> &a,
-                                    const Fastor::Tensor<scalar_t, N, 1> &b) {
+DETRAY_HOST constexpr scalar_t dot(const Fastor::Tensor<scalar_t, N, 1> &a,
+                                   const Fastor::Tensor<scalar_t, N, 1> &b) {
 
     return Fastor::inner(
         Fastor::Tensor<scalar_t, N>(a(Fastor::fseq<0, 3>(), 0)),
@@ -187,7 +187,7 @@ ALGEBRA_HOST constexpr scalar_t dot(const Fastor::Tensor<scalar_t, N, 1> &a,
 ///
 /// @return a vector (expression) representing the cross product
 template <typename Derived0, auto N0, typename Derived1, auto N1>
-ALGEBRA_HOST constexpr auto cross(
+DETRAY_HOST constexpr auto cross(
     const Fastor::AbstractTensor<Derived0, N0> &a,
     const Fastor::AbstractTensor<Derived1, N1> &b) {
     return Fastor::cross(a, b);
@@ -200,8 +200,8 @@ ALGEBRA_HOST constexpr auto cross(
 ///
 /// @return a vector (expression) representing the cross product
 template <concepts::scalar scalar_t>
-ALGEBRA_HOST constexpr auto cross(const Fastor::Tensor<scalar_t, 3> &a,
-                                  const Fastor::Tensor<scalar_t, 3> &b) {
+DETRAY_HOST constexpr auto cross(const Fastor::Tensor<scalar_t, 3> &a,
+                                 const Fastor::Tensor<scalar_t, 3> &b) {
     return Fastor::cross(a, b);
 }
 
@@ -212,8 +212,8 @@ ALGEBRA_HOST constexpr auto cross(const Fastor::Tensor<scalar_t, 3> &a,
 ///
 /// @return a vector (expression) representing the cross product
 template <concepts::scalar scalar_t>
-ALGEBRA_HOST constexpr auto cross(const Fastor::Tensor<scalar_t, 3> &a,
-                                  const Fastor::Tensor<scalar_t, 3, 1> &b) {
+DETRAY_HOST constexpr auto cross(const Fastor::Tensor<scalar_t, 3> &a,
+                                 const Fastor::Tensor<scalar_t, 3, 1> &b) {
 
     // We need to specify the type of the Tensor slice because Fastor by default
     // is lazy, so it returns an intermediate type which does not play well with
@@ -229,8 +229,8 @@ ALGEBRA_HOST constexpr auto cross(const Fastor::Tensor<scalar_t, 3> &a,
 ///
 /// @return a vector (expression) representing the cross product
 template <concepts::scalar scalar_t>
-ALGEBRA_HOST constexpr auto cross(const Fastor::Tensor<scalar_t, 3, 1> &a,
-                                  const Fastor::Tensor<scalar_t, 3> &b) {
+DETRAY_HOST constexpr auto cross(const Fastor::Tensor<scalar_t, 3, 1> &a,
+                                 const Fastor::Tensor<scalar_t, 3> &b) {
 
     return Fastor::cross(
         Fastor::Tensor<scalar_t, 3>(a(Fastor::fseq<0, 3>(), 0)), b);
@@ -243,8 +243,8 @@ ALGEBRA_HOST constexpr auto cross(const Fastor::Tensor<scalar_t, 3, 1> &a,
 ///
 /// @return a vector (expression) representing the cross product
 template <concepts::scalar scalar_t>
-ALGEBRA_HOST constexpr auto cross(const Fastor::Tensor<scalar_t, 3, 1> &a,
-                                  const Fastor::Tensor<scalar_t, 3, 1> &b) {
+DETRAY_HOST constexpr auto cross(const Fastor::Tensor<scalar_t, 3, 1> &a,
+                                 const Fastor::Tensor<scalar_t, 3, 1> &b) {
 
     return Fastor::cross(
         Fastor::Tensor<scalar_t, 3>(a(Fastor::fseq<0, 3>(), 0)),

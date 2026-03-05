@@ -1,4 +1,4 @@
-/** Algebra plugins library, part of the ACTS project
+/** Detray library, part of the ACTS project (R&D line)
  *
  * (c) 2020-2026 CERN for the benefit of the ACTS project
  *
@@ -9,10 +9,10 @@
 
 // Project include(s).
 #include "algebra/impl/vc_aos_types.hpp"
-#include "detray/algebra/common/concepts.hpp"
 #include "detray/algebra/common/math.hpp"
-#include "detray/algebra/common/qualifiers.hpp"
 #include "detray/algebra/common/vector.hpp"
+#include "detray/algebra/concepts.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 
 // Vc include(s).
 #ifdef _MSC_VER
@@ -31,19 +31,19 @@ namespace detray::algebra::vc_aos::math {
 
 /// This method retrieves phi from a vector @param v
 template <detray::concepts::vc_aos_vector vector_t>
-ALGEBRA_HOST_DEVICE constexpr auto phi(const vector_t &v) {
+DETRAY_HOST_DEVICE constexpr auto phi(const vector_t &v) {
     return algebra::math::atan2(v[1], v[0]);
 }
 
 /// This method retrieves the perpendicular magnitude of a vector @param v
 template <detray::concepts::vc_aos_vector vector_t>
-ALGEBRA_HOST_DEVICE constexpr auto perp(const vector_t &v) {
+DETRAY_HOST_DEVICE constexpr auto perp(const vector_t &v) {
     return algebra::math::sqrt(algebra::math::fma(v[0], v[0], v[1] * v[1]));
 }
 
 /// This method retrieves theta from a vector @param v
 template <detray::concepts::vc_aos_vector vector_t>
-ALGEBRA_HOST_DEVICE constexpr auto theta(const vector_t &v) {
+DETRAY_HOST_DEVICE constexpr auto theta(const vector_t &v) {
     return algebra::math::atan2(perp(v), v[2]);
 }
 
@@ -57,7 +57,7 @@ ALGEBRA_HOST_DEVICE constexpr auto theta(const vector_t &v) {
 /// @return the scalar dot product value
 template <detray::concepts::vc_aos_vector vector_t1,
           detray::concepts::vc_aos_vector vector_t2>
-ALGEBRA_HOST_DEVICE constexpr auto dot(const vector_t1 &a, const vector_t2 &b) {
+DETRAY_HOST_DEVICE constexpr auto dot(const vector_t1 &a, const vector_t2 &b) {
     return (a * b).sum();
 }
 
@@ -65,7 +65,7 @@ ALGEBRA_HOST_DEVICE constexpr auto dot(const vector_t1 &a, const vector_t2 &b) {
 ///
 /// @param v the input vector
 template <detray::concepts::vc_aos_vector vector_t>
-ALGEBRA_HOST_DEVICE constexpr auto norm(const vector_t &v) {
+DETRAY_HOST_DEVICE constexpr auto norm(const vector_t &v) {
     return algebra::math::sqrt(dot(v, v));
 }
 
@@ -75,7 +75,7 @@ ALGEBRA_HOST_DEVICE constexpr auto norm(const vector_t &v) {
 ///
 /// @param v the input vector
 template <detray::concepts::vc_aos_vector vector_t>
-ALGEBRA_HOST_DEVICE constexpr auto normalize(const vector_t &v) {
+DETRAY_HOST_DEVICE constexpr auto normalize(const vector_t &v) {
     return v / norm(v);
 }
 
@@ -84,7 +84,7 @@ ALGEBRA_HOST_DEVICE constexpr auto normalize(const vector_t &v) {
 ///
 /// @param v the input vector
 template <detray::concepts::vc_aos_vector vector_t>
-ALGEBRA_HOST_DEVICE constexpr auto eta(const vector_t &v) noexcept {
+DETRAY_HOST_DEVICE constexpr auto eta(const vector_t &v) noexcept {
     return algebra::math::atanh(v[2] / norm(v));
 }
 
@@ -100,8 +100,9 @@ template <detray::concepts::vc_aos_vector vector_t1,
           detray::concepts::vc_aos_vector vector_t2>
     requires(std::same_as<detray::traits::value_t<vector_t1>, float> &&
              std::same_as<detray::traits::value_t<vector_t2>, float>)
-ALGEBRA_HOST_DEVICE constexpr auto cross(const vector_t1 &a, const vector_t2 &b)
-    -> decltype(a * b - b * a) {
+DETRAY_HOST_DEVICE constexpr auto cross(const vector_t1 &a,
+                                        const vector_t2 &b) -> decltype(a * b -
+                                                                        b * a) {
     using T = detray::traits::value_t<vector_t1>;
     using simd_array_t = Vc::SimdArray<T, 4>;
 
@@ -138,8 +139,9 @@ template <detray::concepts::vc_aos_vector vector_t1,
           detray::concepts::vc_aos_vector vector_t2>
     requires(std::same_as<detray::traits::value_t<vector_t1>, double> ||
              std::same_as<detray::traits::value_t<vector_t2>, double>)
-ALGEBRA_HOST_DEVICE constexpr auto cross(const vector_t1 &a, const vector_t2 &b)
-    -> decltype(a * b - b * a) {
+DETRAY_HOST_DEVICE constexpr auto cross(const vector_t1 &a,
+                                        const vector_t2 &b) -> decltype(a * b -
+                                                                        b * a) {
 
     return {algebra::math::fma(a[1], b[2], -b[1] * a[2]),
             algebra::math::fma(a[2], b[0], -b[2] * a[0]),
@@ -154,7 +156,7 @@ ALGEBRA_HOST_DEVICE constexpr auto cross(const vector_t1 &a, const vector_t2 &b)
 ///
 /// @return the sum of the elements
 template <detray::concepts::vc_aos_vector vector_t>
-ALGEBRA_HOST_DEVICE constexpr auto sum(const vector_t &v) {
+DETRAY_HOST_DEVICE constexpr auto sum(const vector_t &v) {
     return v.get().sum();
 }
 

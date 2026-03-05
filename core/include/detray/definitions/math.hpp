@@ -23,6 +23,7 @@ namespace math {
 #if defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)
 using namespace ::sycl;
 #else
+// Allow algebra plugins to define their own basic math functions
 using namespace ::detray::algebra::math;
 #endif  // SYCL
 

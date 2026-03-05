@@ -1,4 +1,4 @@
-/** Algebra plugins library, part of the ACTS project
+/** Detray library, part of the ACTS project (R&D line)
  *
  * (c) 2020-2026 CERN for the benefit of the ACTS project
  *
@@ -11,10 +11,11 @@
 #include "algebra/impl/vc_aos_approximately_equal.hpp"
 #include "algebra/impl/vc_aos_concepts.hpp"
 #include "algebra/impl/vc_aos_getter.hpp"
-#include "detray/algebra/common/concepts.hpp"
+#include "algebra/impl/vc_aos_transform3.hpp"
 #include "detray/algebra/common/matrix.hpp"
-#include "detray/algebra/common/type_traits.hpp"
 #include "detray/algebra/common/vector.hpp"
+#include "detray/algebra/concepts.hpp"
+#include "detray/algebra/type_traits.hpp"
 
 // System include(s).
 #include <array>
@@ -75,6 +76,10 @@ using vector6 = vector_type<T, 6>;
 /// 8-element "vector" type, using @c Vc::SimdArray
 template <concepts::value T>
 using vector8 = vector_type<T, 8>;
+
+/// Geometry transformation implementation using @c Vc::SimdArray
+template <concepts::value T>
+using transform3 = vc_aos::math::transform3<vc_aos::storage_type, T>;
 
 /// Element Getter
 using element_getter = algebra::storage::element_getter;

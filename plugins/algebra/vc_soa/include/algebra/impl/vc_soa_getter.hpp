@@ -1,4 +1,4 @@
-/** Algebra plugins library, part of the ACTS project
+/** Detray library, part of the ACTS project (R&D line)
  *
  * (c) 2023-2026 CERN for the benefit of the ACTS project
  *
@@ -8,9 +8,9 @@
 #pragma once
 
 // Project include(s).
-#include "detray/algebra/common/concepts.hpp"
 #include "detray/algebra/common/matrix_getter.hpp"
-#include "detray/algebra/common/qualifiers.hpp"
+#include "detray/algebra/concepts.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 
 namespace detray::algebra::vc_soa::storage {
 
@@ -22,7 +22,7 @@ using algebra::storage::set_block;
 template <std::size_t SIZE, std::size_t ROW, std::size_t COL,
           concepts::scalar scalar_t,
           template <typename, std::size_t> class array_t>
-ALGEBRA_HOST_DEVICE constexpr auto vector(
+DETRAY_HOST_DEVICE constexpr auto vector(
     const algebra::storage::matrix<array_t, scalar_t, ROW, COL> &m,
     const std::size_t row, const std::size_t col) noexcept {
     return algebra::storage::block_getter{}.template vector<SIZE>(m, row, col);

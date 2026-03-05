@@ -1,4 +1,4 @@
-/** Algebra plugins library, part of the ACTS project
+/** Detray library, part of the ACTS project (R&D line)
  *
  * (c) 2020-2024 CERN for the benefit of the ACTS project
  *
@@ -8,10 +8,10 @@
 #pragma once
 
 // Project include(s).
-#include "detray/algebra/common/concepts.hpp"
 #include "detray/algebra/common/math.hpp"
-#include "detray/algebra/common/qualifiers.hpp"
-#include "detray/algebra/common/type_traits.hpp"
+#include "detray/algebra/concepts.hpp"
+#include "detray/algebra/type_traits.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 
 namespace detray::algebra::generic::math {
 
@@ -19,7 +19,7 @@ namespace detray::algebra::generic::math {
 ///
 /// @param v the input vector
 template <concepts::vector vector_t>
-ALGEBRA_HOST_DEVICE constexpr detray::traits::scalar_t<vector_t> phi(
+DETRAY_HOST_DEVICE constexpr detray::traits::scalar_t<vector_t> phi(
     const vector_t &v) noexcept {
 
     using element_getter_t = detray::traits::element_getter_t<vector_t>;
@@ -32,7 +32,7 @@ ALGEBRA_HOST_DEVICE constexpr detray::traits::scalar_t<vector_t> phi(
 ///
 /// @param v the input vector
 template <concepts::vector vector_t>
-ALGEBRA_HOST_DEVICE constexpr detray::traits::scalar_t<vector_t> perp(
+DETRAY_HOST_DEVICE constexpr detray::traits::scalar_t<vector_t> perp(
     const vector_t &v) noexcept {
 
     using element_getter_t = detray::traits::element_getter_t<vector_t>;
@@ -46,7 +46,7 @@ ALGEBRA_HOST_DEVICE constexpr detray::traits::scalar_t<vector_t> perp(
 ///
 /// @param v the input vector
 template <concepts::vector vector_t>
-ALGEBRA_HOST_DEVICE constexpr detray::traits::scalar_t<vector_t> theta(
+DETRAY_HOST_DEVICE constexpr detray::traits::scalar_t<vector_t> theta(
     const vector_t &v) noexcept {
 
     using element_getter_t = detray::traits::element_getter_t<vector_t>;
@@ -68,7 +68,7 @@ template <typename vector1_t, typename vector2_t>
               concepts::column_matrix3D<vector1_t>) &&
              (concepts::vector3D<vector2_t> ||
               concepts::column_matrix3D<vector2_t>))
-ALGEBRA_HOST_DEVICE constexpr detray::traits::vector_t<vector1_t> cross(
+DETRAY_HOST_DEVICE constexpr detray::traits::vector_t<vector1_t> cross(
     const vector1_t &a, const vector2_t &b) {
 
     using element_getter_t = detray::traits::element_getter_t<vector1_t>;
@@ -97,7 +97,7 @@ template <typename vector1_t, typename vector2_t>
     requires(
         (concepts::vector<vector1_t> || concepts::column_matrix<vector1_t>) &&
         (concepts::vector<vector2_t> || concepts::column_matrix<vector2_t>))
-ALGEBRA_HOST_DEVICE constexpr detray::traits::scalar_t<vector1_t> dot(
+DETRAY_HOST_DEVICE constexpr detray::traits::scalar_t<vector1_t> dot(
     const vector1_t &a, const vector2_t &b) {
 
     using scalar_t = detray::traits::scalar_t<vector1_t>;
@@ -117,7 +117,7 @@ ALGEBRA_HOST_DEVICE constexpr detray::traits::scalar_t<vector1_t> dot(
 ///
 /// @param v the input vector
 template <concepts::vector vector_t>
-ALGEBRA_HOST_DEVICE constexpr detray::traits::scalar_t<vector_t> norm(
+DETRAY_HOST_DEVICE constexpr detray::traits::scalar_t<vector_t> norm(
     const vector_t &v) {
 
     return algebra::math::sqrt(dot(v, v));
@@ -128,7 +128,7 @@ ALGEBRA_HOST_DEVICE constexpr detray::traits::scalar_t<vector_t> norm(
 ///
 /// @param v the input vector
 template <concepts::vector vector_t>
-ALGEBRA_HOST_DEVICE constexpr detray::traits::scalar_t<vector_t> eta(
+DETRAY_HOST_DEVICE constexpr detray::traits::scalar_t<vector_t> eta(
     const vector_t &v) noexcept {
 
     using element_getter_t = detray::traits::element_getter_t<vector_t>;
@@ -144,7 +144,7 @@ ALGEBRA_HOST_DEVICE constexpr detray::traits::scalar_t<vector_t> eta(
 ///
 /// @returns the normalized vector
 template <concepts::vector vector_t>
-ALGEBRA_HOST_DEVICE constexpr vector_t normalize(const vector_t &v) {
+DETRAY_HOST_DEVICE constexpr vector_t normalize(const vector_t &v) {
 
     using scalar_t = detray::traits::scalar_t<vector_t>;
 

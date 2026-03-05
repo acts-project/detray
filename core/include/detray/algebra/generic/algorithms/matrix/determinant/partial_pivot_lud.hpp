@@ -1,4 +1,4 @@
-/** Algebra plugins library, part of the ACTS project
+/** Detray library, part of the ACTS project (R&D line)
  *
  * (c) 2022-2026 CERN for the benefit of the ACTS project
  *
@@ -8,10 +8,10 @@
 #pragma once
 
 // Project include(s).
-#include "detray/algebra/common/concepts.hpp"
-#include "detray/algebra/common/qualifiers.hpp"
-#include "detray/algebra/common/type_traits.hpp"
+#include "detray/algebra/concepts.hpp"
 #include "detray/algebra/generic/algorithms/matrix/decomposition/partial_pivot_lud.hpp"
+#include "detray/algebra/type_traits.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 
 namespace detray::algebra::generic::matrix::determinant {
 
@@ -29,7 +29,7 @@ struct partial_pivot_lud {
         typename algebra::generic::matrix::decomposition::partial_pivot_lud<
             matrix_t>;
 
-    ALGEBRA_HOST_DEVICE constexpr scalar_t operator()(const matrix_t& m) const {
+    DETRAY_HOST_DEVICE constexpr scalar_t operator()(const matrix_t& m) const {
 
         constexpr element_getter_t elem{};
         constexpr index_t N{detray::traits::rank<matrix_t>};

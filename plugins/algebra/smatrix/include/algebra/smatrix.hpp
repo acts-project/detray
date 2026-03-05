@@ -1,4 +1,4 @@
-/** Algebra plugins library, part of the ACTS project
+/** Detray library, part of the ACTS project (R&D line)
  *
  * (c) 2020-2026 CERN for the benefit of the ACTS project
  *
@@ -10,25 +10,12 @@
 // Project include(s).
 #include "algebra/impl/smatrix_getter.hpp"
 #include "algebra/impl/smatrix_matrix.hpp"
-#include "algebra/impl/smatrix_transform3.hpp"
 #include "algebra/impl/smatrix_types.hpp"
 #include "algebra/impl/smatrix_vector.hpp"
 #include "detray/algebra/common/boolean.hpp"
 #include "detray/algebra/generic/generic.hpp"
 
 namespace detray {
-
-namespace algebra::smatrix {
-
-/// @name SMatrix based transforms on @c algebra::smatrix::storage_type
-/// @{
-
-template <typename T>
-using transform3 = math::transform3<T>;
-
-/// @}
-
-}  // namespace algebra::smatrix
 
 /// Define the plugin types
 /// @{

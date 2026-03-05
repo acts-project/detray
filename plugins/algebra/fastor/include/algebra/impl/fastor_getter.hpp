@@ -1,4 +1,4 @@
-/** Algebra plugins, part of the ACTS project
+/** Detray library, part of the ACTS project (R&D line)
  *
  * (c) 2022-2026 CERN for the benefit of the ACTS project
  *
@@ -9,9 +9,9 @@
 
 // Project include(s).
 #include "algebra/impl/detail/fastor_matrix_wrapper.hpp"
-#include "detray/algebra/common/concepts.hpp"
 #include "detray/algebra/common/math.hpp"
-#include "detray/algebra/common/qualifiers.hpp"
+#include "detray/algebra/concepts.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 
 // Fastor include(s).
 #ifdef _MSC_VER
@@ -32,7 +32,7 @@ namespace detray::algebra::fastor::storage {
 struct element_getter {
 
     template <std::size_t ROWS, std::size_t COLS, concepts::scalar scalar_t>
-    ALGEBRA_HOST_DEVICE constexpr scalar_t &operator()(
+    DETRAY_HOST_DEVICE constexpr scalar_t &operator()(
         Fastor::Tensor<scalar_t, ROWS, COLS> &m, std::size_t row,
         std::size_t col) const {
 
@@ -42,7 +42,7 @@ struct element_getter {
     }
 
     template <std::size_t ROWS, std::size_t COLS, concepts::scalar scalar_t>
-    ALGEBRA_HOST_DEVICE constexpr scalar_t operator()(
+    DETRAY_HOST_DEVICE constexpr scalar_t operator()(
         const Fastor::Tensor<scalar_t, ROWS, COLS> &m, std::size_t row,
         std::size_t col) const {
 
@@ -52,7 +52,7 @@ struct element_getter {
     }
 
     template <std::size_t N, concepts::scalar scalar_t>
-    ALGEBRA_HOST_DEVICE constexpr scalar_t &operator()(
+    DETRAY_HOST_DEVICE constexpr scalar_t &operator()(
         Fastor::Tensor<scalar_t, N, 1> &m, std::size_t row) const {
 
         assert(row < N);
@@ -60,7 +60,7 @@ struct element_getter {
     }
 
     template <std::size_t N, concepts::scalar scalar_t>
-    ALGEBRA_HOST_DEVICE constexpr scalar_t operator()(
+    DETRAY_HOST_DEVICE constexpr scalar_t operator()(
         const Fastor::Tensor<scalar_t, N, 1> &m, std::size_t row) const {
 
         assert(row < N);
@@ -68,7 +68,7 @@ struct element_getter {
     }
 
     template <std::size_t N, concepts::scalar scalar_t>
-    ALGEBRA_HOST_DEVICE constexpr scalar_t &operator()(
+    DETRAY_HOST_DEVICE constexpr scalar_t &operator()(
         Fastor::Tensor<scalar_t, N> &m, std::size_t row) const {
 
         assert(row < N);
@@ -76,7 +76,7 @@ struct element_getter {
     }
 
     template <std::size_t N, concepts::scalar scalar_t>
-    ALGEBRA_HOST_DEVICE constexpr scalar_t operator()(
+    DETRAY_HOST_DEVICE constexpr scalar_t operator()(
         const Fastor::Tensor<scalar_t, N> &m, std::size_t row) const {
 
         assert(row < N);
@@ -87,7 +87,7 @@ struct element_getter {
 
 /// Function extracting an element from a matrix (const)
 template <concepts::scalar scalar_t, std::size_t ROWS, std::size_t COLS>
-ALGEBRA_HOST_DEVICE constexpr scalar_t element(
+DETRAY_HOST_DEVICE constexpr scalar_t element(
     const Fastor::Tensor<scalar_t, ROWS, COLS> &m, std::size_t row,
     std::size_t col) {
     return element_getter()(m, row, col);
@@ -95,36 +95,36 @@ ALGEBRA_HOST_DEVICE constexpr scalar_t element(
 
 /// Function extracting an element from a matrix (non-const)
 template <concepts::scalar scalar_t, std::size_t ROWS, std::size_t COLS>
-ALGEBRA_HOST_DEVICE constexpr scalar_t &element(
+DETRAY_HOST_DEVICE constexpr scalar_t &element(
     Fastor::Tensor<scalar_t, ROWS, COLS> &m, std::size_t row, std::size_t col) {
     return element_getter()(m, row, col);
 }
 
 /// Function extracting an element from a matrix (const)
 template <concepts::scalar scalar_t, std::size_t N>
-ALGEBRA_HOST_DEVICE constexpr scalar_t element(
+DETRAY_HOST_DEVICE constexpr scalar_t element(
     const Fastor::Tensor<scalar_t, N, 1> &m, std::size_t row) {
     return element_getter()(m, row);
 }
 
 /// Function extracting an element from a matrix (non-const)
 template <concepts::scalar scalar_t, std::size_t N>
-ALGEBRA_HOST_DEVICE constexpr scalar_t &element(
+DETRAY_HOST_DEVICE constexpr scalar_t &element(
     Fastor::Tensor<scalar_t, N, 1> &m, std::size_t row) {
     return element_getter()(m, row);
 }
 
 /// Function extracting an element from a vector (const)
 template <concepts::scalar scalar_t, std::size_t N>
-ALGEBRA_HOST_DEVICE constexpr scalar_t element(
+DETRAY_HOST_DEVICE constexpr scalar_t element(
     const Fastor::Tensor<scalar_t, N> &m, std::size_t row) {
     return element_getter()(m, row);
 }
 
 /// Function extracting an element from a vector (non-const)
 template <concepts::scalar scalar_t, std::size_t N>
-ALGEBRA_HOST_DEVICE constexpr scalar_t &element(Fastor::Tensor<scalar_t, N> &m,
-                                                std::size_t row) {
+DETRAY_HOST_DEVICE constexpr scalar_t &element(Fastor::Tensor<scalar_t, N> &m,
+                                               std::size_t row) {
     return element_getter()(m, row);
 }
 
@@ -133,9 +133,9 @@ struct block_getter {
 
     template <std::size_t ROWS, std::size_t COLS, std::size_t oROWS,
               std::size_t oCOLS, concepts::scalar scalar_t>
-    ALGEBRA_HOST_DEVICE algebra::fastor::Matrix<scalar_t, ROWS, COLS>
-    operator()(const Fastor::Tensor<scalar_t, oROWS, oCOLS> &m, std::size_t row,
-               std::size_t col) const {
+    DETRAY_HOST_DEVICE algebra::fastor::Matrix<scalar_t, ROWS, COLS> operator()(
+        const Fastor::Tensor<scalar_t, oROWS, oCOLS> &m, std::size_t row,
+        std::size_t col) const {
 
         return m(
             Fastor::seq(static_cast<int>(row), static_cast<int>(row + ROWS)),
@@ -144,7 +144,7 @@ struct block_getter {
 
     template <std::size_t SIZE, std::size_t oROWS, std::size_t oCOLS,
               concepts::scalar scalar_t>
-    ALGEBRA_HOST_DEVICE Fastor::Tensor<scalar_t, SIZE> vector(
+    DETRAY_HOST_DEVICE Fastor::Tensor<scalar_t, SIZE> vector(
         const Fastor::Tensor<scalar_t, oROWS, oCOLS> &m, std::size_t row,
         std::size_t col) const {
 
@@ -158,7 +158,7 @@ struct block_getter {
 /// Operator getting a block of a const matrix
 template <std::size_t ROWS, std::size_t COLS, std::size_t oROWS,
           std::size_t oCOLS, concepts::scalar scalar_t>
-ALGEBRA_HOST_DEVICE decltype(auto) block(
+DETRAY_HOST_DEVICE decltype(auto) block(
     const Fastor::Tensor<scalar_t, oROWS, oCOLS> &m, std::size_t row,
     std::size_t col) {
     return block_getter{}.template operator()<ROWS, COLS>(m, row, col);
@@ -167,7 +167,7 @@ ALGEBRA_HOST_DEVICE decltype(auto) block(
 /// Function extracting a slice from the matrix
 template <std::size_t SIZE, std::size_t ROWS, std::size_t COLS,
           concepts::scalar scalar_t>
-ALGEBRA_HOST_DEVICE constexpr decltype(auto) vector(
+DETRAY_HOST_DEVICE constexpr decltype(auto) vector(
     const Fastor::Tensor<scalar_t, ROWS, COLS> &m, std::size_t row,
     std::size_t col) {
 
@@ -177,9 +177,9 @@ ALGEBRA_HOST_DEVICE constexpr decltype(auto) vector(
 /// Operator setting a block with a matrix
 template <std::size_t ROWS, std::size_t COLS, concepts::scalar scalar_t,
           concepts::matrix input_matrix_type>
-ALGEBRA_HOST_DEVICE void set_block(
-    input_matrix_type &m, const Fastor::Tensor<scalar_t, ROWS, COLS> &b,
-    std::size_t row, std::size_t col) {
+DETRAY_HOST_DEVICE void set_block(input_matrix_type &m,
+                                  const Fastor::Tensor<scalar_t, ROWS, COLS> &b,
+                                  std::size_t row, std::size_t col) {
     m(Fastor::seq(static_cast<int>(row), static_cast<int>(row + ROWS)),
       Fastor::seq(static_cast<int>(col), static_cast<int>(col + COLS))) = b;
 }
@@ -187,9 +187,9 @@ ALGEBRA_HOST_DEVICE void set_block(
 /// Operator setting a block with a vector
 template <std::size_t ROWS, concepts::scalar scalar_t,
           concepts::matrix input_matrix_type>
-ALGEBRA_HOST_DEVICE void set_block(input_matrix_type &m,
-                                   const Fastor::Tensor<scalar_t, ROWS> &b,
-                                   std::size_t row, std::size_t col) {
+DETRAY_HOST_DEVICE void set_block(input_matrix_type &m,
+                                  const Fastor::Tensor<scalar_t, ROWS> &b,
+                                  std::size_t row, std::size_t col) {
     m(Fastor::seq(static_cast<int>(row), static_cast<int>(row + ROWS)),
       static_cast<int>(col)) = b;
 }

@@ -1,4 +1,4 @@
-/** Algebra plugins library, part of the ACTS project
+/** Detray library, part of the ACTS project (R&D line)
  *
  * (c) 2020-2026 CERN for the benefit of the ACTS project
  *
@@ -9,8 +9,8 @@
 
 // Project include(s).
 #include "algebra/impl/detail/eigen_array.hpp"
-#include "detray/algebra/common/qualifiers.hpp"
 #include "detray/algebra/utils/approximately_equal.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 
 // Eigen include(s).
 #ifdef _MSC_VER
@@ -84,7 +84,7 @@ struct transform3 {
     /// @param x the x axis of the new frame
     /// @param y the y axis of the new frame
     /// @param z the z axis of the new frame, normal vector for planes
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     transform3(const vector3 &t, const vector3 &x, const vector3 &y,
                const vector3 &z, bool get_inverse = true) {
         _data.setIdentity();
@@ -107,7 +107,7 @@ struct transform3 {
     /// @param t the translation (or origin of the new frame)
     /// @param z the z axis of the new frame, normal vector for planes
     /// @param x the x axis of the new frame
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     transform3(const vector3 &t, const vector3 &z, const vector3 &x,
                bool get_inverse = true)
         : transform3(t, x, z.cross(x), z, get_inverse) {}
@@ -115,7 +115,7 @@ struct transform3 {
     /// Constructor with arguments: translation
     ///
     /// @param t is the transform
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     explicit transform3(const vector3 &t) {
         _data.setIdentity();
 
@@ -128,7 +128,7 @@ struct transform3 {
     /// Constructor with arguments: matrix
     ///
     /// @param m is the full 4x4 matrix
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     explicit transform3(const matrix44 &m) {
 
         _data.matrix() = m;
@@ -140,7 +140,7 @@ struct transform3 {
     ///
     /// @param m is the full 4x4 matrix
     /// @param m_inv is the inverse to m
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     transform3(const matrix44 &m, const matrix44 &m_inv)
         : _data{m}, _data_inv{m_inv} {
         // The assertion will not hold for (casts to) int
@@ -156,7 +156,7 @@ struct transform3 {
     /// Constructor with arguments: matrix as std::aray of scalar
     ///
     /// @param ma is the full 4x4 matrix as a 16 array
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     explicit transform3(const array_type<16> &ma) {
 
         _data.matrix() << ma[0], ma[1], ma[2], ma[3], ma[4], ma[5], ma[6],
@@ -166,7 +166,7 @@ struct transform3 {
     }
 
     /// Default constructor: set contents to identity matrices
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     transform3() {
         _data.setIdentity();
         _data_inv.setIdentity();
@@ -177,7 +177,7 @@ struct transform3 {
     ~transform3() = default;
 
     /// Equality operator
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     constexpr bool operator==(const transform3 &rhs) const {
         return (_data.isApprox(rhs._data));
     }
@@ -189,48 +189,48 @@ struct transform3 {
     template <typename derived_type>
         requires(Eigen::MatrixBase<derived_type>::RowsAtCompileTime == 3 &&
                  Eigen::MatrixBase<derived_type>::ColsAtCompileTime == 1)
-    ALGEBRA_HOST_DEVICE static constexpr auto rotate(
+    DETRAY_HOST_DEVICE static constexpr auto rotate(
         const Eigen::Transform<scalar_type, 3, Eigen::Affine> &m,
         const Eigen::MatrixBase<derived_type> &v) {
         return m.matrix().template block<3, 3>(0, 0) * v;
     }
 
     /// This method retrieves the rotation of a transform
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     constexpr auto rotation() const {
         return _data.matrix().template block<3, 3>(0, 0);
     }
 
     /// This method retrieves x axis
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     constexpr point3 x() const {
         return _data.matrix().template block<3, 1>(0, 0);
     }
 
     /// This method retrieves y axis
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     constexpr point3 y() const {
         return _data.matrix().template block<3, 1>(0, 1);
     }
 
     /// This method retrieves z axis
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     constexpr point3 z() const {
         return _data.matrix().template block<3, 1>(0, 2);
     }
 
     /// This method retrieves the translation of a transform
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     constexpr point3 translation() const {
         return _data.matrix().template block<3, 1>(0, 3);
     }
 
     /// This method retrieves the 4x4 matrix of a transform
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     constexpr const matrix44 &matrix() const { return _data.matrix(); }
 
     /// This method retrieves the 4x4 matrix of an inverse transform
-    ALGEBRA_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     constexpr const matrix44 &matrix_inverse() const {
         return _data_inv.matrix();
     }
@@ -240,7 +240,7 @@ struct transform3 {
     template <typename derived_type>
         requires(Eigen::MatrixBase<derived_type>::RowsAtCompileTime == 3 &&
                  Eigen::MatrixBase<derived_type>::ColsAtCompileTime == 1)
-    ALGEBRA_HOST_DEVICE constexpr auto point_to_global(
+    DETRAY_HOST_DEVICE constexpr auto point_to_global(
         const Eigen::MatrixBase<derived_type> &v) const {
         return (_data * v);
     }
@@ -250,7 +250,7 @@ struct transform3 {
     template <typename derived_type>
         requires(Eigen::MatrixBase<derived_type>::RowsAtCompileTime == 3 &&
                  Eigen::MatrixBase<derived_type>::ColsAtCompileTime == 1)
-    ALGEBRA_HOST_DEVICE constexpr auto point_to_local(
+    DETRAY_HOST_DEVICE constexpr auto point_to_local(
         const Eigen::MatrixBase<derived_type> &v) const {
         return (_data_inv * v);
     }
@@ -260,7 +260,7 @@ struct transform3 {
     template <typename derived_type>
         requires(Eigen::MatrixBase<derived_type>::RowsAtCompileTime == 3 &&
                  Eigen::MatrixBase<derived_type>::ColsAtCompileTime == 1)
-    ALGEBRA_HOST_DEVICE constexpr auto vector_to_global(
+    DETRAY_HOST_DEVICE constexpr auto vector_to_global(
         const Eigen::MatrixBase<derived_type> &v) const {
         return (_data.linear() * v);
     }
@@ -270,7 +270,7 @@ struct transform3 {
     template <typename derived_type>
         requires(Eigen::MatrixBase<derived_type>::RowsAtCompileTime == 3 &&
                  Eigen::MatrixBase<derived_type>::ColsAtCompileTime == 1)
-    ALGEBRA_HOST_DEVICE constexpr auto vector_to_local(
+    DETRAY_HOST_DEVICE constexpr auto vector_to_local(
         const Eigen::MatrixBase<derived_type> &v) const {
         return (_data_inv.linear() * v);
     }

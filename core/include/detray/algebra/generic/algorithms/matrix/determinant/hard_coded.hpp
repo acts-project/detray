@@ -1,4 +1,4 @@
-/** Algebra plugins library, part of the ACTS project
+/** Detray library, part of the ACTS project (R&D line)
  *
  * (c) 2022-2026 CERN for the benefit of the ACTS project
  *
@@ -8,9 +8,9 @@
 #pragma once
 
 // Project include(s).
-#include "detray/algebra/common/concepts.hpp"
-#include "detray/algebra/common/qualifiers.hpp"
-#include "detray/algebra/common/type_traits.hpp"
+#include "detray/algebra/concepts.hpp"
+#include "detray/algebra/type_traits.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 
 // System include(s)
 #include <type_traits>
@@ -30,7 +30,7 @@ struct hard_coded {
     // 2 X 2 matrix determinant
     template <typename M = matrix_t>
         requires(detray::traits::rank<M> == 2)
-    ALGEBRA_HOST_DEVICE constexpr scalar_t operator()(const matrix_t &m) const {
+    DETRAY_HOST_DEVICE constexpr scalar_t operator()(const matrix_t &m) const {
 
         constexpr element_getter_t elem{};
 
@@ -40,7 +40,7 @@ struct hard_coded {
     // 4 X 4 matrix determinant
     template <typename M = matrix_t>
         requires(detray::traits::rank<M> == 4)
-    ALGEBRA_HOST_DEVICE constexpr scalar_t operator()(const matrix_t &m) const {
+    DETRAY_HOST_DEVICE constexpr scalar_t operator()(const matrix_t &m) const {
 
         constexpr element_getter_t elem{};
 

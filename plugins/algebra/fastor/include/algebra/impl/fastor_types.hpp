@@ -1,4 +1,4 @@
-/** Algebra plugins library, part of the ACTS project
+/** Detray library, part of the ACTS project (R&D line)
  *
  * (c) 2022-2026 CERN for the benefit of the ACTS project
  *
@@ -9,9 +9,11 @@
 
 // Project include(s).
 #include "algebra/impl/detail/fastor_matrix_wrapper.hpp"
+#include "algebra/impl/detail/fastor_vector_wrapper.hpp"
 #include "algebra/impl/fastor_getter.hpp"
-#include "detray/algebra/common/concepts.hpp"
-#include "detray/algebra/common/type_traits.hpp"
+#include "algebra/impl/fastor_transform3.hpp"
+#include "detray/algebra/concepts.hpp"
+#include "detray/algebra/type_traits.hpp"
 
 // System include(s).
 #include <cstddef>
@@ -30,13 +32,13 @@ template <concepts::value T>
 using scalar_type = T;
 /// Array type used in the Fastor storage model
 template <concepts::scalar T, index_type N>
-using storage_type = Fastor::Tensor<T, N>;
+using storage_type = fastor::Vector<T, N>;
 /// Vector type used in the Fastor storage model
 template <concepts::scalar T, index_type N>
 using vector_type = storage_type<T, N>;
 /// Matrix type used in the Fastor storage model
 template <concepts::scalar T, index_type ROWS, index_type COLS>
-using matrix_type = algebra::fastor::Matrix<T, ROWS, COLS>;
+using matrix_type = fastor::Matrix<T, ROWS, COLS>;
 
 /// 3-element "vector" type, using @c Fastor::Tensor
 template <concepts::scalar T>
@@ -50,6 +52,10 @@ using vector2 = storage_type<T, 2>;
 /// Point in 2D space, using @c Fastor::Tensor
 template <concepts::scalar T>
 using point2 = vector2<T>;
+
+/// Geometry transformation implementation using @c Fastor::Tensor
+template <concepts::scalar T>
+using transform3 = fastor::math::transform3<T>;
 
 /// Element Getter
 using element_getter = fastor::storage::element_getter;

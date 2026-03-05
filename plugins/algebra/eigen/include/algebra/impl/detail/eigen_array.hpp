@@ -1,4 +1,4 @@
-/** Algebra plugins library, part of the ACTS project
+/** Detray library, part of the ACTS project (R&D line)
  *
  * (c) 2020-2026 CERN for the benefit of the ACTS project
  *
@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s).
-#include "detray/algebra/common/concepts.hpp"
+#include "detray/algebra/concepts.hpp"
 
 // Eigen include(s).
 #ifdef _MSC_VER

@@ -1,4 +1,4 @@
-/** Algebra plugins library, part of the ACTS project
+/** Detray library, part of the ACTS project (R&D line)
  *
  * (c) 2023-2026 CERN for the benefit of the ACTS project
  *
@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s).
-#include "detray/algebra/common/concepts.hpp"
+#include "detray/algebra/concepts.hpp"
 
 // Fastor include(s).
 #ifdef _MSC_VER
@@ -66,6 +66,10 @@ class Matrix : public Fastor::Tensor<T, M1, N> {
     template <std::size_t R, std::size_t C, concepts::scalar S>
     constexpr friend Fastor::Tensor<S, R> operator*(
         const Matrix<S, R, C>& lhs, const Fastor::Tensor<S, C>& vector);
+
+    template <std::size_t R, std::size_t C, concepts::scalar S>
+    constexpr friend bool operator==(const Matrix<S, R, C>& lhs,
+                                     const Matrix<S, R, C>& rhs);
     /// @}
 
 };  // class Matrix
@@ -82,6 +86,13 @@ constexpr Fastor::Tensor<S, R> operator*(const Matrix<S, R, C>& lhs,
                                          const Fastor::Tensor<S, C>& vector) {
     return Fastor::matmul(static_cast<Fastor::Tensor<S, R, C>>(lhs),
                           static_cast<Fastor::Tensor<S, C>>(vector));
+}
+
+template <std::size_t R, std::size_t C, concepts::scalar S>
+constexpr bool operator==(const Matrix<S, R, C>& lhs,
+                          const Matrix<S, R, C>& rhs) {
+    return Fastor::isequal(static_cast<Fastor::Tensor<S, R, C>>(lhs),
+                           static_cast<Fastor::Tensor<S, R, C>>(rhs), 0.f);
 }
 
 }  // namespace detray::algebra::fastor

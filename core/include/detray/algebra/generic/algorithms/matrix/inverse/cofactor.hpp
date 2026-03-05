@@ -1,4 +1,4 @@
-/** Algebra plugins library, part of the ACTS project
+/** Detray library, part of the ACTS project (R&D line)
  *
  * (c) 2022-2026 CERN for the benefit of the ACTS project
  *
@@ -8,10 +8,10 @@
 #pragma once
 
 // Project include(s).
-#include "detray/algebra/common/concepts.hpp"
-#include "detray/algebra/common/qualifiers.hpp"
-#include "detray/algebra/common/type_traits.hpp"
+#include "detray/algebra/concepts.hpp"
 #include "detray/algebra/generic/algorithms/matrix/determinant/cofactor.hpp"
+#include "detray/algebra/type_traits.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 
 // System include(s)
 #include <type_traits>
@@ -26,7 +26,7 @@ struct cofactor {
 
     using index_type = detray::traits::index_t<matrix_t>;
 
-    ALGEBRA_HOST_DEVICE constexpr matrix_t operator()(const matrix_t &m) const {
+    DETRAY_HOST_DEVICE constexpr matrix_t operator()(const matrix_t &m) const {
         return adjoint_getter_helper<detray::traits::rank<matrix_t>>()(m);
     }
 
@@ -36,7 +36,7 @@ struct cofactor {
     template <index_type N>
         requires(N == 1)
     struct adjoint_getter_helper<N> {
-        ALGEBRA_HOST_DEVICE constexpr matrix_t operator()(
+        DETRAY_HOST_DEVICE constexpr matrix_t operator()(
             const matrix_t & /*m*/) const {
 
             using element_getter_t = detray::traits::element_getter_t<matrix_t>;
@@ -55,7 +55,7 @@ struct cofactor {
 
         using determinant_getter = determinant::cofactor<matrix_t>;
 
-        ALGEBRA_HOST_DEVICE constexpr matrix_t operator()(
+        DETRAY_HOST_DEVICE constexpr matrix_t operator()(
             const matrix_t &m) const {
 
             using index_t = detray::traits::index_t<matrix_t>;
@@ -109,7 +109,7 @@ struct cofactor {
     using determinant_getter = determinant::cofactor<matrix_t>;
     using adjoint_getter = adjoint::cofactor<matrix_t>;
 
-    ALGEBRA_HOST_DEVICE constexpr matrix_t operator()(const matrix_t &m) const {
+    DETRAY_HOST_DEVICE constexpr matrix_t operator()(const matrix_t &m) const {
 
         constexpr element_getter_t elem{};
         constexpr index_t N{detray::traits::rank<matrix_t>};

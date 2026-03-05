@@ -1,4 +1,4 @@
-/** Algebra plugins library, part of the ACTS project
+/** Detray library, part of the ACTS project (R&D line)
  *
  * (c) 2022-2026 CERN for the benefit of the ACTS project
  *
@@ -8,9 +8,9 @@
 #pragma once
 
 // Project include(s).
-#include "detray/algebra/common/concepts.hpp"
-#include "detray/algebra/common/qualifiers.hpp"
-#include "detray/algebra/common/type_traits.hpp"
+#include "detray/algebra/concepts.hpp"
+#include "detray/algebra/type_traits.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 
 // System include(s)
 #include <type_traits>
@@ -24,7 +24,7 @@ struct cofactor {
     using scalar_type = detray::traits::value_t<matrix_t>;
     using index_type = detray::traits::index_t<matrix_t>;
 
-    ALGEBRA_HOST_DEVICE constexpr scalar_type operator()(
+    DETRAY_HOST_DEVICE constexpr scalar_type operator()(
         const matrix_t &m) const {
         return determinant_getter_helper<detray::traits::rank<matrix_t>>()(m);
     }
@@ -36,7 +36,7 @@ struct cofactor {
         requires(N == 1)
     struct determinant_getter_helper<N> {
         template <class input_matrix_type>
-        ALGEBRA_HOST_DEVICE constexpr scalar_type operator()(
+        DETRAY_HOST_DEVICE constexpr scalar_type operator()(
             const input_matrix_type &m) const {
 
             using element_getter_t =
@@ -53,7 +53,7 @@ struct cofactor {
     struct determinant_getter_helper<N> {
 
         template <class input_matrix_type>
-        ALGEBRA_HOST_DEVICE constexpr scalar_type operator()(
+        DETRAY_HOST_DEVICE constexpr scalar_type operator()(
             const input_matrix_type &m) const {
 
             using scalar_t = detray::traits::value_t<input_matrix_type>;
@@ -86,7 +86,7 @@ struct cofactor {
         }
 
         template <class input_matrix_type>
-        ALGEBRA_HOST_DEVICE constexpr void get_cofactor(
+        DETRAY_HOST_DEVICE constexpr void get_cofactor(
             const input_matrix_type &m, input_matrix_type &temp, index_type p,
             index_type q) const {
 

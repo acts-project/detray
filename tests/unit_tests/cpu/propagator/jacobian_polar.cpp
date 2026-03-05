@@ -56,10 +56,10 @@ GTEST_TEST(detray_propagator, jacobian_polar2D) {
     const auto free_params2 = detail::bound_to_free_vector(trf, rng, bound_vec);
 
     // Check if the bound vector is correct
-    ASSERT_NEAR(bound_vec.bound_local()[e_bound_loc0], std::sqrt(20.f),
-                isclose);
-    ASSERT_NEAR(bound_vec.bound_local()[e_bound_loc1], std::atan2(4.f, 2.f),
-                isclose);
+    ASSERT_NEAR(getter::element(bound_vec.bound_local(), e_bound_loc0),
+                std::sqrt(20.f), isclose);
+    ASSERT_NEAR(getter::element(bound_vec.bound_local(), e_bound_loc1),
+                std::atan2(4.f, 2.f), isclose);
     ASSERT_NEAR(bound_vec.phi(), 1.1071487f, isclose);     // atan(2)
     ASSERT_NEAR(bound_vec.theta(), 0.64052231f, isclose);  // atan(sqrt(5)/3)
     ASSERT_NEAR(bound_vec.qop(), -1.f / 3.7416574f, isclose);

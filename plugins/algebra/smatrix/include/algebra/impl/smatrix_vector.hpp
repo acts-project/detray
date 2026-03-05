@@ -1,4 +1,4 @@
-/** Algebra plugins library, part of the ACTS project
+/** Detray library, part of the ACTS project (R&D line)
  *
  * (c) 2020-2026 CERN for the benefit of the ACTS project
  *
@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s).
-#include "detray/algebra/common/qualifiers.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 
 // ROOT/Smatrix include(s).
 #include <Math/Expression.h>
@@ -23,7 +23,7 @@ namespace detray::algebra::smatrix::math {
 /// @param v the input vector
 template <concepts::scalar scalar_t, auto N>
     requires(N >= 2)
-ALGEBRA_HOST constexpr scalar_t phi(
+DETRAY_HOST constexpr scalar_t phi(
     const ROOT::Math::SVector<scalar_t, N> &v) noexcept {
 
     return static_cast<scalar_t>(TMath::ATan2(v[1], v[0]));
@@ -31,7 +31,7 @@ ALGEBRA_HOST constexpr scalar_t phi(
 
 template <concepts::scalar scalar_t, class A, auto N>
     requires(N >= 2)
-ALGEBRA_HOST constexpr scalar_t phi(
+DETRAY_HOST constexpr scalar_t phi(
     const ROOT::Math::VecExpr<A, scalar_t, N> &v) noexcept {
 
     return static_cast<scalar_t>(TMath::ATan2(v.apply(1), v.apply(0)));
@@ -42,7 +42,7 @@ ALGEBRA_HOST constexpr scalar_t phi(
 /// @param v the input vector
 template <concepts::scalar scalar_t, auto N>
     requires(N >= 3)
-ALGEBRA_HOST constexpr scalar_t theta(
+DETRAY_HOST constexpr scalar_t theta(
     const ROOT::Math::SVector<scalar_t, N> &v) noexcept {
 
     return static_cast<scalar_t>(
@@ -51,7 +51,7 @@ ALGEBRA_HOST constexpr scalar_t theta(
 
 template <concepts::scalar scalar_t, class A, auto N>
     requires(N >= 3)
-ALGEBRA_HOST constexpr scalar_t theta(
+DETRAY_HOST constexpr scalar_t theta(
     const ROOT::Math::VecExpr<A, scalar_t, N> &v) noexcept {
 
     return static_cast<scalar_t>(TMath::ATan2(
@@ -63,14 +63,13 @@ ALGEBRA_HOST constexpr scalar_t theta(
 ///
 /// @param v the input vector
 template <concepts::scalar scalar_t, auto N>
-ALGEBRA_HOST constexpr scalar_t norm(
-    const ROOT::Math::SVector<scalar_t, N> &v) {
+DETRAY_HOST constexpr scalar_t norm(const ROOT::Math::SVector<scalar_t, N> &v) {
 
     return static_cast<scalar_t>(TMath::Sqrt(ROOT::Math::Dot(v, v)));
 }
 
 template <concepts::scalar scalar_t, class A, auto N>
-ALGEBRA_HOST constexpr scalar_t norm(
+DETRAY_HOST constexpr scalar_t norm(
     const ROOT::Math::VecExpr<A, scalar_t, N> &v) {
 
     return static_cast<scalar_t>(TMath::Sqrt(ROOT::Math::Dot(v, v)));
@@ -82,7 +81,7 @@ ALGEBRA_HOST constexpr scalar_t norm(
 /// @param v the input vector
 template <concepts::scalar scalar_t, auto N>
     requires(N >= 3)
-ALGEBRA_HOST constexpr scalar_t eta(
+DETRAY_HOST constexpr scalar_t eta(
     const ROOT::Math::SVector<scalar_t, N> &v) noexcept {
 
     return static_cast<scalar_t>(TMath::ATanH(v[2] / norm(v)));
@@ -90,7 +89,7 @@ ALGEBRA_HOST constexpr scalar_t eta(
 
 template <concepts::scalar scalar_t, class A, auto N>
     requires(N >= 3)
-ALGEBRA_HOST constexpr scalar_t eta(
+DETRAY_HOST constexpr scalar_t eta(
     const ROOT::Math::VecExpr<A, scalar_t, N> &v) noexcept {
 
     return static_cast<scalar_t>(TMath::ATanH(v.apply(2) / norm(v)));
@@ -101,7 +100,7 @@ ALGEBRA_HOST constexpr scalar_t eta(
 /// @param v the input vector
 template <concepts::scalar scalar_t, auto N>
     requires(N >= 2)
-ALGEBRA_HOST constexpr scalar_t perp(
+DETRAY_HOST constexpr scalar_t perp(
     const ROOT::Math::SVector<scalar_t, N> &v) noexcept {
 
     return static_cast<scalar_t>(TMath::Sqrt(v[0] * v[0] + v[1] * v[1]));
@@ -109,7 +108,7 @@ ALGEBRA_HOST constexpr scalar_t perp(
 
 template <concepts::scalar scalar_t, class A, auto N>
     requires(N >= 2)
-ALGEBRA_HOST constexpr scalar_t perp(
+DETRAY_HOST constexpr scalar_t perp(
     const ROOT::Math::VecExpr<A, scalar_t, N> &v) noexcept {
 
     return static_cast<scalar_t>(
@@ -120,7 +119,7 @@ ALGEBRA_HOST constexpr scalar_t perp(
 ///
 /// @param v the input vector
 template <concepts::scalar scalar_t, auto N>
-ALGEBRA_HOST constexpr ROOT::Math::SVector<scalar_t, N> normalize(
+DETRAY_HOST constexpr ROOT::Math::SVector<scalar_t, N> normalize(
     const ROOT::Math::SVector<scalar_t, N> &v) {
 
     return ROOT::Math::Unit(v);
@@ -130,7 +129,7 @@ ALGEBRA_HOST constexpr ROOT::Math::SVector<scalar_t, N> normalize(
 ///
 /// @param v the input vector
 template <concepts::scalar scalar_t, class A, auto N>
-ALGEBRA_HOST constexpr ROOT::Math::SVector<scalar_t, N> normalize(
+DETRAY_HOST constexpr ROOT::Math::SVector<scalar_t, N> normalize(
     const ROOT::Math::VecExpr<A, scalar_t, N> &v) {
 
     return ROOT::Math::Unit(v);
@@ -143,8 +142,8 @@ ALGEBRA_HOST constexpr ROOT::Math::SVector<scalar_t, N> normalize(
 ///
 /// @return the scalar dot product value
 template <concepts::scalar scalar_t, auto N>
-ALGEBRA_HOST constexpr scalar_t dot(const ROOT::Math::SVector<scalar_t, N> &a,
-                                    const ROOT::Math::SVector<scalar_t, N> &b) {
+DETRAY_HOST constexpr scalar_t dot(const ROOT::Math::SVector<scalar_t, N> &a,
+                                   const ROOT::Math::SVector<scalar_t, N> &b) {
 
     return ROOT::Math::Dot(a, b);
 }
@@ -156,7 +155,7 @@ ALGEBRA_HOST constexpr scalar_t dot(const ROOT::Math::SVector<scalar_t, N> &a,
 ///
 /// @return the scalar dot product value
 template <concepts::scalar scalar_t, class A, auto N>
-ALGEBRA_HOST constexpr scalar_t dot(
+DETRAY_HOST constexpr scalar_t dot(
     const ROOT::Math::SVector<scalar_t, N> &a,
     const ROOT::Math::VecExpr<A, scalar_t, N> &b) {
 
@@ -170,9 +169,8 @@ ALGEBRA_HOST constexpr scalar_t dot(
 ///
 /// @return the scalar dot product value
 template <concepts::scalar scalar_t, class A, auto N>
-ALGEBRA_HOST constexpr scalar_t dot(
-    const ROOT::Math::VecExpr<A, scalar_t, N> &a,
-    const ROOT::Math::SVector<scalar_t, N> &b) {
+DETRAY_HOST constexpr scalar_t dot(const ROOT::Math::VecExpr<A, scalar_t, N> &a,
+                                   const ROOT::Math::SVector<scalar_t, N> &b) {
 
     return ROOT::Math::Dot(a, b);
 }
@@ -184,7 +182,7 @@ ALGEBRA_HOST constexpr scalar_t dot(
 ///
 /// @return the scalar dot product value
 template <concepts::scalar scalar_t, class A, class B, auto N>
-ALGEBRA_HOST constexpr scalar_t dot(
+DETRAY_HOST constexpr scalar_t dot(
     const ROOT::Math::VecExpr<A, scalar_t, N> &a,
     const ROOT::Math::VecExpr<B, scalar_t, N> &b) {
 
@@ -198,7 +196,7 @@ ALGEBRA_HOST constexpr scalar_t dot(
 ///
 /// @return the scalar dot product value
 template <concepts::scalar scalar_t, class A, auto N>
-ALGEBRA_HOST constexpr scalar_t dot(
+DETRAY_HOST constexpr scalar_t dot(
     const ROOT::Math::SMatrix<scalar_t, N, 1> &a,
     const ROOT::Math::VecExpr<A, scalar_t, N> &b) {
 
@@ -212,7 +210,7 @@ ALGEBRA_HOST constexpr scalar_t dot(
 ///
 /// @return the scalar dot product value
 template <concepts::scalar scalar_t, class A, auto N>
-ALGEBRA_HOST constexpr scalar_t dot(
+DETRAY_HOST constexpr scalar_t dot(
     const ROOT::Math::VecExpr<A, scalar_t, N> &a,
     const ROOT::Math::SMatrix<scalar_t, N, 1> &b) {
     return dot(b, a);
@@ -225,9 +223,8 @@ ALGEBRA_HOST constexpr scalar_t dot(
 ///
 /// @return the scalar dot product value
 template <concepts::scalar scalar_t, auto N>
-ALGEBRA_HOST constexpr scalar_t dot(
-    const ROOT::Math::SMatrix<scalar_t, N, 1> &a,
-    const ROOT::Math::SVector<scalar_t, N> &b) {
+DETRAY_HOST constexpr scalar_t dot(const ROOT::Math::SMatrix<scalar_t, N, 1> &a,
+                                   const ROOT::Math::SVector<scalar_t, N> &b) {
 
     return ROOT::Math::Dot(a.Col(0), b);
 }
@@ -239,7 +236,7 @@ ALGEBRA_HOST constexpr scalar_t dot(
 ///
 /// @return the scalar dot product value
 template <concepts::scalar scalar_t, auto N>
-ALGEBRA_HOST constexpr scalar_t dot(
+DETRAY_HOST constexpr scalar_t dot(
     const ROOT::Math::SVector<scalar_t, N> &a,
     const ROOT::Math::SMatrix<scalar_t, N, 1> &b) {
     return dot(b, a);
@@ -252,7 +249,7 @@ ALGEBRA_HOST constexpr scalar_t dot(
 ///
 /// @return a vector (expression) representing the cross product
 template <concepts::scalar scalar_t>
-ALGEBRA_HOST constexpr ROOT::Math::SVector<scalar_t, 3> cross(
+DETRAY_HOST constexpr ROOT::Math::SVector<scalar_t, 3> cross(
     const ROOT::Math::SVector<scalar_t, 3> &a,
     const ROOT::Math::SVector<scalar_t, 3> &b) {
 
@@ -266,7 +263,7 @@ ALGEBRA_HOST constexpr ROOT::Math::SVector<scalar_t, 3> cross(
 ///
 /// @return a vector (expression) representing the cross product
 template <concepts::scalar scalar_t, class A>
-ALGEBRA_HOST constexpr ROOT::Math::SVector<scalar_t, 3> cross(
+DETRAY_HOST constexpr ROOT::Math::SVector<scalar_t, 3> cross(
     const ROOT::Math::SVector<scalar_t, 3> &a,
     const ROOT::Math::VecExpr<A, scalar_t, 3> &b) {
 
@@ -280,7 +277,7 @@ ALGEBRA_HOST constexpr ROOT::Math::SVector<scalar_t, 3> cross(
 ///
 /// @return a vector (expression) representing the cross product
 template <concepts::scalar scalar_t, class A>
-ALGEBRA_HOST constexpr ROOT::Math::SVector<scalar_t, 3> cross(
+DETRAY_HOST constexpr ROOT::Math::SVector<scalar_t, 3> cross(
     const ROOT::Math::VecExpr<A, scalar_t, 3> &a,
     const ROOT::Math::SVector<scalar_t, 3> &b) {
 
@@ -294,7 +291,7 @@ ALGEBRA_HOST constexpr ROOT::Math::SVector<scalar_t, 3> cross(
 ///
 /// @return a vector (expression) representing the cross product
 template <concepts::scalar scalar_t, class A, class B>
-ALGEBRA_HOST constexpr ROOT::Math::SVector<scalar_t, 3> cross(
+DETRAY_HOST constexpr ROOT::Math::SVector<scalar_t, 3> cross(
     const ROOT::Math::VecExpr<A, scalar_t, 3> &a,
     const ROOT::Math::VecExpr<B, scalar_t, 3> &b) {
 
@@ -308,7 +305,7 @@ ALGEBRA_HOST constexpr ROOT::Math::SVector<scalar_t, 3> cross(
 ///
 /// @return a vector (expression) representing the cross product
 template <concepts::scalar scalar_t>
-ALGEBRA_HOST constexpr ROOT::Math::SVector<scalar_t, 3> cross(
+DETRAY_HOST constexpr ROOT::Math::SVector<scalar_t, 3> cross(
     const ROOT::Math::SVector<scalar_t, 3> &a,
     const ROOT::Math::SMatrix<scalar_t, 3, 1> &b) {
 
@@ -322,7 +319,7 @@ ALGEBRA_HOST constexpr ROOT::Math::SVector<scalar_t, 3> cross(
 ///
 /// @return a vector (expression) representing the cross product
 template <concepts::scalar scalar_t>
-ALGEBRA_HOST constexpr ROOT::Math::SVector<scalar_t, 3> cross(
+DETRAY_HOST constexpr ROOT::Math::SVector<scalar_t, 3> cross(
     const ROOT::Math::SMatrix<scalar_t, 3, 1> &a,
     const ROOT::Math::SVector<scalar_t, 3> &b) {
 
@@ -336,7 +333,7 @@ ALGEBRA_HOST constexpr ROOT::Math::SVector<scalar_t, 3> cross(
 ///
 /// @return a vector (expression) representing the cross product
 template <concepts::scalar scalar_t>
-ALGEBRA_HOST constexpr ROOT::Math::SVector<scalar_t, 3> cross(
+DETRAY_HOST constexpr ROOT::Math::SVector<scalar_t, 3> cross(
     const ROOT::Math::SMatrix<scalar_t, 3, 1> &a,
     const ROOT::Math::SMatrix<scalar_t, 3, 1> &b) {
 

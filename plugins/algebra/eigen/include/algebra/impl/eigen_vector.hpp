@@ -1,4 +1,4 @@
-/** Algebra plugins library, part of the ACTS project
+/** Detray library, part of the ACTS project (R&D line)
  *
  * (c) 2020-2026 CERN for the benefit of the ACTS project
  *
@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s).
-#include "detray/algebra/common/qualifiers.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 
 // Eigen include(s).
 #ifdef _MSC_VER
@@ -30,21 +30,21 @@ namespace detray::algebra::eigen::math {
 
 /// This method retrieves phi from a vector @param v
 template <typename derived_type>
-ALGEBRA_HOST_DEVICE constexpr auto phi(
+DETRAY_HOST_DEVICE constexpr auto phi(
     const Eigen::MatrixBase<derived_type> &v) {
     return algebra::math::atan2(v[1], v[0]);
 }
 
 /// This method retrieves the perpendicular magnitude of a vector @param v
 template <typename derived_type>
-ALGEBRA_HOST_DEVICE constexpr auto perp(
+DETRAY_HOST_DEVICE constexpr auto perp(
     const Eigen::MatrixBase<derived_type> &v) {
     return algebra::math::sqrt(algebra::math::fma(v[0], v[0], v[1] * v[1]));
 }
 
 /// This method retrieves theta from a vector @param v
 template <typename derived_type>
-ALGEBRA_HOST_DEVICE constexpr auto theta(
+DETRAY_HOST_DEVICE constexpr auto theta(
     const Eigen::MatrixBase<derived_type> &v) {
     return algebra::math::atan2(perp(v), v[2]);
 }
@@ -53,7 +53,7 @@ ALGEBRA_HOST_DEVICE constexpr auto theta(
 ///
 /// @param v the input vector
 template <typename derived_type>
-ALGEBRA_HOST_DEVICE constexpr auto norm(
+DETRAY_HOST_DEVICE constexpr auto norm(
     const Eigen::MatrixBase<derived_type> &v) {
     return v.norm();
 }
@@ -64,7 +64,7 @@ ALGEBRA_HOST_DEVICE constexpr auto norm(
 /// @param v the input vector
 template <typename derived_type>
     requires(Eigen::MatrixBase<derived_type>::RowsAtCompileTime >= 3)
-ALGEBRA_HOST_DEVICE constexpr auto eta(
+DETRAY_HOST_DEVICE constexpr auto eta(
     const Eigen::MatrixBase<derived_type> &v) noexcept {
     return algebra::math::atanh(v[2] / v.norm());
 }
@@ -75,7 +75,7 @@ ALGEBRA_HOST_DEVICE constexpr auto eta(
 ///
 /// @param v the input vector
 template <typename derived_type>
-ALGEBRA_HOST_DEVICE constexpr auto normalize(
+DETRAY_HOST_DEVICE constexpr auto normalize(
     const Eigen::MatrixBase<derived_type> &v) {
     return v.normalized();
 }
@@ -90,7 +90,7 @@ ALGEBRA_HOST_DEVICE constexpr auto normalize(
 ///
 /// @return the scalar dot product value
 template <typename derived_type_lhs, typename derived_type_rhs>
-ALGEBRA_HOST_DEVICE constexpr auto dot(
+DETRAY_HOST_DEVICE constexpr auto dot(
     const Eigen::MatrixBase<derived_type_lhs> &a,
     const Eigen::MatrixBase<derived_type_rhs> &b) {
     return a.dot(b);
@@ -106,7 +106,7 @@ ALGEBRA_HOST_DEVICE constexpr auto dot(
 ///
 /// @return a vector (expression) representing the cross product
 template <typename derived_type_lhs, typename derived_type_rhs>
-ALGEBRA_HOST_DEVICE constexpr auto cross(
+DETRAY_HOST_DEVICE constexpr auto cross(
     const Eigen::MatrixBase<derived_type_lhs> &a,
     const Eigen::MatrixBase<derived_type_rhs> &b) {
     return a.cross(b);

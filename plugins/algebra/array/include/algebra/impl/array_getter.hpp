@@ -1,4 +1,4 @@
-/** Algebra plugins library, part of the ACTS project
+/** Detray library, part of the ACTS project (R&D line)
  *
  * (c) 2020-2026 CERN for the benefit of the ACTS project
  *
@@ -8,10 +8,10 @@
 #pragma once
 
 // Project include(s).
-#include "detray/algebra/common/assert.hpp"
-#include "detray/algebra/common/concepts.hpp"
 #include "detray/algebra/common/math.hpp"
-#include "detray/algebra/common/qualifiers.hpp"
+#include "detray/algebra/concepts.hpp"
+#include "detray/definitions/detail/assert.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 
 // System include(s).
 #include <cstddef>
@@ -25,7 +25,7 @@ struct element_getter {
     /// Operator getting a reference to one element of a non-const matrix
     template <std::size_t ROWS, std::size_t COLS, concepts::scalar scalar_t,
               template <typename, std::size_t> class array_t>
-    ALGEBRA_HOST_DEVICE constexpr scalar_t &operator()(
+    DETRAY_HOST_DEVICE constexpr scalar_t &operator()(
         array_t<array_t<scalar_t, ROWS>, COLS> &m, std::size_t row,
         std::size_t col) const {
 
@@ -37,7 +37,7 @@ struct element_getter {
     /// Operator getting one value of a const matrix
     template <std::size_t ROWS, std::size_t COLS, concepts::scalar scalar_t,
               template <typename, std::size_t> class array_t>
-    ALGEBRA_HOST_DEVICE constexpr scalar_t operator()(
+    DETRAY_HOST_DEVICE constexpr scalar_t operator()(
         const array_t<array_t<scalar_t, ROWS>, COLS> &m, std::size_t row,
         std::size_t col) const {
 
@@ -49,7 +49,7 @@ struct element_getter {
     /// Operator getting a reference to one element of a non-const matrix
     template <std::size_t N, concepts::scalar scalar_t,
               template <typename, std::size_t> class array_t>
-    ALGEBRA_HOST_DEVICE constexpr scalar_t &operator()(
+    DETRAY_HOST_DEVICE constexpr scalar_t &operator()(
         array_t<array_t<scalar_t, N>, 1> &m, std::size_t row) const {
 
         assert(row < N);
@@ -59,7 +59,7 @@ struct element_getter {
     /// Operator getting a reference to one element of a const matrix
     template <std::size_t N, concepts::scalar scalar_t,
               template <typename, std::size_t> class array_t>
-    ALGEBRA_HOST_DEVICE constexpr scalar_t operator()(
+    DETRAY_HOST_DEVICE constexpr scalar_t operator()(
         const array_t<array_t<scalar_t, N>, 1> &m, std::size_t row) const {
 
         assert(row < N);
@@ -69,8 +69,8 @@ struct element_getter {
     /// Operator getting a reference to one element of a non-const matrix
     template <std::size_t N, concepts::scalar scalar_t,
               template <typename, std::size_t> class array_t>
-    ALGEBRA_HOST_DEVICE constexpr scalar_t &operator()(array_t<scalar_t, N> &m,
-                                                       std::size_t row) const {
+    DETRAY_HOST_DEVICE constexpr scalar_t &operator()(array_t<scalar_t, N> &m,
+                                                      std::size_t row) const {
 
         assert(row < N);
         return m[row];
@@ -79,7 +79,7 @@ struct element_getter {
     /// Operator getting a reference to one element of a const matrix
     template <std::size_t N, concepts::scalar scalar_t,
               template <typename, std::size_t> class array_t>
-    ALGEBRA_HOST_DEVICE constexpr scalar_t operator()(
+    DETRAY_HOST_DEVICE constexpr scalar_t operator()(
         const array_t<scalar_t, N> &m, std::size_t row) const {
 
         assert(row < N);
@@ -91,7 +91,7 @@ struct element_getter {
 /// Function extracting an element from a matrix (const)
 template <template <typename, std::size_t> class array_t,
           concepts::scalar scalar_t, std::size_t ROWS, std::size_t COLS>
-ALGEBRA_HOST_DEVICE constexpr scalar_t element(
+DETRAY_HOST_DEVICE constexpr scalar_t element(
     const array_t<array_t<scalar_t, ROWS>, COLS> &m, std::size_t row,
     std::size_t col) {
 
@@ -101,7 +101,7 @@ ALGEBRA_HOST_DEVICE constexpr scalar_t element(
 /// Function extracting an element from a matrix (non-const)
 template <template <typename, std::size_t> class array_t,
           concepts::scalar scalar_t, std::size_t ROWS, std::size_t COLS>
-ALGEBRA_HOST_DEVICE constexpr scalar_t &element(
+DETRAY_HOST_DEVICE constexpr scalar_t &element(
     array_t<array_t<scalar_t, ROWS>, COLS> &m, std::size_t row,
     std::size_t col) {
 
@@ -111,7 +111,7 @@ ALGEBRA_HOST_DEVICE constexpr scalar_t &element(
 /// Function extracting an element from a matrix (const)
 template <template <typename, std::size_t> class array_t,
           concepts::scalar scalar_t, std::size_t N>
-ALGEBRA_HOST_DEVICE constexpr scalar_t element(
+DETRAY_HOST_DEVICE constexpr scalar_t element(
     const array_t<array_t<scalar_t, N>, 1> &m, std::size_t row) {
 
     return element_getter()(m, row);
@@ -120,7 +120,7 @@ ALGEBRA_HOST_DEVICE constexpr scalar_t element(
 /// Function extracting an element from a matrix (non-const)
 template <template <typename, std::size_t> class array_t,
           concepts::scalar scalar_t, std::size_t N>
-ALGEBRA_HOST_DEVICE constexpr scalar_t &element(
+DETRAY_HOST_DEVICE constexpr scalar_t &element(
     array_t<array_t<scalar_t, N>, 1> &m, std::size_t row) {
 
     return element_getter()(m, row);
@@ -129,8 +129,8 @@ ALGEBRA_HOST_DEVICE constexpr scalar_t &element(
 /// Function extracting an element from a vector (const)
 template <template <typename, std::size_t> class array_t,
           concepts::scalar scalar_t, std::size_t N>
-ALGEBRA_HOST_DEVICE constexpr scalar_t element(const array_t<scalar_t, N> &v,
-                                               std::size_t row) {
+DETRAY_HOST_DEVICE constexpr scalar_t element(const array_t<scalar_t, N> &v,
+                                              std::size_t row) {
 
     return element_getter()(v, row);
 }
@@ -138,8 +138,8 @@ ALGEBRA_HOST_DEVICE constexpr scalar_t element(const array_t<scalar_t, N> &v,
 /// Function extracting an element from a vector (non-const)
 template <template <typename, std::size_t> class array_t,
           concepts::scalar scalar_t, std::size_t N>
-ALGEBRA_HOST_DEVICE constexpr scalar_t &element(array_t<scalar_t, N> &v,
-                                                std::size_t row) {
+DETRAY_HOST_DEVICE constexpr scalar_t &element(array_t<scalar_t, N> &v,
+                                               std::size_t row) {
 
     return element_getter()(v, row);
 }
@@ -151,7 +151,7 @@ struct block_getter {
     template <std::size_t ROWS, std::size_t COLS, std::size_t oROWS,
               std::size_t oCOLS, concepts::scalar scalar_t,
               template <typename, std::size_t> class array_t>
-    ALGEBRA_HOST_DEVICE constexpr auto operator()(
+    DETRAY_HOST_DEVICE constexpr auto operator()(
         const array_t<array_t<scalar_t, oROWS>, oCOLS> &m, std::size_t row,
         std::size_t col) const {
 
@@ -169,7 +169,7 @@ struct block_getter {
     template <std::size_t SIZE, std::size_t ROWS, std::size_t COLS,
               concepts::scalar scalar_t,
               template <typename, std::size_t> class array_t>
-    ALGEBRA_HOST_DEVICE constexpr array_t<scalar_t, SIZE> vector(
+    DETRAY_HOST_DEVICE constexpr array_t<scalar_t, SIZE> vector(
         const array_t<array_t<scalar_t, ROWS>, COLS> &m, std::size_t row,
         std::size_t col) {
 
@@ -190,9 +190,9 @@ struct block_getter {
 /// the submatrix of @param m beginning at row @param row and column
 /// @param col
 template <std::size_t ROWS, std::size_t COLS, class input_matrix_type>
-ALGEBRA_HOST_DEVICE constexpr decltype(auto) block(const input_matrix_type &m,
-                                                   std::size_t row,
-                                                   std::size_t col) {
+DETRAY_HOST_DEVICE constexpr decltype(auto) block(const input_matrix_type &m,
+                                                  std::size_t row,
+                                                  std::size_t col) {
 
     return block_getter().template operator()<ROWS, COLS>(m, row, col);
 }
@@ -201,7 +201,7 @@ ALGEBRA_HOST_DEVICE constexpr decltype(auto) block(const input_matrix_type &m,
 template <std::size_t SIZE, std::size_t ROWS, std::size_t COLS,
           concepts::scalar scalar_t,
           template <typename, std::size_t> class array_t>
-ALGEBRA_HOST_DEVICE constexpr array_t<scalar_t, SIZE> vector(
+DETRAY_HOST_DEVICE constexpr array_t<scalar_t, SIZE> vector(
     const array_t<array_t<scalar_t, ROWS>, COLS> &m, std::size_t row,
     std::size_t col) {
 
@@ -213,7 +213,7 @@ ALGEBRA_HOST_DEVICE constexpr array_t<scalar_t, SIZE> vector(
 template <std::size_t ROWS, std::size_t COLS, class input_matrix_type,
           concepts::scalar scalar_t,
           template <typename, std::size_t> class array_t>
-ALGEBRA_HOST_DEVICE constexpr void set_block(
+DETRAY_HOST_DEVICE constexpr void set_block(
     input_matrix_type &m, const array_t<array_t<scalar_t, ROWS>, COLS> &b,
     std::size_t row, std::size_t col) {
     for (std::size_t j = 0u; j < COLS; ++j) {
@@ -228,9 +228,9 @@ ALGEBRA_HOST_DEVICE constexpr void set_block(
 template <std::size_t ROWS, concepts::scalar scalar_t,
           template <typename, std::size_t> class vector_t,
           class input_matrix_type>
-ALGEBRA_HOST_DEVICE constexpr void set_block(input_matrix_type &m,
-                                             const vector_t<scalar_t, ROWS> &b,
-                                             std::size_t row, std::size_t col) {
+DETRAY_HOST_DEVICE constexpr void set_block(input_matrix_type &m,
+                                            const vector_t<scalar_t, ROWS> &b,
+                                            std::size_t row, std::size_t col) {
     for (std::size_t i = 0; i < ROWS; ++i) {
         m[col][i + row] = b[i];
     }

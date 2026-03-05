@@ -1,4 +1,4 @@
-/** Algebra plugins library, part of the ACTS project
+/** Detray library, part of the ACTS project (R&D line)
  *
  * (c) 2022-2026 CERN for the benefit of the ACTS project
  *
@@ -8,17 +8,17 @@
 #pragma once
 
 // Project include(s).
-#include "detray/algebra/common/concepts.hpp"
 #include "detray/algebra/common/math.hpp"
-#include "detray/algebra/common/qualifiers.hpp"
+#include "detray/algebra/concepts.hpp"
 #include "detray/algebra/generic/generic.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 
 namespace detray::algebra::array {
 
 /// @returns zero matrix of type @tparam matrix_t
 template <concepts::matrix matrix_t>
     requires(std::is_scalar_v<typename matrix_t::value_type::value_type>)
-ALGEBRA_HOST_DEVICE constexpr matrix_t zero() {
+DETRAY_HOST_DEVICE constexpr matrix_t zero() {
     matrix_t ret;
 
     for (std::size_t j = 0; j < detray::traits::columns<matrix_t>; ++j) {
@@ -33,7 +33,7 @@ ALGEBRA_HOST_DEVICE constexpr matrix_t zero() {
 /// @returns identity matrix of type @tparam matrix_t
 template <concepts::matrix matrix_t>
     requires(std::is_scalar_v<typename matrix_t::value_type::value_type>)
-ALGEBRA_HOST_DEVICE constexpr auto identity() {
+DETRAY_HOST_DEVICE constexpr auto identity() {
     auto ret{zero<matrix_t>()};
 
     for (std::size_t i = 0; i < detray::traits::rank<matrix_t>; ++i) {
@@ -46,7 +46,7 @@ ALGEBRA_HOST_DEVICE constexpr auto identity() {
 /// Set @param m as zero matrix
 template <std::size_t ROWS, std::size_t COLS, concepts::scalar scalar_t,
           template <typename, std::size_t> class array_t>
-ALGEBRA_HOST_DEVICE constexpr void set_zero(
+DETRAY_HOST_DEVICE constexpr void set_zero(
     array_t<array_t<scalar_t, ROWS>, COLS> &m) {
     m = zero<array_t<array_t<scalar_t, ROWS>, COLS>>();
 }
@@ -54,7 +54,7 @@ ALGEBRA_HOST_DEVICE constexpr void set_zero(
 /// Set @param m as identity matrix
 template <std::size_t ROWS, std::size_t COLS, concepts::scalar scalar_t,
           template <typename, std::size_t> class array_t>
-ALGEBRA_HOST_DEVICE constexpr void set_identity(
+DETRAY_HOST_DEVICE constexpr void set_identity(
     array_t<array_t<scalar_t, ROWS>, COLS> &m) {
     m = identity<array_t<array_t<scalar_t, ROWS>, COLS>>();
 }
@@ -62,7 +62,7 @@ ALGEBRA_HOST_DEVICE constexpr void set_identity(
 /// @returns the transpose matrix of @param m
 template <std::size_t ROWS, std::size_t COLS, concepts::scalar scalar_t,
           template <typename, std::size_t> class array_t>
-ALGEBRA_HOST_DEVICE constexpr auto transpose(
+DETRAY_HOST_DEVICE constexpr auto transpose(
     const array_t<array_t<scalar_t, ROWS>, COLS> &m) {
     return algebra::generic::math::transpose(m);
 }
@@ -70,7 +70,7 @@ ALGEBRA_HOST_DEVICE constexpr auto transpose(
 /// @returns the determinant of @param m
 template <std::size_t ROWS, std::size_t COLS, concepts::scalar scalar_t,
           template <typename, std::size_t> class array_t>
-ALGEBRA_HOST_DEVICE constexpr scalar_t determinant(
+DETRAY_HOST_DEVICE constexpr scalar_t determinant(
     const array_t<array_t<scalar_t, ROWS>, COLS> &m) {
     return algebra::generic::math::determinant(m);
 }
@@ -78,7 +78,7 @@ ALGEBRA_HOST_DEVICE constexpr scalar_t determinant(
 /// @returns the determinant of @param m
 template <std::size_t ROWS, std::size_t COLS, concepts::scalar scalar_t,
           template <typename, std::size_t> class array_t>
-ALGEBRA_HOST_DEVICE constexpr auto inverse(
+DETRAY_HOST_DEVICE constexpr auto inverse(
     const array_t<array_t<scalar_t, ROWS>, COLS> &m) {
     return algebra::generic::math::inverse(m);
 }

@@ -1,4 +1,4 @@
-/** Algebra plugins library, part of the ACTS project
+/** Detray library, part of the ACTS project (R&D line)
  *
  * (c) 2020-2026 CERN for the benefit of the ACTS project
  *
@@ -10,7 +10,6 @@
 // Project include(s).
 #include "algebra/impl/eigen_getter.hpp"
 #include "algebra/impl/eigen_matrix.hpp"
-#include "algebra/impl/eigen_transform3.hpp"
 #include "algebra/impl/eigen_types.hpp"
 #include "algebra/impl/eigen_vector.hpp"
 #include "detray/algebra/common/boolean.hpp"
@@ -27,13 +26,6 @@
 #endif  // MSVC
 
 namespace detray {
-
-namespace algebra::eigen {
-
-template <concepts::scalar T>
-using transform3 = math::transform3<T>;
-
-}  // namespace algebra::eigen
 
 /// Define the plugin types
 /// @{
