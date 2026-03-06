@@ -31,14 +31,16 @@ GTEST_TEST(detray_intersection, helix_trajectory) {
 
     const point3 pos{0.f, 0.f, 0.f};
     const scalar time{0.f};
-    const vector3 mom{1.f, 0.f, 1.f * unit<scalar>::GeV};
+    const vector3 mom{static_cast<scalar>(1.f), static_cast<scalar>(0.f),
+                      1.f * unit<scalar>::GeV};
     const scalar q{static_cast<scalar>(-1.) * unit<scalar>::e};
 
     // vertex
     free_track_parameters<test_algebra> vertex(pos, time, mom, q);
 
     // magnetic field
-    const vector3 B{0.f, 0.f, 1.f * unit<scalar>::T};
+    const vector3 B{static_cast<scalar>(0.f), static_cast<scalar>(0.f),
+                    1.f * unit<scalar>::T};
 
     const scalar p_mag{vector::norm(mom)};
     const scalar B_mag{vector::norm(B)};
@@ -176,14 +178,15 @@ GTEST_TEST(detray_intersection, helix_trajectory_small_pT) {
 
     const point3 pos{0.f, 0.f, 0.f};
     const scalar time{0.f};
-    const vector3 mom{0.f, tol, 1.f * unit<scalar>::GeV};
+    const vector3 mom{static_cast<scalar>(0.f), tol, 1.f * unit<scalar>::GeV};
     const scalar q{static_cast<scalar>(-1.) * unit<scalar>::e};
 
     // vertex
     free_track_parameters<test_algebra> vertex(pos, time, mom, q);
 
     // magnetic field
-    const vector3 B{0.f, 0.f, 1.f * unit<scalar>::T};
+    const vector3 B{static_cast<scalar>(0.f), static_cast<scalar>(0.f),
+                    1.f * unit<scalar>::T};
 
     // helix trajectory
     detail::helix helix_traj(vertex, B);
@@ -207,7 +210,8 @@ GTEST_TEST(detray_intersection, helix_direction_stability) {
     using point3 = test::point3;
 
     // magnetic field
-    const vector3 B{0.f, 0.f, 1.f * unit<scalar>::T};
+    const vector3 B{static_cast<scalar>(0.f), static_cast<scalar>(0.f),
+                    1.f * unit<scalar>::T};
 
     const point3 pos{0.f, 0.f, 0.f};
     const scalar time{0.f};

@@ -95,7 +95,10 @@ class ring2D {
 
         // Only check the radius
         return check_boundaries(
-            bounds, dpoint2D<algebra_t>{vector::perp(loc_p), 0.f}, tol);
+            bounds,
+            dpoint2D<algebra_t>{vector::perp(loc_p),
+                                static_cast<dscalar<algebra_t>>(0.f)},
+            tol);
     }
 
     /// @note the point is expected to be given in local coordinates by the

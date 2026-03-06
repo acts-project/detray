@@ -214,7 +214,8 @@ class cylinder3D {
         const bounds_type<dscalar<algebra_t>> &bounds) const {
 
         return 0.5f *
-               dpoint3D<algebra_t>{0.f, (bounds[e_min_phi] + bounds[e_max_phi]),
+               dpoint3D<algebra_t>{static_cast<dscalar<algebra_t>>(0.f),
+                                   (bounds[e_min_phi] + bounds[e_max_phi]),
                                    (bounds[e_min_z] + bounds[e_max_z])};
     }
 
