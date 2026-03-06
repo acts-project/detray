@@ -196,7 +196,7 @@ class material_map_reader {
 
         // Material id of map data found
         if constexpr (!std::is_same_v<frame_t, io::detail::unknown_type> &&
-                      concepts::coordinate_frame<frame_t>) {
+                      ::detray::concepts::coordinate_frame<frame_t>) {
             // Get the corresponding material id for this detector
             constexpr auto mat_id{
                 types::id<io::material_registry<algebra_t>, frame_t>};
