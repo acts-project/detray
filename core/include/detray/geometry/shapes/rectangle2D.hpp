@@ -210,13 +210,17 @@ class rectangle2D {
         using point3_t = dpoint3D<algebra_t>;
 
         // left hand lower corner
-        point3_t lh_lc{-bounds[e_half_x], -bounds[e_half_y], 0.f};
+        point3_t lh_lc{-bounds[e_half_x], -bounds[e_half_y],
+                       static_cast<dscalar<algebra_t>>(0.f)};
         // right hand lower corner
-        point3_t rh_lc{bounds[e_half_x], -bounds[e_half_y], 0.f};
+        point3_t rh_lc{bounds[e_half_x], -bounds[e_half_y],
+                       static_cast<dscalar<algebra_t>>(0.f)};
         // right hand upper corner
-        point3_t rh_uc{bounds[e_half_x], bounds[e_half_y], 0.f};
+        point3_t rh_uc{bounds[e_half_x], bounds[e_half_y],
+                       static_cast<dscalar<algebra_t>>(0.f)};
         // left hand upper corner
-        point3_t lh_uc{-bounds[e_half_x], bounds[e_half_y], 0.f};
+        point3_t lh_uc{-bounds[e_half_x], bounds[e_half_y],
+                       static_cast<dscalar<algebra_t>>(0.f)};
 
         // Return the confining vertices
         return {lh_lc, rh_lc, rh_uc, lh_uc};

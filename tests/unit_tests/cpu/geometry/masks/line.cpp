@@ -116,7 +116,8 @@ GTEST_TEST(detray_masks, line_square) {
     static_assert(concepts::shape<line_square, test_algebra>);
     static_assert(concepts::line_shape<line_circular, test_algebra>);
 
-    const point3 ln_in{1.1f, 0.9f, constant<scalar>::pi_4};
+    const point3 ln_in{static_cast<scalar>(1.1f), static_cast<scalar>(0.9f),
+                       constant<scalar>::pi_4};
     const point3 ln_edge{1.f, 1.f, 0.f};
     const point3 ln_out1{1.1f, 0.f, 0.f};
     const point3 ln_out2{0.09f, -51.f, 0.f};

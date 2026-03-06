@@ -101,7 +101,8 @@ GTEST_TEST(detray_propagator, jacobian_concentric_cylindrical2D) {
     // Preparation work
     const transform3 identity{};
     // Global position on surface
-    const point3 global1{constant<scalar>::sqrt2, constant<scalar>::sqrt2, 9.f};
+    const point3 global1{constant<scalar>::sqrt2, constant<scalar>::sqrt2,
+                         static_cast<scalar>(9.f)};
     const vector3 mom{1.f, 2.f, 3.f};
     const scalar time{0.1f};
     const scalar charge{-1.f};
