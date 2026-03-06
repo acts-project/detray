@@ -55,4 +55,9 @@ endif()
 # them.
 get_target_property(_incDirs eigen INTERFACE_INCLUDE_DIRECTORIES)
 target_include_directories(eigen SYSTEM INTERFACE ${_incDirs})
+# HACK: Disable alignment of statically sized Eigen members in order to avoid
+# some segmentation violations. According to Eigen this should not be needed
+# (see https://libeigen.gitlab.io/eigen/docs-nightly/group__TopicUnalignedArrayAssert.html)
+# but our code doesn't work without this.
+target_compile_definitions(eigen INTERFACE EIGEN_MAX_STATIC_ALIGN_BYTES=0)
 unset(_incDirs)
