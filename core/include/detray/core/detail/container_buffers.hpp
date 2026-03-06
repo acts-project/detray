@@ -115,6 +115,18 @@ struct get_buffer<const vecmem::device_vector<T>, void> {
     using type = vecmem::data::vector_buffer<const T>;
 };
 
+/// Specialization of the buffer getter for @c vecmem::device_vector
+template <typename T>
+struct get_buffer<compact_device_vector<T>, void> {
+    using type = vecmem::data::vector_buffer<T>;
+};
+
+/// Specialization of the buffer getter for @c vecmem::device_vector - const
+template <typename T>
+struct get_buffer<const compact_device_vector<T>, void> {
+    using type = vecmem::data::vector_buffer<const T>;
+};
+
 template <class T>
 using get_buffer_t = typename get_buffer<T>::type;
 /// @}
