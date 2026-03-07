@@ -1,17 +1,19 @@
 # Detray library, part of the ACTS project (R&D line)
 #
-# (c) 2021-2023 CERN for the benefit of the ACTS project
+# (c) 2021-2026 CERN for the benefit of the ACTS project
 #
 # Mozilla Public License Version 2.0
 
+message(STATUS "Building the std::array algebra plugin")
+
 # Set up the library.
 detray_add_library( detray_algebra_array algebra_array
-   "include/detray/plugins/algebra/array_definitions.hpp"
+   "include/algebra/array.hpp"
+   "include/algebra/impl/*.hpp"
 )
-target_link_libraries(
-    detray_algebra_array
-    INTERFACE algebra::utils algebra::array_cmath vecmem::core
-)
+
+target_link_libraries(detray_algebra_array INTERFACE detray::core)
+
 target_compile_definitions(
     detray_algebra_array
     INTERFACE
@@ -19,7 +21,6 @@ target_compile_definitions(
         DETRAY_ALGEBRA_ARRAY
 )
 
-# Set up tests for the public header(s) of detray::algebra_array.
 detray_test_public_headers( detray_algebra_array
-   "detray/plugins/algebra/array_definitions.hpp"
+   "algebra/array.hpp"
 )

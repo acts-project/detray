@@ -196,7 +196,7 @@ struct intersection2D {
     // results from the mask tolerance check has to match the SIMD vector type
     // on which it is used on for a masked assignment of the different status
     // codes
-    using status_t = std::conditional_t<algebra::concepts::soa<algebra_t>, T,
+    using status_t = std::conditional_t<detray::concepts::soa<algebra_t>, T,
                                         intersection::status>;
     using scalar_type = dscalar<algebra_t>;
     using point2_type = dpoint2D<algebra_t>;

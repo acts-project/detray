@@ -48,11 +48,15 @@ constexpr scalar tol{1e-4f};
 const vector3 z_axis{0.f, 0.f, 1.f};
 
 // Track defined on origin point
-const free_track_parameters<test_algebra> free_trk(
-    {0.f, 0.f, 0.f}, 0.f, {0.1f * unit<scalar>::GeV, 0.f, 0.f}, -1.f);
+const free_track_parameters<test_algebra> free_trk({0.f, 0.f, 0.f}, 0.f,
+                                                   {0.1f * unit<scalar>::GeV,
+                                                    static_cast<scalar>(0.f),
+                                                    static_cast<scalar>(0.f)},
+                                                   -1.f);
 
 // Magnetic field
-const vector3 B{0.f, 0.f, 1.f * unit<scalar>::T};
+const vector3 B{static_cast<scalar>(0.f), static_cast<scalar>(0.f),
+                1.f * unit<scalar>::T};
 const vector3 B_0{0.f * unit<scalar>::T, tol* unit<scalar>::T,
                   tol* unit<scalar>::T};
 
@@ -332,7 +336,8 @@ GTEST_TEST(detray_intersection, helix_line_intersector) {
     const point3 r0_fw = hlx.pos(s0);
 
     // Translation is shifted from reference point
-    const point3 trl_fw = r0_fw + vector3{offset, 0.f, 0.f};
+    const point3 trl_fw = r0_fw + vector3{offset, static_cast<scalar>(0.f),
+                                          static_cast<scalar>(0.f)};
 
     // Transform matrix
     const transform3_t trf_fw(trl_fw, z_axis, hlx.dir(s0));
@@ -365,7 +370,8 @@ GTEST_TEST(detray_intersection, helix_line_intersector) {
     const point3 r0_bw = hlx.pos(-s0);
 
     // Translation is shifted from reference point
-    const point3 trl_bw = r0_bw + vector3{offset, 0.f, 0.f};
+    const point3 trl_bw = r0_bw + vector3{offset, static_cast<scalar>(0.f),
+                                          static_cast<scalar>(0.f)};
 
     // Transform matrix
     const transform3_t trf_bw(trl_bw, z_axis, hlx.dir(-s0));

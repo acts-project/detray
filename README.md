@@ -71,6 +71,7 @@ The following cmake options are available and can also be specified explicitly f
 | DETRAY_BUILD_TUTORIALS  | Build the examples of detray | OFF |
 | DETRAY_CUSTOM_SCALARTYPE | Floating point precision | float |
 | DETRAY_EIGEN_PLUGIN | Build Eigen math plugin | OFF |
+| DETRAY_FASTOR_PLUGIN | Build Fastor math plugin | OFF |
 | DETRAY_SMATRIX_PLUGIN | Build ROOT/SMatrix math plugin | OFF |
 | DETRAY_VC_AOS_PLUGIN | Build Vc based AoS math plugin | OFF |
 | DETRAY_VC_SOA_PLUGIN | Build Vc based SoA math plugin (currently only supports the ray-surface intersectors) | OFF |

@@ -59,7 +59,8 @@ int main(int argc, char** argv) {
     //
 
     // Constant magnetic field
-    vector3 B{0.f, 0.f, 2.f * unit<scalar>::T};
+    vector3 B{static_cast<scalar>(0.f), static_cast<scalar>(0.f),
+              2.f * unit<scalar>::T};
 
     // Configure toy detector
     toy_det_config<scalar> toy_cfg{};

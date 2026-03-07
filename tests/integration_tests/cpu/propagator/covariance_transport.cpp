@@ -50,7 +50,8 @@ class detray_propagation_HelixCovarianceTransportValidation
     : public ::testing::Test {
     public:
     // Environment Setup
-    const vector3 B{0.f, 0.f, 1.f * unit<scalar>::T};
+    const vector3 B{static_cast<scalar>(0.f), static_cast<scalar>(0.f),
+                    1.f * unit<scalar>::T};
     const vector3 y_axis{0.f, 1.f, 0.f};
     const vector3 z_axis{0.f, 0.f, 1.f};
     static constexpr const scalar mask_tolerance{1e-3f};
@@ -141,7 +142,9 @@ class detray_propagation_HelixCovarianceTransportValidation
                 // @TODO why does this offset (in y-direction) fail the test???
                 // const vector3 offset{0.f, 10.f * unit<scalar>::mm, 10.f *
                 // unit<scalar>::mm};
-                const vector3 offset{0.f, 0.f, 10.f * unit<scalar>::mm};
+                const vector3 offset{static_cast<scalar>(0.f),
+                                     static_cast<scalar>(0.f),
+                                     10.f * unit<scalar>::mm};
                 trl = trl + offset;
             }
 
@@ -274,7 +277,12 @@ TYPED_TEST(detray_propagation_HelixCovarianceTransportValidation,
     // @NOTE: The test with high energy (>1 GeV) might fail due
     // to the numerical instability
     free_track_parameters<test_algebra> free_trk(
-        {0.f, 0.f, 0.f}, 0.f, {0.1f * unit<scalar>::GeV, 0.f, 0.f}, -1.f);
+        {static_cast<scalar>(0.f), static_cast<scalar>(0.f),
+         static_cast<scalar>(0.f)},
+        static_cast<scalar>(0.f),
+        {0.1f * unit<scalar>::GeV, static_cast<scalar>(0.f),
+         static_cast<scalar>(0.f)},
+        static_cast<scalar>(-1.f));
 
     detail::helix<test_algebra> reference_helix(free_trk, this->B);
 

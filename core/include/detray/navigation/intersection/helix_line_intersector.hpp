@@ -28,7 +28,7 @@ struct helix_intersector_impl;
 ///
 /// The algorithm uses the Newton-Raphson method to find an intersection on
 /// the unbounded surface and then applies the mask.
-template <algebra::concepts::aos algebra_t>
+template <detray::concepts::aos algebra_t>
 struct helix_intersector_impl<line2D<algebra_t>, algebra_t> {
 
     private:

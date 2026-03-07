@@ -151,7 +151,7 @@ class telescope_generator final : public surface_factory_interface<detector_t> {
 
             // Build the transform
             // Local z axis is the global normal vector
-            vector3_t m_local_z = algebra::vector::normalize(mod_placement.dir);
+            vector3_t m_local_z = vector::normalize(mod_placement.dir);
 
             if constexpr (std::is_same_v<mask_shape_t, detray::line_square> ||
                           std::is_same_v<mask_shape_t, detray::line_circular>) {

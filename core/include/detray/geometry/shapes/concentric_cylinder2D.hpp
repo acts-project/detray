@@ -89,8 +89,11 @@ class concentric_cylinder2D {
         const dscalar<algebra_t> /*edge_tol*/ = 0.f) const {
 
         // Only need the z-position for the check
-        return check_boundaries(bounds, dpoint2D<algebra_t>{0.f, glob_p[2]},
-                                tol);
+        return check_boundaries(
+            bounds,
+            dpoint2D<algebra_t>{static_cast<dscalar<algebra_t>>(0.f),
+                                glob_p[2]},
+            tol);
     }
 
     /// @note the point is expected to be given in local coordinates by the
@@ -188,7 +191,9 @@ class concentric_cylinder2D {
     DETRAY_HOST_DEVICE dpoint3D<algebra_t> centroid(
         const bounds_type<dscalar<algebra_t>> &bounds) const {
 
-        return {0.f, 0.f, 0.5f * (bounds[e_lower_z] + bounds[e_upper_z])};
+        return {static_cast<dscalar<algebra_t>>(0.f),
+                static_cast<dscalar<algebra_t>>(0.f),
+                0.5f * (bounds[e_lower_z] + bounds[e_upper_z])};
     }
 
     /// Generate vertices in local cartesian frame

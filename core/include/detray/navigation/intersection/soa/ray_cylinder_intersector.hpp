@@ -26,7 +26,7 @@ template <typename frame_t, concepts::algebra algebra_t, bool resolve_pos>
 struct ray_intersector_impl;
 
 /// A functor to find intersections between straight line and planar surface
-template <algebra::concepts::soa algebra_t, bool resolve_pos>
+template <detray::concepts::soa algebra_t, bool resolve_pos>
 struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, resolve_pos> {
 
     /// Linear algebra types

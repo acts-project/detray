@@ -177,12 +177,32 @@ inline auto run(const typename detector_t::geometry_context gctx,
 
     using record_t = typename decltype(intersection_record)::value_type;
 
+    // HACK: For whatever reason, std::stable_sort really dislikes custom
+    // aligned types like the ones in Eigen and Fastor, so we have to sort
+    // by indices and then reconstruct the sorted intersection record.
+    std::vector<unsigned int> indices;
+    indices.reserve(intersection_record.size());
+
+    for (unsigned int q = 0; q < intersection_record.size(); ++q) {
+        indices.push_back(q);
+    }
+
     // Sort intersections by distance to origin of the trajectory
-    auto sort_path = [&](const record_t &a, const record_t &b) -> bool {
-        return (a.intersection < b.intersection);
+    auto sort_path = [&](const unsigned int &a, const unsigned int &b) -> bool {
+        return (intersection_record.at(a).intersection <
+                intersection_record.at(b).intersection);
     };
 
-    std::ranges::stable_sort(intersection_record, sort_path);
+    std::ranges::stable_sort(indices, sort_path);
+
+    std::decay_t<decltype(intersection_record)> new_intersection_record;
+    new_intersection_record.reserve(intersection_record.size());
+
+    for (const unsigned int &i : indices) {
+        new_intersection_record.push_back(intersection_record.at(i));
+    }
+
+    intersection_record = std::move(new_intersection_record);
 
     // Make sure the intersection record terminates at world portals
     auto is_world_exit = [](const record_t &r) {

@@ -33,14 +33,13 @@
          "inherits": [ "default-fp32" ],
          "cacheVariables": {
             "DETRAY_BUILD_TESTING": "TRUE",
+            "DETRAY_SETUP_EIGEN": "TRUE",
+            "DETRAY_SETUP_FASTOR": "TRUE",
+            "DETRAY_SETUP_VC": "TRUE",
             "DETRAY_SETUP_ACTSVG": "TRUE",
             "DETRAY_SETUP_BENCHMARK": "TRUE",
             "DETRAY_SETUP_COVFIE": "TRUE",
-            "DETRAY_SETUP_NLOHMANN": "TRUE",
-            "ALGEBRA_PLUGINS_INCLUDE_EIGEN": "TRUE",
-            "ALGEBRA_PLUGINS_SETUP_EIGEN3": "TRUE",
-            "ALGEBRA_PLUGINS_INCLUDE_VC": "TRUE",
-            "ALGEBRA_PLUGINS_SETUP_VC": "TRUE"
+            "DETRAY_SETUP_NLOHMANN": "TRUE"
          }
       },
       {
@@ -78,6 +77,7 @@
          "inherits" : [ "default-fp32" ],
          "cacheVariables" : {
             "DETRAY_BUILD_CUDA"     : "TRUE",
+            "DETRAY_FASTOR_PLUGIN"  : "FALSE",
             "DETRAY_VC_AOS_PLUGIN"  : "FALSE",
             "DETRAY_VC_SOA_PLUGIN"  : "FALSE",
             "DETRAY_SMATRIX_PLUGIN" : "FALSE"
@@ -89,6 +89,7 @@
          "inherits" : [ "default-fp32" ],
          "cacheVariables" : {
             "DETRAY_BUILD_SYCL"     : "TRUE",
+            "DETRAY_FASTOR_PLUGIN"  : "FALSE",
             "DETRAY_VC_AOS_PLUGIN"  : "FALSE",
             "DETRAY_VC_SOA_PLUGIN"  : "FALSE",
             "DETRAY_SMATRIX_PLUGIN" : "FALSE"
@@ -100,6 +101,7 @@
          "inherits" : [ "default-fp32" ],
          "cacheVariables" : {
             "DETRAY_BUILD_HIP"      : "TRUE",
+            "DETRAY_FASTOR_PLUGIN"  : "FALSE",
             "DETRAY_VC_AOS_PLUGIN"  : "FALSE",
             "DETRAY_VC_SOA_PLUGIN"  : "FALSE",
             "DETRAY_SMATRIX_PLUGIN" : "FALSE"
@@ -111,6 +113,7 @@
          "inherits" : [ "default-fp64" ],
          "cacheVariables" : {
             "DETRAY_BUILD_HIP"      : "TRUE",
+            "DETRAY_FASTOR_PLUGIN"  : "FALSE",
             "DETRAY_VC_AOS_PLUGIN"  : "FALSE",
             "DETRAY_VC_SOA_PLUGIN"  : "FALSE",
             "DETRAY_SMATRIX_PLUGIN" : "FALSE"

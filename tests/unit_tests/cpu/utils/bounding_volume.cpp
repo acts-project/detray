@@ -78,10 +78,11 @@ GTEST_TEST(detray_utils, bounding_cylinder3D) {
     constexpr scalar r{3.f * unit<scalar>::mm};
     constexpr scalar hz{4.f * unit<scalar>::mm};
 
-    point3 p3_in = {r, 0.f, -1.f};
-    point3 p3_edge = {0.f, r, hz};
+    point3 p3_in = {r, static_cast<scalar>(0.f), static_cast<scalar>(-1.f)};
+    point3 p3_edge = {static_cast<scalar>(0.f), r, hz};
     point3 p3_out = {r * constant<scalar>::inv_sqrt2,
-                     r * constant<scalar>::inv_sqrt2, 4.5f};
+                     r * constant<scalar>::inv_sqrt2,
+                     static_cast<scalar>(4.5f)};
     point3 p3_off = {1.f, 1.f, -9.f};
 
     axis_aligned_bounding_volume<cylinder3D, test_algebra> aabc{

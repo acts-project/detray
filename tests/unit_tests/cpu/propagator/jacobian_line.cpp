@@ -60,9 +60,10 @@ GTEST_TEST(detray_propagator, jacobian_line2D_case1) {
     const auto free_params2 = detail::bound_to_free_vector(trf, ln, bound_vec);
 
     // Check if the bound vector is correct
-    ASSERT_NEAR(bound_vec.bound_local()[e_bound_loc0],
+    ASSERT_NEAR(getter::element(bound_vec.bound_local(), e_bound_loc0),
                 -constant<scalar>::inv_sqrt2, isclose);
-    ASSERT_NEAR(bound_vec.bound_local()[e_bound_loc1], std::sqrt(3.f), isclose);
+    ASSERT_NEAR(getter::element(bound_vec.bound_local(), e_bound_loc1),
+                std::sqrt(3.f), isclose);
     ASSERT_NEAR(bound_vec.phi(), constant<scalar>::pi_2, isclose);  // atan(2)
     ASSERT_NEAR(bound_vec.theta(), constant<scalar>::pi_4,
                 isclose);  // atan(sqrt(5)/3)
