@@ -10,6 +10,7 @@
 // Project include(s).
 #include "algebra/impl/detail/fastor_matrix_wrapper.hpp"
 #include "algebra/impl/detail/fastor_vector_wrapper.hpp"
+#include "algebra/impl/fastor_matrix.hpp"
 #include "detray/algebra/utils/approximately_equal.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 
@@ -66,6 +67,13 @@ struct transform3 {
     matrix44 _data_inv;
 
     /// @}
+
+    /// Default constructor: identity
+    DETRAY_HOST_DEVICE
+    constexpr transform3() {
+        _data.eye();
+        _data_inv.eye();
+    }
 
     /// Contructor with arguments: t, x, y, z
     ///
@@ -158,7 +166,6 @@ struct transform3 {
     }
 
     /// Default contructors
-    transform3() = default;
     transform3(const transform3 &rhs) = default;
     ~transform3() = default;
 

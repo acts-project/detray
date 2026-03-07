@@ -94,12 +94,12 @@ namespace traits {
 
 template <typename T, auto N>
 struct index<algebra::vc_aos::storage_type<T, N>> {
-    using index_type = algebra::vc_aos::index_type;
+    using type = algebra::vc_aos::index_type;
 };
 
 template <typename T, auto N>
 struct index<Vc_1::Vector<T, Vc_1::simd_abi::fixed_size<N>>> {
-    using index_type = algebra::vc_aos::index_type;
+    using type = algebra::vc_aos::index_type;
 };
 
 template <typename T, auto N>
