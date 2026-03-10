@@ -13,7 +13,7 @@ message(STATUS "Building Eigen3 as part of the Detray project")
 
 # Declare where to get Eigen3 from.
 set(DETRAY_EIGEN_SOURCE
-    "URL;https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.bz2;URL_MD5;132dde48fe2b563211675626d29f1707"
+    "URL;https://gitlab.com/libeigen/eigen/-/archive/${DETRAY_EIGEN_VERSION}/eigen-${DETRAY_EIGEN_VERSION}.tar.bz2;URL_MD5;${DETRAY_EIGEN_DIGEST}"
     CACHE STRING
     "Source for Eigen, when built as part of this project"
 )
@@ -55,9 +55,3 @@ endif()
 # them.
 get_target_property(_incDirs eigen INTERFACE_INCLUDE_DIRECTORIES)
 target_include_directories(eigen SYSTEM INTERFACE ${_incDirs})
-# HACK: Disable alignment of statically sized Eigen members in order to avoid
-# some segmentation violations. According to Eigen this should not be needed
-# (see https://libeigen.gitlab.io/eigen/docs-nightly/group__TopicUnalignedArrayAssert.html)
-# but our code doesn't work without this.
-target_compile_definitions(eigen INTERFACE EIGEN_MAX_STATIC_ALIGN_BYTES=0)
-unset(_incDirs)

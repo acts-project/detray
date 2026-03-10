@@ -17,23 +17,18 @@ endif()
 message(STATUS "Building actsvg as part of the Detray project")
 
 # Declare where to get Actsvg from.
-set(DETRAY_ACTSVG_GIT_REPOSITORY
-    "https://github.com/acts-project/actsvg.git"
+set(DETRAY_ACTSVG_SOURCE
+    "URL;https://github.com/acts-project/actsvg/archive/refs/tags/v${DETRAY_ACTSVG_VERSION}.tar.gz;URL_MD5;${DETRAY_ACTSVG_DIGEST}"
     CACHE STRING
-    "Git repository to take actsvg from"
+    "Source for Actsvg, when built as part of this project"
 )
-set(DETRAY_ACTSVG_GIT_TAG "v0.4.57" CACHE STRING "Version of actsvg to build")
-mark_as_advanced(DETRAY_ACTSVG_GIT_REPOSITORY DETRAY_ACTSVG_GIT_TAG)
+mark_as_advanced(DETRAY_ACTSVG_SOURCE)
 
 # Mark the import as a system library on modern CMake versions
 if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.25.0)
-    set(DETRAY_ACTSVG_SOURCE_FULL
-        "GIT_REPOSITORY;${DETRAY_ACTSVG_GIT_REPOSITORY};GIT_TAG;${DETRAY_ACTSVG_GIT_TAG};SYSTEM"
-    )
+    set(DETRAY_ACTSVG_SOURCE_FULL "${DETRAY_ACTSVG_SOURCE};SYSTEM")
 else()
-    set(DETRAY_ACTSVG_SOURCE_FULL
-        "GIT_REPOSITORY;${DETRAY_ACTSVG_GIT_REPOSITORY};GIT_TAG;${DETRAY_ACTSVG_GIT_TAG}"
-    )
+    set(DETRAY_ACTSVG_SOURCE_FULL "${DETRAY_ACTSVG_SOURCE}")
 endif()
 mark_as_advanced(DETRAY_ACTSVG_SOURCE_FULL)
 

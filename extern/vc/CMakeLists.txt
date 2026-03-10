@@ -13,7 +13,7 @@ message(STATUS "Building Vc as part of the Detray project")
 
 # Declare where to get Vc from.
 set(DETRAY_VC_SOURCE
-    "URL;https://github.com/VcDevel/Vc/archive/refs/tags/1.4.5.tar.gz;URL_MD5;03831cbf0921a10322d8baf08001cbf5"
+    "URL;https://github.com/VcDevel/Vc/archive/refs/tags/${DETRAY_VC_VERSION}.tar.gz;URL_MD5;${DETRAY_VC_DIGEST}"
     CACHE STRING
     "Source for Vc, when built as part of this project"
 )
@@ -26,12 +26,6 @@ else()
     set(DETRAY_VC_SOURCE_FULL "${DETRAY_VC_SOURCE}")
 endif()
 mark_as_advanced(DETRAY_VC_SOURCE_FULL)
-
-set(TARGET_ARCHITECTURE
-    "x86-64-v2"
-    CACHE STRING
-    "Enforce generation of generic x86 code by Vc"
-)
 
 FetchContent_Declare(Vc ${DETRAY_VC_SOURCE_FULL})
 

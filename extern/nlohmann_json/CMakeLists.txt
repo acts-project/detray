@@ -1,6 +1,6 @@
 # Detray library, part of the ACTS project (R&D line)
 #
-# (c) 2022-2024 CERN for the benefit of the ACTS project
+# (c) 2022-2026 CERN for the benefit of the ACTS project
 #
 # Mozilla Public License Version 2.0
 
@@ -15,31 +15,20 @@ endif()
 # Tell the user what's happening.
 message(STATUS "Building nlohmann_json as part of the detray project")
 
-# Declare where to get nlohmann from.
-set(DETRAY_NLOHMANN_JSON_GIT_TAG
-    "v3.11.3"
+# Declare where to get Eigen3 from.
+set(DETRAY_NLOHMANN_SOURCE
+    "URL;https://github.com/nlohmann/json/archive/refs/tags/v${DETRAY_NLOHMANN_VERSION}.tar.gz;URL_HASH;SHA1=${DETRAY_NLOHMANN_DIGEST}"
     CACHE STRING
-    "Version of nlohmann_json to build"
+    "Source for Nlohmann JSON, when built as part of this project"
 )
-set(DETRAY_NLOHMANN_JSON_SHA1
-    "2074caa675f8097d9b03c0f4976ffc3410170937"
-    CACHE STRING
-    "SHA1 hash of the downloaded zip"
-)
-mark_as_advanced(
-    DETRAY_NLOHMANN_JSON_GIT_REPOSITORY
-    DETRAY_NLOHMANN_JSON_GIT_TAG
-)
+mark_as_advanced(DETRAY_EIGEN_SOURCE)
 
 # Mark the import as a system library on modern CMake versions
+# Mark the import as a system library on modern CMake versions
 if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.25.0)
-    set(DETRAY_NLOHMANN_JSON_SOURCE_FULL
-        "URL;https://github.com/nlohmann/json/archive/refs/tags/${DETRAY_NLOHMANN_JSON_GIT_TAG}.tar.gz;URL_HASH;SHA1=${DETRAY_NLOHMANN_JSON_SHA1};SYSTEM"
-    )
+    set(DETRAY_NLOHMANN_JSON_SOURCE_FULL "${DETRAY_NLOHMANN_SOURCE};SYSTEM")
 else()
-    set(DETRAY_NLOHMANN_JSON_SOURCE_FULL
-        "URL;https://github.com/nlohmann/json/archive/refs/tags/${DETRAY_NLOHMANN_JSON_GIT_TAG}.tar.gz;URL_HASH;SHA1=${DETRAY_NLOHMANN_JSON_SHA1}"
-    )
+    set(DETRAY_NLOHMANN_JSON_SOURCE_FULL "${DETRAY_NLOHMANN_SOURCE}")
 endif()
 mark_as_advanced(DETRAY_NLOHMANN_JSON_SOURCE_FULL)
 

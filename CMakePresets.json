@@ -53,12 +53,17 @@
       {
          "name": "full-fp32",
          "displayName": "FP32 Developer Configuration: Full Build",
-         "inherits": [ "dev-fp32" ],
+         "inherits": [ "default-fp32" ],
          "cacheVariables": {
             "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+            "DETRAY_EIGEN_PLUGIN"   : "TRUE",
+            "DETRAY_FASTOR_PLUGIN"  : "TRUE",
+            "DETRAY_VC_AOS_PLUGIN"  : "TRUE",
+            "DETRAY_VC_SOA_PLUGIN"  : "TRUE",
+            "DETRAY_SMATRIX_PLUGIN" : "TRUE",
             "DETRAY_BUILD_UNITTESTS": "TRUE",
             "DETRAY_BUILD_INTEGRATIONTESTS": "TRUE",
-            "DETRAY_BUILD_TUTORIALS": "TURE",
+            "DETRAY_BUILD_TUTORIALS": "TRUE",
             "DETRAY_BUILD_BENCHMARKS": "TRUE",
             "DETRAY_BUILD_CLI_TOOLS": "TRUE"
          }

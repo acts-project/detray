@@ -44,7 +44,7 @@ class Vector : public Fastor::Tensor<T, N> {
 template <std::size_t M, concepts::scalar S>
 constexpr bool operator==(const Vector<S, M>& lhs, const Vector<S, M>& rhs) {
     return Fastor::isequal(static_cast<Fastor::Tensor<S, M>>(lhs),
-                           static_cast<Fastor::Tensor<S, M>>(rhs), 0.00001f);
+                           static_cast<Fastor::Tensor<S, M>>(rhs), 0.f);
 }
 
 }  // namespace detray::algebra::fastor

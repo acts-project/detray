@@ -18,7 +18,7 @@ message(STATUS "Building GoogleTest as part of the Detray project")
 
 # Declare where to get GoogleTest from.
 set(DETRAY_GOOGLETEST_SOURCE
-    "URL;https://github.com/google/googletest/archive/refs/tags/v1.14.0.tar.gz;URL_MD5;c8340a482851ef6a3fe618a082304cfc"
+    "URL;https://github.com/google/googletest/archive/refs/tags/v${DETRAY_GOOGLETEST_VERSION}.tar.gz;URL_MD5;${DETRAY_GOOGLETEST_DIGEST}"
     CACHE STRING
     "Source for GoogleTest, when built as part of this project"
 )
