@@ -27,6 +27,12 @@ else()
 endif()
 mark_as_advanced(DETRAY_VC_SOURCE_FULL)
 
+set(TARGET_ARCHITECTURE
+    "x86-64-v2"
+    CACHE STRING
+    "Enforce generation of generic x86 code by Vc"
+)
+
 FetchContent_Declare(Vc ${DETRAY_VC_SOURCE_FULL})
 
 # Turn off the unit tests for Vc.
