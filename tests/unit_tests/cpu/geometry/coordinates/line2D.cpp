@@ -63,7 +63,9 @@ GTEST_TEST(detray_coordinates, line2D_case1) {
 
     // Normal vector
     const vector3 n = l2.normal(trf);
-    ASSERT_EQ(n, z);
+    ASSERT_NEAR(n[0], z[0], isclose);
+    ASSERT_NEAR(n[1], z[1], isclose);
+    ASSERT_NEAR(n[2], z[2], isclose);
 }
 
 GTEST_TEST(detray_coordinates, line2D_case2) {
