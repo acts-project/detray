@@ -91,11 +91,11 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
         // ...otherwise, two solutions should exist, if the descriminator is
         // greater than zero
         const scalar_t ro_perp_2{ro[0] * ro[0] + ro[1] * ro[1]};
-        // This leads to numerical instabilites in single precision on the GPU
-        const double rad_diff{r * r - ro_perp_2};
 
         // Only calculate the path, when not already on surface
-        if (math::fabs(rad_diff) > 1.f * unit<scalar_t>::um) {
+        // 'rad_diff' leads to numerical instabilites in single precision on GPU
+        if (const double rad_diff{r * r - ro_perp_2};
+            math::fabs(rad_diff) > 1.f * unit<scalar_t>::um) {
 
             const scalar_t rd_perp_inv_2{1.f / rd_perp_2};
             const scalar_t k{-rd_perp_inv_2 * (ro[0] * rd[0] + ro[1] * rd[1])};

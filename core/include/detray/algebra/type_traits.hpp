@@ -173,7 +173,7 @@ template <typename A, typename T>
 using get_simd_t = typename traits::get_algebra<A>::template simd<T>;
 
 template <typename A>
-using get_size_t = typename traits::get_algebra<A>::index_type;
+using get_index_t = typename traits::get_algebra<A>::index_type;
 
 template <typename A>
 using get_scalar_t = typename traits::get_algebra<A>::scalar;

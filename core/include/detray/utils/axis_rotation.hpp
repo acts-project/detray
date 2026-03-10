@@ -8,10 +8,10 @@
 #pragma once
 
 // Project include(s).
+#include "detray/algebra/generic/impl/columnwise_operations.hpp"
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/math.hpp"
-#include "detray/utils/matrix_helper.hpp"
 
 namespace detray {
 

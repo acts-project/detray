@@ -83,7 +83,7 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, resolve_pos> {
                 results[0].point = ray.pos() + qe.smaller() * ray.dir();
                 break;
             }
-            [[unlikely]] case 0: { /* Do nothing */
+            [[unlikely]] default: { /* Do nothing */
             }
         }
 

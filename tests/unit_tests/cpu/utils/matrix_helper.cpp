@@ -1,12 +1,12 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023-2024 CERN for the benefit of the ACTS project
+ * (c) 2023-2026 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
 // Project include(s).
-#include "detray/utils/matrix_helper.hpp"
+#include "detray/algebra/generic/impl/columnwise_operations.hpp"
 
 // Detray test include(s)
 #include "detray/test/framework/types.hpp"
@@ -103,12 +103,15 @@ GTEST_TEST(detray_utils, cross_matrix) {
     const vector3 u_cross_v = u_cross * v;
     const vector3 v_cross_u = matrix::transpose(v_cross) * u;
 
-    EXPECT_NEAR(u_cross_v[0], -2.f, tolerance);
-    EXPECT_NEAR(u_cross_v[1], 4.f, tolerance);
-    EXPECT_NEAR(u_cross_v[2], -2.f, tolerance);
-    EXPECT_NEAR(u_cross_v[0], v_cross_u[0], tolerance);
-    EXPECT_NEAR(u_cross_v[1], v_cross_u[1], tolerance);
-    EXPECT_NEAR(u_cross_v[2], v_cross_u[2], tolerance);
+    EXPECT_NEAR(getter::element(u_cross_v, 0u), -2.f, tolerance);
+    EXPECT_NEAR(getter::element(u_cross_v, 1u), 4.f, tolerance);
+    EXPECT_NEAR(getter::element(u_cross_v, 2u), -2.f, tolerance);
+    EXPECT_NEAR(getter::element(u_cross_v, 0u), getter::element(v_cross_u, 0u),
+                tolerance);
+    EXPECT_NEAR(getter::element(u_cross_v, 1u), getter::element(v_cross_u, 1u),
+                tolerance);
+    EXPECT_NEAR(getter::element(u_cross_v, 2u), getter::element(v_cross_u, 2u),
+                tolerance);
 }
 
 GTEST_TEST(detray_utils, outer_product) {

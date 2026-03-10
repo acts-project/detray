@@ -13,11 +13,11 @@
 #endif
 
 // Project include(s).
+#include "detray/algebra/generic/impl/columnwise_operations.hpp"
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/math.hpp"
 #include "detray/tracks/free_track_parameters.hpp"
 #include "detray/utils/invalid_values.hpp"
-#include "detray/utils/matrix_helper.hpp"
 
 // System include(s).
 #include <ostream>
@@ -61,10 +61,12 @@ class helix {
     helix(const point3_type &pos, const scalar_type time,
           const vector3_type &dir, const scalar_type qop,
           const vector3_type &mag_field)
-        : _pos(pos), _time(time), _qop(qop), _t0{dir} {
-
-        // Normalized B field
-        _h0 = vector::normalize(mag_field);
+        : _pos(pos),
+          _time(time),
+          _qop(qop),
+          _B{vector::norm(mag_field)},
+          _h0{vector::normalize(mag_field)},
+          _t0{dir} {
 
         assert((math::fabs(vector::norm(_t0) - 1.f) < 1e-5f) &&
                "The helix direction must be normalized");
@@ -81,9 +83,6 @@ class helix {
 
         // Dot product of _h0 X _t0
         _delta = vector::dot(_h0, _t0);
-
-        // B field strength
-        _B = vector::norm(mag_field);
 
         // Path length scaler
         _K = -_qop * _B;

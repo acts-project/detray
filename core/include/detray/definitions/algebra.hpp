@@ -42,7 +42,7 @@ template <typename A, typename T>
 using dsimd = get_simd_t<A, T>;
 
 template <typename A>
-using dsize_type = get_size_t<A>;
+using dindex_type = get_index_t<A>;
 
 template <typename A>
 using dscalar = get_scalar_t<A>;

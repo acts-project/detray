@@ -531,9 +531,9 @@ class annulus2D {
                             math::pow(r, 2.f))) /
                 (math::pow(m, 2.f) + 1.f);
 
-            point2_t v1 = {x1, m * x1};
-            if (vector::dot(v1, dir) > 0.f)
+            if (point2_t v1 = {x1, m * x1}; vector::dot(v1, dir) > 0.f) {
                 return v1;
+            }
             return {x2, m * x2};
         };
 
