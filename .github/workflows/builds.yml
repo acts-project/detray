@@ -43,8 +43,8 @@ jobs:
                  -DDETRAY_SET_LOGGING=DEBUG
                  -DDETRAY_SMATRIX_PLUGIN=OFF
                  -DDETRAY_FASTOR_PLUGIN=${{ (matrix.PLATFORM.OS == 'macos-latest') && 'OFF' || 'ON' }}
-                 -DDETRAY_VC_AOS_PLUGIN=${{ (matrix.PLATFORM.OS == 'macos-latest') && 'OFF' || 'ON' }}
-                 -DDETRAY_VC_SOA_PLUGIN=${{ (matrix.PLATFORM.OS == 'macos-latest') && 'OFF' || 'ON' }}
+                 -DDETRAY_VC_AOS_PLUGIN=OFF
+                 -DDETRAY_VC_SOA_PLUGIN=OFF
                  -S ${{ github.workspace }} -B build
                  -G "${{ matrix.PLATFORM.GENERATOR }}"
     # Perform the build.
