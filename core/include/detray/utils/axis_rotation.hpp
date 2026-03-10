@@ -26,7 +26,6 @@ struct axis_rotation {
     using vector3_type = dvector3D<algebra_t>;
     template <std::size_t ROWS, std::size_t COLS>
     using matrix_type = dmatrix<algebra_t, ROWS, COLS>;
-    using mat_helper = matrix_helper<algebra_t>;
 
     /// @brief Constructor for axis rotation
     ///
@@ -35,13 +34,13 @@ struct axis_rotation {
     DETRAY_HOST_DEVICE
     axis_rotation(const vector3_type& axis, const scalar_type theta) {
         // normalize the axis
-        const auto U = vector::normalize(axis);
+        const vector3_type U = vector::normalize(axis);
 
         scalar_type cos_theta{math::cos(theta)};
 
         auto I = matrix::identity<matrix_type<3, 3>>();
-        matrix_type<3, 3> axis_cross = mat_helper().cross_matrix(U);
-        matrix_type<3, 3> axis_outer = mat_helper().outer_product(U, U);
+        matrix_type<3, 3> axis_cross = matrix::cross_matrix(U);
+        matrix_type<3, 3> axis_outer = matrix::outer_product(U, U);
 
         R = cos_theta * I + math::sin(theta) * axis_cross +
             (1.f - cos_theta) * axis_outer;

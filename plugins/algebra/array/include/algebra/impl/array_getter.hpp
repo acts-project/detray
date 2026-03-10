@@ -171,7 +171,7 @@ struct block_getter {
               template <typename, std::size_t> class array_t>
     DETRAY_HOST_DEVICE constexpr array_t<scalar_t, SIZE> vector(
         const array_t<array_t<scalar_t, ROWS>, COLS> &m, std::size_t row,
-        std::size_t col) {
+        std::size_t col) const {
 
         assert(col < COLS);
         assert(row + SIZE <= ROWS);
@@ -184,6 +184,36 @@ struct block_getter {
 
         return subvector;
     }
+
+    /// Sets a matrix of dimension @tparam ROW and @tparam COL as submatrix of
+    /// @param m beginning at row @param row and column @param col
+    template <std::size_t ROWS, std::size_t COLS, class input_matrix_type,
+              concepts::scalar scalar_t,
+              template <typename, std::size_t> class array_t>
+    DETRAY_HOST_DEVICE constexpr void set(
+        input_matrix_type &m, const array_t<array_t<scalar_t, ROWS>, COLS> &b,
+        std::size_t row, std::size_t col) const {
+        for (std::size_t j = 0u; j < COLS; ++j) {
+            for (std::size_t i = 0u; i < ROWS; ++i) {
+                m[j + col][i + row] = b[j][i];
+            }
+        }
+    }
+
+    /// Sets a vector of length @tparam ROW as submatrix of
+    /// @param m beginning at row @param row and column @param col
+    template <std::size_t ROWS, concepts::scalar scalar_t,
+              template <typename, std::size_t> class vector_t,
+              class input_matrix_type>
+    DETRAY_HOST_DEVICE constexpr void set(input_matrix_type &m,
+                                          const vector_t<scalar_t, ROWS> &b,
+                                          std::size_t row,
+                                          std::size_t col) const {
+        for (std::size_t i = 0; i < ROWS; ++i) {
+            m[col][i + row] = b[i];
+        }
+    }
+
 };  // struct block_getter
 
 /// @returns a matrix of dimension @tparam ROW and @tparam COL that contains
@@ -193,8 +223,8 @@ template <std::size_t ROWS, std::size_t COLS, class input_matrix_type>
 DETRAY_HOST_DEVICE constexpr decltype(auto) block(const input_matrix_type &m,
                                                   std::size_t row,
                                                   std::size_t col) {
-
-    return block_getter().template operator()<ROWS, COLS>(m, row, col);
+    constexpr block_getter block{};
+    return block.template operator()<ROWS, COLS>(m, row, col);
 }
 
 /// Function extracting a vector from a matrix
@@ -205,7 +235,8 @@ DETRAY_HOST_DEVICE constexpr array_t<scalar_t, SIZE> vector(
     const array_t<array_t<scalar_t, ROWS>, COLS> &m, std::size_t row,
     std::size_t col) {
 
-    return block_getter().template vector<SIZE>(m, row, col);
+    constexpr block_getter block{};
+    return block.template vector<SIZE>(m, row, col);
 }
 
 /// Sets a matrix of dimension @tparam ROW and @tparam COL as submatrix of
@@ -216,11 +247,9 @@ template <std::size_t ROWS, std::size_t COLS, class input_matrix_type,
 DETRAY_HOST_DEVICE constexpr void set_block(
     input_matrix_type &m, const array_t<array_t<scalar_t, ROWS>, COLS> &b,
     std::size_t row, std::size_t col) {
-    for (std::size_t j = 0u; j < COLS; ++j) {
-        for (std::size_t i = 0u; i < ROWS; ++i) {
-            m[j + col][i + row] = b[j][i];
-        }
-    }
+
+    constexpr block_getter block{};
+    block.set(m, b, row, col);
 }
 
 /// Sets a vector of length @tparam ROW as submatrix of
@@ -231,9 +260,8 @@ template <std::size_t ROWS, concepts::scalar scalar_t,
 DETRAY_HOST_DEVICE constexpr void set_block(input_matrix_type &m,
                                             const vector_t<scalar_t, ROWS> &b,
                                             std::size_t row, std::size_t col) {
-    for (std::size_t i = 0; i < ROWS; ++i) {
-        m[col][i + row] = b[i];
-    }
+    constexpr block_getter block{};
+    block.set(m, b, row, col);
 }
 
 }  // namespace detray::algebra::array::storage

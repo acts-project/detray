@@ -305,8 +305,7 @@ auto get_smeared_bound_vector(const bound_covariance_type& ini_cov,
     using bound_vector_type = bound_vector<test_algebra>;
 
     // Do the Cholesky Decomposition
-    const bound_covariance_type L =
-        matrix_helper<test_algebra>().cholesky_decompose(ini_cov);
+    const bound_covariance_type L = matrix::cholesky_decomposition(ini_cov);
 
     // Vecor with random elements from a normal distribution
     auto k = matrix::zero<bound_vector_type>();

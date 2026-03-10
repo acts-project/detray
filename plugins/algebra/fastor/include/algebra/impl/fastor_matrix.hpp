@@ -71,6 +71,43 @@ DETRAY_HOST_DEVICE constexpr matrix_type<scalar_t, COLS, ROWS> transpose(
     return Fastor::transpose(m);
 }
 
+/// Column-wise cross product
+/// @{
+template <std::size_t ROWS, std::size_t COLS, std::size_t N,
+          concepts::scalar scalar_t, typename derived_t>
+DETRAY_HOST_DEVICE constexpr matrix_type<scalar_t, COLS, ROWS>
+column_wise_cross(const matrix_type<scalar_t, COLS, ROWS> &m,
+                  const Fastor::AbstractTensor<derived_t, N> &v) {
+    return m * v;
+}
+
+template <std::size_t N, std::size_t M, typename derived_1_t,
+          typename derived_2_t>
+DETRAY_HOST_DEVICE constexpr auto column_wise_cross(
+    const Fastor::AbstractTensor<derived_1_t, M> &m,
+    const Fastor::AbstractTensor<derived_2_t, N> &v) {
+    return m * v;
+}
+/// @}
+
+/// Column-wise product
+/// @{
+template <std::size_t ROWS, std::size_t COLS, concepts::scalar scalar_t>
+DETRAY_HOST_DEVICE constexpr matrix_type<scalar_t, COLS, ROWS>
+column_wise_multiply(const matrix_type<scalar_t, COLS, ROWS> &m,
+                     const matrix_type<scalar_t, COLS, ROWS> &b) {
+    return m * b;
+}
+
+template <std::size_t N, std::size_t M, typename derived_1_t,
+          typename derived_2_t>
+DETRAY_HOST_DEVICE constexpr auto column_wise_multiply(
+    const Fastor::AbstractTensor<derived_1_t, M> &m,
+    const Fastor::AbstractTensor<derived_2_t, N> &b) {
+    return m * b;
+}
+/// @}
+
 /// @returns the determinant of @param m
 template <std::size_t N, concepts::scalar scalar_t>
 DETRAY_HOST_DEVICE constexpr scalar_t determinant(

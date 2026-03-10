@@ -157,6 +157,18 @@ struct block_getter {
         return m.template block<SIZE, 1>(row, col);
     }
 
+    /// Operator setting a block
+    template <typename derived_type1, typename derived_type2>
+    DETRAY_HOST_DEVICE void set(Eigen::MatrixBase<derived_type1> &m,
+                                const Eigen::MatrixBase<derived_type2> &b,
+                                std::size_t row, std::size_t col) const {
+        using block_t = Eigen::MatrixBase<derived_type2>;
+        constexpr auto R{block_t::RowsAtCompileTime};
+        constexpr auto C{block_t::ColsAtCompileTime};
+        m.template block<R, C>(static_cast<Eigen::Index>(row),
+                               static_cast<Eigen::Index>(col)) = b;
+    }
+
 };  // struct block_getter
 
 /// Operator getting a block of a const matrix
@@ -168,7 +180,7 @@ DETRAY_HOST_DEVICE decltype(auto) block(
         m, static_cast<Eigen::Index>(row), static_cast<Eigen::Index>(col));
 }
 
-/// Operator getting a block of a const matrix
+/// Operator getting a block of a non-const matrix
 template <int ROWS, int COLS, class derived_type>
 DETRAY_HOST_DEVICE decltype(auto) block(Eigen::MatrixBase<derived_type> &m,
                                         std::size_t row, std::size_t col) {
@@ -191,11 +203,8 @@ template <typename derived_type1, typename derived_type2>
 DETRAY_HOST_DEVICE void set_block(Eigen::MatrixBase<derived_type1> &m,
                                   const Eigen::MatrixBase<derived_type2> &b,
                                   std::size_t row, std::size_t col) {
-    using block_t = Eigen::MatrixBase<derived_type2>;
-    constexpr auto R{block_t::RowsAtCompileTime};
-    constexpr auto C{block_t::ColsAtCompileTime};
-    m.template block<R, C>(static_cast<Eigen::Index>(row),
-                           static_cast<Eigen::Index>(col)) = b;
+    block_getter{}.set(m, b, static_cast<Eigen::Index>(row),
+                       static_cast<Eigen::Index>(col));
 }
 
 }  // namespace detray::algebra::eigen::storage

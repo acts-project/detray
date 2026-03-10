@@ -93,6 +93,8 @@ namespace matrix {
 /// @name Matrix functions on @c algebra::fastor::storage_type
 /// @{
 
+using algebra::fastor::math::column_wise_cross;
+using algebra::fastor::math::column_wise_multiply;
 using algebra::fastor::math::determinant;
 using algebra::fastor::math::identity;
 using algebra::fastor::math::inverse;
@@ -101,6 +103,9 @@ using algebra::fastor::math::set_zero;
 using algebra::fastor::math::transpose;
 using algebra::fastor::math::zero;
 
+using algebra::generic::math::cholesky_decomposition;
+using algebra::generic::math::cross_matrix;
+using algebra::generic::math::outer_product;
 using algebra::generic::math::set_inplace_product_left;
 using algebra::generic::math::set_inplace_product_left_transpose;
 using algebra::generic::math::set_inplace_product_right;

@@ -153,6 +153,26 @@ struct block_getter {
               static_cast<int>(col)));
     }
 
+    /// Operator setting a block with a matrix
+    template <std::size_t ROWS, std::size_t COLS, concepts::scalar scalar_t,
+              concepts::matrix input_matrix_type>
+    DETRAY_HOST_DEVICE void set(input_matrix_type &m,
+                                const Fastor::Tensor<scalar_t, ROWS, COLS> &b,
+                                std::size_t row, std::size_t col) const {
+        m(Fastor::seq(static_cast<int>(row), static_cast<int>(row + ROWS)),
+          Fastor::seq(static_cast<int>(col), static_cast<int>(col + COLS))) = b;
+    }
+
+    /// Operator setting a block with a vector
+    template <std::size_t ROWS, concepts::scalar scalar_t,
+              concepts::matrix input_matrix_type>
+    DETRAY_HOST_DEVICE void set(input_matrix_type &m,
+                                const Fastor::Tensor<scalar_t, ROWS> &b,
+                                std::size_t row, std::size_t col) const {
+        m(Fastor::seq(static_cast<int>(row), static_cast<int>(row + ROWS)),
+          static_cast<int>(col)) = b;
+    }
+
 };  // struct block_getter
 
 /// Operator getting a block of a const matrix
@@ -180,8 +200,7 @@ template <std::size_t ROWS, std::size_t COLS, concepts::scalar scalar_t,
 DETRAY_HOST_DEVICE void set_block(input_matrix_type &m,
                                   const Fastor::Tensor<scalar_t, ROWS, COLS> &b,
                                   std::size_t row, std::size_t col) {
-    m(Fastor::seq(static_cast<int>(row), static_cast<int>(row + ROWS)),
-      Fastor::seq(static_cast<int>(col), static_cast<int>(col + COLS))) = b;
+    block_getter{}.set(m, b, row, col);
 }
 
 /// Operator setting a block with a vector
@@ -190,8 +209,7 @@ template <std::size_t ROWS, concepts::scalar scalar_t,
 DETRAY_HOST_DEVICE void set_block(input_matrix_type &m,
                                   const Fastor::Tensor<scalar_t, ROWS> &b,
                                   std::size_t row, std::size_t col) {
-    m(Fastor::seq(static_cast<int>(row), static_cast<int>(row + ROWS)),
-      static_cast<int>(col)) = b;
+    block_getter{}.set(m, b, row, col);
 }
 
 }  // namespace detray::algebra::fastor::storage

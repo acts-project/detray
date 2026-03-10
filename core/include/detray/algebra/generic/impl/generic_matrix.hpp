@@ -11,6 +11,7 @@
 #include "detray/algebra/common/math.hpp"
 #include "detray/algebra/concepts.hpp"
 #include "detray/algebra/generic/algorithms/utils/algorithm_selector.hpp"
+#include "detray/algebra/generic/impl/generic_vector.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 
 namespace detray::algebra::generic::math {
@@ -77,6 +78,94 @@ DETRAY_HOST_DEVICE constexpr auto transpose(const M &m) {
     for (index_t i = 0; i < rows; ++i) {
         for (index_t j = 0; j < columns; ++j) {
             element_getter_t{}(ret, j, i) = element_getter_t{}(m, i, j);
+        }
+    }
+
+    return ret;
+}
+
+/// Column-wise cross product between matrix (m) and vector (v)
+template <concepts::square_matrix M, concepts::vector3D V>
+    requires(detray::traits::rank<M> == 3u)
+DETRAY_HOST_DEVICE constexpr M column_wise_cross(const M &m, const V &v) {
+    using block_getter_t = detray::traits::block_getter_t<M>;
+    constexpr block_getter_t block{};
+
+    M ret;
+
+    const V m_col0 = block.template vector<3>(m, 0u, 0u);
+    const V m_col1 = block.template vector<3>(m, 0u, 1u);
+    const V m_col2 = block.template vector<3>(m, 0u, 2u);
+
+    block.set(ret, static_cast<V>(cross(m_col0, v)), 0u, 0u);
+    block.set(ret, static_cast<V>(cross(m_col1, v)), 0u, 1u);
+    block.set(ret, static_cast<V>(cross(m_col2, v)), 0u, 2u);
+
+    return ret;
+}
+
+/// Column-wise multiplication between matrix (m) and vector (v)
+template <concepts::square_matrix M, concepts::vector V>
+    requires(detray::traits::rank<M> == detray::traits::size<V>)
+DETRAY_HOST_DEVICE inline M column_wise_multiply(const M &m, const V &v) {
+    using element_getter_t = detray::traits::element_getter_t<M>;
+    constexpr element_getter_t elem{};
+
+    M ret;
+
+    constexpr std::size_t N{detray::traits::rank<M>};
+    for (std::size_t i = 0u; i < N; i++) {
+        for (std::size_t j = 0u; j < N; j++) {
+            elem(ret, j, i) = elem(m, j, i) * elem(v, j);
+        }
+    }
+
+    return ret;
+}
+
+/// Cross product matrix
+template <concepts::vector3D V3>
+DETRAY_HOST_DEVICE inline auto cross_matrix(const V3 &v) {
+    using scalar_t = detray::traits::scalar_t<V3>;
+    using matrix_33_t = detray::traits::get_matrix_t<V3, 3, 3, scalar_t>;
+
+    using element_getter_t = detray::traits::element_getter_t<V3>;
+    constexpr element_getter_t elem{};
+
+    matrix_33_t ret;
+    elem(ret, 0u, 0u) = 0.f;
+    elem(ret, 0u, 1u) = -elem(v, 2u);
+    elem(ret, 0u, 2u) = elem(v, 1u);
+    elem(ret, 1u, 0u) = elem(v, 2u);
+    elem(ret, 1u, 1u) = 0.f;
+    elem(ret, 1u, 2u) = -elem(v, 0u);
+    elem(ret, 2u, 0u) = -elem(v, 1u);
+    elem(ret, 2u, 1u) = elem(v, 0u);
+    elem(ret, 2u, 2u) = 0.f;
+
+    return ret;
+}
+
+/// Outer product operation
+template <concepts::vector V>
+DETRAY_HOST_DEVICE inline detray::traits::get_matrix_t<
+    V, detray::traits::size<V>, detray::traits::size<V>,
+    detray::traits::scalar_t<V>>
+outer_product(const V &v1, const V &v2) {
+    using scalar_t = detray::traits::scalar_t<V>;
+    constexpr std::size_t N{detray::traits::size<V>};
+
+    using matrix_t = detray::traits::get_matrix_t<V, N, N, scalar_t>;
+
+    using element_getter_t = detray::traits::element_getter_t<V>;
+    constexpr element_getter_t elem{};
+
+    matrix_t ret;
+
+    // TODO: vectorize better
+    for (std::size_t row = 0u; row < N; row++) {
+        for (std::size_t col = 0u; col < N; col++) {
+            elem(ret, row, col) = elem(v1, row) * elem(v2, col);
         }
     }
 
@@ -300,7 +389,7 @@ DETRAY_HOST_DEVICE constexpr auto transposed_product(const MA &A, const MB &B)
              std::conditional_t<transpose_left,
                                 decltype(transpose(std::declval<MA>())), MA>,
              std::conditional_t<transpose_right,
-                                decltype(transpose(std::declval<MB>())), MB> >)
+                                decltype(transpose(std::declval<MB>())), MB>>)
 {
     using index_t = detray::traits::index_t<MA>;
     using value_t = detray::traits::value_t<MA>;
@@ -345,6 +434,37 @@ template <concepts::square_matrix M>
 DETRAY_HOST_DEVICE constexpr M inverse(const M &m) {
 
     return inversion_t<M>{}(m);
+}
+
+/// @returns the fatcor L in the decomposition of @param m
+template <concepts::square_matrix M>
+DETRAY_HOST_DEVICE constexpr M cholesky_decomposition(const M &m) {
+    using index_t = detray::traits::index_t<M>;
+    using scalar_t = detray::traits::scalar_t<M>;
+    using element_getter_t = detray::traits::element_getter_t<M>;
+
+    constexpr element_getter_t elem{};
+    constexpr index_t N{detray::traits::rank<M>};
+
+    auto L = zero<M>();
+
+    // Cholesky–Banachiewicz algorithm
+    for (std::size_t i = 0u; i < N; i++) {
+        for (std::size_t j = 0u; j <= i; j++) {
+            scalar_t sum = 0.f;
+            for (std::size_t k = 0u; k < j; k++)
+                sum += elem(L, i, k) * elem(L, j, k);
+
+            if (i == j) {
+                elem(L, i, j) = static_cast<scalar_t>(
+                    detray::algebra::math::sqrt(elem(m, i, i) - sum));
+            } else {
+                elem(L, i, j) = (1.f / elem(L, j, j) * (elem(m, i, j) - sum));
+            }
+        }
+    }
+
+    return L;
 }
 
 }  // namespace detray::algebra::generic::math

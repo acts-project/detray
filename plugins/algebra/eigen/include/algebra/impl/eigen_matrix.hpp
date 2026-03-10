@@ -65,6 +65,28 @@ transpose(const Eigen::MatrixBase<derived_type> &m) {
     return m.transpose();
 }
 
+/// Column-wise cross product
+template <typename derived_type_1, typename derived_type_2>
+DETRAY_HOST_DEVICE constexpr matrix_type<
+    typename Eigen::MatrixBase<derived_type_1>::value_type,
+    Eigen::MatrixBase<derived_type_1>::RowsAtCompileTime,
+    Eigen::MatrixBase<derived_type_1>::ColsAtCompileTime>
+column_wise_cross(const Eigen::MatrixBase<derived_type_1> &m,
+                  const Eigen::MatrixBase<derived_type_2> &v) {
+    return m.colwise().cross(v);
+}
+
+/// Column-wise product
+template <typename derived_type>
+DETRAY_HOST_DEVICE constexpr matrix_type<
+    typename Eigen::MatrixBase<derived_type>::value_type,
+    Eigen::MatrixBase<derived_type>::RowsAtCompileTime,
+    Eigen::MatrixBase<derived_type>::ColsAtCompileTime>
+column_wise_multiply(const Eigen::MatrixBase<derived_type> &m,
+                     const Eigen::MatrixBase<derived_type> &b) {
+    return m.cwiseProduct(b);
+}
+
 /// @returns the determinant of @param m
 template <typename derived_type>
 DETRAY_HOST_DEVICE constexpr
@@ -81,6 +103,17 @@ DETRAY_HOST_DEVICE constexpr matrix_type<
     Eigen::MatrixBase<derived_type>::ColsAtCompileTime>
 inverse(const Eigen::MatrixBase<derived_type> &m) {
     return m.inverse();
+}
+
+/// @returns the fatcor L in the decomposition of @param m
+template <typename derived_type>
+DETRAY_HOST_DEVICE constexpr matrix_type<
+    typename Eigen::MatrixBase<derived_type>::value_type,
+    Eigen::MatrixBase<derived_type>::RowsAtCompileTime,
+    Eigen::MatrixBase<derived_type>::ColsAtCompileTime>
+cholesky_decomposition(const Eigen::MatrixBase<derived_type> &m) {
+    Eigen::LLT<Eigen::MatrixBase<derived_type>> LL_T(m);
+    return LL_T.matrixL();
 }
 
 }  // namespace detray::algebra::eigen::math

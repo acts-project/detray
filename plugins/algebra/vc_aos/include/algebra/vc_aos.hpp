@@ -112,6 +112,11 @@ using algebra::vc_aos::math::set_zero;
 using algebra::vc_aos::math::transpose;
 using algebra::vc_aos::math::zero;
 
+using algebra::generic::math::cholesky_decomposition;
+using algebra::generic::math::column_wise_cross;
+using algebra::generic::math::column_wise_multiply;
+using algebra::generic::math::cross_matrix;
+using algebra::generic::math::outer_product;
 using algebra::generic::math::set_inplace_product_left;
 using algebra::generic::math::set_inplace_product_left_transpose;
 using algebra::generic::math::set_inplace_product_right;

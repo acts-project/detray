@@ -153,6 +153,33 @@ struct block_getter {
 
         return ret;
     }
+
+    /// Operator setting a block with a matrix
+    template <unsigned int ROWS, unsigned int COLS, concepts::scalar scalar_t,
+              concepts::matrix input_matrix_type>
+    DETRAY_HOST_DEVICE void set(
+        input_matrix_type &m,
+        const ROOT::Math::SMatrix<scalar_t, ROWS, COLS> &b, std::size_t row,
+        std::size_t col) const {
+        for (unsigned int i = 0; i < ROWS; ++i) {
+            for (unsigned int j = 0; j < COLS; ++j) {
+                m(i + static_cast<unsigned int>(row),
+                  j + static_cast<unsigned int>(col)) = b(i, j);
+            }
+        }
+    }
+
+    /// Operator setting a block with a vector
+    template <unsigned int ROWS, concepts::scalar scalar_t,
+              concepts::matrix input_matrix_type>
+    DETRAY_HOST_DEVICE void set(input_matrix_type &m,
+                                const ROOT::Math::SVector<scalar_t, ROWS> &b,
+                                unsigned int row, unsigned int col) const {
+        for (unsigned int i = 0; i < ROWS; ++i) {
+            m(i + row, col) = b[i];
+        }
+    }
+
 };  // struct block_getter
 
 /// Operator getting a block of a const matrix
@@ -183,12 +210,7 @@ template <unsigned int ROWS, unsigned int COLS, concepts::scalar scalar_t,
 DETRAY_HOST_DEVICE void set_block(
     input_matrix_type &m, const ROOT::Math::SMatrix<scalar_t, ROWS, COLS> &b,
     std::size_t row, std::size_t col) {
-    for (unsigned int i = 0; i < ROWS; ++i) {
-        for (unsigned int j = 0; j < COLS; ++j) {
-            m(i + static_cast<unsigned int>(row),
-              j + static_cast<unsigned int>(col)) = b(i, j);
-        }
-    }
+    block_getter{}.set(m, b, row, col);
 }
 
 /// Operator setting a block with a vector
@@ -197,9 +219,7 @@ template <unsigned int ROWS, concepts::scalar scalar_t,
 DETRAY_HOST_DEVICE void set_block(input_matrix_type &m,
                                   const ROOT::Math::SVector<scalar_t, ROWS> &b,
                                   unsigned int row, unsigned int col) {
-    for (unsigned int i = 0; i < ROWS; ++i) {
-        m(i + row, col) = b[i];
-    }
+    block_getter{}.set(m, b, row, col);
 }
 
 }  // namespace detray::algebra::smatrix::storage

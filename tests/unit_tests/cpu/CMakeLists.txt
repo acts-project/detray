@@ -98,7 +98,6 @@ macro(detray_add_cpu_test algebra)
        "utils/bounding_volume.cpp"
        "utils/curvilinear_frame.cpp"
        "utils/axis_rotation.cpp"
-       "utils/matrix_helper.cpp"
        "utils/quadratic_equation.cpp"
        "utils/unit_vectors.cpp"
        LINK_LIBRARIES GTest::gtest GTest::gtest_main detray::core_${algebra}

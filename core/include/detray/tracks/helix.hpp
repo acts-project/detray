@@ -45,7 +45,6 @@ class helix {
     template <std::size_t ROWS, std::size_t COLS>
     using matrix_type = dmatrix<algebra_t, ROWS, COLS>;
     using free_matrix_t = free_matrix<algebra_t>;
-    using mat_helper = matrix_helper<algebra_t>;
 
     DETRAY_HOST_DEVICE
     helix() = delete;
@@ -220,8 +219,7 @@ class helix {
 
         drdt = drdt + (_K * s - sin_ks) / _K * H0H0_T;
 
-        drdt = drdt +
-               (cos_ks - 1.f) / _K * mat_helper().column_wise_cross(I33, _h0);
+        drdt = drdt + (cos_ks - 1.f) / _K * matrix::column_wise_cross(I33, _h0);
 
         getter::set_block(ret, drdt, e_free_pos0, e_free_dir0);
 
@@ -229,7 +227,7 @@ class helix {
         auto dtdt = Z33;
         dtdt = dtdt + cos_ks * I33;
         dtdt = dtdt + (1 - cos_ks) * H0H0_T;
-        dtdt = dtdt - sin_ks * mat_helper().column_wise_cross(I33, _h0);
+        dtdt = dtdt - sin_ks * matrix::column_wise_cross(I33, _h0);
 
         getter::set_block(ret, dtdt, e_free_dir0, e_free_dir0);
 
