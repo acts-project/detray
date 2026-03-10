@@ -169,6 +169,10 @@ jobs:
           -DDETRAY_FAIL_ON_WARNINGS=ON \
           -DCMAKE_BUILD_TYPE=${{ matrix.BUILD_TYPE }} \
           -DDETRAY_CUSTOM_SCALARTYPE=${{ matrix.SCALAR_TYPE }} \
+          -DDETRAY_VC_AOS_PLUGIN=OFF \
+          -DDETRAY_VC_SOA_PLUGIN=OFF \
+          -DDETRAY_VC_PLUGIN=OFF \
+          -DDETRAY_SETUP_VC=OFF \
           ${{ matrix.PLATFORM.OPTIONS }} \
           -S ${GITHUB_WORKSPACE} \
           -B build
