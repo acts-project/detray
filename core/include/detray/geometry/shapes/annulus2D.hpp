@@ -474,8 +474,8 @@ class annulus2D {
         const scalar_t r{0.25f * (crns[0] + crns[2] + crns[4] + crns[6])};
         const scalar_t phi{bounds[e_average_phi]};
 
-        return r * dpoint3D<algebra_t>{math::cos(phi), math::sin(phi),
-                                       static_cast<scalar_t>(0.f)};
+        return r *
+               dpoint3D<algebra_t>{math::cos(phi), math::sin(phi), scalar_t(0)};
     }
 
     /// Generate vertices in local cartesian frame

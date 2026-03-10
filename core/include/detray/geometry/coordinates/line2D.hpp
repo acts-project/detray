@@ -93,8 +93,7 @@ struct line2D {
 
         // Local Z poisition in global cartesian coordinate
         const point3_type locZ_in_global = trf.point_to_global(
-            point3_type{static_cast<scalar_type>(0.f),
-                        static_cast<scalar_type>(0.f), p[1]});
+            point3_type{scalar_type(0), scalar_type(0), p[1]});
 
         return locZ_in_global + p[0] * vector::normalize(r);
     }

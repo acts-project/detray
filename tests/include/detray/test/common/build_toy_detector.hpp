@@ -489,15 +489,13 @@ void add_cylinder_portals(volume_builder_interface<detector_t> *v_builder,
     // Left disc portal
     pt_disc_factory->push_back(
         {surface_id::e_portal,
-         transform3_t{point3_t{static_cast<scalar_t>(0.f),
-                               static_cast<scalar_t>(0.f), min_z}},
+         transform3_t{point3_t{scalar_t(0), scalar_t(0), min_z}},
          static_cast<nav_link_t>(link_west),
          std::vector<scalar_t>{min_r, max_r}});
     // Right disc portal
     pt_disc_factory->push_back(
         {surface_id::e_portal,
-         transform3_t{point3_t{static_cast<scalar_t>(0.f),
-                               static_cast<scalar_t>(0.f), max_z}},
+         transform3_t{point3_t{scalar_t(0), scalar_t(0), max_z}},
          static_cast<nav_link_t>(link_east),
          std::vector<scalar_t>{min_r, max_r}});
 
@@ -857,8 +855,7 @@ inline auto add_endcap_detector(
                                       std::min(std::abs(vol_bounds.upper_z),
                                                std::abs(vol_bounds.lower_z))};
 
-            const point3_t gap_center{static_cast<scalar_t>(0.f),
-                                      static_cast<scalar_t>(0.f),
+            const point3_t gap_center{scalar_t(0), scalar_t(0),
                                       0.5f * (gap_east_z + gap_west_z)};
             vm_builder->add_volume_placement({gap_center});
 
@@ -896,8 +893,7 @@ inline auto add_endcap_detector(
 
             // Position the volume at the respective endcap layer position
             const scalar_t center_z{sign * cfg.endcap_layer_positions().at(j)};
-            const point3_t vol_center{static_cast<scalar_t>(0.f),
-                                      static_cast<scalar_t>(0.f), center_z};
+            const point3_t vol_center{scalar_t(0), scalar_t(0), center_z};
             vm_builder->add_volume_placement({vol_center});
 
             // Configure the module factory for this layer
@@ -1017,8 +1013,7 @@ inline void add_connector_portals(
     const scalar_t gap_west_z{connector_gap_data.second.upper};
     const scalar_t min_z{math::min(gap_east_z, gap_west_z)};
     const scalar_t max_z{math::max(gap_east_z, gap_west_z)};
-    const point3_t gap_center{static_cast<scalar_t>(0.f),
-                              static_cast<scalar_t>(0.f),
+    const point3_t gap_center{scalar_t(0), scalar_t(0),
                               0.5f * (gap_east_z + gap_west_z)};
 
     // Check that the volume under construction is really the connector gap
@@ -1048,17 +1043,15 @@ inline void add_connector_portals(
     // Barrel-facing disc portal
     pt_disc_factory->push_back(
         {surface_id::e_portal,
-         transform3_t{point3_t{static_cast<scalar_t>(0.f),
-                               static_cast<scalar_t>(0.f),
-                               (side < 0.f) ? max_z : min_z}},
+         transform3_t{
+             point3_t{scalar_t(0), scalar_t(0), (side < 0.f) ? max_z : min_z}},
          vol_links, boundaries});
 
     // Outward-facing disc portal
     pt_disc_factory->push_back(
         {surface_id::e_portal,
-         transform3_t{point3_t{static_cast<scalar_t>(0.f),
-                               static_cast<scalar_t>(0.f),
-                               (side < 0.f) ? min_z : max_z}},
+         transform3_t{
+             point3_t{scalar_t(0), scalar_t(0), (side < 0.f) ? min_z : max_z}},
          static_cast<nav_link_t>(connector_gap_idx - 1u),
          std::vector<scalar_t>{inner_r, outer_r}});
 
@@ -1126,15 +1119,13 @@ inline void add_beampipe_portals(
         // Lower dics portal
         pt_disc_factory->push_back(
             {surface_id::e_portal,
-             transform3_t{point3_t{static_cast<scalar_t>(0.f),
-                                   static_cast<scalar_t>(0.f), -h_z}},
+             transform3_t{point3_t{scalar_t(0), scalar_t(0), -h_z}},
              end_of_world, std::vector<scalar_t>{inner_r, outer_r}});
 
         // Outward-facing disc portal
         pt_disc_factory->push_back(
             {surface_id::e_portal,
-             transform3_t{point3_t{static_cast<scalar_t>(0.f),
-                                   static_cast<scalar_t>(0.f), h_z}},
+             transform3_t{point3_t{scalar_t(0), scalar_t(0), h_z}},
              end_of_world, std::vector<scalar_t>{inner_r, outer_r}});
 
         beampipe_builder->add_surfaces(pt_disc_factory);
@@ -1223,8 +1214,7 @@ inline void add_beampipe_portals(
     // Outward-facing disc portal
     pt_disc_factory->push_back(
         {surface_id::e_portal,
-         transform3_t{point3_t{static_cast<scalar_t>(0.f),
-                               static_cast<scalar_t>(0.f), disc_pos_z}},
+         transform3_t{point3_t{scalar_t(0), scalar_t(0), disc_pos_z}},
          end_of_world, std::vector<scalar_t>{inner_r, outer_r}});
 
     // Add all portals to the beampipe volume

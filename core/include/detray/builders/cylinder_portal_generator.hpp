@@ -337,7 +337,7 @@ class cylinder_portal_generator final
         const scalar_t max_r{math::max(inner_r, outer_r)};
 
         // translation
-        point3_t tsl{static_cast<scalar_t>(0.f), static_cast<scalar_t>(0.f), z};
+        point3_t tsl{scalar_t(0), scalar_t(0), z};
 
         // Add transform and mask data
         transforms.emplace_back(ctx, tsl);

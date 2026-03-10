@@ -231,11 +231,11 @@ class barrel_generator final : public surface_factory_interface<detector_t> {
             const scalar_t tilt_phi{m_cfg.tilt_phi()};
             const vector3_t mod_local_z{math::cos(mod_phi + tilt_phi),
                                         math::sin(mod_phi + tilt_phi),
-                                        static_cast<scalar_t>(0.f)};
+                                        scalar_t(0)};
             // Local x axis the normal to local y,z
             const vector3_t mod_local_x{-math::sin(mod_phi + tilt_phi),
                                         math::cos(mod_phi + tilt_phi),
-                                        static_cast<scalar_t>(0.f)};
+                                        scalar_t(0)};
 
             // Create the module transform
             transforms.emplace_back(ctx, mod_center, mod_local_z, mod_local_x);

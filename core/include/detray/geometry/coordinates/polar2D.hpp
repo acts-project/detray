@@ -66,7 +66,7 @@ struct polar2D {
         const vector3_type & /*dir*/) {
 
         return polar2D<algebra_t>::local_to_global(
-            trf, {p[0], p[1], static_cast<scalar_type>(0.f)});
+            trf, {p[0], p[1], scalar_type(0)});
     }
 
     /// @returns the normal vector in global coordinates
