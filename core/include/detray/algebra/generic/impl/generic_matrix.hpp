@@ -153,6 +153,7 @@ DETRAY_HOST_DEVICE inline detray::traits::get_matrix_t<
     detray::traits::scalar_t<V>>
 outer_product(const V &v1, const V &v2) {
     using scalar_t = detray::traits::scalar_t<V>;
+    using index_t = detray::traits::index_t<V>;
     constexpr std::size_t N{detray::traits::size<V>};
 
     using matrix_t = detray::traits::get_matrix_t<V, N, N, scalar_t>;
@@ -163,8 +164,8 @@ outer_product(const V &v1, const V &v2) {
     matrix_t ret;
 
     // TODO: vectorize better
-    for (std::size_t row = 0u; row < N; row++) {
-        for (std::size_t col = 0u; col < N; col++) {
+    for (index_t row = 0u; row < N; row++) {
+        for (index_t col = 0u; col < N; col++) {
             elem(ret, row, col) = elem(v1, row) * elem(v2, col);
         }
     }

@@ -161,7 +161,7 @@ struct block_getter {
     template <typename derived_type1, typename derived_type2>
     DETRAY_HOST_DEVICE void set(Eigen::MatrixBase<derived_type1> &m,
                                 const Eigen::MatrixBase<derived_type2> &b,
-                                std::size_t row, std::size_t col) const {
+                                Eigen::Index row, Eigen::Index col) const {
         using block_t = Eigen::MatrixBase<derived_type2>;
         constexpr auto R{block_t::RowsAtCompileTime};
         constexpr auto C{block_t::ColsAtCompileTime};
