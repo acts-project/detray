@@ -27,7 +27,7 @@ struct cofactor {
     using index_type = detray::traits::index_t<matrix_t>;
 
     DETRAY_HOST_DEVICE constexpr matrix_t operator()(const matrix_t &m) const {
-        return adjoint_getter_helper<detray::traits::rank<matrix_t>>()(m);
+        return adjoint_getter_helper<detray::traits::max_rank<matrix_t>>()(m);
     }
 
     template <index_type N>
@@ -98,7 +98,7 @@ struct cofactor {
 namespace inverse {
 
 /// "inverse getter", assuming a N X N matrix
-template <class matrix_t>
+template <concepts::square_matrix matrix_t>
 struct cofactor {
 
     using scalar_t = detray::traits::value_t<matrix_t>;
@@ -112,7 +112,7 @@ struct cofactor {
     DETRAY_HOST_DEVICE constexpr matrix_t operator()(const matrix_t &m) const {
 
         constexpr element_getter_t elem{};
-        constexpr index_t N{detray::traits::rank<matrix_t>};
+        constexpr index_t N{detray::traits::max_rank<matrix_t>};
 
         matrix_t ret;
 
@@ -120,9 +120,10 @@ struct cofactor {
         scalar_t det = determinant_getter()(m);
 
         // TODO: handle singular matrix error
-        // if (det == 0) {
-        // return ret;
-        //}
+        if (det == 0) {
+            assert(false && "Singular matrix during inversion (cofactor)");
+            return ret;
+        }
 
         auto adj = adjoint_getter()(m);
 

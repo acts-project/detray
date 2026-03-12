@@ -20,6 +20,7 @@
 #pragma nv_diagnostic push
 #pragma nv_diag_suppress 20012
 #endif  // __NVCC_DIAG_PRAGMA_SUPPORT__
+#include <Eigen/Cholesky>
 #include <Eigen/Core>
 #ifdef _MSC_VER
 #pragma warning(pop)
@@ -67,6 +68,7 @@ transpose(const Eigen::MatrixBase<derived_type> &m) {
 
 /// Column-wise cross product
 template <typename derived_type_1, typename derived_type_2>
+    requires(Eigen::MatrixBase<derived_type_2>::RowsAtCompileTime == 3)
 DETRAY_HOST_DEVICE constexpr matrix_type<
     typename Eigen::MatrixBase<derived_type_1>::value_type,
     Eigen::MatrixBase<derived_type_1>::RowsAtCompileTime,
@@ -77,14 +79,29 @@ column_wise_cross(const Eigen::MatrixBase<derived_type_1> &m,
 }
 
 /// Column-wise product
-template <typename derived_type>
+template <typename derived_type_1, typename derived_type_2>
+    requires(Eigen::MatrixBase<derived_type_1>::RowsAtCompileTime ==
+             Eigen::MatrixBase<derived_type_2>::RowsAtCompileTime)
 DETRAY_HOST_DEVICE constexpr matrix_type<
-    typename Eigen::MatrixBase<derived_type>::value_type,
-    Eigen::MatrixBase<derived_type>::RowsAtCompileTime,
-    Eigen::MatrixBase<derived_type>::ColsAtCompileTime>
-column_wise_multiply(const Eigen::MatrixBase<derived_type> &m,
-                     const Eigen::MatrixBase<derived_type> &b) {
-    return m.cwiseProduct(b);
+    typename Eigen::MatrixBase<derived_type_1>::value_type,
+    Eigen::MatrixBase<derived_type_1>::RowsAtCompileTime,
+    Eigen::MatrixBase<derived_type_1>::ColsAtCompileTime>
+column_wise_multiply(const Eigen::MatrixBase<derived_type_1> &m,
+                     const Eigen::MatrixBase<derived_type_2> &v) {
+    return m.array().colwise() * v.array();
+}
+
+/// Outer product of two vectors
+template <typename derived_type_1, typename derived_type_2>
+    requires(Eigen::MatrixBase<derived_type_1>::RowsAtCompileTime ==
+             Eigen::MatrixBase<derived_type_2>::RowsAtCompileTime)
+DETRAY_HOST_DEVICE constexpr matrix_type<
+    typename Eigen::MatrixBase<derived_type_1>::value_type,
+    Eigen::MatrixBase<derived_type_1>::RowsAtCompileTime,
+    Eigen::MatrixBase<derived_type_1>::RowsAtCompileTime>
+outer_product(const Eigen::MatrixBase<derived_type_1> &a,
+              const Eigen::MatrixBase<derived_type_2> &b) {
+    return a * b.transpose();
 }
 
 /// @returns the determinant of @param m
@@ -112,7 +129,7 @@ DETRAY_HOST_DEVICE constexpr matrix_type<
     Eigen::MatrixBase<derived_type>::RowsAtCompileTime,
     Eigen::MatrixBase<derived_type>::ColsAtCompileTime>
 cholesky_decomposition(const Eigen::MatrixBase<derived_type> &m) {
-    Eigen::LLT<Eigen::MatrixBase<derived_type>> LL_T(m);
+    Eigen::LLT<derived_type> LL_T(m);
     return LL_T.matrixL();
 }
 

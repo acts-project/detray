@@ -92,13 +92,13 @@ using algebra::eigen::math::column_wise_multiply;
 using algebra::eigen::math::determinant;
 using algebra::eigen::math::identity;
 using algebra::eigen::math::inverse;
+using algebra::eigen::math::outer_product;
 using algebra::eigen::math::set_identity;
 using algebra::eigen::math::set_zero;
 using algebra::eigen::math::transpose;
 using algebra::eigen::math::zero;
 
 using algebra::generic::math::cross_matrix;
-using algebra::generic::math::outer_product;
 using algebra::generic::math::set_inplace_product_left;
 using algebra::generic::math::set_inplace_product_left_transpose;
 using algebra::generic::math::set_inplace_product_right;

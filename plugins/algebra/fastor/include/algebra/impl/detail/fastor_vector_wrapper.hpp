@@ -33,6 +33,15 @@ class Vector : public Fastor::Tensor<T, N> {
     using Fastor::Tensor<T, N>::Tensor;
 
     private:
+    /// Multiplication
+    template <std::size_t C, concepts::scalar S, typename D>
+    constexpr friend auto operator*(const Fastor::AbstractTensor<D, 2>& lhs,
+                                    const Vector<S, C>& vector);
+
+    template <std::size_t C, std::size_t R, concepts::scalar S>
+    constexpr friend Vector<S, R> operator*(const Fastor::Tensor<S, R, C>& lhs,
+                                            const Vector<S, C>& vector);
+
     /// Equality operator for fastor vectors
     template <std::size_t M, concepts::scalar S>
     constexpr friend bool operator==(const Vector<S, M>& lhs,
@@ -40,6 +49,19 @@ class Vector : public Fastor::Tensor<T, N> {
     /// @}
 
 };  // class Vector
+
+template <std::size_t C, concepts::scalar S, typename D>
+constexpr auto operator*(const Fastor::AbstractTensor<D, 2>& lhs,
+                         const Vector<S, C>& vector) {
+    return Fastor::matmul(Fastor::evaluate(lhs),
+                          static_cast<Fastor::Tensor<S, C>>(vector));
+}
+
+template <std::size_t C, std::size_t R, concepts::scalar S>
+constexpr Vector<S, R> operator*(const Fastor::Tensor<S, R, C>& lhs,
+                                 const Vector<S, C>& vector) {
+    return Fastor::matmul(lhs, static_cast<Fastor::Tensor<S, C>>(vector));
+}
 
 template <std::size_t M, concepts::scalar S>
 constexpr bool operator==(const Vector<S, M>& lhs, const Vector<S, M>& rhs) {

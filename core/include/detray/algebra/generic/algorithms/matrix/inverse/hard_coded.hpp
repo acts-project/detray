@@ -31,7 +31,7 @@ struct hard_coded {
 
     // 2 X 2 matrix inverse
     template <typename M = matrix_t>
-        requires(detray::traits::rank<M> == 2)
+        requires(detray::traits::max_rank<M> == 2)
     DETRAY_HOST_DEVICE constexpr matrix_t operator()(const matrix_t &m) const {
 
         constexpr element_getter_t elem{};
@@ -49,7 +49,7 @@ struct hard_coded {
 
     // 4 X 4 matrix inverse
     template <typename M = matrix_t>
-        requires(detray::traits::rank<M> == 4)
+        requires(detray::traits::max_rank<M> == 4)
     DETRAY_HOST_DEVICE constexpr matrix_t operator()(const matrix_t &m) const {
 
         constexpr element_getter_t elem{};

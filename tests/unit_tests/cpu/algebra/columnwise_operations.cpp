@@ -5,9 +5,6 @@
  * Mozilla Public License Version 2.0
  */
 
-// Project include(s).
-#include "detray/algebra/generic/impl/columnwise_operations.hpp"
-
 // Detray test include(s)
 #include "detray/test/framework/types.hpp"
 
@@ -24,7 +21,7 @@ using matrix3_type = test::matrix<3, 3>;
 
 constexpr scalar tolerance = 1e-6f;
 
-GTEST_TEST(detray_utils, column_wise_cross) {
+GTEST_TEST(detray_algebra, column_wise_cross) {
     auto P = matrix::zero<matrix3_type>();
 
     getter::element(P, 0u, 0u) = 0.f;
@@ -39,7 +36,7 @@ GTEST_TEST(detray_utils, column_wise_cross) {
 
     const vector3 u{1.f, 2.f, 3.f};
 
-    const auto Q = matrix::column_wise_cross(P, u);
+    const matrix3_type Q = matrix::column_wise_cross(P, u);
 
     EXPECT_NEAR(getter::element(Q, 0u, 0u), -3.f, tolerance);
     EXPECT_NEAR(getter::element(Q, 1u, 0u), 6.f, tolerance);
@@ -52,7 +49,7 @@ GTEST_TEST(detray_utils, column_wise_cross) {
     EXPECT_NEAR(getter::element(Q, 2u, 2u), -1.f, tolerance);
 }
 
-GTEST_TEST(detray_utils, column_wise_multiply) {
+GTEST_TEST(detray_algebra, column_wise_multiply) {
 
     auto P = matrix::zero<matrix3_type>();
 
@@ -68,7 +65,7 @@ GTEST_TEST(detray_utils, column_wise_multiply) {
 
     const vector3 u{1.f, 2.f, 3.f};
 
-    const auto Q = matrix::column_wise_multiply(P, u);
+    const matrix3_type Q = matrix::column_wise_multiply(P, u);
 
     EXPECT_NEAR(getter::element(Q, 0u, 0u), 0.f, tolerance);
     EXPECT_NEAR(getter::element(Q, 0u, 1u), 1.f, tolerance);
@@ -81,13 +78,13 @@ GTEST_TEST(detray_utils, column_wise_multiply) {
     EXPECT_NEAR(getter::element(Q, 2u, 2u), 24.f, tolerance);
 }
 
-GTEST_TEST(detray_utils, cross_matrix) {
+GTEST_TEST(detray_algebra, cross_matrix) {
 
     const vector3 u{1.f, 2.f, 3.f};
     const vector3 v{3.f, 4.f, 5.f};
 
-    const auto u_cross = matrix::cross_matrix(u);
-    const auto v_cross = matrix::cross_matrix(v);
+    const matrix3_type u_cross = matrix::cross_matrix(u);
+    const matrix3_type v_cross = matrix::cross_matrix(v);
 
     EXPECT_NEAR(getter::element(u_cross, 0u, 0u), 0.f, tolerance);
     EXPECT_NEAR(getter::element(u_cross, 0u, 1u), -3.f, tolerance);
@@ -114,12 +111,12 @@ GTEST_TEST(detray_utils, cross_matrix) {
                 tolerance);
 }
 
-GTEST_TEST(detray_utils, outer_product) {
+GTEST_TEST(detray_algebra, outer_product) {
 
     const vector3 u{1.f, 2.f, 3.f};
     const vector3 v{3.f, 4.f, 5.f};
 
-    const auto m33 = matrix::outer_product(u, v);
+    const matrix3_type m33 = matrix::outer_product(u, v);
 
     EXPECT_NEAR(getter::element(m33, 0u, 0u), 3.f, tolerance);
     EXPECT_NEAR(getter::element(m33, 0u, 1u), 4.f, tolerance);
@@ -132,7 +129,7 @@ GTEST_TEST(detray_utils, outer_product) {
     EXPECT_NEAR(getter::element(m33, 2u, 2u), 15.f, tolerance);
 }
 
-GTEST_TEST(detray_utils, cholesky_decomposition) {
+GTEST_TEST(detray_algebra, cholesky_decomposition) {
 
     // Define A
     auto A = matrix::zero<matrix3_type>();

@@ -36,7 +36,7 @@ template <concepts::matrix matrix_t>
 DETRAY_HOST_DEVICE constexpr auto identity() {
     auto ret{zero<matrix_t>()};
 
-    for (std::size_t i = 0; i < detray::traits::rank<matrix_t>; ++i) {
+    for (std::size_t i = 0; i < detray::traits::max_rank<matrix_t>; ++i) {
         ret[i][i] = 1;
     }
 

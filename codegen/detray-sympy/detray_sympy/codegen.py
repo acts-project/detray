@@ -21,7 +21,7 @@ def render_dim_requirement(name, j):
     elif len(j.shape) == 2:
         if j.shape[0] == j.shape[1]:
             return (
-                "(detray::concepts::square_matrix<%s_t> && detray::traits::rank<%s_t> == %d)"
+                "(detray::concepts::square_matrix<%s_t> && detray::traits::max_rank<%s_t> == %d)"
                 % (name, name, j.shape[0])
             )
         elif j.shape[0] == 1:

@@ -35,7 +35,11 @@ DETRAY_HOST_DEVICE constexpr matrix_t identity() {
     constexpr auto rows{detray::traits::rows<matrix_t>};
     constexpr auto cols{detray::traits::columns<matrix_t>};
 
-    if constexpr (rows >= cols) {
+    if constexpr (rows == cols) {
+        matrix_type<scalar_t, rows, cols> identity_matrix;
+        identity_matrix.eye2();
+        return identity_matrix;
+    } else if constexpr (rows > cols) {
         matrix_type<scalar_t, rows, rows> identity_matrix;
         identity_matrix.eye2();
         return matrix_t(
@@ -52,6 +56,7 @@ DETRAY_HOST_DEVICE constexpr matrix_t identity() {
 template <std::size_t ROWS, std::size_t COLS, concepts::scalar scalar_t>
 DETRAY_HOST_DEVICE constexpr void set_zero(
     matrix_type<scalar_t, ROWS, COLS> &m) {
+
     m.zeros();
 }
 
@@ -73,40 +78,78 @@ DETRAY_HOST_DEVICE constexpr matrix_type<scalar_t, COLS, ROWS> transpose(
 
 /// Column-wise cross product
 /// @{
-template <std::size_t ROWS, std::size_t COLS, std::size_t N,
-          concepts::scalar scalar_t, typename derived_t>
-DETRAY_HOST_DEVICE constexpr matrix_type<scalar_t, COLS, ROWS>
-column_wise_cross(const matrix_type<scalar_t, COLS, ROWS> &m,
-                  const Fastor::AbstractTensor<derived_t, N> &v) {
-    return m * v;
+template <typename derived_1_t, typename derived_2_t>
+DETRAY_HOST_DEVICE constexpr auto column_wise_cross(
+    const Fastor::AbstractTensor<derived_1_t, 2> &m,
+    const Fastor::AbstractTensor<derived_2_t, 1> &v) {
+    using scalar_t = typename derived_1_t::scalar_type;
+
+    matrix_type<scalar_t, 3, 3> ret;
+    for (std::size_t j = 0u; j < 3; j++) {
+        ret(Fastor::all, j) =
+            Fastor::cross(static_cast<vector_type<scalar_t, 3>>(
+                              Fastor::evaluate(m)(Fastor::all, j)),
+                          Fastor::evaluate(v));
+    }
+
+    return ret;
 }
 
-template <std::size_t N, std::size_t M, typename derived_1_t,
-          typename derived_2_t>
+template <std::size_t ROWS, std::size_t COLS, concepts::scalar scalar_t>
 DETRAY_HOST_DEVICE constexpr auto column_wise_cross(
-    const Fastor::AbstractTensor<derived_1_t, M> &m,
-    const Fastor::AbstractTensor<derived_2_t, N> &v) {
-    return m * v;
+    const matrix_type<scalar_t, COLS, ROWS> &m,
+    const vector_type<scalar_t, ROWS> &v) {
+
+    matrix_type<scalar_t, ROWS, ROWS> ret;
+    for (std::size_t j = 0u; j < ROWS; j++) {
+        ret(Fastor::all, j) = Fastor::cross(
+            static_cast<vector_type<scalar_t, ROWS>>(m(Fastor::all, j)), v);
+    }
+
+    return ret;
 }
 /// @}
 
 /// Column-wise product
 /// @{
-template <std::size_t ROWS, std::size_t COLS, concepts::scalar scalar_t>
-DETRAY_HOST_DEVICE constexpr matrix_type<scalar_t, COLS, ROWS>
-column_wise_multiply(const matrix_type<scalar_t, COLS, ROWS> &m,
-                     const matrix_type<scalar_t, COLS, ROWS> &b) {
-    return m * b;
+template <typename derived_1_t, typename derived_2_t>
+DETRAY_HOST_DEVICE constexpr auto column_wise_multiply(
+    const Fastor::AbstractTensor<derived_1_t, 2> &m,
+    const Fastor::AbstractTensor<derived_2_t, 1> &v) {
+    using scalar_t = typename derived_1_t::scalar_type;
+    constexpr std::size_t N{derived_1_t::size()};
+
+    matrix_type<scalar_t, N, N> ret;
+    for (std::size_t j = 0u; j < N; j++) {
+        ret(Fastor::all, j) = m.self()(Fastor::all, j) * v;
+    }
+
+    return ret;
 }
 
-template <std::size_t N, std::size_t M, typename derived_1_t,
-          typename derived_2_t>
+template <std::size_t ROWS, std::size_t COLS, concepts::scalar scalar_t>
 DETRAY_HOST_DEVICE constexpr auto column_wise_multiply(
-    const Fastor::AbstractTensor<derived_1_t, M> &m,
-    const Fastor::AbstractTensor<derived_2_t, N> &b) {
-    return m * b;
+    const matrix_type<scalar_t, COLS, ROWS> &m,
+    const vector_type<scalar_t, ROWS> &v) {
+
+    matrix_type<scalar_t, ROWS, ROWS> ret;
+    for (std::size_t j = 0u; j < ROWS; j++) {
+        ret(Fastor::all, j) =
+            static_cast<vector_type<scalar_t, ROWS>>(m(Fastor::all, j)) * v;
+    }
+
+    return ret;
 }
 /// @}
+
+/// Outer product of two vectors
+template <typename derived_1_t, typename derived_2_t>
+DETRAY_HOST_DEVICE constexpr auto outer_product(
+    const Fastor::AbstractTensor<derived_1_t, 1> &a,
+    const Fastor::AbstractTensor<derived_2_t, 1> &b) {
+
+    return Fastor::outer(a.self(), b.self());
+}
 
 /// @returns the determinant of @param m
 template <std::size_t N, concepts::scalar scalar_t>

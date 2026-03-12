@@ -64,10 +64,6 @@ class Matrix : public Fastor::Tensor<T, M1, N> {
                                                  const Matrix<S, C, RC>& rhs);
 
     template <std::size_t R, std::size_t C, concepts::scalar S>
-    constexpr friend Fastor::Tensor<S, R> operator*(
-        const Matrix<S, R, C>& lhs, const Fastor::Tensor<S, C>& vector);
-
-    template <std::size_t R, std::size_t C, concepts::scalar S>
     constexpr friend bool operator==(const Matrix<S, R, C>& lhs,
                                      const Matrix<S, R, C>& rhs);
     /// @}
@@ -79,13 +75,6 @@ constexpr Matrix<S, LR, RC> operator*(const Matrix<S, LR, C>& lhs,
                                       const Matrix<S, C, RC>& rhs) {
     return Fastor::matmul(static_cast<Fastor::Tensor<S, LR, C>>(lhs),
                           static_cast<Fastor::Tensor<S, C, RC>>(rhs));
-}
-
-template <std::size_t R, std::size_t C, concepts::scalar S>
-constexpr Fastor::Tensor<S, R> operator*(const Matrix<S, R, C>& lhs,
-                                         const Fastor::Tensor<S, C>& vector) {
-    return Fastor::matmul(static_cast<Fastor::Tensor<S, R, C>>(lhs),
-                          static_cast<Fastor::Tensor<S, C>>(vector));
 }
 
 template <std::size_t R, std::size_t C, concepts::scalar S>

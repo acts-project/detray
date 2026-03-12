@@ -43,7 +43,7 @@ DETRAY_HOST_DEVICE constexpr M identity() {
 
     auto ret{zero<M>()};
 
-    for (index_t i = 0; i < detray::traits::rank<M>; ++i) {
+    for (index_t i = 0; i < detray::traits::max_rank<M>; ++i) {
         element_getter_t{}(ret, i, i) = 1;
     }
 
@@ -86,7 +86,7 @@ DETRAY_HOST_DEVICE constexpr auto transpose(const M &m) {
 
 /// Column-wise cross product between matrix (m) and vector (v)
 template <concepts::square_matrix M, concepts::vector3D V>
-    requires(detray::traits::rank<M> == 3u)
+    requires(detray::traits::max_rank<M> == 3u)
 DETRAY_HOST_DEVICE constexpr M column_wise_cross(const M &m, const V &v) {
     using block_getter_t = detray::traits::block_getter_t<M>;
     constexpr block_getter_t block{};
@@ -106,14 +106,14 @@ DETRAY_HOST_DEVICE constexpr M column_wise_cross(const M &m, const V &v) {
 
 /// Column-wise multiplication between matrix (m) and vector (v)
 template <concepts::square_matrix M, concepts::vector V>
-    requires(detray::traits::rank<M> == detray::traits::size<V>)
+    requires(detray::traits::max_rank<M> == detray::traits::size<V>)
 DETRAY_HOST_DEVICE inline M column_wise_multiply(const M &m, const V &v) {
     using element_getter_t = detray::traits::element_getter_t<M>;
     constexpr element_getter_t elem{};
 
     M ret;
 
-    constexpr std::size_t N{detray::traits::rank<M>};
+    constexpr std::size_t N{detray::traits::max_rank<M>};
     for (std::size_t i = 0u; i < N; i++) {
         for (std::size_t j = 0u; j < N; j++) {
             elem(ret, j, i) = elem(m, j, i) * elem(v, j);
@@ -154,8 +154,8 @@ DETRAY_HOST_DEVICE inline detray::traits::get_matrix_t<
 outer_product(const V &v1, const V &v2) {
     using scalar_t = detray::traits::scalar_t<V>;
     using index_t = detray::traits::index_t<V>;
-    constexpr std::size_t N{detray::traits::size<V>};
 
+    constexpr auto N{static_cast<index_t>(detray::traits::size<V>)};
     using matrix_t = detray::traits::get_matrix_t<V, N, N, scalar_t>;
 
     using element_getter_t = detray::traits::element_getter_t<V>;
@@ -164,8 +164,8 @@ outer_product(const V &v1, const V &v2) {
     matrix_t ret;
 
     // TODO: vectorize better
-    for (index_t row = 0u; row < N; row++) {
-        for (index_t col = 0u; col < N; col++) {
+    for (index_t row = 0; row < N; row++) {
+        for (index_t col = 0; col < N; col++) {
             elem(ret, row, col) = elem(v1, row) * elem(v2, col);
         }
     }
@@ -445,7 +445,7 @@ DETRAY_HOST_DEVICE constexpr M cholesky_decomposition(const M &m) {
     using element_getter_t = detray::traits::element_getter_t<M>;
 
     constexpr element_getter_t elem{};
-    constexpr index_t N{detray::traits::rank<M>};
+    constexpr index_t N{detray::traits::max_rank<M>};
 
     auto L = zero<M>();
 

@@ -50,6 +50,72 @@ DETRAY_HOST_DEVICE constexpr matrix_type<scalar_t, COLS, ROWS> transpose(
     return ROOT::Math::Transpose(m);
 }
 
+/// Column-wise cross product
+template <unsigned int ROWS, unsigned int COLS, concepts::scalar scalar_t>
+    requires(ROWS == 3 && COLS == 3)
+DETRAY_HOST_DEVICE constexpr matrix_type<scalar_t, ROWS, COLS>
+column_wise_cross(const ROOT::Math::SMatrix<scalar_t, ROWS, COLS> &m,
+                  const ROOT::Math::SVector<scalar_t, ROWS> &v) {
+
+    matrix_type<scalar_t, ROWS, COLS> ret;
+    for (unsigned int j = 0u; j < COLS; j++) {
+        ROOT::Math::SVector<scalar_t, ROWS> col = ROOT::Math::Cross(
+            m.template SubCol<ROOT::Math::SVector<scalar_t, ROWS>>(j, 0u), v);
+        ret.Place_in_col(col, 0, j);
+    }
+
+    return ret;
+}
+
+/// Column-wise cross product
+template <typename OP, unsigned int ROWS, unsigned int COLS,
+          concepts::scalar scalar_t,
+          typename R = ROOT::Math::MatRepStd<scalar_t, ROWS, COLS>>
+    requires(ROWS == 3 && COLS == 3)
+DETRAY_HOST_DEVICE constexpr matrix_type<scalar_t, ROWS, COLS>
+column_wise_cross(const ROOT::Math::Expr<OP, scalar_t, ROWS, COLS, R> &m,
+                  const ROOT::Math::SVector<scalar_t, ROWS> &v) {
+
+    return column_wise_cross(static_cast<matrix_type<scalar_t, ROWS, COLS>>(m),
+                             v);
+}
+
+/// Column-wise product
+template <unsigned int ROWS, unsigned int COLS, concepts::scalar scalar_t>
+DETRAY_HOST_DEVICE constexpr matrix_type<scalar_t, ROWS, COLS>
+column_wise_multiply(const ROOT::Math::SMatrix<scalar_t, ROWS, COLS> &m,
+                     const ROOT::Math::SVector<scalar_t, ROWS> &v) {
+
+    matrix_type<scalar_t, ROWS, COLS> ret;
+    for (unsigned int j = 0u; j < COLS; j++) {
+        ROOT::Math::SVector<scalar_t, ROWS> col =
+            m.template SubCol<ROOT::Math::SVector<scalar_t, ROWS>>(j, 0u) * v;
+        ret.Place_in_col(col, 0, j);
+    }
+
+    return ret;
+}
+
+template <typename OP, unsigned int ROWS, unsigned int COLS,
+          concepts::scalar scalar_t,
+          typename R = ROOT::Math::MatRepStd<scalar_t, ROWS, COLS>>
+    requires(ROWS == 3 && COLS == 3)
+DETRAY_HOST_DEVICE constexpr matrix_type<scalar_t, ROWS, COLS>
+column_wise_multiply(const ROOT::Math::Expr<OP, scalar_t, ROWS, COLS, R> &m,
+                     const ROOT::Math::SVector<scalar_t, ROWS> &v) {
+
+    return column_wise_multiply(
+        static_cast<matrix_type<scalar_t, ROWS, COLS>>(m), v);
+}
+
+/// Outer product of two vectors
+template <unsigned int ROWS, concepts::scalar scalar_t>
+DETRAY_HOST_DEVICE constexpr matrix_type<scalar_t, ROWS, ROWS> outer_product(
+    const ROOT::Math::SVector<scalar_t, ROWS> &a,
+    const ROOT::Math::SVector<scalar_t, ROWS> &b) {
+    return ROOT::Math::TensorProd(a, b);
+}
+
 /// @returns the determinant of @param m
 template <unsigned int ROWS, unsigned int COLS, concepts::scalar scalar_t>
 DETRAY_HOST_DEVICE constexpr scalar_t determinant(
@@ -68,6 +134,19 @@ DETRAY_HOST_DEVICE constexpr matrix_type<scalar_t, COLS, ROWS> inverse(
 
     int ifail = 0;
     return m.Inverse(ifail);
+}
+
+/// @returns the fatcor L in the decomposition of @param m
+template <unsigned int ROWS, unsigned int COLS, concepts::scalar scalar_t>
+DETRAY_HOST_DEVICE constexpr matrix_type<scalar_t, ROWS, COLS>
+cholesky_decomposition(const matrix_type<scalar_t, ROWS, COLS> &m) {
+    matrix_type<scalar_t, ROWS, COLS> L;
+
+    ROOT::Math::CholeskyDecomp<scalar_t, ROWS> decomp(m);
+    [[maybe_unused]] const bool res = decomp.getL(L);
+    assert(res);
+
+    return L;
 }
 
 }  // namespace detray::algebra::smatrix::math

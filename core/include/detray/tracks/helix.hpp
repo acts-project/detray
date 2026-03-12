@@ -13,7 +13,6 @@
 #endif
 
 // Project include(s).
-#include "detray/algebra/generic/impl/columnwise_operations.hpp"
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/math.hpp"
 #include "detray/tracks/free_track_parameters.hpp"
@@ -238,9 +237,9 @@ class helix {
         getter::set_block(ret, drdl, e_free_pos0, e_free_qoverp);
 
         // Get dtdl
-        vector3_type dtdl =
-            -_B * s *
-            (sin_ks * (H0H0_T - I33) * _t0 + cos_ks * vector::cross(_h0, _t0));
+        vector3_type dtdl = -_B * s *
+                            (sin_ks * ((H0H0_T - I33) * _t0) +
+                             cos_ks * vector::cross(_h0, _t0));
 
         getter::set_block(ret, dtdl, e_free_dir0, e_free_qoverp);
 

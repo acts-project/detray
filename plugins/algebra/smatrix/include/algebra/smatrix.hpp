@@ -78,19 +78,19 @@ namespace matrix {
 /// @name Matrix functions on @c algebra::smatrix::storage_type
 /// @{
 
+using algebra::smatrix::math::cholesky_decomposition;
+using algebra::smatrix::math::column_wise_cross;
+using algebra::smatrix::math::column_wise_multiply;
 using algebra::smatrix::math::determinant;
 using algebra::smatrix::math::identity;
 using algebra::smatrix::math::inverse;
+using algebra::smatrix::math::outer_product;
 using algebra::smatrix::math::set_identity;
 using algebra::smatrix::math::set_zero;
 using algebra::smatrix::math::transpose;
 using algebra::smatrix::math::zero;
 
-using algebra::generic::math::cholesky_decomposition;
-using algebra::generic::math::column_wise_cross;
-using algebra::generic::math::column_wise_multiply;
 using algebra::generic::math::cross_matrix;
-using algebra::generic::math::outer_product;
 using algebra::generic::math::set_inplace_product_left;
 using algebra::generic::math::set_inplace_product_left_transpose;
 using algebra::generic::math::set_inplace_product_right;

@@ -9,7 +9,6 @@
 
 // Project include(s).
 #include "./codegen/update_rk_transport_jacobian.hpp"
-#include "detray/algebra/generic/impl/columnwise_operations.hpp"
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/units.hpp"

@@ -33,7 +33,7 @@ struct determinant_selector<2, Args...> {
 /// @tparam M matrix type
 template <concepts::square_matrix M>
 using determinant_t =
-    typename determinant_selector<detray::traits::rank<M>, M>::type;
+    typename determinant_selector<detray::traits::max_rank<M>, M>::type;
 /// @}
 
 /// Get the type of inversion algorithm according to matrix dimension
@@ -52,7 +52,7 @@ struct inversion_selector<2, Args...> {
 /// @tparam M matrix type
 template <concepts::square_matrix M>
 using inversion_t =
-    typename inversion_selector<detray::traits::rank<M>, M>::type;
+    typename inversion_selector<detray::traits::max_rank<M>, M>::type;
 /// @}
 
 }  // namespace detray::algebra::generic

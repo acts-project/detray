@@ -24,6 +24,7 @@ detray_add_unit_test(cpu
 macro(detray_add_cpu_test algebra)
     # Build the test executable.
     detray_add_unit_test(cpu_${algebra}
+       "algebra/columnwise_operations.cpp"
        "builders/detector_builder.cpp"
        "builders/grid_builder.cpp"
        "builders/homogeneous_volume_material_builder.cpp"

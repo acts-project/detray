@@ -42,7 +42,7 @@ DETRAY_HOST_DEVICE constexpr auto approx_equal(
         // Calculate the difference.
         const scalar_t diff{math::fabs(a - b)};
 
-        // If the numbers are is close to zero
+        // If the numbers are close to zero
         if (diff <= max_error) {
             return true;
         }

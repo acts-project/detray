@@ -30,7 +30,7 @@ DETRAY_HOST_DEVICE void inline update_full_jacobian_with_gradient_impl(
     const f2b_dloc_dpos_t& f2b_dloc_dpos,
     const f2b_dangle_ddir_t& f2b_dangle_ddir, full_jacobian_t& full_jacobian)
     requires((detray::concepts::square_matrix<transport_jacobian_t> &&
-              detray::traits::rank<transport_jacobian_t> == 8) &&
+              detray::traits::max_rank<transport_jacobian_t> == 8) &&
              (detray::concepts::matrix<b2f_dpos_dloc_t> &&
               detray::traits::rows<b2f_dpos_dloc_t> == 3 &&
               detray::traits::columns<b2f_dpos_dloc_t> == 2) &&
@@ -52,7 +52,7 @@ DETRAY_HOST_DEVICE void inline update_full_jacobian_with_gradient_impl(
               detray::traits::rows<f2b_dangle_ddir_t> == 2 &&
               detray::traits::columns<f2b_dangle_ddir_t> == 3) &&
              (detray::concepts::square_matrix<full_jacobian_t> &&
-              detray::traits::rank<full_jacobian_t> == 6))
+              detray::traits::max_rank<full_jacobian_t> == 6))
 {
     assert(getter::element(transport_jacobian, 0u, 3u) == 0.f);
     assert(getter::element(transport_jacobian, 1u, 3u) == 0.f);
@@ -537,7 +537,7 @@ DETRAY_HOST_DEVICE void inline update_full_jacobian_without_gradient_impl(
     const f2b_dloc_dpos_t& f2b_dloc_dpos,
     const f2b_dangle_ddir_t& f2b_dangle_ddir, full_jacobian_t& full_jacobian)
     requires((detray::concepts::square_matrix<transport_jacobian_t> &&
-              detray::traits::rank<transport_jacobian_t> == 8) &&
+              detray::traits::max_rank<transport_jacobian_t> == 8) &&
              (detray::concepts::matrix<b2f_dpos_dloc_t> &&
               detray::traits::rows<b2f_dpos_dloc_t> == 3 &&
               detray::traits::columns<b2f_dpos_dloc_t> == 2) &&
@@ -559,7 +559,7 @@ DETRAY_HOST_DEVICE void inline update_full_jacobian_without_gradient_impl(
               detray::traits::rows<f2b_dangle_ddir_t> == 2 &&
               detray::traits::columns<f2b_dangle_ddir_t> == 3) &&
              (detray::concepts::square_matrix<full_jacobian_t> &&
-              detray::traits::rank<full_jacobian_t> == 6))
+              detray::traits::max_rank<full_jacobian_t> == 6))
 {
     assert(getter::element(transport_jacobian, 0u, 0u) == 1.f);
     assert(getter::element(transport_jacobian, 0u, 1u) == 0.f);

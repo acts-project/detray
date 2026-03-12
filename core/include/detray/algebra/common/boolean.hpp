@@ -28,7 +28,7 @@ constexpr bool none_of(bool b) {
 
 namespace detail {
 
-// Pull the boolean functions into the detray namespace
+// Pull the boolean functions directly into the detray namespace
 using namespace ::detray::algebra::boolean;
 
 }  // namespace detail

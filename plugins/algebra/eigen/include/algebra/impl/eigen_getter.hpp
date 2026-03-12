@@ -124,8 +124,8 @@ struct block_getter {
     template <int kROWS, int kCOLS, typename derived_type,
               concepts::index index_t_1, concepts::index index_t_2>
     DETRAY_HOST_DEVICE decltype(auto) operator()(
-        const Eigen::MatrixBase<derived_type> &m, index_t_1 row,
-        index_t_2 col) const {
+        const Eigen::MatrixBase<derived_type> &m, const index_t_1 row,
+        const index_t_2 col) const {
 
         return m.template block<kROWS, kCOLS>(row, col);
     }
@@ -133,8 +133,8 @@ struct block_getter {
     template <int kROWS, int kCOLS, typename derived_type,
               concepts::index index_t_1, concepts::index index_t_2>
     DETRAY_HOST_DEVICE decltype(auto) operator()(
-        Eigen::MatrixBase<derived_type> &m, index_t_1 row,
-        index_t_2 col) const {
+        Eigen::MatrixBase<derived_type> &m, const index_t_1 row,
+        const index_t_2 col) const {
 
         return m.template block<kROWS, kCOLS>(row, col);
     }
@@ -142,8 +142,8 @@ struct block_getter {
     template <int SIZE, typename derived_type, concepts::index index_t_1,
               concepts::index index_t_2>
     DETRAY_HOST_DEVICE decltype(auto) vector(Eigen::MatrixBase<derived_type> &m,
-                                             index_t_1 row,
-                                             index_t_2 col) const {
+                                             const index_t_1 row,
+                                             const index_t_2 col) const {
 
         return m.template block<SIZE, 1>(row, col);
     }
@@ -151,17 +151,19 @@ struct block_getter {
     template <int SIZE, typename derived_type, concepts::index index_t_1,
               concepts::index index_t_2>
     DETRAY_HOST_DEVICE decltype(auto) vector(
-        const Eigen::MatrixBase<derived_type> &m, index_t_1 row,
-        index_t_2 col) const {
+        const Eigen::MatrixBase<derived_type> &m, const index_t_1 row,
+        const index_t_2 col) const {
 
         return m.template block<SIZE, 1>(row, col);
     }
 
     /// Operator setting a block
-    template <typename derived_type1, typename derived_type2>
+    template <typename derived_type1, typename derived_type2,
+              concepts::index index_t_1, concepts::index index_t_2>
     DETRAY_HOST_DEVICE void set(Eigen::MatrixBase<derived_type1> &m,
                                 const Eigen::MatrixBase<derived_type2> &b,
-                                Eigen::Index row, Eigen::Index col) const {
+                                const index_t_1 row,
+                                const index_t_2 col) const {
         using block_t = Eigen::MatrixBase<derived_type2>;
         constexpr auto R{block_t::RowsAtCompileTime};
         constexpr auto C{block_t::ColsAtCompileTime};

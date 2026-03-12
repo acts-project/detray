@@ -62,5 +62,7 @@ GTEST_TEST(detray_coordinates, cartesian2D) {
 
     // Normal vector
     const vector3 n = c2.normal(trf);
-    ASSERT_EQ(n, z);
+    ASSERT_NEAR(n[0], z[0], isclose);
+    ASSERT_NEAR(n[1], z[1], isclose);
+    ASSERT_NEAR(n[2], z[2], isclose);
 }

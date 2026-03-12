@@ -23,16 +23,16 @@ DETRAY_HOST_DEVICE void inline update_transport_jacobian_without_gradient_impl(
     const dFdqop_t& dFdqop, const dGdqop_t& dGdqop, const dqopqop_t& dqopqop,
     new_J_t& new_J)
     requires((detray::concepts::square_matrix<J_transport_t> &&
-              detray::traits::rank<J_transport_t> == 8) &&
+              detray::traits::max_rank<J_transport_t> == 8) &&
              (detray::concepts::square_matrix<dFdt_t> &&
-              detray::traits::rank<dFdt_t> == 3) &&
+              detray::traits::max_rank<dFdt_t> == 3) &&
              (detray::concepts::square_matrix<dGdt_t> &&
-              detray::traits::rank<dGdt_t> == 3) &&
+              detray::traits::max_rank<dGdt_t> == 3) &&
              (detray::concepts::vector3D<dFdqop_t>) &&
              (detray::concepts::vector3D<dGdqop_t>) &&
              (detray::concepts::scalar<dqopqop_t>) &&
              (detray::concepts::square_matrix<new_J_t> &&
-              detray::traits::rank<new_J_t> == 8))
+              detray::traits::max_rank<new_J_t> == 8))
 {
     assert(getter::element(J_transport, 0u, 0u) == 1.f);
     assert(getter::element(J_transport, 0u, 1u) == 0.f);
@@ -237,20 +237,20 @@ DETRAY_HOST_DEVICE void inline update_transport_jacobian_with_gradient_impl(
     const dFdr_t& dFdr, const dGdr_t& dGdr, const dFdqop_t& dFdqop,
     const dGdqop_t& dGdqop, const dqopqop_t& dqopqop, new_J_t& new_J)
     requires((detray::concepts::square_matrix<J_transport_t> &&
-              detray::traits::rank<J_transport_t> == 8) &&
+              detray::traits::max_rank<J_transport_t> == 8) &&
              (detray::concepts::square_matrix<dFdt_t> &&
-              detray::traits::rank<dFdt_t> == 3) &&
+              detray::traits::max_rank<dFdt_t> == 3) &&
              (detray::concepts::square_matrix<dGdt_t> &&
-              detray::traits::rank<dGdt_t> == 3) &&
+              detray::traits::max_rank<dGdt_t> == 3) &&
              (detray::concepts::square_matrix<dFdr_t> &&
-              detray::traits::rank<dFdr_t> == 3) &&
+              detray::traits::max_rank<dFdr_t> == 3) &&
              (detray::concepts::square_matrix<dGdr_t> &&
-              detray::traits::rank<dGdr_t> == 3) &&
+              detray::traits::max_rank<dGdr_t> == 3) &&
              (detray::concepts::vector3D<dFdqop_t>) &&
              (detray::concepts::vector3D<dGdqop_t>) &&
              (detray::concepts::scalar<dqopqop_t>) &&
              (detray::concepts::square_matrix<new_J_t> &&
-              detray::traits::rank<new_J_t> == 8))
+              detray::traits::max_rank<new_J_t> == 8))
 {
     assert(getter::element(J_transport, 0u, 3u) == 0.f);
     assert(getter::element(J_transport, 1u, 3u) == 0.f);

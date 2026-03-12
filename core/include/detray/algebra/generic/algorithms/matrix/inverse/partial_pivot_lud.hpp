@@ -32,7 +32,7 @@ struct partial_pivot_lud {
     DETRAY_HOST_DEVICE constexpr matrix_t operator()(const matrix_t& m) const {
 
         constexpr element_getter_t elem{};
-        constexpr index_t N{detray::traits::rank<matrix_t>};
+        constexpr index_t N{detray::traits::max_rank<matrix_t>};
 
         const typename decomposition_t::template lud<N> decomp_res =
             decomposition_t()(m);

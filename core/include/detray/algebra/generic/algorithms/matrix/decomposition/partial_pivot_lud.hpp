@@ -38,14 +38,14 @@ struct partial_pivot_lud {
         int n_pivot = 0;
     };
 
-    DETRAY_HOST_DEVICE constexpr lud<detray::traits::rank<matrix_t>> operator()(
-        const matrix_t& m) const {
+    DETRAY_HOST_DEVICE constexpr lud<detray::traits::max_rank<matrix_t>>
+    operator()(const matrix_t& m) const {
 
         // Function (object) used for accessing a matrix element
         using element_getter_t = detray::traits::element_getter_t<matrix_t>;
 
         constexpr element_getter_t elem{};
-        constexpr index_t N{detray::traits::rank<matrix_t>};
+        constexpr index_t N{detray::traits::max_rank<matrix_t>};
 
         // LU decomposition matrix
         matrix_t lu = m;

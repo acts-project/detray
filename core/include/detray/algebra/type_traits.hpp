@@ -108,7 +108,7 @@ inline constexpr index_t<M> columns{
     dimensions<std::remove_cvref_t<M>>::_columns};
 
 template <class M>
-inline constexpr index_t<M> rank{std::min(rows<M>, columns<M>)};
+inline constexpr index_t<M> max_rank{std::min(rows<M>, columns<M>)};
 
 template <class M>
 inline constexpr index_t<M> size{rows<M> * columns<M>};

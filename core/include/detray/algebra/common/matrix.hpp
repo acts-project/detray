@@ -157,7 +157,7 @@ DETRAY_HOST_DEVICE constexpr void set_zero(matrix_t &m) noexcept {
 
 /// Build an identity matrix
 template <concepts::matrix matrix_t,
-          std::size_t R = detray::traits::rank<matrix_t>>
+          std::size_t R = detray::traits::max_rank<matrix_t>>
 DETRAY_HOST_DEVICE constexpr matrix_t identity() noexcept {
 
     // Zero initialized

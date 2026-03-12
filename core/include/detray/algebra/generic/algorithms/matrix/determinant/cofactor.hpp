@@ -26,7 +26,8 @@ struct cofactor {
 
     DETRAY_HOST_DEVICE constexpr scalar_type operator()(
         const matrix_t &m) const {
-        return determinant_getter_helper<detray::traits::rank<matrix_t>>()(m);
+        return determinant_getter_helper<detray::traits::max_rank<matrix_t>>()(
+            m);
     }
 
     template <index_type N>
