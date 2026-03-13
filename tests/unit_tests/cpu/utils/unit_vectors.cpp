@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2024 CERN for the benefit of the ACTS project
+ * (c) 2022-2026 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -35,7 +35,7 @@ GTEST_TEST(detray_utils, curvilinear_unit_vectors) {
     EXPECT_NEAR(u[1], 2.f / vector::perp(w), tolerance);
     EXPECT_NEAR(u[2], 0.f, tolerance);
 
-    const auto test_v = vector::normalize(vector::cross(w, u));
+    const vector3 test_v = vector::normalize(vector::cross(w, u));
     EXPECT_NEAR(v[0], test_v[0], tolerance);
     EXPECT_NEAR(v[1], test_v[1], tolerance);
     EXPECT_NEAR(v[2], test_v[2], tolerance);

@@ -296,7 +296,8 @@ GTEST_TEST(detray_material, telescope_geometry_volume_material) {
     constexpr std::size_t cache_size{navigation::default_cache_size};
 
     // Bfield setup
-    test::vector3 B_z{0.f, 0.f, 2.f * unit<scalar>::T};
+    test::vector3 B_z{static_cast<scalar>(0.f), static_cast<scalar>(0.f),
+                      2.f * unit<scalar>::T};
     const bfield_t const_bfield = create_const_field<scalar>(B_z);
 
     // Track setup

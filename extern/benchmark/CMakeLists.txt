@@ -18,7 +18,7 @@ message(STATUS "Building Google Benchmark as part of the Detray project")
 
 # Declare where to get Google Benchmark from.
 set(DETRAY_BENCHMARK_SOURCE
-    "URL;https://github.com/google/benchmark/archive/refs/tags/v1.9.1.tar.gz;URL_MD5;92000ef8b4a7b1e9229972f8943070a7"
+    "URL;https://github.com/google/benchmark/archive/refs/tags/v${DETRAY_BENCHMARK_VERSION}.tar.gz;URL_MD5;${DETRAY_BENCHMARK_DIGEST}"
     CACHE STRING
     "Source for Google Benchmark, when built as part of this project"
 )

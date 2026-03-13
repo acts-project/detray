@@ -63,9 +63,10 @@ GTEST_TEST(detray_propagator, jacobian_cylindrical2D) {
     const auto free_params2 = detail::bound_to_free_vector(trf, cyl, bound_vec);
 
     // Check if the bound vector is correct
-    ASSERT_NEAR(bound_vec.bound_local()[e_bound_loc0],
+    ASSERT_NEAR(getter::element(bound_vec.bound_local(), e_bound_loc0),
                 r * constant<scalar>::pi_4, isclose);
-    ASSERT_NEAR(bound_vec.bound_local()[e_bound_loc1], 5.f, isclose);
+    ASSERT_NEAR(getter::element(bound_vec.bound_local(), e_bound_loc1), 5.f,
+                isclose);
     ASSERT_NEAR(bound_vec.phi(), 1.1071487f, isclose);     // atan(2)
     ASSERT_NEAR(bound_vec.theta(), 0.64052231f, isclose);  // atan(sqrt(5)/3)
     ASSERT_NEAR(bound_vec.qop(), -1.f / 3.7416574f, isclose);
@@ -100,7 +101,8 @@ GTEST_TEST(detray_propagator, jacobian_concentric_cylindrical2D) {
     // Preparation work
     const transform3 identity{};
     // Global position on surface
-    const point3 global1{constant<scalar>::sqrt2, constant<scalar>::sqrt2, 9.f};
+    const point3 global1{constant<scalar>::sqrt2, constant<scalar>::sqrt2,
+                         static_cast<scalar>(9.f)};
     const vector3 mom{1.f, 2.f, 3.f};
     const scalar time{0.1f};
     const scalar charge{-1.f};
@@ -120,9 +122,10 @@ GTEST_TEST(detray_propagator, jacobian_concentric_cylindrical2D) {
         detail::bound_to_free_vector(identity, cyl, bound_vec);
 
     // Check if the bound vector is correct
-    ASSERT_NEAR(bound_vec.bound_local()[e_bound_loc0], vector::phi(global1),
+    ASSERT_NEAR(getter::element(bound_vec.bound_local(), e_bound_loc0),
+                vector::phi(global1), isclose);
+    ASSERT_NEAR(getter::element(bound_vec.bound_local(), e_bound_loc1), 9.f,
                 isclose);
-    ASSERT_NEAR(bound_vec.bound_local()[e_bound_loc1], 9.f, isclose);
     ASSERT_NEAR(bound_vec.phi(), vector::phi(mom), isclose);
     ASSERT_NEAR(bound_vec.theta(), vector::theta(mom), isclose);
     ASSERT_NEAR(bound_vec.qop(), -1.f / vector::norm(mom), isclose);

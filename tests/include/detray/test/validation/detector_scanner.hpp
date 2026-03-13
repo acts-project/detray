@@ -177,7 +177,9 @@ inline auto run(const typename detector_t::geometry_context gctx,
 
     using record_t = typename decltype(intersection_record)::value_type;
 
-    // Sort intersections by distance to origin of the trajectory
+    // HACK: For whatever reason, std::stable_sort really dislikes custom
+    // aligned types like the ones in Eigen and Fastor, so we have to sort
+    // by indices and then reconstruct the sorted intersection record.
     auto sort_path = [&](const record_t &a, const record_t &b) -> bool {
         return (a.intersection < b.intersection);
     };
@@ -293,7 +295,8 @@ inline auto read(const std::string &intersection_file_name,
 
     if (intersections_per_track.size() != track_params_per_track.size()) {
         throw std::invalid_argument(
-            "Detector scanner: intersection and track parameters collections "
+            "Detector scanner: intersection and track parameters "
+            "collections "
             "have different size");
     }
 
@@ -306,7 +309,8 @@ inline auto read(const std::string &intersection_file_name,
         // Check track id
         if (intersections.size() != track_params.size()) {
             throw std::invalid_argument(
-                "Detector scanner: Found different number of intersections and "
+                "Detector scanner: Found different number of intersections "
+                "and "
                 "track parameters for track no." +
                 std::to_string(trk_idx));
         }

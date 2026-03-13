@@ -149,9 +149,15 @@ GTEST_TEST(detray_geometry, surface_toy_detector) {
 
     // Surface normal
     const auto z_axis = vector3{0.f, 0.f, 1.f};
+    const vector3 normal_3D = disc.normal(ctx, point3{0.f, 0.f, 0.f});
+    const vector3 normal_2D = disc.normal(ctx, point2{0.f, 0.f});
     // trigger all code paths
-    ASSERT_EQ(disc.normal(ctx, point3{0.f, 0.f, 0.f}), z_axis);
-    ASSERT_EQ(disc.normal(ctx, point2{0.f, 0.f}), z_axis);
+    ASSERT_NEAR(normal_3D[0], z_axis[0], tol);
+    ASSERT_NEAR(normal_3D[1], z_axis[1], tol);
+    ASSERT_NEAR(normal_3D[2], z_axis[2], tol);
+    ASSERT_NEAR(normal_2D[0], z_axis[0], tol);
+    ASSERT_NEAR(normal_2D[1], z_axis[1], tol);
+    ASSERT_NEAR(normal_2D[2], z_axis[2], tol);
 
     // Cos incidence angle
     vector3 dir = vector::normalize(vector3{1.f, 0.f, 1.f});
@@ -164,7 +170,9 @@ GTEST_TEST(detray_geometry, surface_toy_detector) {
     ASSERT_NEAR(cos_angle(ctx, disc, dir, point3{1.f, 0.5f, 0.f}), 0.f, tol);
     ASSERT_NEAR(cos_angle(ctx, disc, dir, point2{1.f, 0.5f}), 0.f, tol);
 
-    dir = vector::normalize(vector3{1.f, 0.f, constant<scalar>::pi});
+    dir = vector::normalize(vector3{static_cast<scalar>(1.f),
+                                    static_cast<scalar>(0.f),
+                                    constant<scalar>::pi});
     scalar cos_inc_angle{constant<scalar>::pi /
                          std::sqrt(1.f + std::pow(constant<scalar>::pi, 2.f))};
     ASSERT_NEAR(cos_angle(ctx, disc, dir, point3{2.f, 1.f, 0.f}), cos_inc_angle,
@@ -238,11 +246,14 @@ GTEST_TEST(detray_geometry, surface_toy_detector) {
     ASSERT_NEAR(cos_angle(ctx, rec, dir, point3{0.f, 0.f, 0.f}), 1.f, tol);
     ASSERT_NEAR(cos_angle(ctx, rec, dir, point2{0.f, 0.f}), 1.f, tol);
 
-    dir = vector::normalize(vector3{0.f, -global[2], global[1]});
+    dir = vector::normalize(
+        vector3{static_cast<scalar>(0.f), -global[2], global[1]});
     ASSERT_NEAR(cos_angle(ctx, rec, dir, point3{1.f, 0.5f, 0.f}), 0.f, tol);
     ASSERT_NEAR(cos_angle(ctx, rec, dir, point2{1.f, 0.5f}), 0.f, tol);
 
-    dir = vector::normalize(vector3{1.f, 0.f, constant<scalar>::pi});
+    dir = vector::normalize(vector3{static_cast<scalar>(1.f),
+                                    static_cast<scalar>(0.f),
+                                    constant<scalar>::pi});
     cos_inc_angle = std::fabs(vector::dot(dir, global));
     ASSERT_NEAR(cos_angle(ctx, rec, dir, point3{2.f, 1.f, 0.f}), cos_inc_angle,
                 tol);
@@ -304,46 +315,57 @@ GTEST_TEST(detray_geometry, surface_toy_detector) {
     // trigger all code paths
     constexpr scalar r{25.f * unit<scalar>::mm};
     const vector3 x_axis{1.f, 0.f, 0.f};
-    ASSERT_NEAR(vector::norm(cyl.normal(ctx, point3{0.f, 0.f, r}) - x_axis),
+    ASSERT_NEAR(
+        vector::norm(cyl.normal(ctx, point3{static_cast<scalar>(0.f),
+                                            static_cast<scalar>(0.f), r}) -
+                     x_axis),
+        0.f, tol);
+    ASSERT_NEAR(vector::norm(cyl.normal(ctx, point2{0.f, 0.f}) - x_axis),
+                static_cast<scalar>(0.f), tol);
+    ASSERT_NEAR(
+        vector::norm(cyl.normal(ctx, point3{r * constant<scalar>::pi,
+                                            static_cast<scalar>(0.f), r}) +
+                     x_axis),
+        0.f, tol);
+    ASSERT_NEAR(vector::norm(cyl.normal(ctx, point2{r * constant<scalar>::pi,
+                                                    static_cast<scalar>(0.f)}) +
+                             x_axis),
                 0.f, tol);
-    ASSERT_NEAR(vector::norm(cyl.normal(ctx, point2{0.f, 0.f}) - x_axis), 0.f,
-                tol);
-    ASSERT_NEAR(
-        vector::norm(cyl.normal(ctx, point3{r * constant<scalar>::pi, 0.f, r}) +
-                     x_axis),
-        0.f, tol);
-    ASSERT_NEAR(
-        vector::norm(cyl.normal(ctx, point2{r * constant<scalar>::pi, 0.f}) +
-                     x_axis),
-        0.f, tol);
 
     const vector3 y_axis{0.f, 1.f, 0.f};
-    ASSERT_NEAR(vector::norm(cyl.normal(ctx, point3{r * constant<scalar>::pi_2,
-                                                    0.f, r}) -
-                             y_axis),
-                0.f, tol);
     ASSERT_NEAR(
-        vector::norm(cyl.normal(ctx, point2{r * constant<scalar>::pi_2, 0.f}) -
+        vector::norm(cyl.normal(ctx, point3{r * constant<scalar>::pi_2,
+                                            static_cast<scalar>(0.f), r}) -
                      y_axis),
         0.f, tol);
+    ASSERT_NEAR(vector::norm(cyl.normal(ctx, point2{r * constant<scalar>::pi_2,
+                                                    static_cast<scalar>(0.f)}) -
+                             y_axis),
+                0.f, tol);
 
     // Incidence angle
+    ASSERT_NEAR(cos_angle(ctx, cyl, x_axis,
+                          point3{r * constant<scalar>::pi,
+                                 static_cast<scalar>(0.f), r}),
+                1.f, tol);
     ASSERT_NEAR(
-        cos_angle(ctx, cyl, x_axis, point3{r * constant<scalar>::pi, 0.f, r}),
+        cos_angle(ctx, cyl, x_axis,
+                  point2{r * constant<scalar>::pi, static_cast<scalar>(0.f)}),
         1.f, tol);
-    ASSERT_NEAR(
-        cos_angle(ctx, cyl, x_axis, point2{r * constant<scalar>::pi, 0.f}), 1.f,
-        tol);
 
+    ASSERT_NEAR(cos_angle(ctx, cyl, z_axis,
+                          point3{r * constant<scalar>::pi_2,
+                                 static_cast<scalar>(0.f), r}),
+                0.f, tol);
     ASSERT_NEAR(
-        cos_angle(ctx, cyl, z_axis, point3{r * constant<scalar>::pi_2, 0.f, r}),
-        0.f, tol);
-    ASSERT_NEAR(
-        cos_angle(ctx, cyl, z_axis, point2{r * constant<scalar>::pi_2, 0.f}),
+        cos_angle(ctx, cyl, z_axis,
+                  point2{r * constant<scalar>::pi_2, static_cast<scalar>(0.f)}),
         0.f, tol);
 
     dir = vector::normalize(vector3{1.f, 1.f, 0.f});
-    ASSERT_NEAR(cos_angle(ctx, cyl, dir, point3{0.f, 1.f, r}),
+    ASSERT_NEAR(cos_angle(ctx, cyl, dir,
+                          point3{static_cast<scalar>(0.f),
+                                 static_cast<scalar>(1.f), r}),
                 constant<scalar>::inv_sqrt2, tol);
     ASSERT_NEAR(cos_angle(ctx, cyl, dir, point2{0.f, 1.f}),
                 constant<scalar>::inv_sqrt2, tol);
@@ -358,7 +380,7 @@ GTEST_TEST(detray_geometry, surface_toy_detector) {
     ASSERT_NEAR(glob_pos[2], global[2], tol);
 
     glob_pos = {constant<scalar>::inv_sqrt2 * r,
-                constant<scalar>::inv_sqrt2 * r, 2.f};
+                constant<scalar>::inv_sqrt2 * r, static_cast<scalar>(2.f)};
 
     local = cyl.global_to_local(ctx, glob_pos, test_dir);
     global = cyl.local_to_global(ctx, local, test_dir);
@@ -430,18 +452,31 @@ GTEST_TEST(detray_geometry, surface_wire_chamber) {
     // Surface normal
     const auto z_axis = vector3{0.f, 0.f, 1.f};
     point3 global = line.transform(ctx).vector_to_global(z_axis);
+    const vector3 normal_3D = line.normal(ctx, point3{1.f, 0.f, 0.f});
+    const vector3 normal_2D = line.normal(ctx, point2{1.f, 0.f});
+    const vector3 neg_normal_3D = line.normal(ctx, point3{-1.f, 0.f, 0.f});
+    const vector3 neg_normal_2D = line.normal(ctx, point2{-1.f, 0.f});
     // trigger all code paths
-    ASSERT_EQ(line.normal(ctx, point3{1.f, 0.f, 0.f}), global);
-    ASSERT_EQ(line.normal(ctx, point2{1.f, 0.f}), global);
-    ASSERT_EQ(line.normal(ctx, point3{-1.f, 0.f, 0.f}), global);
-    ASSERT_EQ(line.normal(ctx, point2{-1.f, 0.f}), global);
+    ASSERT_NEAR(normal_3D[0], global[0], tol);
+    ASSERT_NEAR(normal_3D[1], global[1], tol);
+    ASSERT_NEAR(normal_3D[2], global[2], tol);
+    ASSERT_NEAR(normal_2D[0], global[0], tol);
+    ASSERT_NEAR(normal_2D[1], global[1], tol);
+    ASSERT_NEAR(normal_2D[2], global[2], tol);
+    ASSERT_NEAR(neg_normal_3D[0], global[0], tol);
+    ASSERT_NEAR(neg_normal_3D[1], global[1], tol);
+    ASSERT_NEAR(neg_normal_3D[2], global[2], tol);
+    ASSERT_NEAR(neg_normal_2D[0], global[0], tol);
+    ASSERT_NEAR(neg_normal_2D[1], global[1], tol);
+    ASSERT_NEAR(neg_normal_2D[2], global[2], tol);
 
     // Cos incidence angle
     vector3 dir = vector::normalize(global);
     ASSERT_NEAR(cos_angle(ctx, line, dir, point3{1.f, 0.f, 0.f}), 1.f, tol);
     ASSERT_NEAR(cos_angle(ctx, line, dir, point2{1.f, 0.f}), 1.f, tol);
 
-    dir = vector::normalize(vector3{0.f, -global[2], global[1]});
+    dir = vector::normalize(
+        vector3{static_cast<scalar>(0.f), -global[2], global[1]});
     ASSERT_NEAR(cos_angle(ctx, line, dir, point3{1.f, 100.f, 0.f}), 0.f, tol);
     ASSERT_NEAR(cos_angle(ctx, line, dir, point2{1.f, 100.f}), 0.f, tol);
 

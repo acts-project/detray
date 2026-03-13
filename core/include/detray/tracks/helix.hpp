@@ -17,7 +17,6 @@
 #include "detray/definitions/math.hpp"
 #include "detray/tracks/free_track_parameters.hpp"
 #include "detray/utils/invalid_values.hpp"
-#include "detray/utils/matrix_helper.hpp"
 
 // System include(s).
 #include <ostream>
@@ -45,7 +44,6 @@ class helix {
     template <std::size_t ROWS, std::size_t COLS>
     using matrix_type = dmatrix<algebra_t, ROWS, COLS>;
     using free_matrix_t = free_matrix<algebra_t>;
-    using mat_helper = matrix_helper<algebra_t>;
 
     DETRAY_HOST_DEVICE
     helix() = delete;
@@ -61,10 +59,12 @@ class helix {
     helix(const point3_type &pos, const scalar_type time,
           const vector3_type &dir, const scalar_type qop,
           const vector3_type &mag_field)
-        : _pos(pos), _time(time), _qop(qop), _t0{dir} {
-
-        // Normalized B field
-        _h0 = vector::normalize(mag_field);
+        : _pos(pos),
+          _time(time),
+          _qop(qop),
+          _B{vector::norm(mag_field)},
+          _h0{vector::normalize(mag_field)},
+          _t0{dir} {
 
         assert((math::fabs(vector::norm(_t0) - 1.f) < 1e-5f) &&
                "The helix direction must be normalized");
@@ -81,9 +81,6 @@ class helix {
 
         // Dot product of _h0 X _t0
         _delta = vector::dot(_h0, _t0);
-
-        // B field strength
-        _B = vector::norm(mag_field);
 
         // Path length scaler
         _K = -_qop * _B;
@@ -221,8 +218,7 @@ class helix {
 
         drdt = drdt + (_K * s - sin_ks) / _K * H0H0_T;
 
-        drdt = drdt +
-               (cos_ks - 1.f) / _K * mat_helper().column_wise_cross(I33, _h0);
+        drdt = drdt + (cos_ks - 1.f) / _K * matrix::column_wise_cross(I33, _h0);
 
         getter::set_block(ret, drdt, e_free_pos0, e_free_dir0);
 
@@ -230,7 +226,7 @@ class helix {
         auto dtdt = Z33;
         dtdt = dtdt + cos_ks * I33;
         dtdt = dtdt + (1 - cos_ks) * H0H0_T;
-        dtdt = dtdt - sin_ks * mat_helper().column_wise_cross(I33, _h0);
+        dtdt = dtdt - sin_ks * matrix::column_wise_cross(I33, _h0);
 
         getter::set_block(ret, dtdt, e_free_dir0, e_free_dir0);
 
@@ -241,9 +237,9 @@ class helix {
         getter::set_block(ret, drdl, e_free_pos0, e_free_qoverp);
 
         // Get dtdl
-        vector3_type dtdl =
-            -_B * s *
-            (sin_ks * (H0H0_T - I33) * _t0 + cos_ks * vector::cross(_h0, _t0));
+        vector3_type dtdl = -_B * s *
+                            (sin_ks * ((H0H0_T - I33) * _t0) +
+                             cos_ks * vector::cross(_h0, _t0));
 
         getter::set_block(ret, dtdl, e_free_dir0, e_free_qoverp);
 

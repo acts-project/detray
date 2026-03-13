@@ -93,8 +93,10 @@ GTEST_TEST(detray_detectors, telescope_detector) {
     vecmem::host_memory_resource host_mr;
 
     // B-fields
-    vector3 B_z{0.f, 0.f, 1.f * unit<scalar>::T};
-    vector3 B_x{1.f * unit<scalar>::T, 0.f, 0.f};
+    vector3 B_z{static_cast<scalar>(0.f), static_cast<scalar>(0.f),
+                1.f * unit<scalar>::T};
+    vector3 B_x{1.f * unit<scalar>::T, static_cast<scalar>(0.f),
+                static_cast<scalar>(0.f)};
     b_field_t b_field_z{covfie::make_parameter_pack(
         b_field_t::backend_t::configuration_t{B_z[0], B_z[1], B_z[2]})};
     b_field_t b_field_x{covfie::make_parameter_pack(

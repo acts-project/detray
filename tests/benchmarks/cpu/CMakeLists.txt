@@ -75,6 +75,11 @@ if(DETRAY_EIGEN_PLUGIN)
     detray_add_cpu_benchmark( eigen )
 endif()
 
+# Build the Fastor benchmark executable.
+if(DETRAY_FASTOR_PLUGIN)
+    detray_add_cpu_benchmark( fastor )
+endif()
+
 # Build the SMatrix benchmark executable.
 if(DETRAY_SMATRIX_PLUGIN)
     detray_add_cpu_benchmark( smatrix )

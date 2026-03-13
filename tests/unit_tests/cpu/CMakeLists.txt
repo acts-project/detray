@@ -24,6 +24,7 @@ detray_add_unit_test(cpu
 macro(detray_add_cpu_test algebra)
     # Build the test executable.
     detray_add_unit_test(cpu_${algebra}
+       "algebra/columnwise_operations.cpp"
        "builders/detector_builder.cpp"
        "builders/grid_builder.cpp"
        "builders/homogeneous_volume_material_builder.cpp"
@@ -98,7 +99,6 @@ macro(detray_add_cpu_test algebra)
        "utils/bounding_volume.cpp"
        "utils/curvilinear_frame.cpp"
        "utils/axis_rotation.cpp"
-       "utils/matrix_helper.cpp"
        "utils/quadratic_equation.cpp"
        "utils/unit_vectors.cpp"
        LINK_LIBRARIES GTest::gtest GTest::gtest_main detray::core_${algebra}
@@ -112,6 +112,10 @@ detray_add_cpu_test(array)
 # Build the Eigen tests.
 if(DETRAY_EIGEN_PLUGIN)
     detray_add_cpu_test(eigen)
+endif()
+# Build the Fastor tests.
+if(DETRAY_FASTOR_PLUGIN)
+    detray_add_cpu_test( fastor )
 endif()
 
 # Build the SMatrix tests.

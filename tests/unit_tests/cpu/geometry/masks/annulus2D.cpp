@@ -51,7 +51,7 @@ GTEST_TEST(detray_masks, annulus2D) {
         auto shifted = xy + offset;
         scalar r{vector::perp(shifted)};
         scalar phi{vector::phi(shifted)};
-        return point3{r, phi, 0.f};
+        return point3{r, phi, static_cast<scalar>(0.f)};
     };
 
     mask<annulus2D, test_algebra> ann2{0u,     minR, maxR,      minPhi,

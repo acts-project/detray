@@ -68,7 +68,9 @@ if(CMAKE_CUDA_COMPILER)
 endif()
 
 # Flags controlling which parts of Detray to build.
+option(DETRAY_ARRAY_PLUGIN "Build Fastor math plugin" ON)
 option(DETRAY_EIGEN_PLUGIN "Build Eigen math plugin" OFF)
+option(DETRAY_FASTOR_PLUGIN "Build Fastor math plugin" OFF)
 option(DETRAY_SMATRIX_PLUGIN "Build ROOT/SMatrix math plugin" OFF)
 option(DETRAY_VC_AOS_PLUGIN "Build Vc based AoS math plugin" OFF)
 option(DETRAY_VC_SOA_PLUGIN "Build Vc based SoA math plugin" OFF)
@@ -188,6 +190,7 @@ if(${DETRAY_BUILD_HIP} AND ${CMAKE_HIP_STANDARD} LESS 20)
         "CMAKE_HIP_STANDARD=${CMAKE_HIP_STANDARD}, but detray requires C++>=20"
     )
 endif()
+
 # Set up VecMem.
 option(DETRAY_SETUP_VECMEM "Set up the VecMem target(s) explicitly" TRUE)
 option(
@@ -196,8 +199,15 @@ option(
     ${DETRAY_USE_SYSTEM_LIBS}
 )
 if(DETRAY_SETUP_VECMEM)
+    set(DETRAY_VECMEM_VERSION 1.18.0)
+    set(DETRAY_VECMEM_DIGEST
+        288ec7bb30e209ab5cc2e7f4a209c7ac
+        CACHE STRING
+        "MD5 digest of the downloaded zip"
+    )
+
     if(DETRAY_USE_SYSTEM_VECMEM)
-        find_package(vecmem REQUIRED)
+        find_package(vecmem ${DETRAY_VECMEM_VERSION} REQUIRED)
     else()
         add_subdirectory(extern/vecmem)
         # Make the "VecMem language code" available for the whole project.
@@ -208,22 +218,107 @@ endif()
 # Check if HIP is available
 include(vecmem-check-language)
 
-# Set up Algebra Plugins.
+# Set up JSON for I/O
 option(
-    DETRAY_SETUP_ALGEBRA_PLUGINS
-    "Set up the Algebra Plugins target(s) explicitly"
+    DETRAY_SETUP_NLOHMANN
+    "Set up the nlohmann::json target(s) explicitly"
     TRUE
 )
 option(
-    DETRAY_USE_SYSTEM_ALGEBRA_PLUGINS
-    "Pick up an existing installation of Algebra Plugins from the build environment"
+    DETRAY_USE_SYSTEM_NLOHMANN
+    "Pick up an existing installation of nlohman::json from the build environment"
     ${DETRAY_USE_SYSTEM_LIBS}
 )
-if(DETRAY_SETUP_ALGEBRA_PLUGINS)
-    if(DETRAY_USE_SYSTEM_ALGEBRA_PLUGINS)
-        find_package(algebra-plugins REQUIRED)
+if(DETRAY_SETUP_NLOHMANN)
+    set(DETRAY_NLOHMANN_VERSION 3.11.3)
+    set(DETRAY_NLOHMANN_DIGEST
+        2074caa675f8097d9b03c0f4976ffc3410170937
+        CACHE STRING
+        "SHA1 digest of the downloaded zip"
+    )
+
+    if(DETRAY_USE_SYSTEM_NLOHMANN)
+        find_package(nlohmann_json ${DETRAY_NLOHMANN_VERSION} REQUIRED)
     else()
-        add_subdirectory(extern/algebra-plugins)
+        add_subdirectory(extern/nlohmann_json)
+    endif()
+endif()
+
+# Set up Eigen3.
+option(
+    DETRAY_SETUP_EIGEN3
+    "Set up the Eigen3 target(s) explicitly"
+    ${DETRAY_EIGEN_PLUGIN}
+)
+option(
+    DETRAY_USE_SYSTEM_EIGEN3
+    "Pick up an existing installation of Eigen3 from the build environment"
+    ${DETRAY_USE_SYSTEM_LIBS}
+)
+if(DETRAY_SETUP_EIGEN3)
+    set(DETRAY_EIGEN_VERSION 3.4.0)
+    set(DETRAY_EIGEN_DIGEST
+        132dde48fe2b563211675626d29f1707
+        CACHE STRING
+        "MD5 digest of the downloaded zip"
+    )
+
+    if(DETRAY_USE_SYSTEM_EIGEN3)
+        find_package(Eigen3 REQUIRED)
+    else()
+        add_subdirectory(extern/eigen3)
+    endif()
+endif()
+
+# Set up Fastor.
+option(
+    DETRAY_SETUP_FASTOR
+    "Set up the Fastor target(s) explicitly"
+    ${DETRAY_FASTOR_PLUGIN}
+)
+option(
+    DETRAY_USE_SYSTEM_FASTOR
+    "Pick up an existing installation of Fastor from the build environment"
+    ${DETRAY_USE_SYSTEM_LIBS}
+)
+if(DETRAY_SETUP_FASTOR)
+    set(DETRAY_FASTOR_VERSION 0.6.4)
+    set(DETRAY_FASTOR_DIGEST
+        0644a0bf6337e0ffc9e0173be757aa45
+        CACHE STRING
+        "MD5 digest of the downloaded zip"
+    )
+
+    if(DETRAY_USE_SYSTEM_FASTOR)
+        find_package(Fastor ${DETRAY_FASTOR_VERSION} REQUIRED)
+    else()
+        add_subdirectory(extern/fastor)
+    endif()
+endif()
+
+# Set up Vc.
+if(DETRAY_VC_AOS_PLUGIN OR DETRAY_VC_SOA_PLUGIN)
+    set(DETRAY_VC_PLUGIN ON)
+endif()
+
+option(DETRAY_SETUP_VC "Set up the Vc target(s) explicitly" ${DETRAY_VC_PLUGIN})
+option(
+    DETRAY_USE_SYSTEM_VC
+    "Pick up an existing installation of Vc from the build environment"
+    ${DETRAY_USE_SYSTEM_LIBS}
+)
+if(DETRAY_SETUP_VC)
+    set(DETRAY_VC_VERSION 1.4.5)
+    set(DETRAY_VC_DIGEST
+        03831cbf0921a10322d8baf08001cbf5
+        CACHE STRING
+        "MD5 digest of the downloaded zip"
+    )
+
+    if(DETRAY_USE_SYSTEM_VC)
+        find_package(Vc ${DETRAY_VC_VERSION} REQUIRED)
+    else()
+        add_subdirectory(extern/vc)
     endif()
 endif()
 
@@ -239,29 +334,22 @@ option(
     ${DETRAY_USE_SYSTEM_LIBS}
 )
 if(DETRAY_SETUP_ACTSVG)
+    set(DETRAY_ACTSVG_VERSION 0.4.57)
+    set(DETRAY_ACTSVG_DIGEST
+        5136e50ff2d78f0b1ff83a56be6a1954
+        CACHE STRING
+        "MD5 digest of the downloaded zip"
+    )
+
     if(DETRAY_USE_SYSTEM_ACTSVG)
-        find_package(actsvg REQUIRED COMPONENTS core meta)
+        find_package(
+            actsvg
+            ${DETRAY_ACTSVG_VERSION}
+            REQUIRED
+            COMPONENTS core meta
+        )
     else()
         add_subdirectory(extern/actsvg)
-    endif()
-endif()
-
-# Set up JSON for I/O
-option(
-    DETRAY_SETUP_NLOHMANN
-    "Set up the nlohmann::json target(s) explicitly"
-    TRUE
-)
-option(
-    DETRAY_USE_SYSTEM_NLOHMANN
-    "Pick up an existing installation of nlohman::json from the build environment"
-    ${DETRAY_USE_SYSTEM_LIBS}
-)
-if(DETRAY_SETUP_NLOHMANN)
-    if(DETRAY_USE_SYSTEM_NLOHMANN)
-        find_package(nlohmann_json REQUIRED)
-    else()
-        add_subdirectory(extern/nlohmann_json)
     endif()
 endif()
 
@@ -277,6 +365,13 @@ option(
     ${DETRAY_USE_SYSTEM_LIBS}
 )
 if(DETRAY_SETUP_GOOGLETEST)
+    set(DETRAY_GOOGLETEST_VERSION 1.14.0)
+    set(DETRAY_GOOGLETEST_DIGEST
+        c8340a482851ef6a3fe618a082304cfc
+        CACHE STRING
+        "MD5 digest of the downloaded zip"
+    )
+
     if(DETRAY_USE_SYSTEM_GOOGLETEST)
         find_package(GTest REQUIRED)
     else()
@@ -296,8 +391,15 @@ option(
     ${DETRAY_USE_SYSTEM_LIBS}
 )
 if(DETRAY_SETUP_BENCHMARK)
+    set(DETRAY_BENCHMARK_VERSION 1.9.1)
+    set(DETRAY_BENCHMARK_DIGEST
+        92000ef8b4a7b1e9229972f8943070a7
+        CACHE STRING
+        "MD5 digest of the downloaded zip"
+    )
+
     if(DETRAY_USE_SYSTEM_BENCHMARK)
-        find_package(benchmark REQUIRED)
+        find_package(benchmark ${DETRAY_BENCHMARK_VERSION} REQUIRED)
     else()
         add_subdirectory(extern/benchmark)
     endif()
@@ -318,8 +420,15 @@ option(
     ${DETRAY_USE_SYSTEM_LIBS}
 )
 if(DETRAY_SETUP_COVFIE)
+    set(DETRAY_COVFIE_VERSION 0.15.3)
+    set(DETRAY_COVFIE_DIGEST
+        a76d094e082b75d09a146cdacdd2a189
+        CACHE STRING
+        "MD5 digest of the downloaded zip"
+    )
+
     if(DETRAY_USE_SYSTEM_COVFIE)
-        find_package(covfie 0.5.0 REQUIRED)
+        find_package(covfie ${DETRAY_COVFIE_VERSION} REQUIRED)
     else()
         add_subdirectory(extern/covfie)
     endif()

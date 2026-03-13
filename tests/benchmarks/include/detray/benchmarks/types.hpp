@@ -23,11 +23,17 @@ using algebra = detray::array<DETRAY_CUSTOM_SCALARTYPE>;
 #elif DETRAY_ALGEBRA_EIGEN
 using algebra = detray::eigen<DETRAY_CUSTOM_SCALARTYPE>;
 
+#elif DETRAY_ALGEBRA_FASTOR
+using algebra = detray::fastor<DETRAY_CUSTOM_SCALARTYPE>;
+
 #elif DETRAY_ALGEBRA_SMATRIX
 using algebra = detray::smatrix<DETRAY_CUSTOM_SCALARTYPE>;
 
 #elif DETRAY_ALGEBRA_VC_AOS
 using algebra = detray::vc_aos<DETRAY_CUSTOM_SCALARTYPE>;
+#else
+#error \
+    "No algebra plugin selected for benchmarks! Please link to one of the algebra plugins."
 #endif
 
 // Test algebra types

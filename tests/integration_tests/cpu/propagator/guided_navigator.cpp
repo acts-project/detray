@@ -77,7 +77,8 @@ GTEST_TEST(detray_navigation, guided_navigator) {
     const point3 pos{0.f, 0.f, 0.f};
     const vector3 mom{0.f, 0.f, 1.f};
     free_track_parameters<test_algebra> track(pos, 0.f, mom, -1.f);
-    const vector3 B{0.f, 0.f, 1.f * unit<scalar>::T};
+    const vector3 B{static_cast<scalar>(0.f), static_cast<scalar>(0.f),
+                    1.f * unit<scalar>::T};
     const b_field_t b_field = create_const_field<scalar>(B);
 
     // Actors

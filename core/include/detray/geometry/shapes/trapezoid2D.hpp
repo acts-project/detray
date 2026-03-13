@@ -237,7 +237,7 @@ class trapezoid2D {
         const scalar_t y{2.f * h_2 * (2.f * a_2 + b_2) * 1.f /
                          (3.f * (a_2 + b_2))};
 
-        return {0.f, y - h_2, 0.f};
+        return {scalar_t(0), y - h_2, scalar_t(0)};
     }
 
     /// Generate vertices in local cartesian frame
@@ -253,13 +253,17 @@ class trapezoid2D {
         using point3_t = dpoint3D<algebra_t>;
 
         // left hand lower corner
-        point3_t lh_lc{-bounds[e_half_length_0], -bounds[e_half_length_2], 0.f};
+        point3_t lh_lc{-bounds[e_half_length_0], -bounds[e_half_length_2],
+                       static_cast<dscalar<algebra_t>>(0.f)};
         // right hand lower corner
-        point3_t rh_lc{bounds[e_half_length_0], -bounds[e_half_length_2], 0.f};
+        point3_t rh_lc{bounds[e_half_length_0], -bounds[e_half_length_2],
+                       static_cast<dscalar<algebra_t>>(0.f)};
         // right hand upper corner
-        point3_t rh_uc{bounds[e_half_length_1], bounds[e_half_length_2], 0.f};
+        point3_t rh_uc{bounds[e_half_length_1], bounds[e_half_length_2],
+                       static_cast<dscalar<algebra_t>>(0.f)};
         // left hand upper corner
-        point3_t lh_uc{-bounds[e_half_length_1], bounds[e_half_length_2], 0.f};
+        point3_t lh_uc{-bounds[e_half_length_1], bounds[e_half_length_2],
+                       static_cast<dscalar<algebra_t>>(0.f)};
 
         // Return the confining vertices
         return {lh_lc, rh_lc, rh_uc, lh_uc};

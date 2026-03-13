@@ -26,6 +26,10 @@ static constexpr char filenames[] = "array-";
 using algebra = detray::eigen<DETRAY_CUSTOM_SCALARTYPE>;
 static constexpr char filenames[] = "eigen-";
 
+#elif DETRAY_ALGEBRA_FASTOR
+using algebra = detray::fastor<DETRAY_CUSTOM_SCALARTYPE>;
+static constexpr char filenames[] = "fastor-";
+
 #elif DETRAY_ALGEBRA_SMATRIX
 using algebra = detray::smatrix<DETRAY_CUSTOM_SCALARTYPE>;
 static constexpr char filenames[] = "smatrix-";
@@ -33,6 +37,9 @@ static constexpr char filenames[] = "smatrix-";
 #elif DETRAY_ALGEBRA_VC_AOS
 using algebra = detray::vc_aos<DETRAY_CUSTOM_SCALARTYPE>;
 static constexpr char filenames[] = "vc_aos-";
+#else
+#error \
+    "No algebra plugin selected for tests! Please link to one of the algebra plugins."
 #endif
 
 // Test algebra types

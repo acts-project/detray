@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "algebra/type_traits.hpp"
+#include "detray/algebra/type_traits.hpp"
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 
@@ -18,12 +18,12 @@ namespace detray::detail {
 template <typename C_t, typename J_full_t, typename new_C_t>
 DETRAY_HOST_DEVICE void inline transport_covariance_to_bound_impl(
     const C_t& C, const J_full_t& J_full, new_C_t& new_C)
-    requires((algebra::concepts::square_matrix<C_t> &&
-              algebra::traits::rank<C_t> == 6) &&
-             (algebra::concepts::square_matrix<J_full_t> &&
-              algebra::traits::rank<J_full_t> == 6) &&
-             (algebra::concepts::square_matrix<new_C_t> &&
-              algebra::traits::rank<new_C_t> == 6))
+    requires((detray::concepts::square_matrix<C_t> &&
+              detray::traits::max_rank<C_t> == 6) &&
+             (detray::concepts::square_matrix<J_full_t> &&
+              detray::traits::max_rank<J_full_t> == 6) &&
+             (detray::concepts::square_matrix<new_C_t> &&
+              detray::traits::max_rank<new_C_t> == 6))
 {
     assert(getter::element(J_full, 0u, 5u) == 0.f);
     assert(getter::element(J_full, 1u, 5u) == 0.f);

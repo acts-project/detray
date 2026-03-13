@@ -79,7 +79,7 @@ GTEST_TEST(detray_coordinates, concentric_cylindrical2D) {
     const transform3 trf{};
     // Global position on surface
     const point3 global1 = {constant<scalar>::sqrt2, constant<scalar>::sqrt2,
-                            9.f};
+                            static_cast<scalar>(9.f)};
     const scalar r{2.f};
 
     const concentric_cylindrical2D<test_algebra> c2;

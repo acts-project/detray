@@ -16,7 +16,6 @@
 #include "detray/navigation/policies.hpp"
 #include "detray/propagator/base_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
-#include "detray/utils/matrix_helper.hpp"
 
 namespace detray {
 enum class rk_stepper_flags : std::uint32_t {
@@ -651,8 +650,6 @@ class rk_stepper final
         /// matrix dGdu' (due to the missing Lambda part) and only exists for
         /// dFdu' in dlambda/dlambda.
 
-        using mat_helper = matrix_helper<algebra_t>;
-
         const scalar_type h{stepping.step_size()};
         const scalar_type h2{h * h};
         const scalar_type half_h{h * 0.5f};
@@ -842,23 +839,23 @@ class rk_stepper final
             darray<matrix_type<3u, 3u>, 4u> dkndt{I33, I33, I33, I33};
 
             // dk1/dt1
-            dkndt[0u] = sd.qop[0u] *
-                        mat_helper().column_wise_cross(dkndt[0u], sd.b_first);
+            dkndt[0u] =
+                sd.qop[0u] * matrix::column_wise_cross(dkndt[0u], sd.b_first);
 
             // dk2/dt1
             dkndt[1u] = dkndt[1u] + half_h * dkndt[0u];
-            dkndt[1u] = sd.qop[1u] *
-                        mat_helper().column_wise_cross(dkndt[1u], sd.b_middle);
+            dkndt[1u] =
+                sd.qop[1u] * matrix::column_wise_cross(dkndt[1u], sd.b_middle);
 
             // dk3/dt1
             dkndt[2u] = dkndt[2u] + half_h * dkndt[1u];
-            dkndt[2u] = sd.qop[2u] *
-                        mat_helper().column_wise_cross(dkndt[2u], sd.b_middle);
+            dkndt[2u] =
+                sd.qop[2u] * matrix::column_wise_cross(dkndt[2u], sd.b_middle);
 
             // dk4/dt1
             dkndt[3u] = dkndt[3u] + h * dkndt[2u];
-            dkndt[3u] = sd.qop[3u] *
-                        mat_helper().column_wise_cross(dkndt[3u], sd.b_last);
+            dkndt[3u] =
+                sd.qop[3u] * matrix::column_wise_cross(dkndt[3u], sd.b_last);
 
             dFdt = dFdt + h_6 * (dkndt[0u] + dkndt[1u] + dkndt[2u]);
             dFdt = h * dFdt;
@@ -897,32 +894,32 @@ class rk_stepper final
                 const auto I33 = matrix::identity<matrix_type<3, 3>>();
 
                 // dk1/dr1
-                dkndr[0u] = -sd.qop[0u] *
-                            mat_helper().column_wise_cross(dBdr_ini, sd.t[0u]);
+                dkndr[0u] =
+                    -sd.qop[0u] * matrix::column_wise_cross(dBdr_ini, sd.t[0u]);
 
                 const auto dkndr0_tmp = (I33 + h2 * 0.125f * dkndr[0u]);
 
                 // dk2/dr1
-                dkndr[1u] = sd.qop[1u] * mat_helper().column_wise_cross(
+                dkndr[1u] = sd.qop[1u] * matrix::column_wise_cross(
                                              half_h * dkndr[0u], sd.b_middle);
                 dkndr[1u] = dkndr[1u] -
-                            sd.qop[1u] * mat_helper().column_wise_cross(
+                            sd.qop[1u] * matrix::column_wise_cross(
                                              dBdr_mid * dkndr0_tmp, sd.t[1u]);
 
                 // dk3/dr1
-                dkndr[2u] = sd.qop[2u] * mat_helper().column_wise_cross(
+                dkndr[2u] = sd.qop[2u] * matrix::column_wise_cross(
                                              half_h * dkndr[1u], sd.b_middle);
                 dkndr[2u] = dkndr[2u] -
-                            sd.qop[2u] * mat_helper().column_wise_cross(
+                            sd.qop[2u] * matrix::column_wise_cross(
                                              dBdr_mid * dkndr0_tmp, sd.t[2u]);
 
                 // dk4/dr1
-                dkndr[3u] = sd.qop[3u] * mat_helper().column_wise_cross(
-                                             h * dkndr[2u], sd.b_last);
+                dkndr[3u] = sd.qop[3u] *
+                            matrix::column_wise_cross(h * dkndr[2u], sd.b_last);
                 dkndr[3u] =
                     dkndr[3u] -
                     sd.qop[3u] *
-                        mat_helper().column_wise_cross(
+                        matrix::column_wise_cross(
                             dBdr_fin * (I33 + h2 * 0.5f * dkndr[2u]), sd.t[3u]);
 
                 // Set dF/dr1 and dG/dr1

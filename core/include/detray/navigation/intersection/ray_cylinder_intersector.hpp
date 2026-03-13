@@ -27,7 +27,7 @@ template <typename frame_t, concepts::algebra algebra_t, bool resolve_pos>
 struct ray_intersector_impl;
 
 /// A functor to find intersections between a ray and a 2D cylinder mask
-template <algebra::concepts::aos algebra_t, bool resolve_pos>
+template <detray::concepts::aos algebra_t, bool resolve_pos>
 struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, resolve_pos> {
 
     using algebra_type = algebra_t;
@@ -83,7 +83,7 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, resolve_pos> {
                 results[0].point = ray.pos() + qe.smaller() * ray.dir();
                 break;
             }
-            [[unlikely]] case 0: { /* Do nothing */
+            [[unlikely]] default: { /* Do nothing */
             }
         }
 

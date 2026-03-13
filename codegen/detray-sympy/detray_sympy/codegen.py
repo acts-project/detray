@@ -6,32 +6,32 @@ from detray_sympy.common import (
 
 def render_dim_requirement(name, j):
     if not hasattr(j, "shape"):
-        return "(algebra::concepts::scalar<%s_t>)" % (name)
+        return "(detray::concepts::scalar<%s_t>)" % (name)
     # HACK: This is for the 8x1 path-to-free matrix.
     elif len(j.shape) == 1 or (
         len(j.shape) == 2 and j.shape[1] == 1 and j.shape[0] <= 3
     ):
         if j.shape[0] == 3:
-            return "(algebra::concepts::vector3D<%s_t>)" % (name)
+            return "(detray::concepts::vector3D<%s_t>)" % (name)
         else:
             return (
-                "(algebra::concepts::vector<%s_t> && algebra::traits::rows<%s_t> == %d)"
+                "(detray::concepts::vector<%s_t> && detray::traits::rows<%s_t> == %d)"
                 % (name, name, j.shape[0])
             )
     elif len(j.shape) == 2:
         if j.shape[0] == j.shape[1]:
             return (
-                "(algebra::concepts::square_matrix<%s_t> && algebra::traits::rank<%s_t> == %d)"
+                "(detray::concepts::square_matrix<%s_t> && detray::traits::max_rank<%s_t> == %d)"
                 % (name, name, j.shape[0])
             )
         elif j.shape[0] == 1:
             return (
-                "(algebra::concepts::row_matrix<%s_t> && algebra::traits::columns<%s_t> == %d)"
+                "(detray::concepts::row_matrix<%s_t> && detray::traits::columns<%s_t> == %d)"
                 % (name, name, j.shape[1])
             )
         else:
             return (
-                "(algebra::concepts::matrix<%s_t> && algebra::traits::rows<%s_t> == %d && algebra::traits::columns<%s_t> == %d)"
+                "(detray::concepts::matrix<%s_t> && detray::traits::rows<%s_t> == %d && detray::traits::columns<%s_t> == %d)"
                 % (name, name, j.shape[0], name, j.shape[1])
             )
 

@@ -1,46 +1,29 @@
 # Detray library, part of the ACTS project (R&D line)
 #
-# (c) 2024 CERN for the benefit of the ACTS project
+# (c) 2023-2026 CERN for the benefit of the ACTS project
 #
 # Mozilla Public License Version 2.0
 
-message(STATUS "Building the 'detray::algebra_vc_soa' plugin")
+message(STATUS "Building the Vc SoA algebra plugin")
 
-# A sanity check.
-if(NOT ALGEBRA_PLUGINS_INCLUDE_VC)
-    message(
-        WARNING
-        "Vc not available from Algebra Plugins. "
-        "The configuration will likely fail."
-    )
-endif()
-
-include(detray-compiler-options-cpp)
-
-# Use the preferred compiler flags from Vc for the entire project.
-vc_set_preferred_compiler_flags()
-
-# Set up the SoA library.
+# Set up the library.
 detray_add_library( detray_algebra_vc_soa algebra_vc_soa
-   "include/detray/plugins/algebra/vc_soa_definitions.hpp"
+   "include/algebra/vc_soa.hpp"
+   "include/algebra/impl/*.hpp"
 )
+
 target_link_libraries(
     detray_algebra_vc_soa
-    INTERFACE algebra::utils algebra::vc_soa vecmem::core
+    INTERFACE Vc::Vc detray::algebra_vc_aos
 )
+
 target_compile_definitions(
     detray_algebra_vc_soa
     INTERFACE
         DETRAY_CUSTOM_SCALARTYPE=${DETRAY_CUSTOM_SCALARTYPE}
         DETRAY_ALGEBRA_VC_SOA
-        ${Vc_DEFINITIONS}
-)
-target_compile_options(
-    detray_algebra_vc_soa
-    INTERFACE ${Vc_COMPILE_FLAGS} ${Vc_ARCHITECTURE_FLAGS}
 )
 
-# Set up tests for the public header(s) of detray::algebra_vc_soa.
 detray_test_public_headers( detray_algebra_vc_soa
-   "detray/plugins/algebra/vc_soa_definitions.hpp"
+   "algebra/vc_soa.hpp"
 )
