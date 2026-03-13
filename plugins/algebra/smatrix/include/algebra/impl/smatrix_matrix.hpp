@@ -51,8 +51,9 @@ DETRAY_HOST_DEVICE constexpr matrix_type<scalar_t, COLS, ROWS> transpose(
 }
 
 /// Column-wise cross product
+/// @{
 template <unsigned int ROWS, unsigned int COLS, concepts::scalar scalar_t>
-    requires(ROWS == 3 && COLS == 3)
+    requires(ROWS == 3)
 DETRAY_HOST_DEVICE constexpr matrix_type<scalar_t, ROWS, COLS>
 column_wise_cross(const ROOT::Math::SMatrix<scalar_t, ROWS, COLS> &m,
                   const ROOT::Math::SVector<scalar_t, ROWS> &v) {
@@ -67,20 +68,20 @@ column_wise_cross(const ROOT::Math::SMatrix<scalar_t, ROWS, COLS> &m,
     return ret;
 }
 
-/// Column-wise cross product
 template <typename OP, unsigned int ROWS, unsigned int COLS,
           concepts::scalar scalar_t,
           typename R = ROOT::Math::MatRepStd<scalar_t, ROWS, COLS>>
-    requires(ROWS == 3 && COLS == 3)
+    requires(ROWS == 3)
 DETRAY_HOST_DEVICE constexpr matrix_type<scalar_t, ROWS, COLS>
 column_wise_cross(const ROOT::Math::Expr<OP, scalar_t, ROWS, COLS, R> &m,
                   const ROOT::Math::SVector<scalar_t, ROWS> &v) {
-
     return column_wise_cross(static_cast<matrix_type<scalar_t, ROWS, COLS>>(m),
                              v);
 }
+/// @}
 
 /// Column-wise product
+/// @{
 template <unsigned int ROWS, unsigned int COLS, concepts::scalar scalar_t>
 DETRAY_HOST_DEVICE constexpr matrix_type<scalar_t, ROWS, COLS>
 column_wise_multiply(const ROOT::Math::SMatrix<scalar_t, ROWS, COLS> &m,
@@ -99,14 +100,13 @@ column_wise_multiply(const ROOT::Math::SMatrix<scalar_t, ROWS, COLS> &m,
 template <typename OP, unsigned int ROWS, unsigned int COLS,
           concepts::scalar scalar_t,
           typename R = ROOT::Math::MatRepStd<scalar_t, ROWS, COLS>>
-    requires(ROWS == 3 && COLS == 3)
 DETRAY_HOST_DEVICE constexpr matrix_type<scalar_t, ROWS, COLS>
 column_wise_multiply(const ROOT::Math::Expr<OP, scalar_t, ROWS, COLS, R> &m,
                      const ROOT::Math::SVector<scalar_t, ROWS> &v) {
-
     return column_wise_multiply(
         static_cast<matrix_type<scalar_t, ROWS, COLS>>(m), v);
 }
+/// @}
 
 /// Outer product of two vectors
 template <unsigned int ROWS, concepts::scalar scalar_t>

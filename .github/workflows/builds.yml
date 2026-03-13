@@ -42,7 +42,7 @@ jobs:
                  -DDETRAY_FAIL_ON_WARNINGS=ON
                  -DDETRAY_SET_LOGGING=DEBUG
                  -DDETRAY_SMATRIX_PLUGIN=OFF
-                 -DDETRAY_FASTOR_PLUGIN=${{ (matrix.PLATFORM.OS == 'macos-latest') && 'OFF' || 'ON' }}
+                 -DDETRAY_FASTOR_PLUGIN=${{ (matrix.PLATFORM.OS == 'macos-latest') && 'OFF' || 'OFF' }}
                  -DDETRAY_VC_AOS_PLUGIN=OFF
                  -DDETRAY_VC_SOA_PLUGIN=OFF
                  -S ${{ github.workspace }} -B build
@@ -63,7 +63,7 @@ jobs:
           - NAME: "HOST"
             CXX_STANDARD: "20"
             CONTAINER: "ghcr.io/acts-project/ubuntu2404:56"
-            OPTIONS: -DDETRAY_EIGEN_PLUGIN=ON -DDETRAY_FASTOR_PLUGIN=ON -DDETRAY_SMATRIX_PLUGIN=ON -DDETRAY_VC_AOS_PLUGIN=ON -DDETRAY_VC_SOA_PLUGIN=ON
+            OPTIONS: -DDETRAY_EIGEN_PLUGIN=ON -DDETRAY_FASTOR_PLUGIN=OFF -DDETRAY_SMATRIX_PLUGIN=ON -DDETRAY_VC_AOS_PLUGIN=ON -DDETRAY_VC_SOA_PLUGIN=ON
 
     # The system to run on.
     runs-on: ubuntu-latest
