@@ -47,7 +47,7 @@ struct propagator {
     using bound_track_parameters_type =
         typename stepper_t::bound_track_parameters_type;
 
-    propagation::config m_cfg;
+    const propagation::config &m_cfg;
 
     stepper_t m_stepper;
     navigator_t m_navigator;
