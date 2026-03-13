@@ -15,10 +15,16 @@
 #include "algebra/fastor.hpp"
 #elif DETRAY_ALGEBRA_SMATRIX
 #include "algebra/smatrix.hpp"
-#elif DETRAY_ALGEBRA_VC_AOS
+#elif DETRAY_ALGEBRA_VC_AOS || DETRAY_ALGEBRA_VC_SOA
+
+#if DETRAY_ALGEBRA_VC_AOS
 #include "algebra/vc_aos.hpp"
-#elif DETRAY_ALGEBRA_VC_SOA
+#endif
+
+#if DETRAY_ALGEBRA_VC_SOA
 #include "algebra/vc_soa.hpp"
+#endif
+
 #else
 #error "No algebra plugin selected! Please link to one of the algebra plugins."
 #endif
@@ -52,6 +58,9 @@ using dpoint2D = get_point2D_t<A>;
 
 template <typename A>
 using dpoint3D = get_point3D_t<A>;
+
+template <typename A>
+using dvector2D = get_vector2D_t<A>;
 
 template <typename A>
 using dvector3D = get_vector3D_t<A>;

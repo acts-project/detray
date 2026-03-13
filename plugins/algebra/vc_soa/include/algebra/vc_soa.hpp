@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "algebra/impl/vc_aos_approximately_equal.hpp"
 #include "algebra/impl/vc_soa_boolean.hpp"
 #include "algebra/impl/vc_soa_casts.hpp"
 #include "algebra/impl/vc_soa_getter.hpp"

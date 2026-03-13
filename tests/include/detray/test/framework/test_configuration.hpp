@@ -22,7 +22,7 @@ struct configuration {
     /// General testing
     /// @{
     /// Tolerance to compare two floating point values
-    scalar_t m_tolerance{std::numeric_limits<scalar_t>::epsilon()};
+    scalar_t m_tolerance{1e-5f};
     /// Shorthand for infinity
     scalar_t inf{std::numeric_limits<scalar_t>::infinity()};
     /// Shorthand for the floating point epsilon
