@@ -11,11 +11,24 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/utils/concepts.hpp"
+#include "detray/utils/ranges/detail/iterator_functions.hpp"
 #include "detray/utils/ranges/ranges.hpp"
 
 // System include(s)
+#include <concepts>
 #include <iterator>
 #include <type_traits>
+
+namespace detray::concepts {
+template <typename T>
+concept random_access_incrementable = requires(T i, const T j, int n) {
+    { i += n } -> std::same_as<T &>;
+    { j + n } -> std::same_as<T>;
+    { n + j } -> std::same_as<T>;
+    { i -= n } -> std::same_as<T &>;
+    { j - n } -> std::same_as<T>;
+};
+}  // namespace detray::concepts
 
 namespace detray::ranges {
 
@@ -30,16 +43,20 @@ namespace detray::ranges {
 /// @note Is not fit for lazy evaluation.
 template <std::incrementable incr_t>
 class iota_view : public detray::ranges::view_interface<iota_view<incr_t>> {
+    static_assert(concepts::random_access_incrementable<incr_t>);
 
     private:
     /// @brief Nested iterator to generate a range of values on demand.
     struct iterator {
-
         using difference_type = std::ptrdiff_t;
         using value_type = incr_t;
         using pointer = incr_t *;
         using reference = incr_t;
-        using iterator_category = detray::ranges::bidirectional_iterator_tag;
+        using iterator_category =
+            std::conditional_t<concepts::random_access_incrementable<incr_t> &&
+                                   std::totally_ordered<incr_t>,
+                               detray::ranges::random_access_iterator_tag,
+                               detray::ranges::bidirectional_iterator_tag>;
 
         constexpr iterator()
             requires std::default_initializable<incr_t>
@@ -72,6 +89,50 @@ class iota_view : public detray::ranges::view_interface<iota_view<incr_t>> {
             --(*this);
             return tmp;
         }
+
+        DETRAY_HOST_DEVICE constexpr iterator &operator+=(
+            const difference_type n)
+            requires concepts::random_access_incrementable<incr_t>
+        {
+            m_i += n;
+            return *this;
+        }
+
+        DETRAY_HOST_DEVICE friend constexpr iterator operator+(
+            const iterator &i, const difference_type n)
+            requires concepts::random_access_incrementable<incr_t>
+        {
+            return iterator(i.m_i + n);
+        }
+
+        DETRAY_HOST_DEVICE friend constexpr iterator operator+(
+            const difference_type n, const iterator &i)
+            requires concepts::random_access_incrementable<incr_t>
+        {
+            return iterator(i.m_i + n);
+        }
+
+        DETRAY_HOST_DEVICE constexpr iterator &operator-=(
+            const difference_type n)
+            requires concepts::random_access_incrementable<incr_t>
+        {
+            m_i -= n;
+            return *this;
+        }
+
+        DETRAY_HOST_DEVICE friend constexpr iterator operator-(
+            const iterator &i, const difference_type n)
+            requires concepts::random_access_incrementable<incr_t>
+        {
+            return iterator(i.m_i - n);
+        }
+
+        DETRAY_HOST_DEVICE friend constexpr difference_type operator-(
+            const iterator &i, const iterator &j)
+            requires concepts::random_access_incrementable<incr_t>
+        {
+            return i.m_i - j.m_i;
+        }
         /// @}
 
         /// @returns the current value in the sequence - copy
@@ -81,11 +142,26 @@ class iota_view : public detray::ranges::view_interface<iota_view<incr_t>> {
             return m_i;
         }
 
+        DETRAY_HOST_DEVICE
+        constexpr incr_t operator[](const difference_type n) const
+            requires concepts::random_access_incrementable<incr_t>
+        {
+            return static_cast<incr_t>(m_i + n);
+        }
+
         private:
         /// @returns true if incremetables are the same
         DETRAY_HOST_DEVICE
         friend constexpr bool operator==(const iterator &lhs,
                                          const iterator &rhs) = default;
+
+        DETRAY_HOST_DEVICE
+        friend constexpr auto operator<=>(const iterator &lhs,
+                                          const iterator &rhs)
+            requires std::totally_ordered<incr_t>
+        {
+            return lhs.m_i <=> rhs.m_i;
+        };
 
         /// Current value of sequence
         incr_t m_i{};
