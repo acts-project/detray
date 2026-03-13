@@ -25,6 +25,17 @@ target_compile_definitions(
         DETRAY_ALGEBRA_FASTOR
 )
 
+# HACK: Fastor really requires FMA to be enabled, so we turn it on
+# unconditionally. In Debug mode, it also requires at least -O1 and
+# -fexpensive-optimizations.
+target_compile_options(
+    detray_algebra_fastor
+    INTERFACE
+        "-mfma"
+        "$<$<CONFIG:Debug>:-O1>"
+        "$<$<CONFIG:Debug>:-fexpensive-optimizations>"
+)
+
 detray_test_public_headers( detray_algebra_fastor
    "algebra/fastor.hpp"
 )
