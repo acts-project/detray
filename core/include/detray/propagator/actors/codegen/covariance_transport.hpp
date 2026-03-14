@@ -25,364 +25,339 @@ DETRAY_HOST_DEVICE void inline transport_covariance_to_bound_impl(
              (detray::concepts::square_matrix<new_C_t> &&
               detray::traits::max_rank<new_C_t> == 6))
 {
-    assert(getter::element(J_full, 0u, 5u) == 0.f);
-    assert(getter::element(J_full, 1u, 5u) == 0.f);
-    assert(getter::element(J_full, 2u, 5u) == 0.f);
-    assert(getter::element(J_full, 3u, 5u) == 0.f);
-    assert(getter::element(J_full, 4u, 0u) == 0.f);
-    assert(getter::element(J_full, 4u, 1u) == 0.f);
-    assert(getter::element(J_full, 4u, 2u) == 0.f);
-    assert(getter::element(J_full, 4u, 3u) == 0.f);
-    assert(getter::element(J_full, 4u, 4u) == 1.f);
-    assert(getter::element(J_full, 4u, 5u) == 0.f);
-    assert(getter::element(J_full, 5u, 5u) == 1.f);
-    const auto x4 =
-        getter::element(C, 4u, 4u) * getter::element(J_full, 0u, 4u);
-    const auto x10 =
-        getter::element(C, 4u, 4u) * getter::element(J_full, 1u, 4u);
-    const auto x16 =
-        getter::element(C, 4u, 4u) * getter::element(J_full, 2u, 4u);
-    const auto x22 =
-        getter::element(C, 4u, 4u) * getter::element(J_full, 3u, 4u);
-    const auto x24 =
-        getter::element(C, 4u, 4u) * getter::element(J_full, 5u, 4u);
-    const auto x0 =
-        getter::element(C, 0u, 0u) * getter::element(J_full, 0u, 0u) +
-        getter::element(C, 1u, 0u) * getter::element(J_full, 0u, 1u) +
-        getter::element(C, 2u, 0u) * getter::element(J_full, 0u, 2u) +
-        getter::element(C, 3u, 0u) * getter::element(J_full, 0u, 3u) +
-        getter::element(C, 4u, 0u) * getter::element(J_full, 0u, 4u);
-    const auto x1 =
-        getter::element(C, 0u, 1u) * getter::element(J_full, 0u, 0u) +
-        getter::element(C, 1u, 1u) * getter::element(J_full, 0u, 1u) +
-        getter::element(C, 2u, 1u) * getter::element(J_full, 0u, 2u) +
-        getter::element(C, 3u, 1u) * getter::element(J_full, 0u, 3u) +
-        getter::element(C, 4u, 1u) * getter::element(J_full, 0u, 4u);
-    const auto x2 =
-        getter::element(C, 0u, 2u) * getter::element(J_full, 0u, 0u) +
-        getter::element(C, 1u, 2u) * getter::element(J_full, 0u, 1u) +
-        getter::element(C, 2u, 2u) * getter::element(J_full, 0u, 2u) +
-        getter::element(C, 3u, 2u) * getter::element(J_full, 0u, 3u) +
-        getter::element(C, 4u, 2u) * getter::element(J_full, 0u, 4u);
-    const auto x3 =
-        getter::element(C, 0u, 3u) * getter::element(J_full, 0u, 0u) +
-        getter::element(C, 1u, 3u) * getter::element(J_full, 0u, 1u) +
-        getter::element(C, 2u, 3u) * getter::element(J_full, 0u, 2u) +
-        getter::element(C, 3u, 3u) * getter::element(J_full, 0u, 3u) +
-        getter::element(C, 4u, 3u) * getter::element(J_full, 0u, 4u);
-    const auto x6 =
-        getter::element(C, 0u, 0u) * getter::element(J_full, 1u, 0u) +
-        getter::element(C, 1u, 0u) * getter::element(J_full, 1u, 1u) +
-        getter::element(C, 2u, 0u) * getter::element(J_full, 1u, 2u) +
-        getter::element(C, 3u, 0u) * getter::element(J_full, 1u, 3u) +
-        getter::element(C, 4u, 0u) * getter::element(J_full, 1u, 4u);
-    const auto x7 =
-        getter::element(C, 0u, 1u) * getter::element(J_full, 1u, 0u) +
-        getter::element(C, 1u, 1u) * getter::element(J_full, 1u, 1u) +
-        getter::element(C, 2u, 1u) * getter::element(J_full, 1u, 2u) +
-        getter::element(C, 3u, 1u) * getter::element(J_full, 1u, 3u) +
-        getter::element(C, 4u, 1u) * getter::element(J_full, 1u, 4u);
-    const auto x8 =
-        getter::element(C, 0u, 2u) * getter::element(J_full, 1u, 0u) +
-        getter::element(C, 1u, 2u) * getter::element(J_full, 1u, 1u) +
-        getter::element(C, 2u, 2u) * getter::element(J_full, 1u, 2u) +
-        getter::element(C, 3u, 2u) * getter::element(J_full, 1u, 3u) +
-        getter::element(C, 4u, 2u) * getter::element(J_full, 1u, 4u);
-    const auto x9 =
-        getter::element(C, 0u, 3u) * getter::element(J_full, 1u, 0u) +
-        getter::element(C, 1u, 3u) * getter::element(J_full, 1u, 1u) +
-        getter::element(C, 2u, 3u) * getter::element(J_full, 1u, 2u) +
-        getter::element(C, 3u, 3u) * getter::element(J_full, 1u, 3u) +
-        getter::element(C, 4u, 3u) * getter::element(J_full, 1u, 4u);
-    const auto x12 =
-        getter::element(C, 0u, 0u) * getter::element(J_full, 2u, 0u) +
-        getter::element(C, 1u, 0u) * getter::element(J_full, 2u, 1u) +
-        getter::element(C, 2u, 0u) * getter::element(J_full, 2u, 2u) +
-        getter::element(C, 3u, 0u) * getter::element(J_full, 2u, 3u) +
-        getter::element(C, 4u, 0u) * getter::element(J_full, 2u, 4u);
-    const auto x13 =
-        getter::element(C, 0u, 1u) * getter::element(J_full, 2u, 0u) +
-        getter::element(C, 1u, 1u) * getter::element(J_full, 2u, 1u) +
-        getter::element(C, 2u, 1u) * getter::element(J_full, 2u, 2u) +
-        getter::element(C, 3u, 1u) * getter::element(J_full, 2u, 3u) +
-        getter::element(C, 4u, 1u) * getter::element(J_full, 2u, 4u);
-    const auto x14 =
-        getter::element(C, 0u, 2u) * getter::element(J_full, 2u, 0u) +
-        getter::element(C, 1u, 2u) * getter::element(J_full, 2u, 1u) +
-        getter::element(C, 2u, 2u) * getter::element(J_full, 2u, 2u) +
-        getter::element(C, 3u, 2u) * getter::element(J_full, 2u, 3u) +
-        getter::element(C, 4u, 2u) * getter::element(J_full, 2u, 4u);
-    const auto x15 =
-        getter::element(C, 0u, 3u) * getter::element(J_full, 2u, 0u) +
-        getter::element(C, 1u, 3u) * getter::element(J_full, 2u, 1u) +
-        getter::element(C, 2u, 3u) * getter::element(J_full, 2u, 2u) +
-        getter::element(C, 3u, 3u) * getter::element(J_full, 2u, 3u) +
-        getter::element(C, 4u, 3u) * getter::element(J_full, 2u, 4u);
-    const auto x18 =
-        getter::element(C, 0u, 0u) * getter::element(J_full, 3u, 0u) +
-        getter::element(C, 1u, 0u) * getter::element(J_full, 3u, 1u) +
-        getter::element(C, 2u, 0u) * getter::element(J_full, 3u, 2u) +
-        getter::element(C, 3u, 0u) * getter::element(J_full, 3u, 3u) +
-        getter::element(C, 4u, 0u) * getter::element(J_full, 3u, 4u);
-    const auto x19 =
-        getter::element(C, 0u, 1u) * getter::element(J_full, 3u, 0u) +
-        getter::element(C, 1u, 1u) * getter::element(J_full, 3u, 1u) +
-        getter::element(C, 2u, 1u) * getter::element(J_full, 3u, 2u) +
-        getter::element(C, 3u, 1u) * getter::element(J_full, 3u, 3u) +
-        getter::element(C, 4u, 1u) * getter::element(J_full, 3u, 4u);
-    const auto x20 =
-        getter::element(C, 0u, 2u) * getter::element(J_full, 3u, 0u) +
-        getter::element(C, 1u, 2u) * getter::element(J_full, 3u, 1u) +
-        getter::element(C, 2u, 2u) * getter::element(J_full, 3u, 2u) +
-        getter::element(C, 3u, 2u) * getter::element(J_full, 3u, 3u) +
-        getter::element(C, 4u, 2u) * getter::element(J_full, 3u, 4u);
-    const auto x21 =
-        getter::element(C, 0u, 3u) * getter::element(J_full, 3u, 0u) +
-        getter::element(C, 1u, 3u) * getter::element(J_full, 3u, 1u) +
-        getter::element(C, 2u, 3u) * getter::element(J_full, 3u, 2u) +
-        getter::element(C, 3u, 3u) * getter::element(J_full, 3u, 3u) +
-        getter::element(C, 4u, 3u) * getter::element(J_full, 3u, 4u);
-    const auto x25 =
-        getter::element(C, 0u, 0u) * getter::element(J_full, 5u, 0u) +
-        getter::element(C, 1u, 0u) * getter::element(J_full, 5u, 1u) +
-        getter::element(C, 2u, 0u) * getter::element(J_full, 5u, 2u) +
-        getter::element(C, 3u, 0u) * getter::element(J_full, 5u, 3u) +
-        getter::element(C, 4u, 0u) * getter::element(J_full, 5u, 4u) +
-        getter::element(C, 5u, 0u);
-    const auto x26 =
-        getter::element(C, 0u, 1u) * getter::element(J_full, 5u, 0u) +
-        getter::element(C, 1u, 1u) * getter::element(J_full, 5u, 1u) +
-        getter::element(C, 2u, 1u) * getter::element(J_full, 5u, 2u) +
-        getter::element(C, 3u, 1u) * getter::element(J_full, 5u, 3u) +
-        getter::element(C, 4u, 1u) * getter::element(J_full, 5u, 4u) +
-        getter::element(C, 5u, 1u);
-    const auto x27 =
-        getter::element(C, 0u, 2u) * getter::element(J_full, 5u, 0u) +
-        getter::element(C, 1u, 2u) * getter::element(J_full, 5u, 1u) +
-        getter::element(C, 2u, 2u) * getter::element(J_full, 5u, 2u) +
-        getter::element(C, 3u, 2u) * getter::element(J_full, 5u, 3u) +
-        getter::element(C, 4u, 2u) * getter::element(J_full, 5u, 4u) +
-        getter::element(C, 5u, 2u);
-    const auto x28 =
-        getter::element(C, 0u, 3u) * getter::element(J_full, 5u, 0u) +
-        getter::element(C, 1u, 3u) * getter::element(J_full, 5u, 1u) +
-        getter::element(C, 2u, 3u) * getter::element(J_full, 5u, 2u) +
-        getter::element(C, 3u, 3u) * getter::element(J_full, 5u, 3u) +
-        getter::element(C, 4u, 3u) * getter::element(J_full, 5u, 4u) +
-        getter::element(C, 5u, 3u);
-    const auto x5 =
-        x4 + getter::element(C, 0u, 4u) * getter::element(J_full, 0u, 0u) +
-        getter::element(C, 1u, 4u) * getter::element(J_full, 0u, 1u) +
-        getter::element(C, 2u, 4u) * getter::element(J_full, 0u, 2u) +
-        getter::element(C, 3u, 4u) * getter::element(J_full, 0u, 3u);
-    const auto x11 =
-        x10 + getter::element(C, 0u, 4u) * getter::element(J_full, 1u, 0u) +
-        getter::element(C, 1u, 4u) * getter::element(J_full, 1u, 1u) +
-        getter::element(C, 2u, 4u) * getter::element(J_full, 1u, 2u) +
-        getter::element(C, 3u, 4u) * getter::element(J_full, 1u, 3u);
-    const auto x17 =
-        x16 + getter::element(C, 0u, 4u) * getter::element(J_full, 2u, 0u) +
-        getter::element(C, 1u, 4u) * getter::element(J_full, 2u, 1u) +
-        getter::element(C, 2u, 4u) * getter::element(J_full, 2u, 2u) +
-        getter::element(C, 3u, 4u) * getter::element(J_full, 2u, 3u);
-    const auto x23 =
-        x22 + getter::element(C, 0u, 4u) * getter::element(J_full, 3u, 0u) +
-        getter::element(C, 1u, 4u) * getter::element(J_full, 3u, 1u) +
-        getter::element(C, 2u, 4u) * getter::element(J_full, 3u, 2u) +
-        getter::element(C, 3u, 4u) * getter::element(J_full, 3u, 3u);
-    const auto x29 =
-        x24 + getter::element(C, 0u, 4u) * getter::element(J_full, 5u, 0u) +
-        getter::element(C, 1u, 4u) * getter::element(J_full, 5u, 1u) +
-        getter::element(C, 2u, 4u) * getter::element(J_full, 5u, 2u) +
-        getter::element(C, 3u, 4u) * getter::element(J_full, 5u, 3u) +
-        getter::element(C, 5u, 4u);
-    getter::element(new_C, 0u, 0u) = x0 * getter::element(J_full, 0u, 0u) +
-                                     x1 * getter::element(J_full, 0u, 1u) +
-                                     x2 * getter::element(J_full, 0u, 2u) +
-                                     x3 * getter::element(J_full, 0u, 3u) +
-                                     x5 * getter::element(J_full, 0u, 4u);
-    getter::element(new_C, 1u, 0u) = x11 * getter::element(J_full, 0u, 4u) +
-                                     x6 * getter::element(J_full, 0u, 0u) +
-                                     x7 * getter::element(J_full, 0u, 1u) +
-                                     x8 * getter::element(J_full, 0u, 2u) +
-                                     x9 * getter::element(J_full, 0u, 3u);
-    getter::element(new_C, 2u, 0u) = x12 * getter::element(J_full, 0u, 0u) +
-                                     x13 * getter::element(J_full, 0u, 1u) +
-                                     x14 * getter::element(J_full, 0u, 2u) +
-                                     x15 * getter::element(J_full, 0u, 3u) +
-                                     x17 * getter::element(J_full, 0u, 4u);
-    getter::element(new_C, 3u, 0u) = x18 * getter::element(J_full, 0u, 0u) +
-                                     x19 * getter::element(J_full, 0u, 1u) +
-                                     x20 * getter::element(J_full, 0u, 2u) +
-                                     x21 * getter::element(J_full, 0u, 3u) +
-                                     x23 * getter::element(J_full, 0u, 4u);
-    getter::element(new_C, 4u, 0u) =
-        x4 + getter::element(C, 4u, 0u) * getter::element(J_full, 0u, 0u) +
-        getter::element(C, 4u, 1u) * getter::element(J_full, 0u, 1u) +
-        getter::element(C, 4u, 2u) * getter::element(J_full, 0u, 2u) +
-        getter::element(C, 4u, 3u) * getter::element(J_full, 0u, 3u);
-    getter::element(new_C, 5u, 0u) = x25 * getter::element(J_full, 0u, 0u) +
-                                     x26 * getter::element(J_full, 0u, 1u) +
-                                     x27 * getter::element(J_full, 0u, 2u) +
-                                     x28 * getter::element(J_full, 0u, 3u) +
-                                     x29 * getter::element(J_full, 0u, 4u);
-    getter::element(new_C, 0u, 1u) = x0 * getter::element(J_full, 1u, 0u) +
-                                     x1 * getter::element(J_full, 1u, 1u) +
-                                     x2 * getter::element(J_full, 1u, 2u) +
-                                     x3 * getter::element(J_full, 1u, 3u) +
-                                     x5 * getter::element(J_full, 1u, 4u);
-    getter::element(new_C, 1u, 1u) = x11 * getter::element(J_full, 1u, 4u) +
-                                     x6 * getter::element(J_full, 1u, 0u) +
-                                     x7 * getter::element(J_full, 1u, 1u) +
-                                     x8 * getter::element(J_full, 1u, 2u) +
-                                     x9 * getter::element(J_full, 1u, 3u);
-    getter::element(new_C, 2u, 1u) = x12 * getter::element(J_full, 1u, 0u) +
-                                     x13 * getter::element(J_full, 1u, 1u) +
-                                     x14 * getter::element(J_full, 1u, 2u) +
-                                     x15 * getter::element(J_full, 1u, 3u) +
-                                     x17 * getter::element(J_full, 1u, 4u);
-    getter::element(new_C, 3u, 1u) = x18 * getter::element(J_full, 1u, 0u) +
-                                     x19 * getter::element(J_full, 1u, 1u) +
-                                     x20 * getter::element(J_full, 1u, 2u) +
-                                     x21 * getter::element(J_full, 1u, 3u) +
-                                     x23 * getter::element(J_full, 1u, 4u);
-    getter::element(new_C, 4u, 1u) =
-        x10 + getter::element(C, 4u, 0u) * getter::element(J_full, 1u, 0u) +
-        getter::element(C, 4u, 1u) * getter::element(J_full, 1u, 1u) +
-        getter::element(C, 4u, 2u) * getter::element(J_full, 1u, 2u) +
-        getter::element(C, 4u, 3u) * getter::element(J_full, 1u, 3u);
-    getter::element(new_C, 5u, 1u) = x25 * getter::element(J_full, 1u, 0u) +
-                                     x26 * getter::element(J_full, 1u, 1u) +
-                                     x27 * getter::element(J_full, 1u, 2u) +
-                                     x28 * getter::element(J_full, 1u, 3u) +
-                                     x29 * getter::element(J_full, 1u, 4u);
-    getter::element(new_C, 0u, 2u) = x0 * getter::element(J_full, 2u, 0u) +
-                                     x1 * getter::element(J_full, 2u, 1u) +
-                                     x2 * getter::element(J_full, 2u, 2u) +
-                                     x3 * getter::element(J_full, 2u, 3u) +
-                                     x5 * getter::element(J_full, 2u, 4u);
-    getter::element(new_C, 1u, 2u) = x11 * getter::element(J_full, 2u, 4u) +
-                                     x6 * getter::element(J_full, 2u, 0u) +
-                                     x7 * getter::element(J_full, 2u, 1u) +
-                                     x8 * getter::element(J_full, 2u, 2u) +
-                                     x9 * getter::element(J_full, 2u, 3u);
-    getter::element(new_C, 2u, 2u) = x12 * getter::element(J_full, 2u, 0u) +
-                                     x13 * getter::element(J_full, 2u, 1u) +
-                                     x14 * getter::element(J_full, 2u, 2u) +
-                                     x15 * getter::element(J_full, 2u, 3u) +
-                                     x17 * getter::element(J_full, 2u, 4u);
-    getter::element(new_C, 3u, 2u) = x18 * getter::element(J_full, 2u, 0u) +
-                                     x19 * getter::element(J_full, 2u, 1u) +
-                                     x20 * getter::element(J_full, 2u, 2u) +
-                                     x21 * getter::element(J_full, 2u, 3u) +
-                                     x23 * getter::element(J_full, 2u, 4u);
-    getter::element(new_C, 4u, 2u) =
-        x16 + getter::element(C, 4u, 0u) * getter::element(J_full, 2u, 0u) +
-        getter::element(C, 4u, 1u) * getter::element(J_full, 2u, 1u) +
-        getter::element(C, 4u, 2u) * getter::element(J_full, 2u, 2u) +
-        getter::element(C, 4u, 3u) * getter::element(J_full, 2u, 3u);
-    getter::element(new_C, 5u, 2u) = x25 * getter::element(J_full, 2u, 0u) +
-                                     x26 * getter::element(J_full, 2u, 1u) +
-                                     x27 * getter::element(J_full, 2u, 2u) +
-                                     x28 * getter::element(J_full, 2u, 3u) +
-                                     x29 * getter::element(J_full, 2u, 4u);
-    getter::element(new_C, 0u, 3u) = x0 * getter::element(J_full, 3u, 0u) +
-                                     x1 * getter::element(J_full, 3u, 1u) +
-                                     x2 * getter::element(J_full, 3u, 2u) +
-                                     x3 * getter::element(J_full, 3u, 3u) +
-                                     x5 * getter::element(J_full, 3u, 4u);
-    getter::element(new_C, 1u, 3u) = x11 * getter::element(J_full, 3u, 4u) +
-                                     x6 * getter::element(J_full, 3u, 0u) +
-                                     x7 * getter::element(J_full, 3u, 1u) +
-                                     x8 * getter::element(J_full, 3u, 2u) +
-                                     x9 * getter::element(J_full, 3u, 3u);
-    getter::element(new_C, 2u, 3u) = x12 * getter::element(J_full, 3u, 0u) +
-                                     x13 * getter::element(J_full, 3u, 1u) +
-                                     x14 * getter::element(J_full, 3u, 2u) +
-                                     x15 * getter::element(J_full, 3u, 3u) +
-                                     x17 * getter::element(J_full, 3u, 4u);
-    getter::element(new_C, 3u, 3u) = x18 * getter::element(J_full, 3u, 0u) +
-                                     x19 * getter::element(J_full, 3u, 1u) +
-                                     x20 * getter::element(J_full, 3u, 2u) +
-                                     x21 * getter::element(J_full, 3u, 3u) +
-                                     x23 * getter::element(J_full, 3u, 4u);
-    getter::element(new_C, 4u, 3u) =
-        x22 + getter::element(C, 4u, 0u) * getter::element(J_full, 3u, 0u) +
-        getter::element(C, 4u, 1u) * getter::element(J_full, 3u, 1u) +
-        getter::element(C, 4u, 2u) * getter::element(J_full, 3u, 2u) +
-        getter::element(C, 4u, 3u) * getter::element(J_full, 3u, 3u);
-    getter::element(new_C, 5u, 3u) = x25 * getter::element(J_full, 3u, 0u) +
-                                     x26 * getter::element(J_full, 3u, 1u) +
-                                     x27 * getter::element(J_full, 3u, 2u) +
-                                     x28 * getter::element(J_full, 3u, 3u) +
-                                     x29 * getter::element(J_full, 3u, 4u);
-    getter::element(new_C, 0u, 4u) = x5;
-    getter::element(new_C, 1u, 4u) = x11;
-    getter::element(new_C, 2u, 4u) = x17;
-    getter::element(new_C, 3u, 4u) = x23;
-    getter::element(new_C, 4u, 4u) = getter::element(C, 4u, 4u);
-    getter::element(new_C, 5u, 4u) = x29;
-    getter::element(new_C, 0u, 5u) =
-        x0 * getter::element(J_full, 5u, 0u) +
-        x1 * getter::element(J_full, 5u, 1u) +
-        x2 * getter::element(J_full, 5u, 2u) +
-        x3 * getter::element(J_full, 5u, 3u) +
-        x5 * getter::element(J_full, 5u, 4u) +
-        getter::element(C, 0u, 5u) * getter::element(J_full, 0u, 0u) +
-        getter::element(C, 1u, 5u) * getter::element(J_full, 0u, 1u) +
-        getter::element(C, 2u, 5u) * getter::element(J_full, 0u, 2u) +
-        getter::element(C, 3u, 5u) * getter::element(J_full, 0u, 3u) +
-        getter::element(C, 4u, 5u) * getter::element(J_full, 0u, 4u);
-    getter::element(new_C, 1u, 5u) =
-        x11 * getter::element(J_full, 5u, 4u) +
-        x6 * getter::element(J_full, 5u, 0u) +
-        x7 * getter::element(J_full, 5u, 1u) +
-        x8 * getter::element(J_full, 5u, 2u) +
-        x9 * getter::element(J_full, 5u, 3u) +
-        getter::element(C, 0u, 5u) * getter::element(J_full, 1u, 0u) +
-        getter::element(C, 1u, 5u) * getter::element(J_full, 1u, 1u) +
-        getter::element(C, 2u, 5u) * getter::element(J_full, 1u, 2u) +
-        getter::element(C, 3u, 5u) * getter::element(J_full, 1u, 3u) +
-        getter::element(C, 4u, 5u) * getter::element(J_full, 1u, 4u);
-    getter::element(new_C, 2u, 5u) =
-        x12 * getter::element(J_full, 5u, 0u) +
-        x13 * getter::element(J_full, 5u, 1u) +
-        x14 * getter::element(J_full, 5u, 2u) +
-        x15 * getter::element(J_full, 5u, 3u) +
-        x17 * getter::element(J_full, 5u, 4u) +
-        getter::element(C, 0u, 5u) * getter::element(J_full, 2u, 0u) +
-        getter::element(C, 1u, 5u) * getter::element(J_full, 2u, 1u) +
-        getter::element(C, 2u, 5u) * getter::element(J_full, 2u, 2u) +
-        getter::element(C, 3u, 5u) * getter::element(J_full, 2u, 3u) +
-        getter::element(C, 4u, 5u) * getter::element(J_full, 2u, 4u);
-    getter::element(new_C, 3u, 5u) =
-        x18 * getter::element(J_full, 5u, 0u) +
-        x19 * getter::element(J_full, 5u, 1u) +
-        x20 * getter::element(J_full, 5u, 2u) +
-        x21 * getter::element(J_full, 5u, 3u) +
-        x23 * getter::element(J_full, 5u, 4u) +
-        getter::element(C, 0u, 5u) * getter::element(J_full, 3u, 0u) +
-        getter::element(C, 1u, 5u) * getter::element(J_full, 3u, 1u) +
-        getter::element(C, 2u, 5u) * getter::element(J_full, 3u, 2u) +
-        getter::element(C, 3u, 5u) * getter::element(J_full, 3u, 3u) +
-        getter::element(C, 4u, 5u) * getter::element(J_full, 3u, 4u);
-    getter::element(new_C, 4u, 5u) =
-        x24 + getter::element(C, 4u, 0u) * getter::element(J_full, 5u, 0u) +
-        getter::element(C, 4u, 1u) * getter::element(J_full, 5u, 1u) +
-        getter::element(C, 4u, 2u) * getter::element(J_full, 5u, 2u) +
-        getter::element(C, 4u, 3u) * getter::element(J_full, 5u, 3u) +
-        getter::element(C, 4u, 5u);
-    getter::element(new_C, 5u, 5u) =
-        x25 * getter::element(J_full, 5u, 0u) +
-        x26 * getter::element(J_full, 5u, 1u) +
-        x27 * getter::element(J_full, 5u, 2u) +
-        x28 * getter::element(J_full, 5u, 3u) +
-        x29 * getter::element(J_full, 5u, 4u) +
-        getter::element(C, 0u, 5u) * getter::element(J_full, 5u, 0u) +
-        getter::element(C, 1u, 5u) * getter::element(J_full, 5u, 1u) +
-        getter::element(C, 2u, 5u) * getter::element(J_full, 5u, 2u) +
-        getter::element(C, 3u, 5u) * getter::element(J_full, 5u, 3u) +
-        getter::element(C, 4u, 5u) * getter::element(J_full, 5u, 4u) +
-        getter::element(C, 5u, 5u);
+    assert((getter::element<0, 5>(J_full) == 0.f));
+    assert((getter::element<1, 5>(J_full) == 0.f));
+    assert((getter::element<2, 5>(J_full) == 0.f));
+    assert((getter::element<3, 5>(J_full) == 0.f));
+    assert((getter::element<4, 0>(J_full) == 0.f));
+    assert((getter::element<4, 1>(J_full) == 0.f));
+    assert((getter::element<4, 2>(J_full) == 0.f));
+    assert((getter::element<4, 3>(J_full) == 0.f));
+    assert((getter::element<4, 4>(J_full) == 1.f));
+    assert((getter::element<4, 5>(J_full) == 0.f));
+    assert((getter::element<5, 5>(J_full) == 1.f));
+    const auto x4 = getter::element<4, 4>(C) * getter::element<0, 4>(J_full);
+    const auto x10 = getter::element<4, 4>(C) * getter::element<1, 4>(J_full);
+    const auto x16 = getter::element<4, 4>(C) * getter::element<2, 4>(J_full);
+    const auto x22 = getter::element<4, 4>(C) * getter::element<3, 4>(J_full);
+    const auto x24 = getter::element<4, 4>(C) * getter::element<5, 4>(J_full);
+    const auto x0 = getter::element<0, 0>(C) * getter::element<0, 0>(J_full) +
+                    getter::element<1, 0>(C) * getter::element<0, 1>(J_full) +
+                    getter::element<2, 0>(C) * getter::element<0, 2>(J_full) +
+                    getter::element<3, 0>(C) * getter::element<0, 3>(J_full) +
+                    getter::element<4, 0>(C) * getter::element<0, 4>(J_full);
+    const auto x1 = getter::element<0, 1>(C) * getter::element<0, 0>(J_full) +
+                    getter::element<1, 1>(C) * getter::element<0, 1>(J_full) +
+                    getter::element<2, 1>(C) * getter::element<0, 2>(J_full) +
+                    getter::element<3, 1>(C) * getter::element<0, 3>(J_full) +
+                    getter::element<4, 1>(C) * getter::element<0, 4>(J_full);
+    const auto x2 = getter::element<0, 2>(C) * getter::element<0, 0>(J_full) +
+                    getter::element<1, 2>(C) * getter::element<0, 1>(J_full) +
+                    getter::element<2, 2>(C) * getter::element<0, 2>(J_full) +
+                    getter::element<3, 2>(C) * getter::element<0, 3>(J_full) +
+                    getter::element<4, 2>(C) * getter::element<0, 4>(J_full);
+    const auto x3 = getter::element<0, 3>(C) * getter::element<0, 0>(J_full) +
+                    getter::element<1, 3>(C) * getter::element<0, 1>(J_full) +
+                    getter::element<2, 3>(C) * getter::element<0, 2>(J_full) +
+                    getter::element<3, 3>(C) * getter::element<0, 3>(J_full) +
+                    getter::element<4, 3>(C) * getter::element<0, 4>(J_full);
+    const auto x6 = getter::element<0, 0>(C) * getter::element<1, 0>(J_full) +
+                    getter::element<1, 0>(C) * getter::element<1, 1>(J_full) +
+                    getter::element<2, 0>(C) * getter::element<1, 2>(J_full) +
+                    getter::element<3, 0>(C) * getter::element<1, 3>(J_full) +
+                    getter::element<4, 0>(C) * getter::element<1, 4>(J_full);
+    const auto x7 = getter::element<0, 1>(C) * getter::element<1, 0>(J_full) +
+                    getter::element<1, 1>(C) * getter::element<1, 1>(J_full) +
+                    getter::element<2, 1>(C) * getter::element<1, 2>(J_full) +
+                    getter::element<3, 1>(C) * getter::element<1, 3>(J_full) +
+                    getter::element<4, 1>(C) * getter::element<1, 4>(J_full);
+    const auto x8 = getter::element<0, 2>(C) * getter::element<1, 0>(J_full) +
+                    getter::element<1, 2>(C) * getter::element<1, 1>(J_full) +
+                    getter::element<2, 2>(C) * getter::element<1, 2>(J_full) +
+                    getter::element<3, 2>(C) * getter::element<1, 3>(J_full) +
+                    getter::element<4, 2>(C) * getter::element<1, 4>(J_full);
+    const auto x9 = getter::element<0, 3>(C) * getter::element<1, 0>(J_full) +
+                    getter::element<1, 3>(C) * getter::element<1, 1>(J_full) +
+                    getter::element<2, 3>(C) * getter::element<1, 2>(J_full) +
+                    getter::element<3, 3>(C) * getter::element<1, 3>(J_full) +
+                    getter::element<4, 3>(C) * getter::element<1, 4>(J_full);
+    const auto x12 = getter::element<0, 0>(C) * getter::element<2, 0>(J_full) +
+                     getter::element<1, 0>(C) * getter::element<2, 1>(J_full) +
+                     getter::element<2, 0>(C) * getter::element<2, 2>(J_full) +
+                     getter::element<3, 0>(C) * getter::element<2, 3>(J_full) +
+                     getter::element<4, 0>(C) * getter::element<2, 4>(J_full);
+    const auto x13 = getter::element<0, 1>(C) * getter::element<2, 0>(J_full) +
+                     getter::element<1, 1>(C) * getter::element<2, 1>(J_full) +
+                     getter::element<2, 1>(C) * getter::element<2, 2>(J_full) +
+                     getter::element<3, 1>(C) * getter::element<2, 3>(J_full) +
+                     getter::element<4, 1>(C) * getter::element<2, 4>(J_full);
+    const auto x14 = getter::element<0, 2>(C) * getter::element<2, 0>(J_full) +
+                     getter::element<1, 2>(C) * getter::element<2, 1>(J_full) +
+                     getter::element<2, 2>(C) * getter::element<2, 2>(J_full) +
+                     getter::element<3, 2>(C) * getter::element<2, 3>(J_full) +
+                     getter::element<4, 2>(C) * getter::element<2, 4>(J_full);
+    const auto x15 = getter::element<0, 3>(C) * getter::element<2, 0>(J_full) +
+                     getter::element<1, 3>(C) * getter::element<2, 1>(J_full) +
+                     getter::element<2, 3>(C) * getter::element<2, 2>(J_full) +
+                     getter::element<3, 3>(C) * getter::element<2, 3>(J_full) +
+                     getter::element<4, 3>(C) * getter::element<2, 4>(J_full);
+    const auto x18 = getter::element<0, 0>(C) * getter::element<3, 0>(J_full) +
+                     getter::element<1, 0>(C) * getter::element<3, 1>(J_full) +
+                     getter::element<2, 0>(C) * getter::element<3, 2>(J_full) +
+                     getter::element<3, 0>(C) * getter::element<3, 3>(J_full) +
+                     getter::element<4, 0>(C) * getter::element<3, 4>(J_full);
+    const auto x19 = getter::element<0, 1>(C) * getter::element<3, 0>(J_full) +
+                     getter::element<1, 1>(C) * getter::element<3, 1>(J_full) +
+                     getter::element<2, 1>(C) * getter::element<3, 2>(J_full) +
+                     getter::element<3, 1>(C) * getter::element<3, 3>(J_full) +
+                     getter::element<4, 1>(C) * getter::element<3, 4>(J_full);
+    const auto x20 = getter::element<0, 2>(C) * getter::element<3, 0>(J_full) +
+                     getter::element<1, 2>(C) * getter::element<3, 1>(J_full) +
+                     getter::element<2, 2>(C) * getter::element<3, 2>(J_full) +
+                     getter::element<3, 2>(C) * getter::element<3, 3>(J_full) +
+                     getter::element<4, 2>(C) * getter::element<3, 4>(J_full);
+    const auto x21 = getter::element<0, 3>(C) * getter::element<3, 0>(J_full) +
+                     getter::element<1, 3>(C) * getter::element<3, 1>(J_full) +
+                     getter::element<2, 3>(C) * getter::element<3, 2>(J_full) +
+                     getter::element<3, 3>(C) * getter::element<3, 3>(J_full) +
+                     getter::element<4, 3>(C) * getter::element<3, 4>(J_full);
+    const auto x25 = getter::element<0, 0>(C) * getter::element<5, 0>(J_full) +
+                     getter::element<1, 0>(C) * getter::element<5, 1>(J_full) +
+                     getter::element<2, 0>(C) * getter::element<5, 2>(J_full) +
+                     getter::element<3, 0>(C) * getter::element<5, 3>(J_full) +
+                     getter::element<4, 0>(C) * getter::element<5, 4>(J_full) +
+                     getter::element<5, 0>(C);
+    const auto x26 = getter::element<0, 1>(C) * getter::element<5, 0>(J_full) +
+                     getter::element<1, 1>(C) * getter::element<5, 1>(J_full) +
+                     getter::element<2, 1>(C) * getter::element<5, 2>(J_full) +
+                     getter::element<3, 1>(C) * getter::element<5, 3>(J_full) +
+                     getter::element<4, 1>(C) * getter::element<5, 4>(J_full) +
+                     getter::element<5, 1>(C);
+    const auto x27 = getter::element<0, 2>(C) * getter::element<5, 0>(J_full) +
+                     getter::element<1, 2>(C) * getter::element<5, 1>(J_full) +
+                     getter::element<2, 2>(C) * getter::element<5, 2>(J_full) +
+                     getter::element<3, 2>(C) * getter::element<5, 3>(J_full) +
+                     getter::element<4, 2>(C) * getter::element<5, 4>(J_full) +
+                     getter::element<5, 2>(C);
+    const auto x28 = getter::element<0, 3>(C) * getter::element<5, 0>(J_full) +
+                     getter::element<1, 3>(C) * getter::element<5, 1>(J_full) +
+                     getter::element<2, 3>(C) * getter::element<5, 2>(J_full) +
+                     getter::element<3, 3>(C) * getter::element<5, 3>(J_full) +
+                     getter::element<4, 3>(C) * getter::element<5, 4>(J_full) +
+                     getter::element<5, 3>(C);
+    const auto x5 = x4 +
+                    getter::element<0, 4>(C) * getter::element<0, 0>(J_full) +
+                    getter::element<1, 4>(C) * getter::element<0, 1>(J_full) +
+                    getter::element<2, 4>(C) * getter::element<0, 2>(J_full) +
+                    getter::element<3, 4>(C) * getter::element<0, 3>(J_full);
+    const auto x11 = x10 +
+                     getter::element<0, 4>(C) * getter::element<1, 0>(J_full) +
+                     getter::element<1, 4>(C) * getter::element<1, 1>(J_full) +
+                     getter::element<2, 4>(C) * getter::element<1, 2>(J_full) +
+                     getter::element<3, 4>(C) * getter::element<1, 3>(J_full);
+    const auto x17 = x16 +
+                     getter::element<0, 4>(C) * getter::element<2, 0>(J_full) +
+                     getter::element<1, 4>(C) * getter::element<2, 1>(J_full) +
+                     getter::element<2, 4>(C) * getter::element<2, 2>(J_full) +
+                     getter::element<3, 4>(C) * getter::element<2, 3>(J_full);
+    const auto x23 = x22 +
+                     getter::element<0, 4>(C) * getter::element<3, 0>(J_full) +
+                     getter::element<1, 4>(C) * getter::element<3, 1>(J_full) +
+                     getter::element<2, 4>(C) * getter::element<3, 2>(J_full) +
+                     getter::element<3, 4>(C) * getter::element<3, 3>(J_full);
+    const auto x29 = x24 +
+                     getter::element<0, 4>(C) * getter::element<5, 0>(J_full) +
+                     getter::element<1, 4>(C) * getter::element<5, 1>(J_full) +
+                     getter::element<2, 4>(C) * getter::element<5, 2>(J_full) +
+                     getter::element<3, 4>(C) * getter::element<5, 3>(J_full) +
+                     getter::element<5, 4>(C);
+    getter::element<0, 0>(new_C) = x0 * getter::element<0, 0>(J_full) +
+                                   x1 * getter::element<0, 1>(J_full) +
+                                   x2 * getter::element<0, 2>(J_full) +
+                                   x3 * getter::element<0, 3>(J_full) +
+                                   x5 * getter::element<0, 4>(J_full);
+    getter::element<1, 0>(new_C) = x11 * getter::element<0, 4>(J_full) +
+                                   x6 * getter::element<0, 0>(J_full) +
+                                   x7 * getter::element<0, 1>(J_full) +
+                                   x8 * getter::element<0, 2>(J_full) +
+                                   x9 * getter::element<0, 3>(J_full);
+    getter::element<2, 0>(new_C) = x12 * getter::element<0, 0>(J_full) +
+                                   x13 * getter::element<0, 1>(J_full) +
+                                   x14 * getter::element<0, 2>(J_full) +
+                                   x15 * getter::element<0, 3>(J_full) +
+                                   x17 * getter::element<0, 4>(J_full);
+    getter::element<3, 0>(new_C) = x18 * getter::element<0, 0>(J_full) +
+                                   x19 * getter::element<0, 1>(J_full) +
+                                   x20 * getter::element<0, 2>(J_full) +
+                                   x21 * getter::element<0, 3>(J_full) +
+                                   x23 * getter::element<0, 4>(J_full);
+    getter::element<4, 0>(new_C) =
+        x4 + getter::element<4, 0>(C) * getter::element<0, 0>(J_full) +
+        getter::element<4, 1>(C) * getter::element<0, 1>(J_full) +
+        getter::element<4, 2>(C) * getter::element<0, 2>(J_full) +
+        getter::element<4, 3>(C) * getter::element<0, 3>(J_full);
+    getter::element<5, 0>(new_C) = x25 * getter::element<0, 0>(J_full) +
+                                   x26 * getter::element<0, 1>(J_full) +
+                                   x27 * getter::element<0, 2>(J_full) +
+                                   x28 * getter::element<0, 3>(J_full) +
+                                   x29 * getter::element<0, 4>(J_full);
+    getter::element<0, 1>(new_C) = x0 * getter::element<1, 0>(J_full) +
+                                   x1 * getter::element<1, 1>(J_full) +
+                                   x2 * getter::element<1, 2>(J_full) +
+                                   x3 * getter::element<1, 3>(J_full) +
+                                   x5 * getter::element<1, 4>(J_full);
+    getter::element<1, 1>(new_C) = x11 * getter::element<1, 4>(J_full) +
+                                   x6 * getter::element<1, 0>(J_full) +
+                                   x7 * getter::element<1, 1>(J_full) +
+                                   x8 * getter::element<1, 2>(J_full) +
+                                   x9 * getter::element<1, 3>(J_full);
+    getter::element<2, 1>(new_C) = x12 * getter::element<1, 0>(J_full) +
+                                   x13 * getter::element<1, 1>(J_full) +
+                                   x14 * getter::element<1, 2>(J_full) +
+                                   x15 * getter::element<1, 3>(J_full) +
+                                   x17 * getter::element<1, 4>(J_full);
+    getter::element<3, 1>(new_C) = x18 * getter::element<1, 0>(J_full) +
+                                   x19 * getter::element<1, 1>(J_full) +
+                                   x20 * getter::element<1, 2>(J_full) +
+                                   x21 * getter::element<1, 3>(J_full) +
+                                   x23 * getter::element<1, 4>(J_full);
+    getter::element<4, 1>(new_C) =
+        x10 + getter::element<4, 0>(C) * getter::element<1, 0>(J_full) +
+        getter::element<4, 1>(C) * getter::element<1, 1>(J_full) +
+        getter::element<4, 2>(C) * getter::element<1, 2>(J_full) +
+        getter::element<4, 3>(C) * getter::element<1, 3>(J_full);
+    getter::element<5, 1>(new_C) = x25 * getter::element<1, 0>(J_full) +
+                                   x26 * getter::element<1, 1>(J_full) +
+                                   x27 * getter::element<1, 2>(J_full) +
+                                   x28 * getter::element<1, 3>(J_full) +
+                                   x29 * getter::element<1, 4>(J_full);
+    getter::element<0, 2>(new_C) = x0 * getter::element<2, 0>(J_full) +
+                                   x1 * getter::element<2, 1>(J_full) +
+                                   x2 * getter::element<2, 2>(J_full) +
+                                   x3 * getter::element<2, 3>(J_full) +
+                                   x5 * getter::element<2, 4>(J_full);
+    getter::element<1, 2>(new_C) = x11 * getter::element<2, 4>(J_full) +
+                                   x6 * getter::element<2, 0>(J_full) +
+                                   x7 * getter::element<2, 1>(J_full) +
+                                   x8 * getter::element<2, 2>(J_full) +
+                                   x9 * getter::element<2, 3>(J_full);
+    getter::element<2, 2>(new_C) = x12 * getter::element<2, 0>(J_full) +
+                                   x13 * getter::element<2, 1>(J_full) +
+                                   x14 * getter::element<2, 2>(J_full) +
+                                   x15 * getter::element<2, 3>(J_full) +
+                                   x17 * getter::element<2, 4>(J_full);
+    getter::element<3, 2>(new_C) = x18 * getter::element<2, 0>(J_full) +
+                                   x19 * getter::element<2, 1>(J_full) +
+                                   x20 * getter::element<2, 2>(J_full) +
+                                   x21 * getter::element<2, 3>(J_full) +
+                                   x23 * getter::element<2, 4>(J_full);
+    getter::element<4, 2>(new_C) =
+        x16 + getter::element<4, 0>(C) * getter::element<2, 0>(J_full) +
+        getter::element<4, 1>(C) * getter::element<2, 1>(J_full) +
+        getter::element<4, 2>(C) * getter::element<2, 2>(J_full) +
+        getter::element<4, 3>(C) * getter::element<2, 3>(J_full);
+    getter::element<5, 2>(new_C) = x25 * getter::element<2, 0>(J_full) +
+                                   x26 * getter::element<2, 1>(J_full) +
+                                   x27 * getter::element<2, 2>(J_full) +
+                                   x28 * getter::element<2, 3>(J_full) +
+                                   x29 * getter::element<2, 4>(J_full);
+    getter::element<0, 3>(new_C) = x0 * getter::element<3, 0>(J_full) +
+                                   x1 * getter::element<3, 1>(J_full) +
+                                   x2 * getter::element<3, 2>(J_full) +
+                                   x3 * getter::element<3, 3>(J_full) +
+                                   x5 * getter::element<3, 4>(J_full);
+    getter::element<1, 3>(new_C) = x11 * getter::element<3, 4>(J_full) +
+                                   x6 * getter::element<3, 0>(J_full) +
+                                   x7 * getter::element<3, 1>(J_full) +
+                                   x8 * getter::element<3, 2>(J_full) +
+                                   x9 * getter::element<3, 3>(J_full);
+    getter::element<2, 3>(new_C) = x12 * getter::element<3, 0>(J_full) +
+                                   x13 * getter::element<3, 1>(J_full) +
+                                   x14 * getter::element<3, 2>(J_full) +
+                                   x15 * getter::element<3, 3>(J_full) +
+                                   x17 * getter::element<3, 4>(J_full);
+    getter::element<3, 3>(new_C) = x18 * getter::element<3, 0>(J_full) +
+                                   x19 * getter::element<3, 1>(J_full) +
+                                   x20 * getter::element<3, 2>(J_full) +
+                                   x21 * getter::element<3, 3>(J_full) +
+                                   x23 * getter::element<3, 4>(J_full);
+    getter::element<4, 3>(new_C) =
+        x22 + getter::element<4, 0>(C) * getter::element<3, 0>(J_full) +
+        getter::element<4, 1>(C) * getter::element<3, 1>(J_full) +
+        getter::element<4, 2>(C) * getter::element<3, 2>(J_full) +
+        getter::element<4, 3>(C) * getter::element<3, 3>(J_full);
+    getter::element<5, 3>(new_C) = x25 * getter::element<3, 0>(J_full) +
+                                   x26 * getter::element<3, 1>(J_full) +
+                                   x27 * getter::element<3, 2>(J_full) +
+                                   x28 * getter::element<3, 3>(J_full) +
+                                   x29 * getter::element<3, 4>(J_full);
+    getter::element<0, 4>(new_C) = x5;
+    getter::element<1, 4>(new_C) = x11;
+    getter::element<2, 4>(new_C) = x17;
+    getter::element<3, 4>(new_C) = x23;
+    getter::element<4, 4>(new_C) = getter::element<4, 4>(C);
+    getter::element<5, 4>(new_C) = x29;
+    getter::element<0, 5>(new_C) =
+        x0 * getter::element<5, 0>(J_full) +
+        x1 * getter::element<5, 1>(J_full) +
+        x2 * getter::element<5, 2>(J_full) +
+        x3 * getter::element<5, 3>(J_full) +
+        x5 * getter::element<5, 4>(J_full) +
+        getter::element<0, 5>(C) * getter::element<0, 0>(J_full) +
+        getter::element<1, 5>(C) * getter::element<0, 1>(J_full) +
+        getter::element<2, 5>(C) * getter::element<0, 2>(J_full) +
+        getter::element<3, 5>(C) * getter::element<0, 3>(J_full) +
+        getter::element<4, 5>(C) * getter::element<0, 4>(J_full);
+    getter::element<1, 5>(new_C) =
+        x11 * getter::element<5, 4>(J_full) +
+        x6 * getter::element<5, 0>(J_full) +
+        x7 * getter::element<5, 1>(J_full) +
+        x8 * getter::element<5, 2>(J_full) +
+        x9 * getter::element<5, 3>(J_full) +
+        getter::element<0, 5>(C) * getter::element<1, 0>(J_full) +
+        getter::element<1, 5>(C) * getter::element<1, 1>(J_full) +
+        getter::element<2, 5>(C) * getter::element<1, 2>(J_full) +
+        getter::element<3, 5>(C) * getter::element<1, 3>(J_full) +
+        getter::element<4, 5>(C) * getter::element<1, 4>(J_full);
+    getter::element<2, 5>(new_C) =
+        x12 * getter::element<5, 0>(J_full) +
+        x13 * getter::element<5, 1>(J_full) +
+        x14 * getter::element<5, 2>(J_full) +
+        x15 * getter::element<5, 3>(J_full) +
+        x17 * getter::element<5, 4>(J_full) +
+        getter::element<0, 5>(C) * getter::element<2, 0>(J_full) +
+        getter::element<1, 5>(C) * getter::element<2, 1>(J_full) +
+        getter::element<2, 5>(C) * getter::element<2, 2>(J_full) +
+        getter::element<3, 5>(C) * getter::element<2, 3>(J_full) +
+        getter::element<4, 5>(C) * getter::element<2, 4>(J_full);
+    getter::element<3, 5>(new_C) =
+        x18 * getter::element<5, 0>(J_full) +
+        x19 * getter::element<5, 1>(J_full) +
+        x20 * getter::element<5, 2>(J_full) +
+        x21 * getter::element<5, 3>(J_full) +
+        x23 * getter::element<5, 4>(J_full) +
+        getter::element<0, 5>(C) * getter::element<3, 0>(J_full) +
+        getter::element<1, 5>(C) * getter::element<3, 1>(J_full) +
+        getter::element<2, 5>(C) * getter::element<3, 2>(J_full) +
+        getter::element<3, 5>(C) * getter::element<3, 3>(J_full) +
+        getter::element<4, 5>(C) * getter::element<3, 4>(J_full);
+    getter::element<4, 5>(new_C) =
+        x24 + getter::element<4, 0>(C) * getter::element<5, 0>(J_full) +
+        getter::element<4, 1>(C) * getter::element<5, 1>(J_full) +
+        getter::element<4, 2>(C) * getter::element<5, 2>(J_full) +
+        getter::element<4, 3>(C) * getter::element<5, 3>(J_full) +
+        getter::element<4, 5>(C);
+    getter::element<5, 5>(new_C) =
+        x25 * getter::element<5, 0>(J_full) +
+        x26 * getter::element<5, 1>(J_full) +
+        x27 * getter::element<5, 2>(J_full) +
+        x28 * getter::element<5, 3>(J_full) +
+        x29 * getter::element<5, 4>(J_full) +
+        getter::element<0, 5>(C) * getter::element<5, 0>(J_full) +
+        getter::element<1, 5>(C) * getter::element<5, 1>(J_full) +
+        getter::element<2, 5>(C) * getter::element<5, 2>(J_full) +
+        getter::element<3, 5>(C) * getter::element<5, 3>(J_full) +
+        getter::element<4, 5>(C) * getter::element<5, 4>(J_full) +
+        getter::element<5, 5>(C);
 }
 }  // namespace detray::detail

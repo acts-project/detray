@@ -40,7 +40,7 @@ struct element_getter {
               concepts::index index_t_2>
         requires std::is_base_of_v<
             Eigen::DenseCoeffsBase<derived_type, Eigen::WriteAccessors>,
-            Eigen::MatrixBase<derived_type> >
+            Eigen::MatrixBase<derived_type>>
     DETRAY_HOST_DEVICE constexpr auto &operator()(
         Eigen::MatrixBase<derived_type> &m, index_t_1 row,
         index_t_2 col) const {
@@ -62,7 +62,7 @@ struct element_getter {
     template <typename derived_type, concepts::index index_t>
         requires std::is_base_of_v<
             Eigen::DenseCoeffsBase<derived_type, Eigen::WriteAccessors>,
-            Eigen::MatrixBase<derived_type> >
+            Eigen::MatrixBase<derived_type>>
     DETRAY_HOST_DEVICE constexpr auto &operator()(
         Eigen::MatrixBase<derived_type> &m, index_t row) const {
 
@@ -91,7 +91,7 @@ DETRAY_HOST_DEVICE constexpr decltype(auto) element(
 template <typename derived_type>
     requires std::is_base_of_v<
         Eigen::DenseCoeffsBase<derived_type, Eigen::WriteAccessors>,
-        Eigen::MatrixBase<derived_type> >
+        Eigen::MatrixBase<derived_type>>
 DETRAY_HOST_DEVICE constexpr decltype(auto) element(
     Eigen::MatrixBase<derived_type> &m, std::size_t row, std::size_t col) {
 
@@ -111,11 +111,30 @@ DETRAY_HOST_DEVICE constexpr decltype(auto) element(
 template <typename derived_type>
     requires std::is_base_of_v<
         Eigen::DenseCoeffsBase<derived_type, Eigen::WriteAccessors>,
-        Eigen::MatrixBase<derived_type> >
+        Eigen::MatrixBase<derived_type>>
 DETRAY_HOST_DEVICE constexpr decltype(auto) element(
     Eigen::MatrixBase<derived_type> &m, std::size_t row) {
 
     return element_getter()(m, static_cast<Eigen::Index>(row));
+}
+
+template <std::size_t I, std::size_t J, typename T>
+DETRAY_HOST_DEVICE decltype(auto) element(T &matrix) {
+    if constexpr (concepts::permits_compile_time_matrix_index_element<T>) {
+        return matrix.template element<I, J>();
+    } else {
+        return element(matrix, detray::traits::index_t<std::decay_t<T>>(I),
+                       detray::traits::index_t<std::decay_t<T>>(J));
+    }
+}
+
+template <std::size_t I, typename T>
+DETRAY_HOST_DEVICE decltype(auto) element(T &vector) {
+    if constexpr (concepts::permits_compile_time_vector_index_element<T>) {
+        return vector.template element<I>();
+    } else {
+        return element(vector, detray::traits::index_t<std::decay_t<T>>(I));
+    }
 }
 
 /// Functor used to extract a block from Eigen matrices

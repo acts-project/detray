@@ -34,200 +34,199 @@ DETRAY_HOST_DEVICE void inline update_transport_jacobian_without_gradient_impl(
              (detray::concepts::square_matrix<new_J_t> &&
               detray::traits::max_rank<new_J_t> == 8))
 {
-    assert(getter::element(J_transport, 0u, 0u) == 1.f);
-    assert(getter::element(J_transport, 0u, 1u) == 0.f);
-    assert(getter::element(J_transport, 0u, 2u) == 0.f);
-    assert(getter::element(J_transport, 0u, 3u) == 0.f);
-    assert(getter::element(J_transport, 1u, 0u) == 0.f);
-    assert(getter::element(J_transport, 1u, 1u) == 1.f);
-    assert(getter::element(J_transport, 1u, 2u) == 0.f);
-    assert(getter::element(J_transport, 1u, 3u) == 0.f);
-    assert(getter::element(J_transport, 2u, 0u) == 0.f);
-    assert(getter::element(J_transport, 2u, 1u) == 0.f);
-    assert(getter::element(J_transport, 2u, 2u) == 1.f);
-    assert(getter::element(J_transport, 2u, 3u) == 0.f);
-    assert(getter::element(J_transport, 3u, 0u) == 0.f);
-    assert(getter::element(J_transport, 3u, 1u) == 0.f);
-    assert(getter::element(J_transport, 3u, 2u) == 0.f);
-    assert(getter::element(J_transport, 3u, 3u) == 1.f);
-    assert(getter::element(J_transport, 3u, 4u) == 0.f);
-    assert(getter::element(J_transport, 3u, 5u) == 0.f);
-    assert(getter::element(J_transport, 3u, 6u) == 0.f);
-    assert(getter::element(J_transport, 3u, 7u) == 0.f);
-    assert(getter::element(J_transport, 4u, 0u) == 0.f);
-    assert(getter::element(J_transport, 4u, 1u) == 0.f);
-    assert(getter::element(J_transport, 4u, 2u) == 0.f);
-    assert(getter::element(J_transport, 4u, 3u) == 0.f);
-    assert(getter::element(J_transport, 5u, 0u) == 0.f);
-    assert(getter::element(J_transport, 5u, 1u) == 0.f);
-    assert(getter::element(J_transport, 5u, 2u) == 0.f);
-    assert(getter::element(J_transport, 5u, 3u) == 0.f);
-    assert(getter::element(J_transport, 6u, 0u) == 0.f);
-    assert(getter::element(J_transport, 6u, 1u) == 0.f);
-    assert(getter::element(J_transport, 6u, 2u) == 0.f);
-    assert(getter::element(J_transport, 6u, 3u) == 0.f);
-    assert(getter::element(J_transport, 7u, 0u) == 0.f);
-    assert(getter::element(J_transport, 7u, 1u) == 0.f);
-    assert(getter::element(J_transport, 7u, 2u) == 0.f);
-    assert(getter::element(J_transport, 7u, 3u) == 0.f);
-    assert(getter::element(J_transport, 7u, 4u) == 0.f);
-    assert(getter::element(J_transport, 7u, 5u) == 0.f);
-    assert(getter::element(J_transport, 7u, 6u) == 0.f);
-    getter::element(new_J, 0u, 0u) = 1;
-    getter::element(new_J, 1u, 0u) = 0;
-    getter::element(new_J, 2u, 0u) = 0;
-    getter::element(new_J, 3u, 0u) = 0;
-    getter::element(new_J, 4u, 0u) = 0;
-    getter::element(new_J, 5u, 0u) = 0;
-    getter::element(new_J, 6u, 0u) = 0;
-    getter::element(new_J, 7u, 0u) = 0;
-    getter::element(new_J, 0u, 1u) = 0;
-    getter::element(new_J, 1u, 1u) = 1;
-    getter::element(new_J, 2u, 1u) = 0;
-    getter::element(new_J, 3u, 1u) = 0;
-    getter::element(new_J, 4u, 1u) = 0;
-    getter::element(new_J, 5u, 1u) = 0;
-    getter::element(new_J, 6u, 1u) = 0;
-    getter::element(new_J, 7u, 1u) = 0;
-    getter::element(new_J, 0u, 2u) = 0;
-    getter::element(new_J, 1u, 2u) = 0;
-    getter::element(new_J, 2u, 2u) = 1;
-    getter::element(new_J, 3u, 2u) = 0;
-    getter::element(new_J, 4u, 2u) = 0;
-    getter::element(new_J, 5u, 2u) = 0;
-    getter::element(new_J, 6u, 2u) = 0;
-    getter::element(new_J, 7u, 2u) = 0;
-    getter::element(new_J, 0u, 3u) = 0;
-    getter::element(new_J, 1u, 3u) = 0;
-    getter::element(new_J, 2u, 3u) = 0;
-    getter::element(new_J, 3u, 3u) = 1;
-    getter::element(new_J, 4u, 3u) = 0;
-    getter::element(new_J, 5u, 3u) = 0;
-    getter::element(new_J, 6u, 3u) = 0;
-    getter::element(new_J, 7u, 3u) = 0;
-    getter::element(new_J, 0u, 4u) =
-        getter::element(J_transport, 0u, 4u) +
-        getter::element(J_transport, 4u, 4u) * getter::element(dFdt, 0u, 0u) +
-        getter::element(J_transport, 5u, 4u) * getter::element(dFdt, 0u, 1u) +
-        getter::element(J_transport, 6u, 4u) * getter::element(dFdt, 0u, 2u);
-    getter::element(new_J, 1u, 4u) =
-        getter::element(J_transport, 1u, 4u) +
-        getter::element(J_transport, 4u, 4u) * getter::element(dFdt, 1u, 0u) +
-        getter::element(J_transport, 5u, 4u) * getter::element(dFdt, 1u, 1u) +
-        getter::element(J_transport, 6u, 4u) * getter::element(dFdt, 1u, 2u);
-    getter::element(new_J, 2u, 4u) =
-        getter::element(J_transport, 2u, 4u) +
-        getter::element(J_transport, 4u, 4u) * getter::element(dFdt, 2u, 0u) +
-        getter::element(J_transport, 5u, 4u) * getter::element(dFdt, 2u, 1u) +
-        getter::element(J_transport, 6u, 4u) * getter::element(dFdt, 2u, 2u);
-    getter::element(new_J, 3u, 4u) = 0;
-    getter::element(new_J, 4u, 4u) =
-        getter::element(J_transport, 4u, 4u) * getter::element(dGdt, 0u, 0u) +
-        getter::element(J_transport, 5u, 4u) * getter::element(dGdt, 0u, 1u) +
-        getter::element(J_transport, 6u, 4u) * getter::element(dGdt, 0u, 2u);
-    getter::element(new_J, 5u, 4u) =
-        getter::element(J_transport, 4u, 4u) * getter::element(dGdt, 1u, 0u) +
-        getter::element(J_transport, 5u, 4u) * getter::element(dGdt, 1u, 1u) +
-        getter::element(J_transport, 6u, 4u) * getter::element(dGdt, 1u, 2u);
-    getter::element(new_J, 6u, 4u) =
-        getter::element(J_transport, 4u, 4u) * getter::element(dGdt, 2u, 0u) +
-        getter::element(J_transport, 5u, 4u) * getter::element(dGdt, 2u, 1u) +
-        getter::element(J_transport, 6u, 4u) * getter::element(dGdt, 2u, 2u);
-    getter::element(new_J, 7u, 4u) = 0;
-    getter::element(new_J, 0u, 5u) =
-        getter::element(J_transport, 0u, 5u) +
-        getter::element(J_transport, 4u, 5u) * getter::element(dFdt, 0u, 0u) +
-        getter::element(J_transport, 5u, 5u) * getter::element(dFdt, 0u, 1u) +
-        getter::element(J_transport, 6u, 5u) * getter::element(dFdt, 0u, 2u);
-    getter::element(new_J, 1u, 5u) =
-        getter::element(J_transport, 1u, 5u) +
-        getter::element(J_transport, 4u, 5u) * getter::element(dFdt, 1u, 0u) +
-        getter::element(J_transport, 5u, 5u) * getter::element(dFdt, 1u, 1u) +
-        getter::element(J_transport, 6u, 5u) * getter::element(dFdt, 1u, 2u);
-    getter::element(new_J, 2u, 5u) =
-        getter::element(J_transport, 2u, 5u) +
-        getter::element(J_transport, 4u, 5u) * getter::element(dFdt, 2u, 0u) +
-        getter::element(J_transport, 5u, 5u) * getter::element(dFdt, 2u, 1u) +
-        getter::element(J_transport, 6u, 5u) * getter::element(dFdt, 2u, 2u);
-    getter::element(new_J, 3u, 5u) = 0;
-    getter::element(new_J, 4u, 5u) =
-        getter::element(J_transport, 4u, 5u) * getter::element(dGdt, 0u, 0u) +
-        getter::element(J_transport, 5u, 5u) * getter::element(dGdt, 0u, 1u) +
-        getter::element(J_transport, 6u, 5u) * getter::element(dGdt, 0u, 2u);
-    getter::element(new_J, 5u, 5u) =
-        getter::element(J_transport, 4u, 5u) * getter::element(dGdt, 1u, 0u) +
-        getter::element(J_transport, 5u, 5u) * getter::element(dGdt, 1u, 1u) +
-        getter::element(J_transport, 6u, 5u) * getter::element(dGdt, 1u, 2u);
-    getter::element(new_J, 6u, 5u) =
-        getter::element(J_transport, 4u, 5u) * getter::element(dGdt, 2u, 0u) +
-        getter::element(J_transport, 5u, 5u) * getter::element(dGdt, 2u, 1u) +
-        getter::element(J_transport, 6u, 5u) * getter::element(dGdt, 2u, 2u);
-    getter::element(new_J, 7u, 5u) = 0;
-    getter::element(new_J, 0u, 6u) =
-        getter::element(J_transport, 0u, 6u) +
-        getter::element(J_transport, 4u, 6u) * getter::element(dFdt, 0u, 0u) +
-        getter::element(J_transport, 5u, 6u) * getter::element(dFdt, 0u, 1u) +
-        getter::element(J_transport, 6u, 6u) * getter::element(dFdt, 0u, 2u);
-    getter::element(new_J, 1u, 6u) =
-        getter::element(J_transport, 1u, 6u) +
-        getter::element(J_transport, 4u, 6u) * getter::element(dFdt, 1u, 0u) +
-        getter::element(J_transport, 5u, 6u) * getter::element(dFdt, 1u, 1u) +
-        getter::element(J_transport, 6u, 6u) * getter::element(dFdt, 1u, 2u);
-    getter::element(new_J, 2u, 6u) =
-        getter::element(J_transport, 2u, 6u) +
-        getter::element(J_transport, 4u, 6u) * getter::element(dFdt, 2u, 0u) +
-        getter::element(J_transport, 5u, 6u) * getter::element(dFdt, 2u, 1u) +
-        getter::element(J_transport, 6u, 6u) * getter::element(dFdt, 2u, 2u);
-    getter::element(new_J, 3u, 6u) = 0;
-    getter::element(new_J, 4u, 6u) =
-        getter::element(J_transport, 4u, 6u) * getter::element(dGdt, 0u, 0u) +
-        getter::element(J_transport, 5u, 6u) * getter::element(dGdt, 0u, 1u) +
-        getter::element(J_transport, 6u, 6u) * getter::element(dGdt, 0u, 2u);
-    getter::element(new_J, 5u, 6u) =
-        getter::element(J_transport, 4u, 6u) * getter::element(dGdt, 1u, 0u) +
-        getter::element(J_transport, 5u, 6u) * getter::element(dGdt, 1u, 1u) +
-        getter::element(J_transport, 6u, 6u) * getter::element(dGdt, 1u, 2u);
-    getter::element(new_J, 6u, 6u) =
-        getter::element(J_transport, 4u, 6u) * getter::element(dGdt, 2u, 0u) +
-        getter::element(J_transport, 5u, 6u) * getter::element(dGdt, 2u, 1u) +
-        getter::element(J_transport, 6u, 6u) * getter::element(dGdt, 2u, 2u);
-    getter::element(new_J, 7u, 6u) = 0;
-    getter::element(new_J, 0u, 7u) =
-        getter::element(J_transport, 0u, 7u) +
-        getter::element(J_transport, 4u, 7u) * getter::element(dFdt, 0u, 0u) +
-        getter::element(J_transport, 5u, 7u) * getter::element(dFdt, 0u, 1u) +
-        getter::element(J_transport, 6u, 7u) * getter::element(dFdt, 0u, 2u) +
-        getter::element(J_transport, 7u, 7u) * getter::element(dFdqop, 0u);
-    getter::element(new_J, 1u, 7u) =
-        getter::element(J_transport, 1u, 7u) +
-        getter::element(J_transport, 4u, 7u) * getter::element(dFdt, 1u, 0u) +
-        getter::element(J_transport, 5u, 7u) * getter::element(dFdt, 1u, 1u) +
-        getter::element(J_transport, 6u, 7u) * getter::element(dFdt, 1u, 2u) +
-        getter::element(J_transport, 7u, 7u) * getter::element(dFdqop, 1u);
-    getter::element(new_J, 2u, 7u) =
-        getter::element(J_transport, 2u, 7u) +
-        getter::element(J_transport, 4u, 7u) * getter::element(dFdt, 2u, 0u) +
-        getter::element(J_transport, 5u, 7u) * getter::element(dFdt, 2u, 1u) +
-        getter::element(J_transport, 6u, 7u) * getter::element(dFdt, 2u, 2u) +
-        getter::element(J_transport, 7u, 7u) * getter::element(dFdqop, 2u);
-    getter::element(new_J, 3u, 7u) = 0;
-    getter::element(new_J, 4u, 7u) =
-        getter::element(J_transport, 4u, 7u) * getter::element(dGdt, 0u, 0u) +
-        getter::element(J_transport, 5u, 7u) * getter::element(dGdt, 0u, 1u) +
-        getter::element(J_transport, 6u, 7u) * getter::element(dGdt, 0u, 2u) +
-        getter::element(J_transport, 7u, 7u) * getter::element(dGdqop, 0u);
-    getter::element(new_J, 5u, 7u) =
-        getter::element(J_transport, 4u, 7u) * getter::element(dGdt, 1u, 0u) +
-        getter::element(J_transport, 5u, 7u) * getter::element(dGdt, 1u, 1u) +
-        getter::element(J_transport, 6u, 7u) * getter::element(dGdt, 1u, 2u) +
-        getter::element(J_transport, 7u, 7u) * getter::element(dGdqop, 1u);
-    getter::element(new_J, 6u, 7u) =
-        getter::element(J_transport, 4u, 7u) * getter::element(dGdt, 2u, 0u) +
-        getter::element(J_transport, 5u, 7u) * getter::element(dGdt, 2u, 1u) +
-        getter::element(J_transport, 6u, 7u) * getter::element(dGdt, 2u, 2u) +
-        getter::element(J_transport, 7u, 7u) * getter::element(dGdqop, 2u);
-    getter::element(new_J, 7u, 7u) =
-        dqopqop * getter::element(J_transport, 7u, 7u);
+    assert((getter::element<0, 0>(J_transport) == 1.f));
+    assert((getter::element<0, 1>(J_transport) == 0.f));
+    assert((getter::element<0, 2>(J_transport) == 0.f));
+    assert((getter::element<0, 3>(J_transport) == 0.f));
+    assert((getter::element<1, 0>(J_transport) == 0.f));
+    assert((getter::element<1, 1>(J_transport) == 1.f));
+    assert((getter::element<1, 2>(J_transport) == 0.f));
+    assert((getter::element<1, 3>(J_transport) == 0.f));
+    assert((getter::element<2, 0>(J_transport) == 0.f));
+    assert((getter::element<2, 1>(J_transport) == 0.f));
+    assert((getter::element<2, 2>(J_transport) == 1.f));
+    assert((getter::element<2, 3>(J_transport) == 0.f));
+    assert((getter::element<3, 0>(J_transport) == 0.f));
+    assert((getter::element<3, 1>(J_transport) == 0.f));
+    assert((getter::element<3, 2>(J_transport) == 0.f));
+    assert((getter::element<3, 3>(J_transport) == 1.f));
+    assert((getter::element<3, 4>(J_transport) == 0.f));
+    assert((getter::element<3, 5>(J_transport) == 0.f));
+    assert((getter::element<3, 6>(J_transport) == 0.f));
+    assert((getter::element<3, 7>(J_transport) == 0.f));
+    assert((getter::element<4, 0>(J_transport) == 0.f));
+    assert((getter::element<4, 1>(J_transport) == 0.f));
+    assert((getter::element<4, 2>(J_transport) == 0.f));
+    assert((getter::element<4, 3>(J_transport) == 0.f));
+    assert((getter::element<5, 0>(J_transport) == 0.f));
+    assert((getter::element<5, 1>(J_transport) == 0.f));
+    assert((getter::element<5, 2>(J_transport) == 0.f));
+    assert((getter::element<5, 3>(J_transport) == 0.f));
+    assert((getter::element<6, 0>(J_transport) == 0.f));
+    assert((getter::element<6, 1>(J_transport) == 0.f));
+    assert((getter::element<6, 2>(J_transport) == 0.f));
+    assert((getter::element<6, 3>(J_transport) == 0.f));
+    assert((getter::element<7, 0>(J_transport) == 0.f));
+    assert((getter::element<7, 1>(J_transport) == 0.f));
+    assert((getter::element<7, 2>(J_transport) == 0.f));
+    assert((getter::element<7, 3>(J_transport) == 0.f));
+    assert((getter::element<7, 4>(J_transport) == 0.f));
+    assert((getter::element<7, 5>(J_transport) == 0.f));
+    assert((getter::element<7, 6>(J_transport) == 0.f));
+    getter::element<0, 0>(new_J) = 1;
+    getter::element<1, 0>(new_J) = 0;
+    getter::element<2, 0>(new_J) = 0;
+    getter::element<3, 0>(new_J) = 0;
+    getter::element<4, 0>(new_J) = 0;
+    getter::element<5, 0>(new_J) = 0;
+    getter::element<6, 0>(new_J) = 0;
+    getter::element<7, 0>(new_J) = 0;
+    getter::element<0, 1>(new_J) = 0;
+    getter::element<1, 1>(new_J) = 1;
+    getter::element<2, 1>(new_J) = 0;
+    getter::element<3, 1>(new_J) = 0;
+    getter::element<4, 1>(new_J) = 0;
+    getter::element<5, 1>(new_J) = 0;
+    getter::element<6, 1>(new_J) = 0;
+    getter::element<7, 1>(new_J) = 0;
+    getter::element<0, 2>(new_J) = 0;
+    getter::element<1, 2>(new_J) = 0;
+    getter::element<2, 2>(new_J) = 1;
+    getter::element<3, 2>(new_J) = 0;
+    getter::element<4, 2>(new_J) = 0;
+    getter::element<5, 2>(new_J) = 0;
+    getter::element<6, 2>(new_J) = 0;
+    getter::element<7, 2>(new_J) = 0;
+    getter::element<0, 3>(new_J) = 0;
+    getter::element<1, 3>(new_J) = 0;
+    getter::element<2, 3>(new_J) = 0;
+    getter::element<3, 3>(new_J) = 1;
+    getter::element<4, 3>(new_J) = 0;
+    getter::element<5, 3>(new_J) = 0;
+    getter::element<6, 3>(new_J) = 0;
+    getter::element<7, 3>(new_J) = 0;
+    getter::element<0, 4>(new_J) =
+        getter::element<0, 4>(J_transport) +
+        getter::element<4, 4>(J_transport) * getter::element<0, 0>(dFdt) +
+        getter::element<5, 4>(J_transport) * getter::element<0, 1>(dFdt) +
+        getter::element<6, 4>(J_transport) * getter::element<0, 2>(dFdt);
+    getter::element<1, 4>(new_J) =
+        getter::element<1, 4>(J_transport) +
+        getter::element<4, 4>(J_transport) * getter::element<1, 0>(dFdt) +
+        getter::element<5, 4>(J_transport) * getter::element<1, 1>(dFdt) +
+        getter::element<6, 4>(J_transport) * getter::element<1, 2>(dFdt);
+    getter::element<2, 4>(new_J) =
+        getter::element<2, 4>(J_transport) +
+        getter::element<4, 4>(J_transport) * getter::element<2, 0>(dFdt) +
+        getter::element<5, 4>(J_transport) * getter::element<2, 1>(dFdt) +
+        getter::element<6, 4>(J_transport) * getter::element<2, 2>(dFdt);
+    getter::element<3, 4>(new_J) = 0;
+    getter::element<4, 4>(new_J) =
+        getter::element<4, 4>(J_transport) * getter::element<0, 0>(dGdt) +
+        getter::element<5, 4>(J_transport) * getter::element<0, 1>(dGdt) +
+        getter::element<6, 4>(J_transport) * getter::element<0, 2>(dGdt);
+    getter::element<5, 4>(new_J) =
+        getter::element<4, 4>(J_transport) * getter::element<1, 0>(dGdt) +
+        getter::element<5, 4>(J_transport) * getter::element<1, 1>(dGdt) +
+        getter::element<6, 4>(J_transport) * getter::element<1, 2>(dGdt);
+    getter::element<6, 4>(new_J) =
+        getter::element<4, 4>(J_transport) * getter::element<2, 0>(dGdt) +
+        getter::element<5, 4>(J_transport) * getter::element<2, 1>(dGdt) +
+        getter::element<6, 4>(J_transport) * getter::element<2, 2>(dGdt);
+    getter::element<7, 4>(new_J) = 0;
+    getter::element<0, 5>(new_J) =
+        getter::element<0, 5>(J_transport) +
+        getter::element<4, 5>(J_transport) * getter::element<0, 0>(dFdt) +
+        getter::element<5, 5>(J_transport) * getter::element<0, 1>(dFdt) +
+        getter::element<6, 5>(J_transport) * getter::element<0, 2>(dFdt);
+    getter::element<1, 5>(new_J) =
+        getter::element<1, 5>(J_transport) +
+        getter::element<4, 5>(J_transport) * getter::element<1, 0>(dFdt) +
+        getter::element<5, 5>(J_transport) * getter::element<1, 1>(dFdt) +
+        getter::element<6, 5>(J_transport) * getter::element<1, 2>(dFdt);
+    getter::element<2, 5>(new_J) =
+        getter::element<2, 5>(J_transport) +
+        getter::element<4, 5>(J_transport) * getter::element<2, 0>(dFdt) +
+        getter::element<5, 5>(J_transport) * getter::element<2, 1>(dFdt) +
+        getter::element<6, 5>(J_transport) * getter::element<2, 2>(dFdt);
+    getter::element<3, 5>(new_J) = 0;
+    getter::element<4, 5>(new_J) =
+        getter::element<4, 5>(J_transport) * getter::element<0, 0>(dGdt) +
+        getter::element<5, 5>(J_transport) * getter::element<0, 1>(dGdt) +
+        getter::element<6, 5>(J_transport) * getter::element<0, 2>(dGdt);
+    getter::element<5, 5>(new_J) =
+        getter::element<4, 5>(J_transport) * getter::element<1, 0>(dGdt) +
+        getter::element<5, 5>(J_transport) * getter::element<1, 1>(dGdt) +
+        getter::element<6, 5>(J_transport) * getter::element<1, 2>(dGdt);
+    getter::element<6, 5>(new_J) =
+        getter::element<4, 5>(J_transport) * getter::element<2, 0>(dGdt) +
+        getter::element<5, 5>(J_transport) * getter::element<2, 1>(dGdt) +
+        getter::element<6, 5>(J_transport) * getter::element<2, 2>(dGdt);
+    getter::element<7, 5>(new_J) = 0;
+    getter::element<0, 6>(new_J) =
+        getter::element<0, 6>(J_transport) +
+        getter::element<4, 6>(J_transport) * getter::element<0, 0>(dFdt) +
+        getter::element<5, 6>(J_transport) * getter::element<0, 1>(dFdt) +
+        getter::element<6, 6>(J_transport) * getter::element<0, 2>(dFdt);
+    getter::element<1, 6>(new_J) =
+        getter::element<1, 6>(J_transport) +
+        getter::element<4, 6>(J_transport) * getter::element<1, 0>(dFdt) +
+        getter::element<5, 6>(J_transport) * getter::element<1, 1>(dFdt) +
+        getter::element<6, 6>(J_transport) * getter::element<1, 2>(dFdt);
+    getter::element<2, 6>(new_J) =
+        getter::element<2, 6>(J_transport) +
+        getter::element<4, 6>(J_transport) * getter::element<2, 0>(dFdt) +
+        getter::element<5, 6>(J_transport) * getter::element<2, 1>(dFdt) +
+        getter::element<6, 6>(J_transport) * getter::element<2, 2>(dFdt);
+    getter::element<3, 6>(new_J) = 0;
+    getter::element<4, 6>(new_J) =
+        getter::element<4, 6>(J_transport) * getter::element<0, 0>(dGdt) +
+        getter::element<5, 6>(J_transport) * getter::element<0, 1>(dGdt) +
+        getter::element<6, 6>(J_transport) * getter::element<0, 2>(dGdt);
+    getter::element<5, 6>(new_J) =
+        getter::element<4, 6>(J_transport) * getter::element<1, 0>(dGdt) +
+        getter::element<5, 6>(J_transport) * getter::element<1, 1>(dGdt) +
+        getter::element<6, 6>(J_transport) * getter::element<1, 2>(dGdt);
+    getter::element<6, 6>(new_J) =
+        getter::element<4, 6>(J_transport) * getter::element<2, 0>(dGdt) +
+        getter::element<5, 6>(J_transport) * getter::element<2, 1>(dGdt) +
+        getter::element<6, 6>(J_transport) * getter::element<2, 2>(dGdt);
+    getter::element<7, 6>(new_J) = 0;
+    getter::element<0, 7>(new_J) =
+        getter::element<0, 7>(J_transport) +
+        getter::element<4, 7>(J_transport) * getter::element<0, 0>(dFdt) +
+        getter::element<5, 7>(J_transport) * getter::element<0, 1>(dFdt) +
+        getter::element<6, 7>(J_transport) * getter::element<0, 2>(dFdt) +
+        getter::element<7, 7>(J_transport) * getter::element<0>(dFdqop);
+    getter::element<1, 7>(new_J) =
+        getter::element<1, 7>(J_transport) +
+        getter::element<4, 7>(J_transport) * getter::element<1, 0>(dFdt) +
+        getter::element<5, 7>(J_transport) * getter::element<1, 1>(dFdt) +
+        getter::element<6, 7>(J_transport) * getter::element<1, 2>(dFdt) +
+        getter::element<7, 7>(J_transport) * getter::element<1>(dFdqop);
+    getter::element<2, 7>(new_J) =
+        getter::element<2, 7>(J_transport) +
+        getter::element<4, 7>(J_transport) * getter::element<2, 0>(dFdt) +
+        getter::element<5, 7>(J_transport) * getter::element<2, 1>(dFdt) +
+        getter::element<6, 7>(J_transport) * getter::element<2, 2>(dFdt) +
+        getter::element<7, 7>(J_transport) * getter::element<2>(dFdqop);
+    getter::element<3, 7>(new_J) = 0;
+    getter::element<4, 7>(new_J) =
+        getter::element<4, 7>(J_transport) * getter::element<0, 0>(dGdt) +
+        getter::element<5, 7>(J_transport) * getter::element<0, 1>(dGdt) +
+        getter::element<6, 7>(J_transport) * getter::element<0, 2>(dGdt) +
+        getter::element<7, 7>(J_transport) * getter::element<0>(dGdqop);
+    getter::element<5, 7>(new_J) =
+        getter::element<4, 7>(J_transport) * getter::element<1, 0>(dGdt) +
+        getter::element<5, 7>(J_transport) * getter::element<1, 1>(dGdt) +
+        getter::element<6, 7>(J_transport) * getter::element<1, 2>(dGdt) +
+        getter::element<7, 7>(J_transport) * getter::element<1>(dGdqop);
+    getter::element<6, 7>(new_J) =
+        getter::element<4, 7>(J_transport) * getter::element<2, 0>(dGdt) +
+        getter::element<5, 7>(J_transport) * getter::element<2, 1>(dGdt) +
+        getter::element<6, 7>(J_transport) * getter::element<2, 2>(dGdt) +
+        getter::element<7, 7>(J_transport) * getter::element<2>(dGdqop);
+    getter::element<7, 7>(new_J) = dqopqop * getter::element<7, 7>(J_transport);
 }
 template <typename J_transport_t, typename dFdt_t, typename dGdt_t,
           typename dFdr_t, typename dGdr_t, typename dFdqop_t,
@@ -252,349 +251,348 @@ DETRAY_HOST_DEVICE void inline update_transport_jacobian_with_gradient_impl(
              (detray::concepts::square_matrix<new_J_t> &&
               detray::traits::max_rank<new_J_t> == 8))
 {
-    assert(getter::element(J_transport, 0u, 3u) == 0.f);
-    assert(getter::element(J_transport, 1u, 3u) == 0.f);
-    assert(getter::element(J_transport, 2u, 3u) == 0.f);
-    assert(getter::element(J_transport, 3u, 0u) == 0.f);
-    assert(getter::element(J_transport, 3u, 1u) == 0.f);
-    assert(getter::element(J_transport, 3u, 2u) == 0.f);
-    assert(getter::element(J_transport, 3u, 3u) == 1.f);
-    assert(getter::element(J_transport, 3u, 4u) == 0.f);
-    assert(getter::element(J_transport, 3u, 5u) == 0.f);
-    assert(getter::element(J_transport, 3u, 6u) == 0.f);
-    assert(getter::element(J_transport, 3u, 7u) == 0.f);
-    assert(getter::element(J_transport, 4u, 3u) == 0.f);
-    assert(getter::element(J_transport, 5u, 3u) == 0.f);
-    assert(getter::element(J_transport, 6u, 3u) == 0.f);
-    assert(getter::element(J_transport, 7u, 0u) == 0.f);
-    assert(getter::element(J_transport, 7u, 1u) == 0.f);
-    assert(getter::element(J_transport, 7u, 2u) == 0.f);
-    assert(getter::element(J_transport, 7u, 3u) == 0.f);
-    assert(getter::element(J_transport, 7u, 4u) == 0.f);
-    assert(getter::element(J_transport, 7u, 5u) == 0.f);
-    assert(getter::element(J_transport, 7u, 6u) == 0.f);
-    getter::element(new_J, 0u, 0u) =
-        getter::element(J_transport, 0u, 0u) * getter::element(dFdr, 0u, 0u) +
-        getter::element(J_transport, 1u, 0u) * getter::element(dFdr, 0u, 1u) +
-        getter::element(J_transport, 2u, 0u) * getter::element(dFdr, 0u, 2u) +
-        getter::element(J_transport, 4u, 0u) * getter::element(dFdt, 0u, 0u) +
-        getter::element(J_transport, 5u, 0u) * getter::element(dFdt, 0u, 1u) +
-        getter::element(J_transport, 6u, 0u) * getter::element(dFdt, 0u, 2u);
-    getter::element(new_J, 1u, 0u) =
-        getter::element(J_transport, 0u, 0u) * getter::element(dFdr, 1u, 0u) +
-        getter::element(J_transport, 1u, 0u) * getter::element(dFdr, 1u, 1u) +
-        getter::element(J_transport, 2u, 0u) * getter::element(dFdr, 1u, 2u) +
-        getter::element(J_transport, 4u, 0u) * getter::element(dFdt, 1u, 0u) +
-        getter::element(J_transport, 5u, 0u) * getter::element(dFdt, 1u, 1u) +
-        getter::element(J_transport, 6u, 0u) * getter::element(dFdt, 1u, 2u);
-    getter::element(new_J, 2u, 0u) =
-        getter::element(J_transport, 0u, 0u) * getter::element(dFdr, 2u, 0u) +
-        getter::element(J_transport, 1u, 0u) * getter::element(dFdr, 2u, 1u) +
-        getter::element(J_transport, 2u, 0u) * getter::element(dFdr, 2u, 2u) +
-        getter::element(J_transport, 4u, 0u) * getter::element(dFdt, 2u, 0u) +
-        getter::element(J_transport, 5u, 0u) * getter::element(dFdt, 2u, 1u) +
-        getter::element(J_transport, 6u, 0u) * getter::element(dFdt, 2u, 2u);
-    getter::element(new_J, 3u, 0u) = 0;
-    getter::element(new_J, 4u, 0u) =
-        getter::element(J_transport, 0u, 0u) * getter::element(dGdr, 0u, 0u) +
-        getter::element(J_transport, 1u, 0u) * getter::element(dGdr, 0u, 1u) +
-        getter::element(J_transport, 2u, 0u) * getter::element(dGdr, 0u, 2u) +
-        getter::element(J_transport, 4u, 0u) * getter::element(dGdt, 0u, 0u) +
-        getter::element(J_transport, 5u, 0u) * getter::element(dGdt, 0u, 1u) +
-        getter::element(J_transport, 6u, 0u) * getter::element(dGdt, 0u, 2u);
-    getter::element(new_J, 5u, 0u) =
-        getter::element(J_transport, 0u, 0u) * getter::element(dGdr, 1u, 0u) +
-        getter::element(J_transport, 1u, 0u) * getter::element(dGdr, 1u, 1u) +
-        getter::element(J_transport, 2u, 0u) * getter::element(dGdr, 1u, 2u) +
-        getter::element(J_transport, 4u, 0u) * getter::element(dGdt, 1u, 0u) +
-        getter::element(J_transport, 5u, 0u) * getter::element(dGdt, 1u, 1u) +
-        getter::element(J_transport, 6u, 0u) * getter::element(dGdt, 1u, 2u);
-    getter::element(new_J, 6u, 0u) =
-        getter::element(J_transport, 0u, 0u) * getter::element(dGdr, 2u, 0u) +
-        getter::element(J_transport, 1u, 0u) * getter::element(dGdr, 2u, 1u) +
-        getter::element(J_transport, 2u, 0u) * getter::element(dGdr, 2u, 2u) +
-        getter::element(J_transport, 4u, 0u) * getter::element(dGdt, 2u, 0u) +
-        getter::element(J_transport, 5u, 0u) * getter::element(dGdt, 2u, 1u) +
-        getter::element(J_transport, 6u, 0u) * getter::element(dGdt, 2u, 2u);
-    getter::element(new_J, 7u, 0u) = 0;
-    getter::element(new_J, 0u, 1u) =
-        getter::element(J_transport, 0u, 1u) * getter::element(dFdr, 0u, 0u) +
-        getter::element(J_transport, 1u, 1u) * getter::element(dFdr, 0u, 1u) +
-        getter::element(J_transport, 2u, 1u) * getter::element(dFdr, 0u, 2u) +
-        getter::element(J_transport, 4u, 1u) * getter::element(dFdt, 0u, 0u) +
-        getter::element(J_transport, 5u, 1u) * getter::element(dFdt, 0u, 1u) +
-        getter::element(J_transport, 6u, 1u) * getter::element(dFdt, 0u, 2u);
-    getter::element(new_J, 1u, 1u) =
-        getter::element(J_transport, 0u, 1u) * getter::element(dFdr, 1u, 0u) +
-        getter::element(J_transport, 1u, 1u) * getter::element(dFdr, 1u, 1u) +
-        getter::element(J_transport, 2u, 1u) * getter::element(dFdr, 1u, 2u) +
-        getter::element(J_transport, 4u, 1u) * getter::element(dFdt, 1u, 0u) +
-        getter::element(J_transport, 5u, 1u) * getter::element(dFdt, 1u, 1u) +
-        getter::element(J_transport, 6u, 1u) * getter::element(dFdt, 1u, 2u);
-    getter::element(new_J, 2u, 1u) =
-        getter::element(J_transport, 0u, 1u) * getter::element(dFdr, 2u, 0u) +
-        getter::element(J_transport, 1u, 1u) * getter::element(dFdr, 2u, 1u) +
-        getter::element(J_transport, 2u, 1u) * getter::element(dFdr, 2u, 2u) +
-        getter::element(J_transport, 4u, 1u) * getter::element(dFdt, 2u, 0u) +
-        getter::element(J_transport, 5u, 1u) * getter::element(dFdt, 2u, 1u) +
-        getter::element(J_transport, 6u, 1u) * getter::element(dFdt, 2u, 2u);
-    getter::element(new_J, 3u, 1u) = 0;
-    getter::element(new_J, 4u, 1u) =
-        getter::element(J_transport, 0u, 1u) * getter::element(dGdr, 0u, 0u) +
-        getter::element(J_transport, 1u, 1u) * getter::element(dGdr, 0u, 1u) +
-        getter::element(J_transport, 2u, 1u) * getter::element(dGdr, 0u, 2u) +
-        getter::element(J_transport, 4u, 1u) * getter::element(dGdt, 0u, 0u) +
-        getter::element(J_transport, 5u, 1u) * getter::element(dGdt, 0u, 1u) +
-        getter::element(J_transport, 6u, 1u) * getter::element(dGdt, 0u, 2u);
-    getter::element(new_J, 5u, 1u) =
-        getter::element(J_transport, 0u, 1u) * getter::element(dGdr, 1u, 0u) +
-        getter::element(J_transport, 1u, 1u) * getter::element(dGdr, 1u, 1u) +
-        getter::element(J_transport, 2u, 1u) * getter::element(dGdr, 1u, 2u) +
-        getter::element(J_transport, 4u, 1u) * getter::element(dGdt, 1u, 0u) +
-        getter::element(J_transport, 5u, 1u) * getter::element(dGdt, 1u, 1u) +
-        getter::element(J_transport, 6u, 1u) * getter::element(dGdt, 1u, 2u);
-    getter::element(new_J, 6u, 1u) =
-        getter::element(J_transport, 0u, 1u) * getter::element(dGdr, 2u, 0u) +
-        getter::element(J_transport, 1u, 1u) * getter::element(dGdr, 2u, 1u) +
-        getter::element(J_transport, 2u, 1u) * getter::element(dGdr, 2u, 2u) +
-        getter::element(J_transport, 4u, 1u) * getter::element(dGdt, 2u, 0u) +
-        getter::element(J_transport, 5u, 1u) * getter::element(dGdt, 2u, 1u) +
-        getter::element(J_transport, 6u, 1u) * getter::element(dGdt, 2u, 2u);
-    getter::element(new_J, 7u, 1u) = 0;
-    getter::element(new_J, 0u, 2u) =
-        getter::element(J_transport, 0u, 2u) * getter::element(dFdr, 0u, 0u) +
-        getter::element(J_transport, 1u, 2u) * getter::element(dFdr, 0u, 1u) +
-        getter::element(J_transport, 2u, 2u) * getter::element(dFdr, 0u, 2u) +
-        getter::element(J_transport, 4u, 2u) * getter::element(dFdt, 0u, 0u) +
-        getter::element(J_transport, 5u, 2u) * getter::element(dFdt, 0u, 1u) +
-        getter::element(J_transport, 6u, 2u) * getter::element(dFdt, 0u, 2u);
-    getter::element(new_J, 1u, 2u) =
-        getter::element(J_transport, 0u, 2u) * getter::element(dFdr, 1u, 0u) +
-        getter::element(J_transport, 1u, 2u) * getter::element(dFdr, 1u, 1u) +
-        getter::element(J_transport, 2u, 2u) * getter::element(dFdr, 1u, 2u) +
-        getter::element(J_transport, 4u, 2u) * getter::element(dFdt, 1u, 0u) +
-        getter::element(J_transport, 5u, 2u) * getter::element(dFdt, 1u, 1u) +
-        getter::element(J_transport, 6u, 2u) * getter::element(dFdt, 1u, 2u);
-    getter::element(new_J, 2u, 2u) =
-        getter::element(J_transport, 0u, 2u) * getter::element(dFdr, 2u, 0u) +
-        getter::element(J_transport, 1u, 2u) * getter::element(dFdr, 2u, 1u) +
-        getter::element(J_transport, 2u, 2u) * getter::element(dFdr, 2u, 2u) +
-        getter::element(J_transport, 4u, 2u) * getter::element(dFdt, 2u, 0u) +
-        getter::element(J_transport, 5u, 2u) * getter::element(dFdt, 2u, 1u) +
-        getter::element(J_transport, 6u, 2u) * getter::element(dFdt, 2u, 2u);
-    getter::element(new_J, 3u, 2u) = 0;
-    getter::element(new_J, 4u, 2u) =
-        getter::element(J_transport, 0u, 2u) * getter::element(dGdr, 0u, 0u) +
-        getter::element(J_transport, 1u, 2u) * getter::element(dGdr, 0u, 1u) +
-        getter::element(J_transport, 2u, 2u) * getter::element(dGdr, 0u, 2u) +
-        getter::element(J_transport, 4u, 2u) * getter::element(dGdt, 0u, 0u) +
-        getter::element(J_transport, 5u, 2u) * getter::element(dGdt, 0u, 1u) +
-        getter::element(J_transport, 6u, 2u) * getter::element(dGdt, 0u, 2u);
-    getter::element(new_J, 5u, 2u) =
-        getter::element(J_transport, 0u, 2u) * getter::element(dGdr, 1u, 0u) +
-        getter::element(J_transport, 1u, 2u) * getter::element(dGdr, 1u, 1u) +
-        getter::element(J_transport, 2u, 2u) * getter::element(dGdr, 1u, 2u) +
-        getter::element(J_transport, 4u, 2u) * getter::element(dGdt, 1u, 0u) +
-        getter::element(J_transport, 5u, 2u) * getter::element(dGdt, 1u, 1u) +
-        getter::element(J_transport, 6u, 2u) * getter::element(dGdt, 1u, 2u);
-    getter::element(new_J, 6u, 2u) =
-        getter::element(J_transport, 0u, 2u) * getter::element(dGdr, 2u, 0u) +
-        getter::element(J_transport, 1u, 2u) * getter::element(dGdr, 2u, 1u) +
-        getter::element(J_transport, 2u, 2u) * getter::element(dGdr, 2u, 2u) +
-        getter::element(J_transport, 4u, 2u) * getter::element(dGdt, 2u, 0u) +
-        getter::element(J_transport, 5u, 2u) * getter::element(dGdt, 2u, 1u) +
-        getter::element(J_transport, 6u, 2u) * getter::element(dGdt, 2u, 2u);
-    getter::element(new_J, 7u, 2u) = 0;
-    getter::element(new_J, 0u, 3u) = 0;
-    getter::element(new_J, 1u, 3u) = 0;
-    getter::element(new_J, 2u, 3u) = 0;
-    getter::element(new_J, 3u, 3u) = 1;
-    getter::element(new_J, 4u, 3u) = 0;
-    getter::element(new_J, 5u, 3u) = 0;
-    getter::element(new_J, 6u, 3u) = 0;
-    getter::element(new_J, 7u, 3u) = 0;
-    getter::element(new_J, 0u, 4u) =
-        getter::element(J_transport, 0u, 4u) * getter::element(dFdr, 0u, 0u) +
-        getter::element(J_transport, 1u, 4u) * getter::element(dFdr, 0u, 1u) +
-        getter::element(J_transport, 2u, 4u) * getter::element(dFdr, 0u, 2u) +
-        getter::element(J_transport, 4u, 4u) * getter::element(dFdt, 0u, 0u) +
-        getter::element(J_transport, 5u, 4u) * getter::element(dFdt, 0u, 1u) +
-        getter::element(J_transport, 6u, 4u) * getter::element(dFdt, 0u, 2u);
-    getter::element(new_J, 1u, 4u) =
-        getter::element(J_transport, 0u, 4u) * getter::element(dFdr, 1u, 0u) +
-        getter::element(J_transport, 1u, 4u) * getter::element(dFdr, 1u, 1u) +
-        getter::element(J_transport, 2u, 4u) * getter::element(dFdr, 1u, 2u) +
-        getter::element(J_transport, 4u, 4u) * getter::element(dFdt, 1u, 0u) +
-        getter::element(J_transport, 5u, 4u) * getter::element(dFdt, 1u, 1u) +
-        getter::element(J_transport, 6u, 4u) * getter::element(dFdt, 1u, 2u);
-    getter::element(new_J, 2u, 4u) =
-        getter::element(J_transport, 0u, 4u) * getter::element(dFdr, 2u, 0u) +
-        getter::element(J_transport, 1u, 4u) * getter::element(dFdr, 2u, 1u) +
-        getter::element(J_transport, 2u, 4u) * getter::element(dFdr, 2u, 2u) +
-        getter::element(J_transport, 4u, 4u) * getter::element(dFdt, 2u, 0u) +
-        getter::element(J_transport, 5u, 4u) * getter::element(dFdt, 2u, 1u) +
-        getter::element(J_transport, 6u, 4u) * getter::element(dFdt, 2u, 2u);
-    getter::element(new_J, 3u, 4u) = 0;
-    getter::element(new_J, 4u, 4u) =
-        getter::element(J_transport, 0u, 4u) * getter::element(dGdr, 0u, 0u) +
-        getter::element(J_transport, 1u, 4u) * getter::element(dGdr, 0u, 1u) +
-        getter::element(J_transport, 2u, 4u) * getter::element(dGdr, 0u, 2u) +
-        getter::element(J_transport, 4u, 4u) * getter::element(dGdt, 0u, 0u) +
-        getter::element(J_transport, 5u, 4u) * getter::element(dGdt, 0u, 1u) +
-        getter::element(J_transport, 6u, 4u) * getter::element(dGdt, 0u, 2u);
-    getter::element(new_J, 5u, 4u) =
-        getter::element(J_transport, 0u, 4u) * getter::element(dGdr, 1u, 0u) +
-        getter::element(J_transport, 1u, 4u) * getter::element(dGdr, 1u, 1u) +
-        getter::element(J_transport, 2u, 4u) * getter::element(dGdr, 1u, 2u) +
-        getter::element(J_transport, 4u, 4u) * getter::element(dGdt, 1u, 0u) +
-        getter::element(J_transport, 5u, 4u) * getter::element(dGdt, 1u, 1u) +
-        getter::element(J_transport, 6u, 4u) * getter::element(dGdt, 1u, 2u);
-    getter::element(new_J, 6u, 4u) =
-        getter::element(J_transport, 0u, 4u) * getter::element(dGdr, 2u, 0u) +
-        getter::element(J_transport, 1u, 4u) * getter::element(dGdr, 2u, 1u) +
-        getter::element(J_transport, 2u, 4u) * getter::element(dGdr, 2u, 2u) +
-        getter::element(J_transport, 4u, 4u) * getter::element(dGdt, 2u, 0u) +
-        getter::element(J_transport, 5u, 4u) * getter::element(dGdt, 2u, 1u) +
-        getter::element(J_transport, 6u, 4u) * getter::element(dGdt, 2u, 2u);
-    getter::element(new_J, 7u, 4u) = 0;
-    getter::element(new_J, 0u, 5u) =
-        getter::element(J_transport, 0u, 5u) * getter::element(dFdr, 0u, 0u) +
-        getter::element(J_transport, 1u, 5u) * getter::element(dFdr, 0u, 1u) +
-        getter::element(J_transport, 2u, 5u) * getter::element(dFdr, 0u, 2u) +
-        getter::element(J_transport, 4u, 5u) * getter::element(dFdt, 0u, 0u) +
-        getter::element(J_transport, 5u, 5u) * getter::element(dFdt, 0u, 1u) +
-        getter::element(J_transport, 6u, 5u) * getter::element(dFdt, 0u, 2u);
-    getter::element(new_J, 1u, 5u) =
-        getter::element(J_transport, 0u, 5u) * getter::element(dFdr, 1u, 0u) +
-        getter::element(J_transport, 1u, 5u) * getter::element(dFdr, 1u, 1u) +
-        getter::element(J_transport, 2u, 5u) * getter::element(dFdr, 1u, 2u) +
-        getter::element(J_transport, 4u, 5u) * getter::element(dFdt, 1u, 0u) +
-        getter::element(J_transport, 5u, 5u) * getter::element(dFdt, 1u, 1u) +
-        getter::element(J_transport, 6u, 5u) * getter::element(dFdt, 1u, 2u);
-    getter::element(new_J, 2u, 5u) =
-        getter::element(J_transport, 0u, 5u) * getter::element(dFdr, 2u, 0u) +
-        getter::element(J_transport, 1u, 5u) * getter::element(dFdr, 2u, 1u) +
-        getter::element(J_transport, 2u, 5u) * getter::element(dFdr, 2u, 2u) +
-        getter::element(J_transport, 4u, 5u) * getter::element(dFdt, 2u, 0u) +
-        getter::element(J_transport, 5u, 5u) * getter::element(dFdt, 2u, 1u) +
-        getter::element(J_transport, 6u, 5u) * getter::element(dFdt, 2u, 2u);
-    getter::element(new_J, 3u, 5u) = 0;
-    getter::element(new_J, 4u, 5u) =
-        getter::element(J_transport, 0u, 5u) * getter::element(dGdr, 0u, 0u) +
-        getter::element(J_transport, 1u, 5u) * getter::element(dGdr, 0u, 1u) +
-        getter::element(J_transport, 2u, 5u) * getter::element(dGdr, 0u, 2u) +
-        getter::element(J_transport, 4u, 5u) * getter::element(dGdt, 0u, 0u) +
-        getter::element(J_transport, 5u, 5u) * getter::element(dGdt, 0u, 1u) +
-        getter::element(J_transport, 6u, 5u) * getter::element(dGdt, 0u, 2u);
-    getter::element(new_J, 5u, 5u) =
-        getter::element(J_transport, 0u, 5u) * getter::element(dGdr, 1u, 0u) +
-        getter::element(J_transport, 1u, 5u) * getter::element(dGdr, 1u, 1u) +
-        getter::element(J_transport, 2u, 5u) * getter::element(dGdr, 1u, 2u) +
-        getter::element(J_transport, 4u, 5u) * getter::element(dGdt, 1u, 0u) +
-        getter::element(J_transport, 5u, 5u) * getter::element(dGdt, 1u, 1u) +
-        getter::element(J_transport, 6u, 5u) * getter::element(dGdt, 1u, 2u);
-    getter::element(new_J, 6u, 5u) =
-        getter::element(J_transport, 0u, 5u) * getter::element(dGdr, 2u, 0u) +
-        getter::element(J_transport, 1u, 5u) * getter::element(dGdr, 2u, 1u) +
-        getter::element(J_transport, 2u, 5u) * getter::element(dGdr, 2u, 2u) +
-        getter::element(J_transport, 4u, 5u) * getter::element(dGdt, 2u, 0u) +
-        getter::element(J_transport, 5u, 5u) * getter::element(dGdt, 2u, 1u) +
-        getter::element(J_transport, 6u, 5u) * getter::element(dGdt, 2u, 2u);
-    getter::element(new_J, 7u, 5u) = 0;
-    getter::element(new_J, 0u, 6u) =
-        getter::element(J_transport, 0u, 6u) * getter::element(dFdr, 0u, 0u) +
-        getter::element(J_transport, 1u, 6u) * getter::element(dFdr, 0u, 1u) +
-        getter::element(J_transport, 2u, 6u) * getter::element(dFdr, 0u, 2u) +
-        getter::element(J_transport, 4u, 6u) * getter::element(dFdt, 0u, 0u) +
-        getter::element(J_transport, 5u, 6u) * getter::element(dFdt, 0u, 1u) +
-        getter::element(J_transport, 6u, 6u) * getter::element(dFdt, 0u, 2u);
-    getter::element(new_J, 1u, 6u) =
-        getter::element(J_transport, 0u, 6u) * getter::element(dFdr, 1u, 0u) +
-        getter::element(J_transport, 1u, 6u) * getter::element(dFdr, 1u, 1u) +
-        getter::element(J_transport, 2u, 6u) * getter::element(dFdr, 1u, 2u) +
-        getter::element(J_transport, 4u, 6u) * getter::element(dFdt, 1u, 0u) +
-        getter::element(J_transport, 5u, 6u) * getter::element(dFdt, 1u, 1u) +
-        getter::element(J_transport, 6u, 6u) * getter::element(dFdt, 1u, 2u);
-    getter::element(new_J, 2u, 6u) =
-        getter::element(J_transport, 0u, 6u) * getter::element(dFdr, 2u, 0u) +
-        getter::element(J_transport, 1u, 6u) * getter::element(dFdr, 2u, 1u) +
-        getter::element(J_transport, 2u, 6u) * getter::element(dFdr, 2u, 2u) +
-        getter::element(J_transport, 4u, 6u) * getter::element(dFdt, 2u, 0u) +
-        getter::element(J_transport, 5u, 6u) * getter::element(dFdt, 2u, 1u) +
-        getter::element(J_transport, 6u, 6u) * getter::element(dFdt, 2u, 2u);
-    getter::element(new_J, 3u, 6u) = 0;
-    getter::element(new_J, 4u, 6u) =
-        getter::element(J_transport, 0u, 6u) * getter::element(dGdr, 0u, 0u) +
-        getter::element(J_transport, 1u, 6u) * getter::element(dGdr, 0u, 1u) +
-        getter::element(J_transport, 2u, 6u) * getter::element(dGdr, 0u, 2u) +
-        getter::element(J_transport, 4u, 6u) * getter::element(dGdt, 0u, 0u) +
-        getter::element(J_transport, 5u, 6u) * getter::element(dGdt, 0u, 1u) +
-        getter::element(J_transport, 6u, 6u) * getter::element(dGdt, 0u, 2u);
-    getter::element(new_J, 5u, 6u) =
-        getter::element(J_transport, 0u, 6u) * getter::element(dGdr, 1u, 0u) +
-        getter::element(J_transport, 1u, 6u) * getter::element(dGdr, 1u, 1u) +
-        getter::element(J_transport, 2u, 6u) * getter::element(dGdr, 1u, 2u) +
-        getter::element(J_transport, 4u, 6u) * getter::element(dGdt, 1u, 0u) +
-        getter::element(J_transport, 5u, 6u) * getter::element(dGdt, 1u, 1u) +
-        getter::element(J_transport, 6u, 6u) * getter::element(dGdt, 1u, 2u);
-    getter::element(new_J, 6u, 6u) =
-        getter::element(J_transport, 0u, 6u) * getter::element(dGdr, 2u, 0u) +
-        getter::element(J_transport, 1u, 6u) * getter::element(dGdr, 2u, 1u) +
-        getter::element(J_transport, 2u, 6u) * getter::element(dGdr, 2u, 2u) +
-        getter::element(J_transport, 4u, 6u) * getter::element(dGdt, 2u, 0u) +
-        getter::element(J_transport, 5u, 6u) * getter::element(dGdt, 2u, 1u) +
-        getter::element(J_transport, 6u, 6u) * getter::element(dGdt, 2u, 2u);
-    getter::element(new_J, 7u, 6u) = 0;
-    getter::element(new_J, 0u, 7u) =
-        getter::element(J_transport, 0u, 7u) * getter::element(dFdr, 0u, 0u) +
-        getter::element(J_transport, 1u, 7u) * getter::element(dFdr, 0u, 1u) +
-        getter::element(J_transport, 2u, 7u) * getter::element(dFdr, 0u, 2u) +
-        getter::element(J_transport, 4u, 7u) * getter::element(dFdt, 0u, 0u) +
-        getter::element(J_transport, 5u, 7u) * getter::element(dFdt, 0u, 1u) +
-        getter::element(J_transport, 6u, 7u) * getter::element(dFdt, 0u, 2u) +
-        getter::element(J_transport, 7u, 7u) * getter::element(dFdqop, 0u);
-    getter::element(new_J, 1u, 7u) =
-        getter::element(J_transport, 0u, 7u) * getter::element(dFdr, 1u, 0u) +
-        getter::element(J_transport, 1u, 7u) * getter::element(dFdr, 1u, 1u) +
-        getter::element(J_transport, 2u, 7u) * getter::element(dFdr, 1u, 2u) +
-        getter::element(J_transport, 4u, 7u) * getter::element(dFdt, 1u, 0u) +
-        getter::element(J_transport, 5u, 7u) * getter::element(dFdt, 1u, 1u) +
-        getter::element(J_transport, 6u, 7u) * getter::element(dFdt, 1u, 2u) +
-        getter::element(J_transport, 7u, 7u) * getter::element(dFdqop, 1u);
-    getter::element(new_J, 2u, 7u) =
-        getter::element(J_transport, 0u, 7u) * getter::element(dFdr, 2u, 0u) +
-        getter::element(J_transport, 1u, 7u) * getter::element(dFdr, 2u, 1u) +
-        getter::element(J_transport, 2u, 7u) * getter::element(dFdr, 2u, 2u) +
-        getter::element(J_transport, 4u, 7u) * getter::element(dFdt, 2u, 0u) +
-        getter::element(J_transport, 5u, 7u) * getter::element(dFdt, 2u, 1u) +
-        getter::element(J_transport, 6u, 7u) * getter::element(dFdt, 2u, 2u) +
-        getter::element(J_transport, 7u, 7u) * getter::element(dFdqop, 2u);
-    getter::element(new_J, 3u, 7u) = 0;
-    getter::element(new_J, 4u, 7u) =
-        getter::element(J_transport, 0u, 7u) * getter::element(dGdr, 0u, 0u) +
-        getter::element(J_transport, 1u, 7u) * getter::element(dGdr, 0u, 1u) +
-        getter::element(J_transport, 2u, 7u) * getter::element(dGdr, 0u, 2u) +
-        getter::element(J_transport, 4u, 7u) * getter::element(dGdt, 0u, 0u) +
-        getter::element(J_transport, 5u, 7u) * getter::element(dGdt, 0u, 1u) +
-        getter::element(J_transport, 6u, 7u) * getter::element(dGdt, 0u, 2u) +
-        getter::element(J_transport, 7u, 7u) * getter::element(dGdqop, 0u);
-    getter::element(new_J, 5u, 7u) =
-        getter::element(J_transport, 0u, 7u) * getter::element(dGdr, 1u, 0u) +
-        getter::element(J_transport, 1u, 7u) * getter::element(dGdr, 1u, 1u) +
-        getter::element(J_transport, 2u, 7u) * getter::element(dGdr, 1u, 2u) +
-        getter::element(J_transport, 4u, 7u) * getter::element(dGdt, 1u, 0u) +
-        getter::element(J_transport, 5u, 7u) * getter::element(dGdt, 1u, 1u) +
-        getter::element(J_transport, 6u, 7u) * getter::element(dGdt, 1u, 2u) +
-        getter::element(J_transport, 7u, 7u) * getter::element(dGdqop, 1u);
-    getter::element(new_J, 6u, 7u) =
-        getter::element(J_transport, 0u, 7u) * getter::element(dGdr, 2u, 0u) +
-        getter::element(J_transport, 1u, 7u) * getter::element(dGdr, 2u, 1u) +
-        getter::element(J_transport, 2u, 7u) * getter::element(dGdr, 2u, 2u) +
-        getter::element(J_transport, 4u, 7u) * getter::element(dGdt, 2u, 0u) +
-        getter::element(J_transport, 5u, 7u) * getter::element(dGdt, 2u, 1u) +
-        getter::element(J_transport, 6u, 7u) * getter::element(dGdt, 2u, 2u) +
-        getter::element(J_transport, 7u, 7u) * getter::element(dGdqop, 2u);
-    getter::element(new_J, 7u, 7u) =
-        dqopqop * getter::element(J_transport, 7u, 7u);
+    assert((getter::element<0, 3>(J_transport) == 0.f));
+    assert((getter::element<1, 3>(J_transport) == 0.f));
+    assert((getter::element<2, 3>(J_transport) == 0.f));
+    assert((getter::element<3, 0>(J_transport) == 0.f));
+    assert((getter::element<3, 1>(J_transport) == 0.f));
+    assert((getter::element<3, 2>(J_transport) == 0.f));
+    assert((getter::element<3, 3>(J_transport) == 1.f));
+    assert((getter::element<3, 4>(J_transport) == 0.f));
+    assert((getter::element<3, 5>(J_transport) == 0.f));
+    assert((getter::element<3, 6>(J_transport) == 0.f));
+    assert((getter::element<3, 7>(J_transport) == 0.f));
+    assert((getter::element<4, 3>(J_transport) == 0.f));
+    assert((getter::element<5, 3>(J_transport) == 0.f));
+    assert((getter::element<6, 3>(J_transport) == 0.f));
+    assert((getter::element<7, 0>(J_transport) == 0.f));
+    assert((getter::element<7, 1>(J_transport) == 0.f));
+    assert((getter::element<7, 2>(J_transport) == 0.f));
+    assert((getter::element<7, 3>(J_transport) == 0.f));
+    assert((getter::element<7, 4>(J_transport) == 0.f));
+    assert((getter::element<7, 5>(J_transport) == 0.f));
+    assert((getter::element<7, 6>(J_transport) == 0.f));
+    getter::element<0, 0>(new_J) =
+        getter::element<0, 0>(J_transport) * getter::element<0, 0>(dFdr) +
+        getter::element<1, 0>(J_transport) * getter::element<0, 1>(dFdr) +
+        getter::element<2, 0>(J_transport) * getter::element<0, 2>(dFdr) +
+        getter::element<4, 0>(J_transport) * getter::element<0, 0>(dFdt) +
+        getter::element<5, 0>(J_transport) * getter::element<0, 1>(dFdt) +
+        getter::element<6, 0>(J_transport) * getter::element<0, 2>(dFdt);
+    getter::element<1, 0>(new_J) =
+        getter::element<0, 0>(J_transport) * getter::element<1, 0>(dFdr) +
+        getter::element<1, 0>(J_transport) * getter::element<1, 1>(dFdr) +
+        getter::element<2, 0>(J_transport) * getter::element<1, 2>(dFdr) +
+        getter::element<4, 0>(J_transport) * getter::element<1, 0>(dFdt) +
+        getter::element<5, 0>(J_transport) * getter::element<1, 1>(dFdt) +
+        getter::element<6, 0>(J_transport) * getter::element<1, 2>(dFdt);
+    getter::element<2, 0>(new_J) =
+        getter::element<0, 0>(J_transport) * getter::element<2, 0>(dFdr) +
+        getter::element<1, 0>(J_transport) * getter::element<2, 1>(dFdr) +
+        getter::element<2, 0>(J_transport) * getter::element<2, 2>(dFdr) +
+        getter::element<4, 0>(J_transport) * getter::element<2, 0>(dFdt) +
+        getter::element<5, 0>(J_transport) * getter::element<2, 1>(dFdt) +
+        getter::element<6, 0>(J_transport) * getter::element<2, 2>(dFdt);
+    getter::element<3, 0>(new_J) = 0;
+    getter::element<4, 0>(new_J) =
+        getter::element<0, 0>(J_transport) * getter::element<0, 0>(dGdr) +
+        getter::element<1, 0>(J_transport) * getter::element<0, 1>(dGdr) +
+        getter::element<2, 0>(J_transport) * getter::element<0, 2>(dGdr) +
+        getter::element<4, 0>(J_transport) * getter::element<0, 0>(dGdt) +
+        getter::element<5, 0>(J_transport) * getter::element<0, 1>(dGdt) +
+        getter::element<6, 0>(J_transport) * getter::element<0, 2>(dGdt);
+    getter::element<5, 0>(new_J) =
+        getter::element<0, 0>(J_transport) * getter::element<1, 0>(dGdr) +
+        getter::element<1, 0>(J_transport) * getter::element<1, 1>(dGdr) +
+        getter::element<2, 0>(J_transport) * getter::element<1, 2>(dGdr) +
+        getter::element<4, 0>(J_transport) * getter::element<1, 0>(dGdt) +
+        getter::element<5, 0>(J_transport) * getter::element<1, 1>(dGdt) +
+        getter::element<6, 0>(J_transport) * getter::element<1, 2>(dGdt);
+    getter::element<6, 0>(new_J) =
+        getter::element<0, 0>(J_transport) * getter::element<2, 0>(dGdr) +
+        getter::element<1, 0>(J_transport) * getter::element<2, 1>(dGdr) +
+        getter::element<2, 0>(J_transport) * getter::element<2, 2>(dGdr) +
+        getter::element<4, 0>(J_transport) * getter::element<2, 0>(dGdt) +
+        getter::element<5, 0>(J_transport) * getter::element<2, 1>(dGdt) +
+        getter::element<6, 0>(J_transport) * getter::element<2, 2>(dGdt);
+    getter::element<7, 0>(new_J) = 0;
+    getter::element<0, 1>(new_J) =
+        getter::element<0, 1>(J_transport) * getter::element<0, 0>(dFdr) +
+        getter::element<1, 1>(J_transport) * getter::element<0, 1>(dFdr) +
+        getter::element<2, 1>(J_transport) * getter::element<0, 2>(dFdr) +
+        getter::element<4, 1>(J_transport) * getter::element<0, 0>(dFdt) +
+        getter::element<5, 1>(J_transport) * getter::element<0, 1>(dFdt) +
+        getter::element<6, 1>(J_transport) * getter::element<0, 2>(dFdt);
+    getter::element<1, 1>(new_J) =
+        getter::element<0, 1>(J_transport) * getter::element<1, 0>(dFdr) +
+        getter::element<1, 1>(J_transport) * getter::element<1, 1>(dFdr) +
+        getter::element<2, 1>(J_transport) * getter::element<1, 2>(dFdr) +
+        getter::element<4, 1>(J_transport) * getter::element<1, 0>(dFdt) +
+        getter::element<5, 1>(J_transport) * getter::element<1, 1>(dFdt) +
+        getter::element<6, 1>(J_transport) * getter::element<1, 2>(dFdt);
+    getter::element<2, 1>(new_J) =
+        getter::element<0, 1>(J_transport) * getter::element<2, 0>(dFdr) +
+        getter::element<1, 1>(J_transport) * getter::element<2, 1>(dFdr) +
+        getter::element<2, 1>(J_transport) * getter::element<2, 2>(dFdr) +
+        getter::element<4, 1>(J_transport) * getter::element<2, 0>(dFdt) +
+        getter::element<5, 1>(J_transport) * getter::element<2, 1>(dFdt) +
+        getter::element<6, 1>(J_transport) * getter::element<2, 2>(dFdt);
+    getter::element<3, 1>(new_J) = 0;
+    getter::element<4, 1>(new_J) =
+        getter::element<0, 1>(J_transport) * getter::element<0, 0>(dGdr) +
+        getter::element<1, 1>(J_transport) * getter::element<0, 1>(dGdr) +
+        getter::element<2, 1>(J_transport) * getter::element<0, 2>(dGdr) +
+        getter::element<4, 1>(J_transport) * getter::element<0, 0>(dGdt) +
+        getter::element<5, 1>(J_transport) * getter::element<0, 1>(dGdt) +
+        getter::element<6, 1>(J_transport) * getter::element<0, 2>(dGdt);
+    getter::element<5, 1>(new_J) =
+        getter::element<0, 1>(J_transport) * getter::element<1, 0>(dGdr) +
+        getter::element<1, 1>(J_transport) * getter::element<1, 1>(dGdr) +
+        getter::element<2, 1>(J_transport) * getter::element<1, 2>(dGdr) +
+        getter::element<4, 1>(J_transport) * getter::element<1, 0>(dGdt) +
+        getter::element<5, 1>(J_transport) * getter::element<1, 1>(dGdt) +
+        getter::element<6, 1>(J_transport) * getter::element<1, 2>(dGdt);
+    getter::element<6, 1>(new_J) =
+        getter::element<0, 1>(J_transport) * getter::element<2, 0>(dGdr) +
+        getter::element<1, 1>(J_transport) * getter::element<2, 1>(dGdr) +
+        getter::element<2, 1>(J_transport) * getter::element<2, 2>(dGdr) +
+        getter::element<4, 1>(J_transport) * getter::element<2, 0>(dGdt) +
+        getter::element<5, 1>(J_transport) * getter::element<2, 1>(dGdt) +
+        getter::element<6, 1>(J_transport) * getter::element<2, 2>(dGdt);
+    getter::element<7, 1>(new_J) = 0;
+    getter::element<0, 2>(new_J) =
+        getter::element<0, 2>(J_transport) * getter::element<0, 0>(dFdr) +
+        getter::element<1, 2>(J_transport) * getter::element<0, 1>(dFdr) +
+        getter::element<2, 2>(J_transport) * getter::element<0, 2>(dFdr) +
+        getter::element<4, 2>(J_transport) * getter::element<0, 0>(dFdt) +
+        getter::element<5, 2>(J_transport) * getter::element<0, 1>(dFdt) +
+        getter::element<6, 2>(J_transport) * getter::element<0, 2>(dFdt);
+    getter::element<1, 2>(new_J) =
+        getter::element<0, 2>(J_transport) * getter::element<1, 0>(dFdr) +
+        getter::element<1, 2>(J_transport) * getter::element<1, 1>(dFdr) +
+        getter::element<2, 2>(J_transport) * getter::element<1, 2>(dFdr) +
+        getter::element<4, 2>(J_transport) * getter::element<1, 0>(dFdt) +
+        getter::element<5, 2>(J_transport) * getter::element<1, 1>(dFdt) +
+        getter::element<6, 2>(J_transport) * getter::element<1, 2>(dFdt);
+    getter::element<2, 2>(new_J) =
+        getter::element<0, 2>(J_transport) * getter::element<2, 0>(dFdr) +
+        getter::element<1, 2>(J_transport) * getter::element<2, 1>(dFdr) +
+        getter::element<2, 2>(J_transport) * getter::element<2, 2>(dFdr) +
+        getter::element<4, 2>(J_transport) * getter::element<2, 0>(dFdt) +
+        getter::element<5, 2>(J_transport) * getter::element<2, 1>(dFdt) +
+        getter::element<6, 2>(J_transport) * getter::element<2, 2>(dFdt);
+    getter::element<3, 2>(new_J) = 0;
+    getter::element<4, 2>(new_J) =
+        getter::element<0, 2>(J_transport) * getter::element<0, 0>(dGdr) +
+        getter::element<1, 2>(J_transport) * getter::element<0, 1>(dGdr) +
+        getter::element<2, 2>(J_transport) * getter::element<0, 2>(dGdr) +
+        getter::element<4, 2>(J_transport) * getter::element<0, 0>(dGdt) +
+        getter::element<5, 2>(J_transport) * getter::element<0, 1>(dGdt) +
+        getter::element<6, 2>(J_transport) * getter::element<0, 2>(dGdt);
+    getter::element<5, 2>(new_J) =
+        getter::element<0, 2>(J_transport) * getter::element<1, 0>(dGdr) +
+        getter::element<1, 2>(J_transport) * getter::element<1, 1>(dGdr) +
+        getter::element<2, 2>(J_transport) * getter::element<1, 2>(dGdr) +
+        getter::element<4, 2>(J_transport) * getter::element<1, 0>(dGdt) +
+        getter::element<5, 2>(J_transport) * getter::element<1, 1>(dGdt) +
+        getter::element<6, 2>(J_transport) * getter::element<1, 2>(dGdt);
+    getter::element<6, 2>(new_J) =
+        getter::element<0, 2>(J_transport) * getter::element<2, 0>(dGdr) +
+        getter::element<1, 2>(J_transport) * getter::element<2, 1>(dGdr) +
+        getter::element<2, 2>(J_transport) * getter::element<2, 2>(dGdr) +
+        getter::element<4, 2>(J_transport) * getter::element<2, 0>(dGdt) +
+        getter::element<5, 2>(J_transport) * getter::element<2, 1>(dGdt) +
+        getter::element<6, 2>(J_transport) * getter::element<2, 2>(dGdt);
+    getter::element<7, 2>(new_J) = 0;
+    getter::element<0, 3>(new_J) = 0;
+    getter::element<1, 3>(new_J) = 0;
+    getter::element<2, 3>(new_J) = 0;
+    getter::element<3, 3>(new_J) = 1;
+    getter::element<4, 3>(new_J) = 0;
+    getter::element<5, 3>(new_J) = 0;
+    getter::element<6, 3>(new_J) = 0;
+    getter::element<7, 3>(new_J) = 0;
+    getter::element<0, 4>(new_J) =
+        getter::element<0, 4>(J_transport) * getter::element<0, 0>(dFdr) +
+        getter::element<1, 4>(J_transport) * getter::element<0, 1>(dFdr) +
+        getter::element<2, 4>(J_transport) * getter::element<0, 2>(dFdr) +
+        getter::element<4, 4>(J_transport) * getter::element<0, 0>(dFdt) +
+        getter::element<5, 4>(J_transport) * getter::element<0, 1>(dFdt) +
+        getter::element<6, 4>(J_transport) * getter::element<0, 2>(dFdt);
+    getter::element<1, 4>(new_J) =
+        getter::element<0, 4>(J_transport) * getter::element<1, 0>(dFdr) +
+        getter::element<1, 4>(J_transport) * getter::element<1, 1>(dFdr) +
+        getter::element<2, 4>(J_transport) * getter::element<1, 2>(dFdr) +
+        getter::element<4, 4>(J_transport) * getter::element<1, 0>(dFdt) +
+        getter::element<5, 4>(J_transport) * getter::element<1, 1>(dFdt) +
+        getter::element<6, 4>(J_transport) * getter::element<1, 2>(dFdt);
+    getter::element<2, 4>(new_J) =
+        getter::element<0, 4>(J_transport) * getter::element<2, 0>(dFdr) +
+        getter::element<1, 4>(J_transport) * getter::element<2, 1>(dFdr) +
+        getter::element<2, 4>(J_transport) * getter::element<2, 2>(dFdr) +
+        getter::element<4, 4>(J_transport) * getter::element<2, 0>(dFdt) +
+        getter::element<5, 4>(J_transport) * getter::element<2, 1>(dFdt) +
+        getter::element<6, 4>(J_transport) * getter::element<2, 2>(dFdt);
+    getter::element<3, 4>(new_J) = 0;
+    getter::element<4, 4>(new_J) =
+        getter::element<0, 4>(J_transport) * getter::element<0, 0>(dGdr) +
+        getter::element<1, 4>(J_transport) * getter::element<0, 1>(dGdr) +
+        getter::element<2, 4>(J_transport) * getter::element<0, 2>(dGdr) +
+        getter::element<4, 4>(J_transport) * getter::element<0, 0>(dGdt) +
+        getter::element<5, 4>(J_transport) * getter::element<0, 1>(dGdt) +
+        getter::element<6, 4>(J_transport) * getter::element<0, 2>(dGdt);
+    getter::element<5, 4>(new_J) =
+        getter::element<0, 4>(J_transport) * getter::element<1, 0>(dGdr) +
+        getter::element<1, 4>(J_transport) * getter::element<1, 1>(dGdr) +
+        getter::element<2, 4>(J_transport) * getter::element<1, 2>(dGdr) +
+        getter::element<4, 4>(J_transport) * getter::element<1, 0>(dGdt) +
+        getter::element<5, 4>(J_transport) * getter::element<1, 1>(dGdt) +
+        getter::element<6, 4>(J_transport) * getter::element<1, 2>(dGdt);
+    getter::element<6, 4>(new_J) =
+        getter::element<0, 4>(J_transport) * getter::element<2, 0>(dGdr) +
+        getter::element<1, 4>(J_transport) * getter::element<2, 1>(dGdr) +
+        getter::element<2, 4>(J_transport) * getter::element<2, 2>(dGdr) +
+        getter::element<4, 4>(J_transport) * getter::element<2, 0>(dGdt) +
+        getter::element<5, 4>(J_transport) * getter::element<2, 1>(dGdt) +
+        getter::element<6, 4>(J_transport) * getter::element<2, 2>(dGdt);
+    getter::element<7, 4>(new_J) = 0;
+    getter::element<0, 5>(new_J) =
+        getter::element<0, 5>(J_transport) * getter::element<0, 0>(dFdr) +
+        getter::element<1, 5>(J_transport) * getter::element<0, 1>(dFdr) +
+        getter::element<2, 5>(J_transport) * getter::element<0, 2>(dFdr) +
+        getter::element<4, 5>(J_transport) * getter::element<0, 0>(dFdt) +
+        getter::element<5, 5>(J_transport) * getter::element<0, 1>(dFdt) +
+        getter::element<6, 5>(J_transport) * getter::element<0, 2>(dFdt);
+    getter::element<1, 5>(new_J) =
+        getter::element<0, 5>(J_transport) * getter::element<1, 0>(dFdr) +
+        getter::element<1, 5>(J_transport) * getter::element<1, 1>(dFdr) +
+        getter::element<2, 5>(J_transport) * getter::element<1, 2>(dFdr) +
+        getter::element<4, 5>(J_transport) * getter::element<1, 0>(dFdt) +
+        getter::element<5, 5>(J_transport) * getter::element<1, 1>(dFdt) +
+        getter::element<6, 5>(J_transport) * getter::element<1, 2>(dFdt);
+    getter::element<2, 5>(new_J) =
+        getter::element<0, 5>(J_transport) * getter::element<2, 0>(dFdr) +
+        getter::element<1, 5>(J_transport) * getter::element<2, 1>(dFdr) +
+        getter::element<2, 5>(J_transport) * getter::element<2, 2>(dFdr) +
+        getter::element<4, 5>(J_transport) * getter::element<2, 0>(dFdt) +
+        getter::element<5, 5>(J_transport) * getter::element<2, 1>(dFdt) +
+        getter::element<6, 5>(J_transport) * getter::element<2, 2>(dFdt);
+    getter::element<3, 5>(new_J) = 0;
+    getter::element<4, 5>(new_J) =
+        getter::element<0, 5>(J_transport) * getter::element<0, 0>(dGdr) +
+        getter::element<1, 5>(J_transport) * getter::element<0, 1>(dGdr) +
+        getter::element<2, 5>(J_transport) * getter::element<0, 2>(dGdr) +
+        getter::element<4, 5>(J_transport) * getter::element<0, 0>(dGdt) +
+        getter::element<5, 5>(J_transport) * getter::element<0, 1>(dGdt) +
+        getter::element<6, 5>(J_transport) * getter::element<0, 2>(dGdt);
+    getter::element<5, 5>(new_J) =
+        getter::element<0, 5>(J_transport) * getter::element<1, 0>(dGdr) +
+        getter::element<1, 5>(J_transport) * getter::element<1, 1>(dGdr) +
+        getter::element<2, 5>(J_transport) * getter::element<1, 2>(dGdr) +
+        getter::element<4, 5>(J_transport) * getter::element<1, 0>(dGdt) +
+        getter::element<5, 5>(J_transport) * getter::element<1, 1>(dGdt) +
+        getter::element<6, 5>(J_transport) * getter::element<1, 2>(dGdt);
+    getter::element<6, 5>(new_J) =
+        getter::element<0, 5>(J_transport) * getter::element<2, 0>(dGdr) +
+        getter::element<1, 5>(J_transport) * getter::element<2, 1>(dGdr) +
+        getter::element<2, 5>(J_transport) * getter::element<2, 2>(dGdr) +
+        getter::element<4, 5>(J_transport) * getter::element<2, 0>(dGdt) +
+        getter::element<5, 5>(J_transport) * getter::element<2, 1>(dGdt) +
+        getter::element<6, 5>(J_transport) * getter::element<2, 2>(dGdt);
+    getter::element<7, 5>(new_J) = 0;
+    getter::element<0, 6>(new_J) =
+        getter::element<0, 6>(J_transport) * getter::element<0, 0>(dFdr) +
+        getter::element<1, 6>(J_transport) * getter::element<0, 1>(dFdr) +
+        getter::element<2, 6>(J_transport) * getter::element<0, 2>(dFdr) +
+        getter::element<4, 6>(J_transport) * getter::element<0, 0>(dFdt) +
+        getter::element<5, 6>(J_transport) * getter::element<0, 1>(dFdt) +
+        getter::element<6, 6>(J_transport) * getter::element<0, 2>(dFdt);
+    getter::element<1, 6>(new_J) =
+        getter::element<0, 6>(J_transport) * getter::element<1, 0>(dFdr) +
+        getter::element<1, 6>(J_transport) * getter::element<1, 1>(dFdr) +
+        getter::element<2, 6>(J_transport) * getter::element<1, 2>(dFdr) +
+        getter::element<4, 6>(J_transport) * getter::element<1, 0>(dFdt) +
+        getter::element<5, 6>(J_transport) * getter::element<1, 1>(dFdt) +
+        getter::element<6, 6>(J_transport) * getter::element<1, 2>(dFdt);
+    getter::element<2, 6>(new_J) =
+        getter::element<0, 6>(J_transport) * getter::element<2, 0>(dFdr) +
+        getter::element<1, 6>(J_transport) * getter::element<2, 1>(dFdr) +
+        getter::element<2, 6>(J_transport) * getter::element<2, 2>(dFdr) +
+        getter::element<4, 6>(J_transport) * getter::element<2, 0>(dFdt) +
+        getter::element<5, 6>(J_transport) * getter::element<2, 1>(dFdt) +
+        getter::element<6, 6>(J_transport) * getter::element<2, 2>(dFdt);
+    getter::element<3, 6>(new_J) = 0;
+    getter::element<4, 6>(new_J) =
+        getter::element<0, 6>(J_transport) * getter::element<0, 0>(dGdr) +
+        getter::element<1, 6>(J_transport) * getter::element<0, 1>(dGdr) +
+        getter::element<2, 6>(J_transport) * getter::element<0, 2>(dGdr) +
+        getter::element<4, 6>(J_transport) * getter::element<0, 0>(dGdt) +
+        getter::element<5, 6>(J_transport) * getter::element<0, 1>(dGdt) +
+        getter::element<6, 6>(J_transport) * getter::element<0, 2>(dGdt);
+    getter::element<5, 6>(new_J) =
+        getter::element<0, 6>(J_transport) * getter::element<1, 0>(dGdr) +
+        getter::element<1, 6>(J_transport) * getter::element<1, 1>(dGdr) +
+        getter::element<2, 6>(J_transport) * getter::element<1, 2>(dGdr) +
+        getter::element<4, 6>(J_transport) * getter::element<1, 0>(dGdt) +
+        getter::element<5, 6>(J_transport) * getter::element<1, 1>(dGdt) +
+        getter::element<6, 6>(J_transport) * getter::element<1, 2>(dGdt);
+    getter::element<6, 6>(new_J) =
+        getter::element<0, 6>(J_transport) * getter::element<2, 0>(dGdr) +
+        getter::element<1, 6>(J_transport) * getter::element<2, 1>(dGdr) +
+        getter::element<2, 6>(J_transport) * getter::element<2, 2>(dGdr) +
+        getter::element<4, 6>(J_transport) * getter::element<2, 0>(dGdt) +
+        getter::element<5, 6>(J_transport) * getter::element<2, 1>(dGdt) +
+        getter::element<6, 6>(J_transport) * getter::element<2, 2>(dGdt);
+    getter::element<7, 6>(new_J) = 0;
+    getter::element<0, 7>(new_J) =
+        getter::element<0, 7>(J_transport) * getter::element<0, 0>(dFdr) +
+        getter::element<1, 7>(J_transport) * getter::element<0, 1>(dFdr) +
+        getter::element<2, 7>(J_transport) * getter::element<0, 2>(dFdr) +
+        getter::element<4, 7>(J_transport) * getter::element<0, 0>(dFdt) +
+        getter::element<5, 7>(J_transport) * getter::element<0, 1>(dFdt) +
+        getter::element<6, 7>(J_transport) * getter::element<0, 2>(dFdt) +
+        getter::element<7, 7>(J_transport) * getter::element<0>(dFdqop);
+    getter::element<1, 7>(new_J) =
+        getter::element<0, 7>(J_transport) * getter::element<1, 0>(dFdr) +
+        getter::element<1, 7>(J_transport) * getter::element<1, 1>(dFdr) +
+        getter::element<2, 7>(J_transport) * getter::element<1, 2>(dFdr) +
+        getter::element<4, 7>(J_transport) * getter::element<1, 0>(dFdt) +
+        getter::element<5, 7>(J_transport) * getter::element<1, 1>(dFdt) +
+        getter::element<6, 7>(J_transport) * getter::element<1, 2>(dFdt) +
+        getter::element<7, 7>(J_transport) * getter::element<1>(dFdqop);
+    getter::element<2, 7>(new_J) =
+        getter::element<0, 7>(J_transport) * getter::element<2, 0>(dFdr) +
+        getter::element<1, 7>(J_transport) * getter::element<2, 1>(dFdr) +
+        getter::element<2, 7>(J_transport) * getter::element<2, 2>(dFdr) +
+        getter::element<4, 7>(J_transport) * getter::element<2, 0>(dFdt) +
+        getter::element<5, 7>(J_transport) * getter::element<2, 1>(dFdt) +
+        getter::element<6, 7>(J_transport) * getter::element<2, 2>(dFdt) +
+        getter::element<7, 7>(J_transport) * getter::element<2>(dFdqop);
+    getter::element<3, 7>(new_J) = 0;
+    getter::element<4, 7>(new_J) =
+        getter::element<0, 7>(J_transport) * getter::element<0, 0>(dGdr) +
+        getter::element<1, 7>(J_transport) * getter::element<0, 1>(dGdr) +
+        getter::element<2, 7>(J_transport) * getter::element<0, 2>(dGdr) +
+        getter::element<4, 7>(J_transport) * getter::element<0, 0>(dGdt) +
+        getter::element<5, 7>(J_transport) * getter::element<0, 1>(dGdt) +
+        getter::element<6, 7>(J_transport) * getter::element<0, 2>(dGdt) +
+        getter::element<7, 7>(J_transport) * getter::element<0>(dGdqop);
+    getter::element<5, 7>(new_J) =
+        getter::element<0, 7>(J_transport) * getter::element<1, 0>(dGdr) +
+        getter::element<1, 7>(J_transport) * getter::element<1, 1>(dGdr) +
+        getter::element<2, 7>(J_transport) * getter::element<1, 2>(dGdr) +
+        getter::element<4, 7>(J_transport) * getter::element<1, 0>(dGdt) +
+        getter::element<5, 7>(J_transport) * getter::element<1, 1>(dGdt) +
+        getter::element<6, 7>(J_transport) * getter::element<1, 2>(dGdt) +
+        getter::element<7, 7>(J_transport) * getter::element<1>(dGdqop);
+    getter::element<6, 7>(new_J) =
+        getter::element<0, 7>(J_transport) * getter::element<2, 0>(dGdr) +
+        getter::element<1, 7>(J_transport) * getter::element<2, 1>(dGdr) +
+        getter::element<2, 7>(J_transport) * getter::element<2, 2>(dGdr) +
+        getter::element<4, 7>(J_transport) * getter::element<2, 0>(dGdt) +
+        getter::element<5, 7>(J_transport) * getter::element<2, 1>(dGdt) +
+        getter::element<6, 7>(J_transport) * getter::element<2, 2>(dGdt) +
+        getter::element<7, 7>(J_transport) * getter::element<2>(dGdqop);
+    getter::element<7, 7>(new_J) = dqopqop * getter::element<7, 7>(J_transport);
 }
 }  // namespace detray::detail
