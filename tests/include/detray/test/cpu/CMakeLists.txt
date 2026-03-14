@@ -13,6 +13,7 @@ include(detray-compiler-options-cpp)
 add_library(
     detray_test_cpu
     INTERFACE
+    "algebra_fixture.hpp"
     "detector_consistency.hpp"
     "detector_scan.hpp"
     "material_scan.hpp"

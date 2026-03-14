@@ -24,6 +24,9 @@ detray_add_unit_test(cpu
 macro(detray_add_cpu_test algebra)
     # Build the test executable.
     detray_add_unit_test(cpu_${algebra}
+       "algebra/matrix.cpp"
+       "algebra/transform.cpp"
+       "algebra/vector.cpp"
        "algebra/columnwise_operations.cpp"
        "builders/detector_builder.cpp"
        "builders/grid_builder.cpp"
@@ -126,4 +129,12 @@ endif()
 # Build the Vc AoS tests.
 if(DETRAY_VC_AOS_PLUGIN)
     detray_add_cpu_test(vc_aos)
+endif()
+
+# Build the Vc SoA algebra test
+if(DETRAY_VC_SOA_PLUGIN)
+    detray_add_unit_test(cpu_vc_soa
+        "algebra/vc_soa.cpp"
+        LINK_LIBRARIES GTest::gtest GTest::gtest_main detray::core_vc_soa  detray::test_common
+    )
 endif()

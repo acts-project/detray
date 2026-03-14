@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2024 CERN for the benefit of the ACTS project
+ * (c) 2020-2026 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -17,35 +17,60 @@
 
 namespace detray::test {
 
+#define DETRAY_DEFINE_TEST_TYPES(ALGEBRA)                      \
+    template <detray::concepts::value T>                       \
+    using algebra_type = ::detray::ALGEBRA<T>;                 \
+                                                               \
+    struct test_specialisation_name {                          \
+        template <typename T>                                  \
+        static std::string GetName(int i) {                    \
+            switch (i) {                                       \
+                case 0:                                        \
+                    return std::string(#ALGEBRA) + "<float>";  \
+                case 1:                                        \
+                    return std::string(#ALGEBRA) + "<double>"; \
+                default:                                       \
+                    return "unknown";                          \
+            }                                                  \
+        }                                                      \
+    };
+
 // Select algebra-plugin to compile the test with
 #if DETRAY_ALGEBRA_ARRAY
-using algebra = detray::array<DETRAY_CUSTOM_SCALARTYPE>;
 static constexpr char filenames[] = "array-";
+DETRAY_DEFINE_TEST_TYPES(array)
 
 #elif DETRAY_ALGEBRA_EIGEN
-using algebra = detray::eigen<DETRAY_CUSTOM_SCALARTYPE>;
 static constexpr char filenames[] = "eigen-";
+DETRAY_DEFINE_TEST_TYPES(eigen)
 
 #elif DETRAY_ALGEBRA_FASTOR
-using algebra = detray::fastor<DETRAY_CUSTOM_SCALARTYPE>;
 static constexpr char filenames[] = "fastor-";
+DETRAY_DEFINE_TEST_TYPES(fastor)
 
 #elif DETRAY_ALGEBRA_SMATRIX
-using algebra = detray::smatrix<DETRAY_CUSTOM_SCALARTYPE>;
 static constexpr char filenames[] = "smatrix-";
+DETRAY_DEFINE_TEST_TYPES(smatrix)
 
 #elif DETRAY_ALGEBRA_VC_AOS
-using algebra = detray::vc_aos<DETRAY_CUSTOM_SCALARTYPE>;
 static constexpr char filenames[] = "vc_aos-";
+DETRAY_DEFINE_TEST_TYPES(vc_aos)
+
+#elif DETRAY_ALGEBRA_VC_SOA
+static constexpr char filenames[] = "vc_soa-";
+DETRAY_DEFINE_TEST_TYPES(vc_soa)
 #else
 #error \
     "No algebra plugin selected for tests! Please link to one of the algebra plugins."
 #endif
 
 // Test algebra types
+using algebra = algebra_type<DETRAY_CUSTOM_SCALARTYPE>;
+using index = dindex_type<algebra>;
 using scalar = dscalar<algebra>;
 using point2 = dpoint2D<algebra>;
 using point3 = dpoint3D<algebra>;
+using vector2 = dvector2D<algebra>;
 using vector3 = dvector3D<algebra>;
 using transform3 = dtransform3D<algebra>;
 template <std::size_t ROWS, std::size_t COLS>
