@@ -73,8 +73,6 @@ class device_fixture : public fixture_base<> {
                           detray::concepts::vector<R> ||
                           detray::concepts::matrix<R>) {
 
-                using value_t = detray::traits::value_t<R>;
-
                 EXPECT_TRUE(detray::algebra::approx_equal(
                     m_output_host->at(i), m_output_device->at(i),
                     this->tolerance()))
