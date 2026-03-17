@@ -46,6 +46,7 @@ endif()
 foreach(algebra ${algebras})
     # Unit tests for the selected algebra.
     detray_add_unit_test(cuda_${algebra}
+       "algebra.cu"
        "detector_cuda_kernel.hpp"
        "detector_cuda.cpp"
        "detector_cuda_kernel.cu"

@@ -19,7 +19,10 @@ include(detray-compiler-options-cuda)
 add_library(
     detray_test_cuda
     STATIC
+    "algebra_test_suite.cuh"
     "bfield.hpp"
+    "cuda_test_fixture.hpp"
+    "execute_cuda_test.cuh"
     "material_validation.hpp"
     "material_validation.cu"
     "navigation_validation.hpp"
