@@ -350,7 +350,9 @@ GTEST_TEST(detray_material, telescope_geometry_volume_material) {
             -100.f * unit<float>::um;
         propagator_t p{prop_cfg};
 
-        propagator_t::state state(bound_param, const_bfield, det);
+        propagator_t::stepper_type::magnetic_field_type bfield_view(
+            const_bfield);
+        propagator_t::state state(bound_param, bfield_view, det);
 
         pathlimit_aborter_t::state abrt_state{path_limit};
         auto actor_states = detray::tie(abrt_state);

@@ -47,7 +47,7 @@ struct propagator {
     using bound_track_parameters_type =
         typename stepper_t::bound_track_parameters_type;
 
-    propagation::config m_cfg;
+    const propagation::config &m_cfg;
 
     stepper_t m_stepper;
     navigator_t m_navigator;
@@ -89,7 +89,10 @@ struct propagator {
             const free_track_parameters_type &free_params,
             const field_t &magnetic_field, const detector_type &det,
             const context_type &ctx = {})
-            requires(!states_as_reference)
+            requires(!states_as_reference &&
+                     requires { typename stepper_type::magnetic_field_type; } &&
+                     std::same_as<field_t,
+                                  typename stepper_type::magnetic_field_type>)
             : _stepping(free_params, magnetic_field),
               _navigation(det),
               _context(ctx) {}
@@ -112,7 +115,10 @@ struct propagator {
             const field_t &magnetic_field, const detector_type &det,
             typename navigator_type::state::view_type nav_view,
             const context_type &ctx = {})
-            requires(!states_as_reference)
+            requires(!states_as_reference &&
+                     requires { typename stepper_type::magnetic_field_type; } &&
+                     std::same_as<field_t,
+                                  typename stepper_type::magnetic_field_type>)
             : _stepping(free_params, magnetic_field),
               _navigation(det, nav_view),
               _context(ctx) {}
@@ -140,6 +146,9 @@ struct propagator {
                                       const field_t &magnetic_field,
                                       const detector_type &det,
                                       const context_type &ctx = {})
+            requires(requires { typename stepper_type::magnetic_field_type; } &&
+                     std::same_as<field_t,
+                                  typename stepper_type::magnetic_field_type>)
             : _stepping(param, magnetic_field, det, ctx),
               _navigation(det),
               _context(ctx) {
@@ -154,6 +163,9 @@ struct propagator {
             const field_t &magnetic_field, const detector_type &det,
             typename navigator_type::state::view_type nav_view,
             const context_type &ctx = {})
+            requires(requires { typename stepper_type::magnetic_field_type; } &&
+                     std::same_as<field_t,
+                                  typename stepper_type::magnetic_field_type>)
             : _stepping(param, magnetic_field, det, ctx),
               _navigation(det, nav_view),
               _context(ctx) {

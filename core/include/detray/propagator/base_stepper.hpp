@@ -51,6 +51,7 @@ class base_stepper {
     using bound_track_parameters_type = bound_track_parameters<algebra_t>;
     using free_matrix_type = free_matrix<algebra_t>;
     using bound_matrix_type = bound_matrix<algebra_t>;
+    using magnetic_field_type = void;
 
     using inspector_type = inspector_t;
     using policy_type = policy_t;

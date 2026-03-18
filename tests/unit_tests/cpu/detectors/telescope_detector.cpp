@@ -101,6 +101,8 @@ GTEST_TEST(detray_detectors, telescope_detector) {
         b_field_t::backend_t::configuration_t{B_z[0], B_z[1], B_z[2]})};
     b_field_t b_field_x{covfie::make_parameter_pack(
         b_field_t::backend_t::configuration_t{B_x[0], B_x[1], B_x[2]})};
+    b_field_t::view_t b_field_z_view(b_field_z);
+    b_field_t::view_t b_field_x_view(b_field_x);
 
     // steppers
     rk_stepper_t rk_stepper_z;
@@ -189,11 +191,11 @@ GTEST_TEST(detray_detectors, telescope_detector) {
 
     // propagation states
     prop_state<stepping_state_t, navigation_state_t> propgation_z1(
-        test_track_z1, b_field_z, z_tel_det1);
+        test_track_z1, b_field_z_view, z_tel_det1);
     prop_state<stepping_state_t, navigation_state_t> propgation_z2(
-        test_track_z2, b_field_z, z_tel_det2);
+        test_track_z2, b_field_z_view, z_tel_det2);
     prop_state<stepping_state_t, navigation_state_t> propgation_x(
-        test_track_x, b_field_x, x_tel_det);
+        test_track_x, b_field_x_view, x_tel_det);
 
     stepping_state_t &stepping_z1 = propgation_z1._stepping;
     stepping_state_t &stepping_z2 = propgation_z2._stepping;
@@ -304,7 +306,7 @@ GTEST_TEST(detray_detectors, telescope_detector) {
         tel_navigator;
 
     prop_state<stepping_state_t, navigation_state_t> tel_propagation(
-        pilot_track, b_field_z, tel_detector);
+        pilot_track, b_field_z_view, tel_detector);
     navigation_state_t &tel_navigation = tel_propagation._navigation;
     stepping_state_t &tel_stepping = tel_propagation._stepping;
 

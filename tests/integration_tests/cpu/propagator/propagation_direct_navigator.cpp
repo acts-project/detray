@@ -89,6 +89,7 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
 
     // Build mangetic field
     const bfield_t bfield = create_const_field<scalar>(std::get<1>(GetParam()));
+    const bfield_t::view_t bfield_view(bfield);
 
     // Track generator config
     generator_t::configuration trk_gen_cfg{};
@@ -137,7 +138,7 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
         auto actor_states = detray::tie(transporter_state, interactor_state,
                                         sequencer_state, resetter_state);
 
-        propagator_t::state state(track, bfield, det);
+        propagator_t::state state(track, bfield_view, det);
         navigator_t::state& navigation = state.navigation();
 
         // Propagate the entire detector
@@ -153,8 +154,8 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
                 detray::tie(transporter_state, interactor_state,
                             sequencer_backward_state, resetter_state);
 
-            direct_propagator_t::state direct_forward_state(track, bfield, det,
-                                                            seqs_buffer);
+            direct_propagator_t::state direct_forward_state(track, bfield_view,
+                                                            det, seqs_buffer);
 
             ASSERT_TRUE(direct_p.propagate(direct_forward_state,
                                            direct_forward_actor_states));
@@ -185,8 +186,8 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorToyDetector, direct_navigator) {
                 static_cast<float>(state.stepping().bound_params().p(q)) * tol);
 
             direct_propagator_t::state direct_backward_state(
-                direct_forward_state.stepping().bound_params(), bfield, det,
-                seqs_buffer);
+                direct_forward_state.stepping().bound_params(), bfield_view,
+                det, seqs_buffer);
             direct_backward_state.navigation().set_direction(
                 detray::navigation::direction::e_backward);
             direct_backward_state.navigation().reset();
@@ -278,6 +279,7 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
 
     // Build mangetic field
     const bfield_t bfield = create_const_field<scalar>(std::get<1>(GetParam()));
+    const bfield_t::view_t bfield_view(bfield);
 
     // Truth track generation
     generator_t::configuration trk_gen_cfg{};
@@ -327,7 +329,7 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
         auto actor_states = detray::tie(transporter_state, interactor_state,
                                         sequencer_state, resetter_state);
 
-        propagator_t::state state(track, bfield, det);
+        propagator_t::state state(track, bfield_view, det);
         navigator_t::state& navigation = state.navigation();
 
         // Propagate the entire detector
@@ -343,8 +345,8 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
                 detray::tie(transporter_state, interactor_state,
                             sequencer_backward_state, resetter_state);
 
-            direct_propagator_t::state direct_forward_state(track, bfield, det,
-                                                            seqs_buffer);
+            direct_propagator_t::state direct_forward_state(track, bfield_view,
+                                                            det, seqs_buffer);
 
             ASSERT_TRUE(direct_p.propagate(direct_forward_state,
                                            direct_forward_actor_states));
@@ -375,8 +377,8 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
                 static_cast<float>(state.stepping().bound_params().p(q)) * tol);
 
             direct_propagator_t::state direct_backward_state(
-                direct_forward_state.stepping().bound_params(), bfield, det,
-                seqs_buffer);
+                direct_forward_state.stepping().bound_params(), bfield_view,
+                det, seqs_buffer);
             direct_backward_state.navigation().set_direction(
                 detray::navigation::direction::e_backward);
             direct_backward_state.navigation().reset();

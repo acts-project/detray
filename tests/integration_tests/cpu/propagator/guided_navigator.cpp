@@ -87,7 +87,8 @@ GTEST_TEST(detray_navigation, guided_navigator) {
     // Propagator
     propagation::config prop_cfg{};
     propagator_t p{prop_cfg};
-    propagator_t::state guided_state(track, b_field, telescope_det);
+    propagator_t::stepper_type::magnetic_field_type bfield_view(b_field);
+    propagator_t::state guided_state(track, bfield_view, telescope_det);
 
     // Propagate
     p.propagate(guided_state, detray::tie(pathlimit));
