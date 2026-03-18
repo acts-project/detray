@@ -33,24 +33,31 @@ class fixture_base : public scope {
     /// Linear algebra typedefs
     /// @{
     using algebra_t = test::algebra;
+    using index = test::index;
     using scalar = test::scalar;
     using point2 = test::point2;
     using point3 = test::point3;
+    using vector2 = test::vector2;
     using vector3 = test::vector3;
     using transform3 = test::transform3;
+    template <index ROW, index COL>
+    using matrix = test::matrix<ROW, COL>;
     /// @}
 
     using configuration = detray::test::configuration<scalar>;
 
     /// Constructor
     explicit fixture_base(const configuration& cfg = {})
-        : tolerance{cfg.tol()},
-          inf{cfg.inf},
-          epsilon{cfg.epsilon},
-          path_limit{cfg.propagation().stepping.path_limit},
-          overstep_tolerance{
+        : m_tolerance{cfg.tol()},
+          m_inf{cfg.inf},
+          m_epsilon{cfg.epsilon},
+          m_path_limit{cfg.propagation().stepping.path_limit},
+          m_overstep_tolerance{
               cfg.propagation().navigation.intersection.overstep_tolerance},
-          step_constraint{cfg.propagation().stepping.step_constraint} {}
+          m_step_constraint{cfg.propagation().stepping.step_constraint} {}
+
+    /// Default destructor
+    virtual ~fixture_base() = default;
 
     /// @returns the benchmark name
     std::string name() const { return "detray_test"; };
@@ -61,13 +68,23 @@ class fixture_base : public scope {
     void SetUp() override { /* Do nothing */ }
     void TearDown() override { /* Do nothing */ }
 
+    /// Getters
+    /// @{
+    scalar tolerance() const { return m_tolerance; }
+    scalar inf() const { return m_inf; }
+    scalar epsilon() const { return m_epsilon; }
+    scalar path_limit() const { return m_path_limit; }
+    scalar overstep_tolerance() const { return m_overstep_tolerance; }
+    scalar step_constraint() const { return m_step_constraint; }
+    /// @}
+
     private:
-    scalar tolerance{};
-    scalar inf{};
-    scalar epsilon{};
-    scalar path_limit{};
-    scalar overstep_tolerance{};
-    scalar step_constraint{};
+    scalar m_tolerance{};
+    scalar m_inf{};
+    scalar m_epsilon{};
+    scalar m_path_limit{};
+    scalar m_overstep_tolerance{};
+    scalar m_step_constraint{};
 };
 
 }  // namespace detray::test

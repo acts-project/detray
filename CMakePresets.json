@@ -155,7 +155,7 @@
          "cacheVariables" : {
             "BUILD_TESTING" : "TRUE",
             "DETRAY_BUILD_HOST" : "FALSE",
-            "DETRAY_BUILD_UNITTESTS" : "FALSE",
+            "DETRAY_BUILD_UNITTESTS" : "TRUE",
             "DETRAY_BUILD_INTEGRATIONTESTS" : "TRUE",
             "DETRAY_BUILD_CLI_TOOLS" : "FALSE",
             "DETRAY_BUILD_BENCHMARKS" : "FALSE",

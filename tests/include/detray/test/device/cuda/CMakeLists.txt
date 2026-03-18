@@ -1,6 +1,6 @@
 # Detray library, part of the ACTS project (R&D line)
 #
-# (c) 2024 CERN for the benefit of the ACTS project
+# (c) 2024-2026 CERN for the benefit of the ACTS project
 #
 # Mozilla Public License Version 2.0
 
@@ -19,7 +19,10 @@ include(detray-compiler-options-cuda)
 add_library(
     detray_test_cuda
     STATIC
+    "algebra_test_suite.cuh"
     "bfield.hpp"
+    "cuda_test_fixture.hpp"
+    "execute_cuda_test.cuh"
     "material_validation.hpp"
     "material_validation.cu"
     "navigation_validation.hpp"

@@ -6,23 +6,17 @@
  */
 
 // Detray test include(s)
-#include "detray/test/framework/types.hpp"
+#include "detray/test/cpu/algebra_fixture.hpp"
 
 // GTest include(s)
 #include <gtest/gtest.h>
 
-using namespace detray;
+namespace detray::test {
 
-using test_algebra = test::algebra;
-using transform3 = test::transform3;
-using vector3 = typename transform3::vector3;
-using scalar = test::scalar;
-using matrix3_type = test::matrix<3, 3>;
+TEST_F(detray_algebra, column_wise_cross) {
+    using matrix3_type = matrix<3, 3>;
 
-constexpr scalar tolerance = 1e-6f;
-
-GTEST_TEST(detray_algebra, column_wise_cross) {
-    auto P = matrix::zero<matrix3_type>();
+    auto P = detray::matrix::zero<matrix3_type>();
 
     getter::element(P, 0u, 0u) = 0.f;
     getter::element(P, 0u, 1u) = 1.f;
@@ -36,22 +30,23 @@ GTEST_TEST(detray_algebra, column_wise_cross) {
 
     const vector3 u{1.f, 2.f, 3.f};
 
-    const matrix3_type Q = matrix::column_wise_cross(P, u);
+    const matrix3_type Q = detray::matrix::column_wise_cross(P, u);
 
-    EXPECT_NEAR(getter::element(Q, 0u, 0u), -3.f, tolerance);
-    EXPECT_NEAR(getter::element(Q, 1u, 0u), 6.f, tolerance);
-    EXPECT_NEAR(getter::element(Q, 2u, 0u), -3.f, tolerance);
-    EXPECT_NEAR(getter::element(Q, 0u, 1u), -2.f, tolerance);
-    EXPECT_NEAR(getter::element(Q, 1u, 1u), 4.f, tolerance);
-    EXPECT_NEAR(getter::element(Q, 2u, 1u), -2.f, tolerance);
-    EXPECT_NEAR(getter::element(Q, 0u, 2u), -1.f, tolerance);
-    EXPECT_NEAR(getter::element(Q, 1u, 2u), 2.f, tolerance);
-    EXPECT_NEAR(getter::element(Q, 2u, 2u), -1.f, tolerance);
+    EXPECT_NEAR(getter::element(Q, 0u, 0u), -3.f, this->tolerance());
+    EXPECT_NEAR(getter::element(Q, 1u, 0u), 6.f, this->tolerance());
+    EXPECT_NEAR(getter::element(Q, 2u, 0u), -3.f, this->tolerance());
+    EXPECT_NEAR(getter::element(Q, 0u, 1u), -2.f, this->tolerance());
+    EXPECT_NEAR(getter::element(Q, 1u, 1u), 4.f, this->tolerance());
+    EXPECT_NEAR(getter::element(Q, 2u, 1u), -2.f, this->tolerance());
+    EXPECT_NEAR(getter::element(Q, 0u, 2u), -1.f, this->tolerance());
+    EXPECT_NEAR(getter::element(Q, 1u, 2u), 2.f, this->tolerance());
+    EXPECT_NEAR(getter::element(Q, 2u, 2u), -1.f, this->tolerance());
 }
 
-GTEST_TEST(detray_algebra, column_wise_multiply) {
+TEST_F(detray_algebra, column_wise_multiply) {
+    using matrix3_type = matrix<3, 3>;
 
-    auto P = matrix::zero<matrix3_type>();
+    auto P = detray::matrix::zero<matrix3_type>();
 
     getter::element(P, 0u, 0u) = 0.f;
     getter::element(P, 0u, 1u) = 1.f;
@@ -65,74 +60,77 @@ GTEST_TEST(detray_algebra, column_wise_multiply) {
 
     const vector3 u{1.f, 2.f, 3.f};
 
-    const matrix3_type Q = matrix::column_wise_multiply(P, u);
+    const matrix3_type Q = detray::matrix::column_wise_multiply(P, u);
 
-    EXPECT_NEAR(getter::element(Q, 0u, 0u), 0.f, tolerance);
-    EXPECT_NEAR(getter::element(Q, 0u, 1u), 1.f, tolerance);
-    EXPECT_NEAR(getter::element(Q, 0u, 2u), 2.f, tolerance);
-    EXPECT_NEAR(getter::element(Q, 1u, 0u), 6.f, tolerance);
-    EXPECT_NEAR(getter::element(Q, 1u, 1u), 8.f, tolerance);
-    EXPECT_NEAR(getter::element(Q, 1u, 2u), 10.f, tolerance);
-    EXPECT_NEAR(getter::element(Q, 2u, 0u), 18.f, tolerance);
-    EXPECT_NEAR(getter::element(Q, 2u, 1u), 21.f, tolerance);
-    EXPECT_NEAR(getter::element(Q, 2u, 2u), 24.f, tolerance);
+    EXPECT_NEAR(getter::element(Q, 0u, 0u), 0.f, this->tolerance());
+    EXPECT_NEAR(getter::element(Q, 0u, 1u), 1.f, this->tolerance());
+    EXPECT_NEAR(getter::element(Q, 0u, 2u), 2.f, this->tolerance());
+    EXPECT_NEAR(getter::element(Q, 1u, 0u), 6.f, this->tolerance());
+    EXPECT_NEAR(getter::element(Q, 1u, 1u), 8.f, this->tolerance());
+    EXPECT_NEAR(getter::element(Q, 1u, 2u), 10.f, this->tolerance());
+    EXPECT_NEAR(getter::element(Q, 2u, 0u), 18.f, this->tolerance());
+    EXPECT_NEAR(getter::element(Q, 2u, 1u), 21.f, this->tolerance());
+    EXPECT_NEAR(getter::element(Q, 2u, 2u), 24.f, this->tolerance());
 }
 
-GTEST_TEST(detray_algebra, cross_matrix) {
+TEST_F(detray_algebra, cross_matrix) {
+    using matrix3_type = matrix<3, 3>;
 
     const vector3 u{1.f, 2.f, 3.f};
     const vector3 v{3.f, 4.f, 5.f};
 
-    const matrix3_type u_cross = matrix::cross_matrix(u);
-    const matrix3_type v_cross = matrix::cross_matrix(v);
+    const matrix3_type u_cross = detray::matrix::cross_matrix(u);
+    const matrix3_type v_cross = detray::matrix::cross_matrix(v);
 
-    EXPECT_NEAR(getter::element(u_cross, 0u, 0u), 0.f, tolerance);
-    EXPECT_NEAR(getter::element(u_cross, 0u, 1u), -3.f, tolerance);
-    EXPECT_NEAR(getter::element(u_cross, 0u, 2u), 2.f, tolerance);
-    EXPECT_NEAR(getter::element(u_cross, 1u, 0u), 3.f, tolerance);
-    EXPECT_NEAR(getter::element(u_cross, 1u, 1u), 0.f, tolerance);
-    EXPECT_NEAR(getter::element(u_cross, 1u, 2u), -1.f, tolerance);
-    EXPECT_NEAR(getter::element(u_cross, 2u, 0u), -2.f, tolerance);
-    EXPECT_NEAR(getter::element(u_cross, 2u, 1u), 1.f, tolerance);
-    EXPECT_NEAR(getter::element(u_cross, 2u, 2u), 0.f, tolerance);
+    EXPECT_NEAR(getter::element(u_cross, 0u, 0u), 0.f, this->tolerance());
+    EXPECT_NEAR(getter::element(u_cross, 0u, 1u), -3.f, this->tolerance());
+    EXPECT_NEAR(getter::element(u_cross, 0u, 2u), 2.f, this->tolerance());
+    EXPECT_NEAR(getter::element(u_cross, 1u, 0u), 3.f, this->tolerance());
+    EXPECT_NEAR(getter::element(u_cross, 1u, 1u), 0.f, this->tolerance());
+    EXPECT_NEAR(getter::element(u_cross, 1u, 2u), -1.f, this->tolerance());
+    EXPECT_NEAR(getter::element(u_cross, 2u, 0u), -2.f, this->tolerance());
+    EXPECT_NEAR(getter::element(u_cross, 2u, 1u), 1.f, this->tolerance());
+    EXPECT_NEAR(getter::element(u_cross, 2u, 2u), 0.f, this->tolerance());
 
     // [u]_cross * v = [v]_cross^T * u
     const vector3 u_cross_v = u_cross * v;
-    const vector3 v_cross_u = matrix::transpose(v_cross) * u;
+    const vector3 v_cross_u = detray::matrix::transpose(v_cross) * u;
 
-    EXPECT_NEAR(getter::element(u_cross_v, 0u), -2.f, tolerance);
-    EXPECT_NEAR(getter::element(u_cross_v, 1u), 4.f, tolerance);
-    EXPECT_NEAR(getter::element(u_cross_v, 2u), -2.f, tolerance);
+    EXPECT_NEAR(getter::element(u_cross_v, 0u), -2.f, this->tolerance());
+    EXPECT_NEAR(getter::element(u_cross_v, 1u), 4.f, this->tolerance());
+    EXPECT_NEAR(getter::element(u_cross_v, 2u), -2.f, this->tolerance());
     EXPECT_NEAR(getter::element(u_cross_v, 0u), getter::element(v_cross_u, 0u),
-                tolerance);
+                this->tolerance());
     EXPECT_NEAR(getter::element(u_cross_v, 1u), getter::element(v_cross_u, 1u),
-                tolerance);
+                this->tolerance());
     EXPECT_NEAR(getter::element(u_cross_v, 2u), getter::element(v_cross_u, 2u),
-                tolerance);
+                this->tolerance());
 }
 
-GTEST_TEST(detray_algebra, outer_product) {
+TEST_F(detray_algebra, outer_product) {
+    using matrix3_type = matrix<3, 3>;
 
     const vector3 u{1.f, 2.f, 3.f};
     const vector3 v{3.f, 4.f, 5.f};
 
-    const matrix3_type m33 = matrix::outer_product(u, v);
+    const matrix3_type m33 = detray::matrix::outer_product(u, v);
 
-    EXPECT_NEAR(getter::element(m33, 0u, 0u), 3.f, tolerance);
-    EXPECT_NEAR(getter::element(m33, 0u, 1u), 4.f, tolerance);
-    EXPECT_NEAR(getter::element(m33, 0u, 2u), 5.f, tolerance);
-    EXPECT_NEAR(getter::element(m33, 1u, 0u), 6.f, tolerance);
-    EXPECT_NEAR(getter::element(m33, 1u, 1u), 8.f, tolerance);
-    EXPECT_NEAR(getter::element(m33, 1u, 2u), 10.f, tolerance);
-    EXPECT_NEAR(getter::element(m33, 2u, 0u), 9.f, tolerance);
-    EXPECT_NEAR(getter::element(m33, 2u, 1u), 12.f, tolerance);
-    EXPECT_NEAR(getter::element(m33, 2u, 2u), 15.f, tolerance);
+    EXPECT_NEAR(getter::element(m33, 0u, 0u), 3.f, this->tolerance());
+    EXPECT_NEAR(getter::element(m33, 0u, 1u), 4.f, this->tolerance());
+    EXPECT_NEAR(getter::element(m33, 0u, 2u), 5.f, this->tolerance());
+    EXPECT_NEAR(getter::element(m33, 1u, 0u), 6.f, this->tolerance());
+    EXPECT_NEAR(getter::element(m33, 1u, 1u), 8.f, this->tolerance());
+    EXPECT_NEAR(getter::element(m33, 1u, 2u), 10.f, this->tolerance());
+    EXPECT_NEAR(getter::element(m33, 2u, 0u), 9.f, this->tolerance());
+    EXPECT_NEAR(getter::element(m33, 2u, 1u), 12.f, this->tolerance());
+    EXPECT_NEAR(getter::element(m33, 2u, 2u), 15.f, this->tolerance());
 }
 
-GTEST_TEST(detray_algebra, cholesky_decomposition) {
+TEST_F(detray_algebra, cholesky_decomposition) {
+    using matrix3_type = matrix<3, 3>;
 
     // Define A
-    auto A = matrix::zero<matrix3_type>();
+    auto A = detray::matrix::zero<matrix3_type>();
     getter::element(A, 0u, 0u) = 4.f;
     getter::element(A, 0u, 1u) = 12.f;
     getter::element(A, 0u, 2u) = -16.f;
@@ -144,7 +142,7 @@ GTEST_TEST(detray_algebra, cholesky_decomposition) {
     getter::element(A, 2u, 2u) = 98.f;
 
     // Get L that satisfies A = L * L^T and check if it is the expected value
-    const matrix3_type L = matrix::cholesky_decomposition(A);
+    const matrix3_type L = detray::matrix::cholesky_decomposition(A);
 
     EXPECT_FLOAT_EQ(static_cast<float>(getter::element(L, 0u, 0u)), 2.f);
     EXPECT_FLOAT_EQ(static_cast<float>(getter::element(L, 0u, 1u)), 0.f);
@@ -157,7 +155,7 @@ GTEST_TEST(detray_algebra, cholesky_decomposition) {
     EXPECT_FLOAT_EQ(static_cast<float>(getter::element(L, 2u, 2u)), 3.f);
 
     // Compare A and L * L^T
-    const matrix3_type B = L * matrix::transpose(L);
+    const matrix3_type B = L * detray::matrix::transpose(L);
 
     for (unsigned int i = 0u; i < 3u; i++) {
         for (unsigned int j = 0u; j < 3u; j++) {
@@ -166,3 +164,5 @@ GTEST_TEST(detray_algebra, cholesky_decomposition) {
         }
     }
 }
+
+}  // namespace detray::test

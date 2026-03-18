@@ -1,6 +1,6 @@
 # Detray library, part of the ACTS project (R&D line)
 #
-# (c) 2021-2024 CERN for the benefit of the ACTS project
+# (c) 2021-2026 CERN for the benefit of the ACTS project
 #
 # Mozilla Public License Version 2.0
 
@@ -35,8 +35,8 @@ detray_add_unit_test( cuda_grid2_array
                   detray::core_array
 )
 
-# make unit tests for multiple algebras
-# Currently vc and smatrix is not supported
+# Define unit tests for multiple algebra plugins
+# Currently, only 'array' and 'eigen' are supported in device code
 set(algebras "array")
 
 if(DETRAY_EIGEN_PLUGIN)
@@ -46,6 +46,7 @@ endif()
 foreach(algebra ${algebras})
     # Unit tests for the selected algebra.
     detray_add_unit_test(cuda_${algebra}
+       "algebra.cu"
        "detector_cuda_kernel.hpp"
        "detector_cuda.cpp"
        "detector_cuda_kernel.cu"
