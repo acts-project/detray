@@ -10,6 +10,7 @@ message(STATUS "Building the std::array algebra plugin")
 detray_add_library( detray_algebra_array algebra_array
    "include/algebra/array.hpp"
    "include/algebra/impl/*.hpp"
+   "include/algebra/utils/*.hpp"
 )
 
 target_link_libraries(detray_algebra_array INTERFACE detray::core)

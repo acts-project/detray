@@ -4,6 +4,8 @@
 #
 # Mozilla Public License Version 2.0
 
+message(STATUS "Building detray CUDA benchmarks")
+
 # C++17 support for CUDA requires CMake 3.18.
 cmake_minimum_required(VERSION 3.18)
 
@@ -23,8 +25,6 @@ endif()
 
 # Set up a benchamrk library for CUDA
 foreach(algebra ${algebra_plugins})
-    message(STATUS "Building 'detray::benchmark_cuda_${algebra}' component")
-
     add_library(
         detray_benchmark_cuda_${algebra}
         STATIC

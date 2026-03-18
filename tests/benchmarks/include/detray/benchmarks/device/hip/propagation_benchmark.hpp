@@ -21,7 +21,7 @@
 
 // Detray benchmark include(s)
 #include "detray/benchmarks/benchmark_base.hpp"
-#include "detray/benchmarks/propagation_benchmark_config.hpp"
+#include "detray/benchmarks/propagation_benchmark.hpp"
 #include "detray/benchmarks/propagation_benchmark_utils.hpp"
 #include "detray/benchmarks/types.hpp"
 
@@ -97,26 +97,14 @@ void release_actor_states(
 template <typename propagator_t, typename bfield_bknd_t,
           detray::benchmarks::propagation_opt kOPT =
               detray::benchmarks::propagation_opt::e_unsync>
-struct hip_propagation_bm : public benchmark_base {
+struct hip_propagation_bm
+    : public propagation_benchmark<
+          typename propagator_t::detector_type::algebra_type> {
     /// Detector dependent types
     using algebra_t = typename propagator_t::detector_type::algebra_type;
-    using scalar_t = dscalar<algebra_t>;
-    using vector3_t = dvector3D<algebra_t>;
+    using base_type = propagation_benchmark<algebra_t>;
 
-    /// Local configuration type
-    using configuration = propagation_benchmark_config;
-
-    /// The benchmark configuration
-    configuration m_cfg{};
-
-    /// Default construction
-    hip_propagation_bm() = default;
-
-    /// Construct from an externally provided configuration @param cfg
-    explicit hip_propagation_bm(const configuration &cfg) : m_cfg{cfg} {}
-
-    /// @return the benchmark configuration
-    configuration &config() { return m_cfg; }
+    using base_type::base_type;
 
     /// Prepare data and run benchmark loop
     inline void operator()(::benchmark::State &state,
@@ -136,8 +124,8 @@ struct hip_propagation_bm : public benchmark_base {
         // Helper object for performing memory copies (to HIP devices)
         vecmem::hip::copy hip_cpy;
 
-        const int n_samples{m_cfg.benchmark().n_samples()};
-        const int n_warmup{m_cfg.benchmark().n_warmup()};
+        const int n_samples{this->config().n_samples()};
+        const int n_warmup{this->config().n_warmup()};
 
         assert(static_cast<std::size_t>(n_samples) <= tracks->size());
 
@@ -154,12 +142,12 @@ struct hip_propagation_bm : public benchmark_base {
             setup_actor_states<propagator_t>(input_actor_states);
 
         // Do a small warm up run
-        if (m_cfg.benchmark().do_warmup()) {
+        if (this->config().do_warmup()) {
             auto warmup_track_buffer =
                 detray::get_buffer(vecmem::get_data(*tracks), *dev_mr, hip_cpy);
 
             run_propagation_kernel<propagator_t, kOPT>(
-                m_cfg.propagation(), det_view, *bfield, device_actor_state_ptr,
+                this->propagation(), det_view, *bfield, device_actor_state_ptr,
                 warmup_track_buffer, math::min(n_warmup, n_samples));
         } else {
             DETRAY_WARN_HOST(
@@ -174,7 +162,7 @@ struct hip_propagation_bm : public benchmark_base {
         for (auto _ : state) {
             // Launch the propagator test for GPU device
             run_propagation_kernel<propagator_t, kOPT>(
-                m_cfg.propagation(), det_view, *bfield, device_actor_state_ptr,
+                this->propagation(), det_view, *bfield, device_actor_state_ptr,
                 track_buffer, n_samples);
 
             total_tracks += static_cast<std::size_t>(n_samples);

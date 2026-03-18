@@ -5,9 +5,11 @@
  * Mozilla Public License Version 2.0
  */
 
+// Project include(s)
+#include "detray/utils/logging.hpp"
+
 // Detray benchmark include(s)
 #include "detray/benchmarks/types.hpp"
-#include "detray/utils/logging.hpp"
 
 // Detray test include(s)
 #include "detray/test/common/build_toy_detector.hpp"

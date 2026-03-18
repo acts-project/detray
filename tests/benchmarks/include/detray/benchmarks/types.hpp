@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2024 CERN for the benefit of the ACTS project
+ * (c) 2020-2026 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -8,6 +8,7 @@
 #pragma once
 
 // Detray core include(s).
+#include "algebra/utils/data_generator.hpp"
 #include "detray/definitions/algebra.hpp"
 
 // Detray detector include(s)
@@ -16,21 +17,38 @@
 
 namespace detray::benchmarks {
 
+#define DETRAY_DEFINE_BENCHMARK_NAME(ALGEBRA) \
+    static std::string plugin_name(#ALGEBRA);
+
 // Select algebra-plugin to compile the test with
 #if DETRAY_ALGEBRA_ARRAY
 using algebra = detray::array<DETRAY_CUSTOM_SCALARTYPE>;
+DETRAY_DEFINE_BENCHMARK_NAME(array)
 
 #elif DETRAY_ALGEBRA_EIGEN
 using algebra = detray::eigen<DETRAY_CUSTOM_SCALARTYPE>;
+DETRAY_DEFINE_BENCHMARK_NAME(eigen)
 
 #elif DETRAY_ALGEBRA_FASTOR
 using algebra = detray::fastor<DETRAY_CUSTOM_SCALARTYPE>;
+DETRAY_DEFINE_BENCHMARK_NAME(fastor)
 
 #elif DETRAY_ALGEBRA_SMATRIX
 using algebra = detray::smatrix<DETRAY_CUSTOM_SCALARTYPE>;
+DETRAY_DEFINE_BENCHMARK_NAME(smatrix)
 
-#elif DETRAY_ALGEBRA_VC_AOS
+#elif DETRAY_ALGEBRA_VC_AOS || DETRAY_ALGEBRA_VC_SOA
+
+#if DETRAY_ALGEBRA_VC_AOS
 using algebra = detray::vc_aos<DETRAY_CUSTOM_SCALARTYPE>;
+DETRAY_DEFINE_BENCHMARK_NAME(vc_aos)
+#endif
+
+#if DETRAY_ALGEBRA_VC_SOA
+using algebra = detray::vc_soa<DETRAY_CUSTOM_SCALARTYPE>;
+DETRAY_DEFINE_BENCHMARK_NAME(vc_soa)
+#endif
+
 #else
 #error \
     "No algebra plugin selected for benchmarks! Please link to one of the algebra plugins."

@@ -153,12 +153,8 @@ if(DETRAY_BUILD_TESTING OR DETRAY_BUILD_TUTORIALS)
     set(DETRAY_BUILD_VALIDATION_TOOLS ON)
 endif()
 
-# Test utilities are needed for validation utilities and benchmarks
-if(
-    DETRAY_BUILD_TESTING
-    OR DETRAY_BUILD_VALIDATION_TOOLS
-    OR DETRAY_BUILD_BENCHMARKS
-)
+# Test utilities are needed for validation utilities
+if(DETRAY_BUILD_TESTING OR DETRAY_BUILD_VALIDATION_TOOLS)
     set(DETRAY_BUILD_TEST_UTILS ON)
 endif()
 
@@ -297,7 +293,11 @@ if(DETRAY_SETUP_FASTOR)
 endif()
 
 # Set up Vc.
-if(DETRAY_VC_AOS_PLUGIN OR DETRAY_VC_SOA_PLUGIN)
+if(DETRAY_VC_SOA_PLUGIN)
+    set(DETRAY_VC_AOS_PLUGIN ON)
+endif()
+
+if(DETRAY_VC_AOS_PLUGIN)
     set(DETRAY_VC_PLUGIN ON)
 endif()
 

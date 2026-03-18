@@ -15,6 +15,19 @@ find_package(OpenMP)
 
 # Macro setting up the CPU benchmarks for a specific algebra plugin.
 macro(detray_add_cpu_benchmark algebra)
+    message(STATUS "Building 'detray::benchmark_cpu_${algebra}' component")
+
+    # Build the linear algebra benchmark executables
+    detray_add_executable(benchmark_cpu_linear_algebra_${algebra}
+       "linear_algebra.cpp"
+       LINK_LIBRARIES benchmark::benchmark benchmark::benchmark_main vecmem::core detray::benchmarks detray::core_${algebra}
+    )
+
+    target_compile_options(
+        detray_benchmark_cpu_linear_algebra_${algebra}
+        PRIVATE "-march=native" "-ftree-vectorize"
+    )
+
     # Build the benchmark executable.
     detray_add_executable(benchmark_cpu_${algebra}
        "find_volume.cpp"
@@ -29,7 +42,7 @@ macro(detray_add_cpu_benchmark algebra)
 
     target_compile_options(
         detray_benchmark_cpu_${algebra}
-        PRIVATE "-march=native"
+        PRIVATE "-march=native" "-ftree-vectorize"
     )
 
     # Set the benchmark specific compilation options.
@@ -88,13 +101,37 @@ endif()
 # Build the Vc benchmark executable.
 if(DETRAY_VC_AOS_PLUGIN)
     detray_add_cpu_benchmark( vc_aos )
+
+    target_compile_options(
+        detray_benchmark_cpu_linear_algebra_vc_aos
+        INTERFACE ${Vc_COMPILE_FLAGS} ${Vc_ARCHITECTURE_FLAGS}
+    )
 endif()
 
 if(DETRAY_VC_SOA_PLUGIN)
+    message(STATUS "Building 'detray::benchmark_cpu_vc_soa' component")
+
+    # Build the linear algebra benchmark executables
+    detray_add_executable(benchmark_cpu_linear_algebra_vc_soa
+       "soa/linear_algebra.cpp"
+       LINK_LIBRARIES benchmark::benchmark benchmark::benchmark_main vecmem::core detray::benchmarks detray::core_vc_soa
+    )
+
+    target_compile_options(
+        detray_benchmark_cpu_linear_algebra_vc_soa
+        PRIVATE "-march=native"
+    )
+
+    target_compile_options(
+        detray_benchmark_cpu_linear_algebra_vc_soa
+        INTERFACE ${Vc_COMPILE_FLAGS} ${Vc_ARCHITECTURE_FLAGS}
+    )
+
+    # Build the intersector benchmark per algebra plugin
     macro(detray_add_soa_benchmark algebra)
         # Build the benchmark executable.
         detray_add_executable(benchmark_cpu_vc_soa_vs_${algebra}
-         "intersectors.cpp"
+         "soa/intersectors.cpp"
            LINK_LIBRARIES detray::benchmark_cpu benchmark::benchmark benchmark::benchmark_main vecmem::core detray::core_vc_soa detray::core_vc_aos detray::core_${algebra}
            detray::test_common
         )
