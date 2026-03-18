@@ -158,4 +158,16 @@ template <typename A>
 concept aos = (!concepts::soa<A>);
 /// @}
 
+/// Check if a matrix or vector type permits template indexing
+/// @{
+template <typename M>
+concept has_compile_time_2d_access = requires(const M& m) {
+    { m.template element<0, 0>() };
+};
+
+template <typename V>
+concept has_compile_time_1d_access = requires(const V& v) {
+    { v.template element<0>() };
+};
+/// @}
 }  // namespace detray::concepts

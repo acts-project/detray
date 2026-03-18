@@ -128,6 +128,26 @@ DETRAY_HOST_DEVICE constexpr scalar_t &element(Fastor::Tensor<scalar_t, N> &m,
     return element_getter()(m, row);
 }
 
+template <std::size_t I, std::size_t J, concepts::matrix M>
+DETRAY_HOST_DEVICE decltype(auto) element(M &matrix) {
+    if constexpr (concepts::has_compile_time_2d_access<M>) {
+        return matrix.template element<I, J>();
+    } else {
+        using index_t = detray::traits::index_t<std::decay_t<M>>;
+        return element(matrix, index_t(I), index_t(J));
+    }
+}
+
+template <std::size_t I, concepts::vector V>
+DETRAY_HOST_DEVICE decltype(auto) element(V &vector) {
+    if constexpr (concepts::has_compile_time_1d_access<V>) {
+        return vector.template element<I>();
+    } else {
+        using index_t = detray::traits::index_t<std::decay_t<V>>;
+        return element(vector, index_t(I));
+    }
+}
+
 /// Functor used to extract a block from Fastor matrices
 struct block_getter {
 
