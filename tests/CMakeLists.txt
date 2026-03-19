@@ -40,7 +40,7 @@ endif()
 
 # Common test dependencies such as test detectors, B-fields and track generators
 # (depends on covfie)
-if(DETRAY_BUILD_TEST_UTILS)
+if(DETRAY_BUILD_TEST_UTILS OR DETRAY_BUILD_BENCHMARKS)
     message(STATUS "Building 'detray::test_common' component")
 
     file(

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023-2025 CERN for the benefit of the ACTS project
+ * (c) 2023-2026 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -14,7 +14,7 @@
 
 // Detray benchmark include(s)
 #include "detray/benchmarks/benchmark_base.hpp"
-#include "detray/benchmarks/propagation_benchmark_config.hpp"
+#include "detray/benchmarks/propagation_benchmark.hpp"
 #include "detray/benchmarks/propagation_benchmark_utils.hpp"
 
 // Benchmark include
@@ -33,29 +33,18 @@
 
 namespace detray::benchmarks {
 
+/// Host propagation benchmarks
 template <typename propagator_t, typename bfield_t,
           detray::benchmarks::propagation_opt kOPT =
               detray::benchmarks::propagation_opt::e_unsync>
-struct host_propagation_bm : public benchmark_base {
+struct host_propagation_bm
+    : public propagation_benchmark<
+          typename propagator_t::detector_type::algebra_type> {
     /// Detector dependent types
     using algebra_t = typename propagator_t::detector_type::algebra_type;
-    using scalar_t = dscalar<algebra_t>;
-    using vector3_t = dvector3D<algebra_t>;
+    using base_type = propagation_benchmark<algebra_t>;
 
-    /// Local configuration type
-    using configuration = propagation_benchmark_config;
-
-    /// The benchmark configuration
-    configuration m_cfg{};
-
-    /// Default construction
-    host_propagation_bm() = default;
-
-    /// Construct from an externally provided configuration @param cfg
-    explicit host_propagation_bm(const configuration &cfg) : m_cfg{cfg} {}
-
-    /// @return the benchmark configuration
-    configuration &config() { return m_cfg; }
+    using base_type::base_type;
 
     /// Prepare data and run benchmark loop
     inline void operator()(
@@ -75,8 +64,8 @@ struct host_propagation_bm : public benchmark_base {
         assert(bfield != nullptr);
         assert(input_actor_states != nullptr);
 
-        const int n_samples{m_cfg.benchmark().n_samples()};
-        const int n_warmup{m_cfg.benchmark().n_warmup()};
+        const int n_samples{this->config().n_samples()};
+        const int n_warmup{this->config().n_warmup()};
 
         assert(static_cast<std::size_t>(n_samples) <= tracks->size());
 
@@ -96,7 +85,7 @@ struct host_propagation_bm : public benchmark_base {
 #endif
 
         // Create propagator
-        propagator_t p{m_cfg.propagation()};
+        propagator_t p{this->propagation()};
 
         // Call the host propagation
         auto run_propagation = [&p, det, bfield, input_actor_states](
@@ -128,7 +117,7 @@ struct host_propagation_bm : public benchmark_base {
         };
 
         // Warm-up
-        if (m_cfg.benchmark().do_warmup()) {
+        if (this->config().do_warmup()) {
             assert(n_warmup > 0);
             int stride{n_samples / n_warmup};
             stride = (stride == 0) ? 10 : stride;

@@ -11,6 +11,7 @@ detray_add_library( detray_algebra_eigen algebra_eigen
    "include/algebra/eigen.hpp"
    "include/algebra/impl/*.hpp"
    "include/algebra/impl/detail/*.hpp"
+   "include/algebra/utils/*.hpp"
 )
 
 target_link_libraries(detray_algebra_eigen INTERFACE Eigen3::Eigen detray::core)

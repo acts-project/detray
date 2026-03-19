@@ -10,6 +10,7 @@ message(STATUS "Building the Vc AoS algebra plugin")
 detray_add_library( detray_algebra_vc_aos algebra_vc_aos
    "include/algebra/vc_aos.hpp"
    "include/algebra/impl/*.hpp"
+   "include/algebra/utils/*.hpp"
 )
 
 target_link_libraries(detray_algebra_vc_aos INTERFACE Vc::Vc detray::core)

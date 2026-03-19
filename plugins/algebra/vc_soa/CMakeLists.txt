@@ -10,6 +10,7 @@ message(STATUS "Building the Vc SoA algebra plugin")
 detray_add_library( detray_algebra_vc_soa algebra_vc_soa
    "include/algebra/vc_soa.hpp"
    "include/algebra/impl/*.hpp"
+   "include/algebra/utils/*.hpp"
 )
 
 target_link_libraries(

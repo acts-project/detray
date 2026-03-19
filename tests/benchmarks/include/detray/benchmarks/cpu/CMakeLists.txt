@@ -4,13 +4,18 @@
 #
 # Mozilla Public License Version 2.0
 
-message(STATUS "Building 'detray::benchmark_cpu' component")
-
 # Set the CPU build flags.
 include(detray-compiler-options-cpp)
 
 # Set up a test library, which the "new style" benchmarks and tests could use.
-add_library(detray_benchmark_cpu INTERFACE "propagation_benchmark.hpp")
+add_library(
+    detray_benchmark_cpu
+    INTERFACE
+    "matrix_benchmark.hpp"
+    "vector_benchmark.hpp"
+    "transform_benchmark.hpp"
+    "propagation_benchmark.hpp"
+)
 
 add_library(detray::benchmark_cpu ALIAS detray_benchmark_cpu)
 
