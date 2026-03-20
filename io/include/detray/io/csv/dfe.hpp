@@ -61,8 +61,7 @@
             ::std::make_index_sequence<::std::tuple_size<Tuple>::value>{}); \
     }
 
-namespace detray::io::csv {
-namespace dfe {
+namespace detray::io::csv::dfe {
 
 template <typename R, typename T>
 bool rangeContainsValue(const R& range, const T& value) {
@@ -108,10 +107,10 @@ class DsvWriter {
     public:
     DsvWriter() = delete;
     DsvWriter(const DsvWriter&) = delete;
-    DsvWriter(DsvWriter&&) = default;
+    DsvWriter(DsvWriter&&) noexcept = default;
     ~DsvWriter() = default;
     DsvWriter& operator=(const DsvWriter&) = delete;
-    DsvWriter& operator=(DsvWriter&&) = default;
+    DsvWriter& operator=(DsvWriter&&) noexcept = default;
 
     DsvWriter(const std::vector<std::string>& columns, const std::string& path,
               int precision = std::numeric_limits<double>::max_digits10);
@@ -136,10 +135,10 @@ class DsvReader {
     public:
     DsvReader() = delete;
     DsvReader(const DsvReader&) = delete;
-    DsvReader(DsvReader&&) = default;
+    DsvReader(DsvReader&&) noexcept = default;
     ~DsvReader() = default;
     DsvReader& operator=(const DsvReader&) = delete;
-    DsvReader& operator=(DsvReader&&) = default;
+    DsvReader& operator=(DsvReader&&) noexcept = default;
 
     explicit DsvReader(const std::string& path);
 
@@ -158,12 +157,12 @@ class NamedTupleDsvWriter {
     public:
     NamedTupleDsvWriter() = delete;
     NamedTupleDsvWriter(const NamedTupleDsvWriter&) = delete;
-    NamedTupleDsvWriter(NamedTupleDsvWriter&&) = default;
+    NamedTupleDsvWriter(NamedTupleDsvWriter&&) noexcept = default;
     ~NamedTupleDsvWriter() = default;
     NamedTupleDsvWriter& operator=(const NamedTupleDsvWriter&) = delete;
-    NamedTupleDsvWriter& operator=(NamedTupleDsvWriter&&) = default;
+    NamedTupleDsvWriter& operator=(NamedTupleDsvWriter&&) noexcept = default;
 
-    NamedTupleDsvWriter(
+    explicit NamedTupleDsvWriter(
         const std::string& path,
         int precision = std::numeric_limits<double>::max_digits10)
         : m_writer(colum_names(), path, precision) {}
@@ -200,14 +199,15 @@ class NamedTupleDsvReader {
     public:
     NamedTupleDsvReader() = delete;
     NamedTupleDsvReader(const NamedTupleDsvReader&) = delete;
-    NamedTupleDsvReader(NamedTupleDsvReader&&) = default;
+    NamedTupleDsvReader(NamedTupleDsvReader&&) noexcept = default;
     ~NamedTupleDsvReader() = default;
     NamedTupleDsvReader& operator=(const NamedTupleDsvReader&) = delete;
-    NamedTupleDsvReader& operator=(NamedTupleDsvReader&&) = default;
+    NamedTupleDsvReader& operator=(NamedTupleDsvReader&&) noexcept = default;
 
-    NamedTupleDsvReader(const std::string& path,
-                        const std::vector<std::string>& optional_columns = {},
-                        bool verify_header = true);
+    explicit NamedTupleDsvReader(
+        const std::string& path,
+        const std::vector<std::string>& optional_columns = {},
+        bool verify_header = true);
     bool read(NamedTuple& record);
 
     template <typename T>
@@ -288,7 +288,7 @@ inline void DsvWriter<Delimiter>::append(Arg0&& arg0, Args&&... args) {
 template <char Delimiter>
 template <typename T>
 inline unsigned DsvWriter<Delimiter>::write(T&& x, std::ostream& os) {
-    os << x;
+    os << std::forward<T>(x);
     return 1u;
 }
 
@@ -446,5 +446,5 @@ using NamedTupleTsvWriter = dfe::NamedTupleDsvWriter<'\t', T>;
 
 template <typename T>
 using NamedTupleTsvReader = dfe::NamedTupleDsvReader<'\t', T>;
-}  // namespace dfe
-}  // namespace detray::io::csv
+
+}  // namespace detray::io::csv::dfe

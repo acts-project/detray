@@ -356,12 +356,6 @@ struct print_inspector {
     print_inspector(const print_inspector &other)
         : debug_stream(other.debug_stream.str()) {}
 
-    /// Move constructor
-    print_inspector(print_inspector &&other) = default;
-
-    /// Default destructor
-    ~print_inspector() = default;
-
     /// Copy assignemten operator ensures that the string stream is set up
     /// identically
     print_inspector &operator=(const print_inspector &other) {
@@ -402,7 +396,7 @@ struct print_inspector {
     }
 
     /// @returns a string representation of the gathered information
-    std::string to_string() { return debug_stream.str(); }
+    std::string to_string() const { return debug_stream.str(); }
 };
 
 }  // namespace stepping

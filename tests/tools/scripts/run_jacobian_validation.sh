@@ -106,6 +106,9 @@ while getopts "hd:n:t:m:c:p:q:i:s:f:r:v:" arg; do
         v)
             verbose_level=$OPTARG
         ;;
+        *)
+            echo "Unknown option"
+        ;;
     esac
 done
 

@@ -37,8 +37,6 @@
 
 namespace detray {
 
-namespace {
-
 /// Configure the toy detector
 template <concepts::algebra algebra_t, typename mask_shape_t = rectangle2D,
           template <typename> class trajectory_t = detail::ray>
@@ -47,8 +45,8 @@ struct tel_det_config {
     using scalar_t = dscalar<algebra_t>;
 
     /// Construct from existing mask
-    tel_det_config(const mask<mask_shape_t, algebra_t> &m,
-                   const trajectory_t<algebra_t> &t = {})
+    explicit tel_det_config(const mask<mask_shape_t, algebra_t> &m,
+                            const trajectory_t<algebra_t> &t = {})
         : m_mask(m), m_trajectory(t) {
         // Configure the material generation
         m_material_config.sensitive_material(silicon_tml<scalar_t>())
@@ -58,8 +56,8 @@ struct tel_det_config {
     }
 
     /// Construct from from mask parameter vector
-    tel_det_config(std::vector<scalar_t> params,
-                   const trajectory_t<algebra_t> &t = {})
+    explicit tel_det_config(std::vector<scalar_t> params,
+                            const trajectory_t<algebra_t> &t = {})
         : tel_det_config(mask<mask_shape_t, algebra_t>{std::move(params), 0u},
                          t) {}
 
@@ -171,8 +169,6 @@ template <concepts::algebra algebra_t, typename shape_t,
 DETRAY_HOST_DEVICE tel_det_config(const mask<shape_t, algebra_t> &,
                                   const trajectory_t<algebra_t> &)
     -> tel_det_config<algebra_t, shape_t, trajectory_t>;
-
-}  // namespace
 
 /// Builds a detray geometry that contains only one volume with one type of
 /// surfaces. The detector is auto-constructed by following a trajectory

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2024 CERN for the benefit of the ACTS project
+ * (c) 2022-2026 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -11,6 +11,7 @@
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/geometry/concepts.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes.hpp"
 #include "detray/utils/grid/detail/axis.hpp"
@@ -498,9 +499,8 @@ class grid_factory {
     /// @param ax_bin_edges the explicit bin edges for irregular axes
     ///                     (lower bin edges + the the upper edge of the
     ///                     last bin), otherwise ignored.
-    template <typename grid_frame_t, typename... bound_ts,
+    template <concepts::coordinate_frame grid_frame_t, typename... bound_ts,
               typename... binning_ts>
-        requires std::is_object_v<typename grid_frame_t::loc_point>
     auto new_grid(
         const std::vector<scalar_type> &spans,
         const std::vector<std::size_t> &n_bins,
@@ -525,7 +525,7 @@ class grid_factory {
     /// Helper to build grid from shape plus binning and bounds types
     template <typename grid_shape_t, typename... bound_ts,
               typename... binning_ts>
-        requires std::is_enum_v<typename grid_shape_t::boundaries>
+        requires concepts::shape<grid_shape_t, algebra_t>
     auto new_grid(
         const std::vector<scalar_type> &spans,
         const std::vector<std::size_t> &n_bins,
@@ -543,6 +543,7 @@ class grid_factory {
     /// Helper overload for grid builder: Build from mask and resolve bounds
     /// and binnings from concrete grid type
     template <concepts::grid grid_t, typename grid_shape_t>
+        requires concepts::shape<grid_shape_t, algebra_t>
     auto new_grid(
         const mask<grid_shape_t, algebra_type> &m,
         const darray<std::size_t, grid_t::dim> &n_bins,
@@ -558,12 +559,9 @@ class grid_factory {
 
     /// Helper overload for grid builder: Build from mask and resolve bounds
     /// and binnings
-    // TODO: Remove enable_if once clang can resolve the corresponding
-    // 'requires' clause
-    template <
-        typename grid_shape_t, typename... bound_ts, typename... binning_ts,
-        std::enable_if_t<std::is_enum_v<typename grid_shape_t::boundaries>,
-                         bool> = true>
+    template <typename grid_shape_t, typename... bound_ts,
+              typename... binning_ts>
+        requires concepts::shape<grid_shape_t, algebra_t>
     auto new_grid(const mask<grid_shape_t, algebra_type> &m,
                   const darray<std::size_t, grid_shape_t::dim> &n_bins,
                   const std::vector<

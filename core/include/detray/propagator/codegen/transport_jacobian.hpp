@@ -15,7 +15,7 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 
 namespace detray::detail {
-template <typename algebra_t>
+template <concepts::algebra algebra_t>
 struct transport_jacobian_matrix_without_gradient {
     using algebra_type = algebra_t;
     using scalar_type = dscalar<algebra_type>;
@@ -33,13 +33,13 @@ struct transport_jacobian_matrix_without_gradient {
         } else if constexpr (I == 0 && J == 3) {
             return static_cast<scalar_type>(0.f);
         } else if constexpr (I == 0 && J == 4) {
-            return _contents[0];
+            return m_contents[0];
         } else if constexpr (I == 0 && J == 5) {
-            return _contents[1];
+            return m_contents[1];
         } else if constexpr (I == 0 && J == 6) {
-            return _contents[2];
+            return m_contents[2];
         } else if constexpr (I == 0 && J == 7) {
-            return _contents[3];
+            return m_contents[3];
         } else if constexpr (I == 1 && J == 0) {
             return static_cast<scalar_type>(0.f);
         } else if constexpr (I == 1 && J == 1) {
@@ -49,13 +49,13 @@ struct transport_jacobian_matrix_without_gradient {
         } else if constexpr (I == 1 && J == 3) {
             return static_cast<scalar_type>(0.f);
         } else if constexpr (I == 1 && J == 4) {
-            return _contents[4];
+            return m_contents[4];
         } else if constexpr (I == 1 && J == 5) {
-            return _contents[5];
+            return m_contents[5];
         } else if constexpr (I == 1 && J == 6) {
-            return _contents[6];
+            return m_contents[6];
         } else if constexpr (I == 1 && J == 7) {
-            return _contents[7];
+            return m_contents[7];
         } else if constexpr (I == 2 && J == 0) {
             return static_cast<scalar_type>(0.f);
         } else if constexpr (I == 2 && J == 1) {
@@ -65,13 +65,13 @@ struct transport_jacobian_matrix_without_gradient {
         } else if constexpr (I == 2 && J == 3) {
             return static_cast<scalar_type>(0.f);
         } else if constexpr (I == 2 && J == 4) {
-            return _contents[8];
+            return m_contents[8];
         } else if constexpr (I == 2 && J == 5) {
-            return _contents[9];
+            return m_contents[9];
         } else if constexpr (I == 2 && J == 6) {
-            return _contents[10];
+            return m_contents[10];
         } else if constexpr (I == 2 && J == 7) {
-            return _contents[11];
+            return m_contents[11];
         } else if constexpr (I == 3 && J == 0) {
             return static_cast<scalar_type>(0.f);
         } else if constexpr (I == 3 && J == 1) {
@@ -97,13 +97,13 @@ struct transport_jacobian_matrix_without_gradient {
         } else if constexpr (I == 4 && J == 3) {
             return static_cast<scalar_type>(0.f);
         } else if constexpr (I == 4 && J == 4) {
-            return _contents[12];
+            return m_contents[12];
         } else if constexpr (I == 4 && J == 5) {
-            return _contents[13];
+            return m_contents[13];
         } else if constexpr (I == 4 && J == 6) {
-            return _contents[14];
+            return m_contents[14];
         } else if constexpr (I == 4 && J == 7) {
-            return _contents[15];
+            return m_contents[15];
         } else if constexpr (I == 5 && J == 0) {
             return static_cast<scalar_type>(0.f);
         } else if constexpr (I == 5 && J == 1) {
@@ -113,13 +113,13 @@ struct transport_jacobian_matrix_without_gradient {
         } else if constexpr (I == 5 && J == 3) {
             return static_cast<scalar_type>(0.f);
         } else if constexpr (I == 5 && J == 4) {
-            return _contents[16];
+            return m_contents[16];
         } else if constexpr (I == 5 && J == 5) {
-            return _contents[17];
+            return m_contents[17];
         } else if constexpr (I == 5 && J == 6) {
-            return _contents[18];
+            return m_contents[18];
         } else if constexpr (I == 5 && J == 7) {
-            return _contents[19];
+            return m_contents[19];
         } else if constexpr (I == 6 && J == 0) {
             return static_cast<scalar_type>(0.f);
         } else if constexpr (I == 6 && J == 1) {
@@ -129,13 +129,13 @@ struct transport_jacobian_matrix_without_gradient {
         } else if constexpr (I == 6 && J == 3) {
             return static_cast<scalar_type>(0.f);
         } else if constexpr (I == 6 && J == 4) {
-            return _contents[20];
+            return m_contents[20];
         } else if constexpr (I == 6 && J == 5) {
-            return _contents[21];
+            return m_contents[21];
         } else if constexpr (I == 6 && J == 6) {
-            return _contents[22];
+            return m_contents[22];
         } else if constexpr (I == 6 && J == 7) {
-            return _contents[23];
+            return m_contents[23];
         } else if constexpr (I == 7 && J == 0) {
             return static_cast<scalar_type>(0.f);
         } else if constexpr (I == 7 && J == 1) {
@@ -151,7 +151,7 @@ struct transport_jacobian_matrix_without_gradient {
         } else if constexpr (I == 7 && J == 6) {
             return static_cast<scalar_type>(0.f);
         } else if constexpr (I == 7 && J == 7) {
-            return _contents[24];
+            return m_contents[24];
         }
     }
     template <std::size_t I, std::size_t J>
@@ -170,58 +170,58 @@ struct transport_jacobian_matrix_without_gradient {
                  (I == 6 && J == 6) || (I == 6 && J == 7) || (I == 7 && J == 7))
     {
         if constexpr (I == 0 && J == 4) {
-            return _contents[0];
+            return m_contents[0];
         } else if constexpr (I == 0 && J == 5) {
-            return _contents[1];
+            return m_contents[1];
         } else if constexpr (I == 0 && J == 6) {
-            return _contents[2];
+            return m_contents[2];
         } else if constexpr (I == 0 && J == 7) {
-            return _contents[3];
+            return m_contents[3];
         } else if constexpr (I == 1 && J == 4) {
-            return _contents[4];
+            return m_contents[4];
         } else if constexpr (I == 1 && J == 5) {
-            return _contents[5];
+            return m_contents[5];
         } else if constexpr (I == 1 && J == 6) {
-            return _contents[6];
+            return m_contents[6];
         } else if constexpr (I == 1 && J == 7) {
-            return _contents[7];
+            return m_contents[7];
         } else if constexpr (I == 2 && J == 4) {
-            return _contents[8];
+            return m_contents[8];
         } else if constexpr (I == 2 && J == 5) {
-            return _contents[9];
+            return m_contents[9];
         } else if constexpr (I == 2 && J == 6) {
-            return _contents[10];
+            return m_contents[10];
         } else if constexpr (I == 2 && J == 7) {
-            return _contents[11];
+            return m_contents[11];
         } else if constexpr (I == 4 && J == 4) {
-            return _contents[12];
+            return m_contents[12];
         } else if constexpr (I == 4 && J == 5) {
-            return _contents[13];
+            return m_contents[13];
         } else if constexpr (I == 4 && J == 6) {
-            return _contents[14];
+            return m_contents[14];
         } else if constexpr (I == 4 && J == 7) {
-            return _contents[15];
+            return m_contents[15];
         } else if constexpr (I == 5 && J == 4) {
-            return _contents[16];
+            return m_contents[16];
         } else if constexpr (I == 5 && J == 5) {
-            return _contents[17];
+            return m_contents[17];
         } else if constexpr (I == 5 && J == 6) {
-            return _contents[18];
+            return m_contents[18];
         } else if constexpr (I == 5 && J == 7) {
-            return _contents[19];
+            return m_contents[19];
         } else if constexpr (I == 6 && J == 4) {
-            return _contents[20];
+            return m_contents[20];
         } else if constexpr (I == 6 && J == 5) {
-            return _contents[21];
+            return m_contents[21];
         } else if constexpr (I == 6 && J == 6) {
-            return _contents[22];
+            return m_contents[22];
         } else if constexpr (I == 6 && J == 7) {
-            return _contents[23];
+            return m_contents[23];
         } else if constexpr (I == 7 && J == 7) {
-            return _contents[24];
+            return m_contents[24];
         }
     }
-    DETRAY_HOST_DEVICE operator dmatrix<algebra_t, 8, 8>() const {
+    DETRAY_HOST_DEVICE explicit operator dmatrix<algebra_t, 8, 8>() const {
         dmatrix<algebra_t, 8, 8> rv;
         getter::element<0, 0>(rv) = element<0, 0>();
         getter::element<0, 1>(rv) = element<0, 1>();
@@ -321,9 +321,9 @@ struct transport_jacobian_matrix_without_gradient {
     }
 
     private:
-    scalar_type _contents[25];
+    std::array<scalar_type, 25> m_contents;
 };
-template <typename algebra_t>
+template <concepts::algebra algebra_t>
 struct transport_jacobian_matrix_with_gradient {
     using algebra_type = algebra_t;
     using scalar_type = dscalar<algebra_type>;
@@ -333,53 +333,53 @@ struct transport_jacobian_matrix_with_gradient {
         requires(I < 8 && J < 8)
     {
         if constexpr (I == 0 && J == 0) {
-            return _contents[0];
+            return m_contents[0];
         } else if constexpr (I == 0 && J == 1) {
-            return _contents[1];
+            return m_contents[1];
         } else if constexpr (I == 0 && J == 2) {
-            return _contents[2];
+            return m_contents[2];
         } else if constexpr (I == 0 && J == 3) {
             return static_cast<scalar_type>(0.f);
         } else if constexpr (I == 0 && J == 4) {
-            return _contents[3];
+            return m_contents[3];
         } else if constexpr (I == 0 && J == 5) {
-            return _contents[4];
+            return m_contents[4];
         } else if constexpr (I == 0 && J == 6) {
-            return _contents[5];
+            return m_contents[5];
         } else if constexpr (I == 0 && J == 7) {
-            return _contents[6];
+            return m_contents[6];
         } else if constexpr (I == 1 && J == 0) {
-            return _contents[7];
+            return m_contents[7];
         } else if constexpr (I == 1 && J == 1) {
-            return _contents[8];
+            return m_contents[8];
         } else if constexpr (I == 1 && J == 2) {
-            return _contents[9];
+            return m_contents[9];
         } else if constexpr (I == 1 && J == 3) {
             return static_cast<scalar_type>(0.f);
         } else if constexpr (I == 1 && J == 4) {
-            return _contents[10];
+            return m_contents[10];
         } else if constexpr (I == 1 && J == 5) {
-            return _contents[11];
+            return m_contents[11];
         } else if constexpr (I == 1 && J == 6) {
-            return _contents[12];
+            return m_contents[12];
         } else if constexpr (I == 1 && J == 7) {
-            return _contents[13];
+            return m_contents[13];
         } else if constexpr (I == 2 && J == 0) {
-            return _contents[14];
+            return m_contents[14];
         } else if constexpr (I == 2 && J == 1) {
-            return _contents[15];
+            return m_contents[15];
         } else if constexpr (I == 2 && J == 2) {
-            return _contents[16];
+            return m_contents[16];
         } else if constexpr (I == 2 && J == 3) {
             return static_cast<scalar_type>(0.f);
         } else if constexpr (I == 2 && J == 4) {
-            return _contents[17];
+            return m_contents[17];
         } else if constexpr (I == 2 && J == 5) {
-            return _contents[18];
+            return m_contents[18];
         } else if constexpr (I == 2 && J == 6) {
-            return _contents[19];
+            return m_contents[19];
         } else if constexpr (I == 2 && J == 7) {
-            return _contents[20];
+            return m_contents[20];
         } else if constexpr (I == 3 && J == 0) {
             return static_cast<scalar_type>(0.f);
         } else if constexpr (I == 3 && J == 1) {
@@ -397,53 +397,53 @@ struct transport_jacobian_matrix_with_gradient {
         } else if constexpr (I == 3 && J == 7) {
             return static_cast<scalar_type>(0.f);
         } else if constexpr (I == 4 && J == 0) {
-            return _contents[21];
+            return m_contents[21];
         } else if constexpr (I == 4 && J == 1) {
-            return _contents[22];
+            return m_contents[22];
         } else if constexpr (I == 4 && J == 2) {
-            return _contents[23];
+            return m_contents[23];
         } else if constexpr (I == 4 && J == 3) {
             return static_cast<scalar_type>(0.f);
         } else if constexpr (I == 4 && J == 4) {
-            return _contents[24];
+            return m_contents[24];
         } else if constexpr (I == 4 && J == 5) {
-            return _contents[25];
+            return m_contents[25];
         } else if constexpr (I == 4 && J == 6) {
-            return _contents[26];
+            return m_contents[26];
         } else if constexpr (I == 4 && J == 7) {
-            return _contents[27];
+            return m_contents[27];
         } else if constexpr (I == 5 && J == 0) {
-            return _contents[28];
+            return m_contents[28];
         } else if constexpr (I == 5 && J == 1) {
-            return _contents[29];
+            return m_contents[29];
         } else if constexpr (I == 5 && J == 2) {
-            return _contents[30];
+            return m_contents[30];
         } else if constexpr (I == 5 && J == 3) {
             return static_cast<scalar_type>(0.f);
         } else if constexpr (I == 5 && J == 4) {
-            return _contents[31];
+            return m_contents[31];
         } else if constexpr (I == 5 && J == 5) {
-            return _contents[32];
+            return m_contents[32];
         } else if constexpr (I == 5 && J == 6) {
-            return _contents[33];
+            return m_contents[33];
         } else if constexpr (I == 5 && J == 7) {
-            return _contents[34];
+            return m_contents[34];
         } else if constexpr (I == 6 && J == 0) {
-            return _contents[35];
+            return m_contents[35];
         } else if constexpr (I == 6 && J == 1) {
-            return _contents[36];
+            return m_contents[36];
         } else if constexpr (I == 6 && J == 2) {
-            return _contents[37];
+            return m_contents[37];
         } else if constexpr (I == 6 && J == 3) {
             return static_cast<scalar_type>(0.f);
         } else if constexpr (I == 6 && J == 4) {
-            return _contents[38];
+            return m_contents[38];
         } else if constexpr (I == 6 && J == 5) {
-            return _contents[39];
+            return m_contents[39];
         } else if constexpr (I == 6 && J == 6) {
-            return _contents[40];
+            return m_contents[40];
         } else if constexpr (I == 6 && J == 7) {
-            return _contents[41];
+            return m_contents[41];
         } else if constexpr (I == 7 && J == 0) {
             return static_cast<scalar_type>(0.f);
         } else if constexpr (I == 7 && J == 1) {
@@ -459,7 +459,7 @@ struct transport_jacobian_matrix_with_gradient {
         } else if constexpr (I == 7 && J == 6) {
             return static_cast<scalar_type>(0.f);
         } else if constexpr (I == 7 && J == 7) {
-            return _contents[42];
+            return m_contents[42];
         }
     }
     template <std::size_t I, std::size_t J>
@@ -482,94 +482,94 @@ struct transport_jacobian_matrix_with_gradient {
             (I == 7 && J == 7))
     {
         if constexpr (I == 0 && J == 0) {
-            return _contents[0];
+            return m_contents[0];
         } else if constexpr (I == 0 && J == 1) {
-            return _contents[1];
+            return m_contents[1];
         } else if constexpr (I == 0 && J == 2) {
-            return _contents[2];
+            return m_contents[2];
         } else if constexpr (I == 0 && J == 4) {
-            return _contents[3];
+            return m_contents[3];
         } else if constexpr (I == 0 && J == 5) {
-            return _contents[4];
+            return m_contents[4];
         } else if constexpr (I == 0 && J == 6) {
-            return _contents[5];
+            return m_contents[5];
         } else if constexpr (I == 0 && J == 7) {
-            return _contents[6];
+            return m_contents[6];
         } else if constexpr (I == 1 && J == 0) {
-            return _contents[7];
+            return m_contents[7];
         } else if constexpr (I == 1 && J == 1) {
-            return _contents[8];
+            return m_contents[8];
         } else if constexpr (I == 1 && J == 2) {
-            return _contents[9];
+            return m_contents[9];
         } else if constexpr (I == 1 && J == 4) {
-            return _contents[10];
+            return m_contents[10];
         } else if constexpr (I == 1 && J == 5) {
-            return _contents[11];
+            return m_contents[11];
         } else if constexpr (I == 1 && J == 6) {
-            return _contents[12];
+            return m_contents[12];
         } else if constexpr (I == 1 && J == 7) {
-            return _contents[13];
+            return m_contents[13];
         } else if constexpr (I == 2 && J == 0) {
-            return _contents[14];
+            return m_contents[14];
         } else if constexpr (I == 2 && J == 1) {
-            return _contents[15];
+            return m_contents[15];
         } else if constexpr (I == 2 && J == 2) {
-            return _contents[16];
+            return m_contents[16];
         } else if constexpr (I == 2 && J == 4) {
-            return _contents[17];
+            return m_contents[17];
         } else if constexpr (I == 2 && J == 5) {
-            return _contents[18];
+            return m_contents[18];
         } else if constexpr (I == 2 && J == 6) {
-            return _contents[19];
+            return m_contents[19];
         } else if constexpr (I == 2 && J == 7) {
-            return _contents[20];
+            return m_contents[20];
         } else if constexpr (I == 4 && J == 0) {
-            return _contents[21];
+            return m_contents[21];
         } else if constexpr (I == 4 && J == 1) {
-            return _contents[22];
+            return m_contents[22];
         } else if constexpr (I == 4 && J == 2) {
-            return _contents[23];
+            return m_contents[23];
         } else if constexpr (I == 4 && J == 4) {
-            return _contents[24];
+            return m_contents[24];
         } else if constexpr (I == 4 && J == 5) {
-            return _contents[25];
+            return m_contents[25];
         } else if constexpr (I == 4 && J == 6) {
-            return _contents[26];
+            return m_contents[26];
         } else if constexpr (I == 4 && J == 7) {
-            return _contents[27];
+            return m_contents[27];
         } else if constexpr (I == 5 && J == 0) {
-            return _contents[28];
+            return m_contents[28];
         } else if constexpr (I == 5 && J == 1) {
-            return _contents[29];
+            return m_contents[29];
         } else if constexpr (I == 5 && J == 2) {
-            return _contents[30];
+            return m_contents[30];
         } else if constexpr (I == 5 && J == 4) {
-            return _contents[31];
+            return m_contents[31];
         } else if constexpr (I == 5 && J == 5) {
-            return _contents[32];
+            return m_contents[32];
         } else if constexpr (I == 5 && J == 6) {
-            return _contents[33];
+            return m_contents[33];
         } else if constexpr (I == 5 && J == 7) {
-            return _contents[34];
+            return m_contents[34];
         } else if constexpr (I == 6 && J == 0) {
-            return _contents[35];
+            return m_contents[35];
         } else if constexpr (I == 6 && J == 1) {
-            return _contents[36];
+            return m_contents[36];
         } else if constexpr (I == 6 && J == 2) {
-            return _contents[37];
+            return m_contents[37];
         } else if constexpr (I == 6 && J == 4) {
-            return _contents[38];
+            return m_contents[38];
         } else if constexpr (I == 6 && J == 5) {
-            return _contents[39];
+            return m_contents[39];
         } else if constexpr (I == 6 && J == 6) {
-            return _contents[40];
+            return m_contents[40];
         } else if constexpr (I == 6 && J == 7) {
-            return _contents[41];
+            return m_contents[41];
         } else if constexpr (I == 7 && J == 7) {
-            return _contents[42];
+            return m_contents[42];
         }
     }
-    DETRAY_HOST_DEVICE operator dmatrix<algebra_t, 8, 8>() const {
+    DETRAY_HOST_DEVICE explicit operator dmatrix<algebra_t, 8, 8>() const {
         dmatrix<algebra_t, 8, 8> rv;
         getter::element<0, 0>(rv) = element<0, 0>();
         getter::element<0, 1>(rv) = element<0, 1>();
@@ -687,6 +687,6 @@ struct transport_jacobian_matrix_with_gradient {
     }
 
     private:
-    scalar_type _contents[43];
+    std::array<scalar_type, 43> m_contents;
 };
 }  // namespace detray::detail

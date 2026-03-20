@@ -74,8 +74,9 @@ struct center_of_gravity_generic {
     /// @param surface_contour The contour description of the surface -> test
     ///
     /// @return whether this should be associated
-    bool operator()(const std::vector<dpoint2D<algebra_t>> &bin_contour,
-                    const std::vector<dpoint2D<algebra_t>> &surface_contour) {
+    bool operator()(
+        const std::vector<dpoint2D<algebra_t>> &bin_contour,
+        const std::vector<dpoint2D<algebra_t>> &surface_contour) const {
 
         using scalar_t = dscalar<algebra_t>;
         using point2_t = dpoint2D<algebra_t>;
@@ -116,8 +117,9 @@ struct edges_intersect_generic {
     /// @param surface_contour The contour description of the surface -> test
     ///
     /// @return whether this should be associated
-    bool operator()(const std::vector<dpoint2D<algebra_t>> &bin_contour,
-                    const std::vector<dpoint2D<algebra_t>> &surface_contour) {
+    bool operator()(
+        const std::vector<dpoint2D<algebra_t>> &bin_contour,
+        const std::vector<dpoint2D<algebra_t>> &surface_contour) const {
 
         using scalar_t = dscalar<algebra_t>;
         using point2_t = dpoint2D<algebra_t>;

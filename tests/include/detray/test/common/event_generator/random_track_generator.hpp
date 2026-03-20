@@ -178,12 +178,12 @@ class random_track_generator
     /// @param mom_range the range of the track momentum (in GeV)
     /// @param charge charge of particle (e)
     DETRAY_HOST_DEVICE
-    random_track_generator(
+    explicit random_track_generator(
         std::size_t n_tracks,
         darray<scalar_t, 2> mom_range = {1.f * unit<scalar_t>::GeV,
                                          1.f * unit<scalar_t>::GeV},
         scalar_t charge = -1.f * unit<scalar_t>::e)
-        : m_gen{std::make_shared<generator_t>()}, m_cfg{} {
+        : m_gen{std::make_shared<generator_t>()} {
         m_cfg.n_tracks(n_tracks);
         m_cfg.mom_range(mom_range);
         m_cfg.charge(charge);

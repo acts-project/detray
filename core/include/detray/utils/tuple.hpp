@@ -22,7 +22,7 @@ struct tuple {};
 template <typename T, typename... Ts>
 struct tuple<T, Ts...> {
 
-    DETRAY_HOST_DEVICE constexpr tuple(){};
+    constexpr tuple() = default;
 
     constexpr tuple(const tuple &o)
         requires(std::is_copy_constructible_v<T> &&

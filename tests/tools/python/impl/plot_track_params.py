@@ -276,8 +276,6 @@ def plot_track_pos_dist(
     opts, detector, scan_type, plot_factory, out_format, df1, label1, df2, label2
 ):
 
-    tracks = "rays" if scan_type == "ray" else "helices"
-
     dist = np.sqrt(
         np.square(df1["x"] - df2["x"])
         + np.square(df1["y"] - df2["y"])

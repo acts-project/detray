@@ -89,12 +89,6 @@ class uniform_track_generator
             return rhs.i_phi == i_phi && rhs.i_theta == i_theta;
         }
 
-        /// @returns whether we reached end of angle space
-        DETRAY_HOST_DEVICE
-        constexpr bool operator!=(const iterator& rhs) const {
-            return !(*this == rhs);
-        }
-
         /// Iterate through angle space according to given step sizes.
         ///
         /// @returns the generator at its next position.
@@ -238,7 +232,7 @@ class uniform_track_generator
                             scalar_t p_mag = 1.f * unit<scalar_t>::GeV,
                             bool uniform_eta = false,
                             scalar_t charge = -1.f * unit<scalar_t>::e)
-        : m_gen{std::make_shared<generator_t>()}, m_cfg{} {
+        : m_gen{std::make_shared<generator_t>()} {
         m_cfg.phi_steps(n_phi).theta_steps(n_theta);
         m_cfg.uniform_eta(uniform_eta);
         m_cfg.p_tot(p_mag);

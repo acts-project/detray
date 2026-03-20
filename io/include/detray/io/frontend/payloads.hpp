@@ -35,7 +35,10 @@ namespace detray::io {
 
 /// @brief a payload for common information
 struct common_header_payload {
-    std::string version{}, detector{}, tag{}, date{};
+    std::string version{};
+    std::string detector{};
+    std::string tag{};
+    std::string date{};
 };
 
 /// @brief a payload for common and extra information
@@ -82,29 +85,29 @@ struct transform_payload {
     std::array<io::scalar, 3u> tr{};
     // Column major
     std::array<io::scalar, 9u> rot{};
+
+    private:
+    DETRAY_HOST friend inline std::ostream& operator<<(
+        std::ostream& os, const transform_payload& transform) {
+        const auto& r = transform.rot;
+        os << "rot: ";
+        os << std::fixed << std::setw(4);
+        auto print_line = [&](std::size_t i) {
+            os << r[i] << " " << r[i + 3] << " " << r[i + 6] << "\n";
+        };
+        print_line(0);
+        os << "     ";
+        print_line(1);
+        os << "     ";
+        print_line(2);
+
+        const auto& t = transform.tr;
+
+        os << "tr:  ";
+        os << t[0] << " " << t[1] << " " << t[2];
+        return os;
+    }
 };
-
-DETRAY_HOST inline std::ostream& operator<<(
-    std::ostream& os, const transform_payload& transform) {
-    const auto& rot = transform.rot;
-    os << "rot: ";
-    os << std::fixed << std::setw(4);
-    auto line = [&](std::size_t i) {
-        os << rot[i] << " " << rot[i + 3] << " " << rot[i + 6];
-    };
-    line(0);
-    os << "\n     ";
-    line(1);
-    os << "\n     ";
-    line(2);
-    os << "\n";
-
-    const auto& tr = transform.tr;
-
-    os << "tr:  ";
-    os << tr[0] << " " << tr[1] << " " << tr[2];
-    return os;
-}
 
 /// @brief A payload object for surface masks
 struct mask_payload {
@@ -207,22 +210,23 @@ struct axis_payload {
 
     std::size_t bins{0u};
     std::vector<io::scalar> edges{};
-};
 
-DETRAY_HOST inline std::ostream& operator<<(std::ostream& os,
-                                            const axis_payload& axis) {
-    os << "axis_payload{binning: " << axis.binning
-       << ", bounds: " << axis.bounds << ", label: " << axis.label
-       << ", bins: " << axis.bins << ", edges: [";
-    for (std::size_t i = 0; i < axis.edges.size(); ++i) {
-        if (i > 0) {
-            os << ", ";
+    private:
+    DETRAY_HOST friend inline std::ostream& operator<<(
+        std::ostream& os, const axis_payload& axis) {
+        os << "axis_payload{binning: " << axis.binning
+           << ", bounds: " << axis.bounds << ", label: " << axis.label
+           << ", bins: " << axis.bins << ", edges: [";
+        for (std::size_t i = 0; i < axis.edges.size(); ++i) {
+            if (i > 0) {
+                os << ", ";
+            }
+            os << axis.edges[i];
         }
-        os << axis.edges[i];
+        os << "]}";
+        return os;
     }
-    os << "]}";
-    return os;
-}
+};
 
 /// @brief A payload for a grid bin
 template <typename content_t = std::size_t>

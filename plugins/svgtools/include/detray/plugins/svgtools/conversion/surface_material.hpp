@@ -60,8 +60,6 @@ auto material_grid(const detector_t& detector, const dindex index,
                                       cyl_ref_radius, style);
 }
 
-namespace {
-
 /// @brief A functor to fill the material proto grid with proto material slabs
 struct material_converter {
 
@@ -137,8 +135,6 @@ struct material_converter {
         return m_matrix;
     }
 };
-
-}  // namespace
 
 /// @brief Calculate the proto surface material of a surface.
 ///

@@ -84,7 +84,7 @@ inline void add_json_readers(
                 json_converter<detector_t, geometry_reader>;
 
             reader.template add_geometry_reader<json_geometry_reader>(
-                file_name);
+                static_cast<std::string>(file_name));
 
         } else if (header.tag == "homogeneous_material") {
             if constexpr (detray::concepts::has_homogeneous_material<

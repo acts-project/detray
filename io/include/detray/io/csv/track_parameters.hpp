@@ -72,7 +72,7 @@ inline auto read_free_track_params(const std::string &file_name) {
     while (track_param_reader.read(track_param_data)) {
 
         // Add new track state to correct track
-        auto trk_index{static_cast<dindex>(track_param_data.track_id)};
+        dindex trk_index{track_param_data.track_id};
         while (track_params_per_track.size() <= trk_index) {
             track_params_per_track.emplace_back();
         }

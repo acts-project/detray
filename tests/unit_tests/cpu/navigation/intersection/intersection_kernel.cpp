@@ -41,10 +41,11 @@ namespace {
 constexpr const scalar is_close{1e-5f};
 constexpr const scalar external_tol{1.f * unit<scalar>::mm};
 
-intersection::config intr_cfg{.min_mask_tolerance = 1e-3f * unit<float>::mm,
-                              .max_mask_tolerance = 1e-3f * unit<float>::mm,
-                              .mask_tolerance_scalor = 0.f,
-                              .overstep_tolerance = 0.f};
+const intersection::config intr_cfg{
+    .min_mask_tolerance = 1e-3f * unit<float>::mm,
+    .max_mask_tolerance = 1e-3f * unit<float>::mm,
+    .mask_tolerance_scalor = 0.f,
+    .overstep_tolerance = 0.f};
 
 enum class mask_ids : unsigned int {
     e_rectangle2 = 0u,

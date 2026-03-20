@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2024 CERN for the benefit of the ACTS project
+ * (c) 2026 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -10,26 +10,30 @@
 #include "./codegen/transport_jacobian.hpp"
 
 namespace detray {
-namespace detail {
+
+namespace concepts {
+
 template <typename T>
-concept is_transport_jacobian_type =
+concept transport_jacobian =
     requires { typename T::algebra_type; } &&
-    (std::same_as<T, transport_jacobian_matrix_with_gradient<
+    (std::same_as<T, detray::detail::transport_jacobian_matrix_with_gradient<
                          typename T::algebra_type>> ||
-     std::same_as<T, transport_jacobian_matrix_without_gradient<
+     std::same_as<T, detray::detail::transport_jacobian_matrix_without_gradient<
                          typename T::algebra_type>>);
-}  // namespace detail
+
+}  // namespace concepts
 
 namespace matrix {
-template <typename matrix_type>
-DETRAY_HOST_DEVICE constexpr auto identity()
-    requires detail::is_transport_jacobian_type<matrix_type>
-{
+
+template <concepts::transport_jacobian matrix_type>
+DETRAY_HOST_DEVICE constexpr auto identity() {
     return matrix_type::identity();
 }
+
 }  // namespace matrix
 
 namespace traits {
+
 template <typename algebra_t>
 struct dimensions<
     ::detray::detail::transport_jacobian_matrix_with_gradient<algebra_t>> {
@@ -65,5 +69,6 @@ struct index<
 
     using type = std::size_t;
 };
+
 }  // namespace traits
 }  // namespace detray

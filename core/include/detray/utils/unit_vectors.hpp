@@ -33,13 +33,11 @@ struct unit_vectors {
         unit_u[0] = -dir[1];
         unit_u[1] = dir[0];
 
-        const auto scale = vector::norm(unit_u);
-
         // if the absolute scale is tiny, the initial direction vector is
         // aligned with the z-axis. the ZxT product is ill-defined since any
         // vector in the x-y plane would be orthogonal to the direction. fix the
         // U unit vector along the x-axis to avoid this numerical instability.
-        if (scale < 1e-6f) {
+        if (const auto scale = vector::norm(unit_u); scale < 1e-6f) {
             unit_u[0] = 1;
             unit_u[1] = 0;
         } else {

@@ -48,13 +48,13 @@ def parse_common_options(args, prog_name=sys.argv[0]):
         # Write log in logfile
         logging.basicConfig(
             filename=args.logfile,
-            format=("%(levelname)s (%(module)s):" " %(message)s"),
+            format=("%(levelname)s (%(module)s): %(message)s"),
             level=log_level,
         )
     else:
         # Write log to terminal
         logging.basicConfig(
-            format=("%(levelname)s (%(module)s):" " %(message)s"), level=log_level
+            format=("%(levelname)s (%(module)s): %(message)s"), level=log_level
         )
 
     logging.info(

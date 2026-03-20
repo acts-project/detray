@@ -48,6 +48,47 @@ class square2D {
     /// Dimension of the local coordinate system
     static constexpr std::size_t dim{2u};
 
+    /// @brief Find the minimum distance to any boundary.
+    ///
+    /// @note the point is expected to be given in local coordinates by the
+    /// caller.
+    ///
+    /// @param bounds the boundary values for this shape
+    /// @param loc_p the point to be checked in the local coordinate system
+    ///
+    /// @return the minimum distance.
+    template <concepts::scalar scalar_t, concepts::point point_t>
+    DETRAY_HOST_DEVICE inline scalar_t min_dist_to_boundary(
+        const bounds_type<scalar_t> &bounds, const point_t &loc_p) const {
+
+        return math::min(
+            math::fabs(math::fabs(loc_p[0]) - bounds[e_half_length]),
+            math::fabs(math::fabs(loc_p[1]) - bounds[e_half_length]));
+    }
+
+    /// @brief Check boundary values for a local point.
+    /// @{
+    /// @param bounds the boundary values for this shape
+    /// @param trf the surface transform
+    /// @param glob_p the point to be checked in the global coordinate system
+    /// @param tol dynamic tolerance determined by caller
+    ///
+    /// @return true if the local point lies within the given boundaries.
+    template <concepts::algebra algebra_t>
+    DETRAY_HOST_DEVICE constexpr result_type<dbool<algebra_t>> check_boundaries(
+        const bounds_type<dscalar<algebra_t>> &bounds,
+        const dtransform3D<algebra_t> &trf, const dpoint3D<algebra_t> &glob_p,
+        const dscalar<algebra_t> tol =
+            std::numeric_limits<dscalar<algebra_t>>::epsilon(),
+        const dscalar<algebra_t> edge_tol = 0.f) const {
+
+        // Get the full local position
+        const dpoint2D<algebra_t> loc_p =
+            local_frame_type<algebra_t>::global_to_local(trf, glob_p, {});
+
+        return check_boundaries(bounds, loc_p, tol, edge_tol);
+    }
+
     /// @brief Check boundary values for a local point.
     ///
     /// @note the point is expected to be given in local coordinates by the
@@ -84,6 +125,105 @@ class square2D {
         assert(env > 0.f);
         const dscalar<algebra_t> bound{bounds[e_half_length] + env};
         return {-bound, -bound, -env, bound, bound, env};
+    }
+
+    /// @brief Measure of the shape: Area
+    ///
+    /// @param bounds the boundary values for this shape
+    ///
+    /// @returns the rectangle area on the plane
+    template <concepts::scalar scalar_t>
+    DETRAY_HOST_DEVICE constexpr scalar_t measure(
+        const bounds_type<scalar_t> &bounds) const {
+        return area(bounds);
+    }
+
+    /// @brief The area of a the shape
+    ///
+    /// @param bounds the boundary values for this shape
+    ///
+    /// @returns the rectangle area.
+    template <concepts::scalar scalar_t>
+    DETRAY_HOST_DEVICE constexpr scalar_t area(
+        const bounds_type<scalar_t> &bounds) const {
+        return 4.f * bounds[e_half_length] * bounds[e_half_length];
+    }
+
+    /// @brief Merge two rectangle shapes
+    ///
+    /// @param bounds the boundary values for this shape
+    /// @param o_bounds the boundary values for the other shape
+    ///
+    /// @returns merged bound values
+    template <concepts::scalar scalar_t>
+    DETRAY_HOST_DEVICE constexpr bounds_type<scalar_t> merge(
+        const bounds_type<scalar_t> &bounds,
+        const bounds_type<scalar_t> &o_bounds) const {
+
+        bounds_type<scalar_t> new_bounds{};
+
+        new_bounds[e_half_length] =
+            math::max(bounds[e_half_length], o_bounds[e_half_length]);
+
+        return new_bounds;
+    }
+
+    /// @returns the shapes centroid in local cartesian coordinates
+    template <concepts::algebra algebra_t>
+    DETRAY_HOST_DEVICE dpoint3D<algebra_t> centroid(
+        const bounds_type<dscalar<algebra_t>> &) const {
+
+        return {0.f, 0.f, 0.f};
+    }
+
+    /// Generate vertices in local cartesian frame
+    ///
+    /// @param bounds the boundary values for the stereo annulus
+    /// @param n_seg is the number of line segments
+    ///
+    /// @return a generated list of vertices
+    template <concepts::algebra algebra_t>
+    DETRAY_HOST dvector<dpoint3D<algebra_t>> vertices(
+        const bounds_type<dscalar<algebra_t>> &bounds,
+        dindex /*ignored*/) const {
+
+        using scalar_t = dscalar<algebra_t>;
+        using point3_t = dpoint3D<algebra_t>;
+        const scalar_t hl{bounds[e_half_length]};
+        constexpr scalar_t zero{0.f};
+
+        // left hand lower corner
+        point3_t lh_lc{-hl, -hl, zero};
+        // right hand lower corner
+        point3_t rh_lc{hl, -hl, zero};
+        // right hand upper corner
+        point3_t rh_uc{hl, hl, zero};
+        // left hand upper corner
+        point3_t lh_uc{-hl, hl, zero};
+
+        // Return the confining vertices
+        return {lh_lc, rh_lc, rh_uc, lh_uc};
+    }
+
+    /// @brief Check consistency of boundary values.
+    ///
+    /// @param bounds the boundary values for this shape
+    /// @param os output stream for error messages
+    ///
+    /// @return true if the bounds are consistent.
+    template <concepts::scalar scalar_t>
+    DETRAY_HOST constexpr bool check_consistency(
+        const bounds_type<scalar_t> &bounds, std::ostream &os) const {
+
+        if (constexpr auto tol{10.f * std::numeric_limits<scalar_t>::epsilon()};
+            bounds[e_half_length] < tol) {
+            os << "DETRAY ERROR (HOST): Half lengths must be in the range (0, "
+                  "numeric_max)"
+               << std::endl;
+            return false;
+        }
+
+        return true;
     }
 };
 

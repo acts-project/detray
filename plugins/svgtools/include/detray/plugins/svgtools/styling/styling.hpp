@@ -56,10 +56,11 @@ struct surface_material_style {
 /// Style applied to an actsvg proto surface
 struct surface_style {
 
-    surface_style(actsvg::style::color fill_color =
-                      colors::tableau_colorblind10::red_tones(0.4f).front(),
-                  actsvg::scalar stroke_width = 0.4f,
-                  surface_material_style mat_style = {})
+    explicit surface_style(
+        actsvg::style::color fill_color =
+            colors::tableau_colorblind10::red_tones(0.4f).front(),
+        actsvg::scalar stroke_width = 0.4f,
+        surface_material_style mat_style = {})
         : _fill_color{fill_color},
           _stroke_width{stroke_width},
           _material_style{mat_style} {

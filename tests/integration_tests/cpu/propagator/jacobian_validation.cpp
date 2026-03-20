@@ -85,8 +85,8 @@ constexpr const scalar max_mom = 100.f * unit<scalar>::GeV;
 // Detector length generator
 constexpr const scalar min_detector_length = 50.f * unit<scalar>::mm;
 constexpr const scalar max_detector_length = 500.f * unit<scalar>::mm;
-std::uniform_real_distribution<scalar> rand_length(min_detector_length,
-                                                   max_detector_length);
+std::uniform_real_distribution rand_length(min_detector_length,
+                                           max_detector_length);
 constexpr const scalar envelope_size = 2000.f * unit<scalar>::mm;
 
 // Mask size scaler
@@ -97,7 +97,7 @@ std::uniform_real_distribution<scalar> rand_alpha(0.f,
                                                   2.f * constant<scalar>::pi);
 std::uniform_real_distribution<scalar> rand_cosbeta(constant<scalar>::inv_sqrt2,
                                                     1.f);
-std::uniform_int_distribution<int> rand_bool(0, 1);
+std::uniform_int_distribution rand_bool(0, 1);
 std::uniform_real_distribution<scalar> rand_gamma(0.f,
                                                   2.f * constant<scalar>::pi);
 
@@ -1496,33 +1496,27 @@ int main(int argc, char** argv) {
     // Output Csv file
     std::ofstream helix_rect_file;
     std::ofstream const_rect_file;
-    // std::ofstream inhom_rect_no_gradient_file;
     std::ofstream inhom_rect_file;
     std::ofstream inhom_rect_material_file;
     std::ofstream helix_wire_file;
     std::ofstream const_wire_file;
-    // std::ofstream inhom_wire_no_gradient_file;
     std::ofstream inhom_wire_file;
     std::ofstream inhom_wire_material_file;
     helix_rect_file.open(path + "helix_rect.csv");
     const_rect_file.open(path + "const_rect.csv");
-    // inhom_rect_no_gradient_file.open(path + "inhom_rect_no_gradient.csv");
     inhom_rect_file.open(path + "inhom_rect.csv");
     inhom_rect_material_file.open(path + "inhom_rect_material.csv");
     helix_wire_file.open(path + "helix_wire.csv");
     const_wire_file.open(path + "const_wire.csv");
-    // inhom_wire_no_gradient_file.open(path + "inhom_wire_no_gradient.csv");
     inhom_wire_file.open(path + "inhom_wire.csv");
     inhom_wire_material_file.open(path + "inhom_wire_material.csv");
 
     setup_csv_header_jacobian(helix_rect_file);
     setup_csv_header_jacobian(const_rect_file);
-    // setup_csv_header_jacobian(inhom_rect_no_gradient_file);
     setup_csv_header_jacobian(inhom_rect_file);
     setup_csv_header_jacobian(inhom_rect_material_file);
     setup_csv_header_jacobian(helix_wire_file);
     setup_csv_header_jacobian(const_wire_file);
-    // setup_csv_header_jacobian(inhom_wire_no_gradient_file);
     setup_csv_header_jacobian(inhom_wire_file);
     setup_csv_header_jacobian(inhom_wire_material_file);
 
@@ -1977,13 +1971,11 @@ int main(int argc, char** argv) {
     // Close files
     helix_rect_file.close();
     const_rect_file.close();
-    // inhom_rect_no_gradient_file.close();
     inhom_rect_file.close();
     inhom_rect_material_file.close();
 
     helix_wire_file.close();
     const_wire_file.close();
-    // inhom_wire_no_gradient_file.close();
     inhom_wire_file.close();
     inhom_wire_material_file.close();
 

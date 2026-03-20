@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023-2024 CERN for the benefit of the ACTS project
+ * (c) 2023-2026 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -192,7 +192,6 @@ auto inline surface(const mask_t& m) {
     return detray::svgtools::conversion::surface(transform3_t{}, m);
 }
 
-namespace {
 /// @brief A functor to set the proto surfaces type and bounds to be equivalent
 /// to the mask.
 struct surface_converter {
@@ -216,7 +215,6 @@ struct surface_converter {
             transform, mask_group[idx_range.lower() + mask_idx]);
     }
 };
-}  // namespace
 
 /// @brief Calculates the proto surface of a surface.
 ///
