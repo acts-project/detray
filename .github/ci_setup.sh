@@ -15,13 +15,13 @@ PLATFORM_NAME=$1
 
 # Set up the correct environment for the SYCL tests.
 # Do this also for the HIP based tests, since they are using the same image
-if [ "${PLATFORM_NAME}" = "SYCL" ] || [ "${PLATFORM_NAME}" = "HIP-AMD" ]; then
+if [[ "${PLATFORM_NAME}" = "SYCL" ]] || [[ "${PLATFORM_NAME}" = "HIP-AMD" ]]; then
    echo "Setting up oneapi env for ${PLATFORM_NAME}"
-   if [ -f "/opt/intel/oneapi/setvars.sh" ]; then
+   if [[ -f "/opt/intel/oneapi/setvars.sh" ]]; then
       source /opt/intel/oneapi/setvars.sh --include-intel-llvm
    fi
 fi
 
 # Make sure that GNU Make and CTest would use all available cores.
-export MAKEFLAGS="-j`nproc`"
-export CTEST_PARALLEL_LEVEL=`nproc`
+export MAKEFLAGS="-j$(nproc)"
+export CTEST_PARALLEL_LEVEL=$(nproc)

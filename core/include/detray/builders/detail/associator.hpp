@@ -31,8 +31,9 @@ struct center_of_gravity_rectangle {
     /// @note the bin_contour is asummed to be a rectangle
     ///
     /// @return whether this should be associated
-    bool operator()(const std::vector<dpoint2D<algebra_t>> &bin_contour,
-                    const std::vector<dpoint2D<algebra_t>> &surface_contour) {
+    bool operator()(
+        const std::vector<dpoint2D<algebra_t>> &bin_contour,
+        const std::vector<dpoint2D<algebra_t>> &surface_contour) const {
 
         using scalar_t = dscalar<algebra_t>;
         using point2_t = dpoint2D<algebra_t>;
