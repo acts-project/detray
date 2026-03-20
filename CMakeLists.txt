@@ -1,6 +1,6 @@
 # Detray library, part of the ACTS project (R&D line)
 #
-# (c) 2021-2025 CERN for the benefit of the ACTS project
+# (c) 2021-2026 CERN for the benefit of the ACTS project
 #
 # Mozilla Public License Version 2.0
 
@@ -14,9 +14,6 @@ set(CMAKE_CXX_EXTENSIONS FALSE CACHE BOOL "Disable (host) C++ extensions")
 set(CMAKE_CUDA_STANDARD 20 CACHE STRING "The (CUDA) C++ standard to use")
 set(CMAKE_CUDA_EXTENSIONS FALSE CACHE BOOL "Disable (CUDA) C++ extensions")
 set(CMAKE_SYCL_STANDARD 20 CACHE STRING "The (SYCL) C++ standard to use")
-
-set(CMAKE_HIP_ARCHITECTURES gfx1031)
-
 set(CMAKE_HIP_STANDARD 20 CACHE STRING "The (HIP) C++ standard to use")
 set(CMAKE_HIP_EXTENSIONS FALSE CACHE BOOL "Disable (HIP) C++ extensions")
 
@@ -27,17 +24,11 @@ if(${CMAKE_CXX_STANDARD} LESS 20)
     )
 endif()
 
-# CMake include(s).
-include(CMakeDependentOption)
-include(GNUInstallDirs)
-include(CTest)
-
-# Flags controlling the meta-build system.
-option(DETRAY_USE_SYSTEM_LIBS "Use system libraries be default" FALSE)
-
 # Explicitly set the output directory for the binaries. Such that if this
 # project is included by another project, the main project's configuration would
 # win out.
+include(GNUInstallDirs)
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY
     "${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}"
     CACHE PATH
@@ -58,30 +49,39 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(detray-functions)
 
-# Check if CUDA is available.
+#
+# Define build options
+#
+include(CMakeDependentOption)
 
+# General
+option(DETRAY_USE_SYSTEM_LIBS "Use system libraries be default" FALSE)
+option(
+    DETRAY_FAIL_ON_WARNINGS
+    "Make the build fail on compiler/linker warnings"
+    FALSE
+)
+set(DETRAY_SET_LOGGING "INFO" CACHE STRING "Set the log level")
+set_property(
+    CACHE DETRAY_SET_LOGGING
+    PROPERTY STRINGS "NONE" "WARNING" "INFO" "VERBOSE" "DEBUG"
+)
+option(DETRAY_BUILD_CLI_TOOLS "Build the command line tools of Detray" OFF)
+
+# Device compilation
+
+# Check if CUDA is available.
 include(CheckLanguage)
 check_language(CUDA)
-set(DETRAY_BUILD_CUDA_DEFAULT FALSE)
-if(CMAKE_CUDA_COMPILER)
-    set(DETRAY_BUILD_CUDA_DEFAULT TRUE)
-endif()
-
-# Flags controlling which parts of Detray to build.
-option(DETRAY_ARRAY_PLUGIN "Build Fastor math plugin" ON)
-option(DETRAY_EIGEN_PLUGIN "Build Eigen math plugin" OFF)
-option(DETRAY_FASTOR_PLUGIN "Build Fastor math plugin" OFF)
-option(DETRAY_SMATRIX_PLUGIN "Build ROOT/SMatrix math plugin" OFF)
-option(DETRAY_VC_AOS_PLUGIN "Build Vc based AoS math plugin" OFF)
-option(DETRAY_VC_SOA_PLUGIN "Build Vc based SoA math plugin" OFF)
-option(DETRAY_SVG_DISPLAY "Build ActSVG display module" OFF)
-option(DETRAY_BUILD_SYCL "Build the SYCL sources included in detray" OFF)
 option(
     DETRAY_BUILD_CUDA
     "Build the CUDA sources included in detray"
-    ${DETRAY_BUILD_CUDA_DEFAULT}
+    ${CMAKE_CUDA_COMPILER}
 )
 
+option(DETRAY_BUILD_SYCL "Build the SYCL sources included in detray" OFF)
+
+# Check if HIP is available
 option(DETRAY_BUILD_HIP "Build the HIP sources included in detray" OFF)
 
 cmake_dependent_option(
@@ -91,32 +91,76 @@ cmake_dependent_option(
     "DETRAY_BUILD_CUDA OR DETRAY_BUILD_SYCL OR DETRAY_BUILD_HIP"
     ON
 )
-set(DETRAY_SET_LOGGING "INFO" CACHE STRING "Set the log level")
-set_property(
-    CACHE DETRAY_SET_LOGGING
-    PROPERTY STRINGS "NONE" "WARNING" "INFO" "VERBOSE" "DEBUG"
-)
-option(DETRAY_BUILD_TEST_UTILS "Build the test utility library of Detray" OFF)
-option(DETRAY_BUILD_VALIDATION_TOOLS "Build the validation tools of Detray" OFF)
+
+# Plugins / Algebra backends
+option(DETRAY_SVG_DISPLAY "Build ActSVG display module" OFF)
+option(DETRAY_ARRAY_PLUGIN "Build Eigen math plugin" ON)
+option(DETRAY_EIGEN_PLUGIN "Build Eigen math plugin" OFF)
+option(DETRAY_FASTOR_PLUGIN "Build Fastor math plugin" OFF)
+option(DETRAY_SMATRIX_PLUGIN "Build ROOT/SMatrix math plugin" OFF)
+option(DETRAY_VC_AOS_PLUGIN "Build Vc based AoS math plugin" OFF)
+option(DETRAY_VC_SOA_PLUGIN "Build Vc based SoA math plugin" OFF)
+
+# Test and benchmark suite
+include(CTest)
+
+option(DETRAY_BUILD_ALL_TESTS "Build unit and integrations tests of Detray" OFF)
 option(DETRAY_BUILD_UNITTESTS "Build the unit tests of Detray" OFF)
 option(
     DETRAY_BUILD_INTEGRATIONTESTS
     "Build the integration tests of Detray"
     OFF
 )
-option(DETRAY_BUILD_ALL_TESTS "Build unit and integrations tests of Detray" OFF)
+option(DETRAY_BUILD_TEST_UTILS "Build the test utility library of Detray" OFF)
+option(DETRAY_BUILD_VALIDATION_TOOLS "Build the validation tools of Detray" OFF)
 option(DETRAY_BUILD_BENCHMARKS "Build the benchmark tests" OFF)
-option(DETRAY_BUILD_CLI_TOOLS "Build the command line tools of Detray" OFF)
 option(DETRAY_BUILD_TUTORIALS "Build the tutorial executables of Detray" OFF)
-option(
-    DETRAY_FAIL_ON_WARNINGS
-    "Make the build fail on compiler/linker warnings"
-    FALSE
-)
+
+#
+# Resolve build options and option inter-dependencies
+#
+
+# Set the internal log level from user input
+set(DETRAY_LOG_LVL -1 CACHE INTERNAL "Disable logging")
+if(DETRAY_SET_LOGGING STREQUAL "WARN")
+    set(DETRAY_LOG_LVL 0 CACHE INTERNAL "Print warnings and errors" FORCE)
+elseif(DETRAY_SET_LOGGING STREQUAL "INFO")
+    set(DETRAY_LOG_LVL 1 CACHE INTERNAL "Print general information" FORCE)
+elseif(DETRAY_SET_LOGGING STREQUAL "VERBOSE")
+    set(DETRAY_LOG_LVL 2 CACHE INTERNAL "Print detailed information" FORCE)
+elseif(DETRAY_SET_LOGGING STREQUAL "DEBUG")
+    set(DETRAY_LOG_LVL 3 CACHE INTERNAL "Print expert information" FORCE)
+endif()
+
+# Need test utils for the example detector generation
+if(DETRAY_BUILD_CLI_TOOLS)
+    set(DETRAY_BUILD_TEST_UTILS ON)
+endif()
+
+# Check CUDA and SYCL and HIP C++ standards
+if(${DETRAY_BUILD_CUDA} AND ${CMAKE_CUDA_STANDARD} LESS 20)
+    message(
+        SEND_ERROR
+        "CMAKE_CUDA_STANDARD=${CMAKE_CUDA_STANDARD}, but detray requires C++>=20"
+    )
+endif()
+
+if(${DETRAY_BUILD_SYCL} AND ${CMAKE_SYCL_STANDARD} LESS 20)
+    message(
+        SEND_ERROR
+        "CMAKE_SYCL_STANDARD=${CMAKE_SYCL_STANDARD}, but detray requires C++>=20"
+    )
+endif()
+
+if(${DETRAY_BUILD_HIP} AND ${CMAKE_HIP_STANDARD} LESS 20)
+    message(
+        SEND_ERROR
+        "CMAKE_HIP_STANDARD=${CMAKE_HIP_STANDARD}, but detray requires C++>=20"
+    )
+endif()
 
 # Disable the [[no_unique_address]] annotation if we are on CUDA>=13.0.
 # TODO: Update this statement once a fix in CUDA is available.
-
 set(DETRAY_INTERNAL_USE_NO_UNIQUE_ADDRESS_ANNOTATION ON)
 
 if(DETRAY_BUILD_CUDA)
@@ -130,11 +174,6 @@ if(DETRAY_BUILD_CUDA)
         )
         set(DETRAY_INTERNAL_USE_NO_UNIQUE_ADDRESS_ANNOTATION OFF)
     endif()
-endif()
-
-# Need test utils for the example detector generation
-if(DETRAY_BUILD_CLI_TOOLS)
-    set(DETRAY_BUILD_TEST_UTILS ON)
 endif()
 
 # Convenience option to build tests
@@ -163,29 +202,18 @@ if(DETRAY_BUILD_VALIDATION_TOOLS)
     set(DETRAY_SVG_DISPLAY ON)
 endif()
 
-# Clean up.
-unset(DETRAY_BUILD_CUDA_DEFAULT)
-# Check CUDA and SYCL and HIP C++ standards
-if(${DETRAY_BUILD_CUDA} AND ${CMAKE_CUDA_STANDARD} LESS 20)
-    message(
-        SEND_ERROR
-        "CMAKE_CUDA_STANDARD=${CMAKE_CUDA_STANDARD}, but detray requires C++>=20"
-    )
-endif()
+# Allow the compilation of test with code sanitizers
+cmake_dependent_option(
+    DETRAY_ENABLE_SANITIZER
+    "Compile tests with sanitizers"
+    OFF
+    "BUILD_TESTING AND DETRAY_BUILD_TESTING"
+    OFF
+)
 
-if(${DETRAY_BUILD_SYCL} AND ${CMAKE_SYCL_STANDARD} LESS 20)
-    message(
-        SEND_ERROR
-        "CMAKE_SYCL_STANDARD=${CMAKE_SYCL_STANDARD}, but detray requires C++>=20"
-    )
-endif()
-
-if(${DETRAY_BUILD_HIP} AND ${CMAKE_HIP_STANDARD} LESS 20)
-    message(
-        SEND_ERROR
-        "CMAKE_HIP_STANDARD=${CMAKE_HIP_STANDARD}, but detray requires C++>=20"
-    )
-endif()
+#
+# Configure dependencies
+#
 
 # Set up VecMem.
 option(DETRAY_SETUP_VECMEM "Set up the VecMem target(s) explicitly" TRUE)
@@ -211,7 +239,6 @@ if(DETRAY_SETUP_VECMEM)
     endif()
 endif()
 
-# Check if HIP is available
 include(vecmem-check-language)
 
 # Set up JSON for I/O
@@ -434,32 +461,11 @@ if(DETRAY_SETUP_COVFIE)
     endif()
 endif()
 
-# Resolve the internal log level from user input
-set(DETRAY_LOG_LVL -1 CACHE INTERNAL "Disable logging")
-if(DETRAY_SET_LOGGING STREQUAL "WARN")
-    set(DETRAY_LOG_LVL 0 CACHE INTERNAL "Print warnings and errors" FORCE)
-elseif(DETRAY_SET_LOGGING STREQUAL "INFO")
-    set(DETRAY_LOG_LVL 1 CACHE INTERNAL "Print general information" FORCE)
-elseif(DETRAY_SET_LOGGING STREQUAL "VERBOSE")
-    set(DETRAY_LOG_LVL 2 CACHE INTERNAL "Print detailed information" FORCE)
-elseif(DETRAY_SET_LOGGING STREQUAL "DEBUG")
-    set(DETRAY_LOG_LVL 3 CACHE INTERNAL "Print expert information" FORCE)
-endif()
-
 # Set up all of the libraries of the project.
 add_subdirectory(core)
 add_subdirectory(detectors)
 add_subdirectory(io)
 add_subdirectory(plugins)
-
-# Set up the test utilities and test(s).
-cmake_dependent_option(
-    DETRAY_ENABLE_SANITIZER
-    "Compile tests with sanitizers"
-    OFF
-    "BUILD_TESTING AND DETRAY_BUILD_TESTING"
-    OFF
-)
 
 # Test utils and validation tools can also be required standalone
 # (e.g. in ACTS detray plugin)
