@@ -36,8 +36,9 @@ def render_dim_requirement(name, j):
             )
 
 
-def gen_cxx_code(function_name, inputs, outputs, run_cse=True):
-    printer = cxx_printer
+def gen_cxx_code(function_name, inputs, outputs, run_cse=True, printer=None):
+    if printer is None:
+        printer = cxx_printer
 
     template_types = []
 

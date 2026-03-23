@@ -15,6 +15,7 @@
 #include "detray/materials/interaction.hpp"
 #include "detray/navigation/policies.hpp"
 #include "detray/propagator/base_stepper.hpp"
+#include "detray/propagator/transport_jacobian.hpp"
 #include "detray/tracks/tracks.hpp"
 
 namespace detray {
@@ -60,6 +61,10 @@ class rk_stepper final
     using magnetic_field_type = magnetic_field_t;
     template <std::size_t ROWS, std::size_t COLS>
     using matrix_type = dmatrix<algebra_t, ROWS, COLS>;
+    using transport_jacobian_matrix_type = std::conditional_t<
+        uses_gradient,
+        detail::transport_jacobian_matrix_with_gradient<algebra_type>,
+        detail::transport_jacobian_matrix_without_gradient<algebra_type>>;
 
     rk_stepper() = default;
 
@@ -77,21 +82,24 @@ class rk_stepper final
         darray<scalar_type, 4u> dqopds;
     };
 
-    struct state : public base_type::state {
+    struct state
+        : public base_type::template state<transport_jacobian_matrix_type> {
         static constexpr const stepping::id id = stepping::id::e_rk;
+
+        using base_state =
+            typename base_type::template state<transport_jacobian_matrix_type>;
 
         DETRAY_HOST_DEVICE
         state(const free_track_parameters_type& t,
               const magnetic_field_t& mag_field)
-            : base_type::state(t), m_magnetic_field(mag_field) {}
+            : base_state(t), m_magnetic_field(mag_field) {}
 
         template <typename detector_t>
         DETRAY_HOST_DEVICE state(
             const bound_track_parameters_type& bound_params,
             const magnetic_field_t& mag_field, const detector_t& det,
             const typename detector_t::geometry_context& ctx)
-            : base_type::state(bound_params, det, ctx),
-              m_magnetic_field(mag_field) {}
+            : base_state(bound_params, det, ctx), m_magnetic_field(mag_field) {}
 
         /// @returns the B-field view
         DETRAY_HOST_DEVICE
@@ -931,19 +939,19 @@ class rk_stepper final
             assert(!cfg.use_field_gradient);
         }
 
-        const auto old_jacobian = stepping.transport_jacobian();
+        const auto old_jacobian = stepping.internal_transport_jacobian();
 
         if constexpr (flags_v & static_cast<std::uint32_t>(
                                     rk_stepper_flags::e_allow_field_gradient)) {
             detail::update_transport_jacobian_with_gradient_impl(
                 old_jacobian, dFdt, dGdt, dFdr, dGdr, dFdqop, dGdqop, dqopqop,
-                stepping.transport_jacobian());
+                stepping.internal_transport_jacobian());
         } else {
             assert(!cfg.use_field_gradient);
 
             detail::update_transport_jacobian_without_gradient_impl(
                 old_jacobian, dFdt, dGdt, dFdqop, dGdqop, dqopqop,
-                stepping.transport_jacobian());
+                stepping.internal_transport_jacobian());
         }
     }
 
