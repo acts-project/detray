@@ -223,9 +223,9 @@ option(
     ${DETRAY_USE_SYSTEM_LIBS}
 )
 if(DETRAY_SETUP_VECMEM)
-    set(DETRAY_VECMEM_VERSION 1.18.0)
+    set(DETRAY_VECMEM_VERSION 1.23.0)
     set(DETRAY_VECMEM_DIGEST
-        288ec7bb30e209ab5cc2e7f4a209c7ac
+        c4b87f88856b5273b89373d880bdc0fd
         CACHE STRING
         "MD5 digest of the downloaded zip"
     )
@@ -392,9 +392,9 @@ option(
     ${DETRAY_USE_SYSTEM_LIBS}
 )
 if(DETRAY_SETUP_GOOGLETEST)
-    set(DETRAY_GOOGLETEST_VERSION 1.14.0)
+    set(DETRAY_GOOGLETEST_VERSION 1.17.0)
     set(DETRAY_GOOGLETEST_DIGEST
-        c8340a482851ef6a3fe618a082304cfc
+        b6f100bc2a5853a48046aa168ececf84
         CACHE STRING
         "MD5 digest of the downloaded zip"
     )
@@ -418,9 +418,9 @@ option(
     ${DETRAY_USE_SYSTEM_LIBS}
 )
 if(DETRAY_SETUP_BENCHMARK)
-    set(DETRAY_BENCHMARK_VERSION 1.9.1)
+    set(DETRAY_BENCHMARK_VERSION 1.9.5)
     set(DETRAY_BENCHMARK_DIGEST
-        92000ef8b4a7b1e9229972f8943070a7
+        12c6c0c228fc07106c62634222bd2541
         CACHE STRING
         "MD5 digest of the downloaded zip"
     )
@@ -447,9 +447,9 @@ option(
     ${DETRAY_USE_SYSTEM_LIBS}
 )
 if(DETRAY_SETUP_COVFIE)
-    set(DETRAY_COVFIE_VERSION 0.15.3)
+    set(DETRAY_COVFIE_VERSION 0.15.4)
     set(DETRAY_COVFIE_DIGEST
-        a76d094e082b75d09a146cdacdd2a189
+        80de9b43644c59d8239fb8cc184c6276
         CACHE STRING
         "MD5 digest of the downloaded zip"
     )

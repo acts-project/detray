@@ -23,6 +23,9 @@
 #include "detray/io/utils/create_path.hpp"
 #include "detray/io/utils/file_handle.hpp"
 
+// Vecmem include(s)
+#include <vecmem/memory/memory_resource.hpp>
+
 // System include(s)
 #include <filesystem>
 
