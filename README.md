@@ -146,9 +146,3 @@ python3 detray/tests/tools/python/propagation_benchmarks.py \
     --geometry_file ./toy_detector/toy_detector_geometry.json \
     --data_files [FILES]...
 ```
-
-### Continuous benchmark
-
-Monitoring the propagation throughput with the toy geometry per commit:
-
-<img src="https://gitlab.cern.ch/acts/detray-benchmark/-/raw/master/plots/array_data.png?ref_type=heads" />
