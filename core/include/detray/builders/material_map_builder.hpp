@@ -144,8 +144,8 @@ class material_map_builder final : public volume_decorator<detector_t> {
 
             // Construct and append the material map for a given surface shape
             darray<std::vector<scalar_type>, DIM> axis_spans{};
-            auto axis_spans_itr = m_axis_spans.find(sf_idx);
-            if (axis_spans_itr != m_axis_spans.end()) {
+            if (auto axis_spans_itr = m_axis_spans.find(sf_idx);
+                axis_spans_itr != m_axis_spans.end()) {
                 axis_spans = axis_spans_itr->second;
             }
 

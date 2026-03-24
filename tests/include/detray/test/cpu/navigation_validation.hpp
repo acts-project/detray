@@ -137,7 +137,7 @@ class navigation_validation : public test::fixture_base<> {
         // Create an output file path
         auto make_path = [&data_path, &prefix, &momentum_str](
                              const std::string &name,
-                             const std::string extension = ".csv") {
+                             const std::string &extension = ".csv") {
             return data_path / (prefix + name + momentum_str + extension);
         };
 

@@ -24,6 +24,7 @@ usage() {
    echo "  -c <cmakeExecutable> CMake executable to use in the script"
    echo "  -w <curlExecutable>  Curl executable to use in the script"
    echo ""
+   return 0
 }
 
 # Default script arguments.
@@ -61,6 +62,11 @@ while getopts ":f:d:o:c:wh" opt; do
          exit 1
          ;;
       ?)
+         echo "Unknown argument: -$OPTARG"
+         usage
+         exit 1
+         ;;
+      *)
          echo "Unknown argument: -$OPTARG"
          usage
          exit 1

@@ -44,9 +44,9 @@ class file_handle final {
     file_handle() = delete;
 
     /// File gets created with a @param name and @param extension
-    file_handle(const std::string& file_name,
-                std::ios_base::openmode mode = std::ios_base::in |
-                                               std::ios_base::out)
+    explicit file_handle(const std::string& file_name,
+                         std::ios_base::openmode mode = std::ios_base::in |
+                                                        std::ios_base::out)
         : file_handle(std::filesystem::path{file_name}.parent_path() /
                           std::filesystem::path{file_name}.stem(),
                       std::filesystem::path{file_name}.extension(), mode) {}

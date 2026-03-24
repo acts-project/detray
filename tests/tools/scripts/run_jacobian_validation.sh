@@ -106,6 +106,9 @@ while getopts "hd:n:t:m:c:p:q:i:s:f:r:v:" arg; do
         v)
             verbose_level=$OPTARG
         ;;
+        *)
+            echo "Unknown option"
+        ;;
     esac
 done
 
@@ -123,7 +126,7 @@ echo "Set the verbose level: ${verbose_level}"
 
 echo ""
 
-if [ -z "${dir}" ]; then
+if [[ -z "${dir}" ]]; then
     echo "Option -d is missing"
     exit 1
 fi
@@ -132,7 +135,7 @@ fi
 # RK tolerance iteration #
 ##########################
 
-if [ "$skip_first_phase" = false ] ; then
+if [[ "$skip_first_phase" = false ]] ; then
 
     echo "Starting rk toleracne iteration..."
 
@@ -171,7 +174,7 @@ fi
 # Jacobi validation & Cov transport #
 #####################################
 
-if [ "$skip_second_phase" = false ] ; then
+if [[ "$skip_second_phase" = false ]] ; then
 
     echo "Starting Jacobi validation & Cov transport..."
 
@@ -240,7 +243,7 @@ echo "Finished merging Csv files"
 
 cd ${output_dir}
 
-if [ "$skip_first_phase" = false ] && [ "$skip_second_phase" = false ]; then
+if [[ "$skip_first_phase" = false ]] && [[ "$skip_second_phase" = false ]]; then
 
     # Run rk_tolerance_comparision.C
     root -q "$root_dir"'/tests/tools/root/rk_tolerance_comparison.C+O('${log10_min_rk_tol}','${log10_max_rk_tol}')'
@@ -254,12 +257,13 @@ if [ "$skip_first_phase" = false ] && [ "$skip_second_phase" = false ]; then
     # Run covariance_validation.C
     root -q -l "$root_dir"/tests/tools/root/covariance_validation.C+O
 
-    elif [ "$skip_first_phase" = true ] && [ "$skip_second_phase" = false ]; then
+    elif [[ "$skip_first_phase" = true ]] && [[ "$skip_second_phase" = false
+    ]]; then
 
     # Run covariance_validation.C
     root "$root_dir"/tests/tools/root/covariance_validation.C+O
 
-    elif [ "$skip_first_phase" = false ] && [ "$skip_second_phase" = true ]; then
+    elif [[ "$skip_first_phase" = false ]] && [[ "$skip_second_phase" = true ]]; then
 
     # Run rk_tolerance_comparision.C
     root "$root_dir"'/tests/tools/root/rk_tolerance_comparison.C+O('${log10_min_rk_tol}','${log10_max_rk_tol}')'

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2024 CERN for the benefit of the ACTS project
+ * (c) 2022-2026 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -43,7 +43,8 @@ class single_view
 
     /// Construct value in place from @param args
     template <class... Args>
-    DETRAY_HOST_DEVICE constexpr single_view(std::in_place_t, Args&&... args)
+    DETRAY_HOST_DEVICE constexpr explicit single_view(std::in_place_t,
+                                                      Args&&... args)
         : m_value{std::in_place, std::forward<Args>(args)...} {}
 
     /// @return the single value
@@ -123,7 +124,8 @@ struct single : public detray::ranges::single_view<value_t> {
         : base_type(std::forward<deduced_value_t>(value)) {}
 
     template <class... Args>
-    DETRAY_HOST_DEVICE constexpr single(std::in_place_t, Args&&... args)
+    DETRAY_HOST_DEVICE constexpr explicit single(std::in_place_t,
+                                                 Args&&... args)
         : base_type(std::in_place, std::forward<Args>(args)...) {}
 };
 

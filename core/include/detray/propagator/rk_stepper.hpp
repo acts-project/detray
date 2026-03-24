@@ -61,7 +61,7 @@ class rk_stepper final
     using magnetic_field_type = magnetic_field_t;
     template <std::size_t ROWS, std::size_t COLS>
     using matrix_type = dmatrix<algebra_t, ROWS, COLS>;
-    using transport_jacobian_matrix_type = std::conditional_t<
+    using transport_jacobian_type = std::conditional_t<
         uses_gradient,
         detail::transport_jacobian_matrix_with_gradient<algebra_type>,
         detail::transport_jacobian_matrix_without_gradient<algebra_type>>;
@@ -82,12 +82,11 @@ class rk_stepper final
         darray<scalar_type, 4u> dqopds;
     };
 
-    struct state
-        : public base_type::template state<transport_jacobian_matrix_type> {
+    struct state : public base_type::template state<transport_jacobian_type> {
         static constexpr const stepping::id id = stepping::id::e_rk;
 
         using base_state =
-            typename base_type::template state<transport_jacobian_matrix_type>;
+            typename base_type::template state<transport_jacobian_type>;
 
         DETRAY_HOST_DEVICE
         state(const free_track_parameters_type& t,

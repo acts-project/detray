@@ -71,11 +71,11 @@ inline dindex_range overlaps_removal(record_container &intersection_records,
         }
         // Found two overlapping surfaces
         if (n_eq_intrs == 2u) {
-            const auto &prev_rec = intersection_records.at(i - 1u);
-
             // Two overlapping portals form a valid, connected volume boundary
-            if (!(rec.intersection.sf_desc.is_portal() &&
+            if (const auto &prev_rec = intersection_records.at(i - 1u);
+                !(rec.intersection.sf_desc.is_portal() &&
                   prev_rec.intersection.sf_desc.is_portal())) {
+
                 auto prev_sf_desc = prev_rec.intersection.sf_desc;
                 auto sf_desc = rec.intersection.sf_desc;
 
@@ -566,8 +566,8 @@ inline auto trace_intersections(const record_container &intersection_records,
     }
 
     // Look at the last entry, which is a single portal
-    const record rec_back{intersection_records.back()};
-    if (!rec_back.is_portal()) {
+    if (const record rec_back{intersection_records.back()};
+        !rec_back.is_portal()) {
         err_stream << "We don't leave the detector by portal!";
         print_err(err_stream);
     } else {
@@ -625,11 +625,10 @@ inline auto build_adjacency(
             obj_hashes.insert(pt_index_1);
         }
         // Assume the return link for now (filter out portal that leaves world)
-        if (vol_index_2 != invalid_value) {
-            if (obj_hashes.find(pt_index_2) == obj_hashes.end()) {
-                adj_list[vol_index_2][vol_index_1]++;
-                obj_hashes.insert(pt_index_2);
-            }
+        if (vol_index_2 != invalid_value &&
+            obj_hashes.find(pt_index_2) == obj_hashes.end()) {
+            adj_list[vol_index_2][vol_index_1]++;
+            obj_hashes.insert(pt_index_2);
         }
     }
 
@@ -658,7 +657,7 @@ inline auto build_adjacency(const portal_trace_type &portal_trace,
                             dvector<dindex> &adj_matrix,
                             std::unordered_set<dindex> &obj_hashes) {
 
-    const dindex dim = static_cast<dindex>(math::sqrt(adj_matrix.size()));
+    const auto dim = static_cast<dindex>(math::sqrt(adj_matrix.size()));
 
     // Every module that was recorded adds a link to the mother volume
     for (const auto &record : module_trace) {

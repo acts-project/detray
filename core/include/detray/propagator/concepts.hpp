@@ -106,4 +106,9 @@ concept is_propagator_state_of = propagator_state<S> && requires {
                           typename S::navigator_state_type>;
 };
 
+/// Check if a type corresponds to the magnetic field type of a stepper
+template <typename S, typename F>
+concept is_field_of = requires { typename S::magnetic_field_type; } &&
+                      std::same_as<F, typename S::magnetic_field_type>;
+
 }  // namespace detray::concepts

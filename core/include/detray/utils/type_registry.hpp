@@ -446,10 +446,10 @@ DETRAY_HOST_DEVICE constexpr decltype(auto) visit(const std::size_t idx,
 template <concepts::type_registry registry_t, typename functor_t,
           typename... Args>
 DETRAY_HOST_DEVICE constexpr decltype(auto) visit(
-    const typename registry_t::id id, Args&&... args) {
-    assert(registry_t::is_valid(id));
+    const typename registry_t::id type_id, Args&&... args) {
+    assert(registry_t::is_valid(type_id));
 
-    return visit<registry_t, functor_t>(static_cast<std::size_t>(id),
+    return visit<registry_t, functor_t>(static_cast<std::size_t>(type_id),
                                         std::forward<Args>(args)...);
 }
 

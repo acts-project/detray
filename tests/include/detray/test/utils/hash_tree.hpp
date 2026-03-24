@@ -83,8 +83,8 @@ class hash_tree {
     ///
     /// @param volumes geometry volumes that become the graph nodes
     /// @param portals geometry portals link volumes and become edges
-    hash_tree(const input_collection_t &data,
-              const hash_function_t & /*hf*/ = {}) {
+    explicit hash_tree(const input_collection_t &data,
+                       const hash_function_t & /*hf*/ = {}) {
         build(data);
     }
 

@@ -69,7 +69,7 @@ inline auto read_intersection2D(const std::string &file_name) {
     while (inters_reader.read(inters_data)) {
 
         // Add new intersection to correct track
-        auto trk_index{static_cast<dindex>(inters_data.track_id)};
+        dindex trk_index{inters_data.track_id};
         while (intersections_per_track.size() <= trk_index) {
             intersections_per_track.push_back({});
         }

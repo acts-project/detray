@@ -97,7 +97,7 @@ concept shape = concepts::algebra<A> && requires(const S sh, std::ostream os) {
 
     {
         sh.check_consistency(typename S::template bounds_type<dscalar<A>>(), os)
-    } -> std::same_as<dbool<A>>;
+    } -> std::same_as<bool>;
 };
 
 /// Definition of a geometric object, that either has a shape or a local frame

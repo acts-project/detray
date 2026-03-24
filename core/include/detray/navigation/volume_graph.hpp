@@ -265,9 +265,9 @@ class volume_graph {
         edge_generator() = delete;
 
         /// Constructor from the detector masks store.
-        edge_generator(const typename detector_t::mask_container &masks,
-                       const dindex volume_id = 0,
-                       const mask_link_t mask_link = {})
+        explicit edge_generator(
+            const typename detector_t::mask_container &masks,
+            const dindex volume_id = 0, const mask_link_t mask_link = {})
             : _masks(masks), _volume_id(volume_id), _mask_link{mask_link} {
             _edges =
                 _masks.template visit<edges_builder>(_mask_link, _volume_id);

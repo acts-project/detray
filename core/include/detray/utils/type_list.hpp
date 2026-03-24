@@ -182,9 +182,9 @@ std::string demangle_type_name() {
 
     const std::size_t start{function.find(prefix) + prefix.size()};
     const std::size_t end{function.find(suffix)};
-    const std::size_t size{end - start};
+    const std::size_t length{end - start};
 
-    return std::string{function.substr(start, size)};
+    return std::string{function.substr(start, length)};
 }
 
 /// @returns the name of a type as string
@@ -239,7 +239,7 @@ struct print<list<Ts...>> {
         }
     }
 
-    print(bool full = true) {
+    explicit print(bool full = true) {
         std::puts("type_list<");
         print_typeid<Ts...>(full);
         std::puts(">\n");

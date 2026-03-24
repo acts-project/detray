@@ -11,6 +11,7 @@
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/indexing.hpp"
+#include "detray/geometry/concepts.hpp"
 #include "detray/geometry/shapes/cuboid3D.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 
@@ -39,6 +40,7 @@ namespace detray {
 ///                 (e.g. single index vs range)
 template <typename shape_t, concepts::algebra algebra_t,
           typename links_t = std::uint_least16_t>
+    requires concepts::shape<shape_t, algebra_t>
 class mask {
     public:
     // Linear algebra types
@@ -80,8 +82,7 @@ class mask {
         : _volume_link(link) {
         assert(values.size() == boundaries::e_size &&
                " Given number of boundaries does not match mask shape.");
-        std::ranges::copy(std::cbegin(values), std::cend(values),
-                          std::begin(_values));
+        std::ranges::copy(values, std::begin(_values));
     }
 
     /// Assignment operator from an array, convenience function

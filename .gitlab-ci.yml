@@ -12,7 +12,7 @@ stages:
 build_cuda:
   tags: [docker]
   stage: build
-  image: ghcr.io/acts-project/ubuntu2204_cuda:56
+  image: ghcr.io/acts-project/ubuntu2404_cuda:82
   artifacts:
     paths:
       - build
@@ -31,7 +31,7 @@ test_cuda:
     DETRAY_BFIELD_FILE: $CI_PROJECT_DIR/src/data/odd-bfield_v0_9_0.cvf
   stage: test
   tags: [docker-gpu-nvidia]
-  image: ghcr.io/acts-project/ubuntu2204_cuda:56
+  image: ghcr.io/acts-project/ubuntu2404_cuda:82
   needs:
     - build_cuda
   script:

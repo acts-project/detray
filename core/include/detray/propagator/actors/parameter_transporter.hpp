@@ -295,6 +295,6 @@ struct parameter_transporter : actor {
 
         return full_jacobian;
     }
-};  // namespace detray
+};
 
 }  // namespace detray

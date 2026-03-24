@@ -60,10 +60,9 @@ class base_stepper {
     /// @brief State struct holding the track
     ///
     /// @note It has to cast into a const track via the call operation.
-    template <typename internal_transport_jacobian_matrix_t = free_matrix_type>
+    template <typename internal_jacobian_t = free_matrix_type>
     struct state {
-        using internal_transport_jacobian_matrix_type =
-            internal_transport_jacobian_matrix_t;
+        using internal_jacobian_type = internal_jacobian_t;
 
         /// Sets track parameters.
         DETRAY_HOST_DEVICE
@@ -87,13 +86,11 @@ class base_stepper {
             // HACK: When the overload resolution for the transport Jacobian
             // type is resolved, turn this into a default member
             // initialization.
-            if constexpr (detail::is_transport_jacobian_type<
-                              internal_transport_jacobian_matrix_type>) {
-                m_jac_transport =
-                    internal_transport_jacobian_matrix_type::identity();
+            if constexpr (concepts::transport_jacobian<
+                              internal_jacobian_type>) {
+                m_jac_transport = internal_jacobian_type::identity();
             } else {
-                m_jac_transport =
-                    matrix::identity<internal_transport_jacobian_matrix_type>();
+                m_jac_transport = matrix::identity<internal_jacobian_type>();
             }
         }
 
@@ -119,13 +116,11 @@ class base_stepper {
             // HACK: When the overload resolution for the transport Jacobian
             // type is resolved, turn this into a default member
             // initialization.
-            if constexpr (detail::is_transport_jacobian_type<
-                              internal_transport_jacobian_matrix_type>) {
-                m_jac_transport =
-                    internal_transport_jacobian_matrix_type::identity();
+            if constexpr (concepts::transport_jacobian<
+                              internal_jacobian_type>) {
+                m_jac_transport = internal_jacobian_type::identity();
             } else {
-                m_jac_transport =
-                    matrix::identity<internal_transport_jacobian_matrix_type>();
+                m_jac_transport = matrix::identity<internal_jacobian_type>();
             }
         }
 
@@ -214,36 +209,41 @@ class base_stepper {
             m_ptc = ptc;
         }
 
-        /// @returns the current transport Jacbian.
+        /// @returns the current transport Jacbian - const
+        /// @note converts to the full 8x8 matrix in case the reduced storage
         DETRAY_HOST_DEVICE
-        inline typename std::conditional_t<
-            std::same_as<free_matrix_type,
-                         internal_transport_jacobian_matrix_type>,
-            const free_matrix_type &, free_matrix_type>
-        transport_jacobian() const {
-            return m_jac_transport;
+        inline free_matrix_type transport_jacobian() const
+            requires(!std::same_as<free_matrix_type, internal_jacobian_type>)
+        {
+            return m_jac_transport.operator dmatrix<algebra_t, 8, 8>();
         }
 
-        /// @returns the current transport Jacbian.
+        /// @returns the current transport Jacbian - const
         DETRAY_HOST_DEVICE
-        inline free_matrix_type &transport_jacobian()
-            requires std::same_as<free_matrix_type,
-                                  internal_transport_jacobian_matrix_type>
+        inline const free_matrix_type &transport_jacobian() const
+            requires std::same_as<free_matrix_type, internal_jacobian_type>
         {
             return m_jac_transport;
         }
 
         /// @returns the current transport Jacbian.
         DETRAY_HOST_DEVICE
-        inline internal_transport_jacobian_matrix_type &
-        internal_transport_jacobian() {
+        inline free_matrix_type &transport_jacobian()
+            requires std::same_as<free_matrix_type, internal_jacobian_type>
+        {
             return m_jac_transport;
         }
 
         /// @returns the current transport Jacbian.
         DETRAY_HOST_DEVICE
-        inline const internal_transport_jacobian_matrix_type &
-        internal_transport_jacobian() const {
+        inline internal_jacobian_type &internal_transport_jacobian() {
+            return m_jac_transport;
+        }
+
+        /// @returns the current transport Jacbian.
+        DETRAY_HOST_DEVICE
+        inline const internal_jacobian_type &internal_transport_jacobian()
+            const {
             return m_jac_transport;
         }
 
@@ -252,13 +252,11 @@ class base_stepper {
         inline void reset_transport_jacobian() {
             // HACK: When the overload resolution for the transport Jacobian
             // type is resolved, remove this conditional logic.
-            if constexpr (detail::is_transport_jacobian_type<
-                              internal_transport_jacobian_matrix_type>) {
-                m_jac_transport =
-                    internal_transport_jacobian_matrix_type::identity();
+            if constexpr (concepts::transport_jacobian<
+                              internal_jacobian_type>) {
+                m_jac_transport = internal_jacobian_type::identity();
             } else {
-                m_jac_transport =
-                    matrix::identity<internal_transport_jacobian_matrix_type>();
+                m_jac_transport = matrix::identity<internal_jacobian_type>();
             }
         }
 
@@ -288,7 +286,7 @@ class base_stepper {
 
         private:
         /// Jacobian transport matrix
-        internal_transport_jacobian_matrix_type m_jac_transport;
+        internal_jacobian_type m_jac_transport;
 
         /// Bound covariance
         bound_track_parameters_type m_bound_params;

@@ -49,7 +49,7 @@ class detector_components_reader final {
 
     /// Create a new geometry reader of type @tparam reader_t
     template <class reader_t>
-    void add_geometry_reader(const std::string& file_name) {
+    void add_geometry_reader(std::string_view file_name) {
         m_geo_file_name = file_name;
         m_geo_reader = std::make_unique<reader_t>();
     }

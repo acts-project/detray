@@ -62,7 +62,8 @@ class tuple_container {
     template <typename allocator_t = vecmem::memory_resource,
               typename T = tuple_t<Ts...>>
         requires std::is_same_v<T, std::tuple<Ts...>>
-    DETRAY_HOST tuple_container(allocator_t &resource, const Ts &...args)
+    DETRAY_HOST explicit tuple_container(allocator_t &resource,
+                                         const Ts &...args)
         : _tuple(std::allocator_arg, resource, args...) {}
 
     /// Construct from the container @param view type. Mainly used device-side.

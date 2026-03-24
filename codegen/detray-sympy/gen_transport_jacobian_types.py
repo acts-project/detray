@@ -42,7 +42,7 @@ def gen_code(gradient):
         else "transport_jacobian_matrix_without_gradient"
     )
 
-    lines.append("template <typename algebra_t>")
+    lines.append("template <concepts::algebra algebra_t>")
 
     lines.append("struct %s {" % struct_name)
 
@@ -68,7 +68,7 @@ def gen_code(gradient):
             elif matrix[i, j] == 1:
                 lines.append("return static_cast<scalar_type>(1.f);")
             else:
-                lines.append("return _contents[%d];" % (matrix[i, j].indices[0]))
+                lines.append("return m_contents[%d];" % (matrix[i, j].indices[0]))
 
             lines.append("}")
 
@@ -97,13 +97,15 @@ def gen_code(gradient):
             first = False
 
             lines.append(
-                "%s constexpr (I == %d && J == %d) { return _contents[%d]; }"
+                "%s constexpr (I == %d && J == %d) { return m_contents[%d]; }"
                 % (stmt, i, j, matrix[i, j].indices[0])
             )
 
     lines.append("}")
 
-    lines.append("DETRAY_HOST_DEVICE operator dmatrix<algebra_t, 8, 8>() const {")
+    lines.append(
+        "DETRAY_HOST_DEVICE explicit operator dmatrix<algebra_t, 8, 8>() const {"
+    )
     lines.append("dmatrix<algebra_t, 8, 8> rv;")
 
     for i in range(matrix.shape[0]):
@@ -137,7 +139,7 @@ def gen_code(gradient):
     lines.append("}")
 
     lines.append("private:")
-    lines.append("scalar_type _contents[%d];" % array.shape[0])
+    lines.append("std::array<scalar_type, %d> m_contents;" % array.shape[0])
 
     lines.append("};\n")
 
