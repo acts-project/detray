@@ -382,8 +382,8 @@ class navigation_validation : public test::fixture_base<> {
             navigation_validator::surface_stats n_truth{};
             navigation_validator::surface_stats n_nav{};
             for (std::size_t j = 0; j < truth_trace.size(); ++j) {
-                const auto truth_desc = truth_trace[j].intersection.sf_desc;
-                const auto rec_desc = recorded_trace[j].intersection.sf_desc;
+                const auto truth_desc = truth_trace[j].intersection.surface();
+                const auto rec_desc = recorded_trace[j].intersection.surface();
 
                 // Exclude dummy records for missing surfaces
                 if (!truth_desc.barcode().is_invalid()) {

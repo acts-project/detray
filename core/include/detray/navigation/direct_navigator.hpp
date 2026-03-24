@@ -24,18 +24,22 @@
 
 namespace detray {
 
-template <typename detector_t>
+template <typename detector_t, typename surface_t = void>
 class direct_navigator {
 
     using algebra_t = typename detector_t::algebra_type;
     using scalar_t = dscalar<algebra_t>;
-    using sf_decriptor_t = typename detector_t::surface_type;
 
     public:
     using detector_type = detector_t;
     using context_type = detector_type::geometry_context;
+
+    // Use an external surface type, if one was provided
+    using surface_type =
+        std::conditional_t<std::same_as<surface_t, void>,
+                           typename detector_t::surface_type, surface_t>;
     using intersection_type =
-        intersection2D<sf_decriptor_t, algebra_t, !intersection::contains_pos>;
+        intersection2D<surface_type, algebra_t, !intersection::contains_pos>;
     using inspector_type = navigation::void_inspector;
 
     class state
@@ -52,16 +56,15 @@ class direct_navigator {
             navigation::base_state<state, detector_type, 2u, inspector_type,
                                    intersection_type>;
 
-        using candidate_t = intersection_type;
-        using nav_link_t = typename sf_decriptor_t::navigation_link;
+        // Internal surface index
         using dist_t = std::int_least16_t;
 
         public:
-        using value_type = candidate_t;
-        using sequence_type = vecmem::device_vector<sf_decriptor_t>;
+        using value_type = intersection_type;
+        using sequence_type = vecmem::device_vector<surface_type>;
 
-        using view_type = dvector_view<sf_decriptor_t>;
-        using const_view_type = dvector_view<const sf_decriptor_t>;
+        using view_type = dvector_view<surface_type>;
+        using const_view_type = dvector_view<const surface_type>;
 
         /// Constructor using the detector and an externally provided sequence
         /// of detector surfaces
@@ -83,7 +86,7 @@ class direct_navigator {
                 is_forward() ? 0 : static_cast<dist_t>(m_sequence.size()) - 1;
 
             // Update the target with the next external surface
-            this->target().sf_desc = next_external();
+            this->target().set_surface(next_external());
 
             // The next candidate is always stored in the second cache entry
             this->next_index(1u);
@@ -117,7 +120,7 @@ class direct_navigator {
 
         /// Advance the iterator
         DETRAY_HOST_DEVICE
-        constexpr sf_decriptor_t next_external() {
+        constexpr surface_type next_external() {
             assert(has_next_external());
             return m_sequence[static_cast<unsigned int>(m_next_external)];
         }
@@ -139,14 +142,14 @@ class direct_navigator {
             // Could make the target invalid -> exit navigation
             if (has_next_external()) {
                 // If the next external can be indexed, the cast is safe
-                this->target().sf_desc =
-                    m_sequence[static_cast<unsigned int>(m_next_external)];
+                this->target().set_surface(
+                    m_sequence[static_cast<unsigned int>(m_next_external)]);
             }
 
             assert(!has_next_external() ||
                    (has_next_external() &&
-                    (this->target().sf_desc.is_sensitive() ||
-                     this->target().sf_desc.has_material())));
+                    (this->target().surface().is_sensitive() ||
+                     this->target().surface().has_material())));
         }
 
         /// Clear the state
@@ -275,7 +278,7 @@ class direct_navigator {
 
             // At this point, the track has to be on surface:
             // Set volume index to the volume the current surface is in
-            navigation.set_volume(navigation.current().sf_desc.volume());
+            navigation.set_volume(navigation.current().surface().volume());
 
             // Set full trust again: no volume switch needed
             navigation.trust_level(navigation::trust_level::e_full);

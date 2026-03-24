@@ -178,9 +178,9 @@ DETRAY_HOST_DEVICE constexpr void resolve_mask(
 
     // Mask out solutions that don't meet the overstepping tolerance (SoA)
     if constexpr (concepts::soa<algebra_t>) {
-        using status_t = typename intersection_t::status_t;
+        using status_t = typename intersection_t::status_type;
 
-        is.status(is.path() < cfg.overstep_tolerance) =
+        is.status()(is.path() < cfg.overstep_tolerance) =
             static_cast<status_t>(intersection::status::e_outside);
     } else {
         is.set_status(intersection::status::e_outside);
@@ -246,9 +246,9 @@ DETRAY_HOST_DEVICE constexpr void resolve_mask(
                      detray::get<check_type::e_precise>(mask_check));
 
     is.set_path(ip.path);
-    is.sf_desc = sf_desc;
-    is.direction = !detail::signbit(ip.path);
-    is.volume_link = mask.volume_link();
+    is.set_surface(sf_desc);
+    is.set_direction(!detail::signbit(ip.path));
+    is.set_volume_link(mask.volume_link());
 }
 
 }  // namespace detray
