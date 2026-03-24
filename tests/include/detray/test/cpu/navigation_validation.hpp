@@ -24,6 +24,9 @@
 #include "detray/test/validation/navigation_validation_config.hpp"
 #include "detray/test/validation/navigation_validation_utils.hpp"
 
+// Vecmem include(s)
+#include <vecmem/memory/host_memory_resource.hpp>
+
 // System include(s)
 #include <iostream>
 #include <memory>

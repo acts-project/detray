@@ -34,6 +34,9 @@
 // Detray plugin include(s)
 #include "detray/plugins/svgtools/styling/styling.hpp"
 
+// Vecmem include(s)
+#include <vecmem/memory/host_memory_resource.hpp>
+
 // System include(s)
 #include <algorithm>
 #include <iomanip>

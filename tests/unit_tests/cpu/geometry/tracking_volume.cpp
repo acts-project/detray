@@ -13,6 +13,9 @@
 #include "detray/test/common/build_toy_detector.hpp"
 #include "detray/test/framework/types.hpp"
 
+// Vecmem include(s)
+#include <vecmem/memory/host_memory_resource.hpp>
+
 // GTest include(s)
 #include <gtest/gtest.h>
 
