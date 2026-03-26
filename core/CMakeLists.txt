@@ -20,7 +20,6 @@ file(
     "include/detray/geometry/coordinates/*.hpp"
     "include/detray/geometry/shapes/*.hpp"
     "include/detray/geometry/*.hpp"
-    "include/detray/grids/*.hpp"
     "include/detray/materials/*.hpp"
     "include/detray/navigation/accelerators/*.hpp"
     "include/detray/navigation/intersection/bounding_box/*.hpp"
