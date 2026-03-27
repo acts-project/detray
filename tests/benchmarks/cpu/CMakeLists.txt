@@ -1,6 +1,6 @@
 # Detray library, part of the ACTS project (R&D line)
 #
-# (c) 2023-2024 CERN for the benefit of the ACTS project
+# (c) 2023-2026 CERN for the benefit of the ACTS project
 #
 # Mozilla Public License Version 2.0
 
@@ -32,7 +32,6 @@ macro(detray_add_cpu_benchmark algebra)
     detray_add_executable(benchmark_cpu_${algebra}
        "find_volume.cpp"
        "grid.cpp"
-       "grid2.cpp"
        "intersect_all.cpp"
        "intersect_surfaces.cpp"
        "masks.cpp"

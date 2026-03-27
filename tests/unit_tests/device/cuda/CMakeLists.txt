@@ -26,15 +26,6 @@ detray_add_unit_test( cuda
    LINK_LIBRARIES GTest::gtest_main vecmem::cuda detray::core
 )
 
-# The test only works for the array plugin (except for complete populator)
-detray_add_unit_test( cuda_grid2_array
-      "grids_grid2_cuda_kernel.hpp"
-      "grids_grid2_cuda.cpp"
-      "grids_grid2_cuda_kernel.cu"
-   LINK_LIBRARIES GTest::gtest_main detray::test_common detray::test_utils vecmem::cuda
-                  detray::core_array
-)
-
 # Define unit tests for multiple algebra plugins
 # Currently, only 'array' and 'eigen' are supported in device code
 set(algebras "array")
