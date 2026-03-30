@@ -297,7 +297,7 @@ inline bool toy_detector_test(
             for (dindex pti = range[0]; pti < range[1]; ++pti) {
                 EXPECT_EQ(sf_itr->volume(), vol_index);
                 EXPECT_FALSE(sf_itr->id() == surface_id::e_portal)
-                    << sf_itr->barcode();
+                    << sf_itr->identifier();
                 EXPECT_EQ(sf_itr->index(), pti);
                 // The volume index compensates for the number of volume
                 // transforms in the transform store

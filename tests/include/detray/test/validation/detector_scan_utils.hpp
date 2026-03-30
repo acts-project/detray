@@ -358,7 +358,7 @@ inline auto trace_intersections(const record_container &intersection_records,
         /// getter
         /// @{
         inline bool is_invalid() const {
-            return entry.intersection.surface().barcode().is_invalid();
+            return entry.intersection.surface().identifier().is_invalid();
         }
         inline auto surface_idx() const {
             return entry.intersection.surface().index();

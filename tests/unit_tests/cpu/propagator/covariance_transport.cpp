@@ -97,7 +97,7 @@ GTEST_TEST(detray_propagator, covariance_transport) {
 
     // Bound track parameter
     const bound_track_parameters<test_algebra> bound_param0(
-        det.surface(0u).barcode(), bound_vector, bound_cov);
+        det.surface(0u).identifier(), bound_vector, bound_cov);
 
     propagation::config prop_cfg{};
     prop_cfg.navigation.intersection.overstep_tolerance =

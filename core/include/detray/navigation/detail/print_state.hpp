@@ -62,7 +62,7 @@ DETRAY_HOST inline std::string print_state(const state_type &state) {
     debug_stream << std::setw(cw) << "current object:";
     if (state.is_on_surface()) {
         // If "exit" is called twice, the state has been cleared
-        debug_stream << state.barcode() << std::endl;
+        debug_stream << state.geometry_identifier() << std::endl;
     } else if (state.status() == status::e_exit) {
         debug_stream << "exited" << std::endl;
     } else {
@@ -75,7 +75,7 @@ DETRAY_HOST inline std::string print_state(const state_type &state) {
         if (state.n_candidates() == 0u) {
             debug_stream << "exhausted" << std::endl;
         } else {
-            debug_stream << state.next_surface().barcode() << std::endl;
+            debug_stream << state.next_surface().identifier() << std::endl;
         }
     }
 
@@ -139,19 +139,19 @@ DETRAY_HOST inline std::string print_candidates(const state_type &state,
 
         debug_stream << std::left << std::setw(6) << "-> " << sf_cand;
 
-        assert(!sf_cand.surface().barcode().is_invalid());
+        assert(!sf_cand.surface().identifier().is_invalid());
 
         // Use additional debug information that was gathered on the cand.
         if constexpr (state_type::value_type::contains_pos()) {
             const auto &local = sf_cand.local();
-            if (!sf_cand.surface().barcode().is_invalid()) {
+            if (!sf_cand.surface().identifier().is_invalid()) {
                 point3_t pos =
                     geometry::surface{state.detector(), sf_cand.surface()}
                         .local_to_global(geo_ctx_t{}, local, track_dir);
                 debug_stream << " glob: [r = " << vector::perp(pos)
                              << ", z = " << pos[2] << "]" << std::endl;
             } else {
-                debug_stream << "Invalid barcode" << std::endl;
+                debug_stream << "Invalid identifier" << std::endl;
             }
         } else {
             debug_stream << std::endl;

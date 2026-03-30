@@ -53,7 +53,7 @@ struct material_record {
 template <concepts::scalar scalar_t>
 struct material_params {
     /// The surface the material belongs to
-    geometry::barcode bcd{};
+    geometry::identifier geo_id{};
     /// Pathlength of the track through the material
     scalar_t path{detail::invalid_value<scalar_t>()};
     /// Material thickness/radius
@@ -79,7 +79,7 @@ struct get_material_params {
         using material_t = typename mat_group_t::value_type;
 
         constexpr auto inv{detail::invalid_value<scalar_t>()};
-        constexpr geometry::barcode inv_sf{};
+        constexpr geometry::identifier inv_sf{};
 
         // Access homogeneous surface material or material maps
         if constexpr (concepts::surface_material<material_t>) {
@@ -255,7 +255,7 @@ struct material_tracer : public detray::base_actor {
             tracer.m_mat_record.tL0 += t / ml0;
         }
         if (t > 0.f) {
-            tracer.m_mat_steps.push_back({sf.barcode(), seg, t, mx0, ml0});
+            tracer.m_mat_steps.push_back({sf.identifier(), seg, t, mx0, ml0});
         }
     }
 };
@@ -345,10 +345,11 @@ inline auto compare_traces(
         for (std::size_t j = 0u;
              j < math::min(reference.size(), mat_trace.size()); ++j) {
 
-            if (reference[j].bcd != mat_trace[j].bcd) {
+            if (reference[j].geo_id != mat_trace[j].geo_id) {
                 is_bad_comp |= true;
-                debug_msg << "-> Surfaces don't match: " << mat_trace[j].bcd
-                          << " (ref.: " << reference[j].bcd << ")" << std::endl;
+                debug_msg << "-> Surfaces don't match: " << mat_trace[j].geo_id
+                          << " (ref.: " << reference[j].geo_id << ")"
+                          << std::endl;
                 continue;
             }
 
@@ -358,7 +359,7 @@ inline auto compare_traces(
                     reference[j].thickness >
                 rel_tol) {
                 is_bad_comp |= true;
-                debug_msg << "-> On surface: " << reference[j].bcd << ":"
+                debug_msg << "-> On surface: " << reference[j].geo_id << ":"
                           << std::endl;
                 debug_msg << "-> thickness: " << mat_trace[j].thickness
                           << ", thickness ref.: " << reference[j].thickness
@@ -370,7 +371,7 @@ inline auto compare_traces(
                     reference[j].mat_X0 >
                 rel_tol) {
                 is_bad_comp |= true;
-                debug_msg << "-> On surface: " << reference[j].bcd << ":"
+                debug_msg << "-> On surface: " << reference[j].geo_id << ":"
                           << std::endl;
                 debug_msg << "-> X0: " << mat_trace[j].mat_X0
                           << ", X0 ref.: " << reference[j].mat_X0 << std::endl;
@@ -381,7 +382,7 @@ inline auto compare_traces(
                     reference[j].mat_L0 >
                 rel_tol) {
                 is_bad_comp |= true;
-                debug_msg << "-> On surface: " << reference[j].bcd << ":"
+                debug_msg << "-> On surface: " << reference[j].geo_id << ":"
                           << std::endl;
                 debug_msg << "-> L0: " << mat_trace[j].mat_L0
                           << ", L0 ref.: " << reference[j].mat_L0 << std::endl;
@@ -391,7 +392,7 @@ inline auto compare_traces(
             if ((reference[j].path - mat_trace[j].path) / reference[j].path >
                 rel_tol) {
                 is_bad_comp |= true;
-                debug_msg << "-> On surface: " << reference[j].bcd << ":"
+                debug_msg << "-> On surface: " << reference[j].geo_id << ":"
                           << std::endl;
                 debug_msg << "-> Mat. path: "
                           << mat_trace[j].path / unit<scalar_t>::mm

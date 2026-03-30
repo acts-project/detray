@@ -28,11 +28,12 @@ namespace detray::geometry {
 /// etc), an index to identify a surface in a geometry accelerator structure,
 /// as well as two extra bytes that can be used to tag surfaces arbitrarily.
 ///
-/// @note the detray barcode is not compatible with the ACTS GeometryIdentifier!
+/// @note the detray identifier is not compatible with the ACTS
+/// GeometryIdentifier!
 ///
 /// @see
 /// https://github.com/acts-project/acts/blob/main/Core/include/Acts/Geometry/GeometryIdentifier.hpp
-class barcode {
+class identifier {
 
     public:
     using value_t = std::uint_least64_t;
@@ -40,10 +41,10 @@ class barcode {
 
     /// Construct from an already encoded value.
     DETRAY_HOST_DEVICE
-    constexpr explicit barcode(value_t encoded) : m_value(encoded) {}
+    constexpr explicit identifier(value_t encoded) : m_value(encoded) {}
 
-    /// Construct default barcode with all values set to 1.
-    constexpr barcode() = default;
+    /// Construct default identifier with all values set to 1.
+    constexpr identifier() = default;
 
     /// @returns the encoded value.
     DETRAY_HOST_DEVICE
@@ -86,14 +87,14 @@ class barcode {
 
     /// Set the volume index.
     DETRAY_HOST_DEVICE
-    constexpr barcode& set_volume(value_t volume) {
+    constexpr identifier& set_volume(value_t volume) {
         encoder::template set_bits<k_volume_mask>(m_value, volume);
         return *this;
     }
 
     /// Set the surface id.
     DETRAY_HOST_DEVICE
-    constexpr barcode& set_id(surface_id id) {
+    constexpr identifier& set_id(surface_id id) {
         encoder::template set_bits<k_id_mask>(
             m_value, static_cast<value_t>(
                          static_cast<std::underlying_type_t<surface_id>>(id)));
@@ -102,26 +103,26 @@ class barcode {
 
     /// Set the surface index.
     DETRAY_HOST_DEVICE
-    constexpr barcode& set_index(value_t index) {
+    constexpr identifier& set_index(value_t index) {
         encoder::template set_bits<k_index_mask>(m_value, index);
         return *this;
     }
 
     /// Set the transform index.
     DETRAY_HOST_DEVICE
-    constexpr barcode& set_transform(value_t index) {
+    constexpr identifier& set_transform(value_t index) {
         encoder::template set_bits<k_transform_mask>(m_value, index);
         return *this;
     }
 
     /// Set the extra identifier.
     DETRAY_HOST_DEVICE
-    constexpr barcode& set_extra(value_t extra) {
+    constexpr identifier& set_extra(value_t extra) {
         encoder::template set_bits<k_extra_mask>(m_value, extra);
         return *this;
     }
 
-    /// Check whether the barcode is valid to use.
+    /// Check whether the identifier is valid to use.
     /// @note The extra bits are allowed to be invalid and will not be checked
     DETRAY_HOST_DEVICE
     constexpr bool is_invalid() const noexcept {
@@ -130,12 +131,12 @@ class barcode {
             m_value);
     }
 
-    bool operator==(const barcode& rhs) const = default;
+    bool operator==(const identifier& rhs) const = default;
 
     /// Comparison operators
     DETRAY_HOST_DEVICE
-    friend constexpr auto operator<=>(const barcode lhs,
-                                      const barcode rhs) noexcept {
+    friend constexpr auto operator<=>(const identifier lhs,
+                                      const identifier rhs) noexcept {
         const auto l{lhs.index()};
         const auto r{rhs.index()};
         if (l < r || (l == r && l < r)) {
@@ -164,9 +165,9 @@ class barcode {
     /// The encoded value. Default: All bits set to 1 (invalid)
     value_t m_value{~static_cast<value_t>(0)};
 
-    /// Print the surface barcode
+    /// Print the surface identifier
     DETRAY_HOST
-    friend std::ostream& operator<<(std::ostream& os, const barcode c) {
+    friend std::ostream& operator<<(std::ostream& os, const identifier c) {
         if (c.is_invalid()) {
             os << "INVALID: ";
         }
@@ -185,11 +186,11 @@ class barcode {
 
 namespace std {
 
-// specialize std::hash so barcode can be used e.g. in an unordered_map
+// specialize std::hash so identifier can be used e.g. in an unordered_map
 template <>
-struct hash<detray::geometry::barcode> {
-    auto operator()(detray::geometry::barcode gid) const noexcept {
-        return std::hash<detray::geometry::barcode::value_t>()(gid.value());
+struct hash<detray::geometry::identifier> {
+    auto operator()(detray::geometry::identifier gid) const noexcept {
+        return std::hash<detray::geometry::identifier::value_t>()(gid.value());
     }
 };
 

@@ -205,7 +205,7 @@ class volume_builder : public volume_builder_interface<detector_t> {
 
         /// Find the surface range specifed by @param sf_id
         auto find_range = [&](auto sf_id) {
-            // Compare given id to surface barcode
+            // Compare given id to surface identifier
             auto is_sf_type = [sf_id](const auto& sf) {
                 return sf.id() == sf_id;
             };

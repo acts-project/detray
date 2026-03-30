@@ -14,7 +14,7 @@
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/track_parametrization.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/geometry/barcode.hpp"
+#include "detray/geometry/identifier.hpp"
 
 // System include(s)
 #include <ostream>
@@ -291,15 +291,15 @@ struct bound_track_parameters : public bound_parameters_vector<algebra_t> {
     bound_track_parameters() = default;
 
     DETRAY_HOST_DEVICE
-    bound_track_parameters(const geometry::barcode sf_idx,
+    bound_track_parameters(const geometry::identifier sf_idx,
                            const parameter_vector_type& vec,
                            const covariance_type& cov)
-        : base_type(vec), m_covariance(cov), m_barcode(sf_idx) {}
+        : base_type(vec), m_covariance(cov), m_identifier(sf_idx) {}
 
     /// @param rhs is the left hand side params for comparison
     DETRAY_HOST_DEVICE
     bool operator==(const bound_track_parameters& rhs) const {
-        if (m_barcode != rhs.surface_link()) {
+        if (m_identifier != rhs.surface_link()) {
             return false;
         }
 
@@ -322,13 +322,13 @@ struct bound_track_parameters : public bound_parameters_vector<algebra_t> {
         return true;
     }
 
-    /// @returns the barcode of the associated surface
+    /// @returns the identifier of the associated surface
     DETRAY_HOST_DEVICE
-    const geometry::barcode& surface_link() const { return m_barcode; }
+    const geometry::identifier& surface_link() const { return m_identifier; }
 
-    /// Set the barcode of the associated surface
+    /// Set the identifier of the associated surface
     DETRAY_HOST_DEVICE
-    void set_surface_link(geometry::barcode link) { m_barcode = link; }
+    void set_surface_link(geometry::identifier link) { m_identifier = link; }
 
     /// Set the track parameter vector
     DETRAY_HOST_DEVICE
@@ -370,7 +370,7 @@ struct bound_track_parameters : public bound_parameters_vector<algebra_t> {
     DETRAY_HOST
     friend std::ostream& operator<<(std::ostream& out_stream,
                                     const bound_track_parameters& bparam) {
-        out_stream << "Surface: " << bparam.m_barcode << std::endl;
+        out_stream << "Surface: " << bparam.m_identifier << std::endl;
         out_stream << "Param.:\n " << static_cast<parameter_vector_type>(bparam)
                    << std::endl;
         out_stream << "Cov.:\n" << bparam.m_covariance;
@@ -381,7 +381,7 @@ struct bound_track_parameters : public bound_parameters_vector<algebra_t> {
     /// Bound covaraicne matrix of the track parameters
     covariance_type m_covariance = matrix::zero<covariance_type>();
     /// Identifier of the surface the track parameters are associated with
-    geometry::barcode m_barcode{};
+    geometry::identifier m_identifier{};
 };
 
 }  // namespace detray

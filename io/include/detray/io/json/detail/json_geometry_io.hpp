@@ -59,8 +59,8 @@ inline void from_json(const nlohmann::ordered_json& j, mask_payload& m) {
 }
 
 inline void to_json(nlohmann::ordered_json& j, const surface_payload& s) {
-    if (s.barcode.has_value()) {
-        j["barcode"] = s.barcode.value();
+    if (s.identifier.has_value()) {
+        j["identifier"] = s.identifier.value();
     }
     j["type"] = static_cast<unsigned int>(s.type);
     j["source"] = s.source;
@@ -79,8 +79,11 @@ inline void to_json(nlohmann::ordered_json& j, const surface_payload& s) {
 }
 
 inline void from_json(const nlohmann::ordered_json& j, surface_payload& s) {
-    if (j.find("barcode") != j.end()) {
-        s.barcode = j["barcode"];
+    if (j.find("identifier") != j.end()) {
+        s.identifier = j["identifier"];
+    } else if (j.find("barcode") != j.end()) {
+        // TODO: Remove once all files are fixed
+        s.identifier = j["barcode"];
     }
     s.type = static_cast<detray::surface_id>(j["type"]);
     s.source = j["source"];

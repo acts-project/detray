@@ -427,11 +427,11 @@ struct propagator {
 
         debug_stream << "navigation:" << std::endl;
         if (navigation.is_on_surface()) {
-            debug_stream << std::setw(10)
-                         << " -> on surface: " << navigation.barcode();
+            debug_stream << std::setw(10) << " -> on surface: "
+                         << navigation.geometry_identifier();
         } else {
             debug_stream << std::setw(10) << " -> target: "
-                         << navigation.target().surface().barcode();
+                         << navigation.target().surface().identifier();
         }
         debug_stream << std::endl;
         debug_stream << std::setw(10) << " -> path: " << navigation() << " mm"

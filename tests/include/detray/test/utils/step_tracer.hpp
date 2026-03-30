@@ -31,7 +31,7 @@ struct step_data {
     scalar_type path_length{0.f};
     std::size_t n_total_trials{0u};
     navigation::direction nav_dir = navigation::direction::e_forward;
-    geometry::barcode barcode{};
+    geometry::identifier identifier{};
     track_param_type track_params{};
     bound_param_type bound_params{};
     free_matrix_type jacobian{};
@@ -97,7 +97,8 @@ struct step_tracer : public base_actor {
         // If the state has already been collected by the other call operator,
         // update the bound track parameters
         if (!tracer_state.m_steps.empty() &&
-            navigation.barcode() == tracer_state.m_steps.back().barcode) {
+            navigation.geometry_identifier() ==
+                tracer_state.m_steps.back().identifier) {
             tracer_state.m_steps.back().bound_params = res.destination_params();
         } else {
             tracer_state.m_steps.push_back(
@@ -114,14 +115,15 @@ struct step_tracer : public base_actor {
         const auto& navigation = prop_state.navigation();
         const auto& stepping = prop_state.stepping();
 
-        const auto bcd{navigation.is_on_surface() ? navigation.barcode()
-                                                  : geometry::barcode{}};
+        const auto geo_id{navigation.is_on_surface()
+                              ? navigation.geometry_identifier()
+                              : geometry::identifier{}};
 
         return {stepping.step_size(),
                 stepping.path_length(),
                 stepping.n_total_trials(),
                 navigation.direction(),
-                bcd,
+                geo_id,
                 stepping(),
                 bound_param,
                 stepping.transport_jacobian()};

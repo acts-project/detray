@@ -258,7 +258,7 @@ class detector {
     }
 
     /// @returns a surface using a query objetc @param q. This can be an index,
-    /// a barcode or a source link searcher (see @c surface_lookup class)
+    /// a identifier or a source link searcher (see @c surface_lookup class)
     template <typename query_t>
     DETRAY_HOST_DEVICE constexpr decltype(auto) surface(query_t &&q) const {
         return _surfaces.search(std::forward<query_t>(q));
@@ -337,7 +337,7 @@ class detector {
     /// Contains the detector sub-volumes.
     volume_container _volumes;
 
-    /// Lookup for surfaces from barcodes
+    /// Lookup for surfaces from identifiers
     surface_lookup_container _surfaces;
 
     /// Keeps all of the transform data in contiguous memory

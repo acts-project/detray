@@ -119,7 +119,8 @@ DETRAY_HOST_DEVICE tracking_surface(const detector_t &, const descr_t &)
     -> tracking_surface<detector_t>;
 
 template <typename detector_t>
-DETRAY_HOST_DEVICE tracking_surface(const detector_t &, const geometry::barcode)
+DETRAY_HOST_DEVICE tracking_surface(const detector_t &,
+                                    const geometry::identifier)
     -> tracking_surface<detector_t>;
 
 template <typename detector_t>

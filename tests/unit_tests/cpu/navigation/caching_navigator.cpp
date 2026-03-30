@@ -74,8 +74,8 @@ inline void check_on_surface(state_t &state, dindex vol_id,
     ASSERT_TRUE(std::abs(state()) >= 1.f * unit<test::scalar>::um);
     ASSERT_EQ(state.volume(), vol_id);
     ASSERT_EQ(state.n_candidates(), std::min(n_candidates, cache_size - 1));
-    ASSERT_EQ(state.barcode().volume(), vol_id);
-    ASSERT_EQ(state.barcode().index(), current_id);
+    ASSERT_EQ(state.geometry_identifier().volume(), vol_id);
+    ASSERT_EQ(state.geometry_identifier().index(), current_id);
     // points to the next surface now
     ASSERT_EQ(state.next_surface().index(), next_id);
     ASSERT_EQ(state.trust_level(), navigation::trust_level::e_full);

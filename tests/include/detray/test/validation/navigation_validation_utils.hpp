@@ -9,7 +9,7 @@
 
 // Project include(s)
 #include "detray/definitions/track_parametrization.hpp"
-#include "detray/geometry/barcode.hpp"
+#include "detray/geometry/identifier.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/navigation/caching_navigator.hpp"
 #include "detray/propagator/actor_chain.hpp"
@@ -85,11 +85,11 @@ struct surface_stats {
     /// @{
     template <typename sf_descriptor_t>
     bool count(const sf_descriptor_t &sf_desc, const bool verbose = true) {
-        return count(sf_desc.barcode(), verbose);
+        return count(sf_desc.identifier(), verbose);
     }
 
-    bool count(geometry::barcode bcd, const bool verbose = true) {
-        switch (bcd.id()) {
+    bool count(geometry::identifier geo_id, const bool verbose = true) {
+        switch (geo_id.id()) {
             using enum surface_id;
             case e_portal: {
                 n_portals++;
@@ -105,7 +105,7 @@ struct surface_stats {
             }
             default: {
                 if (verbose) {
-                    DETRAY_ERROR_HOST("Surface type unknown " << bcd);
+                    DETRAY_ERROR_HOST("Surface type unknown " << geo_id);
                 }
                 return false;
             }
@@ -424,14 +424,14 @@ auto compare_traces(
         if (next_idx < truth_trace.size() && next_idx < recorded_trace.size()) {
 
             const auto &current_nav_inters =
-                recorded_trace.at(idx_j).intersection.surface().barcode();
+                recorded_trace.at(idx_j).intersection.surface().identifier();
             const auto &current_truth_inters =
-                truth_trace.at(idx_j).intersection.surface().barcode();
+                truth_trace.at(idx_j).intersection.surface().identifier();
 
             const auto &next_nav_inters =
-                recorded_trace.at(next_idx).intersection.surface().barcode();
+                recorded_trace.at(next_idx).intersection.surface().identifier();
             const auto &next_truth_inters =
-                truth_trace.at(next_idx).intersection.surface().barcode();
+                truth_trace.at(next_idx).intersection.surface().identifier();
 
             return ((current_nav_inters == next_truth_inters) &&
                     (next_nav_inters == current_truth_inters));
@@ -451,16 +451,17 @@ auto compare_traces(
         // entry less than the truth trace, the navigator missed the last
         // sensitive surface
         const bool nav_has_next = (idx < recorded_trace.size());
-        detray::geometry::barcode nav_inters{};
+        detray::geometry::identifier nav_inters{};
         if (nav_has_next) {
             nav_inters =
-                recorded_trace.at(idx).intersection.surface().barcode();
+                recorded_trace.at(idx).intersection.surface().identifier();
         }
 
         const bool truth_has_next = (idx < truth_trace.size());
-        detray::geometry::barcode truth_inters{};
+        detray::geometry::identifier truth_inters{};
         if (truth_has_next) {
-            truth_inters = truth_trace.at(idx).intersection.surface().barcode();
+            truth_inters =
+                truth_trace.at(idx).intersection.surface().identifier();
         }
 
         // Check if size of traces is still in sync and records match
@@ -564,18 +565,18 @@ auto compare_traces(
                     i += (n_missed - 1);
                 };
 
-            // Match the barcodes to find how many surfaces were skipped
+            // Match the identifiers to find how many surfaces were skipped
             //
             // If the current nav_inters can be found on the truth trace at a
             // later place, the navigator potentially missed the surfaces that
             // lie in between (except for swapped portals)
             auto search_nav_on_truth = [nav_inters](const truth_record_t &tr) {
-                return tr.intersection.surface().barcode() == nav_inters;
+                return tr.intersection.surface().identifier() == nav_inters;
             };
             // As above, but this time check if the navigator found additional
             // surfaces
             auto search_truth_on_nav = [truth_inters](const nav_record_t &nr) {
-                return nr.intersection.surface().barcode() == truth_inters;
+                return nr.intersection.surface().identifier() == truth_inters;
             };
 
             // Check if the portal order is swapped or the surface appears
@@ -820,15 +821,15 @@ auto compare_traces(
             const auto truth_desc{truth_trace.at(i).intersection.surface()};
             const auto nav_desc{recorded_trace.at(i).intersection.surface()};
 
-            if (truth_desc.barcode().is_invalid()) {
+            if (truth_desc.identifier().is_invalid()) {
                 n_miss_truth++;
             }
-            if (nav_desc.barcode().is_invalid()) {
+            if (nav_desc.identifier().is_invalid()) {
                 n_miss_nav++;
             }
-            if (truth_desc.barcode() != nav_desc.barcode() &&
-                !(truth_desc.barcode().is_invalid() ||
-                  nav_desc.barcode().is_invalid())) {
+            if (truth_desc.identifier() != nav_desc.identifier() &&
+                !(truth_desc.identifier().is_invalid() ||
+                  nav_desc.identifier().is_invalid())) {
 
                 // Swapped in trace, possibly due to overlaps
                 if (!is_swapped_surfaces(static_cast<long>(i))) {
@@ -944,7 +945,7 @@ auto write_dist_to_boundary(
 
             const auto &track = entry.first;
             const auto sf =
-                geometry::surface{det, missed_sfi.surface().barcode()};
+                geometry::surface{det, missed_sfi.surface().identifier()};
             const auto vol = tracking_volume{det, sf.volume()};
 
             const auto dist = sf.template visit_mask<min_dist_to_boundary>(

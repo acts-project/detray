@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2024 CERN for the benefit of the ACTS project
+ * (c) 2022-2026 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -12,7 +12,7 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/pdg_particle.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/geometry/barcode.hpp"
+#include "detray/geometry/identifier.hpp"
 #include "detray/geometry/tracking_surface.hpp"
 #include "detray/propagator/constrained_step.hpp"
 #include "detray/propagator/detail/print_stepper_state.hpp"

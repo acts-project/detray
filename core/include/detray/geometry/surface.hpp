@@ -12,8 +12,8 @@
 #include "detray/definitions/geometry.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/math.hpp"
-#include "detray/geometry/barcode.hpp"
 #include "detray/geometry/detail/surface_kernels.hpp"
+#include "detray/geometry/identifier.hpp"
 #include "detray/material/material.hpp"
 #include "detray/utils/ranges/ranges.hpp"
 
@@ -55,16 +55,16 @@ class surface {
     DETRAY_HOST_DEVICE
     constexpr surface(const detector_t &det, const descr_t &desc)
         : m_detector{det}, m_desc{desc} {
-        assert(!m_desc.barcode().is_invalid());
+        assert(!m_desc.identifier().is_invalid());
         assert(m_desc.index() < det.surfaces().size());
         assert(m_desc.transform() < det.transform_store().size());
     }
 
-    /// Constructor from detector @param det and barcode @param bcd in
+    /// Constructor from detector @param det and identifier @param geo_id in
     /// that detector.
     DETRAY_HOST_DEVICE
-    constexpr surface(const detector_t &det, const geometry::barcode bcd)
-        : surface(det, det.surface(bcd)) {}
+    constexpr surface(const detector_t &det, const geometry::identifier geo_id)
+        : surface(det, det.surface(geo_id)) {}
 
     /// Constructor from detector @param det and surface index @param sf_idx
     DETRAY_HOST_DEVICE
@@ -86,37 +86,37 @@ class surface {
         return (&m_detector == &(rhs.m_detector) && m_desc == rhs.m_desc);
     }
 
-    /// @returns the surface barcode
+    /// @returns the surface identifier
     DETRAY_HOST_DEVICE
-    constexpr auto barcode() const -> geometry::barcode {
-        assert(!m_desc.barcode().is_invalid());
-        return m_desc.barcode();
+    constexpr auto identifier() const -> geometry::identifier {
+        assert(!m_desc.identifier().is_invalid());
+        return m_desc.identifier();
     }
 
     /// @returns the index of the mother volume
     DETRAY_HOST_DEVICE
     constexpr auto volume() const -> dindex {
-        assert(barcode().volume() < m_detector.volumes().size());
-        return barcode().volume();
+        assert(identifier().volume() < m_detector.volumes().size());
+        return identifier().volume();
     }
 
     /// @returns the index of the surface in the detector surface lookup
     DETRAY_HOST_DEVICE
     constexpr auto index() const -> dindex {
-        assert(barcode().index() < m_detector.surfaces().size());
-        return barcode().index();
+        assert(identifier().index() < m_detector.surfaces().size());
+        return identifier().index();
     }
 
     /// @returns the surface id (sensitive, passive or portal)
     DETRAY_HOST_DEVICE
     constexpr auto id() const -> surface_id {
-        assert(barcode().id() != surface_id::e_unknown);
-        return barcode().id();
+        assert(identifier().id() != surface_id::e_unknown);
+        return identifier().id();
     }
 
-    /// @returns the extra bits in the barcode
+    /// @returns the extra bits in the identifier
     DETRAY_HOST_DEVICE
-    constexpr auto extra() const -> dindex { return barcode().extra(); }
+    constexpr auto extra() const -> dindex { return identifier().extra(); }
 
     /// @returns an id for the surface type (e.g. 'rectangle')
     DETRAY_HOST_DEVICE
@@ -125,25 +125,25 @@ class surface {
     /// @returns the surface source link
     DETRAY_HOST_DEVICE
     constexpr auto source() const {
-        return m_detector.surface(barcode()).source;
+        return m_detector.surface(identifier()).source;
     }
 
     /// @returns true if the surface is a senstive detector module.
     DETRAY_HOST_DEVICE
     constexpr auto is_sensitive() const -> bool {
-        return barcode().id() == surface_id::e_sensitive;
+        return identifier().id() == surface_id::e_sensitive;
     }
 
     /// @returns true if the surface is a portal.
     DETRAY_HOST_DEVICE
     constexpr auto is_portal() const -> bool {
-        return barcode().id() == surface_id::e_portal;
+        return identifier().id() == surface_id::e_portal;
     }
 
     /// @returns true if the surface is a passive detector element.
     DETRAY_HOST_DEVICE
     constexpr auto is_passive() const -> bool {
-        return barcode().id() == surface_id::e_passive;
+        return identifier().id() == surface_id::e_passive;
     }
 
     /// @returns true if the surface carries material.
@@ -283,8 +283,8 @@ class surface {
     ///
     /// @returns true if the surface is consistent
     DETRAY_HOST bool self_check(std::ostream &os) const {
-        if (barcode().is_invalid()) {
-            os << "DETRAY ERROR (HOST): Invalid barcode for surface:\n"
+        if (identifier().is_invalid()) {
+            os << "DETRAY ERROR (HOST): Invalid identifier for surface:\n"
                << *this << std::endl;
             return false;
         }
@@ -383,6 +383,6 @@ DETRAY_HOST_DEVICE surface(const detector_t &,
 
 template <typename detector_t>
 DETRAY_HOST_DEVICE surface(const detector_t &,
-                           const geometry::barcode) -> surface<detector_t>;
+                           const geometry::identifier) -> surface<detector_t>;
 
 }  // namespace detray::geometry

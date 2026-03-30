@@ -185,8 +185,8 @@ class caching_navigator
             // Do not add the same surface (intersection) multiple times
             const auto is_clash_at_pos =
                 [this, &new_candidate, &is_overlap_at_pos](std::size_t index) {
-                    return (this->candidates()[index].surface().barcode() ==
-                            new_candidate.surface().barcode()) &&
+                    return (this->candidates()[index].surface().identifier() ==
+                            new_candidate.surface().identifier()) &&
                            is_overlap_at_pos(index);
                 };
 

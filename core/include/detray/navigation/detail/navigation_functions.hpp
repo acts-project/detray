@@ -110,7 +110,7 @@ DETRAY_HOST_DEVICE DETRAY_INLINE constexpr bool update_candidate(
     using scalar_t = dscalar<algebra_t>;
 
     // Invalid intersection result cannot be updated
-    if (candidate.surface().barcode().is_invalid()) [[unlikely]] {
+    if (candidate.surface().identifier().is_invalid()) [[unlikely]] {
         return false;
     }
 

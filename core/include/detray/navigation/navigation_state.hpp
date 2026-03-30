@@ -13,7 +13,7 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/navigation.hpp"
-#include "detray/geometry/barcode.hpp"
+#include "detray/geometry/identifier.hpp"
 #include "detray/geometry/tracking_surface.hpp"
 #include "detray/geometry/tracking_volume.hpp"
 #include "detray/navigation/detail/intersection_kernel.hpp"
@@ -237,14 +237,16 @@ class base_state : public detray::ranges::view_interface<
     DETRAY_HOST_DEVICE
     constexpr auto is_on_sensitive() const -> bool {
         return (m_status == navigation::status::e_on_object) &&
-               (cast_impl().barcode().id() == surface_id::e_sensitive);
+               (cast_impl().geometry_identifier().id() ==
+                surface_id::e_sensitive);
     }
 
     /// Helper method to check the track has reached a passive surface
     DETRAY_HOST_DEVICE
     constexpr auto is_on_passive() const -> bool {
         return (m_status == navigation::status::e_on_object) &&
-               (cast_impl().barcode().id() == surface_id::e_passive);
+               (cast_impl().geometry_identifier().id() ==
+                surface_id::e_passive);
     }
 
     /// Helper method to check the track has reached a portal surface
@@ -318,11 +320,11 @@ class base_state : public detray::ranges::view_interface<
         return m_candidates[static_cast<std::size_t>(m_next)];
     }
 
-    /// @returns barcode of the detector surface the navigator is on
+    /// @returns identifier of the detector surface the navigator is on
     /// (invalid when not on surface) - const
     DETRAY_HOST_DEVICE
-    constexpr auto barcode() const -> geometry::barcode {
-        return cast_impl().current().surface().barcode();
+    constexpr auto geometry_identifier() const -> geometry::identifier {
+        return cast_impl().current().surface().identifier();
     }
 
     /// @returns true if the current candidate lies on the surface edge

@@ -99,7 +99,7 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
 
     // bound track parameter at first physical plane
     const bound_track_parameters<test_algebra> bound_param(
-        det.surface(0u).barcode(), bound_vector, bound_cov);
+        det.surface(0u).identifier(), bound_vector, bound_cov);
 
     pathlimit_aborter_t::state aborter_state{};
     actor::parameter_updater_state<test_algebra> updater_state{prop_cfg,
@@ -225,7 +225,7 @@ GTEST_TEST(detray_material, telescope_geometry_scattering_angle) {
 
     // bound track parameter
     const bound_track_parameters<test_algebra> bound_param(
-        det.surface(0u).barcode(), bound_vector, bound_cov);
+        det.surface(0u).identifier(), bound_vector, bound_cov);
 
     std::size_t n_samples{100000u};
     std::vector<scalar> phis;
@@ -337,7 +337,7 @@ GTEST_TEST(detray_material, telescope_geometry_volume_material) {
 
         // bound track parameter at first physical plane
         const bound_track_parameters<test_algebra> bound_param(
-            det.surface(0u).barcode(), bound_vector, bound_cov);
+            det.surface(0u).identifier(), bound_vector, bound_cov);
 
         using navigator_t = caching_navigator<decltype(det), cache_size,
                                               navigation::print_inspector>;

@@ -220,11 +220,11 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
         }
 
         EXPECT_NEAR(global[0], expected_points[i][0], 1e-3f)
-            << " at point " << i << ": surface " << sf_desc.barcode();
+            << " at point " << i << ": surface " << sf_desc.identifier();
         EXPECT_NEAR(global[1], expected_points[i][1], 1e-3f)
-            << " at point " << i << ": surface " << sf_desc.barcode();
+            << " at point " << i << ": surface " << sf_desc.identifier();
         EXPECT_NEAR(global[2], expected_points[i][2], 1e-3f)
-            << " at point " << i << ": surface " << sf_desc.barcode();
+            << " at point " << i << ": surface " << sf_desc.identifier();
     }
 
     // Update kernel

@@ -97,7 +97,7 @@ struct surface_checker {
         // Check that the same surface is registered in the detector surface
         // lookup
         const auto sf_from_lkp =
-            geometry::surface{det, det.surface(sf.barcode())};
+            geometry::surface{det, det.surface(sf.identifier())};
         if (sf_from_lkp != sf) {
             err_stream << "Surfaces in volume and detector lookups "
                        << "differ:\n In volume: " << vol

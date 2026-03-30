@@ -386,10 +386,10 @@ class navigation_validation : public test::fixture_base<> {
                 const auto rec_desc = recorded_trace[j].intersection.surface();
 
                 // Exclude dummy records for missing surfaces
-                if (!truth_desc.barcode().is_invalid()) {
+                if (!truth_desc.identifier().is_invalid()) {
                     n_truth.count(truth_desc);
                 }
-                if (!rec_desc.barcode().is_invalid()) {
+                if (!rec_desc.identifier().is_invalid()) {
                     n_nav.count(rec_desc);
                 }
             }
