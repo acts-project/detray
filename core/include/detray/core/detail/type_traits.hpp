@@ -8,9 +8,9 @@
 #pragma once
 
 // Project include(s)
-#include "detray/materials/concepts.hpp"
-#include "detray/materials/material_rod.hpp"
-#include "detray/materials/material_slab.hpp"
+#include "detray/material/concepts.hpp"
+#include "detray/material/material_rod.hpp"
+#include "detray/material/material_slab.hpp"
 #include "detray/navigation/accelerators/concepts.hpp"
 #include "detray/utils/grid/detail/concepts.hpp"
 #include "detray/utils/type_registry.hpp"

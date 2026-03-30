@@ -14,7 +14,6 @@
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/barcode.hpp"
 #include "detray/geometry/tracking_surface.hpp"
-#include "detray/materials/material.hpp"
 #include "detray/propagator/constrained_step.hpp"
 #include "detray/propagator/detail/print_stepper_state.hpp"
 #include "detray/propagator/stepping_config.hpp"

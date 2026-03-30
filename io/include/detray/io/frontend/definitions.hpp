@@ -11,9 +11,9 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/geometry/coordinates/coordinates.hpp"
 #include "detray/geometry/shapes.hpp"
-#include "detray/materials/material_map.hpp"
-#include "detray/materials/material_rod.hpp"
-#include "detray/materials/material_slab.hpp"
+#include "detray/material/material_map.hpp"
+#include "detray/material/material_rod.hpp"
+#include "detray/material/material_slab.hpp"
 #include "detray/utils/type_registry.hpp"
 
 // System include(s)

@@ -18,7 +18,7 @@
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/telescope_metadata.hpp"
 #include "detray/geometry/mask.hpp"
-#include "detray/materials/predefined_materials.hpp"
+#include "detray/material/predefined_materials.hpp"
 #include "detray/tracks/trajectories.hpp"
 #include "detray/utils/consistency_checker.hpp"
 #include "detray/utils/print_detector.hpp"

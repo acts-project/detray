@@ -12,7 +12,7 @@
 #include "detray/builders/surface_factory.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/geometry/shapes/unmasked.hpp"
-#include "detray/materials/material.hpp"
+#include "detray/material/material.hpp"
 #include "detray/utils/logging.hpp"
 #include "detray/utils/ranges.hpp"
 

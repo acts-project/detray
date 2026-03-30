@@ -12,7 +12,7 @@
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/geometry/shapes/unmasked.hpp"
-#include "detray/materials/material.hpp"
+#include "detray/material/material.hpp"
 #include "detray/utils/logging.hpp"
 #include "detray/utils/ranges.hpp"
 
@@ -44,7 +44,7 @@ class material_data {
     /// Construct from a predefined material
     ///
     /// @param mat predefined material, see
-    ///            'detray/materials/predefined_materials.hpp'
+    ///            'detray/material/predefined_materials.hpp'
     /// @param thickness of the material slab/rod
     /// @param sf_idx the index of the surface this material belongs to, needs
     ///               to be passed only if a special oredering must be observed
@@ -90,7 +90,7 @@ class material_data {
     ///
     /// @param thickness of the material slab/rod
     /// @param mat predefined material, see
-    ///            'detray/materials/predefined_materials.hpp'
+    ///            'detray/material/predefined_materials.hpp'
     DETRAY_HOST
     void append(const scalar_t thickness, const material<scalar_t> &mat) {
         m_mat.push_back(mat);

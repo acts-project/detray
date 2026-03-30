@@ -15,7 +15,7 @@
 #include "detray/builders/volume_builder_interface.hpp"
 #include "detray/geometry/concepts.hpp"
 #include "detray/geometry/surface.hpp"
-#include "detray/materials/material_map.hpp"
+#include "detray/material/material_map.hpp"
 
 // System include(s)
 #include <cassert>

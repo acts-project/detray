@@ -13,7 +13,7 @@
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/pdg_particle.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/materials/detail/relativistic_quantities.hpp"
+#include "detray/material/detail/relativistic_quantities.hpp"
 
 namespace detray {
 

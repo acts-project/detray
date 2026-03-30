@@ -9,7 +9,7 @@
 
 // Detray include(s)
 #include "detray/definitions/algebra.hpp"
-#include "detray/materials/material.hpp"
+#include "detray/material/material.hpp"
 #include "detray/utils/ratio.hpp"
 
 // System include(s)

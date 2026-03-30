@@ -10,7 +10,7 @@
 // Project include(s)
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/indexing.hpp"
-#include "detray/materials/predefined_materials.hpp"
+#include "detray/material/predefined_materials.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>

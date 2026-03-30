@@ -9,8 +9,8 @@
 
 // Project include(s)
 #include "detray/definitions/algebra.hpp"
-#include "detray/materials/concepts.hpp"
-#include "detray/materials/detail/material_accessor.hpp"
+#include "detray/material/concepts.hpp"
+#include "detray/material/detail/material_accessor.hpp"
 #include "detray/navigation/caching_navigator.hpp"
 #include "detray/navigation/detail/print_state.hpp"
 #include "detray/propagator/actors.hpp"

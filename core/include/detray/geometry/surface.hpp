@@ -14,7 +14,7 @@
 #include "detray/definitions/math.hpp"
 #include "detray/geometry/barcode.hpp"
 #include "detray/geometry/detail/surface_kernels.hpp"
-#include "detray/materials/material.hpp"
+#include "detray/material/material.hpp"
 #include "detray/utils/ranges/ranges.hpp"
 
 // System include(s)

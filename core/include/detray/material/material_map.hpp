@@ -12,7 +12,7 @@
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/geometry/concepts.hpp"
-#include "detray/materials/material_slab.hpp"
+#include "detray/material/material_slab.hpp"
 #include "detray/utils/grid/detail/axis_helpers.hpp"
 #include "detray/utils/grid/detail/concepts.hpp"
 #include "detray/utils/grid/detail/grid_bins.hpp"

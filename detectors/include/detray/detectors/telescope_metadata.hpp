@@ -16,8 +16,8 @@
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes.hpp"
 #include "detray/geometry/surface_descriptor.hpp"
-#include "detray/materials/material_rod.hpp"
-#include "detray/materials/material_slab.hpp"
+#include "detray/material/material_rod.hpp"
+#include "detray/material/material_slab.hpp"
 #include "detray/navigation/accelerators/brute_force.hpp"
 
 namespace detray {

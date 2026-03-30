@@ -9,7 +9,7 @@
 
 // Project include(s)
 #include "detray/definitions/algebra.hpp"
-#include "detray/materials/material_slab.hpp"
+#include "detray/material/material_slab.hpp"
 #include "detray/utils/consistency_checker.hpp"
 
 // Detray test include(s)

@@ -10,7 +10,7 @@
 // Project include(s)
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/materials/material.hpp"
+#include "detray/material/material.hpp"
 
 // System include(s)
 #include <limits>

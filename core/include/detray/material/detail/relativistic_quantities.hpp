@@ -13,7 +13,7 @@
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/pdg_particle.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/materials/material.hpp"
+#include "detray/material/material.hpp"
 
 // System include(s)
 #include <cassert>
