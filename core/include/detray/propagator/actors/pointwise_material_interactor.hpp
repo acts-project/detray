@@ -93,6 +93,18 @@ struct pointwise_material_interactor : public base_actor {
 
                 const scalar_type qop = bound_params.qop();
 
+                // Set to exactly zero if the particle is not charged
+                if (qop == 0.f) {
+
+                    // TODO: Implement interactions for neutral particles here
+
+                    DETRAY_DEBUG_HOST_DEVICE(
+                        "Currently no interactions for neutral particles "
+                        "implemented: skipping");
+
+                    return false;
+                }
+
                 const scalar_type path_segment{
                     mat.path_segment(cos_inc_angle, approach)};
 
