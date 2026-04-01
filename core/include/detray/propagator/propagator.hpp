@@ -271,12 +271,17 @@ struct propagator {
 
         DETRAY_VERBOSE_HOST("Starting propagation for track:\n" << track);
 
-        // Initialize the navigation
-        DETRAY_VERBOSE_HOST("Initialize navigation...");
-        m_navigator.init(track, navigation, m_cfg.navigation, context);
-        propagation.heartbeat(navigation.is_alive());
+        bool is_init = false;
+        if (this->is_paused(propagation)) {
+            DETRAY_VERBOSE_HOST("Resuming propagation...");
+        } else {
+            // Initialize the navigation
+            DETRAY_VERBOSE_HOST("Initialize navigation...");
+            m_navigator.init(track, navigation, m_cfg.navigation, context);
+            propagation.heartbeat(navigation.is_alive());
 
-        bool is_init = true;
+            is_init = true;
+        }
 
         // Run while there is a heartbeat. In order to help the compiler
         // optimize this, and in order to make the code more GPU-friendly,

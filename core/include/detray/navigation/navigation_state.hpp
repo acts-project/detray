@@ -170,7 +170,7 @@ class base_state : public detray::ranges::view_interface<
     /// @returns the navigation heartbeat (is this stream still being updated?)
     DETRAY_HOST_DEVICE
     constexpr bool is_alive() const {
-        return cast_impl().status() > navigation::status::e_exit;
+        return cast_impl().status() > navigation::status::e_unknown;
     }
 
     /// @returns current navigation direction - const
