@@ -49,7 +49,7 @@ struct material_printer {
     DETRAY_HOST void operator()(const material_coll_t &material_coll,
                                 const index_t idx,
                                 std::stringstream &os) const {
-        os << material_coll[idx];
+        os << material_coll[idx] << std::endl;
     }
 };
 
@@ -95,7 +95,7 @@ DETRAY_HOST inline std::string print_detector(
 
             // Check the surface material, if present
             if (sf.has_material()) {
-                debug_stream << "[>>>>] Surface material:" << std::endl;
+                debug_stream << "[>>>>] Surface material: ";
                 sf.template visit_material<detail::material_printer>(
                     debug_stream);
             }

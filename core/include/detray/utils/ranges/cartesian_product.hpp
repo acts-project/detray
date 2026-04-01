@@ -34,12 +34,11 @@ template <detray::ranges::range... range_ts>
 struct cartesian_product_view : public detray::ranges::view_interface<
                                     cartesian_product_view<range_ts...>> {
 
-    using iterator_coll_t =
-        detray::tuple<detray::ranges::iterator_t<range_ts>...>;
+    using iterator_coll_t = dtuple<detray::ranges::iterator_t<range_ts>...>;
     using iterator_t = detray::ranges::detail::cartesian_product_iterator<
         detray::ranges::iterator_t<range_ts>...>;
-    using value_type = detray::tuple<
-        std::iter_reference_t<detray::ranges::iterator_t<range_ts>>...>;
+    using value_type =
+        dtuple<std::iter_reference_t<detray::ranges::iterator_t<range_ts>>...>;
 
     /// Default constructor
     constexpr cartesian_product_view() = default;
@@ -132,8 +131,8 @@ struct cartesian_product_iterator {
 
     /// Construct from a collection of @param begin and @param end positions
     DETRAY_HOST_DEVICE
-    constexpr cartesian_product_iterator(detray::tuple<iterator_ts...> begins,
-                                         detray::tuple<iterator_ts...> ends)
+    constexpr cartesian_product_iterator(dtuple<iterator_ts...> begins,
+                                         dtuple<iterator_ts...> ends)
         : m_begins(begins), m_ends(ends), m_itrs(begins) {}
 
     /// @returns true if the last range iterators are equal.
@@ -225,10 +224,10 @@ struct cartesian_product_iterator {
     }
 
     /// Global range collection of begin and end iterators
-    detray::tuple<iterator_ts...> m_begins;
-    detray::tuple<iterator_ts...> m_ends;
+    dtuple<iterator_ts...> m_begins;
+    dtuple<iterator_ts...> m_ends;
     /// Current iterator states
-    detray::tuple<iterator_ts...> m_itrs;
+    dtuple<iterator_ts...> m_itrs;
 };
 
 }  // namespace detail

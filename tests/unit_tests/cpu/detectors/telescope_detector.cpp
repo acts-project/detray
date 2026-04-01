@@ -49,15 +49,18 @@ template <typename stepping_t, typename navigation_t>
 struct prop_state {
     using context_t = typename navigation_t::detector_type::geometry_context;
 
-    stepping_t _stepping;
-    navigation_t _navigation;
-    context_t _context;
-
     template <typename track_t, typename field_type>
     prop_state(const track_t &t_in, const field_type &field,
                const typename navigation_t::detector_type &det,
                const context_t &ctx = {})
-        : _stepping(t_in, field), _navigation(det), _context(ctx) {}
+        : m_stepping(t_in, field), m_navigation(det), m_context(ctx) {}
+
+    constexpr navigation_t &navigation() { return m_navigation; }
+    constexpr stepping_t &stepping() { return m_stepping; }
+
+    stepping_t m_stepping;
+    navigation_t m_navigation;
+    context_t m_context;
 };
 
 inline constexpr bool verbose_check = true;
@@ -197,13 +200,13 @@ GTEST_TEST(detray_detectors, telescope_detector) {
     prop_state<stepping_state_t, navigation_state_t> propgation_x(
         test_track_x, b_field_x_view, x_tel_det);
 
-    stepping_state_t &stepping_z1 = propgation_z1._stepping;
-    stepping_state_t &stepping_z2 = propgation_z2._stepping;
-    stepping_state_t &stepping_x = propgation_x._stepping;
+    stepping_state_t &stepping_z1 = propgation_z1.stepping();
+    stepping_state_t &stepping_z2 = propgation_z2.stepping();
+    stepping_state_t &stepping_x = propgation_x.stepping();
 
-    navigation_state_t &navigation_z1 = propgation_z1._navigation;
-    navigation_state_t &navigation_z2 = propgation_z2._navigation;
-    navigation_state_t &navigation_x = propgation_x._navigation;
+    navigation_state_t &navigation_z1 = propgation_z1.navigation();
+    navigation_state_t &navigation_z2 = propgation_z2.navigation();
+    navigation_state_t &navigation_x = propgation_x.navigation();
 
     // propagate all telescopes
     navigator_z1.init(stepping_z1(), navigation_z1, prop_cfg.navigation,
@@ -307,8 +310,8 @@ GTEST_TEST(detray_detectors, telescope_detector) {
 
     prop_state<stepping_state_t, navigation_state_t> tel_propagation(
         pilot_track, b_field_z_view, tel_detector);
-    navigation_state_t &tel_navigation = tel_propagation._navigation;
-    stepping_state_t &tel_stepping = tel_propagation._stepping;
+    navigation_state_t &tel_navigation = tel_propagation.navigation();
+    stepping_state_t &tel_stepping = tel_propagation.stepping();
 
     // run propagation
     tel_navigator.init(tel_stepping(), tel_navigation, prop_cfg.navigation,

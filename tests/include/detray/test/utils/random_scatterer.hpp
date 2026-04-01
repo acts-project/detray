@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2024 CERN for the benefit of the ACTS project
+ * (c) 2022-2026 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -16,6 +16,7 @@
 #include "detray/materials/concepts.hpp"
 #include "detray/materials/detail/material_accessor.hpp"
 #include "detray/materials/interaction.hpp"
+#include "detray/propagator/actors/parameter_updater.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/tracks/bound_track_parameters.hpp"
 #include "detray/utils/axis_rotation.hpp"
@@ -29,10 +30,10 @@
 // System include(s).
 #include <random>
 
-namespace detray {
+namespace detray::actor {
 
 template <concepts::algebra algebra_t>
-struct random_scatterer : actor {
+struct random_scatterer : public base_actor {
 
     using scalar_type = dscalar<algebra_t>;
     using vector3_type = dvector3D<algebra_t>;
@@ -128,8 +129,9 @@ struct random_scatterer : actor {
     };
 
     template <typename propagator_state_t>
-    DETRAY_HOST inline void operator()(state& simulator_state,
-                                       propagator_state_t& prop_state) const {
+    DETRAY_HOST inline void operator()(
+        state& simulator_state, propagator_state_t& prop_state,
+        parameter_transporter_result<algebra_t>& res) const {
 
         // @Todo: Make context part of propagation state
         using detector_type = typename propagator_state_t::detector_type;
@@ -143,7 +145,7 @@ struct random_scatterer : actor {
 
         auto& stepping = prop_state.stepping();
         const auto& ptc = stepping.particle_hypothesis();
-        auto& bound_params = stepping.bound_params();
+        auto& bound_params = res.destination_params();
         const auto sf = navigation.current_surface();
         const scalar_type cos_inc_angle{cos_angle(geo_context_type{}, sf,
                                                   bound_params.dir(),
@@ -169,8 +171,10 @@ struct random_scatterer : actor {
                 simulator_state.generator);
 
             // Update Phi and Theta
-            stepping.bound_params().set_phi(vector::phi(new_dir));
-            stepping.bound_params().set_theta(vector::theta(new_dir));
+            bound_params.set_phi(vector::phi(new_dir));
+            bound_params.set_theta(vector::theta(new_dir));
+            // Signal parameter update
+            res.status = actor::status::e_success;
 
             // Flag renavigation of the current candidate
             prop_state.navigation().set_high_trust();
@@ -223,4 +227,4 @@ struct random_scatterer : actor {
     }
 };
 
-}  // namespace detray
+}  // namespace detray::actor

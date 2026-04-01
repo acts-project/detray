@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/builders/detector_builder.hpp"
 #include "detray/builders/material_map_builder.hpp"
+#include "detray/geometry/concepts.hpp"
 #include "detray/io/backend/detail/basic_converter.hpp"
 #include "detray/io/backend/detail/type_info.hpp"
 #include "detray/io/backend/homogeneous_material_reader.hpp"

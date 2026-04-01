@@ -38,11 +38,12 @@ class actor_chain {
     using actor_tuple = dtuple<actors_t...>;
 
     // Tuple of actor states (including states of observing actors, if present)
-    using state_tuple = detail::tuple_cat_t<detail::state_tuple_t<actors_t>...>;
+    using state_tuple = detail::unique_t<
+        detail::tuple_cat_t<detail::state_tuple_t<actors_t>...>>;
 
     // Tuple of state references that is used in the propagator
-    using state_ref_tuple =
-        detail::tuple_cat_t<detail::state_ref_tuple_t<actors_t>...>;
+    using state_ref_tuple = detail::unique_t<
+        detail::tuple_cat_t<detail::state_ref_tuple_t<actors_t>...>>;
 
     /// Call all actors in the chain.
     ///
@@ -63,10 +64,11 @@ class actor_chain {
     /// @returns a tuple of default constructible actor states
     DETRAY_HOST_DEVICE
     static constexpr auto make_default_actor_states() {
-        // Only possible if each state is default initializable
-        if constexpr ((std::default_initializable<typename actors_t::state> &&
-                       ...)) {
-            return state_tuple{};
+        // Only possible if each state is default initializable (including
+        // obsevers to the actors in actors_t)
+        if constexpr (detail::tuple_all_v<std::is_default_constructible,
+                                          state_tuple>) {
+            return state_tuple();
         } else {
             return std::nullopt;
         }
@@ -93,7 +95,7 @@ class actor_chain {
         if constexpr (!typename actor_t::is_comp_actor()) {
             // No actor state defined (empty)
             if constexpr (std::same_as<typename actor_t::state,
-                                       detray::actor::state>) {
+                                       detray::base_actor::state>) {
                 actr(p_state);
             } else {
                 actr(detail::get<typename actor_t::state &>(states), p_state);

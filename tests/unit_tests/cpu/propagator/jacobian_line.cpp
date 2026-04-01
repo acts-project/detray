@@ -91,7 +91,7 @@ GTEST_TEST(detray_propagator, jacobian_line2D_case1) {
     }
 }
 
-GTEST_TEST(detray_coordinates, jacobian_line2D_case2) {
+GTEST_TEST(detray_propagator, jacobian_line2D_case2) {
 
     using jac_engine = detail::jacobian_engine<test_algebra>;
     using frame_type = line2D<test_algebra>;

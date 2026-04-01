@@ -104,7 +104,7 @@ GTEST_TEST(detray_simulation, angle_update) {
     // variance of samples taken by random scattering
 
     // Update the bound covariance with projected scattering angle
-    pointwise_material_interactor<test_algebra>().update_angle_variance(
+    actor::pointwise_material_interactor<test_algebra>().update_angle_variance(
         bound_cov, dir, projected_scattering_angle);
 
     // Get the samples of phi and theta after the random scattering
@@ -112,7 +112,7 @@ GTEST_TEST(detray_simulation, angle_update) {
     std::vector<scalar> thetas;
     std::size_t n_samples{100000u};
     for (std::size_t i = 0u; i < n_samples; i++) {
-        const auto new_dir = random_scatterer<test_algebra>().scatter(
+        const auto new_dir = actor::random_scatterer<test_algebra>().scatter(
             dir, projected_scattering_angle, generator);
         phis.push_back(vector::phi(new_dir));
         thetas.push_back(vector::theta(new_dir));

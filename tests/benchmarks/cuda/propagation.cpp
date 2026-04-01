@@ -109,12 +109,12 @@ int main(int argc, char** argv) {
 
     dtuple<> empty_state{};
 
-    parameter_transporter<bench_algebra>::state transporter_state{};
-    pointwise_material_interactor<bench_algebra>::state interactor_state{};
-    parameter_resetter<bench_algebra>::state resetter_state{prop_cfg};
+    actor::parameter_updater_state<bench_algebra> updater_state{prop_cfg};
+    actor::pointwise_material_interactor<bench_algebra>::state
+        interactor_state{};
 
-    auto actor_states = detail::make_tuple<dtuple>(
-        transporter_state, interactor_state, resetter_state);
+    auto actor_states =
+        detail::make_tuple<dtuple>(updater_state, interactor_state);
 
     //
     // Register benchmarks
