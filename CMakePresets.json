@@ -33,13 +33,14 @@
          "inherits": [ "default-fp32" ],
          "cacheVariables": {
             "DETRAY_BUILD_TESTING": "TRUE",
-            "DETRAY_SETUP_EIGEN": "TRUE",
-            "DETRAY_SETUP_FASTOR": "TRUE",
-            "DETRAY_SETUP_VC": "TRUE",
-            "DETRAY_SETUP_ACTSVG": "TRUE",
-            "DETRAY_SETUP_BENCHMARK": "TRUE",
-            "DETRAY_SETUP_COVFIE": "TRUE",
-            "DETRAY_SETUP_NLOHMANN": "TRUE"
+            "DETRAY_BUILD_BENCHMARKS": "TRUE",
+            "DETRAY_BUILD_UNITTESTS": "TRUE",
+            "DETRAY_BUILD_INTEGRATIONTESTS": "TRUE",
+            "DETRAY_EIGEN_PLUGIN": "TRUE",
+            "DETRAY_VC_AOS_PLUGIN": "TRUE",
+            "DETRAY_VC_SOA_PLUGIN": "TRUE",
+            "DETRAY_SVG_DISPLAY": "TRUE",
+            "DETRAY_FAIL_ON_WARNINGS": "TRUE"
          }
       },
       {
@@ -53,19 +54,13 @@
       {
          "name": "full-fp32",
          "displayName": "FP32 Developer Configuration: Full Build",
-         "inherits": [ "default-fp32" ],
+         "inherits": [ "dev-fp32" ],
          "cacheVariables": {
             "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-            "DETRAY_EIGEN_PLUGIN"   : "TRUE",
-            "DETRAY_FASTOR_PLUGIN"  : "TRUE",
-            "DETRAY_VC_AOS_PLUGIN"  : "TRUE",
-            "DETRAY_VC_SOA_PLUGIN"  : "TRUE",
-            "DETRAY_SMATRIX_PLUGIN" : "TRUE",
-            "DETRAY_BUILD_UNITTESTS": "TRUE",
-            "DETRAY_BUILD_INTEGRATIONTESTS": "TRUE",
             "DETRAY_BUILD_TUTORIALS": "TRUE",
-            "DETRAY_BUILD_BENCHMARKS": "TRUE",
-            "DETRAY_BUILD_CLI_TOOLS": "TRUE"
+            "DETRAY_BUILD_CLI_TOOLS": "TRUE",
+            "DETRAY_FASTOR_PLUGIN"  : "TRUE",
+            "DETRAY_SMATRIX_PLUGIN" : "TRUE"
          }
       },
       {
@@ -79,55 +74,47 @@
       {
          "name" : "cuda",
          "displayName" : "CUDA Developer Configuration",
-         "inherits" : [ "default-fp32" ],
+         "inherits" : [ "dev-fp32" ],
          "cacheVariables" : {
             "DETRAY_BUILD_CUDA"     : "TRUE",
-            "DETRAY_FASTOR_PLUGIN"  : "FALSE",
             "DETRAY_VC_AOS_PLUGIN"  : "FALSE",
-            "DETRAY_VC_SOA_PLUGIN"  : "FALSE",
-            "DETRAY_SMATRIX_PLUGIN" : "FALSE"
+            "DETRAY_VC_SOA_PLUGIN"  : "FALSE"
          }
       },
       {
          "name" : "sycl",
          "displayName" : "SYCL Developer Configuration",
-         "inherits" : [ "default-fp32" ],
+         "inherits" : [ "dev-fp32" ],
          "cacheVariables" : {
             "DETRAY_BUILD_SYCL"     : "TRUE",
-            "DETRAY_FASTOR_PLUGIN"  : "FALSE",
             "DETRAY_VC_AOS_PLUGIN"  : "FALSE",
-            "DETRAY_VC_SOA_PLUGIN"  : "FALSE",
-            "DETRAY_SMATRIX_PLUGIN" : "FALSE"
+            "DETRAY_VC_SOA_PLUGIN"  : "FALSE"
          }
       },
       {
          "name": "hip-fp32",
          "displayName": "HIP Developer Configuration",
-         "inherits" : [ "default-fp32" ],
+         "inherits" : [ "dev-fp32" ],
          "cacheVariables" : {
             "DETRAY_BUILD_HIP"      : "TRUE",
-            "DETRAY_FASTOR_PLUGIN"  : "FALSE",
             "DETRAY_VC_AOS_PLUGIN"  : "FALSE",
-            "DETRAY_VC_SOA_PLUGIN"  : "FALSE",
-            "DETRAY_SMATRIX_PLUGIN" : "FALSE"
+            "DETRAY_VC_SOA_PLUGIN"  : "FALSE"
          }
       },
             {
          "name": "hip-fp64",
          "displayName": "HIP Developer Configuration",
-         "inherits" : [ "default-fp64" ],
+         "inherits" : [ "dev-fp64" ],
          "cacheVariables" : {
             "DETRAY_BUILD_HIP"      : "TRUE",
-            "DETRAY_FASTOR_PLUGIN"  : "FALSE",
             "DETRAY_VC_AOS_PLUGIN"  : "FALSE",
-            "DETRAY_VC_SOA_PLUGIN"  : "FALSE",
-            "DETRAY_SMATRIX_PLUGIN" : "FALSE"
+            "DETRAY_VC_SOA_PLUGIN"  : "FALSE"
          }
       },
       {
          "name" : "smatrix",
          "displayName" : "SMatrix Developer Configuration",
-         "inherits" : [ "default-fp64" ],
+         "inherits" : [ "dev-fp64" ],
          "cacheVariables" : {
             "DETRAY_SMATRIX_PLUGIN" : "TRUE"
          }
