@@ -34,8 +34,17 @@ if(PROJECT_IS_TOP_LEVEL)
 
     # Make CUDA generate debug symbols for the device code as well in a debug
     # build.
-    detray_add_flag( CMAKE_CUDA_FLAGS_DEBUG "-G -src-in-ptx" )
-    detray_add_flag( CMAKE_CUDA_FLAGS_RELWITHDEBINFO "-lineinfo -src-in-ptx" )
+    detray_add_flag( CMAKE_CUDA_FLAGS_DEBUG "-G" )
+    detray_add_flag( CMAKE_CUDA_FLAGS_RELWITHDEBINFO "-lineinfo" )
+    if(CUDAToolkit_VERSION VERSION_GREATER_EQUAL "12.8")
+        message(
+            STATUS
+            "Disabling C++ source in PTX in order to work around a bug in CUDA 12.8."
+        )
+    else()
+        detray_add_flag( CMAKE_CUDA_FLAGS_DEBUG "-src-in-ptx" )
+        detray_add_flag( CMAKE_CUDA_FLAGS_RELWITHDEBINFO "-src-in-ptx" )
+    endif()
 
     # Fail on warnings, if asked for that behaviour.
     if(DETRAY_FAIL_ON_WARNINGS)
