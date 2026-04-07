@@ -200,7 +200,8 @@ DETRAY_HOST_DEVICE DETRAY_INLINE constexpr void local_navigation(
                                navigation.volume());
 
     // Do not resurrect a failed/finished navigation state
-    assert(navigation.is_alive());
+    assert(navigation.is_alive() ||
+           navigation.status() == navigation::status::e_unknown);
     assert(!track.is_invalid());
 
     const auto &det = navigation.detector();
@@ -231,7 +232,7 @@ DETRAY_HOST_DEVICE DETRAY_INLINE constexpr void local_navigation(
         // Do not exit if backward navigation starts on the outmost portal
         if (navigation.is_on_portal()) {
             DETRAY_DEBUG_HOST_DEVICE(
-                "-> Adjust trust lvl for \"end-of-world\"...");
+                "-> Adjust trust lvl for possible \"end-of-world\"...");
             navigation.trust_level(detray::detail::is_invalid_value(
                                        navigation.current().volume_link())
                                        ? navigation::trust_level::e_full
