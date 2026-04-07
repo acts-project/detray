@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023-2025 CERN for the benefit of the ACTS project
+ * (c) 2023-2026 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -104,8 +104,8 @@ struct get_at {};
 
 template <std::size_t N, typename T, typename... Ts>
 struct get_at<N, list<T, Ts...>> {
-    using type =
-        std::remove_cvref_t<decltype(detray::get<N>(dtuple<T, Ts...>{}))>;
+    using type = std::remove_cvref_t<decltype(detray::get<N>(
+        std::declval<dtuple<T, Ts...>>()))>;
 };
 template <typename L, std::size_t N>
 using at = typename get_at<N, L>::type;

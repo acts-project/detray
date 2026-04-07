@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2024 CERN for the benefit of the ACTS project
+ * (c) 2022-2026 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -234,7 +234,8 @@ TEST(grids_cuda, grid2_complete_populator) {
             // Other point with which the bin has been completed
             const scalar gbin_f{static_cast<scalar>(gbin)};
             const point3 tp{axis_r.min() + gbin_f * width_r,
-                            axis_phi.min() + gbin_f * width_phi, 0.5};
+                            axis_phi.min() + gbin_f * width_phi,
+                            static_cast<scalar>(0.5)};
 
             // Go through all points and compare
             int pt_idx{0};
@@ -312,7 +313,8 @@ TEST(grids_cuda, grid2_attach_populator) {
             // Other point with which the bin has been completed
             const scalar gbin_f{static_cast<scalar>(gbin)};
             const point3 tp{axis_r.min() + gbin_f * width_r,
-                            axis_phi.min() + gbin_f * width_phi, 0.5};
+                            axis_phi.min() + gbin_f * width_phi,
+                            static_cast<scalar>(0.5)};
 
             // Go through all points and compare
             int pt_idx{0};
@@ -422,7 +424,8 @@ TEST(grids_cuda, grid2_dynamic_attach_populator) {
             // Other point with which the bin has been completed
             const scalar gbin_f{static_cast<scalar>(gbin)};
             const point3 tp{axis_r.min() + gbin_f * width_r,
-                            axis_phi.min() + gbin_f * width_phi, 0.5};
+                            axis_phi.min() + gbin_f * width_phi,
+                            static_cast<scalar>(0.5)};
 
             // Go through all points and compare
             int pt_idx{0};
