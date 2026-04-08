@@ -29,7 +29,7 @@
       },
       {
          "name": "dev-fp32",
-         "displayName": "FP32 Developer Configuration: Build all Dependencies",
+         "displayName": "FP32 Developer Configuration: Build main components",
          "inherits": [ "default-fp32" ],
          "cacheVariables": {
             "DETRAY_BUILD_TESTING": "TRUE",
@@ -45,7 +45,7 @@
       },
       {
          "name": "dev-fp64",
-         "displayName": "FP64 Developer Configuration: Build all Dependencies",
+         "displayName": "FP64 Developer Configuration: Build main components",
          "inherits": [ "dev-fp32" ],
          "cacheVariables": {
             "DETRAY_CUSTOM_SCALARTYPE" : "double"
@@ -72,8 +72,8 @@
          }
       },
       {
-         "name" : "cuda",
-         "displayName" : "CUDA Developer Configuration",
+         "name" : "cuda-fp32",
+         "displayName" : "CUDA FP32 Developer Configuration",
          "inherits" : [ "dev-fp32" ],
          "cacheVariables" : {
             "DETRAY_BUILD_CUDA"     : "TRUE",
@@ -82,8 +82,16 @@
          }
       },
       {
-         "name" : "sycl",
-         "displayName" : "SYCL Developer Configuration",
+         "name": "cuda-fp64",
+         "displayName": "CUDA FP64 Developer Configuration",
+         "inherits" : [ "cuda-fp32" ],
+         "cacheVariables" : {
+            "DETRAY_CUSTOM_SCALARTYPE" : "double"
+         }
+      },
+      {
+         "name" : "sycl-fp32",
+         "displayName" : "SYCL FP32 Developer Configuration",
          "inherits" : [ "dev-fp32" ],
          "cacheVariables" : {
             "DETRAY_BUILD_SYCL"     : "TRUE",
@@ -92,8 +100,16 @@
          }
       },
       {
+         "name": "sycl-fp64",
+         "displayName": "SYCL FP64 Developer Configuration",
+         "inherits" : [ "sycl-fp32" ],
+         "cacheVariables" : {
+            "DETRAY_CUSTOM_SCALARTYPE" : "double"
+         }
+      },
+      {
          "name": "hip-fp32",
-         "displayName": "HIP Developer Configuration",
+         "displayName": "HIP FP32 Developer Configuration",
          "inherits" : [ "dev-fp32" ],
          "cacheVariables" : {
             "DETRAY_BUILD_HIP"      : "TRUE",
@@ -101,28 +117,18 @@
             "DETRAY_VC_SOA_PLUGIN"  : "FALSE"
          }
       },
-            {
-         "name": "hip-fp64",
-         "displayName": "HIP Developer Configuration",
-         "inherits" : [ "dev-fp64" ],
-         "cacheVariables" : {
-            "DETRAY_BUILD_HIP"      : "TRUE",
-            "DETRAY_VC_AOS_PLUGIN"  : "FALSE",
-            "DETRAY_VC_SOA_PLUGIN"  : "FALSE"
-         }
-      },
       {
-         "name" : "smatrix",
-         "displayName" : "SMatrix Developer Configuration",
-         "inherits" : [ "dev-fp64" ],
+         "name": "hip-fp64",
+         "displayName": "HIP FP64 Developer Configuration",
+         "inherits" : [ "hip-fp32" ],
          "cacheVariables" : {
-            "DETRAY_SMATRIX_PLUGIN" : "TRUE"
+            "DETRAY_CUSTOM_SCALARTYPE" : "double"
          }
       },
       {
          "name" : "gitlab-cuda-ci",
          "displayName" : "Gitlab CUDA CI Configuration",
-         "inherits" : [ "default-fp32", "cuda" ],
+         "inherits" : [ "default-fp32", "cuda-fp32" ],
          "cacheVariables" : {
             "BUILD_TESTING" : "TRUE",
             "DETRAY_BUILD_HOST" : "FALSE",
@@ -138,7 +144,7 @@
       {
          "name" : "gitlab-sycl-ci",
          "displayName" : "Gitlab SYCL CI Configuration",
-         "inherits" : [ "default-fp32", "sycl" ],
+         "inherits" : [ "default-fp32", "sycl-fp32" ],
          "cacheVariables" : {
             "BUILD_TESTING" : "TRUE",
             "DETRAY_BUILD_HOST" : "FALSE",
