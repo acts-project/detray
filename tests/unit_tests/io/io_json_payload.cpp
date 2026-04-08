@@ -310,10 +310,10 @@ GTEST_TEST(io, json_volume_payload) {
 }
 
 /// This tests the json io for a material slab/rod
-GTEST_TEST(io, json_material_slab_payload) {
+GTEST_TEST(io, json_surface_material_payload) {
 
-    detray::io::material_slab_payload m;
-    m.type = detray::io::material_slab_payload::mat_type::slab;
+    detray::io::surface_material_payload m;
+    m.type = detray::io::surface_material_payload::mat_type::slab;
     m.index_in_coll = 21u;
     m.surface.link = 5u;
     m.thickness = 1.2f;
@@ -322,7 +322,7 @@ GTEST_TEST(io, json_material_slab_payload) {
     nlohmann::ordered_json j;
     j["material"] = m;
 
-    detray::io::material_slab_payload pm = j["material"];
+    detray::io::surface_material_payload pm = j["material"];
 
     EXPECT_EQ(m.type, pm.type);
     EXPECT_EQ(m.index_in_coll, pm.index_in_coll);

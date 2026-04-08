@@ -60,7 +60,8 @@ inline void from_json(const nlohmann::ordered_json& j,
     m.params = j["params"].get<std::array<io::scalar, 7>>();
 }
 
-inline void to_json(nlohmann::ordered_json& j, const material_slab_payload& m) {
+inline void to_json(nlohmann::ordered_json& j,
+                    const surface_material_payload& m) {
     j["type"] = m.type;
     j["surface_idx"] = m.surface;
     j["thickness"] = m.thickness;
@@ -71,7 +72,7 @@ inline void to_json(nlohmann::ordered_json& j, const material_slab_payload& m) {
 }
 
 inline void from_json(const nlohmann::ordered_json& j,
-                      material_slab_payload& m) {
+                      surface_material_payload& m) {
     m.type = j["type"];
     m.surface = j["surface_idx"];
     m.thickness = j["thickness"];
@@ -100,13 +101,13 @@ inline void from_json(const nlohmann::ordered_json& j,
 
     if (j.find("surface_material") != j.end()) {
         for (auto jmats : j["surface_material"]) {
-            material_slab_payload mslp = jmats;
+            surface_material_payload mslp = jmats;
             mv.surface_mat.push_back(mslp);
         }
     } else if (j.find("material_slabs") != j.end()) {
         // TODO: Remove once all files are fixed
         for (auto jmats : j["material_slabs"]) {
-            material_slab_payload mslp = jmats;
+            surface_material_payload mslp = jmats;
             mv.surface_mat.push_back(mslp);
         }
     }

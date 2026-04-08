@@ -129,7 +129,11 @@ struct material_map_config {
                                                   const map_config &cfg) {
         const auto key =
             std::make_pair(static_cast<unsigned int>(map_type), sf_type);
-        m_map_configs.at(key) = cfg;
+        if (!m_map_configs.contains(key)) {
+            m_map_configs.emplace(key, cfg);
+        } else {
+            m_map_configs.at(key) = cfg;
+        }
         return *this;
     }
     /// @}

@@ -199,7 +199,7 @@ struct material_param_payload {
 };
 
 /// @brief A payload object for a material slab/rod
-struct material_slab_payload {
+struct surface_material_payload {
     using mat_type = io::material_id;
 
     /// Either 'slab' or 'rod'
@@ -226,9 +226,9 @@ struct material_volume_payload {
     /// Volume index the payload belongs to
     single_link_payload volume_link{};
     /// Material of the volume
-    std::optional<volume_material_payload> vol_mat;
+    std::optional<volume_material_payload> volume_mat;
     /// Material slabs/rods of contained surfaces
-    std::vector<material_slab_payload> surface_mat{};
+    std::vector<surface_material_payload> surface_mat{};
 };
 
 /// @brief A payload for the homogeneous material description of a detector
@@ -293,7 +293,7 @@ struct grid_bin_payload {
 
 /// @brief A payload for a grid definition
 /// @tparam bin_content_t the value type of the grid, e.g. surface indices or
-/// material_slab_payloads
+/// surface_material_payloads
 /// @tparam grid_id_t grid type enum, e.g. @c accel_id or @c material_id
 template <typename bin_content_t = std::size_t,
           typename grid_id_t = io::accel_id>

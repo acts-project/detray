@@ -120,7 +120,7 @@ class homogeneous_material_reader {
     /// @param slab_data
     template <detray::concepts::scalar scalar_t>
     static material_data<scalar_t> from_payload(
-        const material_slab_payload& slab_data) {
+        const surface_material_payload& slab_data) {
 
         return {static_cast<scalar_t>(slab_data.thickness),
                 from_payload<scalar_t>(slab_data.mat),
