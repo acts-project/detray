@@ -56,10 +56,7 @@
          "inherits": [ "default-fp32" ],
          "cacheVariables": {
             "DETRAY_BUILD_TESTING": "TRUE",
-            "DETRAY_ARRAY_PLUGIN"   : "TRUE",
-            "DETRAY_SETUP_EIGEN3": "TRUE",
-            "DETRAY_SETUP_FASTOR": "FALSE",
-            "DETRAY_SETUP_VC": "FALSE",
+            "DETRAY_ARRAY_PLUGIN": "TRUE",
             "DETRAY_BUILD_UNITTESTS": "TRUE",
             "DETRAY_BUILD_INTEGRATIONTESTS": "TRUE",
             "DETRAY_BUILD_TUTORIALS": "TRUE",
@@ -108,8 +105,6 @@
          "inherits" : [ "dev-fp32" ],
          "cacheVariables" : {
             "DETRAY_BUILD_CUDA"     : "TRUE",
-            "DETRAY_ARRAY_PLUGIN"   : "TRUE",
-            "DETRAY_EIGEN_PLUGIN"   : "FALSE",
             "DETRAY_FASTOR_PLUGIN"  : "FALSE",
             "DETRAY_VC_AOS_PLUGIN"  : "FALSE",
             "DETRAY_VC_SOA_PLUGIN"  : "FALSE",
@@ -122,8 +117,6 @@
          "inherits" : [ "dev-fp32" ],
          "cacheVariables" : {
             "DETRAY_BUILD_SYCL"     : "TRUE",
-            "DETRAY_ARRAY_PLUGIN"   : "TRUE",
-            "DETRAY_EIGEN_PLUGIN"   : "FALSE",
             "DETRAY_FASTOR_PLUGIN"  : "FALSE",
             "DETRAY_VC_AOS_PLUGIN"  : "FALSE",
             "DETRAY_VC_SOA_PLUGIN"  : "FALSE",
@@ -136,8 +129,6 @@
          "inherits" : [ "dev-fp32" ],
          "cacheVariables" : {
             "DETRAY_BUILD_HIP"      : "TRUE",
-            "DETRAY_ARRAY_PLUGIN"   : "TRUE",
-            "DETRAY_EIGEN_PLUGIN"   : "FALSE",
             "DETRAY_FASTOR_PLUGIN"  : "FALSE",
             "DETRAY_VC_AOS_PLUGIN"  : "FALSE",
             "DETRAY_VC_SOA_PLUGIN"  : "FALSE",
