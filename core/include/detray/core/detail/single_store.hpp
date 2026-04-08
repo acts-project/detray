@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2026 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -118,13 +118,17 @@ class single_store {
     /// @returns the collections iterator at the start position
     DETRAY_HOST_DEVICE
     constexpr auto begin(const context_type &ctx = {}) const {
-        return m_container.begin() + ctx.get() * m_context_size;
+        return m_container.begin() +
+               static_cast<std::iter_difference_t<const_iterator>>(
+                   ctx.get() * m_context_size);
     }
 
     /// @returns the collections iterator sentinel
     DETRAY_HOST_DEVICE
     constexpr auto end(const context_type &ctx = {}) const {
-        return m_container.begin() + (ctx.get() + 1) * m_context_size;
+        return m_container.begin() +
+               static_cast<std::iter_difference_t<const_iterator>>(
+                   (ctx.get() + 1) * m_context_size);
     }
 
     /// @returns access to the underlying container - const
