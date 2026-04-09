@@ -9,8 +9,8 @@
 #include "detray/definitions/indexing.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes.hpp"
-#include "detray/materials/concepts.hpp"
-#include "detray/materials/material_map.hpp"
+#include "detray/material/concepts.hpp"
+#include "detray/material/material_map.hpp"
 
 // Detray test include(s)
 #include "detray/test/framework/types.hpp"

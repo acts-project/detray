@@ -12,7 +12,7 @@
 #include "detray/core/detail/container_views.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/indexing.hpp"
-#include "detray/geometry/barcode.hpp"
+#include "detray/geometry/identifier.hpp"
 #include "detray/utils/logging.hpp"
 
 // Vecmem include(s)
@@ -190,11 +190,11 @@ class surface_lookup {
         return m_container[sf_index];
     }
 
-    /// @returns the surface descriptor according to the surface barcode
-    /// @param bcd
+    /// @returns the surface descriptor according to the surface identifier
+    /// @param geo_id
     DETRAY_HOST_DEVICE
-    constexpr decltype(auto) search(geometry::barcode bcd) const {
-        return search(bcd.index());
+    constexpr decltype(auto) search(geometry::identifier geo_id) const {
+        return search(geo_id.index());
     }
 
     /// @returns the surface descriptor according to the searcher passed as

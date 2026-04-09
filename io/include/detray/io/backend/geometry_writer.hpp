@@ -115,7 +115,7 @@ class geometry_writer {
 
         sf_data.index_in_coll = sf_idx;
         sf_data.type = sf.id();
-        sf_data.barcode = sf.barcode().value();
+        sf_data.identifier = sf.identifier().value();
         sf_data.transform = to_payload<detector_t>(sf.transform({}));
         sf_data.masks = sf.template visit_mask<get_mask_link_payload>();
         if (sf.has_material()) {

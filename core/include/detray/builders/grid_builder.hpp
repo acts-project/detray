@@ -223,7 +223,7 @@ class grid_builder : public volume_decorator<detector_t> {
                 const auto &new_sf_desc = det.surface(glob_idx);
 
                 assert(new_sf_desc.index() == glob_idx);
-                assert(!new_sf_desc.barcode().is_invalid());
+                assert(!new_sf_desc.identifier().is_invalid());
 
                 sf_desc = new_sf_desc;
             }

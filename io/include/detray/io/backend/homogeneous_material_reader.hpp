@@ -17,7 +17,7 @@
 #include "detray/io/backend/detail/basic_converter.hpp"
 #include "detray/io/backend/detail/type_info.hpp"
 #include "detray/io/frontend/payloads.hpp"
-#include "detray/materials/material.hpp"
+#include "detray/material/material.hpp"
 
 // System include(s)
 #include <memory>

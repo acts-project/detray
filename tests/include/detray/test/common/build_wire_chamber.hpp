@@ -19,7 +19,7 @@
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/default_metadata.hpp"
 #include "detray/geometry/shapes/line.hpp"
-#include "detray/materials/predefined_materials.hpp"
+#include "detray/material/predefined_materials.hpp"
 #include "detray/utils/consistency_checker.hpp"
 #include "detray/utils/print_detector.hpp"
 

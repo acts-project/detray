@@ -10,8 +10,8 @@
 // Project include(s).
 #include "detray/builders/volume_builder.hpp"
 #include "detray/builders/volume_builder_interface.hpp"
-#include "detray/materials/material.hpp"
-#include "detray/materials/predefined_materials.hpp"
+#include "detray/material/material.hpp"
+#include "detray/material/predefined_materials.hpp"
 #include "detray/utils/ranges.hpp"
 
 // System include(s)

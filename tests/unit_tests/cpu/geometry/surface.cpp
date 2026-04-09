@@ -126,7 +126,7 @@ GTEST_TEST(detray_geometry, surface_toy_detector) {
     const auto disc = geometry::surface{toy_det, disc_descr};
 
     // IDs
-    ASSERT_EQ(disc.barcode(), disc_descr.barcode());
+    ASSERT_EQ(disc.identifier(), disc_descr.identifier());
     ASSERT_EQ(disc.volume(), 0u);
     ASSERT_EQ(disc.index(), 1u);
     ASSERT_EQ(disc.id(), surface_id::e_portal);
@@ -216,7 +216,7 @@ GTEST_TEST(detray_geometry, surface_toy_detector) {
     const auto rec = geometry::surface{toy_det, rec_descr};
 
     // IDs
-    ASSERT_EQ(rec.barcode(), rec_descr.barcode());
+    ASSERT_EQ(rec.identifier(), rec_descr.identifier());
     ASSERT_EQ(rec.volume(), 9u);
     ASSERT_EQ(rec.index(), 586u);
     ASSERT_EQ(rec.id(), surface_id::e_sensitive);
@@ -292,7 +292,7 @@ GTEST_TEST(detray_geometry, surface_toy_detector) {
     const auto cyl = geometry::surface{toy_det, cyl_descr};
 
     // IDs
-    ASSERT_EQ(cyl.barcode(), cyl_descr.barcode());
+    ASSERT_EQ(cyl.identifier(), cyl_descr.identifier());
     ASSERT_EQ(cyl.volume(), 0u);
     ASSERT_EQ(cyl.index(), 3u);
     ASSERT_EQ(cyl.id(), surface_id::e_portal);
@@ -430,7 +430,7 @@ GTEST_TEST(detray_geometry, surface_wire_chamber) {
     const auto line = geometry::surface{wire_chmbr, line_descr};
 
     // IDs
-    ASSERT_EQ(line.barcode(), line_descr.barcode());
+    ASSERT_EQ(line.identifier(), line_descr.identifier());
     ASSERT_EQ(line.volume(), 1u);
     ASSERT_EQ(line.index(), 23u);
     ASSERT_EQ(line.id(), surface_id::e_sensitive);

@@ -7,9 +7,9 @@
 
 // Project include(s).
 #include "detray/definitions/pdg_particle.hpp"
-#include "detray/materials/interaction.hpp"
-#include "detray/materials/material.hpp"
-#include "detray/materials/predefined_materials.hpp"
+#include "detray/material/interaction.hpp"
+#include "detray/material/material.hpp"
+#include "detray/material/predefined_materials.hpp"
 
 // Detray test include(s)
 #include "detray/test/framework/types.hpp"

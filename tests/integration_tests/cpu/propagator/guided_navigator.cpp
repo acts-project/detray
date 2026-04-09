@@ -108,14 +108,15 @@ GTEST_TEST(detray_navigation, guided_navigator) {
         << debug_printer.to_string();
     for (std::size_t i = 0u; i < sf_sequence.size(); ++i) {
         const auto &candidate = obj_tracer[i].intersection;
-        auto bcd = geometry::barcode{};
-        bcd.set_volume(0u).set_index(sf_sequence[i]);
+        auto geo_id = geometry::identifier{};
+        geo_id.set_volume(0u).set_index(sf_sequence[i]);
         // The first transform in the detector belongs to the volume
-        bcd.set_transform(sf_sequence[i] + 1);
-        bcd.set_id((i == 11u) ? surface_id::e_portal : surface_id::e_sensitive);
-        EXPECT_TRUE(candidate.surface().barcode() == bcd)
+        geo_id.set_transform(sf_sequence[i] + 1);
+        geo_id.set_id((i == 11u) ? surface_id::e_portal
+                                 : surface_id::e_sensitive);
+        EXPECT_TRUE(candidate.surface().identifier() == geo_id)
             << "error at intersection on surface:\n"
-            << "Expected: " << bcd
-            << "\nFound: " << candidate.surface().barcode();
+            << "Expected: " << geo_id
+            << "\nFound: " << candidate.surface().identifier();
     }
 }

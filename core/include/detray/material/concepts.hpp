@@ -8,7 +8,7 @@
 #pragma once
 
 // Detray include(s)
-#include "detray/materials/material.hpp"
+#include "detray/material/material.hpp"
 #include "detray/utils/grid/detail/concepts.hpp"
 
 namespace detray::concepts {

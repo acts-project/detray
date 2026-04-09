@@ -12,7 +12,7 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/materials/detail/density_effect_data.hpp"
+#include "detray/material/detail/density_effect_data.hpp"
 #include "detray/utils/invalid_values.hpp"
 #include "detray/utils/type_traits.hpp"
 

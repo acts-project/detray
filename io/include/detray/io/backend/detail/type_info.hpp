@@ -11,7 +11,7 @@
 #include "detray/geometry/concepts.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/io/frontend/definitions.hpp"
-#include "detray/materials/concepts.hpp"
+#include "detray/material/concepts.hpp"
 #include "detray/navigation/accelerators/concepts.hpp"
 #include "detray/utils/type_registry.hpp"
 

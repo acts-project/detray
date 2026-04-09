@@ -92,7 +92,8 @@ inline auto read_intersection2D(const std::string &file_name) {
         inters.set_surface({inters_data.transform_index, mask_link,
                             material_link, dindex_invalid,
                             surface_id::e_unknown});
-        inters.surface().set_barcode(geometry::barcode{inters_data.identifier});
+        inters.surface().set_identifier(
+            geometry::identifier{inters_data.identifier});
         inters.set_local({static_cast<scalar_t>(inters_data.loc_0),
                           static_cast<scalar_t>(inters_data.loc_1), 0.f});
         inters.set_path(static_cast<scalar_t>(inters_data.path));
@@ -149,9 +150,9 @@ inline void write_intersection2D(
             io::csv::intersection2D inters_data{};
 
             inters_data.track_id = track_idx;
-            inters_data.identifier = inters.surface().barcode().value();
+            inters_data.identifier = inters.surface().identifier().value();
             inters_data.type =
-                static_cast<unsigned int>(inters.surface().barcode().id());
+                static_cast<unsigned int>(inters.surface().identifier().id());
             inters_data.transform_index = inters.surface().transform();
             inters_data.mask_id =
                 static_cast<unsigned int>(inters.surface().mask().id());

@@ -14,7 +14,7 @@
 #include "detray/definitions/geometry.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/geometry/detail/volume_kernels.hpp"
-#include "detray/materials/material.hpp"
+#include "detray/material/material.hpp"
 #include "detray/navigation/accelerators/search_window.hpp"
 #include "detray/utils/logging.hpp"
 #include "detray/utils/ranges.hpp"

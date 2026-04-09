@@ -98,7 +98,7 @@ struct surface_sequencer : public base_actor {
         }
 
         const auto& sf_desc = std::as_const(navigation).current().surface();
-        assert(!sf_desc.barcode().is_invalid());
+        assert(!sf_desc.identifier().is_invalid());
 
         actor_state.sequence().push_back(sf_desc);
         DETRAY_VERBOSE_HOST("Added surface: " << sf_desc);

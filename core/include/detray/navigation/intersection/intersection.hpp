@@ -389,7 +389,7 @@ class intersection2D {
     friend std::ostream &operator<<(std::ostream &out_stream,
                                     const intersection2D &is) {
         out_stream << is.m_ip << ", "
-                   << ", surface: " << is.surface().barcode()
+                   << ", surface: " << is.surface().identifier()
                    << ", type: " << static_cast<int>(is.surface().mask().id())
                    << ", links to vol:" << is.volume_link() << ")";
 

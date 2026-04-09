@@ -100,8 +100,8 @@ struct parameter_updater_state {
         m_bound_params.set_covariance(
             matrix::identity<bound_matrix<algebra_t>>());
 
-        // An invalid barcode - should not be used
-        m_bound_params.set_surface_link(geometry::barcode{});
+        // An invalid geometry identifier - should not be used
+        m_bound_params.set_surface_link(geometry::identifier{});
 
         assert(!m_bound_params.is_invalid());
     }
@@ -345,8 +345,8 @@ struct parameter_transporter : base_actor {
                               << departure_params.surface_link());
 
             // There is no need to transport the identical/initial parameters
-            assert(!dest_sf.barcode().is_invalid());
-            if (departure_params.surface_link() == dest_sf.barcode()) {
+            assert(!dest_sf.identifier().is_invalid());
+            if (departure_params.surface_link() == dest_sf.identifier()) {
                 DETRAY_VERBOSE_HOST_DEVICE(
                     "Actor: On initial surface (%d), parameter transport not "
                     "required",
@@ -361,7 +361,7 @@ struct parameter_transporter : base_actor {
             }
 
             DETRAY_DEBUG_HOST(
-                "Actor: Destination surface: " << dest_sf.barcode());
+                "Actor: Destination surface: " << dest_sf.identifier());
             DETRAY_VERBOSE_HOST_DEVICE(
                 "Actor: Transport track covariance to surface %d",
                 dest_sf.index());
@@ -408,7 +408,7 @@ struct parameter_transporter : base_actor {
             dest_sf.free_to_bound_vector(propagation.context(), stepping()));
 
         // Set new surface link
-        res.destination_params().set_surface_link(dest_sf.barcode());
+        res.destination_params().set_surface_link(dest_sf.identifier());
 
         assert(!res.destination_params().is_invalid());
 

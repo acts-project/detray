@@ -40,7 +40,7 @@ struct neighbor_visit_test {
     DETRAY_HOST_DEVICE void operator()(const surfaces_descriptor_t& sf,
                                        const dindex test_vol_idx) const {
         EXPECT_EQ(sf.volume(), test_vol_idx)
-            << " surface barcode found: " << sf.barcode();
+            << " surface identifier found: " << sf.identifier();
     }
 
     /// Test the volume links

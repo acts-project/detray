@@ -12,7 +12,7 @@
 #include "detray/core/detector.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/geometry/shapes/rectangle2D.hpp"
-#include "detray/materials/predefined_materials.hpp"
+#include "detray/material/predefined_materials.hpp"
 
 // Detray test include(s)
 #include "detray/test/framework/types.hpp"

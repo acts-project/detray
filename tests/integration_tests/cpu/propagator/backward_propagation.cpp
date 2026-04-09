@@ -7,7 +7,7 @@
 
 // Project include(s).
 #include "detray/definitions/units.hpp"
-#include "detray/geometry/barcode.hpp"
+#include "detray/geometry/identifier.hpp"
 #include "detray/geometry/shapes/rectangle2D.hpp"
 #include "detray/navigation/caching_navigator.hpp"
 #include "detray/propagator/actors.hpp"
@@ -86,7 +86,7 @@ TEST_P(BackwardPropagation, backward_propagation) {
 
     // Bound track parameter
     const bound_track_parameters<test_algebra> bound_param0(
-        det.surface(0u).barcode(), bound_vector, bound_cov);
+        det.surface(0u).identifier(), bound_vector, bound_cov);
 
     propagation::config prop_cfg{};
     prop_cfg.stepping.rk_error_tol = 1e-7f * unit<float>::mm;

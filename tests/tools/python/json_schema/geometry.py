@@ -128,7 +128,7 @@ geometry_schema = {
                                 "items": {
                                     "type": "object",
                                     "properties": {
-                                        "barcode": {
+                                        "identifier": {
                                             "type": "integer",
                                             "description": "detray internal surface hash",
                                             "minimum": 0,

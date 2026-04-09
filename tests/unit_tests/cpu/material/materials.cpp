@@ -10,12 +10,12 @@
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes/line.hpp"
 #include "detray/geometry/surface_descriptor.hpp"
-#include "detray/materials/concepts.hpp"
-#include "detray/materials/material.hpp"
-#include "detray/materials/material_rod.hpp"
-#include "detray/materials/material_slab.hpp"
-#include "detray/materials/mixture.hpp"
-#include "detray/materials/predefined_materials.hpp"
+#include "detray/material/concepts.hpp"
+#include "detray/material/material.hpp"
+#include "detray/material/material_rod.hpp"
+#include "detray/material/material_slab.hpp"
+#include "detray/material/mixture.hpp"
+#include "detray/material/predefined_materials.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
 
 // Detray test include(s)

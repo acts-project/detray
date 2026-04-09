@@ -11,8 +11,8 @@
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/math.hpp"
-#include "detray/materials/material.hpp"
-#include "detray/materials/predefined_materials.hpp"
+#include "detray/material/material.hpp"
+#include "detray/material/predefined_materials.hpp"
 
 // System include(s)
 #include <limits>

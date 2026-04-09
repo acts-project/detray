@@ -46,7 +46,7 @@ GTEST_TEST(detray_tracks, bound_track_parameters) {
     auto bound_cov1 = matrix::zero<covariance_t>();
 
     bound_track_parameters<test_algebra> bound_param1(
-        geometry::barcode{}.set_index(sf_idx1), bound_vec1, bound_cov1);
+        geometry::identifier{}.set_index(sf_idx1), bound_vec1, bound_cov1);
     EXPECT_NEAR(bound_param1.pT(charge),
                 1.f / std::abs(bound_vec1.qop()) * std::sin(bound_vec1.theta()),
                 tol);
@@ -70,9 +70,9 @@ GTEST_TEST(detray_tracks, bound_track_parameters) {
     auto bound_cov2 = matrix::zero<covariance_t>();
 
     bound_track_parameters<test_algebra> bound_param2(
-        geometry::barcode{}.set_index(sf_idx2), bound_vec2, bound_cov2);
+        geometry::identifier{}.set_index(sf_idx2), bound_vec2, bound_cov2);
     bound_track_parameters<test_algebra> bound_param3(
-        geometry::barcode{}.set_index(sf_idx2), bound_vec2, bound_cov2);
+        geometry::identifier{}.set_index(sf_idx2), bound_vec2, bound_cov2);
 
     /// Check the elements
 

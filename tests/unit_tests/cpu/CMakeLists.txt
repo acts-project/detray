@@ -8,7 +8,7 @@
 detray_add_unit_test(cpu
    "core/containers.cpp"
    "core/indexing.cpp"
-   "geometry/barcode.cpp"
+   "geometry/identifier.cpp"
    "utils/find_bounds.cpp"
    "utils/invalid_values.cpp"
    "utils/ranges.cpp"

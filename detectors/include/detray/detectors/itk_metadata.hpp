@@ -19,7 +19,7 @@
 #include "detray/geometry/shapes/rectangle2D.hpp"
 #include "detray/geometry/shapes/ring2D.hpp"
 #include "detray/geometry/surface_descriptor.hpp"
-#include "detray/materials/material_map.hpp"
+#include "detray/material/material_map.hpp"
 #include "detray/navigation/accelerators/brute_force.hpp"
 #include "detray/navigation/accelerators/spatial_grid.hpp"
 

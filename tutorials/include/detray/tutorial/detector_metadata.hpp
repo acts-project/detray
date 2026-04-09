@@ -17,7 +17,7 @@
 #include "detray/geometry/shapes/trapezoid2D.hpp"
 #include "detray/geometry/surface_descriptor.hpp"
 #include "detray/io/backend/detail/type_info.hpp"  // mask_info
-#include "detray/materials/material_slab.hpp"
+#include "detray/material/material_slab.hpp"
 #include "detray/navigation/accelerators/brute_force.hpp"
 
 // Linear algebra types

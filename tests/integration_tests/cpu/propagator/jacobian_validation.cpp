@@ -428,14 +428,14 @@ struct bound_getter : public base_actor {
         }
 
         if ((navigation.is_on_sensitive() || navigation.is_on_passive()) &&
-            navigation.barcode().index() == 0u) {
+            navigation.geometry_identifier().index() == 0u) {
 
             actor_state.m_param_departure = res.destination_params();
         }
         // Get the bound track parameters and jacobian at the destination
         // surface
         else if ((navigation.is_on_sensitive() || navigation.is_on_passive()) &&
-                 navigation.barcode().index() == 1u) {
+                 navigation.geometry_identifier().index() == 1u) {
 
             actor_state.m_path_length = stepping.path_length();
             actor_state.m_abs_path_length = stepping.abs_path_length();
@@ -660,7 +660,7 @@ bound_track_parameters<test_algebra> get_initial_parameter(
         tracking_surface{det, departure_sf}.free_to_bound_vector({}, free_par);
 
     bound_track_parameters<test_algebra> ret;
-    ret.set_surface_link(geometry::barcode{0u});
+    ret.set_surface_link(geometry::identifier{0u});
     ret.set_parameter_vector(bound_vec);
 
     return ret;

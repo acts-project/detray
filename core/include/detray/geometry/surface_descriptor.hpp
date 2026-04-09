@@ -11,7 +11,7 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/geometry.hpp"
 #include "detray/definitions/indexing.hpp"
-#include "detray/geometry/barcode.hpp"
+#include "detray/geometry/identifier.hpp"
 
 // Sysytem include(s)
 #include <memory>
@@ -59,10 +59,10 @@ class surface_descriptor {
     constexpr surface_descriptor(const transform_link trf, const mask_link mask,
                                  const material_link material,
                                  const dindex volume, const surface_id sf_id)
-        : m_barcode{geometry::barcode{}
-                        .set_volume(volume)
-                        .set_id(sf_id)
-                        .set_transform(trf)},
+        : m_identifier{geometry::identifier{}
+                           .set_volume(volume)
+                           .set_id(sf_id)
+                           .set_transform(trf)},
           m_mask(mask),
           m_material(material) {}
 
@@ -72,56 +72,64 @@ class surface_descriptor {
     DETRAY_HOST_DEVICE
     constexpr auto operator==(const surface_descriptor &rhs) const -> bool {
         return (m_mask == rhs.m_mask && m_material == rhs.m_material &&
-                m_barcode == rhs.m_barcode);
+                m_identifier == rhs.m_identifier);
     }
 
-    /// Sets a new surface barcode
+    /// Sets a new surface identifier
     DETRAY_HOST_DEVICE
-    auto set_barcode(const geometry::barcode bcd) -> void { m_barcode = bcd; }
+    auto set_identifier(const geometry::identifier geo_id) -> void {
+        m_identifier = geo_id;
+    }
 
-    /// @returns the surface barcode
+    /// @returns the surface identifier
     DETRAY_HOST_DEVICE
-    constexpr auto barcode() const -> geometry::barcode { return m_barcode; }
+    constexpr auto identifier() const -> geometry::identifier {
+        return m_identifier;
+    }
 
     /// Sets a new surface id (portal/passive/sensitive)
     DETRAY_HOST_DEVICE
-    auto set_id(const surface_id new_id) -> void { m_barcode.set_id(new_id); }
+    auto set_id(const surface_id new_id) -> void {
+        m_identifier.set_id(new_id);
+    }
 
     /// @returns the surface id (sensitive, passive or portal)
     DETRAY_HOST_DEVICE
-    constexpr auto id() const -> surface_id { return m_barcode.id(); }
+    constexpr auto id() const -> surface_id { return m_identifier.id(); }
 
     /// Sets a new volume link (index in volume collection of detector)
     DETRAY_HOST
     auto set_volume(const dindex new_idx) -> void {
-        m_barcode.set_volume(new_idx);
+        m_identifier.set_volume(new_idx);
     }
 
     /// @returns the surface id (sensitive, passive or portal)
     DETRAY_HOST_DEVICE
-    constexpr auto volume() const -> dindex { return m_barcode.volume(); }
+    constexpr auto volume() const -> dindex { return m_identifier.volume(); }
 
     /// Sets a new surface index (index in surface collection of surface store)
     DETRAY_HOST_DEVICE
     auto set_index(const dindex new_idx) -> void {
-        m_barcode.set_index(new_idx);
+        m_identifier.set_index(new_idx);
     }
 
     /// @returns the surface id (sensitive, passive or portal)
     DETRAY_HOST_DEVICE
-    constexpr auto index() const -> dindex { return m_barcode.index(); }
+    constexpr auto index() const -> dindex { return m_identifier.index(); }
 
     /// Update the transform index
     ///
     /// @param offset update the position when move into new collection
     DETRAY_HOST
     auto update_transform(dindex offset) -> void {
-        m_barcode.set_transform(transform() + offset);
+        m_identifier.set_transform(transform() + offset);
     }
 
     /// @return the transform index
     DETRAY_HOST_DEVICE
-    constexpr auto transform() const -> dindex { return m_barcode.transform(); }
+    constexpr auto transform() const -> dindex {
+        return m_identifier.transform();
+    }
 
     /// Update the mask link
     ///
@@ -159,33 +167,33 @@ class surface_descriptor {
     /// @returns true if the surface is a senstive detector module.
     DETRAY_HOST_DEVICE
     constexpr auto is_sensitive() const -> bool {
-        return m_barcode.id() == surface_id::e_sensitive;
+        return m_identifier.id() == surface_id::e_sensitive;
     }
 
     /// @returns true if the surface is a portal.
     DETRAY_HOST_DEVICE
     constexpr auto is_portal() const -> bool {
-        return m_barcode.id() == surface_id::e_portal;
+        return m_identifier.id() == surface_id::e_portal;
     }
 
     /// @returns true if the surface is a passive detector element.
     DETRAY_HOST_DEVICE
     constexpr auto is_passive() const -> bool {
-        return m_barcode.id() == surface_id::e_passive;
+        return m_identifier.id() == surface_id::e_passive;
     }
 
     /// @returns a string stream that prints the surface details
     DETRAY_HOST
     friend std::ostream &operator<<(std::ostream &os,
                                     const surface_descriptor &sf) {
-        os << sf.m_barcode;
+        os << sf.m_identifier;
         os << " | mask: " << sf.m_mask;
         os << " | mat.: " << sf.m_material;
         return os;
     }
 
     private:
-    geometry::barcode m_barcode{};
+    geometry::identifier m_identifier{};
     mask_link m_mask{};
     material_link m_material{};
 };
@@ -204,8 +212,8 @@ struct hash<detray::surface_descriptor<mask_link_t, material_link_t,
                                    transform_link_t, navigation_link_t>;
 
     auto operator()(const descr_t sf_desc) const noexcept {
-        return std::hash<detray::geometry::barcode::value_t>()(
-            sf_desc.barcode().value());
+        return std::hash<detray::geometry::identifier::value_t>()(
+            sf_desc.identifier().value());
     }
 };
 

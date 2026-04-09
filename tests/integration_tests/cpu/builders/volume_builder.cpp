@@ -246,9 +246,9 @@ GTEST_TEST(detray_builders, tracking_volume_construction) {
 
     // Check surface id and volume links
     for (const auto [idx, sf_id] : detray::views::enumerate(sf_ids)) {
-        geometry::barcode bcd{};
-        bcd.set_index(idx);
-        const auto& sf = d.surface(bcd);
+        geometry::identifier geo_id{};
+        geo_id.set_index(idx);
+        const auto& sf = d.surface(geo_id);
         EXPECT_EQ(sf.id(), sf_id) << "error at index: " << idx;
         EXPECT_EQ(sf.volume(), volume_links.at(idx))
             << "error at index: " << idx;
@@ -258,10 +258,10 @@ GTEST_TEST(detray_builders, tracking_volume_construction) {
     // surfaces. The first new transform belongs to the volume itself
     for (std::size_t idx :
          detray::views::iota(dindex_range{3, d.surfaces().size()})) {
-        geometry::barcode bcd{};
-        bcd.set_index(idx);
+        geometry::identifier geo_id{};
+        geo_id.set_index(idx);
         // Add a shift to the index for the volume placement transforms
-        EXPECT_EQ(d.surface(bcd).transform(), idx + 2)
+        EXPECT_EQ(d.surface(geo_id).transform(), idx + 2)
             << "error at index: " << idx;
     }
 
@@ -287,9 +287,10 @@ GTEST_TEST(detray_builders, tracking_volume_construction) {
         {mask_id::e_rectangle2, {5u, 1u}},
         {mask_id::e_rectangle2, {6u, 1u}}};
     for (const auto [idx, m_link] : detray::views::enumerate(mask_links)) {
-        geometry::barcode bcd{};
-        bcd.set_index(idx);
-        EXPECT_EQ(d.surface(bcd).mask(), m_link) << "error at index: " << idx;
+        geometry::identifier geo_id{};
+        geo_id.set_index(idx);
+        EXPECT_EQ(d.surface(geo_id).mask(), m_link)
+            << "error at index: " << idx;
     }
 
     // check mask volume links

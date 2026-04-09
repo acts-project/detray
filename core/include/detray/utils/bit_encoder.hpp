@@ -20,7 +20,7 @@ namespace detray::detail {
 /// @brief Sets masked bits to a given value.
 ///
 /// Given a mask and an input value, the corresponding bits are set on a target
-/// value. Used e.g. in the surface barcode.
+/// value. Used e.g. in the surface identifier.
 ///
 /// @see
 /// https://github.com/acts-project/acts/blob/main/Core/include/Acts/Geometry/GeometryIdentifier.hpp

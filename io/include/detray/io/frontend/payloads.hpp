@@ -145,8 +145,8 @@ struct surface_payload {
     std::optional<material_link_payload> material;
     /// Identifier of the source object (e.g. value of ACTS::GeometryIdentifier)
     std::uint64_t source{};
-    /// Write the surface barcode as an additional information
-    std::optional<std::uint64_t> barcode{
+    /// Write the surface identifier as an additional information
+    std::optional<std::uint64_t> identifier{
         detray::detail::invalid_value<std::uint64_t>()};
     /// Either sensitive, passive or portal
     detray::surface_id type{detray::surface_id::e_sensitive};

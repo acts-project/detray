@@ -15,7 +15,7 @@
 #include "detray/definitions/indexing.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes.hpp"
-#include "detray/materials/predefined_materials.hpp"
+#include "detray/material/predefined_materials.hpp"
 
 namespace detray {
 

@@ -15,9 +15,9 @@
 #include "detray/io/backend/detail/basic_converter.hpp"
 #include "detray/io/backend/detail/type_info.hpp"
 #include "detray/io/frontend/payloads.hpp"
-#include "detray/materials/concepts.hpp"
-#include "detray/materials/material_rod.hpp"
-#include "detray/materials/material_slab.hpp"
+#include "detray/material/concepts.hpp"
+#include "detray/material/material_rod.hpp"
+#include "detray/material/material_slab.hpp"
 #include "detray/utils/type_list.hpp"
 
 // System include(s)
