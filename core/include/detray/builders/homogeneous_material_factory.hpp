@@ -72,9 +72,10 @@ class material_data {
         const material_state state = material_state::e_solid,
         const std::size_t sf_idx = detail::invalid_value<std::size_t>())
         : m_sf_index{sf_idx},
-          m_mat{material<scalar_t>{material_paramters[0], material_paramters[1],
-                                   material_paramters[2], material_paramters[3],
-                                   material_paramters[4], state}},
+          m_mat{material<scalar_t>{
+              material_paramters.at(0), material_paramters.at(1),
+              material_paramters.at(2), material_paramters.at(3),
+              material_paramters.at(4), state}},
           m_thickness{thickness} {}
 
     /// @returns tuple based access to the contained material data.
@@ -120,8 +121,9 @@ class material_data {
                 const std::vector<scalar_t> &material_paramters,
                 const material_state state = material_state::e_solid) {
         m_mat.push_back(material<scalar_t>{
-            material_paramters[0], material_paramters[1], material_paramters[2],
-            material_paramters[3], material_paramters[4], state});
+            material_paramters.at(0), material_paramters.at(1),
+            material_paramters.at(2), material_paramters.at(3),
+            material_paramters.at(4), state});
         m_thickness.push_back(thickness);
     }
 
@@ -139,14 +141,14 @@ class material_data {
             if (i > 0) {
                 os << ",\n";
             }
-            os << mat_data.m_mat[i];
+            os << mat_data.m_mat.at(i);
         }
         os << "],\nthickness: [\n";
         for (std::size_t i = 0; i < mat_data.m_thickness.size(); ++i) {
             if (i > 0) {
                 os << ", ";
             }
-            os << mat_data.m_thickness[i];
+            os << mat_data.m_thickness.at(i);
         }
         os << "]}";
         return os;
@@ -245,8 +247,8 @@ class homogeneous_material_factory final
 
         m_links.push_back(std::make_pair(id, static_cast<dindex>(index)));
         m_indices.push_back(sf_index);
-        m_materials.push_back(mat[0]);
-        m_thickness.push_back(thickness[0]);
+        m_materials.push_back(mat.at(0));
+        m_thickness.push_back(thickness.at(0));
     }
 
     /// Add all necessary compontents to the factory for multiple material slabs
@@ -366,12 +368,12 @@ class homogeneous_material_factory final
                         materials.template get<material_id::e_rod>();
 
                     material_rod<scalar_type> mat_rod{mat, t};
-                    mat_idx = this->insert_in_container(mat_coll, mat_rod,
-                                                        m_links[sf_idx].second);
+                    mat_idx = this->insert_in_container(
+                        mat_coll, mat_rod, m_links.at(sf_idx).second);
                 }
             }
             DETRAY_DEBUG_HOST("-> After insert: mat_idx=" << mat_idx);
-            link_t new_link{m_links[sf_idx].first, mat_idx};
+            link_t new_link{m_links.at(sf_idx).first, mat_idx};
 
             auto &sf_desc = surfaces.at(static_cast<dindex>(i));
             DETRAY_DEBUG_HOST("-> Existing link: " << sf_desc.material());

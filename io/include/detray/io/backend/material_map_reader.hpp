@@ -39,7 +39,7 @@ class material_map_reader {
 
     /// Payload type that the reader processes
     using payload_type =
-        detector_grids_payload<material_slab_payload, io::material_id>;
+        detector_grids_payload<surface_material_payload, io::material_id>;
 
     using bin_index_type = axis::multi_bin<dim>;
 
@@ -162,7 +162,7 @@ class material_map_reader {
                     }
                     loc_bins.push_back(std::move(mbin));
 
-                    // For now assume surfaces ids as the only grid input
+                    // Add the material slab per bin
                     for (const auto &slab_data : bin_data.content) {
                         mat_data.append(
                             material_reader_t::template from_payload<scalar_t>(

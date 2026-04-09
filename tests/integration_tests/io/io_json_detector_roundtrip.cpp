@@ -227,6 +227,7 @@ GTEST_TEST(io, json_toy_geometry) {
     io::json_converter<detector<default_metadata_t>, io::geometry_reader>
         comp_geo_reader;
     comp_geo_reader.read(comp_builder, file_name);
+    volume_name_map.clear_names();
     auto comp_det = comp_builder.build(host_mr, volume_name_map);
 
     using mask_id = detector<default_metadata_t>::masks::id;

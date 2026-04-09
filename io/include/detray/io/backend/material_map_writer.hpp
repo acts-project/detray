@@ -34,7 +34,7 @@ class material_map_writer : public detail::grid_writer {
 
     /// Payload type that the reader processes
     using payload_type =
-        detector_grids_payload<material_slab_payload, io::material_id>;
+        detector_grids_payload<surface_material_payload, io::material_id>;
 
     /// Same constructors for this class as for base_type
     using base_type::base_type;

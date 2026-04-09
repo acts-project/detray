@@ -46,8 +46,8 @@ inline std::vector<material_slab<scalar_t>> generate_cyl_mat(
     scalar_t z_lower{detail::invalid_value<scalar_t>()};
     scalar_t z_upper{-detail::invalid_value<scalar_t>()};
     for (const auto &bounds : bounds_vec) {
-        z_lower = math::min(z_lower, bounds[cylinder2D::e_lower_z]);
-        z_upper = math::max(z_upper, bounds[cylinder2D::e_upper_z]);
+        z_lower = math::min(z_lower, bounds.at(cylinder2D::e_lower_z));
+        z_upper = math::max(z_upper, bounds.at(cylinder2D::e_upper_z));
     }
 
     // Generate material steps (quadratic with distance to origin)
@@ -75,8 +75,8 @@ inline std::vector<material_slab<scalar_t>> generate_disc_mat(
     scalar_t r_inner{detail::invalid_value<scalar_t>()};
     scalar_t r_outer{0.f};
     for (const auto &bounds : bounds_vec) {
-        r_inner = math::min(r_inner, bounds[ring2D::e_inner_r]);
-        r_outer = math::max(r_outer, bounds[ring2D::e_outer_r]);
+        r_inner = math::min(r_inner, bounds.at(ring2D::e_inner_r));
+        r_outer = math::max(r_outer, bounds.at(ring2D::e_outer_r));
     }
 
     scalar_t r{r_inner};
@@ -102,7 +102,7 @@ struct material_map_config {
         dindex map_id{dindex_invalid};
         /// Number of bins for material maps
         darray<std::size_t, 2> n_bins{20u, 20u};
-        /// Along which of the two axes to scale the material
+        /// Along which of the two axes to scale the material thickness
         std::size_t axis_index{0u};
         /// Material to be filled into the maps
         material<scalar_t> mapped_material{silicon_tml<scalar_t>()};
@@ -129,7 +129,11 @@ struct material_map_config {
                                                   const map_config &cfg) {
         const auto key =
             std::make_pair(static_cast<unsigned int>(map_type), sf_type);
-        m_map_configs[key] = cfg;
+        if (!m_map_configs.contains(key)) {
+            m_map_configs.emplace(key, cfg);
+        } else {
+            m_map_configs.at(key) = cfg;
+        }
         return *this;
     }
     /// @}
@@ -225,8 +229,8 @@ class material_map_generator final : public factory_decorator<detector_t> {
         assert(surfaces.size() >= (m_surface_range[1] - m_surface_range[0]));
 
         // Add the material only to those surfaces that the data links against
-        for (const auto &[i, sf] : detray::views::enumerate(
-                 detray::ranges::subrange(surfaces, m_surface_range))) {
+        unsigned int i{0u};
+        for (auto &sf : detray::ranges::subrange(surfaces, m_surface_range)) {
             const auto sf_idx{m_surface_range[0] + i};
 
             // Skip line surfaces, if any are defined
@@ -248,12 +252,12 @@ class material_map_generator final : public factory_decorator<detector_t> {
 
             // Copy the number of bins to the builder
             assert(map_cfg.n_bins.size() == N);
-            n_bins[sf_idx] = {};
+            n_bins.emplace(sf_idx, darray<std::size_t, N>{});
             std::ranges::copy_n(map_cfg.n_bins.begin(), N,
                                 n_bins.at(sf_idx).begin());
 
             // Scale material thickness either over e.g. r- or z-bins
-            const std::size_t bins = map_cfg.n_bins[map_cfg.axis_index];
+            const std::size_t bins = map_cfg.n_bins.at(map_cfg.axis_index);
 
             using sf_kernels =
                 detail::surface_kernels<typename detector_t::algebra_type>;
@@ -269,12 +273,12 @@ class material_map_generator final : public factory_decorator<detector_t> {
 
             // Add the material slabs with their local bin indices to the
             // volume builder
-            for (dindex bin0 = 0u; bin0 < map_cfg.n_bins[0]; ++bin0) {
-                for (dindex bin1 = 0u; bin1 < map_cfg.n_bins[1]; ++bin1) {
+            for (dindex bin0 = 0u; bin0 < map_cfg.n_bins.at(0); ++bin0) {
+                for (dindex bin1 = 0u; bin1 < map_cfg.n_bins.at(1); ++bin1) {
 
                     bin_data_t data{
                         axis::multi_bin<N>{bin0, bin1},
-                        material[(map_cfg.axis_index == 0u) ? bin0 : bin1]};
+                        material.at((map_cfg.axis_index == 0u) ? bin0 : bin1)};
 
                     auto search = material_map.find(sf_idx);
                     if (search == material_map.end()) {
@@ -288,8 +292,9 @@ class material_map_generator final : public factory_decorator<detector_t> {
 
             // Set the initial surface material link (will be updated when
             // added to the detector)
-            surfaces[sf_idx].material() = link_t{
-                static_cast<material_id>(map_cfg.map_id), dindex_invalid};
+            sf.material() = link_t{static_cast<material_id>(map_cfg.map_id),
+                                   dindex_invalid};
+            i++;
         }
     }
 

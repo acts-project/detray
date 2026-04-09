@@ -18,7 +18,7 @@
 
 namespace detray {
 
-/// Map volume indixes to volume names and vice versa
+/// Map volume indices to volume names and vice versa
 struct name_map {
 
     /// @brief set the name of the detector
@@ -69,6 +69,19 @@ struct name_map {
     /// @returns the index of a volume given the volume name @param name
     DETRAY_HOST decltype(auto) at(const std::string_view name) const {
         return name_to_index.at(name);
+    }
+
+    /// Clears the name map
+    DETRAY_HOST void clear() {
+        detector_name = "";
+        index_to_name.clear();
+        name_to_index.clear();
+    }
+
+    /// Clears the volume name mapping, but keeps detector name
+    DETRAY_HOST void clear_names() {
+        index_to_name.clear();
+        name_to_index.clear();
     }
 
     private:

@@ -45,7 +45,7 @@ class homogeneous_material_writer {
         homogeneous_material_header_payload header_data;
 
         using algebra_t = typename detector_t::algebra_type;
-        using material_id_t = material_slab_payload::mat_type;
+        using material_id_t = surface_material_payload::mat_type;
 
         auto count_surface_with_material_type =
             [&det](material_id_t target_type) {
@@ -54,11 +54,11 @@ class homogeneous_material_writer {
                      detray::views::enumerate(det.surfaces())) {
                     const auto sf = geometry::surface{det, sf_desc};
 
-                    if (material_slab_payload mslp =
+                    if (surface_material_payload mslp =
                             sf.has_material()
                                 ? sf.template visit_material<
                                       get_material_payload<algebra_t>>(sf_idx)
-                                : material_slab_payload{};
+                                : surface_material_payload{};
                         mslp.type == target_type) {
                         count++;
                     }
@@ -111,7 +111,7 @@ class homogeneous_material_writer {
     static material_volume_payload to_payload(
         const typename detector_t::volume_type& vol_desc,
         const detector_t& det) {
-        using material_type = material_slab_payload::mat_type;
+        using material_type = surface_material_payload::mat_type;
 
         material_volume_payload mv_data;
         mv_data.volume_link =
@@ -143,20 +143,17 @@ class homogeneous_material_writer {
             // Convert material slabs and rods
             const auto sf = geometry::surface{det, sf_desc};
 
-            if (material_slab_payload mslp =
+            if (surface_material_payload mslp =
                     sf.has_material()
                         ? sf.template visit_material<
                               get_material_payload<algebra_t>>(sf_idx)
-                        : material_slab_payload{};
+                        : surface_material_payload{};
                 mslp.type == material_type::slab) {
                 mslp.index_in_coll = slab_idx++;
-                mv_data.mat_slabs.push_back(mslp);
+                mv_data.surface_mat.push_back(mslp);
             } else if (mslp.type == material_type::rod) {
-                if (!mv_data.mat_rods.has_value()) {
-                    mv_data.mat_rods.emplace();
-                }
                 mslp.index_in_coll = rod_idx++;
-                mv_data.mat_rods->push_back(mslp);
+                mv_data.surface_mat.push_back(mslp);
             } else { /* material maps are handled by another writer */
             }
             ++sf_idx;
@@ -167,8 +164,8 @@ class homogeneous_material_writer {
 
     /// Convert surface material @param mat into its io payload
     template <detray::concepts::material_params material_t>
-    static material_payload to_payload(const material_t& mat) {
-        material_payload mat_data;
+    static material_param_payload to_payload(const material_t& mat) {
+        material_param_payload mat_data;
 
         mat_data.params = {mat.X0(),
                            mat.L0(),
@@ -183,9 +180,9 @@ class homogeneous_material_writer {
     /// Convert a surface material slab @param mat_slab into its io payload
     template <detray::concepts::algebra algebra_t,
               detray::concepts::homogeneous_material material_t>
-    static material_slab_payload to_payload(const material_t& mat,
-                                            std::size_t sf_idx) {
-        material_slab_payload mat_data;
+    static surface_material_payload to_payload(const material_t& mat,
+                                               std::size_t sf_idx) {
+        surface_material_payload mat_data;
 
         mat_data.type = io::detail::get_id<algebra_t, material_t>();
         mat_data.surface = detail::basic_converter::to_payload(sf_idx);
@@ -196,7 +193,7 @@ class homogeneous_material_writer {
     }
 
     private:
-    /// Retrieve @c material_slab_payload from a material store element
+    /// Retrieve @c surface_material_payload from a material store element
     template <detray::concepts::algebra algebra_t>
     struct get_material_payload {
         template <typename material_group_t, typename index_t>
@@ -210,7 +207,7 @@ class homogeneous_material_writer {
                 return homogeneous_material_writer::to_payload<algebra_t>(
                     material_group[index], sf_index);
             } else {
-                return material_slab_payload{};
+                return surface_material_payload{};
             }
         }
     };
