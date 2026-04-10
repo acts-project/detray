@@ -48,10 +48,10 @@ For a developer build, the `dev-fp32` and `dev-fp64` configurations are availabl
 ```shell
 cmake -S detray -B detray-build --preset dev-fp32
 ```
-The developer presets will fetch all dependencies, but not automatically trigger the build of additional detray components. For example, in order to trigger the build of the unit tests, the corresponding option needs to be specified:
+The developer presets will build the components of detray that are most commonly used. The `prefetch` presets on the other hand will configure all possible dependencies, but not automatically trigger the build of the corresponding components. For example, in order to trigger the build of the unit tests with the `prefetch` preset, the corresponding option needs to be specified:
 ```shell
-cmake -S detray -B detray-build --preset dev-fp32 \
--DDETRAY_BUILD_UNITTESTS=ON
+cmake -S detray -B detray-build --preset prefetch-fp32 \
+-DDETRAY_ARRAY_PLUGIN=ON -DDETRAY_BUILD_UNITTESTS=ON
 ```
 A full build, containing all components (e.g. tests and benchmarks), can be configured using the `full-fp32` and `full-fp64` presets.
 

@@ -28,12 +28,12 @@
          }
       },
       {
-         "name": "dev-fp32",
-         "displayName": "FP32 Developer Configuration: Build all Dependencies",
+         "name": "prefetch-fp32",
+         "displayName": "FP32 Developer Configuration: Pretech/Configure all Dependencies",
          "inherits": [ "default-fp32" ],
          "cacheVariables": {
             "DETRAY_BUILD_TESTING": "TRUE",
-            "DETRAY_SETUP_EIGEN": "TRUE",
+            "DETRAY_SETUP_EIGEN3": "TRUE",
             "DETRAY_SETUP_FASTOR": "TRUE",
             "DETRAY_SETUP_VC": "TRUE",
             "DETRAY_SETUP_ACTSVG": "TRUE",
@@ -43,8 +43,30 @@
          }
       },
       {
+         "name": "prefetch-fp64",
+         "displayName": "FP64 Developer Configuration: Pretech/Configure all Dependencies",
+         "inherits": [ "prefetch-fp32" ],
+         "cacheVariables": {
+            "DETRAY_CUSTOM_SCALARTYPE" : "double"
+         }
+      },
+      {
+         "name": "dev-fp32",
+         "displayName": "FP32 Developer Configuration: Build main Components",
+         "inherits": [ "default-fp32" ],
+         "cacheVariables": {
+            "DETRAY_BUILD_TESTING": "TRUE",
+            "DETRAY_ARRAY_PLUGIN": "TRUE",
+            "DETRAY_BUILD_UNITTESTS": "TRUE",
+            "DETRAY_BUILD_INTEGRATIONTESTS": "TRUE",
+            "DETRAY_BUILD_TUTORIALS": "TRUE",
+            "DETRAY_BUILD_BENCHMARKS": "TRUE",
+            "DETRAY_BUILD_CLI_TOOLS": "TRUE"
+         }
+      },
+      {
          "name": "dev-fp64",
-         "displayName": "FP64 Developer Configuration: Build all Dependencies",
+         "displayName": "FP64 Developer Configuration: Build main Components",
          "inherits": [ "dev-fp32" ],
          "cacheVariables": {
             "DETRAY_CUSTOM_SCALARTYPE" : "double"
@@ -56,6 +78,7 @@
          "inherits": [ "default-fp32" ],
          "cacheVariables": {
             "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+            "DETRAY_ARRAY_PLUGIN"   : "TRUE",
             "DETRAY_EIGEN_PLUGIN"   : "TRUE",
             "DETRAY_FASTOR_PLUGIN"  : "TRUE",
             "DETRAY_VC_AOS_PLUGIN"  : "TRUE",
@@ -79,7 +102,7 @@
       {
          "name" : "cuda",
          "displayName" : "CUDA Developer Configuration",
-         "inherits" : [ "default-fp32" ],
+         "inherits" : [ "dev-fp32" ],
          "cacheVariables" : {
             "DETRAY_BUILD_CUDA"     : "TRUE",
             "DETRAY_FASTOR_PLUGIN"  : "FALSE",
@@ -91,7 +114,7 @@
       {
          "name" : "sycl",
          "displayName" : "SYCL Developer Configuration",
-         "inherits" : [ "default-fp32" ],
+         "inherits" : [ "dev-fp32" ],
          "cacheVariables" : {
             "DETRAY_BUILD_SYCL"     : "TRUE",
             "DETRAY_FASTOR_PLUGIN"  : "FALSE",
@@ -101,21 +124,9 @@
          }
       },
       {
-         "name": "hip-fp32",
+         "name": "hip",
          "displayName": "HIP Developer Configuration",
-         "inherits" : [ "default-fp32" ],
-         "cacheVariables" : {
-            "DETRAY_BUILD_HIP"      : "TRUE",
-            "DETRAY_FASTOR_PLUGIN"  : "FALSE",
-            "DETRAY_VC_AOS_PLUGIN"  : "FALSE",
-            "DETRAY_VC_SOA_PLUGIN"  : "FALSE",
-            "DETRAY_SMATRIX_PLUGIN" : "FALSE"
-         }
-      },
-            {
-         "name": "hip-fp64",
-         "displayName": "HIP Developer Configuration",
-         "inherits" : [ "default-fp64" ],
+         "inherits" : [ "dev-fp32" ],
          "cacheVariables" : {
             "DETRAY_BUILD_HIP"      : "TRUE",
             "DETRAY_FASTOR_PLUGIN"  : "FALSE",
