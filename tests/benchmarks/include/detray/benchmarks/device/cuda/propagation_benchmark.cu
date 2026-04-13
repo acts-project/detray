@@ -160,4 +160,13 @@ DECLARE_PROPAGATION_BENCHMARK(benchmarks::toy_metadata, empty_chain,
 DECLARE_PROPAGATION_BENCHMARK(benchmarks::toy_metadata, default_chain,
                               const_field_t, propagation_opt::e_unsync, false)
 
+DECLARE_PROPAGATION_BENCHMARK(benchmarks::wire_chamber_metadata, empty_chain,
+                              const_field_t, propagation_opt::e_unsync, true)
+DECLARE_PROPAGATION_BENCHMARK(benchmarks::wire_chamber_metadata, default_chain,
+                              const_field_t, propagation_opt::e_unsync, true)
+DECLARE_PROPAGATION_BENCHMARK(benchmarks::wire_chamber_metadata, empty_chain,
+                              const_field_t, propagation_opt::e_unsync, false)
+DECLARE_PROPAGATION_BENCHMARK(benchmarks::wire_chamber_metadata, default_chain,
+                              const_field_t, propagation_opt::e_unsync, false)
+
 }  // namespace detray::benchmarks

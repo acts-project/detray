@@ -122,17 +122,21 @@ class homogeneous_material_writer {
         using mat_id = typename detector_t::materials::id;
         using algebra_t = typename detector_t::algebra_type;
 
-        // If this reader is called, the detector has at least material slabs
-        if (det.material_store().template empty<mat_id::e_material_slab>()) {
-            // Check for material rods that are present in e.g. wire chambers
-            if constexpr (detray::concepts::has_material_rods<detector_t>) {
-                if (det.material_store()
-                        .template empty<mat_id::e_material_rod>()) {
-                    return mv_data;
-                }
-            } else {
-                return mv_data;
+        bool contains_rods{true};
+        bool contains_slabs{true};
+        if constexpr (detray::concepts::has_material_rods<detector_t>) {
+            if (det.material_store().template empty<mat_id::e_material_rod>()) {
+                contains_rods = false;
             }
+        }
+        if constexpr (detray::concepts::has_material_slabs<detector_t>) {
+            if (det.material_store()
+                    .template empty<mat_id::e_material_slab>()) {
+                contains_slabs = false;
+            }
+        }
+        if (!contains_rods && !contains_slabs) {
+            return mv_data;
         }
 
         // Find all surfaces that belong to the volume and count them

@@ -9,7 +9,7 @@
 # --------------------------------------------------------------------------
 
 from ..impl import metadata
-from ..impl import Shape, Material, Accelerator
+from ..impl import Shape, Material, Accelerator, GridBin
 
 import logging
 
@@ -58,8 +58,9 @@ def add_silicon_tracker_defaults(
 
     # Volume accelerator for layered cylindrical detectors
     logger.info("-> adding detector volume acceleration structure")
-    metadata.add_accel_struct(Accelerator.CYLINDER_GRID3D, "volume", is_default=True)
-    metadata.add_accel_struct(Accelerator.CUBOID_GRID3D, "volume", is_default=True)
+    metadata.add_accel_struct(
+        Accelerator.CYLINDER_GRID3D, "volume", grid_bin=GridBin.SINGLE, is_default=True
+    )
 
     logger.info("Done")
 

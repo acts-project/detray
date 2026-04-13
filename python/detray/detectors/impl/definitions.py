@@ -98,6 +98,26 @@ class Shape:
     UNMASKED = cpp_class(specifier="detray::unmasked")
 
 
+""" Grid bin types """
+
+
+class GridBin:
+    # Single-entry bins
+    SINGLE = cpp_class(specifier="detray::bins::single")
+    # Satically sized bins: 9 (default)
+    STATIC = cpp_class(specifier="detray::bins::static_array", param={"capacity": 9})
+    # Dynamically sized bins
+    DYNAMIC = cpp_class(specifier="detray::bins::dynamic_array")
+
+
+""" Grid serializer types """
+
+
+class GridSerializer:
+    # Single-entry bins
+    SIMPLE = cpp_class(specifier="detray::simple_serializer")
+
+
 MATERIAL_MAP_SPECIFIER = "detray::material_map"
 
 """ Available material types """
@@ -169,32 +189,57 @@ class Accelerator:
         param={
             "shape": Shape.CONCENTRIC_CYLINDER,
             "frame": Frame.CONCENTRIC_CYLINDRICAL2D,
+            "bin": GridBin.DYNAMIC,
+            "serializer": GridSerializer.SIMPLE,
         },
     )
     # Surface grid, cylindrical 2D (barrel)
     CYLINDER_GRID2D = cpp_class(
         specifier=SPATIAL_GRID_SPECIFIER,
-        param={"shape": Shape.CYLINDER2D, "frame": Frame.CYLINDRICAL2D},
+        param={
+            "shape": Shape.CYLINDER2D,
+            "frame": Frame.CYLINDRICAL2D,
+            "bin": GridBin.DYNAMIC,
+            "serializer": GridSerializer.SIMPLE,
+        },
     )
     # Surface grid, cylindrical 3D (barrel)
     CYLINDER_GRID3D = cpp_class(
         specifier=SPATIAL_GRID_SPECIFIER,
-        param={"shape": Shape.CYLINDER3D, "frame": Frame.CYLINDRICAL3D},
+        param={
+            "shape": Shape.CYLINDER3D,
+            "frame": Frame.CYLINDRICAL3D,
+            "bin": GridBin.DYNAMIC,
+            "serializer": GridSerializer.SIMPLE,
+        },
     )
     # Surface grid, disc (endcap)
     DISC_GRID2D = cpp_class(
         specifier=SPATIAL_GRID_SPECIFIER,
-        param={"shape": Shape.RING, "frame": Frame.POLAR2D},
+        param={
+            "shape": Shape.RING,
+            "frame": Frame.POLAR2D,
+            "bin": GridBin.DYNAMIC,
+            "serializer": GridSerializer.SIMPLE,
+        },
     )
     # Surface grid, reactangular (telescope)
     RECTANGLE_GRID2D = cpp_class(
         specifier=SPATIAL_GRID_SPECIFIER,
-        param={"shape": Shape.RECTANGLE, "frame": Frame.CARTESIAN2D},
+        param={
+            "shape": Shape.RECTANGLE,
+            "frame": Frame.CARTESIAN2D,
+            "bin": GridBin.DYNAMIC,
+            "serializer": GridSerializer.SIMPLE,
+        },
     )
     # Surface grid, cuboid 3D (telescope)
     CUBOID_GRID3D = cpp_class(
         specifier=SPATIAL_GRID_SPECIFIER,
-        param={"shape": Shape.CUBOID, "frame": Frame.CARTESIAN3D},
+        param={
+            "shape": Shape.CUBOID,
+            "frame": Frame.CARTESIAN3D,
+            "bin": GridBin.DYNAMIC,
+            "serializer": GridSerializer.SIMPLE,
+        },
     )
-    # Surface grid, cuboid 3D (telescope)
-    BLA = cpp_class(specifier="detray::bla")

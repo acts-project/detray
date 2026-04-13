@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/builders/surface_factory.hpp"
+#include "detray/core/concepts.hpp"
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/geometry/shapes/unmasked.hpp"
@@ -192,7 +193,11 @@ class homogeneous_material_factory final
     explicit homogeneous_material_factory(
         std::unique_ptr<surface_factory_interface<detector_t>> sf_factory =
             std::make_unique<placeholder_factory_t>())
-        : base_factory(std::move(sf_factory)) {}
+        : base_factory(std::move(sf_factory)) {
+        static_assert(concepts::has_material_slabs<detector_t> ||
+                          concepts::has_material_rods<detector_t>,
+                      "No homogeneous surface material in detector type");
+    }
 
     /// @returns the number of material instances that will be built by the
     /// factory
@@ -354,16 +359,18 @@ class homogeneous_material_factory final
             DETRAY_DEBUG_HOST("           mat=" << mat << " thickness=" << t);
 
             dindex mat_idx{0u};
-            if (m_links.at(sf_idx).first == material_id::e_material_slab) {
-                auto &mat_coll =
-                    materials.template get<material_id::e_material_slab>();
 
-                material_slab<scalar_type> mat_slab{mat, t};
-                mat_idx = this->insert_in_container(mat_coll, mat_slab,
-                                                    m_links.at(sf_idx).second);
+            if constexpr (concepts::has_material_slabs<detector_t>) {
+                if (m_links.at(sf_idx).first == material_id::e_material_slab) {
+                    auto &mat_coll =
+                        materials.template get<material_id::e_material_slab>();
+
+                    material_slab<scalar_type> mat_slab{mat, t};
+                    mat_idx = this->insert_in_container(
+                        mat_coll, mat_slab, m_links.at(sf_idx).second);
+                }
             }
-            if constexpr (types::contains<typename detector_t::materials,
-                                          material_rod<scalar_type>>) {
+            if constexpr (concepts::has_material_rods<detector_t>) {
                 if (m_links.at(sf_idx).first == material_id::e_material_rod) {
                     auto &mat_coll =
                         materials.template get<material_id::e_material_rod>();

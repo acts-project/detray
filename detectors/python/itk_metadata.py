@@ -51,9 +51,6 @@ def __main__():
 
     md = metadata("itk")
 
-    # Specify a particular algebra plugin (otherwise left as template param.)
-    # md.set_algebra_plugin(Algebra.ARRAY, Type.SINGLE)
-
     add_itk_types(md)
 
     # Dump the metadata to header file

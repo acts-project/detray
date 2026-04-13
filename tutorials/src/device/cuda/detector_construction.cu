@@ -48,7 +48,7 @@ __global__ void print_kernel(
         det.accelerator_store().get<acc_id::e_surface_ring2D_grid>().size());
     DETRAY_INFO_DEVICE("Number of cylinder grids: %d",
                        det.accelerator_store()
-                           .get<acc_id::e_surface_cylinder2D_grid>()
+                           .get<acc_id::e_surface_concentric_cylinder2D_grid>()
                            .size());
 }
 

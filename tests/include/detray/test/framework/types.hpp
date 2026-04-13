@@ -14,6 +14,7 @@
 #include "detray/detectors/default_metadata.hpp"
 #include "detray/detectors/telescope_metadata.hpp"
 #include "detray/detectors/toy_metadata.hpp"
+#include "detray/detectors/wire_chamber_metadata.hpp"
 
 namespace detray::test {
 
@@ -81,5 +82,6 @@ using default_metadata = detray::default_metadata<algebra>;
 using toy_metadata = detray::toy_metadata<algebra>;
 using default_telescope_metadata =
     detray::telescope_metadata<algebra, rectangle2D>;
+using wire_chamber_metadata = detray::wire_chamber_metadata<algebra>;
 
 }  // namespace detray::test

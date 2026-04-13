@@ -407,7 +407,7 @@ GTEST_TEST(detray_geometry, surface_wire_chamber) {
 
     using namespace detray;
 
-    using metadata_t = test::default_metadata;
+    using metadata_t = test::wire_chamber_metadata;
     using detector_t = detector<metadata_t>;
 
     using test_algebra = metadata_t::algebra_type;

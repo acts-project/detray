@@ -204,5 +204,6 @@ void navigation_validation_device(
 DECLARE_NAVIGATION_VALIDATION(test::default_metadata)
 DECLARE_NAVIGATION_VALIDATION(test::toy_metadata)
 DECLARE_NAVIGATION_VALIDATION(test::default_telescope_metadata)
+DECLARE_NAVIGATION_VALIDATION(test::wire_chamber_metadata)
 
 }  // namespace detray::cuda

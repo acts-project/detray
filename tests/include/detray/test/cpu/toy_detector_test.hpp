@@ -135,7 +135,8 @@ inline bool toy_detector_test(
     constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
     constexpr auto inv_link{dindex_invalid};
     const bool has_grids =
-        (accel.template size<accel_ids::e_surface_cylinder2D_grid>() != 0u) ||
+        (accel.template size<
+             accel_ids::e_surface_concentric_cylinder2D_grid>() != 0u) ||
         (accel.template size<accel_ids::e_surface_ring2D_grid>() != 0u);
     const bool has_hom_material =
         (materials.template size<material_ids::e_material_slab>() != 0);
@@ -152,7 +153,8 @@ inline bool toy_detector_test(
     EXPECT_EQ(masks.template size<mask_ids::e_ring2D>(), 60u);
     EXPECT_EQ(accel.template size<accel_ids::e_surface_brute_force>(), 22u);
     if (has_grids) {
-        EXPECT_EQ(accel.template size<accel_ids::e_surface_cylinder2D_grid>(),
+        EXPECT_EQ(accel.template size<
+                      accel_ids::e_surface_concentric_cylinder2D_grid>(),
                   4);
         EXPECT_EQ(accel.template size<accel_ids::e_surface_ring2D_grid>(), 6);
     }
@@ -371,10 +373,11 @@ inline bool toy_detector_test(
 
             // Test the module search if grids were filled
             if (!link[1].is_invalid()) {
-                if (link[1].id() == accel_ids::e_surface_cylinder2D_grid) {
+                if (link[1].id() ==
+                    accel_ids::e_surface_concentric_cylinder2D_grid) {
                     const auto& cyl_grid = accel_store.template get<
-                        accel_ids::e_surface_cylinder2D_grid>()[link[1]
-                                                                    .index()];
+                        accel_ids::e_surface_concentric_cylinder2D_grid>()
+                                               [link[1].index()];
                     test_finder(cyl_grid, vol_itr->index(), sf_range);
                 } else {
                     const auto& disc_grid = accel_store.template get<
@@ -402,7 +405,7 @@ inline bool toy_detector_test(
     // Check links of beampipe itself
     darray<dindex, 2> range = {0u, 1u};
     test_module_links(vol_itr->index(), surfaces.begin(), range, range[0],
-                      {mask_ids::e_cylinder2D, {0u, 1u}},
+                      {mask_ids::e_concentric_cylinder2D, {0u, 1u}},
                       {material_ids::e_material_slab, 0u}, beampipe_mat,
                       {vol_itr->index()});
 
@@ -718,7 +721,7 @@ inline bool toy_detector_test(
     EXPECT_EQ(names.at(vol_itr->index()), "barrel_7");
     range = {354u, 582u};
     index = {7u};
-    accel_link = {accel_ids::e_surface_cylinder2D_grid, 0u};
+    accel_link = {accel_ids::e_surface_concentric_cylinder2D_grid, 0u};
     check_sf_ranges(*vol_itr, {578u, 582u}, {354u, 578u}, {});
 
     // Test the links in the volumes
@@ -795,7 +798,7 @@ inline bool toy_detector_test(
     EXPECT_EQ(names.at(vol_itr->index()), "barrel_9");
     range = {586u, 1038u};
     index = {9u};
-    accel_link = {accel_ids::e_surface_cylinder2D_grid, 1u};
+    accel_link = {accel_ids::e_surface_concentric_cylinder2D_grid, 1u};
     check_sf_ranges(*vol_itr, {1034u, 1038u}, {586u, 1034u}, {});
 
     // Test the links in the volumes
@@ -872,7 +875,7 @@ inline bool toy_detector_test(
     EXPECT_EQ(names.at(vol_itr->index()), "barrel_11");
     range = {1042u, 1774u};
     index = {11u};
-    accel_link = {accel_ids::e_surface_cylinder2D_grid, 2u};
+    accel_link = {accel_ids::e_surface_concentric_cylinder2D_grid, 2u};
     check_sf_ranges(*vol_itr, {1770u, 1774u}, {1042u, 1770u}, {});
 
     // Test the links in the volumes
@@ -949,7 +952,7 @@ inline bool toy_detector_test(
     EXPECT_EQ(names.at(vol_itr->index()), "barrel_13");
     range = {1778u, 2874u};
     index = {13u};
-    accel_link = {accel_ids::e_surface_cylinder2D_grid, 3u};
+    accel_link = {accel_ids::e_surface_concentric_cylinder2D_grid, 3u};
     check_sf_ranges(*vol_itr, {2870u, 2874u}, {1778u, 2870u}, {});
 
     // Test the links in the volumes

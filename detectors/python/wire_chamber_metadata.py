@@ -4,11 +4,15 @@
 #
 # Mozilla Public License Version 2.0
 
-from impl import metadata, metadata_generator
-from impl import Shape
-from utils import add_logging_options, parse_logging_options, add_wire_chamber_defaults
+import detray
 
+from detray.detectors import metadata, metadata_generator
+from detray.detectors import Shape
+from detray.detectors import add_wire_chamber_defaults
+
+import argparse
 import logging
+import sys
 
 # --------------------------------------------------------------------------
 # Generate the wire chamber metadata type
@@ -22,7 +26,7 @@ def add_wire_chamber_types(md: metadata):
     logger.info("Define types required by the wire chamber detector:")
 
     # Add default types for wire chambers
-    add_wire_chamber_defaults(metadata=md, use_homogeneous_mat=True, use_mat_maps=False)
+    add_wire_chamber_defaults(md, use_mat_maps=True, use_homogeneous_mat=True)
 
     # Beampipe passive surface
     logger.info("-> adding wire chamber beampipe")
@@ -33,10 +37,11 @@ def add_wire_chamber_types(md: metadata):
 
 def __main__():
     # Commandline options
-    parser = add_logging_options()
-    parse_logging_options(parser.parse_args())
+    parser = argparse.ArgumentParser(prog=sys.argv[0])
+    detray.detectors.add_logging_options(parser)
+    detray.detectors.parse_logging_options(parser.parse_args())
 
-    md = metadata("wire_chamber_test_detector")
+    md = metadata("wire_chamber")
 
     add_wire_chamber_types(md)
 

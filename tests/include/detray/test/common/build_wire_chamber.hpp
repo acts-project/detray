@@ -17,7 +17,7 @@
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/detectors/default_metadata.hpp"
+#include "detray/detectors/wire_chamber_metadata.hpp"
 #include "detray/geometry/shapes/line.hpp"
 #include "detray/material/predefined_materials.hpp"
 #include "detray/utils/consistency_checker.hpp"
@@ -150,7 +150,7 @@ inline auto build_wire_chamber(
     wire_chamber_config<dscalar<algebra_t>, wire_shape_t> &cfg) {
 
     using builder_t =
-        detector_builder<default_metadata<algebra_t>, volume_builder>;
+        detector_builder<wire_chamber_metadata<algebra_t>, volume_builder>;
     using detector_t = typename builder_t::detector_type;
     using scalar_t = dscalar<typename detector_t::algebra_type>;
 

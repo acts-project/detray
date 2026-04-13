@@ -9,11 +9,13 @@
 
 // Project include(s)
 #include "detray/builders/surface_factory_interface.hpp"
+#include "detray/core/concepts.hpp"
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/material/material.hpp"
 #include "detray/material/material_rod.hpp"
+#include "detray/material/material_slab.hpp"
 #include "detray/material/predefined_materials.hpp"
 #include "detray/utils/logging.hpp"
 #include "detray/utils/ranges.hpp"
@@ -90,7 +92,11 @@ class homogeneous_material_generator final
     homogeneous_material_generator(
         std::unique_ptr<surface_factory_interface<detector_t>> factory,
         const hom_material_config<scalar_t> cfg)
-        : factory_decorator<detector_t>(std::move(factory)), m_cfg{cfg} {}
+        : factory_decorator<detector_t>(std::move(factory)), m_cfg{cfg} {
+        static_assert(concepts::has_material_slabs<detector_t> ||
+                          concepts::has_material_rods<detector_t>,
+                      "No homogeneous surface material in detector type");
+    }
 
     /// Call the underlying surface factory and record the surface range that
     /// was produced
@@ -185,9 +191,7 @@ class homogeneous_material_generator final
             bool is_line{false};
             link_t mat_link;
 
-            if constexpr (types::contains<typename detector_t::materials,
-                                          material_rod<scalar_t>>) {
-
+            if constexpr (concepts::has_material_rods<detector_t>) {
                 using mask_id = typename detector_t::masks::id;
 
                 // If the current surface is a line, generate a material rod
@@ -207,13 +211,15 @@ class homogeneous_material_generator final
             }
 
             // For all surfaces that are not lines, generate a material slab
-            if (!is_line) {
-                auto &mat_coll =
-                    materials.template get<material_id::e_material_slab>();
-                mat_coll.emplace_back(*mat_ptr, m_cfg.thickness());
+            if constexpr (concepts::has_material_slabs<detector_t>) {
+                if (!is_line) {
+                    auto &mat_coll =
+                        materials.template get<material_id::e_material_slab>();
+                    mat_coll.emplace_back(*mat_ptr, m_cfg.thickness());
 
-                mat_link = {material_id::e_material_slab,
-                            static_cast<dindex>(mat_coll.size() - 1u)};
+                    mat_link = {material_id::e_material_slab,
+                                static_cast<dindex>(mat_coll.size() - 1u)};
+                }
             }
 
             // Set the initial surface material link (will be updated when

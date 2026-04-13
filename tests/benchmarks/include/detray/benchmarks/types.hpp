@@ -14,6 +14,7 @@
 // Detray detector include(s)
 #include "detray/detectors/default_metadata.hpp"
 #include "detray/detectors/toy_metadata.hpp"
+#include "detray/detectors/wire_chamber_metadata.hpp"
 
 namespace detray::benchmarks {
 
@@ -66,5 +67,6 @@ using matrix = dmatrix<algebra, ROWS, COLS>;
 // Test detector types
 using default_metadata = detray::default_metadata<algebra>;
 using toy_metadata = detray::toy_metadata<algebra>;
+using wire_chamber_metadata = detray::wire_chamber_metadata<algebra>;
 
 }  // namespace detray::benchmarks

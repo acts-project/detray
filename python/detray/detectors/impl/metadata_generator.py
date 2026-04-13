@@ -12,6 +12,8 @@ from .definitions import (
     Shape,
     Material,
     Accelerator,
+    GridBin,
+    GridSerializer,
 )
 
 # Python includes
@@ -150,7 +152,15 @@ class metadata:
         type_id: int = -1,
         value_type: str = "surface",
         is_default: bool = False,
+        grid_bin: GridBin = GridBin.DYNAMIC,
+        grid_serializer: GridSerializer = GridSerializer.SIMPLE,
     ):
+
+        # Update accelerator type with specific configuration
+        if "grid" in accel.specifier:
+            accel.param["bin"] = grid_bin
+            accel.param["serialiser"] = grid_serializer
+
         # Make sure volume acceleration structures have indices as values
         value_type = "index" if "volume" in obj_type else value_type
         chosen = False
@@ -240,6 +250,7 @@ class metadata_generator:
         self.shape_specifiers = {}
         self.material_specifiers = {}
         self.accel_specifiers = {}
+        self.grid_specifiers = []
 
         # Common header section
         root_dir = '#include "detray'
@@ -320,6 +331,8 @@ class metadata_generator:
 
     # Write a C++ template parameter list
     def __template_list(self, params=[]):
+        if "" in params:
+            params.remove("")
         return "" if not params else f"template <{','.join(params)}>"
 
     # Get the the class name from the full type (which has namespace, template params etc.)
@@ -653,7 +666,7 @@ template <template <typename...> class vector_t = dvector>\n\
             template_list = "template <typename container_t>\n"
 
             # Only write the type if it's type ID is not yet registered
-            if not type_id in self.material_specifiers:
+            if type_id not in self.material_specifiers:
                 self.__put(
                     f"{template_list}{self.__tabs()}using {type_specifier} = material_map<{algebra}, {shape_specifier}, container_t>;\n"
                 )
@@ -694,24 +707,50 @@ template <template <typename...> class vector_t = dvector>\n\
         type_specifier = f"{self.__name_from_specifier(acc.specifier)}_t"
 
         if type_specifier.endswith("grid_t"):
-            # First spatial grid declaration?
-            if not any(
-                sc.endswith("grid_t")
-                for sc in itertools.chain(*self.accel_specifiers.values())
-            ):
-                template_list = "template <typename axes_t, typename bin_entry_t, typename container_t>\n"
-                self.__put(
-                    f"{template_list}{self.__tabs()}using spatial_grid_t = spatial_grid<algebra_type, axes_t,bins::dynamic_array<bin_entry_t>, simple_serializer, container_t, false>;"
-                )
-                self.__lines(2)
 
+            # Assemble the spatial grid type
+
+            # Grid shape
             shape_specifier = acc.param["shape"].specifier
-            type_specifier = f"{self.__name_from_specifier(shape_specifier)}_grid_t"
+            shape_name = self.__name_from_specifier(shape_specifier)
+
+            # Grid bin entries
             entry_type = "surface_type" if value_type == "surface" else "dindex"
 
+            # Grid bin type
+            grid_bin = acc.param["bin"].specifier
+            bin_name = self.__name_from_specifier(grid_bin).removesuffix("_array")
+            bin_capacity = ""
+            if "static" in grid_bin:
+                bin_capacity = acc.param["bin"].param["capacity"]
+            bin_type_param = self.__template_list(
+                ["bin_entry_t", f"{bin_capacity}"]
+            ).removeprefix("template ")
+
+            # Grid serializer type
+            grid_serializer = acc.param["serializer"].specifier
+            serializer_name = self.__name_from_specifier(grid_serializer).removesuffix(
+                "_serializer"
+            )
+
+            grid_specifier = f"{bin_name}_{serializer_name}_grid_t"
+
+            # First use of this spatial grid? Write common declaration to header
+            if grid_specifier not in self.grid_specifiers:
+                self.__lines(2)
+                template_list = "template <typename axes_t, typename bin_entry_t, typename container_t>\n"
+                self.__put(
+                    f"{template_list}{self.__tabs()}using {grid_specifier} = spatial_grid<algebra_type, axes_t, {grid_bin}{bin_type_param}, {grid_serializer}, container_t, false>;"
+                )
+                self.grid_specifiers.append(grid_specifier)
+                self.__lines(2)
+
+            # Declare the final, per-shape grid types
+            type_specifier = f"{shape_name}_grid_t"
             template_list = "template <typename container_t>\n"
+
             self.__put(
-                f"{template_list}{self.__tabs()}using {obj_type}_{type_specifier} = spatial_grid_t<axes<{shape_specifier}>, {entry_type}, container_t>;\n"
+                f"{template_list}{self.__tabs()}using {obj_type}_{type_specifier} = {grid_specifier}<axes<{shape_specifier}>, {entry_type}, container_t>;\n"
             )
 
         self.accel_specifiers.setdefault(type_id, []).append(
@@ -854,7 +893,7 @@ template <template <typename...> class vector_t = dvector>\n\
             representative = acc
             if (
                 not is_default_accel(value_type, acc)
-                and (type_id, value_type) in type_id_dict.keys()
+                and (type_id, value_type) in type_id_dict
                 and len(type_id_dict[type_id, value_type]) > 1
             ):
                 tmp_repr = type_id_dict[type_id, value_type][0]

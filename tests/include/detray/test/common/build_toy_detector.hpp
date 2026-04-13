@@ -519,7 +519,8 @@ inline void add_cylinder_grid(
     using detector_t = typename detector_builder_t::detector_type;
     using scalar_t = dscalar<typename detector_t::algebra_type>;
 
-    constexpr auto grid_id = detector_t::accel::id::e_surface_cylinder2D_grid;
+    constexpr auto grid_id =
+        detector_t::accel::id::e_surface_concentric_cylinder2D_grid;
     using cyl_grid_t = types::get<typename detector_t::accel, grid_id>;
 
     using grid_builder_t =

@@ -150,7 +150,7 @@ GTEST_TEST(detray_builders, decorator_grid_builder) {
     // only the portals are referenced through the volume
     test::toy_metadata::object_link_type sf_range{};
     sf_range[0] = {acc_ids::e_surface_default, 0u};
-    sf_range[1] = {acc_ids::e_surface_cylinder2D_grid, 0u};
+    sf_range[1] = {acc_ids::e_surface_concentric_cylinder2D_grid, 0u};
 
     // toy detector makes no distinction between the surface types
     EXPECT_EQ(vol.template accel_link<geo_obj_id::e_portal>(),
@@ -165,7 +165,6 @@ GTEST_TEST(detray_builders, decorator_grid_builder) {
     EXPECT_EQ(d.mask_store().template size<mask_id::e_concentric_cylinder2D>(),
               3u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_ring2D>(), 0u);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_cylinder2D>(), 3u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_rectangle2D>(), 3u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_trapezoid2D>(), 1u);
 
@@ -182,8 +181,8 @@ GTEST_TEST(detray_builders, decorator_grid_builder) {
     // check the sensitive surfaces in the grid
     const auto& cyl_grid =
         d.accelerator_store()
-            .template get<
-                detector_t::accel::id::e_surface_cylinder2D_grid>()[0];
+            .template get<detector_t::accel::id::
+                              e_surface_concentric_cylinder2D_grid>()[0];
     dindex trf_idx{3u};
     for (const auto& sf : cyl_grid.all()) {
         EXPECT_TRUE(sf.is_sensitive());

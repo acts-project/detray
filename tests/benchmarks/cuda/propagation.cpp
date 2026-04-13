@@ -144,7 +144,7 @@ int main(int argc, char** argv) {
     detray::benchmarks::register_benchmark<
         detray::benchmarks::cuda_propagation_bm,
         detray::benchmarks::cuda_propagator_type<
-            detray::benchmarks::default_metadata, field_bknd_t,
+            detray::benchmarks::wire_chamber_metadata, field_bknd_t,
             detray::benchmarks::default_chain, true>>(
         "WIRE_CHAMBER_W_COV_TRANSPORT", bench_cfg, prop_cfg, wire_chamber,
         bfield, &actor_states, track_samples, n_tracks, &dev_mr);
@@ -153,7 +153,7 @@ int main(int argc, char** argv) {
     detray::benchmarks::register_benchmark<
         detray::benchmarks::cuda_propagation_bm,
         detray::benchmarks::cuda_propagator_type<
-            detray::benchmarks::default_metadata, field_bknd_t,
+            detray::benchmarks::wire_chamber_metadata, field_bknd_t,
             detray::benchmarks::empty_chain, false>>(
         "WIRE_CHAMBER", bench_cfg, prop_cfg, wire_chamber, bfield, &empty_state,
         track_samples, n_tracks, &dev_mr);

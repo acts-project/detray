@@ -7,7 +7,7 @@
 import detray
 
 from detray.detectors import metadata, metadata_generator
-from detray.detectors import Shape
+from detray.detectors import Shape, Accelerator, GridBin, GridSerializer
 from detray.detectors import add_silicon_tracker_defaults
 
 import argparse
@@ -15,24 +15,32 @@ import logging
 import sys
 
 # --------------------------------------------------------------------------
-# Generate the Open Data Detector metadata type
+# Generate the toy detector metadata type
 # --------------------------------------------------------------------------
 
-""" Add all types needed to describe the ACTS Open Data Detector (ODD) """
+""" Add all types needed to describe the detray toy detector """
 
 
-def add_odd_types(md: metadata):
+def add_toy_types(md: metadata):
     logger = logging.getLogger(__name__)
-    logger.info("Define types required by the ACTS Open Data Detector (ODD):")
+    logger.info("Define types required by the toy detector:")
 
     # Add default types for silicon trackers (cylindrical detector shape)
     add_silicon_tracker_defaults(
         metadata=md, use_homogeneous_mat=True, use_mat_maps=True
     )
 
-    # Beampipe passive surface
-    logger.info("-> adding ODD beampipe")
-    md.add_passive(Shape.CYLINDER2D)
+    # Add surface grids with static bin capicity
+    toy_grid_bin = GridBin.STATIC
+    toy_grid_bin.param["capacity"] = 1
+
+    md.add_accel_struct(
+        Accelerator.CONCENTRIC_CYLINDER_GRID2D,
+        "sensitive",
+        grid_bin=toy_grid_bin,
+    )
+
+    md.add_accel_struct(Accelerator.DISC_GRID2D, "sensitive", grid_bin=toy_grid_bin)
 
     logger.info("Done")
 
@@ -43,9 +51,9 @@ def __main__():
     detray.detectors.add_logging_options(parser)
     detray.detectors.parse_logging_options(parser.parse_args())
 
-    md = metadata("odd")
+    md = metadata("toy")
 
-    add_odd_types(md)
+    add_toy_types(md)
 
     # Dump the metadata to header file
     metadata_generator(md)
