@@ -62,17 +62,17 @@ def __main__():
     # md.add_sensitive(Shape.UNBOUNDED)  # Always hit the surface
     # md.add_sensitive(Shape.UNMASKED)
 
-    # Add more material types
-    # Material maps on non-concentric cylinders
-    # md.add_material(Material.CYLINDER_MAP2D)
-
-    # Add surface acceleration structures
-    # md.add_accel_struct(Accelerator.CYLINDER_GRID3D)
-    # md.add_accel_struct(Accelerator.CUBOID_GRID3D)
+    # Add more material types for testing
+    md.add_material(Material.ANNULUS_MAP2D)
+    md.add_material(Material.TRAPEZOID_MAP2D)
+    md.add_material(Material.CUBOID_MAP3D)
+    md.add_material(Material.CYLINDER_MAP2D)
 
     # Make sure a default acceleration struct is chosen that can be used in all
     # detector types
-    logger.info("Overwrite default acceleration structures to most generic type")
+    logger.info(
+        "Overwrite default acceleration structures to use most generic types as defaults"
+    )
     md.set_default_accel_struct(Accelerator.BRUTE_FORCE, "portal")
     md.set_default_accel_struct(Accelerator.CYLINDER_GRID3D, "volume")
 

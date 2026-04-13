@@ -49,5 +49,7 @@ def add_calorimeter_defaults(
 
     # Add acceleration structures (e.g. Frustum navigation) in the future...
 
+    logger.info("Done")
+
 
 add_calorimeter_defaults.clients = []

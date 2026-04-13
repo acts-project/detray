@@ -61,5 +61,7 @@ def add_silicon_tracker_defaults(
     metadata.add_accel_struct(Accelerator.CYLINDER_GRID3D, "volume", is_default=True)
     metadata.add_accel_struct(Accelerator.CUBOID_GRID3D, "volume", is_default=True)
 
+    logger.info("Done")
+
 
 add_silicon_tracker_defaults.clients = []

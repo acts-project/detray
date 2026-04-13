@@ -34,6 +34,8 @@ def add_odd_types(md: metadata):
     logger.info("-> adding ODD beampipe")
     md.add_passive(Shape.CYLINDER2D)
 
+    logger.info("Done")
+
 
 def __main__():
     # Commandline options

@@ -40,6 +40,8 @@ def add_itk_types(md: metadata):
     logger.info("-> adding ITk beampipe")
     md.add_passive(Shape.CYLINDER2D)
 
+    logger.info("Done")
+
 
 def __main__():
     # Commandline options

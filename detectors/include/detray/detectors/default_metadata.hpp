@@ -124,17 +124,23 @@ struct default_metadata {
     template <typename container_t>
     using cylinder2D_map_t =
         material_map<algebra_type, detray::cylinder2D, container_t>;
+    template <typename container_t>
+    using cuboid3D_map_t =
+        material_map<algebra_type, detray::cuboid3D, container_t>;
 
     enum class material_id : std::uint_least8_t {
         e_concentric_cylinder2D_map = 0u,
         e_ring2D_map = 1u,
+        e_annulus2D_map = 1u,
         e_material_slab = 2u,
         e_cylinder3D_map = 3u,
         e_raw_material = 4u,
         e_rectangle2D_map = 5u,
+        e_trapezoid2D_map = 5u,
         e_material_rod = 6u,
         e_cylinder2D_map = 7u,
-        e_none = 8u,
+        e_cuboid3D_map = 8u,
+        e_none = 9u,
     };
 
     DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
@@ -143,8 +149,8 @@ struct default_metadata {
             case material_id::e_concentric_cylinder2D_map:
                 os << "e_concentric_cylinder2D_map";
                 break;
-            case material_id::e_ring2D_map:
-                os << "e_ring2D_map";
+            case material_id::e_annulus2D_map:
+                os << "e_ring2D_map/e_annulus2D_map";
                 break;
             case material_id::e_material_slab:
                 os << "e_material_slab";
@@ -155,14 +161,17 @@ struct default_metadata {
             case material_id::e_raw_material:
                 os << "e_raw_material";
                 break;
-            case material_id::e_rectangle2D_map:
-                os << "e_rectangle2D_map";
+            case material_id::e_trapezoid2D_map:
+                os << "e_rectangle2D_map/e_trapezoid2D_map";
                 break;
             case material_id::e_material_rod:
                 os << "e_material_rod";
                 break;
             case material_id::e_cylinder2D_map:
                 os << "e_cylinder2D_map";
+                break;
+            case material_id::e_cuboid3D_map:
+                os << "e_cuboid3D_map";
                 break;
             case material_id::e_none:
                 os << "e_none";
@@ -183,7 +192,8 @@ struct default_metadata {
                     typename container_t::template vector_type<raw_material_t>,
                     grid_collection<rectangle2D_map_t<container_t>>,
                     typename container_t::template vector_type<material_rod_t>,
-                    grid_collection<cylinder2D_map_t<container_t>>>;
+                    grid_collection<cylinder2D_map_t<container_t>>,
+                    grid_collection<cuboid3D_map_t<container_t>>>;
 
     using transform_link = typename transform_store<>::single_link;
     using mask_link = typename mask_store<>::range_link;
@@ -214,13 +224,13 @@ struct default_metadata {
         spatial_grid_t<axes<detray::cuboid3D>, dindex, container_t>;
 
     enum class accel_id : std::uint_least8_t {
-        e_surface_brute_force = 0,
-        e_surface_concentric_cylinder2D_grid = 1,
-        e_surface_ring2D_grid = 2,
-        e_surface_cylinder2D_grid = 3,
-        e_volume_cylinder3D_grid = 4,
-        e_volume_cuboid3D_grid = 5,
-        e_volume_brute_force = 6,
+        e_surface_brute_force = 0u,
+        e_surface_concentric_cylinder2D_grid = 1u,
+        e_surface_ring2D_grid = 2u,
+        e_surface_cylinder2D_grid = 3u,
+        e_volume_cylinder3D_grid = 4u,
+        e_volume_cuboid3D_grid = 5u,
+        e_volume_brute_force = 6u,
         e_surface_default = e_surface_brute_force,
         e_volume_default = e_volume_cylinder3D_grid,
     };
@@ -273,6 +283,27 @@ struct default_metadata {
         e_volume = 2u,
         e_size = 3u,
         e_all = e_size,
+    };
+
+    DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
+                                                       geo_objects id) {
+        switch (id) {
+            case geo_objects::e_sensitive:
+                os << "e_sensitive";
+                break;
+            case geo_objects::e_portal:
+                os << "e_passive/e_portal";
+                break;
+            case geo_objects::e_volume:
+                os << "e_volume";
+                break;
+            case geo_objects::e_size:
+                os << "e_size";
+                break;
+            default:
+                os << "invalid";
+        }
+        return os;
     };
 
     using object_link_type =

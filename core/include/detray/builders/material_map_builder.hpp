@@ -126,7 +126,7 @@ class material_map_builder final : public volume_decorator<detector_t> {
         // Construct the surfaces
         typename detector_t::volume_type* vol_ptr =
             volume_decorator<detector_t>::build(det, ctx);
-        DETRAY_DEBUG_HOST("-> Back in build");
+        DETRAY_DEBUG_HOST("-> Back in material map building");
 
         // Build the material grid for every surface that has material
         dindex sf_idx = 0u;

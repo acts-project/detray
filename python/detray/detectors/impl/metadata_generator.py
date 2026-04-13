@@ -113,7 +113,11 @@ class metadata:
     # Register a new material type
     def add_material(self, mat: Material, type_id: int = -1):
         if mat not in itertools.chain(*self.materials.values()):
-            if mat is Material.SLAB or mat is Material.ROD or mat is Material.RAW:
+            is_hom_mat = (
+                mat is Material.SLAB or mat is Material.ROD or mat is Material.RAW
+            )
+
+            if is_hom_mat:
                 self.logger.debug(f'--> material type "{mat.specifier}"')
             else:
                 shape_secifier = mat.param["shape"].specifier
@@ -123,6 +127,19 @@ class metadata:
 
             # Automatically enumerate the material if no type ID is given
             i = type_id if type_id >= 0 else len(self.materials)
+
+            # Check if a compatible material is already registered
+            # under a different type id?
+            if not is_hom_mat:
+                compatible_types = [
+                    k
+                    for k, v in self.materials.items()
+                    if "frame" in v[0].param
+                    and v[0].param["frame"].specifier == mat.param["frame"].specifier
+                ]
+                compatible_types.sort()
+                i = compatible_types[0] if len(compatible_types) > 0 else i
+
             self.materials.setdefault(i, []).append(mat)
 
     # Register a new acceleration structure for a geometric object type
@@ -134,7 +151,6 @@ class metadata:
         value_type: str = "surface",
         is_default: bool = False,
     ):
-        print(f"{type_id}, {value_type}")
         # Make sure volume acceleration structures have indices as values
         value_type = "index" if "volume" in obj_type else value_type
         chosen = False
@@ -161,6 +177,8 @@ class metadata:
             self.set_default_accel_struct(accel, obj_type, value_type)
 
     # Mark an acceleration struct as default for the given object type
+    # (To be used e.g. for the portal surfaces and to fetch the volume acc.
+    # struct in the detector without resolving a specific type ID)
     def set_default_accel_struct(
         self,
         accel: Accelerator,
@@ -198,15 +216,13 @@ class metadata:
             accel,
             value_type,
         ) not in [(a, v) for a, i, v in self.acceleration_structs[obj_type]]:
-            # print(obj_type)
-            # print(self.acceleration_structs)
             self.logger.warning(
                 f"Requested default acceleration structure ({obj_type}, {accel_type}) not defined in metadata: Adding it now..."
             )
             self.add_accel_struct(accel, obj_type, type_id, value_type)
 
 
-""" Class that accumulates detector type data and writes a metadat header """
+""" Class that accumulates detector type data and writes a metadata header """
 
 
 class metadata_generator:
@@ -236,13 +252,14 @@ class metadata_generator:
 {root_dir}/geometry/mask.hpp"\n\
 {root_dir}/geometry/surface_descriptor.hpp"\n'
 
-        # Dump the header
+        # Dump the metadata header
         self.__generate(md)
 
     # Write the given metadata to file
     def __generate(
         self, md: metadata, src_dir="../detectors/include/detray/detectors/"
     ):
+        # Shortened naming convention
         det_name = md.det_name.replace("_detector", "")
         filename = f"{os.path.abspath(src_dir)}/{det_name}_metadata.hpp"
         self.logger.debug(f'Open "{filename}"')
@@ -264,7 +281,7 @@ class metadata_generator:
         self.logger.info(" -> Masks")
         self.__declare_mask_store(md)
 
-        # Mask store
+        # Material store
         self.logger.info(" -> Material")
         self.__declare_material_store(md)
 
@@ -283,7 +300,7 @@ class metadata_generator:
         # Finish (write header file to disk)
         self.__finish()
 
-        self.logger.info("Done!")
+        self.logger.info(f'Finished metadata for "{md.det_name} detector"')
 
     # Add a string to the header file
     def __put(self, string):
@@ -297,11 +314,11 @@ class metadata_generator:
     def __tabs(self):
         return "\t" * self.indent
 
-    # Write C++ typedef
+    # Write a C++ typedef
     def __typedef(self, name, type):
         self.__put(f"using {name} = {type};\n")
 
-    # Write C++ template parameter list
+    # Write a C++ template parameter list
     def __template_list(self, params=[]):
         return "" if not params else f"template <{','.join(params)}>"
 
@@ -441,9 +458,6 @@ template <template <typename...> class vector_t = dvector>\n\
     def __declare_type_enum(self, specifier, items, base_type, extra_items={}):
         self.__put(f"enum class {specifier} : {base_type} {{\n")
 
-        print(items)
-        print(extra_items)
-
         self.indent = self.indent + 1
         for i, values in itertools.chain(items.items(), extra_items.items()):
             for v in values:
@@ -452,7 +466,6 @@ template <template <typename...> class vector_t = dvector>\n\
                 tmp_value = v[1] if isinstance(v, list) else i
                 value = f"{i}u" if isinstance(tmp_value, numbers.Number) else tmp_value
 
-                print(value)
                 # Remove the trailing '_t' suffix
                 sub_specifier = f"e_{item[:-2]}" if item.endswith("_t") else f"e_{item}"
                 self.__put(f"{sub_specifier} = {value},\n")
@@ -473,20 +486,26 @@ template <template <typename...> class vector_t = dvector>\n\
 
         self.indent = self.indent + 1
         for i, values in itertools.chain(items.items(), extra_items.items()):
+
+            value = ""
+            item = ""
+            sub_specifier = ""
+            # Get the representative of the group
             for v in values:
                 # Special value was passed
                 item = v[0] if isinstance(v, list) else v
                 value = v[1] if isinstance(v, list) else f"{i}u"
                 # Remove the trailing '_t' suffix
-                sub_specifier = f"e_{item[:-2]}" if item.endswith("_t") else f"e_{item}"
-
-                self.__put(f"case {specifier}::{sub_specifier}:\n")
-                self.indent = self.indent + 1
-                self.__put(
-                    f'os << "{value if isinstance(v, list) else sub_specifier}";\n'
+                item = f"e_{item[:-2]}" if item.endswith("_t") else f"e_{item}"
+                sub_specifier = (
+                    item if sub_specifier == "" else f"{sub_specifier}/{item}"
                 )
-                self.__put("break;\n")
-                self.indent = self.indent - 1
+
+            self.__put(f"case {specifier}::{item}:\n")
+            self.indent = self.indent + 1
+            self.__put(f'os << "{value if isinstance(v, list) else sub_specifier}";\n')
+            self.__put("break;\n")
+            self.indent = self.indent - 1
 
         # Add the default case
         self.__put("default:\n")
@@ -520,10 +539,11 @@ template <template <typename...> class vector_t = dvector>\n\
                 f"\tregular_multi_store<{id_name}, {context}, dtuple, vector_t, {','.join(itertools.chain(*types.values()))}>;"
             )
         else:
-            # The brute force searcher needs to be at the beginning of the store
             type_list = []
-            flattened_types = [t for t in itertools.chain(*types.values())]
+            # Take one representative type from the list
+            flattened_types = [v[0] for k, v in types.items()]
 
+            # The brute force searcher needs to be at the beginning of the store
             if "surface_brute_force_t" in flattened_types:
                 flattened_types = [
                     t for t in flattened_types if t != "surface_brute_force_t"
@@ -631,9 +651,12 @@ template <template <typename...> class vector_t = dvector>\n\
             shape_type = self.__name_from_specifier(shape_specifier)
             type_specifier = f"{shape_type}_map_t"
             template_list = "template <typename container_t>\n"
-            self.__put(
-                f"{template_list}{self.__tabs()}using {type_specifier} = material_map<{algebra}, {shape_specifier}, container_t>;\n"
-            )
+
+            # Only write the type if it's type ID is not yet registered
+            if not type_id in self.material_specifiers:
+                self.__put(
+                    f"{template_list}{self.__tabs()}using {type_specifier} = material_map<{algebra}, {shape_specifier}, container_t>;\n"
+                )
 
         self.material_specifiers.setdefault(type_id, []).append(type_specifier)
 
@@ -665,7 +688,8 @@ template <template <typename...> class vector_t = dvector>\n\
             "material_store", "material_id", self.material_specifiers, is_regular=False
         )
 
-    # Write a full acceleration structure type
+    # Write a full acceleration structure type to the metadata header
+    # and add it to the internal acceleration structure specifier dictionary
     def __declare_accel(self, obj_type, acc, type_id: int, value_type: str):
         type_specifier = f"{self.__name_from_specifier(acc.specifier)}_t"
 
@@ -719,9 +743,10 @@ template <template <typename...> class vector_t = dvector>\n\
         for geo_obj, accels in md.acceleration_structs.items():
             obj_type = "volume" if "volume" in geo_obj else "surface"
             for acc, type_id, value_type in accels:
-                if (obj_type, acc, type_id) not in unique_accel:
+                if (obj_type, acc, type_id, value_type) not in unique_accel:
                     self.__declare_accel(obj_type, acc, type_id, value_type)
                     unique_accel.append((obj_type, acc, type_id, value_type))
+        del unique_accel
 
         # Add options for the default acceleration structs
         self.__lines(1)
@@ -750,6 +775,17 @@ template <template <typename...> class vector_t = dvector>\n\
             surface_default: ["surface_default"],
             volume_default: ["volume_default"],
         }
+
+        # Sort the accelerators by type id
+        if len(self.accel_specifiers) == 1:
+            if next(iter(self.accel_specifiers)) == -1:
+                # Automatically enumerate the types
+                for i, spec in enumerate(self.accel_specifiers[-1]):
+                    self.accel_specifiers.setdefault(i, []).append(spec)
+                # Remove type ID '-1'
+                del self.accel_specifiers[-1]
+
+        # Type enumeration
         self.__declare_type_enum(
             "accel_id",
             self.accel_specifiers,
@@ -757,6 +793,7 @@ template <template <typename...> class vector_t = dvector>\n\
             extra_items=extra_items,
         )
 
+        # Output stream operator for type enumeration
         self.__lines(2)
         self.__define_enum_stream_op(
             "accel_id",
@@ -795,8 +832,6 @@ template <template <typename...> class vector_t = dvector>\n\
 
         # Find which geometric objects go together into which accel. struct
 
-        print(f"Input:\n{md.acceleration_structs}\n")
-
         accel_to_types = {}
         for t, accels in md.acceleration_structs.items():
             for a, i, v in accels:
@@ -807,15 +842,11 @@ template <template <typename...> class vector_t = dvector>\n\
 
                 accel_to_types[specifier, i, v].add(t)
 
-        print(f"Accel to types:\n{accel_to_types}\n")
-
         # If specific type IDs are required, merge the categories accordingly
         type_id_dict = {}
         for acc, type_id, value_type in accel_to_types.keys():
             if type_id > -1:
                 type_id_dict.setdefault((type_id, value_type), []).append(acc)
-
-        print(f"type ID dict:\n{type_id_dict}\n")
 
         # Find a representative for each category and merge the obj type sets
         accel_to_types_merged = {}
@@ -837,8 +868,6 @@ template <template <typename...> class vector_t = dvector>\n\
                 (representative, value_type, type_id), set()
             ).update(accel_to_types[acc, type_id, value_type])
 
-        print(f"Accel to types (merged):\n{accel_to_types_merged}\n")
-
         # Check duplicate sets (make the set hashable by converting to tuple)
         counted_dict = Counter([tuple(v) for v in accel_to_types_merged.values()])
         duplicates = {
@@ -847,15 +876,10 @@ template <template <typename...> class vector_t = dvector>\n\
             if counted_dict[tuple(value)] > 1
         }
 
-        print(f"Counted: {counted_dict}")
-        print(f"duplicates: {duplicates}")
-
         # Get the list of keys for every duplicate
         flipped_duplicates = {}
         for key, value in duplicates.items():
             flipped_duplicates.setdefault(tuple(value), []).append(key)
-
-        print(f"flipped_duplicates: {flipped_duplicates}")
 
         # Find best representative key for the duplicates and remove the others
         removal_keys = []
@@ -874,8 +898,6 @@ template <template <typename...> class vector_t = dvector>\n\
         for rk in removal_keys:
             accel_to_types_merged.pop(rk, None)
 
-        print(f"Accel to types (deduplicated):\n{accel_to_types_merged}\n")
-
         # Sort, in order to find the largest geo object sets
         accel_to_types_sorted = dict(
             sorted(
@@ -884,8 +906,6 @@ template <template <typename...> class vector_t = dvector>\n\
                 reverse=True,
             )
         )
-
-        print(f"Accel to types (sorted):\n{accel_to_types_sorted}\n")
 
         # Link slot to geometry object types
         accel_link_types = {}
@@ -909,8 +929,6 @@ template <template <typename...> class vector_t = dvector>\n\
 
             add_link(key=type_id, new_objects=obj_set)
 
-        print(f"Final accel distinct link types:\n{accel_link_types}\n")
-
         # Add the default link for the leftover surface and volume types
         surface_default_list = [
             v
@@ -932,8 +950,6 @@ template <template <typename...> class vector_t = dvector>\n\
             new_objects=itertools.chain.from_iterable(volume_default_list),
         )
 
-        print(f"final accel links categories: {accel_link_types}")
-
         # Write the id enum for the types of distinct geometric objects
         self.__lines(2)
         self.__put(f"enum geo_objects : {md.id_base} {{\n")
@@ -944,9 +960,6 @@ template <template <typename...> class vector_t = dvector>\n\
         (portal_key, portal_group) = [
             (k, v) for (k, v) in accel_link_types.items() if "portal" in v
         ][0]
-
-        print(portal_key)
-        print(portal_group)
 
         if not portal_group:
             self.logger.error(
@@ -974,13 +987,12 @@ template <template <typename...> class vector_t = dvector>\n\
         self.__put("};")
 
         # Add streaming operator for geo_objects enum
-        # print(list(itertools.chain.from_iterable(accel_link_types.values())))
-        # self.__lines(2)
-        # self.__define_enum_stream_op(
-        #    "geo_objects",
-        #    list(itertools.chain.from_iterable(accel_link_types.values())),
-        #    extra_items={"size": ["e_size"]},
-        # )
+        self.__lines(2)
+        self.__define_enum_stream_op(
+            "geo_objects",
+            accel_link_types,
+            extra_items={"e_size": ["size"]},
+        )
 
         # Add the surface acceleration struct link to the volume descriptor
         self.__lines(2)

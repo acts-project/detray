@@ -155,11 +155,11 @@ struct odd_metadata {
         spatial_grid_t<axes<detray::cuboid3D>, dindex, container_t>;
 
     enum class accel_id : std::uint_least8_t {
-        e_surface_brute_force = 0,
-        e_surface_concentric_cylinder2D_grid = 1,
-        e_surface_ring2D_grid = 2,
-        e_volume_cylinder3D_grid = 3,
-        e_volume_cuboid3D_grid = 4,
+        e_surface_brute_force = 0u,
+        e_surface_concentric_cylinder2D_grid = 1u,
+        e_surface_ring2D_grid = 2u,
+        e_volume_cylinder3D_grid = 3u,
+        e_volume_cuboid3D_grid = 4u,
         e_surface_default = e_surface_brute_force,
         e_volume_default = e_volume_cuboid3D_grid,
     };
@@ -204,6 +204,27 @@ struct odd_metadata {
         e_volume = 2u,
         e_size = 3u,
         e_all = e_size,
+    };
+
+    DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
+                                                       geo_objects id) {
+        switch (id) {
+            case geo_objects::e_sensitive:
+                os << "e_sensitive";
+                break;
+            case geo_objects::e_passive:
+                os << "e_portal/e_passive";
+                break;
+            case geo_objects::e_volume:
+                os << "e_volume";
+                break;
+            case geo_objects::e_size:
+                os << "e_size";
+                break;
+            default:
+                os << "invalid";
+        }
+        return os;
     };
 
     using object_link_type =

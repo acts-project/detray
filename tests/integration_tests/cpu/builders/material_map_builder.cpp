@@ -152,8 +152,8 @@ GTEST_TEST(detray_builders, decorator_material_map_builder) {
     auto mat_trpz_factory =
         std::make_shared<mat_factory_t>(std::move(trpz_factory));
     t = 1.f * unit<scalar>::mm;
-    /*add_material_data(mat_trpz_factory, mat_id::e_trapezoid2D_map, 5u, t,
-                      tungsten<scalar>());*/
+    add_material_data(mat_trpz_factory, mat_id::e_trapezoid2D_map, 5u, t,
+                      tungsten<scalar>());
 
     auto mat_cyl_factory =
         std::make_shared<mat_factory_t>(std::move(cyl_factory));
@@ -190,11 +190,7 @@ GTEST_TEST(detray_builders, decorator_material_map_builder) {
     EXPECT_EQ(d.material_store().template size<mat_id::e_material_slab>(), 0u);
     EXPECT_EQ(d.material_store().template size<mat_id::e_material_rod>(), 0u);
     EXPECT_EQ(d.material_store().template size<mat_id::e_ring2D_map>(), 0u);
-    // EXPECT_EQ(d.material_store().template size<mat_id::e_annulus2D_map>(),
-    // 0u); EXPECT_EQ(d.material_store().template
-    // size<mat_id::e_drift_cell_map>(), 0u);
-    // EXPECT_EQ(d.material_store().template size<mat_id::e_straw_tube_map>(),
-    // 0u);
+    EXPECT_EQ(d.material_store().template size<mat_id::e_annulus2D_map>(), 0u);
     EXPECT_EQ(d.material_store().template size<mat_id::e_cylinder2D_map>(), 1u);
     EXPECT_EQ(
         d.material_store().template size<mat_id::e_concentric_cylinder2D_map>(),
@@ -202,8 +198,8 @@ GTEST_TEST(detray_builders, decorator_material_map_builder) {
     // Rectangle and trapezoid surfaces have the same grid geometry
     EXPECT_EQ(d.material_store().template size<mat_id::e_rectangle2D_map>(),
               3u);
-    // EXPECT_EQ(d.material_store().template size<mat_id::e_trapezoid2D_map>(),
-    //           3u);
+    EXPECT_EQ(d.material_store().template size<mat_id::e_trapezoid2D_map>(),
+              3u);
 
     // Check the material links
     std::size_t pt_cyl_idx{0u};

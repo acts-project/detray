@@ -48,6 +48,26 @@ class Algebra(Enum):
         return self.value
 
 
+""" Available coordinate frame types """
+
+
+class Frame:
+    # 2D Cartesian frame (x, y)
+    CARTESIAN2D = cpp_class(specifier="detray::cartesian2D")
+    # 3D Cartesian frame (x, y, z)
+    CARTESIAN3D = cpp_class(specifier="detray::cartesian3D")
+    # 2D concentric cylindrical frame (phi, z), no transformation
+    CONCENTRIC_CYLINDRICAL2D = cpp_class(specifier="detray::concentric_cylindrical2D")
+    # 2D cylindrical frame (phi, z), abitrary placement
+    CYLINDRICAL2D = cpp_class(specifier="detray::cylindrical2D")
+    # 3D cylindrical frame (r, phi, z), abitrary placement
+    CYLINDRICAL3D = cpp_class(specifier="detray::cylindrical3D")
+    # Linear frame (+-r, z)
+    LINEAR2D = cpp_class(specifier="detray::line2D")
+    # Polar frame (r, phi)
+    POLAR2D = cpp_class(specifier="detray::polar2D")
+
+
 """ Available geometric shape types """
 
 
@@ -92,35 +112,46 @@ class Material:
     RAW = cpp_class(specifier="detray::material")
     # Surface material map, annulus shape 2D
     ANNULUS_MAP2D = cpp_class(
-        specifier=MATERIAL_MAP_SPECIFIER, param={"shape": Shape.ANNULUS}
+        specifier=MATERIAL_MAP_SPECIFIER,
+        param={"shape": Shape.ANNULUS, "frame": Frame.POLAR2D},
     )
     # Surface material map, concentric cyl.
     CONCENTIRC_CYLINDER_MAP2D = cpp_class(
-        specifier=MATERIAL_MAP_SPECIFIER, param={"shape": Shape.CONCENTRIC_CYLINDER}
+        specifier=MATERIAL_MAP_SPECIFIER,
+        param={
+            "shape": Shape.CONCENTRIC_CYLINDER,
+            "frame": Frame.CONCENTRIC_CYLINDRICAL2D,
+        },
     )
     # Surface material map, cylindrical 2D
     CYLINDER_MAP2D = cpp_class(
-        specifier=MATERIAL_MAP_SPECIFIER, param={"shape": Shape.CYLINDER2D}
+        specifier=MATERIAL_MAP_SPECIFIER,
+        param={"shape": Shape.CYLINDER2D, "frame": Frame.CYLINDRICAL2D},
     )
     # Volume material map, cylindrical 3D
     CYLINDER_MAP3D = cpp_class(
-        specifier=MATERIAL_MAP_SPECIFIER, param={"shape": Shape.CYLINDER3D}
+        specifier=MATERIAL_MAP_SPECIFIER,
+        param={"shape": Shape.CYLINDER3D, "frame": Frame.CYLINDRICAL3D},
     )
     # Volume material map, cuboid 3D
     CUBOID_MAP3D = cpp_class(
-        specifier=MATERIAL_MAP_SPECIFIER, param={"shape": Shape.CUBOID}
+        specifier=MATERIAL_MAP_SPECIFIER,
+        param={"shape": Shape.CUBOID, "frame": Frame.CARTESIAN3D},
     )
     # Surface material map, rectangular 2D
     RECTANGLE_MAP2D = cpp_class(
-        specifier=MATERIAL_MAP_SPECIFIER, param={"shape": Shape.RECTANGLE}
+        specifier=MATERIAL_MAP_SPECIFIER,
+        param={"shape": Shape.RECTANGLE, "frame": Frame.CARTESIAN2D},
     )
     # Surface material map, disc 2D
     DISC_MAP2D = cpp_class(
-        specifier=MATERIAL_MAP_SPECIFIER, param={"shape": Shape.RING}
+        specifier=MATERIAL_MAP_SPECIFIER,
+        param={"shape": Shape.RING, "frame": Frame.POLAR2D},
     )
     # Surface material map, trapezoidal 2D
     TRAPEZOID_MAP2D = cpp_class(
-        specifier=MATERIAL_MAP_SPECIFIER, param={"shape": Shape.TRAPEZOID}
+        specifier=MATERIAL_MAP_SPECIFIER,
+        param={"shape": Shape.TRAPEZOID, "frame": Frame.CARTESIAN2D},
     )
 
 
@@ -134,27 +165,36 @@ class Accelerator:
     BRUTE_FORCE = cpp_class(specifier="detray::brute_force")
     # Surface grid, cylindrical 2D (barrel)
     CONCENTRIC_CYLINDER_GRID2D = cpp_class(
-        specifier=SPATIAL_GRID_SPECIFIER, param={"shape": Shape.CONCENTRIC_CYLINDER}
+        specifier=SPATIAL_GRID_SPECIFIER,
+        param={
+            "shape": Shape.CONCENTRIC_CYLINDER,
+            "frame": Frame.CONCENTRIC_CYLINDRICAL2D,
+        },
     )
     # Surface grid, cylindrical 2D (barrel)
     CYLINDER_GRID2D = cpp_class(
-        specifier=SPATIAL_GRID_SPECIFIER, param={"shape": Shape.CYLINDER2D}
+        specifier=SPATIAL_GRID_SPECIFIER,
+        param={"shape": Shape.CYLINDER2D, "frame": Frame.CYLINDRICAL2D},
     )
     # Surface grid, cylindrical 3D (barrel)
     CYLINDER_GRID3D = cpp_class(
-        specifier=SPATIAL_GRID_SPECIFIER, param={"shape": Shape.CYLINDER3D}
+        specifier=SPATIAL_GRID_SPECIFIER,
+        param={"shape": Shape.CYLINDER3D, "frame": Frame.CYLINDRICAL3D},
     )
     # Surface grid, disc (endcap)
     DISC_GRID2D = cpp_class(
-        specifier=SPATIAL_GRID_SPECIFIER, param={"shape": Shape.RING}
+        specifier=SPATIAL_GRID_SPECIFIER,
+        param={"shape": Shape.RING, "frame": Frame.POLAR2D},
     )
     # Surface grid, reactangular (telescope)
     RECTANGLE_GRID2D = cpp_class(
-        specifier=SPATIAL_GRID_SPECIFIER, param={"shape": Shape.RECTANGLE}
+        specifier=SPATIAL_GRID_SPECIFIER,
+        param={"shape": Shape.RECTANGLE, "frame": Frame.CARTESIAN2D},
     )
     # Surface grid, cuboid 3D (telescope)
     CUBOID_GRID3D = cpp_class(
-        specifier=SPATIAL_GRID_SPECIFIER, param={"shape": Shape.CUBOID}
+        specifier=SPATIAL_GRID_SPECIFIER,
+        param={"shape": Shape.CUBOID, "frame": Frame.CARTESIAN3D},
     )
     # Surface grid, cuboid 3D (telescope)
     BLA = cpp_class(specifier="detray::bla")

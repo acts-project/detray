@@ -154,12 +154,11 @@ struct itk_metadata {
         spatial_grid_t<axes<detray::cuboid3D>, dindex, container_t>;
 
     enum class accel_id : std::uint_least8_t {
-        e_surface_brute_force = -1u,
-        e_surface_brute_force = -1u,
-        e_surface_concentric_cylinder2D_grid = -1u,
-        e_surface_ring2D_grid = -1u,
-        e_volume_cylinder3D_grid = -1u,
-        e_volume_cuboid3D_grid = -1u,
+        e_surface_brute_force = 0u,
+        e_surface_concentric_cylinder2D_grid = 1u,
+        e_surface_ring2D_grid = 2u,
+        e_volume_cylinder3D_grid = 3u,
+        e_volume_cuboid3D_grid = 4u,
         e_surface_default = e_surface_brute_force,
         e_volume_default = e_volume_cuboid3D_grid,
     };
@@ -167,9 +166,6 @@ struct itk_metadata {
     DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
                                                        accel_id id) {
         switch (id) {
-            case accel_id::e_surface_brute_force:
-                os << "e_surface_brute_force";
-                break;
             case accel_id::e_surface_brute_force:
                 os << "e_surface_brute_force";
                 break;
@@ -194,20 +190,40 @@ struct itk_metadata {
     template <typename container_t = host_container_types>
     using accelerator_store = multi_store<
         accel_id, empty_context, dtuple,
-        typename container_t::template vector_type<surface_brute_force_t>,
-        typename container_t::template vector_type<surface_brute_force_t>,
+        brute_force_collection<surface_type, container_t>,
         grid_collection<surface_concentric_cylinder2D_grid_t<container_t>>,
         grid_collection<surface_ring2D_grid_t<container_t>>,
         grid_collection<volume_cylinder3D_grid_t<container_t>>,
         grid_collection<volume_cuboid3D_grid_t<container_t>>>;
 
     enum geo_objects : std::uint_least8_t {
-        e_passive = 0u,
         e_portal = 0u,
+        e_passive = 0u,
         e_sensitive = 1u,
         e_volume = 2u,
         e_size = 3u,
         e_all = e_size,
+    };
+
+    DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
+                                                       geo_objects id) {
+        switch (id) {
+            case geo_objects::e_sensitive:
+                os << "e_sensitive";
+                break;
+            case geo_objects::e_passive:
+                os << "e_portal/e_passive";
+                break;
+            case geo_objects::e_volume:
+                os << "e_volume";
+                break;
+            case geo_objects::e_size:
+                os << "e_size";
+                break;
+            default:
+                os << "invalid";
+        }
+        return os;
     };
 
     using object_link_type =

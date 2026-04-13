@@ -65,5 +65,7 @@ def add_wire_chamber_defaults(
     logger.info("-> adding detector volume acceleration structure")
     md.add_accel_struct(Accelerator.CYLINDER_GRID3D, "volume", is_default=True)
 
+    logger.info("Done")
+
 
 add_wire_chamber_defaults.clients = []

@@ -28,6 +28,8 @@ def add_wire_chamber_types(md: metadata):
     logger.info("-> adding wire chamber beampipe")
     md.add_passive(Shape.CYLINDER2D)
 
+    logger.info("Done")
+
 
 def __main__():
     # Commandline options

@@ -49,6 +49,7 @@ GTEST_TEST(detray_builders, detector_builder) {
     auto geo_ctx = typename detector_t::geometry_context{};
 
     detector_builder_t det_builder{};
+    det_builder.set_name("test_detector");
 
     //
     // first volume builder
