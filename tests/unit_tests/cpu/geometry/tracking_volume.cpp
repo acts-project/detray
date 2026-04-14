@@ -34,7 +34,7 @@ enum geo_objects : unsigned int {
 };
 
 // surface finder ids for testing
-enum class accel_ids : unsigned int {
+enum class accel_id : unsigned int {
     e_surface_default = 0u,
     e_grid = 1u,
 };
@@ -45,24 +45,24 @@ enum class accel_ids : unsigned int {
 GTEST_TEST(detray_geometry, volume_descriptor) {
     using namespace detray;
 
-    using accel_link_t = dtyped_index<accel_ids, dindex>;
+    using accel_link_t = dtyped_index<accel_id, dindex>;
     using volume_t = volume_descriptor<geo_objects, accel_link_t>;
 
     // Check construction, setters and getters
     volume_t v1(volume_id::e_cylinder);
     v1.set_index(12345u);
     v1.template set_accel_link<geo_objects::e_portal>(
-        {accel_ids::e_surface_default, 1u});
+        {accel_id::e_surface_default, 1u});
     v1.template set_accel_link<geo_objects::e_sensitive>(
-        {accel_ids::e_grid, 12u});
+        {accel_id::e_grid, 12u});
 
     ASSERT_TRUE(v1.id() == volume_id::e_cylinder);
     ASSERT_TRUE(v1.index() == 12345u);
     ASSERT_TRUE(v1.template accel_link<geo_objects::e_portal>().id() ==
-                accel_ids::e_surface_default);
+                accel_id::e_surface_default);
     ASSERT_TRUE(v1.template accel_link<geo_objects::e_portal>().index() == 1u);
     ASSERT_TRUE(v1.template accel_link<geo_objects::e_sensitive>().id() ==
-                accel_ids::e_grid);
+                accel_id::e_grid);
     ASSERT_TRUE(v1.template accel_link<geo_objects::e_sensitive>().index() ==
                 12u);
 
@@ -71,10 +71,10 @@ GTEST_TEST(detray_geometry, volume_descriptor) {
     ASSERT_EQ(v2.id(), volume_id::e_cylinder);
     ASSERT_EQ(v2.index(), 12345u);
     ASSERT_TRUE(v2.template accel_link<geo_objects::e_portal>().id() ==
-                accel_ids::e_surface_default);
+                accel_id::e_surface_default);
     ASSERT_TRUE(v2.template accel_link<geo_objects::e_portal>().index() == 1u);
     ASSERT_TRUE(v2.template accel_link<geo_objects::e_sensitive>().id() ==
-                accel_ids::e_grid);
+                accel_id::e_grid);
     ASSERT_TRUE(v2.template accel_link<geo_objects::e_sensitive>().index() ==
                 12u);
 }

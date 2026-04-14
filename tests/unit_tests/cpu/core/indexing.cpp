@@ -22,11 +22,11 @@ using namespace detray;
 namespace {
 
 /// Define mask types
-enum class mask_ids : std::uint8_t {
+enum class mask_id : std::uint8_t {
     e_unmasked = 0u,
 };
 
-std::ostream& operator<<(std::ostream& os, mask_ids /*mid*/) {
+std::ostream& operator<<(std::ostream& os, mask_id /*mid*/) {
     os << "e_unmasked";
     return os;
 }
@@ -247,25 +247,25 @@ GTEST_TEST(detray_core, multi_index) {
 /// Test the typed index
 GTEST_TEST(detray_core, typed_index) {
 
-    using index_t = dtyped_index<mask_ids, unsigned int>;
+    using index_t = dtyped_index<mask_id, unsigned int>;
 
     // Check a empty index
     auto ti = index_t{};
-    EXPECT_EQ(ti.id(), static_cast<mask_ids>((1u << 4) - 1u));
+    EXPECT_EQ(ti.id(), static_cast<mask_id>((1u << 4) - 1u));
     EXPECT_EQ(ti.index(), static_cast<unsigned int>((1u << 28) - 1u));
     EXPECT_TRUE(ti.is_invalid());
 
     // Check the values after setting them
-    ti.set_id(mask_ids::e_unmasked).set_index(42u);
+    ti.set_id(mask_id::e_unmasked).set_index(42u);
 
-    EXPECT_EQ(ti.id(), mask_ids::e_unmasked);
+    EXPECT_EQ(ti.id(), mask_id::e_unmasked);
     EXPECT_EQ(ti.index(), 42u);
 
     // Check invalid link
     EXPECT_FALSE(ti.is_invalid());
     ti.set_id(static_cast<index_t::id_type>((1u << 4) - 1u));
     EXPECT_TRUE(ti.is_invalid());
-    ti.set_id(mask_ids::e_unmasked);
+    ti.set_id(mask_id::e_unmasked);
     EXPECT_FALSE(ti.is_invalid());
     ti.set_index((1u << 28) - 1u);
     EXPECT_TRUE(ti.is_invalid());
@@ -285,20 +285,20 @@ GTEST_TEST(detray_core, typed_index) {
     // Test arithmetic operators
     ti += 5u;
 
-    EXPECT_EQ(ti.id(), mask_ids::e_unmasked);
+    EXPECT_EQ(ti.id(), mask_id::e_unmasked);
     EXPECT_EQ(ti.index(), 18u);
 
     ti -= 6u;
     EXPECT_EQ(ti.index(), 12u);
 
-    index_t ti2 = ti + index_t{mask_ids::e_unmasked, 6u};
-    EXPECT_EQ(ti2.id(), mask_ids::e_unmasked);
+    index_t ti2 = ti + index_t{mask_id::e_unmasked, 6u};
+    EXPECT_EQ(ti2.id(), mask_id::e_unmasked);
     EXPECT_EQ(ti2.index(), 18u);
     ++ti2;
     EXPECT_EQ(ti2.index(), 19u);
 
     ti2 += ti;
-    EXPECT_EQ(ti2.id(), mask_ids::e_unmasked);
+    EXPECT_EQ(ti2.id(), mask_id::e_unmasked);
     EXPECT_EQ(ti2.index(), 31u);
 
     // Comparison operators
@@ -317,26 +317,26 @@ GTEST_TEST(detray_core, typed_index_range) {
     using ranged_index_t =
         detail::index_range<unsigned int, detail::sized_index_range,
                             std::uint_least32_t, 0x0fffff00, 0x000000ff>;
-    using index_t = dtyped_index<mask_ids, ranged_index_t>;
+    using index_t = dtyped_index<mask_id, ranged_index_t>;
 
     // Check a empty index
     auto tri = index_t{};
-    EXPECT_EQ(tri.id(), static_cast<mask_ids>((1u << 4) - 1u));
+    EXPECT_EQ(tri.id(), static_cast<mask_id>((1u << 4) - 1u));
     EXPECT_EQ(tri.index(), ranged_index_t{});
     EXPECT_TRUE(tri.is_invalid());
 
     // Check the values after setting them
     constexpr ranged_index_t test_range{10u, 42u};
-    tri.set_id(mask_ids::e_unmasked).set_index(test_range);
+    tri.set_id(mask_id::e_unmasked).set_index(test_range);
 
-    EXPECT_EQ(tri.id(), mask_ids::e_unmasked);
+    EXPECT_EQ(tri.id(), mask_id::e_unmasked);
     EXPECT_EQ(tri.index(), test_range);
 
     // Check invalid link
     EXPECT_FALSE(tri.is_invalid());
     tri.set_id(static_cast<index_t::id_type>((1u << 4) - 1u));
     EXPECT_TRUE(tri.is_invalid());
-    tri.set_id(mask_ids::e_unmasked);
+    tri.set_id(mask_id::e_unmasked);
     EXPECT_FALSE(tri.is_invalid());
     tri.set_index(ranged_index_t{});
     EXPECT_TRUE(tri.is_invalid());
@@ -356,7 +356,7 @@ GTEST_TEST(detray_core, typed_index_range) {
     // Test arithmetic operators
     tri += 5u;
 
-    EXPECT_EQ(tri.id(), mask_ids::e_unmasked);
+    EXPECT_EQ(tri.id(), mask_id::e_unmasked);
     ranged_index_t test_range2{4u, 18u};
     EXPECT_EQ(tri.index(), test_range2);
 
@@ -364,16 +364,16 @@ GTEST_TEST(detray_core, typed_index_range) {
     ranged_index_t test_range3{4u, 12u};
     EXPECT_EQ(tri.index(), test_range3);
 
-    index_t tri2 = tri + index_t{mask_ids::e_unmasked, ranged_index_t{0u, 6u}};
+    index_t tri2 = tri + index_t{mask_id::e_unmasked, ranged_index_t{0u, 6u}};
     ranged_index_t test_range4{0u, 16u};
-    EXPECT_EQ(tri2.id(), mask_ids::e_unmasked);
+    EXPECT_EQ(tri2.id(), mask_id::e_unmasked);
     EXPECT_EQ(tri2.index(), test_range4);
     ++tri2;
     test_range4 = test_range4 + 1u;
     EXPECT_EQ(tri2.index(), test_range4);
 
     tri2 += tri;
-    EXPECT_EQ(tri2.id(), mask_ids::e_unmasked);
+    EXPECT_EQ(tri2.id(), mask_id::e_unmasked);
     EXPECT_EQ(tri2.index(), test_range4);
 
     // Comparison operators

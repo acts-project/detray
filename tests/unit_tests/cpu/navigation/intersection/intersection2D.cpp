@@ -27,12 +27,12 @@ using scalar = test::scalar;
 namespace {
 
 /// Define mask types
-enum class mask_ids : unsigned int {
+enum class mask_id : unsigned int {
     e_unmasked = 0u,
 };
 
 /// Define material types
-enum class material_ids : unsigned int {
+enum class material_id : unsigned int {
     e_material_slab = 0u,
 };
 
@@ -46,8 +46,8 @@ using point2 = test::point2;
 using vector3 = test::vector3;
 using point3 = test::point3;
 
-using mask_link_t = dtyped_index<mask_ids, dindex>;
-using material_link_t = dtyped_index<material_ids, dindex>;
+using mask_link_t = dtyped_index<mask_id, dindex>;
+using material_link_t = dtyped_index<material_id, dindex>;
 using surface_t =
     surface_descriptor<mask_link_t, material_link_t, test_algebra>;
 

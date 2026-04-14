@@ -18,17 +18,17 @@
 
 namespace detray::test {
 
-enum class plane_mask_ids : unsigned int {
+enum class plane_mask_id : unsigned int {
     e_plane_rectangle2D = 0u,
 };
 
-enum class plane_material_ids : unsigned int {
+enum class plane_material_id : unsigned int {
     e_plane_material_slab = 0u,
 };
 
 // Helper type definitions.
-using plane_mask_link_t = dtyped_index<plane_mask_ids, dindex>;
-using plane_material_link_t = dtyped_index<plane_material_ids, dindex>;
+using plane_mask_link_t = dtyped_index<plane_mask_id, dindex>;
+using plane_material_link_t = dtyped_index<plane_material_id, dindex>;
 
 /// This method creates a number (distances.size()) planes along a direction
 template <concepts::algebra algebra_t = test::algebra>
@@ -55,9 +55,9 @@ auto planes_along_direction(const dvector<dscalar<algebra_t>> &distances,
         vector3_t t = d * direction;
         transforms.emplace_back(t, z, x);
 
-        plane_mask_link_t mask_link{plane_mask_ids::e_plane_rectangle2D, idx};
+        plane_mask_link_t mask_link{plane_mask_id::e_plane_rectangle2D, idx};
         plane_material_link_t material_link{
-            plane_material_ids::e_plane_material_slab, 0u};
+            plane_material_id::e_plane_material_slab, 0u};
         surfaces.emplace_back(idx, std::move(mask_link),
                               std::move(material_link), 0u,
                               surface_id::e_sensitive);

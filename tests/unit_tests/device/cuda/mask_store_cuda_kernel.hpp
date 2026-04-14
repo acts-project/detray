@@ -37,7 +37,7 @@ using single = mask<single3D<>, test_algebra>;
 using trapezoid = mask<trapezoid2D, test_algebra>;
 
 /// Enumerate different mask types for convenience
-enum class mask_ids : unsigned int {
+enum class mask_id : unsigned int {
     e_rectangle2D = 0u,
     e_trapezoid2D = 1u,
     e_ring2D = 2u,
@@ -47,11 +47,11 @@ enum class mask_ids : unsigned int {
 };
 
 using host_store_type =
-    regular_multi_store<mask_ids, empty_context, dtuple, vecmem::vector,
+    regular_multi_store<mask_id, empty_context, dtuple, vecmem::vector,
                         rectangle, trapezoid, ring, cylinder, single, annulus>;
 
 using device_store_type =
-    regular_multi_store<mask_ids, empty_context, dtuple, vecmem::device_vector,
+    regular_multi_store<mask_id, empty_context, dtuple, vecmem::device_vector,
                         rectangle, trapezoid, ring, cylinder, single, annulus>;
 
 /// test function for mask store

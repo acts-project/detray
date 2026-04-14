@@ -330,8 +330,8 @@ class metadata_generator:
         self.__put(f"using {name} = {type};\n")
 
     # Write a C++ template parameter list
-    def __template_list(self, params=[]):
-        if "" in params:
+    def __template_list(self, params):
+        if params and "" in params:
             params.remove("")
         return "" if not params else f"template <{','.join(params)}>"
 

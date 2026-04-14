@@ -73,21 +73,21 @@ struct my_metadata {
     /// good idea to have the most common types in the first tuple entries, in
     /// order to minimize the depth of the 'unrolling' before a mask is found
     /// in the tuple
-    enum class mask_ids : std::uint_least8_t {
+    enum class mask_id : std::uint_least8_t {
         e_square2D = 0u,
         e_trapezoid2D = 1u,
         e_rectangle2D = 2u
     };
 
-    friend std::ostream& operator<<(std::ostream& os, const mask_ids& id) {
+    friend std::ostream& operator<<(std::ostream& os, const mask_id& id) {
         switch (id) {
-            case mask_ids::e_square2D:
+            case mask_id::e_square2D:
                 os << "e_square2D";
                 break;
-            case mask_ids::e_trapezoid2D:
+            case mask_id::e_trapezoid2D:
                 os << "e_trapezoid2D";
                 break;
-            case mask_ids::e_rectangle2D:
+            case mask_id::e_rectangle2D:
                 os << "e_rectangle2D";
                 break;
             default:
@@ -102,7 +102,7 @@ struct my_metadata {
     /// the detector masks.
     template <template <typename...> class vector_t = dvector>
     using mask_store =
-        regular_multi_store<mask_ids, empty_context, dtuple, vector_t, square,
+        regular_multi_store<mask_id, empty_context, dtuple, vector_t, square,
                             trapezoid, rectangle>;
 
     //
@@ -114,17 +114,17 @@ struct my_metadata {
     using slab = material_slab<scalar>;
 
     /// Similar to the mask store, there is a material store, which
-    enum class material_ids : std::uint_least8_t {
+    enum class material_id : std::uint_least8_t {
         e_material_slab = 0u,
         e_none = 1u,
     };
 
-    friend std::ostream& operator<<(std::ostream& os, const material_ids& id) {
+    friend std::ostream& operator<<(std::ostream& os, const material_id& id) {
         switch (id) {
-            case material_ids::e_material_slab:
+            case material_id::e_material_slab:
                 os << "e_material_slab";
                 break;
-            case material_ids::e_none:
+            case material_id::e_none:
                 os << "e_none";
                 break;
             default:
@@ -138,7 +138,7 @@ struct my_metadata {
     /// conditions data ( @c empty_context )
     template <typename container_t = host_container_types>
     using material_store =
-        multi_store<material_ids, empty_context, dtuple,
+        multi_store<material_id, empty_context, dtuple,
                     typename container_t::template vector_type<slab>>;
 
     //
@@ -188,7 +188,7 @@ struct my_metadata {
 
     /// The acceleration data structures live in another tuple that needs to
     /// indexed correctly
-    enum class accel_ids : std::uint_least8_t {
+    enum class accel_id : std::uint_least8_t {
         e_surface_brute_force =
             0u,  //< test all surfaces in a volume (brute force)
         e_volume_cylinder3D_grid = 1u,
@@ -196,9 +196,9 @@ struct my_metadata {
         e_volume_default = e_volume_cylinder3D_grid,
     };
 
-    friend std::ostream& operator<<(std::ostream& os, const accel_ids& id) {
+    friend std::ostream& operator<<(std::ostream& os, const accel_id& id) {
         switch (id) {
-            case accel_ids::e_surface_brute_force:
+            case accel_id::e_surface_brute_force:
                 os << "e_surface_brute_force/e_surface_default";
                 break;
             default:
@@ -210,7 +210,7 @@ struct my_metadata {
 
     /// One link for portals/passives and one sensitive surfaces
     using object_link_type =
-        dmulti_index<dtyped_index<accel_ids, dindex>, geo_objects::e_size>;
+        dmulti_index<dtyped_index<accel_id, dindex>, geo_objects::e_size>;
 
     /// Data structure that allows to find the current detector volume from a
     /// given position. Here: Uniform grid with a 3D cylindrical shape
@@ -229,7 +229,7 @@ struct my_metadata {
     /// How to store the acceleration data structures
     template <typename container_t = host_container_types>
     using accelerator_store =
-        multi_store<accel_ids, empty_context, dtuple,
+        multi_store<accel_id, empty_context, dtuple,
                     brute_force_collection<surface_type, container_t>,
                     grid_collection<volume_accelerator<container_t>>>;
 };

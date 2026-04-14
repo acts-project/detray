@@ -25,21 +25,21 @@
 namespace {
 
 /// Define mask types
-enum class mask_ids : unsigned int {
+enum class mask_id : unsigned int {
     e_unmasked = 0u,
 };
 
-std::ostream& operator<<(std::ostream& os, mask_ids /*mid*/) {
+std::ostream& operator<<(std::ostream& os, mask_id /*mid*/) {
     os << "e_unmasked";
     return os;
 }
 
 /// Define material types
-enum class material_ids : unsigned int {
+enum class material_id : unsigned int {
     e_material_slab = 0u,
 };
 
-std::ostream& operator<<(std::ostream& os, material_ids /*mid*/) {
+std::ostream& operator<<(std::ostream& os, material_id /*mid*/) {
     os << "e_material_slab";
     return os;
 }
@@ -55,11 +55,11 @@ GTEST_TEST(detray_geometry, surface_descriptor) {
 
     using namespace detray;
 
-    using mask_link_t = dtyped_index<mask_ids, dindex>;
-    using material_link_t = dtyped_index<material_ids, dindex>;
+    using mask_link_t = dtyped_index<mask_id, dindex>;
+    using material_link_t = dtyped_index<material_id, dindex>;
 
-    mask_link_t mask_id{mask_ids::e_unmasked, 0u};
-    material_link_t material_id{material_ids::e_material_slab, 0u};
+    mask_link_t mask_id{mask_id::e_unmasked, 0u};
+    material_link_t material_id{material_id::e_material_slab, 0u};
 
     surface_descriptor<mask_link_t, material_link_t> desc(
         1u, mask_id, material_id, 2u, surface_id::e_sensitive);
@@ -91,9 +91,9 @@ GTEST_TEST(detray_geometry, surface_descriptor) {
     ASSERT_TRUE(desc.is_portal());
     ASSERT_FALSE(desc.is_passive());
     ASSERT_FALSE(desc.is_sensitive());
-    ASSERT_EQ(desc.mask().id(), mask_ids::e_unmasked);
+    ASSERT_EQ(desc.mask().id(), mask_id::e_unmasked);
     ASSERT_EQ(desc.mask().index(), 7u);
-    ASSERT_EQ(desc.material().id(), material_ids::e_material_slab);
+    ASSERT_EQ(desc.material().id(), material_id::e_material_slab);
     ASSERT_EQ(desc.material().index(), 7u);
 }
 

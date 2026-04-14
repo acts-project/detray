@@ -319,7 +319,7 @@ auto get_smeared_bound_vector(const bound_covariance_type& ini_cov,
     return bound_param_vector_type{new_vec};
 }
 
-template <typename detector_t, typename detector_t::metadata::mask_ids mask_id>
+template <typename detector_t, typename detector_t::metadata::mask_id mask_id>
 std::pair<euler_rotation<test_algebra>, std::array<scalar, 3u>> tilt_surface(
     detector_t& det, const unsigned int sf_id, const vector3& helix_dir,
     const scalar alpha, const scalar beta, const scalar gamma) {
@@ -618,7 +618,7 @@ bound_track_parameters<test_algebra>::covariance_type directly_differentiate(
     return differentiated_jacobian;
 }
 
-template <typename detector_t, typename detector_t::metadata::mask_ids mask_id>
+template <typename detector_t, typename detector_t::metadata::mask_id mid>
 bound_track_parameters<test_algebra> get_initial_parameter(
     const detector_t& det, const free_track_parameters<test_algebra>& vertex,
     const vector3& field, const scalar helix_tolerance) {
@@ -631,9 +631,9 @@ bound_track_parameters<test_algebra> get_initial_parameter(
     const auto& departure_trf = det.transform_store().at(trf_link);
     const auto& mask_link = departure_sf.mask();
     const auto& departure_mask =
-        det.mask_store().template get<mask_id>().at(mask_link.index());
+        det.mask_store().template get<mid>().at(mask_link.index());
 
-    using mask_t = types::get<typename detector_t::masks, mask_id>;
+    using mask_t = types::get<typename detector_t::masks, mid>;
     helix_intersector<typename mask_t::shape, test_algebra> hlx_is{};
     hlx_is.run_rtsafe = false;
     hlx_is.convergence_tolerance = helix_tolerance;
@@ -982,7 +982,7 @@ void evaluate_covariance_transport(
     file << std::endl;
 }
 
-template <typename detector_t, typename detector_t::metadata::mask_ids mask_id>
+template <typename detector_t, typename detector_t::metadata::mask_id mask_id>
 bound_param_vector_type get_displaced_bound_vector_helix(
     const bound_track_parameters<test_algebra>& track, const vector3& field,
     unsigned int target_index, scalar displacement, const detector_t& det,
@@ -1025,7 +1025,7 @@ bound_param_vector_type get_displaced_bound_vector_helix(
     return new_bound_vec;
 }
 
-template <typename detector_t, typename detector_t::metadata::mask_ids mask_id>
+template <typename detector_t, typename detector_t::metadata::mask_id mask_id>
 void evaluate_jacobian_difference_helix(
     const std::size_t trk_count, const std::array<scalar, 3u> euler_angles_I,
     const std::array<scalar, 3u> euler_angles_F, const detector_t& det,
