@@ -115,7 +115,7 @@ class detector {
     /// Forward material types that are present in this detector
     using material_container =
         typename metadata::template material_store<container_t>;
-    using materials = typename material_container::value_types;
+    using material = typename material_container::value_types;
 
     /// Surface Finders: structures that enable neigborhood searches in the
     /// detector geometry during navigation. Can be different in each volume

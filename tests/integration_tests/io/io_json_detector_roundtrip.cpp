@@ -183,7 +183,7 @@ GTEST_TEST(io, json_telescope_detector_reader) {
 
     const auto& mat_store = det_io.material_store();
     const auto& slabs =
-        mat_store.get<decltype(tel_det)::materials::id::e_material_slab>();
+        mat_store.get<decltype(tel_det)::material::id::e_material_slab>();
 
     EXPECT_EQ(det_io.volumes().size(), 1u);
     EXPECT_EQ(slabs.size(), positions.size());

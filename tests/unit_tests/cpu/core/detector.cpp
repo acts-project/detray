@@ -29,7 +29,7 @@ GTEST_TEST(detray_core, detector) {
     using metadata_t = test::default_metadata;
     using detector_t = detector<metadata_t>;
     using mask_id = typename detector_t::masks::id;
-    using material_id = typename detector_t::materials::id;
+    using material_id = typename detector_t::material::id;
     using finder_id = typename detector_t::accel::id;
 
     vecmem::host_memory_resource host_mr;

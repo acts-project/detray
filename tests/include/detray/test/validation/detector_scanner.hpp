@@ -137,7 +137,7 @@ struct brute_force_scan {
         start_intersection.surface().set_index(0);
         start_intersection.surface()
             .material()
-            .set_id(detector_t::materials::id::e_none)
+            .set_id(detector_t::material::id::e_none)
             .set_index(dindex_invalid);
         start_intersection.set_path(0.f);
         start_intersection.set_local({0.f, 0.f, 0.f});

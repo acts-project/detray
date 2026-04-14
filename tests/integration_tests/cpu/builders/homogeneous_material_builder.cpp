@@ -49,7 +49,7 @@ GTEST_TEST(detray_builders, decorator_homogeneous_material_builder) {
 
     using transform3 = typename detector_t::transform3_type;
     using mask_id = typename detector_t::masks::id;
-    using material_id = typename detector_t::materials::id;
+    using material_id = typename detector_t::material::id;
 
     using pt_cylinder_t = concentric_cylinder2D;
     using pt_cylinder_factory_t = surface_factory<detector_t, pt_cylinder_t>;
@@ -187,7 +187,7 @@ GTEST_TEST(detray_builders, detector_builder_with_material) {
 
     using transform3 = typename detector_t::transform3_type;
     using mask_id = typename detector_t::masks::id;
-    using material_id = typename detector_t::materials::id;
+    using material_id = typename detector_t::material::id;
 
     // Surface factories
     using trapezoid_factory = surface_factory<detector_t, trapezoid2D>;

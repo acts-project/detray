@@ -74,8 +74,9 @@ class homogeneous_material_writer {
         header_data.sub_header.emplace();
         auto& mat_sub_header = header_data.sub_header.value();
         if constexpr (detray::concepts::has_material_slabs<detector_t>) {
-            mat_sub_header.n_slabs = materials.template size<
-                detector_t::materials::id::e_material_slab>();
+            mat_sub_header.n_slabs =
+                materials
+                    .template size<detector_t::material::id::e_material_slab>();
             mat_sub_header.n_slab_surfaces =
                 count_surface_with_material_type(material_id_t::slab);
         }
@@ -83,7 +84,7 @@ class homogeneous_material_writer {
         if constexpr (detray::concepts::has_material_rods<detector_t>) {
             mat_sub_header.n_rods =
                 materials
-                    .template size<detector_t::materials::id::e_material_rod>();
+                    .template size<detector_t::material::id::e_material_rod>();
             mat_sub_header.n_rod_surfaces =
                 count_surface_with_material_type(material_id_t::rod);
         }
@@ -119,7 +120,7 @@ class homogeneous_material_writer {
             detail::basic_converter::to_payload(vol_desc.index());
 
         // Return early if the stores for homogeneous materials are empty
-        using mat_id = typename detector_t::materials::id;
+        using mat_id = typename detector_t::material::id;
         using algebra_t = typename detector_t::algebra_type;
 
         bool contains_rods{true};

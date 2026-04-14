@@ -121,7 +121,7 @@ class cylinder_portal_generator final
     using surface_type = typename detector_t::surface_type;
     using mask_id = typename detector_t::masks::id;
     using mask_link_t = typename surface_type::mask_link;
-    using material_id = typename detector_t::materials::id;
+    using material_id = typename detector_t::material::id;
     using material_link_t = typename surface_type::material_link;
 
     /// A functor to construct global bounding boxes around masks

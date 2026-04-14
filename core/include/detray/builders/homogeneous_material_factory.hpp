@@ -177,7 +177,7 @@ class homogeneous_material_factory final
     : public factory_decorator<detector_t> {
 
     using mask_id = typename detector_t::masks::id;
-    using material_id = typename detector_t::materials::id;
+    using material_id = typename detector_t::material::id;
 
     using base_factory = factory_decorator<detector_t>;
     using placeholder_factory_t = surface_factory<detector_t, unmasked<>>;
@@ -342,7 +342,7 @@ class homogeneous_material_factory final
 
         // Add the material to the surfaces that the data links against
         for (auto [i, sf] : detray::views::pick(surfaces, m_indices)) {
-            if (sf.material().id() < detector_t::materials::id::e_none) {
+            if (sf.material().id() < detector_t::material::id::e_none) {
                 DETRAY_WARN_HOST(
                     "Surface descriptor already has a material link:"
                     << sf.material().id()

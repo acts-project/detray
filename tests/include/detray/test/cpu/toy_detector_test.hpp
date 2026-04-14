@@ -104,7 +104,7 @@ inline bool toy_detector_test(
     using geo_context_t = typename detector_t::geometry_context;
     using mask_id = typename detector_t::masks::id;
     using mask_link_t = typename detector_t::surface_type::mask_link;
-    using material_id = typename detector_t::materials::id;
+    using material_id = typename detector_t::material::id;
     using material_link_t = typename detector_t::surface_type::material_link;
     using accel_id = typename detector_t::accel::id;
     using accel_link_t = typename volume_t::accel_link_type::index_type;

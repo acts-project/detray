@@ -15,7 +15,7 @@ namespace detray::concepts {
 /// Check for the the presence of any type of grids in a detector definition
 template <class detector_t>
 concept has_grids = detail::contains_grids_v<typename detector_t::accel> ||
-                    detail::contains_grids_v<typename detector_t::materials>;
+                    detail::contains_grids_v<typename detector_t::material>;
 
 /// Check for the the presence of surface grids in a detector definition
 template <class detector_t>
@@ -25,22 +25,22 @@ concept has_surface_grids =
 /// Check for the the presence of material slabs in a detector definition
 template <class detector_t>
 concept has_material_slabs =
-    detail::contains_material_slabs_v<typename detector_t::materials>;
+    detail::contains_material_slabs_v<typename detector_t::material>;
 
 /// Check for the the presence of material rods in a detector definition
 template <class detector_t>
 concept has_material_rods =
-    detail::contains_material_rods_v<typename detector_t::materials>;
+    detail::contains_material_rods_v<typename detector_t::material>;
 
 /// Check for the the presence of homogeneous material types in a detector
 /// definition
 template <class detector_t>
 concept has_homogeneous_material =
-    detail::contains_homogeneous_material_v<typename detector_t::materials>;
+    detail::contains_homogeneous_material_v<typename detector_t::material>;
 
 /// Check for the the presence of material maps in a detector definition
 template <class detector_t>
 concept has_material_maps =
-    detail::contains_material_maps_v<typename detector_t::materials>;
+    detail::contains_material_maps_v<typename detector_t::material>;
 
 }  // namespace detray::concepts

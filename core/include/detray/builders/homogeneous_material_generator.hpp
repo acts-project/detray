@@ -134,7 +134,7 @@ class homogeneous_material_generator final
                     typename detector_t::material_container &materials) {
         DETRAY_VERBOSE_HOST("Generate homogeneous material...");
 
-        using material_id = typename detector_t::materials::id;
+        using material_id = typename detector_t::material::id;
         using link_t = typename detector_t::surface_type::material_link;
 
         assert(surfaces.size() >= (m_surface_range[1] - m_surface_range[0]));

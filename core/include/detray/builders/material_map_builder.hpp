@@ -30,7 +30,7 @@ namespace detail {
 
 struct material_coll_size;
 
-template <typename materials_t>
+template <typename material_t>
 struct add_sf_material_map;
 
 }  // namespace detail
@@ -43,7 +43,7 @@ template <typename detector_t, std::size_t DIM = 2u,
           typename mat_map_factory_t =
               material_grid_factory<typename detector_t::algebra_type>>
 class material_map_builder final : public volume_decorator<detector_t> {
-    using materials_t = typename detector_t::materials;
+    using material_t = typename detector_t::material;
 
     public:
     using scalar_type = dscalar<typename detector_t::algebra_type>;
@@ -151,10 +151,10 @@ class material_map_builder final : public volume_decorator<detector_t> {
 
             // Construct and append the material map for a given surface shape
             auto sf = geometry::surface{det, sf_desc};
-            [[maybe_unused]] auto [mat_id, mat_idx] = sf.template visit_mask<
-                detail::add_sf_material_map<materials_t>>(
-                m_factory, m_bin_data.at(sf_idx), m_n_bins.at(sf_idx),
-                axis_spans, det._materials);
+            [[maybe_unused]] auto [mat_id, mat_idx] =
+                sf.template visit_mask<detail::add_sf_material_map<material_t>>(
+                    m_factory, m_bin_data.at(sf_idx), m_n_bins.at(sf_idx),
+                    axis_spans, det._materials);
 
             // Make sure the linking was precomputed correctly
             std::stringstream err_msg;
@@ -200,7 +200,7 @@ class material_map_builder final : public volume_decorator<detector_t> {
         const dindex n_surfaces{static_cast<dindex>(this->surfaces().size())};
 
         // Count the number of maps per material type to get the correct indices
-        std::map<typename materials_t::id, dindex> mat_type_count;
+        std::map<typename material_t::id, dindex> mat_type_count;
 
         for (dindex sf_idx = 0u; sf_idx < n_surfaces; ++sf_idx) {
             if (!surface_has_map(sf_idx)) {
@@ -228,7 +228,7 @@ class material_map_builder final : public volume_decorator<detector_t> {
         // Current sizes of the material stores to get global index offsets
         std::map<std::size_t, dindex> size_map;
         det._materials.template apply<detail::material_coll_size>(
-            size_map, std::make_index_sequence<materials_t::n_types>{});
+            size_map, std::make_index_sequence<material_t::n_types>{});
 
         DETRAY_DEBUG_HOST("Shift material indices by detector offset...");
         for (dindex sf_idx = 0u; sf_idx < n_surfaces; ++sf_idx) {
@@ -270,13 +270,13 @@ struct material_coll_size {
 };
 
 /// A functor to add a material map to a surface
-template <typename materials_t>
+template <typename material_t>
 struct add_sf_material_map {
 
     template <typename mask_coll_t, typename index_range_t,
               typename mat_factory_t, typename bin_data_t, std::size_t DIM,
               typename material_store_t, concepts::scalar scalar_t>
-    DETRAY_HOST inline std::pair<typename materials_t::id, dindex> operator()(
+    DETRAY_HOST inline std::pair<typename material_t::id, dindex> operator()(
         [[maybe_unused]] const mask_coll_t& mask_coll,
         [[maybe_unused]] const index_range_t& index,
         [[maybe_unused]] const mat_factory_t& mat_factory,
@@ -322,7 +322,7 @@ struct add_sf_material_map {
                 typename decltype(mat_grid)::template type<false>;
 
             // Not every mask shape might be used for material maps
-            if constexpr (types::contains<materials_t, non_owning_t>) {
+            if constexpr (types::contains<material_t, non_owning_t>) {
                 DETRAY_VERBOSE_HOST("Filling material grid...");
 
                 // Add the material slabs to the grid
@@ -332,7 +332,7 @@ struct add_sf_material_map {
                 }
 
                 // Add the material grid to the detector
-                constexpr auto gid{types::id<materials_t, non_owning_t>};
+                constexpr auto gid{types::id<material_t, non_owning_t>};
                 mat_store.template push_back<gid>(mat_grid);
                 DETRAY_VERBOSE_HOST("Built material grid:" << gid << ":\n"
                                                            << mat_grid.axes());
@@ -341,10 +341,10 @@ struct add_sf_material_map {
                 return {gid, static_cast<dindex>(
                                  mat_store.template size<gid>() - 1u)};
             } else {
-                return {materials_t::id::e_none, dindex_invalid};
+                return {material_t::id::e_none, dindex_invalid};
             }
         } else {
-            return {materials_t::id::e_none, dindex_invalid};
+            return {material_t::id::e_none, dindex_invalid};
         }
     }
 };

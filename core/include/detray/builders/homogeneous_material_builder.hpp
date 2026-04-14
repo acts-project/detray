@@ -30,7 +30,7 @@ template <typename detector_t>
 class homogeneous_material_builder final : public volume_decorator<detector_t> {
 
     public:
-    using material_id = typename detector_t::materials::id;
+    using material_id = typename detector_t::material::id;
     using scalar_type = dscalar<typename detector_t::algebra_type>;
 
     /// @param vol_builder volume builder that should be decorated with material
@@ -136,7 +136,7 @@ class homogeneous_material_builder final : public volume_decorator<detector_t> {
 
         // Add material to the detector
 
-        if constexpr (types::contains<typename detector_t::materials,
+        if constexpr (types::contains<typename detector_t::material,
                                       material_rod<scalar_type>>) {
             DETRAY_DEBUG_HOST(
                 "-> Appending "

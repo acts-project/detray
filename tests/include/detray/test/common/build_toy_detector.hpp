@@ -376,7 +376,7 @@ std::shared_ptr<surface_factory_interface<detector_t>> decorate_material(
 
     using scalar_t = dscalar<typename detector_t::algebra_type>;
     using mask_id = typename detector_t::masks::id;
-    using material_id = typename detector_t::materials::id;
+    using material_id = typename detector_t::material::id;
 
     // Decorate the surfaces with material
     if (cfg.use_material_maps()) {

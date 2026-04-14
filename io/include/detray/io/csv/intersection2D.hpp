@@ -55,7 +55,7 @@ inline auto read_intersection2D(const std::string &file_name) {
     using mask_link_t = typename surface_t::mask_link;
     using material_link_t = typename surface_t::material_link;
     using mask_id_t = typename detector_t::masks::id;
-    using material_id_t = typename detector_t::materials::id;
+    using material_id_t = typename detector_t::material::id;
 
     using intersection_t = detray::intersection2D<surface_t, algebra_t,
                                                   intersection::contains_pos>;

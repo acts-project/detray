@@ -48,7 +48,7 @@ constexpr scalar tol{std::numeric_limits<scalar>::epsilon()};
 TEST(detray_builders, homogeneous_material_factory) {
 
     using transform3 = typename detector_t::transform3_type;
-    using material_id = typename detector_t::materials::id;
+    using material_id = typename detector_t::material::id;
 
     // Build rectangle surfaces with material slabs
     using rectangle_factory = surface_factory<detector_t, rectangle2D>;

@@ -38,7 +38,7 @@ template <typename detector_t, typename index_t = dindex>
 class material_map_factory final : public factory_decorator<detector_t> {
 
     using mask_id = typename detector_t::masks::id;
-    using material_id = typename detector_t::materials::id;
+    using material_id = typename detector_t::material::id;
     using index_type = index_t;
 
     using base_factory = factory_decorator<detector_t>;

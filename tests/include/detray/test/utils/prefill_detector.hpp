@@ -30,7 +30,7 @@ void prefill_detector(detector_t& d,
     using transform3_t = dtransform3D<algebra_t>;
 
     using nav_link_t = typename detector_t::surface_type::navigation_link;
-    using material_id = typename detector_t::materials::id;
+    using material_id = typename detector_t::material::id;
 
     using annulus_factory_t = surface_factory<detector_t, annulus2D>;
     using rectangle_factory_t = surface_factory<detector_t, rectangle2D>;

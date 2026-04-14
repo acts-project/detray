@@ -75,7 +75,7 @@ class material_map_writer : public detail::grid_writer {
                 const auto& mat_link = sf_desc.material();
                 // Don't look at empty links
                 if (mat_link.is_invalid() ||
-                    mat_link.id() == detector_t::materials::id::e_none) {
+                    mat_link.id() == detector_t::material::id::e_none) {
                     continue;
                 }
 
@@ -83,13 +83,13 @@ class material_map_writer : public detail::grid_writer {
                 if constexpr (detray::concepts::has_material_slabs<
                                   detector_t>) {
                     if (mat_link.id() ==
-                        detector_t::materials::id::e_material_slab) {
+                        detector_t::material::id::e_material_slab) {
                         continue;
                     }
                 }
                 if constexpr (detray::concepts::has_material_rods<detector_t>) {
                     if (mat_link.id() ==
-                        detector_t::materials::id::e_material_rod) {
+                        detector_t::material::id::e_material_rod) {
                         continue;
                     }
                 }

@@ -52,7 +52,7 @@ class homogeneous_material_reader {
         DETRAY_VERBOSE_HOST("Reading payload object...");
 
         using scalar_t = dscalar<typename detector_t::algebra_type>;
-        using mat_id = typename detector_t::materials::id;
+        using mat_id = typename detector_t::material::id;
 
         DETRAY_DEBUG_HOST("Converting material for "
                           << det_mat_data.volumes.size() << " volumes");

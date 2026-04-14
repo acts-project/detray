@@ -102,9 +102,8 @@ struct mat_map_frame_selector {
 
 /// Type registry for the coord. frames required by the @tparam detector_t
 template <typename detector_t>
-using mat_frame_registry =
-    types::mapped_registry<typename detector_t::materials,
-                           mat_map_frame_selector>;
+using mat_frame_registry = types::mapped_registry<typename detector_t::material,
+                                                  mat_map_frame_selector>;
 
 /// How to select frame types during construction for a given detector type
 template <typename detector_t>
