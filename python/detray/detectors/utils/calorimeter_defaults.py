@@ -29,12 +29,12 @@ def add_calorimeter_defaults(
     logger.info("Define calorimeter types:")
 
     logger.info("-> adding sensitive types")
-    md.add_sensitive(Shape.RECTANGLE)
-    md.add_sensitive(Shape.TRAPEZOID)
+    md.add_sensitive(Shape.RECTANGLE, type_id=0)
+    md.add_sensitive(Shape.TRAPEZOID, type_id=1)
 
     logger.info("-> adding portal types")
-    md.add_portal(Shape.CONCENTRIC_CYLINDER)
-    md.add_portal(Shape.RING)
+    md.add_portal(Shape.CONCENTRIC_CYLINDER, type_id=2)
+    md.add_portal(Shape.RING, type_id=3)
 
     # Acceleration Struct for portals and passives
     md.add_accel_struct(Accelerator.BRUTE_FORCE, "portal", is_default=True)

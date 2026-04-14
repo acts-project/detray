@@ -27,7 +27,7 @@ def add_toy_types(md: metadata):
 
     # Add default types for silicon trackers (cylindrical detector shape)
     add_silicon_tracker_defaults(
-        metadata=md, use_homogeneous_mat=True, use_mat_maps=True
+        metadata=md, use_homogeneous_mat=True, use_mat_maps=True, add_trapezoid=True
     )
 
     # Add surface grids with static bin capicity
@@ -38,9 +38,12 @@ def add_toy_types(md: metadata):
         Accelerator.CONCENTRIC_CYLINDER_GRID2D,
         "sensitive",
         grid_bin=toy_grid_bin,
+        type_id=1,
     )
 
-    md.add_accel_struct(Accelerator.DISC_GRID2D, "sensitive", grid_bin=toy_grid_bin)
+    md.add_accel_struct(
+        Accelerator.DISC_GRID2D, "sensitive", grid_bin=toy_grid_bin, type_id=2
+    )
 
     logger.info("Done")
 

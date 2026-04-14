@@ -30,13 +30,13 @@ def add_wire_chamber_defaults(
 
     # Sensitive shapes
     logger.info("-> adding sensitive types")
-    md.add_sensitive(Shape.DRIFT_CELL)
-    md.add_sensitive(Shape.STRAW_TUBE)
+    md.add_sensitive(Shape.DRIFT_CELL, type_id=0)
+    md.add_sensitive(Shape.STRAW_TUBE, type_id=1)
 
     # Cylindrical volume portals (barrel and endcap)
     logger.info("-> adding portal types")
-    md.add_portal(Shape.CONCENTRIC_CYLINDER)
-    md.add_portal(Shape.RING)
+    md.add_portal(Shape.CONCENTRIC_CYLINDER, type_id=2)
+    md.add_portal(Shape.RING, type_id=3)
 
     # Acceleration struct for portals and passives
     md.add_accel_struct(Accelerator.BRUTE_FORCE, "portal", is_default=True)

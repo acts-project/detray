@@ -29,8 +29,8 @@ def add_telescope_detector_defaults(
     logger.info("Define telescope detector types:")
 
     # Sensitive and portal shapes
-    md.add_sensitive(Shape.RECTANGLE)
-    md.add_portal(Shape.RECTANGLE)
+    md.add_sensitive(Shape.RECTANGLE, type_id=0)
+    md.add_portal(Shape.RECTANGLE, type_id=1)
 
     # Acceleration struct for portals and passives
     md.add_accel_struct(Accelerator.BRUTE_FORCE, "portal", is_default=True)

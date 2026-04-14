@@ -36,10 +36,6 @@ def add_itk_types(md: metadata):
     # Add default types for silicon trackers (cylindrical detector shape)
     add_silicon_tracker_defaults(metadata=md, use_mat_maps=True)
 
-    # Beampipe passive surface
-    logger.info("-> adding ITk beampipe")
-    md.add_passive(Shape.CYLINDER2D)
-
     logger.info("Done")
 
 

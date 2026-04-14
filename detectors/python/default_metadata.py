@@ -42,14 +42,20 @@ def __main__():
     # md.set_algebra_plugin(Algebra.ARRAY, Type.SINGLE)
 
     # Make sure all of the defaults are added
-    add_silicon_tracker_defaults(md, use_mat_maps=True, use_homogeneous_mat=True)
-    add_calorimeter_defaults(md, use_mat_maps=True, use_homogeneous_mat=True)
     add_telescope_detector_defaults(md, use_mat_maps=True, use_homogeneous_mat=True)
     add_wire_chamber_defaults(md, use_mat_maps=True, use_homogeneous_mat=True)
+    add_calorimeter_defaults(md, use_mat_maps=True, use_homogeneous_mat=True)
+    add_silicon_tracker_defaults(
+        md, use_mat_maps=True, use_homogeneous_mat=True, add_trapezoid=True
+    )
 
     # Make sure all detectors can be represented by this metadata
     add_odd_types(md)
     add_itk_types(md)
+
+    # Extra passive surface shapes (cylinder with two intersection solutions)
+    md.add_passive(Shape.CYLINDER2D)
+    md.add_passive(Shape.RING)
 
     # Add an acceleration struct and material map for generic 2D cylinders
     md.add_accel_struct(Accelerator.CYLINDER_GRID2D)
@@ -59,7 +65,6 @@ def __main__():
     # Add some special types (e.g. for detector R&D)
 
     # Special surface types
-    # md.add_sensitive(Shape.UNBOUNDED)  # Always hit the surface
     # md.add_sensitive(Shape.UNMASKED)
 
     # Add more material types for testing

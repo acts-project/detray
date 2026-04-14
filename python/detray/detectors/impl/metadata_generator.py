@@ -63,6 +63,28 @@ class metadata:
 
         self.logger.info(f'Detector: "{self.det_name}"')
 
+    # Find the next valid type id for a new type in a given mulit_store
+    def __resolve_id_priority(self, type_dict, type_id: int = -1):
+        is_valid_id = type_id >= 0
+        next_auto_id = (
+            0 if not type_dict else max(len(type_dict), max(type_dict.keys()) + 1)
+        )
+        priority = type_id if is_valid_id else next_auto_id
+        is_clash = priority in type_dict
+        # Resolve clashes
+        priority = priority + 1 if is_clash else priority
+
+        # Shift lower priority items
+        if is_clash:
+            new_type_dict = {}
+            for k, v in sorted(type_dict.items()):
+                new_type_dict[k + 1 if k >= priority else k] = type_dict[k]
+
+            # Now swap
+            type_dict, new_type_dict = new_type_dict, type_dict
+
+        return priority, type_dict
+
     # Choose an algebra-plugin
     def set_algebra_plugin(self, plugin: Algebra, precision: Optional[Type] = None):
         self.algebra = plugin
@@ -109,7 +131,7 @@ class metadata:
             self.logger.debug(f'--> surface shape "{shape.specifier}"')
 
             # Automatically enumerate the shape if no type ID is given
-            i = type_id if type_id >= 0 else len(self.shapes)
+            i, self.shapes = self.__resolve_id_priority(self.shapes, type_id)
             self.shapes.setdefault(i, []).append(shape)
 
     # Register a new material type
@@ -128,7 +150,7 @@ class metadata:
                 )
 
             # Automatically enumerate the material if no type ID is given
-            i = type_id if type_id >= 0 else len(self.materials)
+            i, self.materials = self.__resolve_id_priority(self.materials, type_id)
 
             # Check if a compatible material is already registered
             # under a different type id?
@@ -633,7 +655,8 @@ template <template <typename...> class vector_t = dvector>\n\
         assert md.shapes, "Define at least one geometric shape"
 
         self.__lines(2)
-        for type_id, shapes in md.shapes.items():
+        # Make sure type IDs are consecutive
+        for type_id, (_, shapes) in enumerate(sorted(md.shapes.items())):
             for shape in shapes:
                 self.__declare_mask(
                     shape, type_id, "algebra_type", "nav_link", shape.param
@@ -678,7 +701,8 @@ template <template <typename...> class vector_t = dvector>\n\
         # Material types
         if md.materials:
             self.__lines(2)
-            for type_id, materials in md.materials.items():
+            # Make sure type IDs are consecutive
+            for type_id, (_, materials) in enumerate(sorted(md.materials.items())):
                 for mat in materials:
                     self.__declare_material(mat, type_id, "algebra_type")
 
@@ -783,9 +807,49 @@ template <template <typename...> class vector_t = dvector>\n\
             obj_type = "volume" if "volume" in geo_obj else "surface"
             for acc, type_id, value_type in accels:
                 if (obj_type, acc, type_id, value_type) not in unique_accel:
-                    self.__declare_accel(obj_type, acc, type_id, value_type)
                     unique_accel.append((obj_type, acc, type_id, value_type))
+
+        # Resolve same accelerator with different type_ids
+        tmp_specifiers = {}
+        for obj_type, acc, type_id, value_type in unique_accel:
+
+            is_valid_id = type_id >= 0
+            next_auto_id = (
+                0
+                if not tmp_specifiers
+                else max(len(tmp_specifiers), max(tmp_specifiers) + 1)
+            )
+            priority = type_id if is_valid_id else next_auto_id
+            is_clash = priority in tmp_specifiers
+            # Resolve clashes
+            priority = priority + 1 if is_clash else priority
+
+            # Shift lower priority items
+            if is_clash:
+                new_type_dict = {}
+                for k, v in sorted(tmp_specifiers.items()):
+                    new_type_dict[k + 1 if k >= priority else k] = tmp_specifiers[k]
+
+                # Now swap
+                tmp_specifiers, new_type_dict = new_type_dict, tmp_specifiers
+
+            # If the same accelerator is registered multiple times with different priorities, find the smalles priority
+            if (obj_type, acc, value_type) in tmp_specifiers.values():
+                for p, v in tmp_specifiers.items():
+                    if v == (obj_type, acc, value_type) and priority < p:
+                        tmp_specifiers[priority] = (obj_type, acc, value_type)
+                        del tmp_specifiers[p]
+            else:
+                tmp_specifiers[priority] = (obj_type, acc, value_type)
+
         del unique_accel
+
+        # Declare the accelerator according to their priority, but make sure they are contiguous
+        for i, (_, values) in enumerate(sorted(tmp_specifiers.items())):
+            (obj_type, acc, value_type) = values
+            self.__declare_accel(obj_type, acc, i, value_type)
+
+        del tmp_specifiers
 
         # Add options for the default acceleration structs
         self.__lines(1)
@@ -814,15 +878,6 @@ template <template <typename...> class vector_t = dvector>\n\
             surface_default: ["surface_default"],
             volume_default: ["volume_default"],
         }
-
-        # Sort the accelerators by type id
-        if len(self.accel_specifiers) == 1:
-            if next(iter(self.accel_specifiers)) == -1:
-                # Automatically enumerate the types
-                for i, spec in enumerate(self.accel_specifiers[-1]):
-                    self.accel_specifiers.setdefault(i, []).append(spec)
-                # Remove type ID '-1'
-                del self.accel_specifiers[-1]
 
         # Type enumeration
         self.__declare_type_enum(
@@ -870,7 +925,6 @@ template <template <typename...> class vector_t = dvector>\n\
         # 2:       volume:          [brute_force, 2] <- distinct accel. struct
 
         # Find which geometric objects go together into which accel. struct
-
         accel_to_types = {}
         for t, accels in md.acceleration_structs.items():
             for a, i, v in accels:
@@ -881,7 +935,7 @@ template <template <typename...> class vector_t = dvector>\n\
 
                 accel_to_types[specifier, i, v].add(t)
 
-        # If specific type IDs are required, merge the categories accordingly
+        # Get every accelerator for which a specific type ID is requested
         type_id_dict = {}
         for acc, type_id, value_type in accel_to_types.keys():
             if type_id > -1:
@@ -894,7 +948,7 @@ template <template <typename...> class vector_t = dvector>\n\
             if (
                 not is_default_accel(value_type, acc)
                 and (type_id, value_type) in type_id_dict
-                and len(type_id_dict[type_id, value_type]) > 1
+                # and len(type_id_dict[type_id, value_type]) > 1
             ):
                 tmp_repr = type_id_dict[type_id, value_type][0]
                 representative = (
@@ -903,29 +957,46 @@ template <template <typename...> class vector_t = dvector>\n\
                     else tmp_repr
                 )
 
-            accel_to_types_merged.setdefault(
-                (representative, value_type, type_id), set()
-            ).update(accel_to_types[acc, type_id, value_type])
+            if (representative, value_type) not in accel_to_types_merged:
+                accel_to_types_merged[representative, value_type] = (
+                    set(accel_to_types[acc, type_id, value_type]),
+                    type_id,
+                )
+            else:
+                (obj_set, priority) = accel_to_types_merged[representative, value_type]
+                obj_set.update(accel_to_types[acc, type_id, value_type])
+
+                # Update the priority for the representative
+                if type_id >= 0 and (priority == -1 or priority < type_id):
+                    accel_to_types_merged[representative, value_type] = (
+                        obj_set,
+                        type_id,
+                    )
 
         # Check duplicate sets (make the set hashable by converting to tuple)
-        counted_dict = Counter([tuple(v) for v in accel_to_types_merged.values()])
+        counted_dict = Counter(
+            [tuple(s) for (s, type_id) in accel_to_types_merged.values()]
+        )
         duplicates = {
-            key: value
-            for key, value in accel_to_types_merged.items()
+            key: (value, type_id)
+            for key, (value, type_id) in accel_to_types_merged.items()
             if counted_dict[tuple(value)] > 1
         }
 
         # Get the list of keys for every duplicate
         flipped_duplicates = {}
         for key, value in duplicates.items():
-            flipped_duplicates.setdefault(tuple(value), []).append(key)
+            (obj_set, type_id) = value
+            flipped_duplicates.setdefault((tuple(obj_set), type_id), []).append(key)
 
         # Find best representative key for the duplicates and remove the others
         removal_keys = []
-        for obj_set, keys in flipped_duplicates.items():
+        for key, value in flipped_duplicates.items():
             # Keep the key with the smallest required type ID
             type_id_counter = 10000
-            for acc, value_type, type_id in keys:
+            (_, type_id) = key
+            for acc, value_type in value:
+                # Do not remove it if it the default acceleration structure
                 if is_default_accel(value_type, acc):
                     continue
                 # Remove the non-specific type ID of "-1" in any case
@@ -960,7 +1031,7 @@ template <template <typename...> class vector_t = dvector>\n\
             if new_link_types:
                 accel_link_types[key] = new_link_types
 
-        for (accel, value_type, type_id), obj_set in accel_to_types_sorted.items():
+        for (accel, value_type), (obj_set, type_id) in accel_to_types_sorted.items():
             # Only add the default methods where no other accelerator is
             # available (see below)
             if is_default_accel(value_type, accel):
@@ -971,7 +1042,7 @@ template <template <typename...> class vector_t = dvector>\n\
         # Add the default link for the leftover surface and volume types
         surface_default_list = [
             v
-            for k, v in accel_to_types_sorted.items()
+            for k, (v, t) in accel_to_types_sorted.items()
             if "surface" in k and md.default_surface_accel.specifier in k
         ]
         add_link(
@@ -981,7 +1052,7 @@ template <template <typename...> class vector_t = dvector>\n\
 
         volume_default_list = [
             v
-            for k, v in accel_to_types_sorted.items()
+            for k, (v, t) in accel_to_types_sorted.items()
             if "index" in k and md.default_volume_accel.specifier in k
         ]
         add_link(

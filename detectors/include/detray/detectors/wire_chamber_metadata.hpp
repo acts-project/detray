@@ -15,7 +15,6 @@
 #include "detray/definitions/indexing.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes/concentric_cylinder2D.hpp"
-#include "detray/geometry/shapes/cylinder2D.hpp"
 #include "detray/geometry/shapes/cylinder3D.hpp"
 #include "detray/geometry/shapes/line.hpp"
 #include "detray/geometry/shapes/ring2D.hpp"
@@ -45,14 +44,12 @@ struct wire_chamber_metadata {
     using concentric_cylinder2D_t =
         mask<detray::concentric_cylinder2D, algebra_type, nav_link>;
     using ring2D_t = mask<detray::ring2D, algebra_type, nav_link>;
-    using cylinder2D_t = mask<detray::cylinder2D, algebra_type, nav_link>;
 
     enum class mask_id : std::uint_least8_t {
         e_drift_cell = 0u,
         e_straw_tube = 1u,
         e_concentric_cylinder2D = 2u,
         e_ring2D = 3u,
-        e_cylinder2D = 4u,
     };
 
     DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
@@ -70,9 +67,6 @@ struct wire_chamber_metadata {
             case mask_id::e_ring2D:
                 os << "e_ring2D";
                 break;
-            case mask_id::e_cylinder2D:
-                os << "e_cylinder2D";
-                break;
             default:
                 os << "invalid";
         }
@@ -80,10 +74,9 @@ struct wire_chamber_metadata {
     };
 
     template <template <typename...> class vector_t = dvector>
-    using mask_store =
-        regular_multi_store<mask_id, empty_context, dtuple, vector_t,
-                            drift_cell_t, straw_tube_t, concentric_cylinder2D_t,
-                            ring2D_t, cylinder2D_t>;
+    using mask_store = regular_multi_store<mask_id, empty_context, dtuple,
+                                           vector_t, drift_cell_t, straw_tube_t,
+                                           concentric_cylinder2D_t, ring2D_t>;
 
     template <typename container_t>
     using concentric_cylinder2D_map_t =
@@ -141,18 +134,18 @@ struct wire_chamber_metadata {
         surface_descriptor<mask_link, material_link, transform_link, nav_link>;
 
     template <typename axes_t, typename bin_entry_t, typename container_t>
-    using spatial_grid_t =
+    using dynamic_simple_grid_t =
         spatial_grid<algebra_type, axes_t,
                      detray::bins::dynamic_array<bin_entry_t>,
-                     simple_serializer, container_t, false>;
+                     detray::simple_serializer, container_t, false>;
 
     template <typename container_t>
     using surface_concentric_cylinder2D_grid_t =
-        spatial_grid_t<axes<detray::concentric_cylinder2D>, surface_type,
-                       container_t>;
+        dynamic_simple_grid_t<axes<detray::concentric_cylinder2D>, surface_type,
+                              container_t>;
     template <typename container_t>
     using volume_cylinder3D_grid_t =
-        spatial_grid_t<axes<detray::cylinder3D>, dindex, container_t>;
+        dynamic_simple_grid_t<axes<detray::cylinder3D>, dindex, container_t>;
 
     enum class accel_id : std::uint_least8_t {
         e_surface_brute_force = 0u,

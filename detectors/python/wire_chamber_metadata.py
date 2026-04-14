@@ -28,10 +28,6 @@ def add_wire_chamber_types(md: metadata):
     # Add default types for wire chambers
     add_wire_chamber_defaults(md, use_mat_maps=True, use_homogeneous_mat=True)
 
-    # Beampipe passive surface
-    logger.info("-> adding wire chamber beampipe")
-    md.add_passive(Shape.CYLINDER2D)
-
     logger.info("Done")
 
 

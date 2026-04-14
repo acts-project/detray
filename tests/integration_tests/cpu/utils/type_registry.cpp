@@ -72,10 +72,10 @@ GTEST_TEST(detray_utils, mapped_type_registry) {
     using cylinder_t = types::get<mask_types, mask_id::e_concentric_cylinder2D>;
     using disc_t = types::get<mask_types, mask_id::e_ring2D>;
 
-    /*static_assert(types::position<mapped_registry_t, rectangle_t> == 0u);
+    static_assert(types::position<mapped_registry_t, rectangle_t> == 0u);
     static_assert(types::position<mapped_registry_t, trapezoid_t> == 0u);
     static_assert(types::position<mapped_registry_t, cylinder_t> == 1u);
-    static_assert(types::position<mapped_registry_t, disc_t> == 2u);*/
+    static_assert(types::position<mapped_registry_t, disc_t> == 2u);
 
     using cyl_intersector_t =
         types::get<mapped_registry_t, mask_id::e_concentric_cylinder2D>;
@@ -115,11 +115,10 @@ GTEST_TEST(detray_utils, mapped_type_registry) {
                   "Retrieved incorrect type after mapping (trapezoid2D)");
 
     // Check the indices of the mapped types
-    /*static_assert(types::position<mapped_registry_t, rect_intersector_t> ==
-    0u); static_assert(types::position<mapped_registry_t, trpz_intersector_t> ==
-    0u); static_assert(types::position<mapped_registry_t, cyl_intersector_t> ==
-    1u); static_assert(types::position<mapped_registry_t, ring_intersector_t> ==
-    2u);*/
+    static_assert(types::position<mapped_registry_t, rect_intersector_t> == 0u);
+    static_assert(types::position<mapped_registry_t, trpz_intersector_t> == 0u);
+    static_assert(types::position<mapped_registry_t, cyl_intersector_t> == 1u);
+    static_assert(types::position<mapped_registry_t, ring_intersector_t> == 2u);
 
     //
     // Test the registry

@@ -27,12 +27,12 @@ def add_odd_types(md: metadata):
 
     # Add default types for silicon trackers (cylindrical detector shape)
     add_silicon_tracker_defaults(
-        metadata=md, use_homogeneous_mat=True, use_mat_maps=True
+        metadata=md, use_homogeneous_mat=True, use_mat_maps=True, add_trapezoid=True
     )
 
-    # Beampipe passive surface
-    logger.info("-> adding ODD beampipe")
-    md.add_passive(Shape.CYLINDER2D)
+    # Add passive material surfaces (intersectable for cosmics)
+    # md.add_passive(Shape.CYLINDER2D)
+    # md.add_passive(Shape.RING)
 
     logger.info("Done")
 

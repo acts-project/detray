@@ -39,33 +39,33 @@ struct toy_metadata {
     using transform_store =
         single_store<dtransform3D<algebra_type>, vector_t, geometry_context>;
 
+    using rectangle2D_t = mask<detray::rectangle2D, algebra_type, nav_link>;
+    using trapezoid2D_t = mask<detray::trapezoid2D, algebra_type, nav_link>;
     using concentric_cylinder2D_t =
         mask<detray::concentric_cylinder2D, algebra_type, nav_link>;
     using ring2D_t = mask<detray::ring2D, algebra_type, nav_link>;
-    using rectangle2D_t = mask<detray::rectangle2D, algebra_type, nav_link>;
-    using trapezoid2D_t = mask<detray::trapezoid2D, algebra_type, nav_link>;
 
     enum class mask_id : std::uint_least8_t {
-        e_concentric_cylinder2D = 0u,
-        e_ring2D = 1u,
-        e_rectangle2D = 2u,
-        e_trapezoid2D = 3u,
+        e_rectangle2D = 0u,
+        e_trapezoid2D = 1u,
+        e_concentric_cylinder2D = 2u,
+        e_ring2D = 3u,
     };
 
     DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
                                                        mask_id id) {
         switch (id) {
-            case mask_id::e_concentric_cylinder2D:
-                os << "e_concentric_cylinder2D";
-                break;
-            case mask_id::e_ring2D:
-                os << "e_ring2D";
-                break;
             case mask_id::e_rectangle2D:
                 os << "e_rectangle2D";
                 break;
             case mask_id::e_trapezoid2D:
                 os << "e_trapezoid2D";
+                break;
+            case mask_id::e_concentric_cylinder2D:
+                os << "e_concentric_cylinder2D";
+                break;
+            case mask_id::e_ring2D:
+                os << "e_ring2D";
                 break;
             default:
                 os << "invalid";
@@ -76,8 +76,8 @@ struct toy_metadata {
     template <template <typename...> class vector_t = dvector>
     using mask_store =
         regular_multi_store<mask_id, empty_context, dtuple, vector_t,
-                            concentric_cylinder2D_t, ring2D_t, rectangle2D_t,
-                            trapezoid2D_t>;
+                            rectangle2D_t, trapezoid2D_t,
+                            concentric_cylinder2D_t, ring2D_t>;
 
     template <typename container_t>
     using concentric_cylinder2D_map_t =
