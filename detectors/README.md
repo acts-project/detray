@@ -1,34 +1,9 @@
 ## Generating custom Detector Metadata
 
-The detector metadata is a C++ `struct` used by the detray core library as a template parameter to gather the compile-time information on the capabilities of the detector modelling, for example:
+The scripts in the `python` folder use the tools in the detray python detector package to define various detector metadata headers in the `include` folder. A new generator file can be added here to the `python` folder, which will then be used during the cmake configuration step to generate the required detector metadata header for compilation of custom detector types (add `-DDETRAY_GENERATE_METADATA="my_metadata.py"` to the cmake setup)
 
-`using odd_detector_t = detray::detector<detray::odd_metadata<algebra_t>>`,
-
-with the `algebra_t` defined according to the linear algebra backend to be used, for instance the `detray::array<float>` plugin.
-
-A generic metadata type (the default metadata) exists, which comprises most of the geometry modelling capabilities detray has to offer, however, at the expense of increased build times and likely higher runtime of subsequent track reconstruction pipelines. A custom metadata can be defined by providing a python script that configures the detray metadata code generator,
-which can be invoked during the configuration stage of the cmake build:
+To run any of the scripts manually, use the following:
 ```shell
-cmake -S detray -B detray-build -DDETRAY_METADATA_GENERATOR=path/to/custom_metadata.py
-```
-The resulting metadata header, ready to be used in downstream projects, will be available in the `detray/detectors` folder. Example metadata generation scripts, for instance for the ACTS Open Data Detector (ODD detector mentioned above), can be found in the `detray/detectors/python/` folder. They can be invoked manually by:
-```shell
-source detray-build/python/setup.sh
+source path-to-detray-build/python/setup.sh
 python3 detray/detectors/python/odd_metadata.py
 ```
-
-### Metadata Configuration Manual
-
-Generate a metadata representation and dump the header file:
-
-```python
-from detray.detectors import metadata, metadata_generator
-
-md = metadata("detector_name")
-
-[...]
-
-metadata_generator(md)
-```
-
-Adding surface shapes for passive or sensitive detector elements or portals between detector sub-volumes:
