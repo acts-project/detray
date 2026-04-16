@@ -32,27 +32,3 @@ install(
     FILES ${CMAKE_CURRENT_SOURCE_DIR}/detray/python/__init__.py
     DESTINATION ${DETRAY_PYTHON_INSTALL_DIR}
 )
-
-# Create the metadata headers
-message(STATUS "Configuring detray detector types...")
-#include(FindPythonInterp)
-
-# Generate the inbuilt metadata headers
-#for each
-#message(STATUS "Created xxx metadata")
-#execute_process(
-#   COMMAND ${PYTHON3} ${CMAKE_CURRENT_SOURCE_DIR}/my_python_script.py GET_LIST_OF_FILES
-#   RESULT_VARIABLE FILES
-#)
-#add_custom_command(
-#   OUTPUT ${FILES}
-#   COMMAND ${PYTHON3} ${CMAKE_CURRENT_SOURCE_DIR}/my_python_script.py
-#   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/my_python_script.py
-#)
-
-# Generate the custom metadata headers
-
-# Build the python bindings
-if(DETRAY_BUILD_PYTHON_BINDINGS)
-    add_subdirectory(detray)
-endif()

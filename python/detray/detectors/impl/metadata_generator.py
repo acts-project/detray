@@ -260,8 +260,14 @@ class metadata:
 
 class metadata_generator:
 
-    def __init__(self, md: metadata, format_header=True):
+    def __init__(
+        self,
+        md: metadata,
+        output="../detectors/include/detray/detectors/",
+        format_header=True,
+    ):
         # Internal state during header generation
+        self.out_dir = output
         self.file = None
         self.logger = logging.getLogger(__name__)
         self.format_header = format_header
@@ -285,7 +291,7 @@ class metadata_generator:
 {root_dir}/geometry/surface_descriptor.hpp"\n'
 
         # Dump the metadata header
-        self.__generate(md)
+        self.__generate(md, self.out_dir)
 
     # Write the given metadata to file
     def __generate(

@@ -31,7 +31,11 @@ def __main__():
     # Commandline options
     parser = argparse.ArgumentParser(prog=sys.argv[0])
     detray.detectors.add_logging_options(parser)
-    detray.detectors.parse_logging_options(parser.parse_args())
+    detray.detectors.add_io_options(parser)
+
+    args = parser.parse_args()
+    detray.detectors.parse_logging_options(args)
+    detray.detectors.parse_io_options(args)
 
     logger = logging.getLogger(__name__)
 
@@ -82,7 +86,10 @@ def __main__():
     md.set_default_accel_struct(Accelerator.CYLINDER_GRID3D, "volume")
 
     # Dump the metadata to header file
-    metadata_generator(md)
+    if args.output:
+        metadata_generator(md, args.output)
+    else:
+        metadata_generator(md)
 
 
 if __name__ == "__main__":

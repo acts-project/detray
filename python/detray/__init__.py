@@ -1,1 +1,1 @@
-import detectors
+from .detectors import *

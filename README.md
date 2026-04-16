@@ -62,14 +62,15 @@ The following cmake options are available and can also be specified explicitly f
 | DETRAY_SET_LOGGING  | Set log level (NONE, WARN, INFO, VERBOSE, DEBUG) | INFO |
 | DETRAY_BUILD_CUDA  | Build the CUDA sources included in detray | ON (if available) |
 | DETRAY_BUILD_SYCL  | Build the SYCL sources included in detray | OFF |
-| DETRAY_BUILD_CLI_TOOLS  | Build the detray command line tools | OFF |
-| DETRAY_BUILD_BENCHMARKS  | Build the detray benchmarks | OFF |
-| DETRAY_BUILD_TUTORIALS  | Build the examples of detray | OFF |
-| DETRAY_BUILD_ALL_TESTS  | Build the detray unit and integration tests | OFF |
+| DETRAY_BUILD_TEST_UTILS  | Build the detray test utilities library (contains e.g. test detectors) | OFF |
 | DETRAY_BUILD_UNITTESTS  | Build the detray unit tests | OFF |
 | DETRAY_BUILD_INTEGRATIONTESTS  | Build the detray integration tests | OFF |
-| DETRAY_BUILD_TEST_UTILS  | Build the detray test utilities library (test detectors etc.) | OFF |
+| DETRAY_BUILD_ALL_TESTS  | Build the detray unit and integration tests | OFF |
+| DETRAY_BUILD_BENCHMARKS  | Build the detray benchmarks | OFF |
+| DETRAY_BUILD_CLI_TOOLS  | Build the detray command line tools | OFF |
+| DETRAY_BUILD_TUTORIALS  | Build the examples of detray | OFF |
 | DETRAY_CUSTOM_SCALARTYPE | Floating point precision | float |
+| DETRAY_GENERATE_METADATA | List of metadata generator scripts (separated by semicolon) | empty |
 | DETRAY_EIGEN_PLUGIN | Build Eigen math plugin | OFF |
 | DETRAY_FASTOR_PLUGIN | Build Fastor math plugin | OFF |
 | DETRAY_SMATRIX_PLUGIN | Build ROOT/SMatrix math plugin | OFF |

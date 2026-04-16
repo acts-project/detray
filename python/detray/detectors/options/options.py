@@ -53,10 +53,36 @@ def parse_logging_options(args, prog_name=sys.argv[0]):
         format=("%(levelname)s (%(module)s): %(message)s"), level=log_level
     )
 
-    print(
+    logging.info(
         "\ndetray - "
         + str(datetime.now().strftime("%d/%m/%Y %H:%M"))
         + ': Running detector type generator "'
         + os.path.basename(prog_name)
         + '"\n'
     )
+
+
+""" Parent parser that contains IO options """
+
+
+def add_io_options(parser):
+
+    parser.add_argument(
+        "-o",
+        "--output",
+        help=("Metadata output directory"),
+        default="",
+        type=str,
+    )
+
+    return parser
+
+
+""" Parse IO options from commandline"""
+
+
+def parse_io_options(args):
+    # Check if the output directpry exists
+    if args.output and not os.path.isdir(args.output):
+        print(f"Output directory does not exist! ({args.output})")
+        sys.exit(1)

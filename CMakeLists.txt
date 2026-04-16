@@ -69,10 +69,11 @@ set_property(
     PROPERTY STRINGS "NONE" "WARNING" "INFO" "VERBOSE" "DEBUG"
 )
 option(DETRAY_BUILD_CLI_TOOLS "Build the command line tools of Detray" OFF)
-option(
-    DETRAY_BUILD_PYTHON_BINDINGS
-    "Build python bindings for all enabled components"
-    OFF
+# Which detector metadata headers to generate during the build
+set(DETRAY_GENERATE_METADATA
+    ""
+    CACHE STRING
+    "Semicolon-separated list of metdata generator scripts to run in this build"
 )
 
 # Device compilation
@@ -90,6 +91,7 @@ option(DETRAY_BUILD_SYCL "Build the SYCL sources included in detray" OFF)
 
 # Check if HIP is available
 option(DETRAY_BUILD_HIP "Build the HIP sources included in detray" OFF)
+
 cmake_dependent_option(
     DETRAY_BUILD_HOST
     "Build the host sources included in detray"
@@ -138,22 +140,6 @@ elseif(DETRAY_SET_LOGGING STREQUAL "DEBUG")
     set(DETRAY_LOG_LVL 3 CACHE INTERNAL "Print expert information" FORCE)
 endif()
 
-#
-# Resolve build options and option dependencies
-#
-
-# Set the internal log level from user input
-set(DETRAY_LOG_LVL -1 CACHE INTERNAL "Disable logging")
-if(DETRAY_SET_LOGGING STREQUAL "WARN")
-    set(DETRAY_LOG_LVL 0 CACHE INTERNAL "Print warnings and errors" FORCE)
-elseif(DETRAY_SET_LOGGING STREQUAL "INFO")
-    set(DETRAY_LOG_LVL 1 CACHE INTERNAL "Print general information" FORCE)
-elseif(DETRAY_SET_LOGGING STREQUAL "VERBOSE")
-    set(DETRAY_LOG_LVL 2 CACHE INTERNAL "Print detailed information" FORCE)
-elseif(DETRAY_SET_LOGGING STREQUAL "DEBUG")
-    set(DETRAY_LOG_LVL 3 CACHE INTERNAL "Print expert information" FORCE)
-endif()
-
 # Need test utils in CLI tools for the example detector generation
 if(DETRAY_BUILD_CLI_TOOLS)
     set(DETRAY_BUILD_TEST_UTILS ON)
@@ -167,9 +153,12 @@ if(${DETRAY_BUILD_CUDA} AND ${CMAKE_CUDA_STANDARD} LESS 20)
     )
 endif()
 
-#
-# Configure dependencies
-#
+if(${DETRAY_BUILD_SYCL} AND ${CMAKE_SYCL_STANDARD} LESS 20)
+    message(
+        SEND_ERROR
+        "CMAKE_SYCL_STANDARD=${CMAKE_SYCL_STANDARD}, but detray requires C++>=20"
+    )
+endif()
 
 if(${DETRAY_BUILD_HIP} AND ${CMAKE_HIP_STANDARD} LESS 20)
     message(
@@ -502,6 +491,7 @@ if(
     add_subdirectory(tests)
 endif()
 
+# Set up the tutorial(s).
 if(DETRAY_BUILD_TUTORIALS)
     add_subdirectory(tutorials)
 endif()

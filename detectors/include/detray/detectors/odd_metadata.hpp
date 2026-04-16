@@ -190,8 +190,8 @@ struct odd_metadata {
         grid_collection<volume_cylinder3D_grid_t<container_t>>>;
 
     enum geo_objects : std::uint_least8_t {
-        e_portal = 0u,
         e_passive = 0u,
+        e_portal = 0u,
         e_sensitive = 1u,
         e_volume = 2u,
         e_size = 3u,
@@ -204,8 +204,8 @@ struct odd_metadata {
             case geo_objects::e_sensitive:
                 os << "e_sensitive";
                 break;
-            case geo_objects::e_passive:
-                os << "e_portal/e_passive";
+            case geo_objects::e_portal:
+                os << "e_passive/e_portal";
                 break;
             case geo_objects::e_volume:
                 os << "e_volume";
