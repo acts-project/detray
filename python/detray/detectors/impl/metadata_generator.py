@@ -24,6 +24,7 @@ import logging
 import numbers
 import os
 from typing import Optional
+import subprocess
 
 
 """ Class that represents the c++ metadata struct with all of its types """
@@ -259,13 +260,11 @@ class metadata:
 
 class metadata_generator:
 
-    def __init__(
-        self,
-        md: metadata,
-    ):
+    def __init__(self, md: metadata, format_header=True):
         # Internal state during header generation
         self.file = None
         self.logger = logging.getLogger(__name__)
+        self.format_header = format_header
         self.indent = 0
 
         # Save the type specifiers
@@ -1114,7 +1113,15 @@ template <template <typename...> class vector_t = dvector>\n\
     def __finish(self):
         self.__lines(1)
         self.indent = self.indent - 1
-        self.__put("};\n\n} // namespace detray")
+        self.__put("};\n\n} // namespace detray\n")
         self.file.close()
 
         self.logger.debug("Wrote file to disk")
+
+        # Run code formatting
+        if self.format_header and os.path.isfile(self.file.name):
+            logging.debug("Formatting the header...")
+            try:
+                subprocess.run(["clang-format", "-i", "-style=file", self.file.name])
+            except FileNotFoundError:
+                logging.error("clang-format not found")
