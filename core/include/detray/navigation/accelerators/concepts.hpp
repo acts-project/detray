@@ -14,7 +14,7 @@
 #include "detray/geometry/surface_descriptor.hpp"
 #include "detray/navigation/accelerators/search_window.hpp"
 #include "detray/utils/concepts.hpp"
-#include "detray/utils/grid/detail/concepts.hpp"
+#include "detray/utils/grid/concepts.hpp"
 #include "detray/utils/ranges/ranges.hpp"
 
 // System include(s)

@@ -12,7 +12,7 @@
 #include "detray/geometry/coordinates/cylindrical3D.hpp"
 #include "detray/geometry/coordinates/polar2D.hpp"
 #include "detray/geometry/mask.hpp"
-#include "detray/utils/grid/detail/axis.hpp"
+#include "detray/utils/grid/axis.hpp"
 
 // Detray test include(s)
 #include "detray/test/framework/types.hpp"

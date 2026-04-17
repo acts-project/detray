@@ -10,7 +10,7 @@
 // Project include(s)
 #include "detray/builders/detail/radius_getter.hpp"
 #include "detray/geometry/surface.hpp"
-#include "detray/utils/grid/detail/concepts.hpp"
+#include "detray/utils/grid/concepts.hpp"
 
 // Plugin include(s)
 #include "detray/plugins/svgtools/conversion/grid.hpp"

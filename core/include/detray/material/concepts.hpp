@@ -9,7 +9,7 @@
 
 // Detray include(s)
 #include "detray/material/material.hpp"
-#include "detray/utils/grid/detail/concepts.hpp"
+#include "detray/utils/grid/concepts.hpp"
 
 namespace detray::concepts {
 

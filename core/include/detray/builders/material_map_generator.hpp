@@ -19,7 +19,7 @@
 #include "detray/material/material_rod.hpp"
 #include "detray/material/material_slab.hpp"
 #include "detray/material/predefined_materials.hpp"
-#include "detray/utils/grid/detail/axis.hpp"
+#include "detray/utils/grid/axis.hpp"
 #include "detray/utils/logging.hpp"
 #include "detray/utils/ranges.hpp"
 

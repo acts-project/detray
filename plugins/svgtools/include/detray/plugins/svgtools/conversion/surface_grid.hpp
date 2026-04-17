@@ -13,7 +13,7 @@
 #include "detray/definitions/grid_axis.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/navigation/concepts.hpp"
-#include "detray/utils/grid/detail/concepts.hpp"
+#include "detray/utils/grid/concepts.hpp"
 #include "detray/utils/logging.hpp"
 
 // Plugin include(s)

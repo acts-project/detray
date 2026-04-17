@@ -9,8 +9,8 @@
 
 // Project include(s).
 #include "detray/builders/detail/bin_association.hpp"
-#include "detray/utils/grid/detail/axis.hpp"
-#include "detray/utils/grid/detail/concepts.hpp"
+#include "detray/utils/grid/axis.hpp"
+#include "detray/utils/grid/concepts.hpp"
 #include "detray/utils/grid/populators.hpp"
 
 // System include(s)

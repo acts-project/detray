@@ -15,11 +15,11 @@
 #include "detray/navigation/accelerators/search_window.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
 #include "detray/tracks/ray.hpp"
+#include "detray/utils/grid/concepts.hpp"
 #include "detray/utils/grid/detail/axis_helpers.hpp"
 #include "detray/utils/grid/detail/bin_view.hpp"
-#include "detray/utils/grid/detail/concepts.hpp"
-#include "detray/utils/grid/detail/grid_bins.hpp"
 #include "detray/utils/grid/grid.hpp"
+#include "detray/utils/grid/grid_bins.hpp"
 #include "detray/utils/grid/grid_collection.hpp"
 
 namespace detray {
