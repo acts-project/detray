@@ -13,10 +13,10 @@
 #include "detray/definitions/containers.hpp"
 #include "detray/geometry/concepts.hpp"
 #include "detray/material/material_slab.hpp"
+#include "detray/utils/grid/concepts.hpp"
 #include "detray/utils/grid/detail/axis_helpers.hpp"
-#include "detray/utils/grid/detail/concepts.hpp"
-#include "detray/utils/grid/detail/grid_bins.hpp"
 #include "detray/utils/grid/grid.hpp"
+#include "detray/utils/grid/grid_bins.hpp"
 #include "detray/utils/grid/serializers.hpp"
 
 namespace detray {

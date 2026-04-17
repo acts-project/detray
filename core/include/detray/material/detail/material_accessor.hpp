@@ -11,7 +11,7 @@
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/material/concepts.hpp"
-#include "detray/utils/grid/detail/concepts.hpp"
+#include "detray/utils/grid/concepts.hpp"
 #include "detray/utils/ranges/ranges.hpp"
 #include "detray/utils/type_traits.hpp"
 

@@ -9,7 +9,7 @@
 #include "detray/utils/grid/populators.hpp"
 
 #include "detray/definitions/indexing.hpp"
-#include "detray/utils/grid/detail/grid_bins.hpp"
+#include "detray/utils/grid/grid_bins.hpp"
 
 // Detray test include(s)
 #include "detray/test/framework/types.hpp"

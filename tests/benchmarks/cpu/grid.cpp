@@ -12,7 +12,7 @@
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/geometry/shapes/rectangle2D.hpp"
-#include "detray/utils/grid/detail/concepts.hpp"
+#include "detray/utils/grid/concepts.hpp"
 #include "detray/utils/logging.hpp"
 
 // Detray benchmark include(s)

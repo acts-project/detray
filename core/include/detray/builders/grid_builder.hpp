@@ -17,7 +17,7 @@
 #include "detray/geometry/tracking_volume.hpp"
 #include "detray/navigation/accelerators/concepts.hpp"
 #include "detray/navigation/accelerators/spatial_grid.hpp"
-#include "detray/utils/grid/detail/concepts.hpp"
+#include "detray/utils/grid/concepts.hpp"
 #include "detray/utils/logging.hpp"
 
 // System include(s)

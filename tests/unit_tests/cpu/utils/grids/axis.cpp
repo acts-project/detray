@@ -6,14 +6,14 @@
  */
 
 // detray core
-#include "detray/utils/grid/detail/axis.hpp"
+#include "detray/utils/grid/axis.hpp"
 
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/coordinates/coordinates.hpp"
+#include "detray/utils/grid/concepts.hpp"
 #include "detray/utils/grid/detail/axis_binning.hpp"
 #include "detray/utils/grid/detail/axis_bounds.hpp"
-#include "detray/utils/grid/detail/concepts.hpp"
 
 // Detray test include(s)
 #include "detray/test/framework/types.hpp"

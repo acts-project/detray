@@ -9,7 +9,7 @@
 #include "detray/definitions/indexing.hpp"
 #include "detray/geometry/shapes/cuboid3D.hpp"
 #include "detray/navigation/accelerators/concepts.hpp"
-#include "detray/utils/grid/detail/concepts.hpp"
+#include "detray/utils/grid/concepts.hpp"
 #include "detray/utils/grid/grid.hpp"
 
 // Detray test include(s)

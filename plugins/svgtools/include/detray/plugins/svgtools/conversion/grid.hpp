@@ -12,7 +12,7 @@
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/grid_axis.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/utils/grid/detail/concepts.hpp"
+#include "detray/utils/grid/concepts.hpp"
 
 // Plugin include(s)
 #include "detray/plugins/svgtools/styling/styling.hpp"

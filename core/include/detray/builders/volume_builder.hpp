@@ -13,7 +13,7 @@
 #include "detray/definitions/geometry.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/utils/concepts.hpp"
-#include "detray/utils/grid/detail/concepts.hpp"
+#include "detray/utils/grid/concepts.hpp"
 #include "detray/utils/logging.hpp"
 
 // System include(s)
