@@ -12,6 +12,7 @@
 #include "detray/builders/homogeneous_material_generator.hpp"
 #include "detray/builders/volume_builder.hpp"
 #include "detray/builders/volume_builder_interface.hpp"
+#include "detray/core/concepts.hpp"
 #include "detray/utils/logging.hpp"
 
 // System include(s)
@@ -29,7 +30,7 @@ template <typename detector_t>
 class homogeneous_material_builder final : public volume_decorator<detector_t> {
 
     public:
-    using material_id = typename detector_t::materials::id;
+    using material_id = typename detector_t::material::id;
     using scalar_type = dscalar<typename detector_t::algebra_type>;
 
     /// @param vol_builder volume builder that should be decorated with material
@@ -39,6 +40,10 @@ class homogeneous_material_builder final : public volume_decorator<detector_t> {
         : volume_decorator<detector_t>(std::move(vol_builder)) {
         DETRAY_VERBOSE_HOST(
             "Add hom. material builder to volume: " << this->name());
+
+        static_assert(concepts::has_material_slabs<detector_t> ||
+                          concepts::has_material_rods<detector_t>,
+                      "No homogeneous surface material in detector type");
     }
 
     /// Overwrite, to add material in addition to surfaces (only if surfaces are
@@ -97,34 +102,46 @@ class homogeneous_material_builder final : public volume_decorator<detector_t> {
         for (auto &sf : this->surfaces()) {
             DETRAY_DEBUG_HOST("-> sf=" << sf);
             DETRAY_DEBUG_HOST("  -> material_id=" << sf.material().id());
-            if (sf.material().id() == material_id::e_slab) {
-                dindex offset = material.template size<material_id::e_slab>();
-                DETRAY_DEBUG_HOST("-> update material slab offset: " << offset);
-                sf.update_material(offset);
-                DETRAY_DEBUG_HOST("-> material now: " << sf.material());
+            if constexpr (concepts::has_material_slabs<detector_t>) {
+                if (sf.material().id() == material_id::e_material_slab) {
+                    dindex offset =
+                        material.template size<material_id::e_material_slab>();
+                    DETRAY_DEBUG_HOST(
+                        "-> update material slab offset: " << offset);
+                    sf.update_material(offset);
+                    DETRAY_DEBUG_HOST("-> material now: " << sf.material());
+                }
+
+                DETRAY_DEBUG_HOST(
+                    "-> Appending "
+                    << m_materials.template size<material_id::e_material_slab>()
+                    << " slabs into detector materials");
             }
-            if constexpr (types::contains<typename detector_t::materials,
-                                          material_rod<scalar_type>>) {
-                if (sf.material().id() == material_id::e_rod) {
+            if constexpr (concepts::has_material_rods<detector_t>) {
+                if (sf.material().id() == material_id::e_material_rod) {
                     DETRAY_DEBUG_HOST(
                         "-> update material rod offset: "
-                        << material.template size<material_id::e_rod>());
+                        << material
+                               .template size<material_id::e_material_rod>());
                     sf.update_material(
-                        material.template size<material_id::e_rod>());
+                        material.template size<material_id::e_material_rod>());
                 }
+
+                DETRAY_DEBUG_HOST(
+                    "-> Appending "
+                    << m_materials.template size<material_id::e_material_rod>()
+                    << " rods into detector materials");
             }
         }
 
         // Add material to the detector
-        DETRAY_DEBUG_HOST("-> Appending "
-                          << m_materials.template size<material_id::e_slab>()
-                          << " slabs into detector materials");
 
-        if constexpr (types::contains<typename detector_t::materials,
+        if constexpr (types::contains<typename detector_t::material,
                                       material_rod<scalar_type>>) {
-            DETRAY_DEBUG_HOST("-> Appending "
-                              << m_materials.template size<material_id::e_rod>()
-                              << " rods into detector materials");
+            DETRAY_DEBUG_HOST(
+                "-> Appending "
+                << m_materials.template size<material_id::e_material_rod>()
+                << " rods into detector materials");
         }
         det._materials.append(std::move(m_materials));
         m_materials.clear_all();

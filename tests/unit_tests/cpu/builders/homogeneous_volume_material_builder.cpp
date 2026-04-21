@@ -40,7 +40,7 @@ TEST(detray_builders, homogeneous_volume_material_builder) {
     using detector_t = detector<metadata_t>;
     using transform3 = typename detector_t::transform3_type;
 
-    constexpr auto material_id{detector_t::materials::id::e_raw_material};
+    constexpr auto material_id{detector_t::material::id::e_raw_material};
 
     vecmem::host_memory_resource host_mr;
     detector_t d(host_mr);

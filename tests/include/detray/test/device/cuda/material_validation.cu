@@ -122,5 +122,6 @@ void material_validation_device(
 DECLARE_MATERIAL_VALIDATION(test::default_metadata)
 DECLARE_MATERIAL_VALIDATION(test::toy_metadata)
 DECLARE_MATERIAL_VALIDATION(test::default_telescope_metadata)
+DECLARE_MATERIAL_VALIDATION(test::wire_chamber_metadata)
 
 }  // namespace detray::cuda

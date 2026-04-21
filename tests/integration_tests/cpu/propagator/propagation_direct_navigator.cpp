@@ -244,7 +244,7 @@ TEST_P(PropagatorWithRkStepperDirectNavigatorWireChamber, direct_navigator) {
         uniform_track_generator<free_track_parameters<test_algebra>>;
 
     // Toy detector
-    using detector_t = detector<test::default_metadata>;
+    using detector_t = detector<test::wire_chamber_metadata>;
     using surface_t = typename detector_t::surface_type;
 
     // Default navigator for comparison

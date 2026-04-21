@@ -70,6 +70,7 @@ The following cmake options are available and can also be specified explicitly f
 | DETRAY_BUILD_CLI_TOOLS  | Build the detray command line tools | OFF |
 | DETRAY_BUILD_TUTORIALS  | Build the examples of detray | OFF |
 | DETRAY_CUSTOM_SCALARTYPE | Floating point precision | float |
+| DETRAY_GENERATE_METADATA | List of metadata generator scripts (separated by semicolon) | empty |
 | DETRAY_EIGEN_PLUGIN | Build Eigen math plugin | OFF |
 | DETRAY_FASTOR_PLUGIN | Build Fastor math plugin | OFF |
 | DETRAY_SMATRIX_PLUGIN | Build ROOT/SMatrix math plugin | OFF |
@@ -86,6 +87,10 @@ In the `tutorials` folder of the repository, there are a number of standalone ex
 extra navigation tracing information
 - Moving a detector to device
 - Host and device track propagation
+
+In order to define a custom detector geometry type (called a detector 'metadata'), please follow the instructions in `detray/detectors/README.md`.
+
+Otherwise, the default detector metadata (`#include detray/detectors/default_metadata.hpp`) can be used in most cases to define the detector type, however, incurring increased build times and likely also increased runtime of client algorithms.
 
 ## Detector Validation
 

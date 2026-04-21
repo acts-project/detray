@@ -45,6 +45,8 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY
     "Directory for the built static libraries"
 )
 
+set(DETRAY_PYTHON_INSTALL_DIR "python/detray")
+
 # Include the Detray CMake code.
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(detray-functions)
@@ -67,6 +69,12 @@ set_property(
     PROPERTY STRINGS "NONE" "WARNING" "INFO" "VERBOSE" "DEBUG"
 )
 option(DETRAY_BUILD_CLI_TOOLS "Build the command line tools of Detray" OFF)
+# Which detector metadata headers to generate during the build
+set(DETRAY_GENERATE_METADATA
+    ""
+    CACHE STRING
+    "Semicolon-separated list of metdata generator scripts to run in this build"
+)
 
 # Device compilation
 
@@ -132,7 +140,7 @@ elseif(DETRAY_SET_LOGGING STREQUAL "DEBUG")
     set(DETRAY_LOG_LVL 3 CACHE INTERNAL "Print expert information" FORCE)
 endif()
 
-# Need test utils for the example detector generation
+# Need test utils in CLI tools for the example detector generation
 if(DETRAY_BUILD_CLI_TOOLS)
     set(DETRAY_BUILD_TEST_UTILS ON)
 endif()
@@ -461,11 +469,15 @@ if(DETRAY_SETUP_COVFIE)
     endif()
 endif()
 
+#
 # Set up all of the libraries of the project.
+#
+
 add_subdirectory(core)
 add_subdirectory(detectors)
 add_subdirectory(io)
 add_subdirectory(plugins)
+add_subdirectory(python)
 
 # Test utils and validation tools can also be required standalone
 # (e.g. in ACTS detray plugin)

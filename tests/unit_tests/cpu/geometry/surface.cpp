@@ -25,22 +25,22 @@
 namespace {
 
 /// Define mask types
-enum class mask_ids : unsigned int {
+enum class mask_id : unsigned int {
     e_unmasked = 0u,
 };
 
-std::ostream& operator<<(std::ostream& os, mask_ids /*mid*/) {
+std::ostream& operator<<(std::ostream& os, mask_id /*mid*/) {
     os << "e_unmasked";
     return os;
 }
 
 /// Define material types
-enum class material_ids : unsigned int {
-    e_slab = 0u,
+enum class material_id : unsigned int {
+    e_material_slab = 0u,
 };
 
-std::ostream& operator<<(std::ostream& os, material_ids /*mid*/) {
-    os << "e_slab";
+std::ostream& operator<<(std::ostream& os, material_id /*mid*/) {
+    os << "e_material_slab";
     return os;
 }
 
@@ -55,11 +55,11 @@ GTEST_TEST(detray_geometry, surface_descriptor) {
 
     using namespace detray;
 
-    using mask_link_t = dtyped_index<mask_ids, dindex>;
-    using material_link_t = dtyped_index<material_ids, dindex>;
+    using mask_link_t = dtyped_index<mask_id, dindex>;
+    using material_link_t = dtyped_index<material_id, dindex>;
 
-    mask_link_t mask_id{mask_ids::e_unmasked, 0u};
-    material_link_t material_id{material_ids::e_slab, 0u};
+    mask_link_t mask_id{mask_id::e_unmasked, 0u};
+    material_link_t material_id{material_id::e_material_slab, 0u};
 
     surface_descriptor<mask_link_t, material_link_t> desc(
         1u, mask_id, material_id, 2u, surface_id::e_sensitive);
@@ -91,9 +91,9 @@ GTEST_TEST(detray_geometry, surface_descriptor) {
     ASSERT_TRUE(desc.is_portal());
     ASSERT_FALSE(desc.is_passive());
     ASSERT_FALSE(desc.is_sensitive());
-    ASSERT_EQ(desc.mask().id(), mask_ids::e_unmasked);
+    ASSERT_EQ(desc.mask().id(), mask_id::e_unmasked);
     ASSERT_EQ(desc.mask().index(), 7u);
-    ASSERT_EQ(desc.material().id(), material_ids::e_slab);
+    ASSERT_EQ(desc.material().id(), material_id::e_material_slab);
     ASSERT_EQ(desc.material().index(), 7u);
 }
 
@@ -130,7 +130,7 @@ GTEST_TEST(detray_geometry, surface_toy_detector) {
     ASSERT_EQ(disc.volume(), 0u);
     ASSERT_EQ(disc.index(), 1u);
     ASSERT_EQ(disc.id(), surface_id::e_portal);
-    ASSERT_EQ(disc.shape_id(), detector_t::masks::id::e_portal_ring2);
+    ASSERT_EQ(disc.shape_id(), detector_t::masks::id::e_ring2D);
     ASSERT_EQ(disc.shape_name(), "ring2D");
     ASSERT_FALSE(disc.is_sensitive());
     ASSERT_FALSE(disc.is_passive());
@@ -220,7 +220,7 @@ GTEST_TEST(detray_geometry, surface_toy_detector) {
     ASSERT_EQ(rec.volume(), 9u);
     ASSERT_EQ(rec.index(), 586u);
     ASSERT_EQ(rec.id(), surface_id::e_sensitive);
-    ASSERT_EQ(rec.shape_id(), detector_t::masks::id::e_rectangle2);
+    ASSERT_EQ(rec.shape_id(), detector_t::masks::id::e_rectangle2D);
     ASSERT_TRUE(rec.is_sensitive());
     ASSERT_FALSE(rec.is_passive());
     ASSERT_FALSE(rec.is_portal());
@@ -296,7 +296,7 @@ GTEST_TEST(detray_geometry, surface_toy_detector) {
     ASSERT_EQ(cyl.volume(), 0u);
     ASSERT_EQ(cyl.index(), 3u);
     ASSERT_EQ(cyl.id(), surface_id::e_portal);
-    ASSERT_EQ(cyl.shape_id(), detector_t::masks::id::e_portal_cylinder2);
+    ASSERT_EQ(cyl.shape_id(), detector_t::masks::id::e_concentric_cylinder2D);
     ASSERT_FALSE(cyl.is_sensitive());
     ASSERT_FALSE(cyl.is_passive());
     ASSERT_TRUE(cyl.is_portal());
@@ -407,7 +407,7 @@ GTEST_TEST(detray_geometry, surface_wire_chamber) {
 
     using namespace detray;
 
-    using metadata_t = test::default_metadata;
+    using metadata_t = test::wire_chamber_metadata;
     using detector_t = detector<metadata_t>;
 
     using test_algebra = metadata_t::algebra_type;

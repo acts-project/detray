@@ -75,14 +75,16 @@ class homogeneous_material_writer {
         auto& mat_sub_header = header_data.sub_header.value();
         if constexpr (detray::concepts::has_material_slabs<detector_t>) {
             mat_sub_header.n_slabs =
-                materials.template size<detector_t::materials::id::e_slab>();
+                materials
+                    .template size<detector_t::material::id::e_material_slab>();
             mat_sub_header.n_slab_surfaces =
                 count_surface_with_material_type(material_id_t::slab);
         }
         mat_sub_header.n_rods = 0u;
         if constexpr (detray::concepts::has_material_rods<detector_t>) {
             mat_sub_header.n_rods =
-                materials.template size<detector_t::materials::id::e_rod>();
+                materials
+                    .template size<detector_t::material::id::e_material_rod>();
             mat_sub_header.n_rod_surfaces =
                 count_surface_with_material_type(material_id_t::rod);
         }
@@ -118,19 +120,24 @@ class homogeneous_material_writer {
             detail::basic_converter::to_payload(vol_desc.index());
 
         // Return early if the stores for homogeneous materials are empty
-        using mat_id = typename detector_t::materials::id;
+        using mat_id = typename detector_t::material::id;
         using algebra_t = typename detector_t::algebra_type;
 
-        // If this reader is called, the detector has at least material slabs
-        if (det.material_store().template empty<mat_id::e_slab>()) {
-            // Check for material rods that are present in e.g. wire chambers
-            if constexpr (detray::concepts::has_material_rods<detector_t>) {
-                if (det.material_store().template empty<mat_id::e_rod>()) {
-                    return mv_data;
-                }
-            } else {
-                return mv_data;
+        bool contains_rods{true};
+        bool contains_slabs{true};
+        if constexpr (detray::concepts::has_material_rods<detector_t>) {
+            if (det.material_store().template empty<mat_id::e_material_rod>()) {
+                contains_rods = false;
             }
+        }
+        if constexpr (detray::concepts::has_material_slabs<detector_t>) {
+            if (det.material_store()
+                    .template empty<mat_id::e_material_slab>()) {
+                contains_slabs = false;
+            }
+        }
+        if (!contains_rods && !contains_slabs) {
+            return mv_data;
         }
 
         // Find all surfaces that belong to the volume and count them

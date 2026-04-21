@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2026 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -13,8 +13,9 @@
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/indexing.hpp"
+#include "detray/geometry/concepts.hpp"
 #include "detray/geometry/mask.hpp"
-#include "detray/geometry/shapes.hpp"
+#include "detray/geometry/shapes/rectangle2D.hpp"
 #include "detray/geometry/surface_descriptor.hpp"
 #include "detray/material/material_rod.hpp"
 #include "detray/material/material_slab.hpp"
@@ -22,8 +23,8 @@
 
 namespace detray {
 
-/// Defines a telescope detector type with only rectangle portals and one
-/// additional kind of contained module surfaces (@tparam mask_shape_t)
+/// Defines a special telescope test detector type with only rectangle portals
+/// and one additional kind of contained module surfaces (@tparam mask_shape_t)
 template <concepts::algebra algebra_t, typename mask_shape_t = rectangle2D>
 struct telescope_metadata {
 
@@ -31,7 +32,7 @@ struct telescope_metadata {
     using algebra_type = algebra_t;
     using scalar_t = dscalar<algebra_type>;
 
-    /// Mask to (next) volume link: next volume(s)
+    /// Index type in the masks to find the adjecent volumes
     using nav_link = std::uint_least16_t;
 
     /// How to store coordinate transform matrices
@@ -43,24 +44,21 @@ struct telescope_metadata {
     // Surface Primitives
     //
 
-    /// Mask types (these types are needed for the portals, which are always
-    /// there, and to resolve the wire surface material, i.e. slab vs. rod)
-    using rectangle = mask<rectangle2D, algebra_type, nav_link>;
-    using straw_tube = mask<line_circular, algebra_type, nav_link>;
-    using drift_cell = mask<line_square, algebra_type, nav_link>;
+    /// Rectangles are needed fro the portals
+    using rectangle2D_t = mask<detray::rectangle2D, algebra_type, nav_link>;
+    using module_t = mask<mask_shape_t, algebra_type, nav_link>;
 
-    /// Rectangles are always needed as portals (but the yhave the same type as
+    /// Rectangles are always needed as portals (but they have the same type as
     /// module rectangles). Only one additional mask shape is allowed
-    enum class mask_ids : std::uint_least8_t {
-        e_rectangle2 = 0u,
-        e_portal_rectangle2 = 0u,
-        e_annulus2 = 1u,
-        e_cylinder2 = 1u,
-        e_ring2 = 1u,
-        e_trapezoid2 = 1u,
-        e_single1 = 1u,
-        e_single2 = 1u,
-        e_single3 = 1u,
+    enum class mask_id : std::uint_least8_t {
+        e_rectangle2D = 0u,
+        e_annulus2D = 1u,
+        e_cylinder2D = 1u,
+        e_ring2D = 1u,
+        e_trapezoid2D = 1u,
+        e_single1D = 1u,
+        e_single2D = 1u,
+        e_single3D = 1u,
         e_straw_tube = 1u,
         e_drift_cell = 1u,
         e_unbounded_annulus2 = 1u,
@@ -74,82 +72,74 @@ struct telescope_metadata {
     };
 
     DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
-                                                       mask_ids mid) {
-
-        switch (mid) {
-            case mask_ids::e_rectangle2:
-                // e_portal_rectangle2 has same value (0u)
-                os << "e_rectangle2/e_portal_rectangle2";
+                                                       mask_id id) {
+        switch (id) {
+            case mask_id::e_rectangle2D:
+                os << "e_rectangle2D";
                 break;
-            case mask_ids::e_annulus2:
+            case mask_id::e_annulus2D:
                 // All other values are 1u, showing first alphabetically
-                os << "OTHER SHAPE";
+                os << "telescope module shape";
                 break;
             default:
                 os << "invalid";
         }
         return os;
-    }
+    };
 
     /// How to store masks
     template <template <typename...> class vector_t = dvector>
     using mask_store = std::conditional_t<
-        std::is_same_v<mask<mask_shape_t, algebra_type, nav_link>, rectangle>,
-        regular_multi_store<mask_ids, empty_context, dtuple, vector_t,
-                            rectangle>,
-        regular_multi_store<mask_ids, empty_context, dtuple, vector_t,
-                            rectangle,
-                            mask<mask_shape_t, algebra_type, nav_link>>>;
-
+        std::same_as<module_t, rectangle2D_t>,
+        regular_multi_store<mask_id, empty_context, dtuple, vector_t,
+                            rectangle2D_t>,
+        regular_multi_store<mask_id, empty_context, dtuple, vector_t,
+                            rectangle2D_t, module_t>>;
     //
     // Material Description
     //
 
-    /// Material types
-    using rod = material_rod<scalar_t>;
-    using slab = material_slab<scalar_t>;
+    /// Material types (slabs for portals, rods are optional)
+    using material_slab_t = material_slab<scalar_t>;
+    using material_rod_t = material_rod<scalar_t>;
 
-    /// Material type ids
-    enum class material_ids : std::uint_least8_t {
-        e_slab = 0u,
+    enum class material_id : std::uint_least8_t {
+        e_material_slab = 0u,
         e_raw_material = 1u,  //< used for homogeneous volume material
-        e_rod = 2u,
+        e_material_rod = 2u,
         e_none = 3u,
     };
 
     DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
-                                                       material_ids mid) {
-
-        switch (mid) {
-            case material_ids::e_slab:
-                os << "e_slab";
+                                                       material_id id) {
+        switch (id) {
+            case material_id::e_material_slab:
+                os << "e_material_slab";
                 break;
-            case material_ids::e_raw_material:
+            case material_id::e_raw_material:
                 os << "e_raw_material";
                 break;
-            case material_ids::e_rod:
-                os << "e_rod";
+            case material_id::e_material_rod:
+                os << "e_material_rod";
                 break;
-            case material_ids::e_none:
+            case material_id::e_none:
                 os << "e_none";
                 break;
             default:
                 os << "invalid";
         }
         return os;
-    }
+    };
 
     /// How to store materials
     template <typename container_t = host_container_types>
     using material_store = std::conditional_t<
-        std::is_same_v<mask<mask_shape_t, algebra_type, nav_link>, drift_cell> |
-            std::is_same_v<mask<mask_shape_t, algebra_type, nav_link>,
-                           straw_tube>,
-        regular_multi_store<material_ids, empty_context, dtuple,
-                            container_t::template vector_type, slab,
-                            material<scalar_t>, rod>,
-        regular_multi_store<material_ids, empty_context, dtuple,
-                            container_t::template vector_type, slab,
+        concepts::line_shape<mask_shape_t, algebra_type>,
+        regular_multi_store<material_id, empty_context, dtuple,
+                            container_t::template vector_type, material_slab_t,
+                            material<scalar_t>, material_rod_t>,
+        regular_multi_store<material_id, empty_context, dtuple,
+                            container_t::template vector_type, material_slab_t,
                             material<scalar_t>>>;
 
     /// How to link to the entries in the data stores
@@ -161,81 +151,74 @@ struct telescope_metadata {
         surface_descriptor<mask_link, material_link, transform_link, nav_link>;
 
     //
+    // Acceleration structures
+    //
+
+    /// Acceleration data structures
+    enum class accel_id : std::uint_least8_t {
+        e_surface_brute_force = 0u,
+        e_volume_brute_force = 1u,
+        e_surface_default = e_surface_brute_force,
+        e_volume_default = e_volume_brute_force,
+    };
+
+    DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
+                                                       accel_id id) {
+        switch (id) {
+            case accel_id::e_surface_brute_force:
+                os << "e_surface_brute_force";
+                break;
+            case accel_id::e_volume_brute_force:
+                os << "e_volume_brute_force";
+                break;
+            default:
+                os << "invalid";
+        }
+        return os;
+    };
+
+    /// How to store the brute force search data structure
+    template <typename container_t = host_container_types>
+    using accelerator_store =
+        multi_store<accel_id, empty_context, dtuple,
+                    brute_force_collection<surface_type, container_t>,
+                    brute_force_collection<dindex, container_t>>;
+
+    //
     // Volume descriptors
     //
 
     /// No grids/other acceleration data structure, everything is brute forced
     enum geo_objects : std::uint_least8_t {
+        e_sensitive = 0u,
         e_portal = 0u,
         e_passive = 0u,
-        e_sensitive = 1u,
+        e_volume = 1u,
         e_size = 2u,
         e_all = e_size,
     };
 
     DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
-                                                       geo_objects gobj) {
-        switch (gobj) {
-            case geo_objects::e_portal:
-                os << "e_portal/e_passive";
+                                                       geo_objects id) {
+        switch (id) {
+            case geo_objects::e_passive:
+                os << "e_sensitive/e_portal/e_passive";
                 break;
-            case geo_objects::e_sensitive:
-                os << "e_sensitive";
+            case geo_objects::e_volume:
+                os << "e_volume";
                 break;
             case geo_objects::e_size:
-                // e_all has same value (2u)
-                os << "e_size/e_all";
+                os << "e_size";
                 break;
             default:
                 os << "invalid";
         }
         return os;
-    }
-
-    //
-    // Acceleration structures
-    //
-
-    /// Acceleration data structures
-    enum class accel_ids {
-        e_brute_force = 0u,  // test all surfaces in a volume (brute force)
-        e_volume_brute_force = 1u,
-        e_default = e_brute_force,
-        e_default_volume_searcher = e_volume_brute_force,
     };
-
-    DETRAY_HOST inline friend std::ostream& operator<<(std::ostream& os,
-                                                       accel_ids aid) {
-
-        switch (aid) {
-            case accel_ids::e_brute_force:
-                // e_default has same value (0u)
-                os << "e_brute_force/e_default";
-                break;
-            case accel_ids::e_volume_brute_force:
-                // e_default has same value (0u)
-                os << "e_volume_brute_force/e_default_volume_searcher";
-                break;
-            default:
-                os << "invalid";
-        }
-        return os;
-    }
 
     /// One link for all surfaces (in the brute force method)
     using object_link_type =
-        dmulti_index<dtyped_index<accel_ids, dindex>, geo_objects::e_size>;
-
-    /// Volume search (only one volume exists)
-    template <typename container_t = host_container_types>
-    using volume_accelerator = brute_force_collection<dindex, container_t>;
-
-    /// How to store the brute force search data structure
-    template <typename container_t = host_container_types>
-    using accelerator_store =
-        multi_store<accel_ids, empty_context, dtuple,
-                    brute_force_collection<surface_type, container_t>,
-                    volume_accelerator<container_t>>;
+        dmulti_index<dtyped_index<accel_id, dindex>, geo_objects::e_size>;
 };
 
 }  // namespace detray

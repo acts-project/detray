@@ -291,7 +291,7 @@ inline void check_empty(const detector_t &det, const bool verbose) {
         // Check for empty material collections
         detail::report_empty(
             det.material_store(), "material store",
-            std::make_index_sequence<detector_t::materials::n_types>{});
+            std::make_index_sequence<detector_t::material::n_types>{});
     }
 
     // Check for empty acceleration data structure collections (e.g. grids)

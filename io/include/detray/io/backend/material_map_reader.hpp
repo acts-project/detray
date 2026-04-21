@@ -58,7 +58,7 @@ class material_map_reader {
         using scalar_t = dscalar<typename detector_t::algebra_type>;
         using mat_factory_t = material_map_factory<detector_t, bin_index_type>;
         using mat_data_t = typename mat_factory_t::data_type;
-        using mat_id = typename detector_t::materials::id;
+        using mat_id = typename detector_t::material::id;
 
         // Map the io::shape_id in the payload to the shape types known by
         // the detector under construction
@@ -189,7 +189,7 @@ class material_map_reader {
     private:
     /// Get the detector material id from the payload material type id
     template <typename mat_registry_t, typename detector_t, std::size_t I = 0u>
-    static typename detector_t::materials::id from_payload(
+    static typename detector_t::material::id from_payload(
         io::material_id type_id) {
         // Get the next mask shape type
         using frame_t = types::at<mat_registry_t, I>;
@@ -208,7 +208,7 @@ class material_map_reader {
                 constexpr std::size_t mapped_idx{
                     types::position<mat_frame_registry_t, frame_t>};
 
-                return types::id_cast<typename detector_t::materials,
+                return types::id_cast<typename detector_t::material,
                                       mat_frame_registry_t::original_index(
                                           mapped_idx)>;
             }
@@ -217,7 +217,7 @@ class material_map_reader {
         if constexpr (I < types::size<mat_registry_t> - 1u) {
             return from_payload<mat_registry_t, detector_t, I + 1u>(type_id);
         } else {
-            return detector_t::materials::id::e_none;
+            return detector_t::material::id::e_none;
         }
     }
 };

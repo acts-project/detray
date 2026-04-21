@@ -63,7 +63,7 @@ class homogeneous_volume_material_builder final
             return vol;
         }
 
-        constexpr auto material_id{detector_t::materials::id::e_raw_material};
+        constexpr auto material_id{detector_t::material::id::e_raw_material};
 
         // Update the volume material link
         dindex coll_size{det.material_store().template size<material_id>()};
